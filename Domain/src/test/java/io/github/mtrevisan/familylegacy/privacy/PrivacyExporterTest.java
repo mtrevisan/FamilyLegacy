@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.privacy;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -116,11 +118,11 @@ class PrivacyExporterTest{
 
 		final FLEFRecord event = result.model().getRecordById("E1");
 		Assertions.assertNotNull(event);
-		Assertions.assertNull(FLEFRecordHelper.findChild(event, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(event, EventReader.TAG_PLACE));
 		Assertions.assertEquals("At home", FLEFRecordHelper.getChildValue(event, "description"));
 		Assertions.assertTrue(result.omittedNodes() >= 1);
 		//the original keeps its reference
-		Assertions.assertNotNull(FLEFRecordHelper.findChild(model.getRecordById("E1"), "place"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(model.getRecordById("E1"), EventReader.TAG_PLACE));
 	}
 
 	@Test
@@ -132,7 +134,7 @@ class PrivacyExporterTest{
 		final FLEFRecord individual = PrivacyExporter.filter(model, PrivacyPolicy.HIDE_RESTRICTED_AND_CONFIDENTIAL)
 			.model().getRecordById("I1");
 
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(individual, "source").size());
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(individual, SourceCitationReader.TAG_SOURCE).size());
 	}
 
 	@Test

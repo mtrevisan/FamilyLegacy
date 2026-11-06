@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
@@ -112,9 +114,9 @@ class IdentityOtherKindsTest{
 		final FLEFModel model = convert();
 		final Diagnostic finding = found(model).getFirst();
 
-		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", "identity_hypothesis");
+		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", IdentityHypothesisReader.TYPE);
 		for(final String id : finding.recordIds())
-			hypothesis.addChild(FLEFRecord.createChildWithTag("identity")
+			hypothesis.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_IDENTITY)
 				.addChild(FLEFRecord.createChildWithTagAndValue(model.getRecordById(id).getTag(), id)));
 		model.addRecord(hypothesis);
 
@@ -126,16 +128,16 @@ class IdentityOtherKindsTest{
 	void aPairThatAConclusionHasDisprovenIsNotProposedAgain() throws IOException{
 		final FLEFModel model = convert();
 		final Diagnostic finding = found(model).getFirst();
-		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", "identity_hypothesis");
+		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", IdentityHypothesisReader.TYPE);
 		for(final String id : finding.recordIds())
-			hypothesis.addChild(FLEFRecord.createChildWithTag("identity")
+			hypothesis.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_IDENTITY)
 				.addChild(FLEFRecord.createChildWithTagAndValue(model.getRecordById(id).getTag(), id)));
 		model.addRecord(hypothesis);
-		model.addRecord(FLEFRecord.createMainRecord("C1", "conclusion")
-			.addChild(FLEFRecord.createChildWithTagAndValue("issue", "identity"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("proof_status", "disproven"))
-			.addChild(FLEFRecord.createChildWithTag("resolves")
-				.addChild(FLEFRecord.createChildWithTagAndValue("identity_hypothesis", "IH1"))));
+		model.addRecord(FLEFRecord.createMainRecord("C1", ConclusionReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_ISSUE, "identity"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN))
+			.addChild(FLEFRecord.createChildWithTag(ConclusionReader.TAG_RESOLVES)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TYPE, "IH1"))));
 
 		Assertions.assertEquals(1, found(model).size());
 	}

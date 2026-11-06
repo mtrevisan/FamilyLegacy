@@ -154,8 +154,9 @@ public record ToolContext(
 		return dispatcher.confirmDiscardChanges();
 	}
 
-	public void openImported(final FLEFModel importedModel, final File source){
-		dispatcher.openImported(importedModel, source);
+	/** @return	{@code false} if the save of the imported model was cancelled or failed. */
+	public boolean openImported(final FLEFModel importedModel, final File source){
+		return dispatcher.openImported(importedModel, source);
 	}
 
 	public void performEdit(final String id){

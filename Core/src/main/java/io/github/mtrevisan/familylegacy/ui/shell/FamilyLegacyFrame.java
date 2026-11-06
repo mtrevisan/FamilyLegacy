@@ -573,8 +573,8 @@ public class FamilyLegacyFrame extends JFrame{
 				}
 
 				@Override
-				public void openImported(final FLEFModel importedModel, final File source){
-					fileController.openImported(importedModel, source);
+				public boolean openImported(final FLEFModel importedModel, final File source){
+					return fileController.openImported(importedModel, source);
 				}
 
 				@Override

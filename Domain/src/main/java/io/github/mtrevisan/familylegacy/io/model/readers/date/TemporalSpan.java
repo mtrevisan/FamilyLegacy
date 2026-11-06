@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -57,9 +58,9 @@ public record TemporalSpan(
 	NormalizedDate end,
 	String status){
 
-	public static final String STATUS_ACTIVE = "active";
-	public static final String STATUS_ENDED = "ended";
-	public static final String STATUS_UNKNOWN = "unknown";
+	public static final String STATUS_ACTIVE = RelationshipReader.ENUM_STATUS_ACTIVE;
+	public static final String STATUS_ENDED = RelationshipReader.ENUM_STATUS_ENDED;
+	public static final String STATUS_UNKNOWN = RelationshipReader.ENUM_STATUS_UNKNOWN;
 
 
 	/**

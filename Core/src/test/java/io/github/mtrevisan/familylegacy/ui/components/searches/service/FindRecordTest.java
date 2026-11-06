@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
@@ -172,7 +173,7 @@ class FindRecordTest{
 		Assertions.assertEquals(List.of("I3"), service.search(new SearchCriteria(type, "verso", Set.of(SearchMode.NOTES_AND_CITATIONS)))
 			.stream().map(FLEFRecord::getId).toList(), "the locator of a citation");
 		Assertions.assertEquals(List.of(), service.search(new SearchCriteria(type, "pasqua", Set.of())), "not without the option");
-		Assertions.assertEquals(List.of("I1"), service.search(new SearchCriteria(type, "emigration", Set.of(SearchMode.NOTES_AND_CITATIONS)))
+		Assertions.assertEquals(List.of("I1"), service.search(new SearchCriteria(type, EventReader.ENUM_TYPE_EMIGRATION, Set.of(SearchMode.NOTES_AND_CITATIONS)))
 			.stream().map(FLEFRecord::getId).toList(), "the title of a note");
 		Assertions.assertEquals(List.of("I1", "I2"), service.search(new SearchCriteria(type, "Argentna spring",
 				Set.of(SearchMode.NOTES_AND_CITATIONS, SearchMode.FUZZY, SearchMode.WHOLE_WORD)))

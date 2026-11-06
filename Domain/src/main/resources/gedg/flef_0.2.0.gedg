@@ -256,18 +256,35 @@ struct PersonalNameStructure {
 struct NamePartStructure {
   type: enum {
     // personal and birth names
-    given, generation,
+    given,             // Given name, personal name, or forename assigned to the individual.
+    generation,        // Generational designation distinguishing individuals with the same name (e.g. "Jr.", "Sr.", "II", "III").
     // direct family relationships (descent)
-    patronymic, matronymic, kunya,   // kunya: كُنيَة, Arabic teknonym (e.g. "Abu ...", "Umm ...")
+    patronymic,        // Name derived from the father's given name.
+    matronymic,        // Name derived from the mother's given name.
+    kunya,             // Arabic teknonym (كُنيَة, e.g. "Abu ...", "Umm ...") identifying a person through a child or descendant.
     // extended family and social belonging
-    family, family_nickname, lineage, house, clan, tribal, caste,
+    family,            // Family name, surname, or hereditary last name.
+    family_prefix,     // Prefix forming part of a family name according to the relevant naming tradition (e.g. "de", "del", "di", "da", "van", "von", "af").
+    family_nickname,   // Informal, hereditary, or distinguishing byname associated with a family or lineage.
+    lineage,           // Name identifying descent from a common ancestor, dynasty, or ancestral line.
+    house,             // Dynastic, noble, royal, or ruling house name.
+    clan,              // Clan or kin-group name indicating membership in a larger familial group.
+    tribal,            // Tribal affiliation or tribe name.
+    caste,             // Caste, social estate, or hereditary social classification used as part of a name.
     // geographical and territorial origin
-    toponymic,
+    toponymic,         // Name derived from a place, locality, estate, territory, or geographic origin.
     // titles, roles and professions
-    title, occupational, prefix, suffix,
-    // assumed names, nicknames and contextual
-    nickname, regnal, religious, posthumous
+    title,             // Honorific, noble, academic, military, religious, or official title (e.g. "Count", "Dr.", "Bishop").
+    occupational,      // Name derived from an occupation, office, trade, or professional activity.
+    prefix,            // Name prefix not forming part of the family name (e.g. "Mr.", "Mrs.", "Don", "Fr.").
+    suffix,            // Name suffix appended after the name (e.g. honorifics, qualifications, distinctions).
+    // assumed names, nicknames and contextual names
+    nickname,          // Informal or familiar name used in everyday life.
+    regnal,            // Name used by a monarch, pope, or other ruler while holding office.
+    religious,         // Name adopted upon entering a religious order or religious life.
+    posthumous         // Name granted or used after the individual's death.
   } | Text
+
   value: Text                  // the textual value of this individual name component
   variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations of this name component
 }
@@ -764,6 +781,20 @@ struct NoteStructure {
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
   name+: NameStructure         // the official name of the archive in which the stated source material is stored
+  type?: enum {
+    archive,              // archival institution preserving records
+    library,              // library or bibliographic repository
+    church,               // parish, diocese, congregation, or other religious institution
+    cemetery,             // cemetery or burial repository
+    website,              // website, online database, or digital repository
+    collection,           // organized collection of records or artifacts
+    private_collection,   // privately held family or personal collection
+    bookstore,            // bookseller or publisher repository
+    government,           // government office or public administration
+    museum,               // museum or cultural heritage institution
+    university,           // university, college, or academic institution
+    institution           // generic institution when a more specific type is unknown
+  } | Text
   custodian?: Agent            // the current custodian of the repository or of its material
   place?: PlaceCitation        // the location of the repository
   contact*: ContactStructure
@@ -1001,14 +1032,15 @@ struct CropRect {
 // The kind of a media is a classification and may be revised: it is a field, so that correcting it does not change the references to the record.
 // A MEDIA_PART (see ExtractStructure) uses PAGE and CROP for images and documents, START_TIME and END_TIME for audio and video.
 record MediaRecord {
-  uri: Uri             // URI identifying the underlying resource.
-  kind: enum {         // the nature of the resource
+  uri: Uri               // URI identifying the underlying resource.
+  kind: enum {           // the nature of the resource
     image,      // a still image such as a photograph, scan, map, or illustration
     document,   // a textual or paginated document such as a PDF, transcription, OCR output, or word-processing document
     audio,      // an audio recording such as an interview, oral history, or speech
     video       // a video recording such as a documentary, interview, or family recording
   }
-  mapping?: enum {     // Describes how visual image data (of an image, a video, or a page of a document) should be interpreted and rendered.
+  date?: DateStructure   // date the media was created, captured, recorded, published, or otherwise produced
+  mapping?: enum {       // Describes how visual image data (of an image, a video, or a page of a document) should be interpreted and rendered.
     planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
     spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
     spherical_uv,                             // Image mapped directly onto a sphere using UV texture coordinates.
@@ -1016,7 +1048,7 @@ record MediaRecord {
     cylindrical_equirectangular_horizontal,   // Cylindrical panorama wrapped horizontally around a cylinder.
     cylindrical_equirectangular_vertical      // Cylindrical panorama wrapped vertically around a cylinder.
   } | Text
-  description?: Text   // Optional description of the media (e.g. "cover", "back", "page 3", "index", "cemetery entrance").
+  description?: Text     // Optional description of the media (e.g. "cover", "back", "page 3", "index", "cemetery entrance").
   note*: NoteStructure
   privacy?: PrivacyStructure
   audit: AuditStructure

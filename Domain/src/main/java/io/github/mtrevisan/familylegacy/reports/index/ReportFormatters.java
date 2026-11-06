@@ -25,9 +25,15 @@
 package io.github.mtrevisan.familylegacy.reports.index;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
@@ -48,8 +54,8 @@ public final class ReportFormatters{
 	private static final Pattern HTML_P_OPEN = Pattern.compile("(?i)<p[^>]*>");
 	private static final Pattern HTML_P_CLOSE = Pattern.compile("(?i)</p>");
 	private static final Pattern HTML_BR = Pattern.compile("(?i)<br\\s*/?>");
-	private static final String TAG_PLACE = "place";
-	private static final String TAG_SOURCE = "source";
+	private static final String TAG_PLACE = EventReader.TAG_PLACE;
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
 
 
 	private ReportFormatters(){
@@ -143,19 +149,19 @@ public final class ReportFormatters{
 		if(tag == null)
 			return null;
 
-		final String value = FLEFRecordHelper.getChildValue(branch, "value");
+		final String value = FLEFRecordHelper.getChildValue(branch, TextValueVariantReader.TAG_PHONETIC_VALUE);
 		if(StringUtils.isEmpty(value))
 			return null;
 
-		if("phonetic".equalsIgnoreCase(tag)){
-			final String system = FLEFRecordHelper.getChildValue(branch, "system");
+		if(TextValueVariantReader.TAG_PHONETIC.equalsIgnoreCase(tag)){
+			final String system = FLEFRecordHelper.getChildValue(branch, TextValueVariantReader.TAG_PHONETIC_SYSTEM);
 			return (system != null && !system.isBlank()
 				? "[" + system + "] ": StringUtils.EMPTY) + value;
 		}
 
-		if("transcription".equalsIgnoreCase(tag)){
-			final String system = FLEFRecordHelper.getChildValue(branch, "system");
-			final String type = FLEFRecordHelper.getChildValue(branch, "type");
+		if(TextValueVariantReader.TAG_TRANSCRIPTION.equalsIgnoreCase(tag)){
+			final String system = FLEFRecordHelper.getChildValue(branch, TextValueVariantReader.TAG_TRANSCRIPTION_SYSTEM);
+			final String type = FLEFRecordHelper.getChildValue(branch, TextValueVariantReader.TAG_TRANSCRIPTION_TYPE);
 			final StringBuilder tagText = new StringBuilder();
 			if(system != null && !system.isBlank())
 				tagText.append(system);
@@ -178,7 +184,7 @@ public final class ReportFormatters{
 		final String v = note.getValue();
 		if(v != null)
 			return v;
-		final FLEFRecord only = FLEFRecordHelper.findChild(note, "text");
+		final FLEFRecord only = FLEFRecordHelper.findChild(note, NoteReader.TAG_TEXT);
 		return (only != null? only.getValue(): StringUtils.EMPTY);
 	}
 
@@ -226,13 +232,13 @@ public final class ReportFormatters{
 		if(contact == null)
 			return null;
 
-		final String value = FLEFRecordHelper.getChildValue(contact, "value");
+		final String value = FLEFRecordHelper.getChildValue(contact, ContactReader.TAG_VALUE);
 		if(StringUtils.isEmpty(value))
 			return null;
 
-		final String type = FLEFRecordHelper.getChildValue(contact, "type");
-		final String name = FLEFRecordHelper.getChildValue(contact, "name.value");
-		final String note = FLEFRecordHelper.getChildValue(contact, "note");
+		final String type = FLEFRecordHelper.getChildValue(contact, ContactReader.TAG_TYPE);
+		final String name = FLEFRecordHelper.getChildValue(contact, FLEFRecordHelper.composePath(ContactReader.TAG_NAME, NameReader.TAG_VALUE));
+		final String note = FLEFRecordHelper.getChildValue(contact, ContactReader.TAG_REMARK);
 
 		final StringBuilder sb = new StringBuilder();
 		if(type != null && !type.isBlank())
@@ -257,11 +263,11 @@ public final class ReportFormatters{
 	 */
 	public static List<String> noteTranslations(final FLEFRecord note, final ReportLabels labels){
 		final List<String> out = new ArrayList<>();
-		for(final FLEFRecord tr : FLEFRecordHelper.findChildren(note, "translation")){
-			final String text = FLEFRecordHelper.getChildValue(tr, "text");
+		for(final FLEFRecord tr : FLEFRecordHelper.findChildren(note, NoteReader.TAG_TRANSLATION)){
+			final String text = FLEFRecordHelper.getChildValue(tr, NoteReader.TAG_TEXT);
 			if(StringUtils.isEmpty(text))
 				continue;
-			final String locale = FLEFRecordHelper.getChildValue(tr, "locale");
+			final String locale = FLEFRecordHelper.getChildValue(tr, NoteReader.TAG_LOCALE);
 
 			final StringBuilder sb = new StringBuilder("*")
 				.append(labels.sections().noteTranslation())
@@ -294,14 +300,14 @@ public final class ReportFormatters{
 		if(imageNode == null)
 			return base;
 
-		final FLEFRecord cropNode = FLEFRecordHelper.findChild(imageNode, "crop");
+		final FLEFRecord cropNode = FLEFRecordHelper.findChild(imageNode, CropReader.TAG_CROP);
 		if(cropNode == null)
 			return base;
 
-		final String x = FLEFRecordHelper.getChildValue(cropNode, "x");
-		final String y = FLEFRecordHelper.getChildValue(cropNode, "y");
-		final String w = FLEFRecordHelper.getChildValue(cropNode, "width");
-		final String h = FLEFRecordHelper.getChildValue(cropNode, "height");
+		final String x = FLEFRecordHelper.getChildValue(cropNode, CropReader.TAG_X);
+		final String y = FLEFRecordHelper.getChildValue(cropNode, CropReader.TAG_Y);
+		final String w = FLEFRecordHelper.getChildValue(cropNode, CropReader.TAG_WIDTH);
+		final String h = FLEFRecordHelper.getChildValue(cropNode, CropReader.TAG_HEIGHT);
 		if(x == null || y == null || w == null || h == null)
 			return base;
 
@@ -316,7 +322,7 @@ public final class ReportFormatters{
 
 	/** Returns the trimmed title of a {@code note} node, or {@code null}. */
 	public static String noteTitle(final FLEFRecord note){
-		final String title = FLEFRecordHelper.getChildValue(note, "title");
+		final String title = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE);
 		return (title != null && !title.isBlank()? title.trim(): null);
 	}
 
@@ -360,7 +366,7 @@ public final class ReportFormatters{
 	 */
 	public static String noteBody(final FLEFRecord note){
 		final String text = noteText(note);
-		final String mime = FLEFRecordHelper.getChildValue(note, "mime");
+		final String mime = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_MIME);
 		if(StringUtils.isEmpty(mime))
 			return text;
 		if(mime.contains("markdown"))
@@ -385,13 +391,18 @@ public final class ReportFormatters{
 	}
 
 	/**
-	 * Renders an {@code ExtractStructure.note} as a one-line string. Returns
-	 * {@code null} when the note is empty.
+	 * Renders the {@code ExtractStructure.remark} entries of a citation as a one-line string. Returns
+	 * {@code null} when there is no remark.
 	 */
 	public static String extractNote(final FLEFRecord citation){
-		final String note = FLEFRecordHelper.getChildValue(citation,
-			"extract.note");
-		return (note != null && !note.isBlank()? note.trim(): null);
+		final List<String> remarks = new ArrayList<>();
+		for(final FLEFRecord extract : FLEFRecordHelper.findChildren(citation, SourceCitationReader.TAG_EXTRACT))
+			for(final FLEFRecord remark : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_REMARK)){
+				final String value = remark.getValue();
+				if(StringUtils.isNotBlank(value))
+					remarks.add(value.trim());
+			}
+		return (remarks.isEmpty()? null: String.join("; ", remarks));
 	}
 
 	/**
@@ -400,13 +411,13 @@ public final class ReportFormatters{
 	 */
 	public static String extractCrop(final FLEFRecord citation){
 		final FLEFRecord crop = FLEFRecordHelper.findChild(citation,
-			"extract.media_part.crop");
+			FLEFRecordHelper.composePath(SourceCitationReader.TAG_EXTRACT, SourceCitationReader.TAG_MEDIA_PART, SourceCitationReader.TAG_CROP));
 		if(crop == null)
 			return null;
-		final String x = FLEFRecordHelper.getChildValue(crop, "x");
-		final String y = FLEFRecordHelper.getChildValue(crop, "y");
-		final String w = FLEFRecordHelper.getChildValue(crop, "width");
-		final String h = FLEFRecordHelper.getChildValue(crop, "height");
+		final String x = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_X);
+		final String y = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_Y);
+		final String w = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_WIDTH);
+		final String h = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_HEIGHT);
 		if(x == null || y == null || w == null || h == null)
 			return null;
 		return x + "," + y + "," + w + "," + h;

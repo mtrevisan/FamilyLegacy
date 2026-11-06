@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
@@ -55,14 +56,14 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
  */
 final class FieldMerger{
 
-	private static final String TAG_AUDIT = "audit";
-	private static final String TAG_CREATION = "creation";
-	private static final String TAG_UPDATE = "update";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_COMMENT = "comment";
-	private static final String TAG_LEVEL = "level";
-	private static final String TAG_EXPIRES = "expires";
-	private static final String TAG_SEX = "sex";
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
+	private static final String TAG_CREATION = AuditReader.TAG_CREATION;
+	private static final String TAG_UPDATE = AuditReader.TAG_UPDATE;
+	private static final String TAG_DATE = AuditReader.TAG_DATE;
+	private static final String TAG_COMMENT = AuditReader.TAG_COMMENT;
+	private static final String TAG_LEVEL = PrivacyReader.TAG_LEVEL;
+	private static final String TAG_EXPIRES = PrivacyReader.TAG_EXPIRES;
+	private static final String TAG_SEX = IndividualReader.TAG_SEX;
 	private static final String SEX_UNKNOWN = IndividualReader.ENUM_SEX_UNKNOWN;
 
 	private static final List<String> PRIVACY_LEVELS = List.of(PrivacyReader.ENUM_LEVEL_PUBLIC, PrivacyReader.ENUM_LEVEL_RESTRICTED, PrivacyReader.ENUM_LEVEL_CONFIDENTIAL);

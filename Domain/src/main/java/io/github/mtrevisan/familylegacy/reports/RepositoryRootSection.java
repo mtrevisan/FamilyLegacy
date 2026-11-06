@@ -46,6 +46,7 @@ import java.util.List;
  *
  * <p>Renders:</p>
  * <ul>
+ *   <li>the type of the repository;</li>
  *   <li>primary and secondary names, with type and locale;</li>
  *   <li>custodian;</li>
  *   <li>place;</li>
@@ -56,7 +57,6 @@ import java.util.List;
  */
 public final class RepositoryRootSection implements SectionBuilder{
 
-	private static final String TAG_TYPE = "type";
 
 
 	private final ReportContext ctx;
@@ -97,7 +97,7 @@ public final class RepositoryRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().type(),
-			FLEFRecordHelper.getChildValue(ctx.root, TAG_TYPE));
+			ReportFormatters.enumLabel(RepositoryReader.extractType(ctx.root)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -186,7 +186,7 @@ public final class RepositoryRootSection implements SectionBuilder{
 
 			final List<String> rows = new ArrayList<>();
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
-				FLEFRecordHelper.getChildValue(src, "author"));
+				FLEFRecordHelper.getChildValue(src, SourceReader.TAG_AUTHOR));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 				DateService.getDateDisplayText(src));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),

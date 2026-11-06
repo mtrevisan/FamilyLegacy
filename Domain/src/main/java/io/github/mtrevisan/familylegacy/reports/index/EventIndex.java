@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.reports.index;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -42,8 +43,8 @@ import java.util.function.Predicate;
 
 public final class EventIndex{
 
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_ROLE = "role";
+	private static final String TAG_PARTICIPANT = EventParticipationReader.TAG_PARTICIPANT;
+	private static final String TAG_ROLE = EventParticipationReader.TAG_ROLE;
 
 
 	/**
@@ -89,7 +90,7 @@ public final class EventIndex{
 				personToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
 					.add(event);
 
-				if("group".equalsIgnoreCase(participantRef.tag())){
+				if(GroupReader.TYPE.equalsIgnoreCase(participantRef.tag())){
 					groupToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
 						.add(event);
 				}

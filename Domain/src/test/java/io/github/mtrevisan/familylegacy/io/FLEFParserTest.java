@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io;
 
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
@@ -88,7 +89,7 @@ class FLEFParserTest{
 		final FLEFModel model = new FLEFParser().parse(HEADER + INDIVIDUAL);
 
 		Assertions.assertEquals(1, model.getRecordCount());
-		Assertions.assertEquals("individual", model.getRecordById("I1").getTag());
+		Assertions.assertTrue(IndividualReader.TYPE.equalsIgnoreCase(model.getRecordById("I1").getTag()));
 		Assertions.assertEquals("0.2.0", FLEFRecordHelper.getChildValue(model.getHeader(), "protocol.version"));
 	}
 
@@ -117,7 +118,7 @@ class FLEFParserTest{
 		Assertions.assertEquals("2026-10-16T09:30:00+02:00", FLEFRecordHelper.getChildValue(individual, "audit.creation.date"));
 		Assertions.assertEquals("fixed name", FLEFRecordHelper.getChildValue(individual, "audit.update.comment"));
 		// NAME is repeated: each block is a name
-		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(individual, "name").size());
+		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_NAME).size());
 	}
 
 	@Test

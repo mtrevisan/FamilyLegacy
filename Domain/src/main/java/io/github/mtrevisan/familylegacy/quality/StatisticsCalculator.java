@@ -131,7 +131,7 @@ public final class StatisticsCalculator{
 			if(type == null)
 				continue;
 
-			if(!type.toLowerCase(Locale.ROOT).equals(RelationshipReader.ENUM_TYPE_CHILD) && !type.toLowerCase(Locale.ROOT).endsWith("_child"))
+			if(!type.toLowerCase(Locale.ROOT).equals(RelationshipReader.ENUM_TYPE_CHILD) && !type.toLowerCase(Locale.ROOT).endsWith("_" + RelationshipReader.ENUM_TYPE_CHILD))
 				continue;
 
 			final String subj = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
@@ -184,7 +184,9 @@ public final class StatisticsCalculator{
 		int male = 0, female = 0, unknownSex = 0;
 
 		for(final FLEFRecord ind : individuals){
-			for(final FLEFRecord nameBlock : FLEFRecordHelper.findChildren(ind, IndividualReader.TAG_NAME))
+			for(final FLEFRecord nameBlock : FLEFRecordHelper.findChildren(ind, IndividualReader.TAG_NAME)){
+				//the prefix of a family name belongs to the family name that follows it
+				String familyPrefix = StringUtils.EMPTY;
 				for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameBlock, NameReader.TAG_PART)){
 					final String type = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
 					final String value = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
@@ -192,11 +194,16 @@ public final class StatisticsCalculator{
 						continue;
 					final String key = value.toLowerCase(Locale.ROOT)
 						.trim();
-					if("family".equals(type))
-						surnameCounts.merge(key, 1, Integer::sum);
-					else if("given".equals(type))
+					if(NameReader.ENUM_PART_TYPE_FAMILY_PREFIX.equals(type))
+						familyPrefix = key + ' ';
+					else if(NameReader.ENUM_PART_TYPE_FAMILY.equals(type)){
+						surnameCounts.merge(familyPrefix + key, 1, Integer::sum);
+						familyPrefix = StringUtils.EMPTY;
+					}
+					else if(NameReader.ENUM_PART_TYPE_GIVEN.equals(type))
 						givenCounts.merge(key, 1, Integer::sum);
 				}
+			}
 
 			final String sex = IndividualReader.extractRawSex(ind);
 			if(IndividualReader.isSexMale(sex))

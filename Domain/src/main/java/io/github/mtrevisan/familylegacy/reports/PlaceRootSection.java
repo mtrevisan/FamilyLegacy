@@ -24,9 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
@@ -54,13 +57,6 @@ import java.util.function.Function;
  * </ul>
  */
 public final class PlaceRootSection implements SectionBuilder{
-
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALID_FROM = "valid_from";
-	private static final String TAG_VALID_TO = "valid_to";
-	private static final String TAG_DESCRIPTION = "description";
-
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
@@ -183,23 +179,23 @@ public final class PlaceRootSection implements SectionBuilder{
 	private void writeRelation(final List<ReportSection> out, final FLEFRecord rel,
 		final boolean useSubject, final int level){
 		final String counterpartId = (useSubject
-			? FLEFRecordHelper.getChildValue(rel, "subject.place")
-			: FLEFRecordHelper.getChildValue(rel, "target.place"));
+			? FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_SUBJECT_PLACE)
+			: FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TARGET_PLACE));
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? primaryName(counterpart): counterpartId);
 		if(StringUtils.isEmpty(label))
 			return;
 
-		final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
 		final String relLabel = ReportFormatters.orEmpty(ReportFormatters.enumLabel(type));
 		out.add(new ReportSection.Heading(level,
 			ReportFormatters.escape(relLabel) + StringUtils.SPACE + ReportFormatters.escape(label)));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, PlaceRelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final List<String> rows = new ArrayList<>();
 		if(from != null)
 			rows.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
@@ -243,7 +239,7 @@ public final class PlaceRootSection implements SectionBuilder{
 
 	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt){
 		final String type = ReportFormatters.escape(ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(evt, TAG_TYPE)));
+			FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE)));
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
@@ -254,7 +250,7 @@ public final class PlaceRootSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));
 
-		final String descr = FLEFRecordHelper.getChildValue(evt, TAG_DESCRIPTION);
+		final String descr = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_DESCRIPTION);
 		if(descr != null)
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(descr)));
 
@@ -291,9 +287,9 @@ public final class PlaceRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().placeAttributes()));
 		for(final FLEFRecord a : attrs){
 			final String type = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(a, TAG_TYPE));
+				FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_TYPE));
 			final String value = ReportFormatters.orEmpty(
-				FLEFRecordHelper.getChildValue(a, TAG_VALUE));
+				FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_VALUE));
 			out.add(new ReportSection.Paragraph(
 				"**" + ReportFormatters.escape(type) + ":** "
 					+ ReportFormatters.escape(value)));

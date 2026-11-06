@@ -82,7 +82,8 @@ final class GapChecker{
 	private static final Set<String> VITAL_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_MARRIAGE);
 	private static final Set<String> OPEN_QUESTIONS = Set.of(ResearchQuestionReader.ENUM_STATUS_OPEN, ResearchQuestionReader.ENUM_STATUS_ON_HOLD);
 	private static final Set<String> FINISHED_ACTIVITIES = Set.of(ResearchActivityReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_STATUS_ABANDONED);
-	private static final Set<String> UNSUCCESSFUL_RESULTS = Set.of("negative", "inconclusive", "unavailable");
+	private static final Set<String> UNSUCCESSFUL_RESULTS = Set.of(ResearchActivityReader.ENUM_RESULT_NEGATIVE, ResearchActivityReader.ENUM_RESULT_INCONCLUSIVE,
+		ResearchActivityReader.ENUM_RESULT_UNAVAILABLE);
 	private static final Set<String> ACTIVE_TASKS = Set.of(ResearchTaskReader.ENUM_STATUS_OPEN, ResearchTaskReader.ENUM_STATUS_IN_PROGRESS);
 
 
@@ -307,7 +308,7 @@ final class GapChecker{
 				continue;
 
 			final long days = today - task.due().max();
-			final int bonus = ("high".equals(task.priority())? 15: (ResearchTaskReader.ENUM_PRIORITY_NORMAL.equals(task.priority())? 5: 0));
+			final int bonus = (ResearchTaskReader.ENUM_PRIORITY_HIGH.equals(task.priority())? 15: (ResearchTaskReader.ENUM_PRIORITY_NORMAL.equals(task.priority())? 5: 0));
 			final List<String> ids = new ArrayList<>(List.of(task.id()));
 			ids.addAll(task.questionIds());
 			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, 70 + bonus, null, task.description(), days));

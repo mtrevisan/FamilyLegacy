@@ -66,8 +66,8 @@ import java.util.function.Function;
  */
 public final class PlacesSection implements SectionBuilder{
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_VALID_FROM = "valid_from";
+	private static final String TAG_TYPE = EventReader.TAG_TYPE;
+	private static final String TAG_VALID_FROM = IndividualAttributeReader.TAG_VALID_FROM;
 
 
 	private final ReportContext ctx;
@@ -107,10 +107,19 @@ public final class PlacesSection implements SectionBuilder{
 
 	private Map<String, PlaceEntry> collectPlaceEntries(){
 		final Map<String, PlaceEntry> out = new LinkedHashMap<>();
-		for(final FLEFRecord evt : ctx.index.eventsOf(ctx.root))
-			collectPlace(evt, out);
-		for(final FLEFRecord attr : ctx.index.attributesOf(ctx.root))
-			collectPlace(attr, out);
+		for(final FLEFRecord subject : ctx.subjects()){
+			//(the places of a group are the ones of its events)
+			if(ReportContext.rootKindOf(subject) == ReportContext.RootKind.GROUP){
+				for(final FLEFRecord evt : ctx.index.eventsOfGroup(subject))
+					collectPlace(evt, out);
+				continue;
+			}
+
+			for(final FLEFRecord evt : ctx.index.eventsOf(subject))
+				collectPlace(evt, out);
+			for(final FLEFRecord attr : ctx.index.attributesOf(subject))
+				collectPlace(attr, out);
+		}
 		return out;
 	}
 
@@ -230,7 +239,7 @@ public final class PlacesSection implements SectionBuilder{
 
 	private void appendJurisdiction(final List<ReportSection> out, final FLEFRecord rel){
 		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
-		final String targetId = FLEFRecordHelper.getChildValue(rel, "target.place");
+		final String targetId = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TARGET_PLACE);
 		final FLEFRecord target = (targetId != null? ctx.visible(ctx.model.getRecordById(targetId)): null);
 		final String targetName = (target != null? nameValue(primaryNameNode(target), target): targetId);
 
@@ -282,7 +291,7 @@ public final class PlacesSection implements SectionBuilder{
 
 	private void appendContainedPlace(final List<ReportSection> out, final FLEFRecord rel){
 		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
-		final String subjectId = FLEFRecordHelper.getChildValue(rel, "subject.place");
+		final String subjectId = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_SUBJECT_PLACE);
 		final FLEFRecord subject = (subjectId != null
 			? ctx.visible(ctx.model.getRecordById(subjectId)): null);
 		final String subjectName = (subject != null

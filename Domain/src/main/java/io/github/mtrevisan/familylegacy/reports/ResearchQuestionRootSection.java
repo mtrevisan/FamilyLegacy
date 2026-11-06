@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
@@ -102,7 +104,7 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		final String rationale = FLEFRecordHelper.getChildValue(ctx.root, "rationale");
+		final String rationale = FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_RATIONALE);
 		if(rationale != null)
 			out.add(new ReportSection.Paragraph(ReportFormatters.escape(rationale)));
 	}
@@ -143,21 +145,21 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 
 	private void writeActivity(final List<ReportSection> out, final FLEFRecord a){
 		final String type = ReportFormatters.enumLabel(
-			FLEFRecordHelper.getChildValue(a, "activity_type"));
+			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(a, "action"));
+			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTION));
 		final String heading = (type != null? type + " — ": StringUtils.EMPTY) + action;
 		out.add(new ReportSection.Heading(3, ReportFormatters.escape(heading)));
 
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, "status")));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, "result")));
+			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_RESULT)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		final String obs = FLEFRecordHelper.getChildValue(a, "observation");
+		final String obs = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_OBSERVATION);
 		if(obs != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchObservation() + ":** "
@@ -182,19 +184,19 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchTasks()));
 		for(final FLEFRecord t : tasks){
 			out.add(new ReportSection.Heading(3, ReportFormatters.escape(
-				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, "description")))));
+				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION)))));
 
 			final List<String> rows = new ArrayList<>();
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, "status")));
+				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_STATUS)));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskPriority(),
-				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, "priority")));
+				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_PRIORITY)));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskDueDate(),
-				FLEFRecordHelper.getChildValue(t, "due_date"));
+				FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DUE_DATE));
 			if(!rows.isEmpty())
 				out.add(new ReportSection.BulletList(rows));
 
-			final String outcome = FLEFRecordHelper.getChildValue(t, "outcome");
+			final String outcome = FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_OUTCOME);
 			if(outcome != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchTaskOutcome() + ":** "
@@ -210,18 +212,18 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().conclusions()));
 		for(final FLEFRecord c : concl){
-			final String issue = FLEFRecordHelper.getChildValue(c, "issue");
+			final String issue = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_ISSUE);
 			if(issue != null)
 				out.add(new ReportSection.Heading(3,
 					ctx.labels.sections().researchIssue() + ": " + ReportFormatters.escape(issue)));
 
-			final String proof = FLEFRecordHelper.getChildValue(c, "proof_status");
+			final String proof = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_PROOF_STATUS);
 			if(proof != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchProofStatus() + ":** "
 						+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
 
-			final String narrative = FLEFRecordHelper.getChildValue(c, "narrative");
+			final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 			if(narrative != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchNarrative() + ":** "

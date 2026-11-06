@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefiniti
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -55,11 +57,11 @@ import java.util.Set;
  */
 final class ProtocolRules{
 
-	static final String KIND_IDENTITY_HYPOTHESIS = "identity_hypothesis";
-	static final String KIND_CONCLUSION = "conclusion";
-	static final String TAG_IDENTITY = "identity";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_PREFERRED = "preferred";
+	static final String KIND_IDENTITY_HYPOTHESIS = ModelIndex.kind(IdentityHypothesisReader.TYPE);
+	static final String KIND_CONCLUSION = ModelIndex.kind(ConclusionReader.TYPE);
+	static final String TAG_IDENTITY = IdentityHypothesisReader.TAG_IDENTITY;
+	private static final String TAG_RESOLVES = ConclusionReader.TAG_RESOLVES;
+	private static final String TAG_PREFERRED = ConclusionReader.TAG_PREFERRED;
 	private static final String WILDCARD = "[*]";
 
 

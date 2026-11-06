@@ -19,6 +19,7 @@ A **repository** is the place that keeps a source: an archive, a library, a pari
 A **media** record points to a file: a scan, a photograph, a document.
 
 - **Manage Media...** lists the media with their location, description and the number of records that reference them, and shows a preview of the selected image. You can search, create, edit and delete media. Only local files are previewed, to keep the dialog responsive.
+- A media can have a **date**: when the photograph, recording, scan or document was created or captured. It matters when that date has historical relevance, and it is edited like any other date.
 - The location can be a path on your disk, a `file:` address or a web address. How the location is *shown* is a preference: see [Preferences](preferences.md#media-paths).
 
 ## Citations

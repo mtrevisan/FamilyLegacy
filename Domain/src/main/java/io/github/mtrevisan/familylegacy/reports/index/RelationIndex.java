@@ -83,27 +83,48 @@ public final class RelationIndex{
 	 * once.
 	 */
 	public List<FLEFRecord> ancestorsByGeneration(final FLEFRecord root){
+		return ancestorsByGeneration(root, 0);
+	}
+
+	/**
+	 * Returns the root followed by the ancestors, grouped by generation, as far as the generation asked.
+	 *
+	 * @param generations	How many generations of ancestors to follow (1 is the parents), 0 for all of them.
+	 */
+	public List<FLEFRecord> ancestorsByGeneration(final FLEFRecord root, final int generations){
 		final List<FLEFRecord> out = new ArrayList<>();
 		final Set<String> seen = new HashSet<>();
 		final Deque<FLEFRecord> queue = new ArrayDeque<>();
+		final Deque<Integer> depths = new ArrayDeque<>();
 
 		out.add(root);
 		seen.add(root.getId());
 		queue.add(root);
+		depths.add(0);
 
 		while(!queue.isEmpty()){
 			final FLEFRecord current = queue.poll();
+			final int depth = depths.poll();
+			if(generations > 0 && depth >= generations)
+				continue;
+
 			for(final FLEFRecord parent : parentsOf(current))
 				if(seen.add(parent.getId())){
 					out.add(parent);
 					queue.add(parent);
+					depths.add(depth + 1);
 				}
 		}
 		return out;
 	}
 
 	public List<FLEFRecord> ancestorsWithCollaterals(final FLEFRecord root, final CollateralScope scope){
-		final List<FLEFRecord> direct = ancestorsByGeneration(root);
+		return ancestorsWithCollaterals(root, scope, 0);
+	}
+
+	/** The same as {@link #ancestorsWithCollaterals(FLEFRecord, CollateralScope)}, as far as the generation asked (0 for all of them). */
+	public List<FLEFRecord> ancestorsWithCollaterals(final FLEFRecord root, final CollateralScope scope, final int generations){
+		final List<FLEFRecord> direct = ancestorsByGeneration(root, generations);
 		if(scope == CollateralScope.NONE)
 			return direct;
 
@@ -154,26 +175,47 @@ public final class RelationIndex{
 	 * root, children, grandchildren, and so on.
 	 */
 	public List<FLEFRecord> descendantsByGeneration(final FLEFRecord root){
+		return descendantsByGeneration(root, 0);
+	}
+
+	/**
+	 * Returns the root followed by the descendants, grouped by generation, as far as the generation asked.
+	 *
+	 * @param generations	How many generations of descendants to follow (1 is the children), 0 for all of them.
+	 */
+	public List<FLEFRecord> descendantsByGeneration(final FLEFRecord root, final int generations){
 		final List<FLEFRecord> out = new ArrayList<>();
 		final Set<String> seen = new HashSet<>();
 		final Deque<FLEFRecord> queue = new ArrayDeque<>();
+		final Deque<Integer> depths = new ArrayDeque<>();
 
 		out.add(root);
 		seen.add(root.getId());
 		queue.add(root);
+		depths.add(0);
 		while(!queue.isEmpty()){
 			final FLEFRecord current = queue.poll();
+			final int depth = depths.poll();
+			if(generations > 0 && depth >= generations)
+				continue;
+
 			for(final FLEFRecord child : childrenOf(current))
 				if(seen.add(child.getId())){
 					out.add(child);
 					queue.add(child);
+					depths.add(depth + 1);
 				}
 		}
 		return out;
 	}
 
 	public List<FLEFRecord> descendantsWithCollaterals(final FLEFRecord root, final CollateralScope scope){
-		final List<FLEFRecord> direct = descendantsByGeneration(root);
+		return descendantsWithCollaterals(root, scope, 0);
+	}
+
+	/** The same as {@link #descendantsWithCollaterals(FLEFRecord, CollateralScope)}, as far as the generation asked (0 for all of them). */
+	public List<FLEFRecord> descendantsWithCollaterals(final FLEFRecord root, final CollateralScope scope, final int generations){
+		final List<FLEFRecord> direct = descendantsByGeneration(root, generations);
 		if(scope == CollateralScope.NONE)
 			return direct;
 

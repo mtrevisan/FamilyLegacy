@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.helpers.ReportText;
@@ -196,7 +197,7 @@ class DocumentSavingTest{
 	/** Adds a place to the model, as an editor would, and records the step, as the next event of the user does. */
 	private static void edit(final FamilyLegacyFrame frame, final String id) throws Exception{
 		SwingUtilities.invokeAndWait(() -> {
-			frame.model().addRecord(FLEFRecord.createMainRecord(id, "place"));
+			frame.model().addRecord(FLEFRecord.createMainRecord(id, PlaceReader.TYPE));
 			try{
 				history(frame).checkpoint();
 			}

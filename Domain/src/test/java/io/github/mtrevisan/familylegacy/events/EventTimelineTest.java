@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.events;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -46,7 +47,7 @@ class EventTimelineTest{
 		EventSummary.invalidate();
 
 		model = new FLEFModel();
-		model.addRecord(event("E1", "birth", point("2 MAR 1850")));
+		model.addRecord(event("E1", EventReader.ENUM_TYPE_BIRTH, point("2 MAR 1850")));
 		model.addRecord(event("E2", "baptism", point("1850")));
 		model.addRecord(event("E3", "death", null));
 		model.addRecord(event("E4", "marriage", point("1 JAN 1800")));
@@ -58,7 +59,7 @@ class EventTimelineTest{
 
 	private static FLEFRecord event(final String id, final String type, final FLEFRecord date){
 		final FLEFRecord event = FLEFRecord.createMainRecord(id, EventReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, type));
 		if(date != null)
 			event.addChild(date);
 		return event;
@@ -66,9 +67,9 @@ class EventTimelineTest{
 
 	private static FLEFRecord participation(final String id, final String eventId, final String individualId){
 		return FLEFRecord.createMainRecord(id, EventParticipationReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("participant")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
+			.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, individualId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId));
 	}
 
 	private static FLEFRecord point(final String fullDate){
@@ -144,7 +145,7 @@ class EventTimelineTest{
 		Assertions.assertTrue(EventTimeline.build(model, null, null, "I9", null).entries().isEmpty());
 
 		Assertions.assertEquals(List.of("E3"), ids(EventTimeline.build(model, null, null, null, "DEATH")));
-		Assertions.assertEquals(List.of("E1"), ids(EventTimeline.build(model, null, null, "I1", "birth")));
+		Assertions.assertEquals(List.of("E1"), ids(EventTimeline.build(model, null, null, "I1", EventReader.ENUM_TYPE_BIRTH)));
 	}
 
 	@Test

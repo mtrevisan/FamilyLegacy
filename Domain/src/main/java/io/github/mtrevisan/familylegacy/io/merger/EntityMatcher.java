@@ -43,6 +43,15 @@ import java.util.Set;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 
 
 /**
@@ -58,8 +67,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 final class EntityMatcher{
 
 	/** Kinds that can be merged, in the order they are processed: a kind is compared after the kinds its comparison relies on. */
-	static final List<String> MATCHABLE_KINDS = List.of("repository", "media", "source", "place", "cultural_norm",
-		"historic_event", ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP);
+	static final List<String> MATCHABLE_KINDS = List.of(ModelIndex.kind(RepositoryReader.TYPE), ModelIndex.kind(MediaReader.TYPE), ModelIndex.kind(SourceReader.TYPE),
+		ModelIndex.kind(PlaceReader.TYPE), ModelIndex.kind(CulturalNormReader.TYPE),
+		ModelIndex.kind(HistoricEventReader.TYPE), ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP);
 	/** Kinds compared also through the records related to them, which are merged in the same phase. */
 	static final List<String> RELATIONAL_KINDS = List.of(ModelIndex.KIND_INDIVIDUAL, ModelIndex.KIND_GROUP, ModelIndex.KIND_PLACE,
 		ModelIndex.KIND_SOURCE);
@@ -71,26 +81,27 @@ final class EntityMatcher{
 	/** Events compared on their own: the others are compared only as being the same event. */
 	private static final Set<String> OWN_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_PART = "part";
-	private static final String TAG_VALUE = "value";
-	private static final String TAG_VARIANT = "variant";
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_AUTHOR = "author";
-	private static final String TAG_PUBLISHER = "publisher";
-	private static final String TAG_MEDIA_TYPE = "media_type";
-	private static final String TAG_REPOSITORY = "repository";
-	private static final String TAG_MEDIA = "media";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_CONTACT = "contact";
-	private static final String TAG_LOCATION = "location";
-	private static final String TAG_COORDINATES = "coordinates";
-	private static final String TAG_URI = "uri";
-	private static final String TAG_KIND = "kind";
-	private static final String TAG_SEX = "sex";
-	private static final String AGENT_TEXT = "text";
-	private static final String PART_GIVEN = "given";
+	private static final String TAG_NAME = IndividualReader.TAG_NAME;
+	private static final String TAG_PART = NameReader.TAG_PART;
+	private static final String TAG_VALUE = NameReader.TAG_VALUE;
+	private static final String TAG_VARIANT = NameReader.TAG_PART_VARIANT;
+	private static final String TAG_TITLE = SourceReader.TAG_TITLE;
+	private static final String TAG_AUTHOR = SourceReader.TAG_AUTHOR;
+	private static final String TAG_PUBLISHER = SourceReader.TAG_PUBLISHER;
+	private static final String TAG_MEDIA_TYPE = SourceReader.TAG_MEDIA_TYPE;
+	private static final String TAG_REPOSITORY = SourceReader.TAG_REPOSITORY;
+	private static final String TAG_MEDIA = SourceReader.TAG_MEDIA;
+	private static final String TAG_LOCATOR = RepositoryCitationReader.TAG_LOCATOR;
+	private static final String TAG_CONTACT = RepositoryReader.TAG_CONTACT;
+	private static final String TAG_LOCATION = PlaceReader.TAG_LOCATION;
+	private static final String TAG_COORDINATES = PlaceReader.TAG_COORDINATES;
+	private static final String TAG_URI = MediaReader.TAG_URI;
+	private static final String TAG_KIND = MediaReader.TAG_KIND;
+	private static final String TAG_SEX = IndividualReader.TAG_SEX;
+	private static final String AGENT_TEXT = AgentReader.TAG_TEXT;
+	private static final String PART_GIVEN = NameReader.ENUM_PART_TYPE_GIVEN;
 	private static final String PART_FAMILY = NameReader.ENUM_PART_TYPE_FAMILY;
+	private static final String PART_FAMILY_PREFIX = NameReader.ENUM_PART_TYPE_FAMILY_PREFIX;
 	private static final Set<String> KNOWN_SEXES = Set.of(IndividualReader.ENUM_SEX_MALE, IndividualReader.ENUM_SEX_FEMALE);
 
 	private static final double DAYS_PER_YEAR = 365.2425;
@@ -131,8 +142,8 @@ final class EntityMatcher{
 	 */
 	Set<String> blockingKeys(final FLEFRecord record){
 		final Set<String> keys = new LinkedHashSet<>();
-		switch(record.getTag()){
-			case ModelIndex.KIND_INDIVIDUAL -> {
+		switch(StringUtils.upperCase(record.getTag(), Locale.ROOT)){
+			case IndividualReader.TYPE -> {
 				final IndividualFeatures features = individual(record.getId());
 				for(final String given : features.givens){
 					for(final String family : features.families)
@@ -143,18 +154,18 @@ final class EntityMatcher{
 						keys.add("b:" + TextSimilarity.prefix(given, 3) + "|" + decade(birth));
 				}
 			}
-			case ModelIndex.KIND_GROUP -> {
+			case GroupReader.TYPE -> {
 				for(final String member : index.membersOf(record.getId()))
 					keys.add("m:" + member);
 				for(final String name : names(record, TAG_NAME))
 					keys.add("n:" + TextSimilarity.prefix(name, 4));
 			}
-			case "media" -> {
+			case MediaReader.TYPE -> {
 				final String uri = ModelIndex.value(record, TAG_URI);
 				if(uri != null)
 					keys.add("u:" + uri.strip().toLowerCase(Locale.ROOT));
 			}
-			case "source" -> {
+			case SourceReader.TYPE -> {
 				for(final String title : names(record, TAG_TITLE))
 					keys.add("t:" + TextSimilarity.prefix(title, 12));
 				// sources titled differently are compared when they share a scan, a call number, or a cited entry
@@ -166,13 +177,13 @@ final class EntityMatcher{
 				for(final String usage : index.locatedUsagesOf(record.getId()))
 					keys.add("c:" + usage);
 			}
-			case ModelIndex.KIND_PLACE -> {
+			case PlaceReader.TYPE -> {
 				for(final String leaf : placeNames(record).leaves())
 					keys.add("n:" + TextSimilarity.prefix(leaf, 4));
 				for(final String usage : index.usagesOf(record.getId()))
 					keys.add("u:" + usage);
 			}
-			case "cultural_norm", "historic_event" -> {
+			case CulturalNormReader.TYPE, HistoricEventReader.TYPE -> {
 				final String title = TextSimilarity.normalize(ModelIndex.value(record, TAG_TITLE));
 				if(!title.isEmpty())
 					keys.add("t:" + TextSimilarity.prefix(title, 4));
@@ -207,14 +218,14 @@ final class EntityMatcher{
 				.veto("identity disproven by a conclusion")
 				.build();
 
-		return switch(a.getTag()){
-			case ModelIndex.KIND_INDIVIDUAL -> compareIndividuals(a, b);
-			case ModelIndex.KIND_GROUP -> compareGroups(a, b);
-			case ModelIndex.KIND_PLACE -> comparePlaces(a, b);
-			case "source" -> compareSources(a, b);
-			case "repository" -> compareRepositories(a, b);
-			case "media" -> compareMedia(a, b);
-			case "cultural_norm", "historic_event" -> compareContexts(a, b);
+		return switch(StringUtils.upperCase(a.getTag(), Locale.ROOT)){
+			case IndividualReader.TYPE -> compareIndividuals(a, b);
+			case GroupReader.TYPE -> compareGroups(a, b);
+			case PlaceReader.TYPE -> comparePlaces(a, b);
+			case SourceReader.TYPE -> compareSources(a, b);
+			case RepositoryReader.TYPE -> compareRepositories(a, b);
+			case MediaReader.TYPE -> compareMedia(a, b);
+			case CulturalNormReader.TYPE, HistoricEventReader.TYPE -> compareContexts(a, b);
 			default -> new MatchScore.Builder(0.)
 				.veto("kind '" + a.getTag() + "' is not an identity candidate")
 				.build();
@@ -643,10 +654,12 @@ final class EntityMatcher{
 	 */
 	private static String placeTypeFamily(final String type){
 		return switch(type){
-			case "hamlet", "village", "town", "municipality", "city", "metropolitan_area" -> "settlement";
-			case "county", "province", "department", "district", "region", "macro_region" -> "jurisdiction";
-			case "parish", "diocese", "archdiocese" -> "ecclesiastical";
-			case "address", "building", "street" -> "address";
+			case PlaceReader.ENUM_TYPE_HAMLET, PlaceReader.ENUM_TYPE_VILLAGE, PlaceReader.ENUM_TYPE_TOWN, PlaceReader.ENUM_TYPE_MUNICIPALITY,
+				PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_METROPOLITAN_AREA -> "settlement";
+			case PlaceReader.ENUM_TYPE_COUNTY, PlaceReader.ENUM_TYPE_PROVINCE, PlaceReader.ENUM_TYPE_DEPARTMENT, PlaceReader.ENUM_TYPE_DISTRICT,
+				PlaceReader.ENUM_TYPE_REGION, PlaceReader.ENUM_TYPE_MACRO_REGION -> "jurisdiction";
+			case PlaceReader.ENUM_TYPE_PARISH, PlaceReader.ENUM_TYPE_DIOCESE, PlaceReader.ENUM_TYPE_ARCHDIOCESE -> "ecclesiastical";
+			case PlaceReader.ENUM_TYPE_ADDRESS, PlaceReader.ENUM_TYPE_BUILDING, PlaceReader.ENUM_TYPE_STREET -> "address";
 			default -> type;
 		};
 	}
@@ -1020,7 +1033,7 @@ final class EntityMatcher{
 							given.append(value).append(' ');
 							addVariants(part, givenTexts);
 						}
-						else if(PART_FAMILY.equals(type)){
+						else if(PART_FAMILY.equals(type) || PART_FAMILY_PREFIX.equals(type)){
 							family.append(value).append(' ');
 							addVariants(part, familyTexts);
 						}

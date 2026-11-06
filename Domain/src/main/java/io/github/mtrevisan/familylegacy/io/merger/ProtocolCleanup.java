@@ -34,8 +34,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 
@@ -45,12 +48,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
  */
 final class ProtocolCleanup{
 
-	private static final String HYPOTHESIS_ID_TEMPLATE = "IH";
-	private static final String TAG_RATIONALE = "rationale";
-	private static final String TAG_CONFIDENCE = "confidence";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_PREFERRED = "preferred";
-	private static final String TAG_PROOF_STATUS = "proof_status";
+	private static final String HYPOTHESIS_ID_TEMPLATE = IdentityHypothesisReader.ID_PREFIX;
+	private static final String TAG_RATIONALE = IdentityHypothesisReader.TAG_RATIONALE;
+	private static final String TAG_CONFIDENCE = IdentityHypothesisReader.TAG_CONFIDENCE;
+	private static final String TAG_RESOLVES = ConclusionReader.TAG_RESOLVES;
+	private static final String TAG_PREFERRED = ConclusionReader.TAG_PREFERRED;
+	private static final String TAG_PROOF_STATUS = ConclusionReader.TAG_PROOF_STATUS;
 	private static final Set<String> BIOLOGICAL_PARENT_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD, RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
 
@@ -131,9 +134,9 @@ final class ProtocolCleanup{
 				String.format(Locale.ROOT, "Proposed by the merge (match probability %.3f): %s", score.probability(),
 					score.describe())));
 			hypothesis.addChild(FLEFRecord.createChildWithTagAndValue(TAG_CONFIDENCE, confidence(score.probability())));
-			hypothesis.addChild(FLEFRecord.createChildWithTag("audit")
-				.addChild(FLEFRecord.createChildWithTag("creation")
-					.addChild(FLEFRecord.createChildWithTagAndValue("date", session.now))));
+			hypothesis.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT)
+				.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_CREATION)
+					.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, session.now))));
 			session.addRecord(hypothesis);
 
 			session.decide(new MergeReport.Decision(MergeReport.DecisionType.HYPOTHESIS_CREATED, candidate.kind(), id,
@@ -186,8 +189,8 @@ final class ProtocolCleanup{
 			for(final FLEFRecord relationship : session.records(ModelIndex.KIND_RELATIONSHIP))
 				if(ModelIndex.value(relationship, ModelIndex.TAG_TYPE) != null
 						&& BIOLOGICAL_PARENT_TYPES.contains(ModelIndex.value(relationship, ModelIndex.TAG_TYPE))
-						&& individualId.equals(ModelIndex.armValue(FieldMerger.first(relationship, "subject")))){
-					parents.add(ModelIndex.armValue(FieldMerger.first(relationship, "target")));
+						&& individualId.equals(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_SUBJECT)))){
+					parents.add(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_TARGET)));
 					relationships.add(relationship.getId());
 				}
 			if(parents.size() > MAX_BIOLOGICAL_PARENTS && !isResolved(relationships))
@@ -219,8 +222,8 @@ final class ProtocolCleanup{
 		final List<FLEFRecord> relationships = new ArrayList<>(session.records(ModelIndex.KIND_RELATIONSHIP));
 		relationships.addAll(session.records(ModelIndex.KIND_PLACE_RELATIONSHIP));
 		for(final FLEFRecord relationship : relationships){
-			final String subject = ModelIndex.armValue(FieldMerger.first(relationship, "subject"));
-			if(subject != null && subject.equals(ModelIndex.armValue(FieldMerger.first(relationship, "target"))))
+			final String subject = ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_SUBJECT));
+			if(subject != null && subject.equals(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_TARGET))))
 				session.warn(relationship.getTag() + StringUtils.SPACE + relationship.getId() + " now relates " + subject
 					+ " to itself: its two ends were merged");
 		}

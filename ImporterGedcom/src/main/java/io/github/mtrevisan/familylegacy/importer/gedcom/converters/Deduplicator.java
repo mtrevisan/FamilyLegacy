@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -64,10 +65,10 @@ public final class Deduplicator{
 
 	public static String getDeduplicatedRecordId(FLEFModel model, FLEFRecord record){
 		if(record.getTag().equalsIgnoreCase(RelationshipReader.TYPE)){
-			String type = FLEFRecordHelper.getChildValue(record, "type");
+			String type = FLEFRecordHelper.getChildValue(record, RelationshipReader.TAG_TYPE);
 			if(RelationshipReader.isTypeBiologicalChild(type)){
-				FLEFRecord subject = FLEFRecordHelper.findChild(record, "subject");
-				FLEFRecord target = FLEFRecordHelper.findChild(record, "target");
+				FLEFRecord subject = FLEFRecordHelper.findChild(record, RelationshipReader.TAG_SUBJECT);
+				FLEFRecord target = FLEFRecordHelper.findChild(record, RelationshipReader.TAG_TARGET);
 
 				StringBuilder sb = new StringBuilder();
 				sb.append("|subject:");
@@ -132,7 +133,7 @@ public final class Deduplicator{
 		// Collect signatures of all children except those with tag "audit"
 		List<String> childSignatures = new ArrayList<>();
 		for(FLEFRecord child : record.getChildren()){
-			if("audit".equals(child.getTag())){
+			if(AuditReader.TAG_AUDIT.equals(child.getTag())){
 				continue;
 			}
 			childSignatures.add(computeSignature(child));

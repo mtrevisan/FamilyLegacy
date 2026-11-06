@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,8 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 class ModelHistoryListenerTest{
 
 	private static FLEFRecord individual(final String id){
-		final FLEFRecord record = FLEFRecord.createMainRecord(id, "individual");
-		record.addChild(FLEFRecord.createChildWithTagAndValue("sex", "male"));
+		final FLEFRecord record = FLEFRecord.createMainRecord(id, IndividualReader.TYPE);
+		record.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "male"));
 		return record;
 	}
 

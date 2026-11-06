@@ -101,6 +101,7 @@ public final class TagSuggester{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagSuggester.class);
 
+
 	private static final String GRAMMAR_CLASSPATH = "/gedg/flef_0.2.0.gedg";
 	private static final String GRAMMAR_FILE = "src/main/resources/gedg/flef_0.2.0.gedg";
 

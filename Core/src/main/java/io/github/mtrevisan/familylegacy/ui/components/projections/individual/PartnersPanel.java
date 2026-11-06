@@ -552,6 +552,45 @@ public class PartnersPanel extends JPanel{
 		return this;
 	}
 
+	/**
+	 * Shows the marriages (civil, religious, ...) of the couple, with date and place, in the tooltip of the union box; the border is
+	 * dashed when there is none.
+	 */
+	private void updateUnionTooltip(){
+		final List<GenealogyRepository.UnionMarriage> marriages = (genealogyRepository != null && father != null && mother != null
+			&& !father.isEmpty() && !mother.isEmpty()
+			? genealogyRepository.getUnionMarriages(father.getId(), mother.getId())
+			: List.of());
+
+		if(marriages.isEmpty()){
+			groupPanel.setToolTipText(null);
+			groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
+			return;
+		}
+
+		final StringBuilder sb = new StringBuilder("<html>");
+		for(int i = 0, size = marriages.size(); i < size; i ++){
+			final GenealogyRepository.UnionMarriage marriage = marriages.get(i);
+			if(i > 0)
+				sb.append("<br>");
+			final String label = (StringUtils.isNotBlank(marriage.description())
+				? marriage.description()
+				: I18N.t("enum.event.type.marriage"));
+			sb.append("<b>").append(escapeHtml(label)).append("</b>: ")
+				.append(escapeHtml(StringUtils.defaultIfBlank(marriage.date(), "?")));
+			if(StringUtils.isNotBlank(marriage.place()))
+				sb.append(", ").append(escapeHtml(marriage.place()));
+		}
+		groupPanel.setToolTipText(sb.append("</html>").toString());
+		groupPanel.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+	}
+
+	private static String escapeHtml(final String text){
+		return text.replace("&", "&amp;")
+			.replace("<", "&lt;")
+			.replace(">", "&gt;");
+	}
+
 	private void updateData(){
 		if(model == null)
 			return;
@@ -563,12 +602,7 @@ public class PartnersPanel extends JPanel{
 		updatePartnerLists();
 
 
-//		final String marriageTooltip = data.getMarriageTooltip();
-//		groupPanel.setToolTipText(marriageTooltip);
-
-//		groupPanel.setBorder(StringUtils.isNotEmpty(marriageTooltip)? BorderFactory.createLineBorder(BORDER_COLOR):
-//			BorderFactory.createDashedBorder(BORDER_COLOR));
-		groupPanel.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
+		updateUnionTooltip();
 
 
 		final boolean fatherHasAncestors = (showAncestors && father != null && father.hasParents());

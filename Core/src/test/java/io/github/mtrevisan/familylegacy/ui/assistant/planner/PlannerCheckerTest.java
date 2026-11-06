@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapData;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
@@ -109,7 +114,7 @@ class PlannerCheckerTest{
 	void aQuestionAboutAPersonWithNothingRecordedHasTheNextSteps(){
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1850)
-			.question("q1", "open", false, "a")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
 			.findings(), "planner.next_step");
 
 		//the birth, the marriage record that names the parents, and the census or the death are possible: the best three are proposed
@@ -123,12 +128,12 @@ class PlannerCheckerTest{
 	void aStepIsATaskDraftThatSupportsTheQuestion(){
 		final PlannerFinding finding = ofKind(new Builder()
 			.person("a", 1850)
-			.question("q1", "open", false, "a")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
 			.findings(), "planner.next_step").getFirst();
 
 		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
 		Assertions.assertEquals(List.of("q1"), finding.draft().records());
-		Assertions.assertEquals("high", finding.draft().priority());
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, finding.draft().priority());
 		Assertions.assertEquals(List.of("q1", "a"), finding.diagnostic().recordIds());
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.diagnostic().severity());
 		//the reason is given, with the usefulness
@@ -140,7 +145,7 @@ class PlannerCheckerTest{
 	void theStepsAreOrderedByUsefulness(){
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1850)
-			.question("q1", "open", false, "a")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
 			.findings(), "planner.next_step");
 
 		final double first = found.get(0).diagnostic().rank();
@@ -148,7 +153,7 @@ class PlannerCheckerTest{
 		Assertions.assertTrue(first >= last);
 		//the birth is the first record to look for: nothing is known of it
 		Assertions.assertTrue(found.stream().max((x, y) -> Double.compare(x.diagnostic().rank(), y.diagnostic().rank())).orElseThrow()
-			.draft().text().contains("birth"));
+			.draft().text().contains(EventReader.ENUM_TYPE_BIRTH));
 	}
 
 	@Test
@@ -156,9 +161,9 @@ class PlannerCheckerTest{
 		//a birth that a source cites, parents known, a marriage cited, a death cited, a census: nothing is left to search
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1850, true, true, 3).person("p", 1820)
-			.event("b", "birth", 1, "a").event("m", "marriage", 1, "a").event("d", "death", 1, "a")
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 1, "a").event("m", EventReader.ENUM_TYPE_MARRIAGE, 1, "a").event("d", EventReader.ENUM_TYPE_DEATH, 1, "a")
 			.parent("a", "p").union("a", "p")
-			.question("q1", "open", false, "a")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
 			.findings(), "planner.next_step");
 
 		Assertions.assertTrue(found.isEmpty(), tasks(found).toString());
@@ -168,8 +173,8 @@ class PlannerCheckerTest{
 	void aBirthThatNoSourceCitesIsProposedWithADifferentReason(){
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1990, true, true, 1).person("p", 1960)
-			.event("b", "birth", 0, "a").parent("a", "p")
-			.question("q1", "open", false, "a")
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 0, "a").parent("a", "p")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
 			.findings(), "planner.next_step");
 
 		Assertions.assertEquals(1, found.size(), tasks(found).toString());
@@ -180,24 +185,24 @@ class PlannerCheckerTest{
 	void aTaskOrAnActivityThatCoversAStepMakesItNotProposed(){
 		final Builder builder = new Builder()
 			.person("a", 1850)
-			.question("q1", "open", false, "a")
-			.task("t1", "Cerca l'atto di nascita (battesimo) di Anna", "open", "q1")
-			.activity("r1", "Read the marriage registers of the parish", "completed", "negative", "q1");
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.task("t1", "Cerca l'atto di nascita (battesimo) di Anna", ResearchQuestionReader.ENUM_STATUS_OPEN, "q1")
+			.activity("r1", "Read the marriage registers of the parish", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, "q1");
 
 		final List<String> tasks = tasks(ofKind(builder.findings(), "planner.next_step"));
 
 		Assertions.assertTrue(tasks.stream().noneMatch(t -> t.contains("birth or baptism")), tasks.toString());
 		Assertions.assertTrue(tasks.stream().noneMatch(t -> t.contains("marriage record")), tasks.toString());
 		//and an abandoned task does not cover anything
-		final List<String> withAbandoned = tasks(ofKind(new Builder().person("a", 1850).question("q1", "open", false, "a")
-			.task("t1", "Search the birth record", "abandoned", "q1").findings(), "planner.next_step"));
+		final List<String> withAbandoned = tasks(ofKind(new Builder().person("a", 1850).question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.task("t1", "Search the birth record", ResearchTaskReader.ENUM_STATUS_ABANDONED, "q1").findings(), "planner.next_step"));
 		Assertions.assertTrue(withAbandoned.stream().anyMatch(t -> t.contains("birth or baptism")), withAbandoned.toString());
 	}
 
 	@Test
 	void aQuestionThatIsNotOpenOrIsAnsweredIsNotPlanned(){
 		final Builder builder = new Builder().person("a", 1850)
-			.question("q1", "resolved", false, "a").question("q2", "open", true, "a").question("q3", "on_hold", false, "a");
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_RESOLVED, false, "a").question("q2", ResearchQuestionReader.ENUM_STATUS_OPEN, true, "a").question("q3", ResearchQuestionReader.ENUM_STATUS_ON_HOLD, false, "a");
 
 		Assertions.assertTrue(ofKind(builder.findings(), "planner.next_step").isEmpty());
 	}
@@ -206,8 +211,8 @@ class PlannerCheckerTest{
 	void aQuestionAboutAnEventIsAboutItsPrincipals(){
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1850, true, true, 1).person("p", 1820)
-			.event("b", "birth", 0, "a").parent("a", "p")
-			.question("q1", "open", false, "b")
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 0, "a").parent("a", "p")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "b")
 			.findings(), "planner.next_step");
 
 		//the birth that no source cites, and the death of a person born in 1850
@@ -217,7 +222,7 @@ class PlannerCheckerTest{
 
 	@Test
 	void aQuestionWithNoPersonCannotBePlanned(){
-		Assertions.assertTrue(ofKind(new Builder().question("q1", "open", false, "X9").question("q2", "open", false).findings(),
+		Assertions.assertTrue(ofKind(new Builder().question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "X9").question("q2", ResearchQuestionReader.ENUM_STATUS_OPEN, false).findings(),
 			"planner.next_step").isEmpty());
 	}
 
@@ -225,10 +230,10 @@ class PlannerCheckerTest{
 	void fruitlessSearchesSuggestContactingTheArchive(){
 		final List<PlannerFinding> found = ofKind(new Builder()
 			.person("a", 1990, true, true, 1).person("p", 1960)
-			.event("b", "birth", 1, "a").parent("a", "p")
-			.question("q1", "open", false, "a")
-			.activity("r1", "Looked in the parish", "completed", "negative", "q1")
-			.activity("r2", "Looked in the civil registry", "completed", "inconclusive", "q1")
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 1, "a").parent("a", "p")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.activity("r1", "Looked in the parish", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, "q1")
+			.activity("r2", "Looked in the civil registry", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_INCONCLUSIVE, "q1")
 			.findings(), "planner.next_step");
 
 		Assertions.assertEquals(1, found.size(), tasks(found).toString());
@@ -240,18 +245,18 @@ class PlannerCheckerTest{
 	void oneFruitlessSearchIsNotEnough(){
 		Assertions.assertTrue(ofKind(new Builder()
 			.person("a", 1990, true, true, 1).person("p", 1960)
-			.event("b", "birth", 1, "a").parent("a", "p")
-			.question("q1", "open", false, "a")
-			.activity("r1", "Looked in the parish", "completed", "negative", "q1")
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 1, "a").parent("a", "p")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.activity("r1", "Looked in the parish", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, "q1")
 			.findings(), "planner.next_step").isEmpty());
 	}
 
 	@Test
 	void aQuestionNobodyStartedIsMoreUrgent(){
-		final double fresh = ofKind(new Builder().person("a", 1850).question("q1", "open", false, "a").findings(), "planner.next_step")
+		final double fresh = ofKind(new Builder().person("a", 1850).question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a").findings(), "planner.next_step")
 			.stream().mapToDouble(f -> f.diagnostic().rank()).max().orElseThrow();
-		final double started = ofKind(new Builder().person("a", 1850).question("q1", "open", false, "a")
-			.task("t1", "Think about it", "open", "q1").findings(), "planner.next_step")
+		final double started = ofKind(new Builder().person("a", 1850).question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.task("t1", "Think about it", ResearchQuestionReader.ENUM_STATUS_OPEN, "q1").findings(), "planner.next_step")
 			.stream().mapToDouble(f -> f.diagnostic().rank()).max().orElseThrow();
 
 		Assertions.assertEquals(5., fresh - started);
@@ -261,7 +266,7 @@ class PlannerCheckerTest{
 	void theStepsOfAllQuestionsAreSummedUpBeyondTheLimit(){
 		final Builder builder = new Builder();
 		for(int i = 0; i < 12; i ++)
-			builder.person("p" + i, 1850).question("q" + i, "open", false, "p" + i);
+			builder.person("p" + i, 1850).question("q" + i, ResearchQuestionReader.ENUM_STATUS_OPEN, false, "p" + i);
 
 		final List<PlannerFinding> found = builder.findings();
 
@@ -297,12 +302,12 @@ class PlannerCheckerTest{
 	@Test
 	void aBrickWallThatAQuestionAlreadyWorksOnIsNotProposed(){
 		final Builder builder = new Builder().person("a", 1820).person("b", 1850).parent("b", "a")
-			.question("q1", "open", false, "a");
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a");
 
 		Assertions.assertTrue(ofKind(builder.findings(), "planner.brick_wall").isEmpty());
 		//a question that is over does not count
 		Assertions.assertEquals(1, ofKind(new Builder().person("a", 1820).person("b", 1850).parent("b", "a")
-			.question("q1", "resolved", false, "a").findings(), "planner.brick_wall").size());
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_RESOLVED, false, "a").findings(), "planner.brick_wall").size());
 	}
 
 	@Test
@@ -341,10 +346,10 @@ class PlannerCheckerTest{
 
 	@Test
 	void theUsefulnessIsShownAsAPriority(){
-		Assertions.assertEquals("high", PlannerChecker.priority(70));
-		Assertions.assertEquals("normal", PlannerChecker.priority(45));
-		Assertions.assertEquals("low", PlannerChecker.priority(44));
-		Assertions.assertEquals("medium", PlannerChecker.level(60));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, PlannerChecker.priority(70));
+		Assertions.assertEquals(ResearchTaskReader.ENUM_PRIORITY_NORMAL, PlannerChecker.priority(45));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, PlannerChecker.priority(44));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, PlannerChecker.level(60));
 	}
 
 	@Test

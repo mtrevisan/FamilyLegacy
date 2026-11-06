@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -80,14 +81,14 @@ public final class RecordAbsorber{
 	public record Result(int referencesRedirected, List<String> collapsedIds, List<String> deletedIds){}
 
 
-	private static final String TAG_RATIONALE = "rationale";
-	private static final String TAG_ISSUE = "issue";
-	private static final String TAG_PROOF_STATUS = "proof_status";
-	private static final String TAG_NARRATIVE = "narrative";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_AUDIT = "audit";
-	private static final String TAG_CREATION = "creation";
-	private static final String TAG_DATE = "date";
+	private static final String TAG_RATIONALE = IdentityHypothesisReader.TAG_RATIONALE;
+	private static final String TAG_ISSUE = ConclusionReader.TAG_ISSUE;
+	private static final String TAG_PROOF_STATUS = ConclusionReader.TAG_PROOF_STATUS;
+	private static final String TAG_NARRATIVE = ConclusionReader.TAG_NARRATIVE;
+	private static final String TAG_RESOLVES = ConclusionReader.TAG_RESOLVES;
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
+	private static final String TAG_CREATION = AuditReader.TAG_CREATION;
+	private static final String TAG_DATE = AuditReader.TAG_DATE;
 	private static final String ISSUE_IDENTITY = "identity";
 
 

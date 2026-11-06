@@ -27,8 +27,20 @@ package io.github.mtrevisan.familylegacy.reports;
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipCalculator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -38,9 +50,11 @@ import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -53,8 +67,8 @@ import java.util.function.Function;
  */
 public final class ReportContext{
 
-	private static final String TAG_TITLE = "title";
-	private static final String TAG_TYPE = "type";
+	private static final String TAG_TITLE = SourceReader.TAG_TITLE;
+	private static final String TAG_TYPE = HistoricEventReader.TAG_TYPE;
 
 
 	/** Categorizes the type of the root FLEF record being reported. */
@@ -84,6 +98,10 @@ public final class ReportContext{
 	final RelationIndex index;
 
 	private final RootKind rootKind;
+	/** The records the sections that collect (sources, media, places) read from: the root, or the persons of a multi-person report. */
+	private final List<FLEFRecord> subjects;
+	/** Who owns each source citation: found once for the contexts of a report, that share it. */
+	private final CitationOwners citationOwners;
 	private Set<String> relatedRecordIds;
 	private PrivacyResolver privacy;
 
@@ -105,7 +123,7 @@ public final class ReportContext{
 		Objects.requireNonNull(root, "root");
 		Objects.requireNonNull(config, "config");
 
-		return new ReportContext(model, root, config, null);
+		return new ReportContext(model, root, config, null, List.of(root));
 	}
 
 	/**
@@ -115,12 +133,30 @@ public final class ReportContext{
 	 */
 	static ReportContext build(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
 			final RelationIndex sharedIndex){
-		return new ReportContext(model, root, config, sharedIndex);
+		return new ReportContext(model, root, config, sharedIndex, List.of(root));
+	}
+
+	/**
+	 * Builds a context for the sections that gather what is cited by several persons at once (the sources, media and places of an
+	 * ancestor or descendant report).
+	 *
+	 * @param subjects	The persons whose records are collected; the first one is the root.
+	 */
+	static ReportContext buildForSubjects(final FLEFModel model, final ReportConfig config, final RelationIndex sharedIndex,
+			final List<FLEFRecord> subjects){
+		return new ReportContext(model, subjects.getFirst(), config, sharedIndex, List.copyOf(subjects));
 	}
 
 
 	private ReportContext(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
-			final RelationIndex sharedIndex){
+			final RelationIndex sharedIndex, final List<FLEFRecord> subjects){
+		this(model, root, config, sharedIndex, subjects, new CitationOwners());
+	}
+
+	private ReportContext(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
+			final RelationIndex sharedIndex, final List<FLEFRecord> subjects, final CitationOwners citationOwners){
+		this.citationOwners = citationOwners;
+		this.subjects = subjects;
 		this.model = model;
 		this.root = root;
 		this.config = config;
@@ -129,23 +165,68 @@ public final class ReportContext{
 		this.rootKind = detectRootKind(root);
 	}
 
+	/**
+	 * @param newRoot	Another record of the same model.
+	 * @return	A context of the same report (same options and index) about another record: it is how a report that has a section for each
+	 * 	record (the Full Bibliography) builds them.
+	 */
+	ReportContext withRoot(final FLEFRecord newRoot){
+		return new ReportContext(model, newRoot, config, index, List.of(newRoot), citationOwners);
+	}
+
+	/**
+	 * @param citation	A source citation of the model.
+	 * @return	The record that holds the citation, or {@code null}.
+	 */
+	FLEFRecord ownerOfCitation(final FLEFRecord citation){
+		return citationOwners.of(model).get(citation);
+	}
+
+	/** The owner of every source citation of a model (a citation is an embedded structure, found by identity), built when first needed. */
+	private static final class CitationOwners{
+
+		private Map<FLEFRecord, FLEFRecord> owners;
+
+
+		synchronized Map<FLEFRecord, FLEFRecord> of(final FLEFModel model){
+			if(owners == null){
+				owners = new IdentityHashMap<>();
+				for(final FLEFRecord rec : model.getRecords())
+					for(final FLEFRecord citation : FLEFRecordHelper.findChildren(rec, SourceCitationReader.TAG_SOURCE))
+						owners.putIfAbsent(citation, rec);
+			}
+			return owners;
+		}
+
+	}
+
+	/** @return	The records that the sections collecting sources, media and places read from: the root, unless it is a multi-person report. */
+	public List<FLEFRecord> subjects(){
+		return subjects;
+	}
+
+	/** @return	What kind of record a report about the given one is. */
+	public static RootKind rootKindOf(final FLEFRecord root){
+		return detectRootKind(root);
+	}
+
 
 	private static RootKind detectRootKind(final FLEFRecord root){
-		final String tag = (root.getTag() != null? root.getTag().toLowerCase(Locale.ROOT): StringUtils.EMPTY);
+		final String tag = (root.getTag() != null? root.getTag().toUpperCase(Locale.ROOT): StringUtils.EMPTY);
 		return switch(tag){
-			case "group" -> RootKind.GROUP;
-			case "event" -> RootKind.EVENT;
-			case "source" -> RootKind.SOURCE;
-			case "place" -> RootKind.PLACE;
-			case "repository" -> RootKind.REPOSITORY;
-			case "media" -> RootKind.DOCUMENT;
-			case "research_question" -> RootKind.RESEARCH_QUESTION;
-			case "research_activity" -> RootKind.RESEARCH_ACTIVITY;
-			case "research_task" -> RootKind.RESEARCH_TASK;
-			case "conclusion" -> RootKind.CONCLUSION;
-			case "identity_hypothesis" -> RootKind.IDENTITY_HYPOTHESIS;
-			case "cultural_norm" -> RootKind.CULTURAL_NORM;
-			case "historic_event" -> RootKind.HISTORIC_EVENT;
+			case GroupReader.TYPE -> RootKind.GROUP;
+			case EventReader.TYPE -> RootKind.EVENT;
+			case SourceReader.TYPE -> RootKind.SOURCE;
+			case PlaceReader.TYPE -> RootKind.PLACE;
+			case RepositoryReader.TYPE -> RootKind.REPOSITORY;
+			case MediaReader.TYPE -> RootKind.DOCUMENT;
+			case ResearchQuestionReader.TYPE -> RootKind.RESEARCH_QUESTION;
+			case ResearchActivityReader.TYPE -> RootKind.RESEARCH_ACTIVITY;
+			case ResearchTaskReader.TYPE -> RootKind.RESEARCH_TASK;
+			case ConclusionReader.TYPE -> RootKind.CONCLUSION;
+			case IdentityHypothesisReader.TYPE -> RootKind.IDENTITY_HYPOTHESIS;
+			case CulturalNormReader.TYPE -> RootKind.CULTURAL_NORM;
+			case HistoricEventReader.TYPE -> RootKind.HISTORIC_EVENT;
 			case IndividualReader.TYPE -> RootKind.INDIVIDUAL;
 			default -> RootKind.OTHER;
 		};
@@ -351,7 +432,7 @@ public final class ReportContext{
 		for(final FLEFRecord a : index.activitiesForQuestion(root)) ids.add(a.getId());
 		for(final FLEFRecord t : index.tasksForQuestion(root)) ids.add(t.getId());
 		for(final FLEFRecord c : index.conclusionsForQuestion(root)) ids.add(c.getId());
-		for(final FLEFRecord target : FLEFRecordHelper.findChildren(root, "target")){
+		for(final FLEFRecord target : FLEFRecordHelper.findChildren(root, ResearchQuestionReader.TAG_TARGET)){
 			final FLEFRecord ref = target.getTheOnlyChild();
 			if(ref != null && ref.getValue() != null && !ref.getValue().isBlank())
 				ids.add(ref.getValue());
@@ -359,24 +440,24 @@ public final class ReportContext{
 	}
 
 	private void computeForConclusion(final Set<String> ids){
-		for(final FLEFRecord r : FLEFRecordHelper.findChildren(root, "resolves")){
+		for(final FLEFRecord r : FLEFRecordHelper.findChildren(root, ConclusionReader.TAG_RESOLVES)){
 			final FLEFRecord ref = r.getTheOnlyChild();
 			if(ref != null && ref.getValue() != null && !ref.getValue().isBlank())
 				ids.add(ref.getValue());
 		}
-		final FLEFRecord preferred = FLEFRecordHelper.findChild(root, "preferred");
+		final FLEFRecord preferred = FLEFRecordHelper.findChild(root, ConclusionReader.TAG_PREFERRED);
 		if(preferred != null){
 			final FLEFRecord ref = preferred.getTheOnlyChild();
 			if(ref != null && ref.getValue() != null && !ref.getValue().isBlank())
 				ids.add(ref.getValue());
 		}
-		for(final FLEFRecord q : FLEFRecordHelper.findChildren(root, "research"))
+		for(final FLEFRecord q : FLEFRecordHelper.findChildren(root, ConclusionReader.TAG_RESEARCH))
 			if(q.getValue() != null) ids.add(q.getValue());
 	}
 
 	private void addIdentityHypotheses(final Set<String> ids){
-		for(final FLEFRecord h : visibleRecordsByType("identity_hypothesis")){
-			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, "identity")){
+		for(final FLEFRecord h : visibleRecordsByType(IdentityHypothesisReader.TYPE)){
+			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, IdentityHypothesisReader.TAG_IDENTITY)){
 				final FLEFRecord ref = cand.getTheOnlyChild();
 				if(ref != null && Objects.equals(root.getId(), ref.getValue()))
 					ids.add(h.getId());

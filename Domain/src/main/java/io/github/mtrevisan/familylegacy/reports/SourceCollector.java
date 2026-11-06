@@ -25,12 +25,14 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -49,28 +51,39 @@ import java.util.Set;
  */
 public final class SourceCollector{
 
-	private static final String TYPE_SOURCE = "source";
-	private static final String TYPE_RELATIONSHIP = "relationship";
-	private static final String TAG_SUBJECT = "subject";
+	private static final String TYPE_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TYPE_RELATIONSHIP = RelationshipReader.TYPE;
+	private static final String TAG_SUBJECT = RelationshipReader.TAG_SUBJECT;
 
 
 	private SourceCollector(){
 	}
 
 
-	/** Returns the de-duplicated source IDs cited by the root individual. */
+	/** Returns the de-duplicated source IDs cited by the root individual (by every person of a multi-person report). */
 	public static Set<String> collect(final ReportContext ctx){
 		final Set<String> ids = new LinkedHashSet<>();
 
-		collectFrom(ctx, ctx.root, ids);
-		for(final FLEFRecord e : ctx.index.eventsOf(ctx.root))
-			collectFrom(ctx, e, ids);
-		for(final FLEFRecord a : ctx.index.attributesOf(ctx.root))
-			collectFrom(ctx, a, ids);
+		final Set<String> subjectIds = new HashSet<>();
+		for(final FLEFRecord subject : ctx.subjects()){
+			//(a group has its own events, attributes, members and groups)
+			if(ReportContext.rootKindOf(subject) == ReportContext.RootKind.GROUP){
+				collectOfGroup(ctx, subject, ids);
+				continue;
+			}
+
+			subjectIds.add(subject.getId());
+
+			collectFrom(ctx, subject, ids);
+			for(final FLEFRecord e : ctx.index.eventsOf(subject))
+				collectFrom(ctx, e, ids);
+			for(final FLEFRecord a : ctx.index.attributesOf(subject))
+				collectFrom(ctx, a, ids);
+		}
 
 		for(final FLEFRecord r : ctx.visibleRecordsByType(TYPE_RELATIONSHIP)){
 			final String subj = r.extractReferencedId(TAG_SUBJECT, IndividualReader.TYPE);
-			if(Objects.equals(ctx.root.getId(), subj))
+			if(subj != null && subjectIds.contains(subj))
 				collectFrom(ctx, r, ids);
 		}
 
@@ -99,19 +112,23 @@ public final class SourceCollector{
 	public static Set<String> collectForGroup(final ReportContext ctx){
 		final Set<String> ids = new LinkedHashSet<>();
 
-		collectFrom(ctx, ctx.root, ids);
-		for(final FLEFRecord e : ctx.index.eventsOfGroup(ctx.root))
-			collectFrom(ctx, e, ids);
-		for(final FLEFRecord a : ctx.index.attributesOfGroup(ctx.root))
-			collectFrom(ctx, a, ids);
-		for(final FLEFRecord m : ctx.index.membersOf(ctx.root))
-			collectFrom(ctx, m, ids);
-		for(final FLEFRecord r : ctx.index.parentGroupsOf(ctx.root))
-			collectFrom(ctx, r, ids);
-		for(final FLEFRecord r : ctx.index.childGroupsOf(ctx.root))
-			collectFrom(ctx, r, ids);
+		collectOfGroup(ctx, ctx.root, ids);
 
 		return ids;
+	}
+
+	private static void collectOfGroup(final ReportContext ctx, final FLEFRecord group, final Set<String> ids){
+		collectFrom(ctx, group, ids);
+		for(final FLEFRecord e : ctx.index.eventsOfGroup(group))
+			collectFrom(ctx, e, ids);
+		for(final FLEFRecord a : ctx.index.attributesOfGroup(group))
+			collectFrom(ctx, a, ids);
+		for(final FLEFRecord m : ctx.index.membersOf(group))
+			collectFrom(ctx, m, ids);
+		for(final FLEFRecord r : ctx.index.parentGroupsOf(group))
+			collectFrom(ctx, r, ids);
+		for(final FLEFRecord r : ctx.index.childGroupsOf(group))
+			collectFrom(ctx, r, ids);
 	}
 
 	/** Appends source IDs of a group into the given list (order preserved). */

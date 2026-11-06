@@ -29,6 +29,10 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
@@ -87,7 +91,7 @@ class GapAssistantTest{
 	}
 
 	private static String id(final FLEFModel model, final String name){
-		return model.getRecordsByType("individual").stream()
+		return model.getRecordsByType(IndividualReader.TYPE).stream()
 			.filter(r -> IndividualReader.extractPrimaryFullname(r).contains(name))
 			.findFirst()
 			.orElseThrow()
@@ -95,10 +99,10 @@ class GapAssistantTest{
 	}
 
 	private static FLEFRecord question(final String id, final String title, final String status){
-		final FLEFRecord question = FLEFRecord.createMainRecord(id, "research_question");
-		question.addChild(FLEFRecord.createChildWithTagAndValue("title", title));
-		question.addChild(FLEFRecord.createChildWithTagAndValue("question", "What is " + title + "?"));
-		question.addChild(FLEFRecord.createChildWithTagAndValue("status", status));
+		final FLEFRecord question = FLEFRecord.createMainRecord(id, ResearchQuestionReader.TYPE);
+		question.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, title));
+		question.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, "What is " + title + "?"));
+		question.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_STATUS, status));
 		return question;
 	}
 
@@ -134,8 +138,8 @@ class GapAssistantTest{
 		final GapData data = GapDataLoader.load(model, TODAY);
 		Assertions.assertFalse(data.parents().isEmpty(), "the child has parents");
 
-		for(final FLEFRecord relationship : new java.util.ArrayList<>(model.getRecordsByType("relationship")))
-			if(FLEFRecordHelper.getChildValue(relationship, "type").endsWith("spouse"))
+		for(final FLEFRecord relationship : new java.util.ArrayList<>(model.getRecordsByType(RelationshipReader.TYPE)))
+			if(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE).endsWith(RelationshipReader.ENUM_TYPE_SPOUSE))
 				model.removeRecord(relationship.getId());
 		final List<GapFinding> found = findings(model).stream()
 			.filter(f -> f.diagnostic().title().startsWith("Children without a known marriage"))
@@ -149,27 +153,27 @@ class GapAssistantTest{
 	@Test
 	void theResearchRecordsAreRead() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(question("RQ1", "Parents of Dino", "open"));
-		model.addRecord(question("RQ2", "Death of Anna", "open"));
-		final FLEFRecord activity = FLEFRecord.createMainRecord("RA1", "research_activity");
-		activity.addChild(FLEFRecord.createChildWithTagAndValue("question", "RQ2"));
-		activity.addChild(FLEFRecord.createChildWithTagAndValue("activity_type", "search"));
-		activity.addChild(FLEFRecord.createChildWithTagAndValue("status", "completed"));
-		activity.addChild(FLEFRecord.createChildWithTagAndValue("action", "Searched the parish register"));
-		activity.addChild(FLEFRecord.createChildWithTagAndValue("result", "negative"));
+		model.addRecord(question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN));
+		model.addRecord(question("RQ2", "Death of Anna", ResearchQuestionReader.ENUM_STATUS_OPEN));
+		final FLEFRecord activity = FLEFRecord.createMainRecord("RA1", ResearchActivityReader.TYPE);
+		activity.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, "RQ2"));
+		activity.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTIVITY_TYPE, "search"));
+		activity.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_STATUS, ResearchTaskReader.ENUM_STATUS_COMPLETED));
+		activity.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTION, "Searched the parish register"));
+		activity.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_RESULT, ResearchActivityReader.ENUM_RESULT_NEGATIVE));
 		model.addRecord(activity);
-		final FLEFRecord task = FLEFRecord.createMainRecord("RT1", "research_task");
-		task.addChild(FLEFRecord.createChildWithTagAndValue("description", "Ask the diocese archive"));
-		task.addChild(FLEFRecord.createChildWithTagAndValue("question", "RQ2"));
-		task.addChild(FLEFRecord.createChildWithTagAndValue("status", "open"));
-		task.addChild(FLEFRecord.createChildWithTagAndValue("due_date", "2020-01-01"));
+		final FLEFRecord task = FLEFRecord.createMainRecord("RT1", ResearchTaskReader.TYPE);
+		task.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_DESCRIPTION, "Ask the diocese archive"));
+		task.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, "RQ2"));
+		task.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_STATUS, ResearchQuestionReader.ENUM_STATUS_OPEN));
+		task.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_DUE_DATE, "2020-01-01"));
 		model.addRecord(task);
 
 		final GapData data = GapDataLoader.load(model, TODAY);
 
 		Assertions.assertEquals(2, data.questions().size());
 		Assertions.assertEquals(List.of("RQ2"), data.activities().getFirst().questionIds());
-		Assertions.assertEquals("negative", data.activities().getFirst().result());
+		Assertions.assertEquals(ResearchActivityReader.ENUM_RESULT_NEGATIVE, data.activities().getFirst().result());
 		Assertions.assertEquals(List.of("RQ2"), data.tasks().getFirst().questionIds());
 		Assertions.assertNotNull(data.tasks().getFirst().due());
 
@@ -186,7 +190,7 @@ class GapAssistantTest{
 	@Test
 	void everyFindingCanBeIgnoredAndOpenedAndTheDraftsComeFirst() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(question("RQ1", "Parents of Dino", "open"));
+		model.addRecord(question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN));
 
 		final List<Diagnostic> found = new GapAssistantContributor().diagnosticProviders().getFirst()
 			.diagnose(new AssistantContext(null, null, model));
@@ -208,7 +212,7 @@ class GapAssistantTest{
 	@Test
 	void theFindingsAreListedByUsefulness() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(question("RQ1", "Parents of Dino", "open"));
+		model.addRecord(question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN));
 		final List<Diagnostic> found = new GapAssistantContributor().diagnosticProviders().getFirst()
 			.diagnose(new AssistantContext(null, null, model));
 
@@ -231,17 +235,17 @@ class GapAssistantTest{
 		final ResearchQuestionRecordDialog dialog = ResearchQuestionRecordDialog.createNew(null, model)
 			.withDraft(finding.draft().title(), finding.draft().text(), List.of(anna));
 
-		Assertions.assertTrue(model.getRecordsByType("research_question").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(ResearchQuestionReader.TYPE).isEmpty());
 		Assertions.assertFalse(dialog.isSaved());
 
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
-		final List<FLEFRecord> questions = model.getRecordsByType("research_question");
+		final List<FLEFRecord> questions = model.getRecordsByType(ResearchQuestionReader.TYPE);
 		Assertions.assertEquals(1, questions.size());
-		Assertions.assertEquals("Death of Anna Rossi", FLEFRecordHelper.getChildValue(questions.getFirst(), "title"));
-		Assertions.assertEquals("When and where did Anna Rossi die?", FLEFRecordHelper.getChildValue(questions.getFirst(), "question"));
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(questions.getFirst(), "target").size());
+		Assertions.assertEquals("Death of Anna Rossi", FLEFRecordHelper.getChildValue(questions.getFirst(), ResearchQuestionReader.TAG_TITLE));
+		Assertions.assertEquals("When and where did Anna Rossi die?", FLEFRecordHelper.getChildValue(questions.getFirst(), ResearchQuestionReader.TAG_QUESTION));
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(questions.getFirst(), ResearchQuestionReader.TAG_TARGET).size());
 		//the gap is not filled: it is a question to answer, and the individual still has no death
 		Assertions.assertTrue(titles(findings(model)).contains("No death recorded: Anna Rossi (born 1890)"));
 	}
@@ -250,7 +254,7 @@ class GapAssistantTest{
 	void aTaskDraftIsSavedOnlyIfTheResearcherSavesIt() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final FLEFRecord question = question("RQ1", "Parents of Dino", "open");
+		final FLEFRecord question = question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN);
 		model.addRecord(question);
 		final GapFinding finding = findings(model).stream()
 			.filter(f -> f.diagnostic().title().startsWith("Research question with no activity")).findFirst().orElseThrow();
@@ -258,17 +262,17 @@ class GapAssistantTest{
 		final ResearchTaskRecordDialog dialog = ResearchTaskRecordDialog.createNew(null, model)
 			.withDraft(finding.draft().text(), finding.draft().priority(), List.of(question));
 
-		Assertions.assertTrue(model.getRecordsByType("research_task").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(ResearchTaskReader.TYPE).isEmpty());
 
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
-		final List<FLEFRecord> tasks = model.getRecordsByType("research_task");
+		final List<FLEFRecord> tasks = model.getRecordsByType(ResearchTaskReader.TYPE);
 		Assertions.assertEquals(1, tasks.size());
-		Assertions.assertTrue(FLEFRecordHelper.getChildValue(tasks.getFirst(), "description").contains("Parents of Dino"));
-		Assertions.assertEquals("open", FLEFRecordHelper.getChildValue(tasks.getFirst(), "status"));
-		Assertions.assertEquals("normal", FLEFRecordHelper.getChildValue(tasks.getFirst(), "priority"));
-		Assertions.assertEquals("RQ1", FLEFRecordHelper.getChildValue(tasks.getFirst(), "question"));
+		Assertions.assertTrue(FLEFRecordHelper.getChildValue(tasks.getFirst(), ResearchTaskReader.TAG_DESCRIPTION).contains("Parents of Dino"));
+		Assertions.assertEquals(ResearchQuestionReader.ENUM_STATUS_OPEN, FLEFRecordHelper.getChildValue(tasks.getFirst(), ResearchTaskReader.TAG_STATUS));
+		Assertions.assertEquals(ResearchTaskReader.ENUM_PRIORITY_NORMAL, FLEFRecordHelper.getChildValue(tasks.getFirst(), ResearchTaskReader.TAG_PRIORITY));
+		Assertions.assertEquals("RQ1", FLEFRecordHelper.getChildValue(tasks.getFirst(), ResearchTaskReader.TAG_QUESTION));
 	}
 
 	@Test

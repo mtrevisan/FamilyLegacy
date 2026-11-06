@@ -51,6 +51,7 @@ public final class PluginLoader{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
 
+
 	private static final String PLUGINS_DIR = "plugins";
 	/** System property that sets the location of the plugins' directory (the one the packaged application sets for the other plugins). */
 	private static final String PLUGINS_DIR_PROPERTY = "calendars.plugins.dir";

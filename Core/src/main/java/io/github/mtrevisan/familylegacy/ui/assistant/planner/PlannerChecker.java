@@ -256,7 +256,7 @@ final class PlannerChecker{
 			final List<Candidate> candidates){
 		final long fruitless = data.activities().stream()
 			.filter(activity -> activity.questionIds().contains(question.id()) && ResearchActivityReader.ENUM_STATUS_COMPLETED.equals(activity.status())
-				&& activity.result() != null && !"positive".equals(activity.result()))
+				&& activity.result() != null && !ResearchActivityReader.ENUM_RESULT_POSITIVE.equals(activity.result()))
 			.count();
 		if(fruitless >= FRUITLESS_SEARCHES)
 			candidates.add(new Candidate(Step.ARCHIVE, person, 50, "", String.valueOf(fruitless)));

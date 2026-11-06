@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -319,10 +321,10 @@ public final class TemporalProjectionService{
 		final String tag = record.getTag();
 		if(tag == null)
 			return null;
-		return switch(tag){
-			case "individual" -> TemporalEntityType.INDIVIDUAL;
-			case "group" -> TemporalEntityType.GROUP;
-			case "place" -> TemporalEntityType.PLACE;
+		return switch(tag.toUpperCase(Locale.ROOT)){
+			case IndividualReader.TYPE -> TemporalEntityType.INDIVIDUAL;
+			case GroupReader.TYPE -> TemporalEntityType.GROUP;
+			case PlaceReader.TYPE -> TemporalEntityType.PLACE;
 			default -> null;
 		};
 	}
@@ -404,7 +406,7 @@ public final class TemporalProjectionService{
 	private FLEFRecord resolvePlace(final FLEFRecord placeCitation){
 		if(placeCitation == null)
 			return null;
-		final FLEFRecord ref = FLEFRecordHelper.findChild(placeCitation, "place");
+		final FLEFRecord ref = FLEFRecordHelper.findChild(placeCitation, PlaceCitationReader.TAG_PLACE);
 		if(ref == null)
 			return null;
 		final String id = ref.getValue();

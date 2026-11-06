@@ -82,4 +82,18 @@ public interface FileImporter{
 	 */
 	FLEFModel read(Path file, ProgressListener progress) throws IOException;
 
+	/**
+	 * Reads the file as {@link #read(Path, ProgressListener)} does, and tells what it could not keep. The default ignores the report;
+	 * an importer that knows what it discards overrides it.
+	 *
+	 * @param file      the file to read
+	 * @param progress  told how far the reading is
+	 * @param report    where the important discarded information is collected
+	 * @return	A new model, with the content of the file.
+	 * @throws IOException	If the file cannot be read, or it is not a valid document of the format.
+	 */
+	default FLEFModel read(final Path file, final ProgressListener progress, final ImportReport report) throws IOException{
+		return read(file, progress);
+	}
+
 }

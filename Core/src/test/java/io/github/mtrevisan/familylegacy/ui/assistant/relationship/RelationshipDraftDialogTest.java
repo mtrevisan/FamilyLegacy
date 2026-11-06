@@ -28,6 +28,12 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
@@ -62,7 +68,7 @@ class RelationshipDraftDialogTest{
 	}
 
 	private static List<FLEFRecord> relationships(final FLEFModel model){
-		return model.getRecordsByType("relationship");
+		return model.getRecordsByType(RelationshipReader.TYPE);
 	}
 
 
@@ -70,13 +76,13 @@ class RelationshipDraftDialogTest{
 	void theDraftIsSavedOnlyIfTheResearcherSavesIt() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final FLEFRecord anna = individuals.get(0);
 		final FLEFRecord carlo = individuals.get(1);
 
 		//what the action does, but for showing the editor
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(anna, carlo, "religious_spouse");
+			.withParticipants(anna, carlo, RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE);
 
 		//the draft is in the editor only
 		Assertions.assertTrue(relationships(model).isEmpty());
@@ -88,20 +94,20 @@ class RelationshipDraftDialogTest{
 		Assertions.assertTrue(dialog.isSaved());
 		Assertions.assertEquals(1, relationships(model).size());
 		final FLEFRecord relationship = relationships(model).getFirst();
-		Assertions.assertEquals("religious_spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
-		Assertions.assertEquals(anna.getId(), FLEFRecordHelper.getChildValue(relationship, "subject.individual"));
-		Assertions.assertEquals(carlo.getId(), FLEFRecordHelper.getChildValue(relationship, "target.individual"));
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE, FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE));
+		Assertions.assertEquals(anna.getId(), FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(RelationshipReader.TAG_SUBJECT, RelationshipReader.TAG_INDIVIDUAL)));
+		Assertions.assertEquals(carlo.getId(), FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(RelationshipReader.TAG_TARGET, RelationshipReader.TAG_INDIVIDUAL)));
 	}
 
 	@Test
 	void theTypeIsProposedOnlyIfItIsValidForTheParticipants() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 
 		//a type that does not exist for two individuals is not put in the editor: the researcher chooses
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "part_of");
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_PART_OF);
 
 		Assertions.assertTrue(relationships(model).isEmpty());
 		Assertions.assertFalse(dialog.isSaved());
@@ -109,15 +115,15 @@ class RelationshipDraftDialogTest{
 	}
 
 	private static FLEFRecord marriageEvent(final FLEFModel model){
-		model.addRecord(FLEFRecord.createMainRecord("S1", "source")
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Parish register")));
-		final FLEFRecord event = FLEFRecord.createMainRecord("E1", "event")
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "marriage"))
-			.addChild(FLEFRecord.createChildWithTag("date").addChild(FLEFRecord.createChildWithTag("value")
-				.addChild(FLEFRecord.createChildWithTag("point").addChild(FLEFRecord.createChildWithTag("value")
-					.addChild(FLEFRecord.createChildWithTagAndValue("full_date", "1865-06-01"))))))
-			.addChild(FLEFRecord.createChildWithTag("source")
-				.addChild(FLEFRecord.createChildWithTagAndValue("source", "S1")));
+		model.addRecord(FLEFRecord.createMainRecord("S1", SourceReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_TITLE, "Parish register")));
+		final FLEFRecord event = FLEFRecord.createMainRecord("E1", EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_MARRIAGE))
+			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_DATE).addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_POINT).addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, "1865-06-01"))))))
+			.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1")));
 		model.addRecord(event);
 		return event;
 	}
@@ -126,100 +132,100 @@ class RelationshipDraftDialogTest{
 	void theDraftStartsFromTheDateAndTheSourcesOfTheMarriageThatIsItsEvidence() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final FLEFRecord event = marriageEvent(model);
 
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "civil_spouse")
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE)
 			.withEvidenceOf(event, true);
 		dialog.save();
 
 		final FLEFRecord relationship = relationships(model).getFirst();
-		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(relationship, "valid_from.value.point.value.full_date"));
-		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, "source.source"));
+		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(RelationshipReader.TAG_VALID_FROM, DateReader.TAG_VALUE, DateReader.TAG_POINT, DateReader.TAG_VALUE, DateReader.TAG_FULL_DATE)));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(SourceCitationReader.TAG_SOURCE, SourceCitationReader.TAG_SOURCE)));
 		//the event is untouched, and its own date and source are not the ones of the relationship (they are copies)
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(event, "source").size());
-		Assertions.assertNotSame(FLEFRecordHelper.findChild(event, "source"), FLEFRecordHelper.findChild(relationship, "source"));
-		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date"));
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(event, SourceCitationReader.TAG_SOURCE).size());
+		Assertions.assertNotSame(FLEFRecordHelper.findChild(event, SourceCitationReader.TAG_SOURCE), FLEFRecordHelper.findChild(relationship, SourceCitationReader.TAG_SOURCE));
+		Assertions.assertEquals("1865-06-01", FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(EventReader.TAG_DATE, DateReader.TAG_VALUE, DateReader.TAG_POINT, DateReader.TAG_VALUE, DateReader.TAG_FULL_DATE)));
 	}
 
 	@Test
 	void theDateOfTheEventIsNotTheDateOfTheRelationshipUnlessTheDraftSaysSo() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final FLEFRecord event = marriageEvent(model);
 
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "civil_spouse")
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE)
 			.withEvidenceOf(event, false);
 		dialog.save();
 
 		final FLEFRecord relationship = relationships(model).getFirst();
-		Assertions.assertNull(FLEFRecordHelper.findChild(relationship, "valid_from"));
-		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, "source.source"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(SourceCitationReader.TAG_SOURCE, SourceCitationReader.TAG_SOURCE)));
 	}
 
 	@Test
 	void theGenericSpouseCanBeSavedFromTheEditor() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 
 		//the type an import gives to a marriage that says nothing more is offered by the editor, so it is not lost when saving
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_SPOUSE);
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
-		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationships(model).getFirst(), "type"));
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_SPOUSE, FLEFRecordHelper.getChildValue(relationships(model).getFirst(), RelationshipReader.TAG_TYPE));
 	}
 
 	@Test
 	void theSuggestedTypeIsChosenInTheEditorOfTheRelationshipButNothingChangesUntilItIsSaved() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final RelationshipRecordDialog creation = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_SPOUSE);
 		creation.save();
 		final FLEFRecord relationship = relationships(model).getFirst();
 
 		//what the "Change type" action does, but for showing the editor
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createEdit(null, model, relationship)
-			.withType("civil_spouse");
-		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+			.withType(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE);
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_SPOUSE, FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE));
 		dialog.save();
 
-		Assertions.assertEquals("civil_spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE));
 	}
 
 	@Test
 	void aSuggestedTypeThatTheEditorDoesNotOfferForTheParticipantsIsNotChosen() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final RelationshipRecordDialog creation = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "spouse");
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_SPOUSE);
 		creation.save();
 		final FLEFRecord relationship = relationships(model).getFirst();
 
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createEdit(null, model, relationship)
-			.withType("part_of");
+			.withType(RelationshipReader.ENUM_TYPE_PART_OF);
 		dialog.save();
 
-		Assertions.assertEquals("spouse", FLEFRecordHelper.getChildValue(relationship, "type"));
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_SPOUSE, FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE));
 	}
 
 	@Test
 	void cancellingTheDraftLeavesTheModelAsItWas() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> individuals = model.getRecordsByType("individual");
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		final int records = model.getRecords().size();
 
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
-			.withParticipants(individuals.get(0), individuals.get(1), "civil_spouse");
+			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE);
 		//ESC, which is Cancel
 		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);

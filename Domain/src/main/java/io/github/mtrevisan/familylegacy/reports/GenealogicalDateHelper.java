@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -67,19 +68,17 @@ public final class GenealogicalDateHelper{
 	 *                          Numeric paths
 	 * ====================================================================== */
 
-	private static final String PATH_FULL_DATE_VALUE = "date.value.point.full_date.value";
-	private static final String PATH_FULL_DATE_CAL = "date.value.point.full_date.calendar";
-	private static final String PATH_DECADE_START = "date.value.point.decade.start_year";
-	private static final String PATH_CENTURY_ORDINAL = "date.value.point.century.ordinal";
+	private static final String PATH_FULL_DATE_VALUE = "date.value.point.value.full_date";
+	private static final String PATH_FULL_DATE_CAL = "date.value.point.calendar";
 
 	private static final String[] SINGLE_DATE_BASES = {
 		"date.value.bounded.not_before",
 		"date.value.bounded.not_after",
-		"date.value.spanning_from",
-		"date.value.spanning_to"
+		"date.value.spanning.from",
+		"date.value.spanning.to"
 	};
 
-	private static final String DEFAULT_CALENDAR = "gregorian";
+	private static final String DEFAULT_CALENDAR = DateReader.ENUM_CALENDAR_GREGORIAN;
 
 
 	private GenealogicalDateHelper(){
@@ -138,7 +137,7 @@ public final class GenealogicalDateHelper{
 
 	static String formatEventDate(final FLEFRecord event, final ReportLabels labels,
 		final Function<String, String> normResolver){
-		return formatDateStructure(event, "date", labels, normResolver);
+		return formatDateStructure(event, EventReader.TAG_DATE, labels, normResolver);
 	}
 
 	static String formatDateStructure(final FLEFRecord rec, final String fieldTag,
@@ -168,7 +167,7 @@ public final class GenealogicalDateHelper{
 	private static String baseDate(final FLEFRecord rec, final String fieldTag,
 		final ReportLabels labels){
 		final String originalText = FLEFRecordHelper.getChildValue(rec,
-			fieldTag + ".original_text");
+			FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_ORIGINAL_TEXT));
 		if(originalText != null && !originalText.isBlank())
 			return originalText.trim();
 		return normalizedDate(rec, fieldTag, labels);
@@ -176,12 +175,12 @@ public final class GenealogicalDateHelper{
 
 	private static String normalizedDate(final FLEFRecord rec, final String fieldTag,
 		final ReportLabels labels){
-		final String point = singleDate(rec, fieldTag + ".value.point", labels);
+		final String point = singleDate(rec, FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_VALUE_POINT), labels);
 		if(point != null)
 			return point;
 
-		final String notBefore = singleDate(rec, fieldTag + ".value.bounded.not_before", labels);
-		final String notAfter = singleDate(rec, fieldTag + ".value.bounded.not_after", labels);
+		final String notBefore = singleDate(rec, FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_VALUE_BOUNDED_NOT_BEFORE), labels);
+		final String notAfter = singleDate(rec, FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_VALUE_BOUNDED_NOT_AFTER), labels);
 		if(notBefore != null && notAfter != null)
 			return String.format(labels.dates().dateBetween(), notBefore, notAfter);
 		if(notBefore != null)
@@ -189,8 +188,8 @@ public final class GenealogicalDateHelper{
 		if(notAfter != null)
 			return String.format(labels.dates().dateBefore(), notAfter);
 
-		final String from = singleDate(rec, fieldTag + ".value.spanning_from", labels);
-		final String to = singleDate(rec, fieldTag + ".value.spanning_to", labels);
+		final String from = singleDate(rec, FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_VALUE_SPANNING_FROM), labels);
+		final String to = singleDate(rec, FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_VALUE_SPANNING_TO), labels);
 		if(from != null && to != null)
 			return String.format(labels.dates().dateFromTo(), from, to);
 		if(from != null)
@@ -204,19 +203,19 @@ public final class GenealogicalDateHelper{
 	private static String singleDate(final FLEFRecord rec, final String base,
 		final ReportLabels labels){
 		// full_date
-		final String full = FLEFRecordHelper.getChildValue(rec, base + ".full_date.value");
+		final String full = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_FULL_DATE));
 		if(full != null && !full.isBlank())
 			return full.trim();
 
 		// decade
-		final String decade = FLEFRecordHelper.getChildValue(rec, base + ".decade.start_year");
+		final String decade = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_DECADE));
 		if(decade != null && !decade.isBlank())
 			return String.format(labels.dates().dateDecade(), decade.trim());
 
 		// century
-		final String ordinal = FLEFRecordHelper.getChildValue(rec, base + ".century.ordinal");
+		final String ordinal = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_CENTURY_ORDINAL));
 		if(ordinal != null && !ordinal.isBlank()){
-			final String part = FLEFRecordHelper.getChildValue(rec, base + ".century_part");
+			final String part = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_CENTURY_PART));
 			if(part != null && !part.isBlank())
 				return String.format(labels.dates().dateCenturyWithPart(),
 					labels.dates().centuryPart(part), ordinal.trim());
@@ -242,7 +241,7 @@ public final class GenealogicalDateHelper{
 		if(approx == null)
 			return null;
 
-		final String basis = FLEFRecordHelper.getChildValue(approx, "basis");
+		final String basis = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_BASIS);
 		if(StringUtils.isEmpty(basis))
 			return labels.dates().approxBasisUnspecified();
 
@@ -264,7 +263,7 @@ public final class GenealogicalDateHelper{
 		final FLEFRecord approx = findApproximate(rec, fieldTag);
 		if(approx == null)
 			return null;
-		return parseMargin(FLEFRecordHelper.getChildValue(approx, "margin"), labels);
+		return parseMargin(FLEFRecordHelper.getChildValue(approx, DateReader.TAG_MARGIN), labels);
 	}
 
 	/**
@@ -278,14 +277,14 @@ public final class GenealogicalDateHelper{
 		final FLEFRecord dateField = FLEFRecordHelper.findChild(rec, fieldTag);
 		if(dateField == null)
 			return null;
-		final FLEFRecord calendarNode = findFirstChildByTag(dateField, "calendar");
+		final FLEFRecord calendarNode = findFirstChildByTag(dateField, DateReader.TAG_CALENDAR);
 		if(calendarNode == null)
 			return null;
 		final String code = calendarNode.getValue();
 		if(StringUtils.isEmpty(code))
 			return null;
 		final String normalized = normalizeCalendar(code);
-		if("gregorian".equals(normalized))
+		if(DateReader.ENUM_CALENDAR_GREGORIAN.equals(normalized))
 			return null;
 		return labels.dates().calendarDisplay(normalized);
 	}
@@ -302,7 +301,7 @@ public final class GenealogicalDateHelper{
 	 */
 	private static FLEFRecord findApproximate(final FLEFRecord rec, final String fieldTag){
 		final FLEFRecord field = FLEFRecordHelper.findChild(rec, fieldTag);
-		return (field != null? findFirstChildByTag(field, "approximate"): null);
+		return (field != null? findFirstChildByTag(field, DateReader.TAG_APPROXIMATE): null);
 	}
 
 	private static FLEFRecord findFirstChildByTag(final FLEFRecord rec, final String tag){
@@ -323,7 +322,7 @@ public final class GenealogicalDateHelper{
 
 		final List<String> out = new ArrayList<>();
 		for(final FLEFRecord child : approx.getChildren()){
-			if(!"cultural_norm".equalsIgnoreCase(child.getTag()))
+			if(!DateReader.TAG_CULTURAL_NORM.equalsIgnoreCase(child.getTag()))
 				continue;
 			final String id = child.getValue();
 			if(StringUtils.isEmpty(id))
@@ -387,15 +386,15 @@ public final class GenealogicalDateHelper{
 	 * ====================================================================== */
 
 	private static Integer readFullDate(final FLEFRecord event, final String base){
-		final String value = FLEFRecordHelper.getChildValue(event, base + ".full_date.value");
+		final String value = FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_FULL_DATE));
 		if(StringUtils.isEmpty(value))
 			return null;
-		final String calendar = FLEFRecordHelper.getChildValue(event, base + ".full_date.calendar");
+		final String calendar = FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(base, DateReader.TAG_CALENDAR));
 		return parseYear(calendar, value);
 	}
 
 	private static Integer readDecade(final FLEFRecord event, final String base){
-		final String v = FLEFRecordHelper.getChildValue(event, base + ".decade.start_year");
+		final String v = FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_DECADE));
 		if(StringUtils.isEmpty(v))
 			return null;
 		try{
@@ -407,7 +406,7 @@ public final class GenealogicalDateHelper{
 	}
 
 	private static Integer readCentury(final FLEFRecord event, final String base){
-		final String v = FLEFRecordHelper.getChildValue(event, base + ".century.ordinal");
+		final String v = FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_CENTURY_ORDINAL));
 		if(StringUtils.isEmpty(v))
 			return null;
 		try{

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -236,7 +237,7 @@ public final class GroupNetworkBuilder{
 
 	private static String dateText(final FLEFRecord relationship, final String tag){
 		try{
-			return StringUtils.defaultString(DateService.getDateDisplayText(FLEFRecordHelper.findChild(relationship, tag + ".value")));
+			return StringUtils.defaultString(DateService.getDateDisplayText(FLEFRecordHelper.findChild(relationship, FLEFRecordHelper.composePath(tag, DateReader.TAG_VALUE))));
 		}
 		catch(final RuntimeException ignored){
 			//a date that cannot be read is not shown

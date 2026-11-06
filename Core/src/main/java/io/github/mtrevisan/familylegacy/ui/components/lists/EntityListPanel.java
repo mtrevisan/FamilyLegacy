@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -85,7 +86,6 @@ import java.util.function.Consumer;
  */
 public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
-	private static final String TAG_RESOLVES = "resolves";
 
 
 	public enum ListType{
@@ -342,7 +342,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE);
 		for(final FLEFRecord conclusion : conclusions){
-			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
+			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES);
 			for(final FLEFRecord resolve : resolves)
 				if(containsId(resolve, recordId))
 					return conclusion;
@@ -780,7 +780,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 		else if(type == ListType.STRUCTURE){
 			if(handlerTypes.size() == 1 && ConclusionTargetHandler.class.equals(handlerTypes.getFirst())){
-				final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_RESOLVES);
+				final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, ConclusionReader.TAG_RESOLVES);
 				addItemsToPath(parentRecord, path);
 			}
 			else
@@ -822,7 +822,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				&& ConclusionTargetHandler.class.equals(handlerTypes.getFirst()));
 
 			if(isConclusionTarget)
-				FLEFRecordHelper.removeChildren(record, TAG_RESOLVES);
+				FLEFRecordHelper.removeChildren(record, ConclusionReader.TAG_RESOLVES);
 			else if(StringUtils.isNotEmpty(path))
 				FLEFRecordHelper.removeChildren(record, path);
 			else{

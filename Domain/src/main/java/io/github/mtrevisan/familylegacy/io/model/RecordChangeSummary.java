@@ -22,8 +22,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.record;
+package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -43,7 +45,7 @@ import java.util.Set;
  */
 public final class RecordChangeSummary{
 
-	private static final String TAG_AUDIT = "audit";
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
 	private static final String ADDED = "+ ";
 	private static final String CHANGED = "~ ";
 	private static final String REMOVED = "- ";

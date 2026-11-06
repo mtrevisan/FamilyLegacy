@@ -80,7 +80,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<argLine>--add-reads io.github.mtrevisan.importers.gramps=org.junit.jupiter.api</argLine>
+					<argLine>--add-reads io.github.mtrevisan.importers.gramps=org.junit.jupiter.api
+						--add-reads io.github.mtrevisan.importers.gramps=io.github.mtrevisan.calendars</argLine>
 				</configuration>
 			</plugin>
 		</plugins>

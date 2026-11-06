@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
@@ -157,7 +158,7 @@ class OpenRecordsActionTest{
 	@Test
 	void recordsThatAreGoneAreLeftOut() throws IOException{
 		final FLEFModel model = convert();
-		final String individual = model.getRecordsByType("individual").getFirst().getId();
+		final String individual = model.getRecordsByType(IndividualReader.TYPE).getFirst().getId();
 
 		final List<FLEFRecord> records = OpenRecordsAction.records(model, List.of("NOT-THERE", individual, individual));
 
@@ -169,7 +170,7 @@ class OpenRecordsActionTest{
 	@Test
 	void aRecordIsListedByItsTypeItsNameAndItsIdentifier() throws IOException{
 		final FLEFModel model = convert();
-		final FLEFRecord anna = model.getRecordsByType("individual").stream()
+		final FLEFRecord anna = model.getRecordsByType(IndividualReader.TYPE).stream()
 			.filter(r -> OpenRecordsAction.describe(model, r).contains("Anna"))
 			.findFirst()
 			.orElseThrow();
@@ -184,7 +185,7 @@ class OpenRecordsActionTest{
 	void theChooserOpensTheSelectedRecordAndStays() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The list needs a display");
 		final FLEFModel model = convert();
-		final List<FLEFRecord> records = model.getRecordsByType("individual");
+		final List<FLEFRecord> records = model.getRecordsByType(IndividualReader.TYPE);
 		final List<FLEFRecord> opened = new ArrayList<>();
 
 		final RecordChooserDialog chooser = new RecordChooserDialog(null, model, records,
@@ -199,7 +200,7 @@ class OpenRecordsActionTest{
 
 		Assertions.assertEquals(List.of(records.get(0), records.get(1), records.get(1)), opened);
 		//nothing is changed by opening
-		Assertions.assertEquals(records.size(), model.getRecordsByType("individual").size());
+		Assertions.assertEquals(records.size(), model.getRecordsByType(IndividualReader.TYPE).size());
 	}
 
 }

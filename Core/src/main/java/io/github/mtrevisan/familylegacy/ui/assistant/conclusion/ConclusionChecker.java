@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionResolution;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
@@ -66,7 +67,7 @@ final class ConclusionChecker{
 	/** The most biological parents an individual can have. */
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
 	/** The attributes that can have only one value for a person (the other ones change in time, or can be several). */
-	private static final Set<String> SINGLE_VALUED_ATTRIBUTES = Set.of("national_id");
+	private static final Set<String> SINGLE_VALUED_ATTRIBUTES = Set.of(IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 	/** The relationships that make a person a descendant of another one: a cycle of them is impossible. */

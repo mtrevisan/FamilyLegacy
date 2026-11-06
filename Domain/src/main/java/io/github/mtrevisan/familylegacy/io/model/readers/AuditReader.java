@@ -48,6 +48,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  */
 public final class AuditReader{
 
+	public static final String TAG_AUDIT = "audit";
 	public static final String TAG_CREATION = "creation";
 	public static final String TAG_DATE = "date";
 	public static final String TAG_COMMENT = "comment";

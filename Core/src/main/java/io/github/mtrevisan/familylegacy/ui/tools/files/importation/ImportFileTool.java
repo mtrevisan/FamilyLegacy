@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
+import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -57,6 +58,7 @@ import java.util.concurrent.ExecutionException;
 public final class ImportFileTool implements ToolOperation{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImportFileTool.class);
+
 
 	private final FileImporter importer;
 
@@ -101,10 +103,12 @@ public final class ImportFileTool implements ToolOperation{
 		final ProgressDialog progress = new ProgressDialog(owner, importer.dialogTitle(),
 			I18N.tf("dialog.import.progress", file.getName()));
 
+		final ImportReport report = new ImportReport();
+
 		final SwingWorker<FLEFModel, Void> worker = new SwingWorker<>(){
 			@Override
 			protected FLEFModel doInBackground() throws Exception{
-				return importer.read(file.toPath(), progress::update);
+				return importer.read(file.toPath(), progress::update, report);
 			}
 
 			@Override
@@ -114,7 +118,12 @@ public final class ImportFileTool implements ToolOperation{
 
 				try{
 					final FLEFModel imported = get();
-					context.openImported(imported, file);
+					//the embedded files (BLOB) are written before the model is saved: its media are linked to them while it is not open yet
+					resolveEmbeddedFiles(owner, imported, report, file.getParentFile());
+					//cancelling the save discards the import: no report
+					if(context.openImported(imported, file))
+						//after the file is opened, tell what could not be kept
+						ImportReportDialog.show(owner, report);
 				}
 				catch(final InterruptedException ie){
 					Thread.currentThread().interrupt();
@@ -132,6 +141,33 @@ public final class ImportFileTool implements ToolOperation{
 		worker.execute();
 		//modal: it blocks the caller until done() disposes the dialog
 		progress.setVisible(true);
+	}
+
+	/**
+	 * Asks the user where to save the files embedded in the imported file, writes them and links their media. Closing the question or the
+	 * folder chooser (ESC, cancel) keeps the media as they are, and reports them.
+	 */
+	private static void resolveEmbeddedFiles(final Window owner, final FLEFModel imported, final ImportReport report,
+			final File startFolder){
+		final int count = report.pendingFiles().size();
+		if(count == 0)
+			return;
+
+		final int answer = JOptionPane.showConfirmDialog(owner, I18N.tf("dialog.import.files.message", count),
+			I18N.t("dialog.import.files.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+		File folder = null;
+		if(answer == JOptionPane.OK_OPTION){
+			final JFileChooser chooser = new JFileChooser(startFolder);
+			chooser.setDialogTitle(I18N.t("dialog.import.files.title"));
+			chooser.setApproveButtonText(I18N.t("dialog.import.files.choose"));
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			if(chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION)
+				folder = chooser.getSelectedFile();
+		}
+		if(folder == null)
+			EmbeddedFiles.decline(report);
+		else
+			EmbeddedFiles.writeAndLink(imported, report, folder);
 	}
 
 }

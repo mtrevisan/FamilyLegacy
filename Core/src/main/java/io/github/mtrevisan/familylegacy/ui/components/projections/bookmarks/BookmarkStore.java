@@ -65,6 +65,7 @@ public final class BookmarkStore{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BookmarkStore.class);
 
+
 	/** The property that ties a bookmark to the file it was made in. */
 	public static final String FILE_PROPERTY = "file";
 

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
@@ -92,8 +93,8 @@ class IdentitySettingsTest{
 
 		Assertions.assertEquals(70, settings.highScore());
 		Assertions.assertEquals(70, settings.mediumScore());
-		Assertions.assertEquals("high", settings.confidence(70));
-		Assertions.assertEquals("low", settings.confidence(69));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, settings.confidence(70));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, settings.confidence(69));
 	}
 
 	@Test
@@ -102,10 +103,10 @@ class IdentitySettingsTest{
 
 		Assertions.assertEquals(60, defaults.threshold());
 		Assertions.assertEquals(100, defaults.maxPairs());
-		Assertions.assertEquals("high", defaults.confidence(90));
-		Assertions.assertEquals("medium", defaults.confidence(89));
-		Assertions.assertEquals("medium", defaults.confidence(70));
-		Assertions.assertEquals("low", defaults.confidence(69));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, defaults.confidence(90));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, defaults.confidence(89));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, defaults.confidence(70));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, defaults.confidence(69));
 		Assertions.assertEquals(0.7, defaults.otherProbability(), 1e-12);
 	}
 
@@ -128,9 +129,9 @@ class IdentitySettingsTest{
 
 		//65 points: under the default high score (information, low confidence), at the high score of the lenient user (a warning)
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, byDefault.diagnostic().severity());
-		Assertions.assertEquals("low", byDefault.draft().confidence());
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, byDefault.draft().confidence());
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, lenient.diagnostic().severity());
-		Assertions.assertEquals("high", lenient.draft().confidence());
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, lenient.draft().confidence());
 	}
 
 }

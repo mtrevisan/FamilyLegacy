@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -44,8 +46,8 @@ import java.util.List;
  */
 public final class TimelineSection implements SectionBuilder{
 
-	private static final String TAG_TYPE = "type";
-	private static final String TAG_TITLE = "title";
+	private static final String TAG_TYPE = HistoricEventReader.TAG_TYPE;
+	private static final String TAG_TITLE = HistoricEventReader.TAG_TITLE;
 
 
 	private final ReportContext ctx;
@@ -106,13 +108,13 @@ public final class TimelineSection implements SectionBuilder{
 
 		// Add historic events connected via context_impact.
 		for(final FLEFRecord ci : ctx.index.contextImpactsFor(ctx.relatedRecordIds())){
-			final FLEFRecord contextNode = FLEFRecordHelper.findChild(ci, "context");
+			final FLEFRecord contextNode = FLEFRecordHelper.findChild(ci, ContextImpactReader.TAG_CONTEXT);
 			if(contextNode == null)
 				continue;
 			final FLEFRecord ref = contextNode.getTheOnlyChild();
 			if(ref == null)
 				continue;
-			if(!"historic_event".equalsIgnoreCase(ref.getTag()))
+			if(!HistoricEventReader.isOfType(ref))
 				continue;
 			final FLEFRecord rec = ctx.visible(ctx.model.getRecordById(ref.getValue()));
 			if(rec != null && !out.contains(rec))

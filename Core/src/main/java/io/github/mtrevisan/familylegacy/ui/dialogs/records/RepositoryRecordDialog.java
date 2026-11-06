@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -53,6 +54,7 @@ import java.io.IOException;
  * <pre>
  * record RepositoryRecord {
  *   name+: NameStructure
+ *   type?: enum { archive, library, church, cemetery, website, collection, private_collection, bookstore, government, museum, university, institution } | Text
  *   custodian?: Agent
  *   place?: PlaceCitation
  *   contact*: ContactStructure
@@ -69,7 +71,7 @@ import java.io.IOException;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): name, custodian, place, contact
+ * Tab 1 (Properties): name, type, custodian, place, contact
  * Tab 7 (Sources): SourceRecord (repository references this repository)
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -80,6 +82,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityListPanel namePanel;
+	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel custodianPanel;
 	private final EntityField placeField;
 	private final EntityListPanel contactPanel;
@@ -97,9 +100,12 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private RepositoryRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, RepositoryHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]5[]10[]");
 
 		namePanel = EntityListPanel.createForStructure(RepositoryReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.repository.name"), model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(RepositoryReader.TAG_TYPE, GUIHelper.fillCombo(RepositoryReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.repository.type");
+		typeCombo.setEditable(true);
 		custodianPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CUSTODIAN, this, I18N.t("dialog.repository.custodian"), model,
 			AgentHandler.class);
 		placeField = EntityField.createForStructureWithReference(RepositoryReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
@@ -113,6 +119,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.AUDIT, RepositoryReader.TAG_AUDIT, null)
 			.build();
 
+		components.bind(typeCombo);
+
 
 		finalizeDialog(parent);
 	}
@@ -122,6 +130,9 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected JPanel createPropertiesPanel(){
 		// name
 		GUIHelper.addComponent(propertiesPanel, namePanel);
+
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.repository.type"), typeCombo);
 
 		// custodian
 		GUIHelper.addComponent(propertiesPanel, custodianPanel);

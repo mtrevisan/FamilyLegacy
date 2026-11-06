@@ -31,6 +31,8 @@ import org.w3c.dom.Element;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -39,8 +41,8 @@ import java.util.Locale;
  * <p>
  * Gramps says what a date means: a single date (that may be before, after, or about), a range (the date is somewhere in it) and a
  * span (the fact lasted all along it); FLEF says the same with {@code point}, {@code bounded} and {@code spanning}. The calendars
- * that FLEF can write here are the Gregorian, the Julian, the Hebrew and the French Republican; a date of another calendar (or a
- * text, or a date that is not valid) cannot, and is kept as it is by the caller.
+ * that FLEF can write here are the Gregorian, the Julian, the Hebrew, the French Republican, the Islamic, the Persian and the
+ * Swedish; a date of another calendar (or a text, or a date that is not valid) cannot, and is kept as it is by the caller.
  */
 final class GrampsDates{
 
@@ -52,15 +54,29 @@ final class GrampsDates{
 	private static final List<String> FRENCH_MONTHS = List.of("vendemiaire", "brumaire", "frimaire", "nivose", "pluviose", "ventose",
 		"germinal", "floreal", "prairial", "messidor", "thermidor", "fructidor", "complementaires");
 
-	private static final String CALENDAR_GREGORIAN = "gregorian";
-	private static final String CALENDAR_JULIAN = "julian";
-	private static final String CALENDAR_HEBREW = "hebrew";
-	private static final String CALENDAR_FRENCH = "french_republican";
+	/** The months of the Islamic calendar, in the order Gramps numbers them (in the notation of the parser of the calendar). */
+	private static final List<String> ISLAMIC_MONTHS = List.of("muharram", "safar", "rabi al-awwal", "rabi al-thani", "jumada al-awwal",
+		"jumada al-thani", "rajab", "shaban", "ramadan", "shawwal", "dhu al-qadah", "dhu al-hijjah");
+	private static final List<String> PERSIAN_MONTHS = List.of("farvardin", "ordibehesht", "khordad", "tir", "mordad", "shahrivar",
+		"mehr", "aban", "azar", "dey", "bahman", "esfand");
+	/** The age of an individual at an event: a number of years, that may be qualified (less than, more than, about). */
+	private static final Pattern AGE = Pattern.compile("\\s*(<|>|about|abt\\.?|ca?\\.?|circa|~)?\\s*(\\d{1,3})\\s*(?:y|yr|yrs|year|years)?\\s*",
+		Pattern.CASE_INSENSITIVE);
+
+	private static final String CALENDAR_GREGORIAN = DateReader.ENUM_CALENDAR_GREGORIAN;
+	private static final String CALENDAR_JULIAN = DateReader.ENUM_CALENDAR_JULIAN;
+	private static final String CALENDAR_HEBREW = DateReader.ENUM_CALENDAR_HEBREW;
+	private static final String CALENDAR_FRENCH = DateReader.ENUM_CALENDAR_FRENCH_REPUBLICAN;
+	private static final String CALENDAR_ISLAMIC = DateReader.ENUM_CALENDAR_ISLAMIC;
+	private static final String CALENDAR_PERSIAN = DateReader.ENUM_CALENDAR_PERSIAN;
+	private static final String CALENDAR_SWEDISH = DateReader.ENUM_CALENDAR_SWEDISH;
+	/** The first day of the Gregorian calendar in the strategies of the year-start styles, as {@code yyyymmdd}. */
+	private static final int GREGORIAN_START = 15821015;
 
 	private enum Kind{POINT, BOUNDED, SPANNING}
 
-	/** A date written in a calendar: {@code 12 MAR 1850}. */
-	private record Single(String value, String calendar){}
+	/** A date written in a calendar: {@code 12 MAR 1850} (the year is the number of the year, negative before the era). */
+	private record Single(String value, String calendar, int year){}
 
 	/**
 	 * What a Gramps date says.
@@ -81,17 +97,20 @@ final class GrampsDates{
 	 * @return	The date as a structure with the tag, or {@code null} if there is none, or if it cannot be written.
 	 */
 	static FLEFRecord structure(final String tag, final Element date){
-		final Parsed parsed = parse(date);
+		return structureOf(tag, parse(date));
+	}
+
+	private static FLEFRecord structureOf(final String tag, final Parsed parsed){
 		if(parsed == null)
 			return null;
 
 		final FLEFRecord content = switch(parsed.kind()){
-			case POINT -> single("point", parsed.first(), parsed.basis());
-			case BOUNDED -> range("bounded", "not_before", parsed.first(), "not_after", parsed.second());
-			case SPANNING -> range("spanning", "from", parsed.first(), "to", parsed.second());
+			case POINT -> single(DateReader.TAG_POINT, parsed.first(), parsed.basis());
+			case BOUNDED -> range(DateReader.TAG_BOUNDED, DateReader.TAG_NOT_BEFORE, parsed.first(), DateReader.TAG_NOT_AFTER, parsed.second());
+			case SPANNING -> range(DateReader.TAG_SPANNING, DateReader.TAG_FROM, parsed.first(), DateReader.TAG_TO, parsed.second());
 		};
 		return FLEFRecord.createChildWithTag(tag)
-			.addChild(FLEFRecord.createChildWithTag("value")
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
 				.addChild(content));
 	}
 
@@ -111,15 +130,50 @@ final class GrampsDates{
 
 		return switch(parsed.kind()){
 			case SPANNING -> new FLEFRecord[]{
-				wrap("valid_from", null, single("point", parsed.first(), null)),
-				wrap("valid_to", null, single("point", parsed.second(), null))};
+				wrap(DateReader.TAG_VALID_FROM, null, single(DateReader.TAG_POINT, parsed.first(), null)),
+				wrap(DateReader.TAG_VALID_TO, null, single(DateReader.TAG_POINT, parsed.second(), null))};
 			case BOUNDED -> new FLEFRecord[]{
-				wrap("valid_from", "bounded", single("not_after", parsed.second(), null)),
-				wrap("valid_to", "bounded", single("not_before", parsed.first(), null))};
+				wrap(DateReader.TAG_VALID_FROM, DateReader.TAG_BOUNDED, single(DateReader.TAG_NOT_AFTER, parsed.second(), null)),
+				wrap(DateReader.TAG_VALID_TO, DateReader.TAG_BOUNDED, single(DateReader.TAG_NOT_BEFORE, parsed.first(), null))};
 			case POINT -> new FLEFRecord[]{
-				wrap("valid_from", "bounded", single("not_after", parsed.first(), parsed.basis())),
-				wrap("valid_to", "bounded", single("not_before", parsed.first(), parsed.basis()))};
+				wrap(DateReader.TAG_VALID_FROM, DateReader.TAG_BOUNDED, single(DateReader.TAG_NOT_AFTER, parsed.first(), parsed.basis())),
+				wrap(DateReader.TAG_VALID_TO, DateReader.TAG_BOUNDED, single(DateReader.TAG_NOT_BEFORE, parsed.first(), parsed.basis()))};
 		};
+	}
+
+	/**
+	 * The date of birth that the age of an individual at an event says: the year of the event minus the age, in the calendar of the
+	 * event, marked as calculated ("less than 8" and "more than 70" give a bound).
+	 *
+	 * @param tag	The tag of the date structure.
+	 * @param date	The date of the event, it must be a point.
+	 * @param age	The age, as Gramps keeps it (free text: {@code 25}, {@code 25 years}, {@code <8}, {@code about 40}).
+	 * @return	The date, {@code null} if the age or the date cannot be used.
+	 */
+	static FLEFRecord birthDate(final String tag, final Element date, final String age){
+		if(date == null || age == null)
+			return null;
+
+		final Matcher matcher = AGE.matcher(age);
+		final Parsed event = parse(date);
+		if(!matcher.matches() || event == null || event.kind() != Kind.POINT || event.first() == null || event.first().year() <= 0)
+			return null;
+
+		final Single at = event.first();
+		final int year = at.year() - Integer.parseInt(matcher.group(2));
+		if(year <= 0)
+			return null;
+
+		final Single birth = new Single(Integer.toString(year), at.calendar(), year);
+		final String qualifier = StringUtils.defaultString(matcher.group(1));
+		final Parsed parsed = switch(qualifier){
+			//younger than the age: born after that year, and not after the event
+			case "<" -> new Parsed(Kind.BOUNDED, birth, new Single(Integer.toString(at.year()), at.calendar(), at.year()), null);
+			//older than the age: born before that year
+			case ">" -> new Parsed(Kind.BOUNDED, null, birth, null);
+			default -> new Parsed(Kind.POINT, birth, null, DateReader.ENUM_BASIS_CALCULATED);
+		};
+		return structureOf(tag, parsed);
 	}
 
 	/** @return	The date as text, with its calendar when it is not the Gregorian one ({@code null} if there is no date). */
@@ -147,7 +201,8 @@ final class GrampsDates{
 		if(date == null)
 			return null;
 
-		final String calendar = calendarOf(date);
+		final String yearStart = newYearCalendar(date);
+		final String calendar = (yearStart != null? yearStart: calendarOf(date));
 		final boolean dual = "1".equals(GrampsXML.attribute(date, "dualdated"));
 		switch(GrampsXML.name(date)){
 			case "dateval" -> {
@@ -186,6 +241,77 @@ final class GrampsDates{
 		return ("calculated".equalsIgnoreCase(quality)? DateReader.ENUM_BASIS_CALCULATED: DateReader.ENUM_BASIS_UNSPECIFIED);
 	}
 
+	/**
+	 * @param date	A date element, may be {@code null}.
+	 * @return	Whether the new-year rule of the date is written (as the calendar of the date), so that it is not lost.
+	 */
+	static boolean newYearKept(final Element date){
+		return (newYearCalendar(date) != null && parse(date) != null);
+	}
+
+	/**
+	 * The year-start style that the new-year rule of a date says. The styles read the days as Julian before 15 October 1582 and as
+	 * Gregorian from then on, so the rule is used only if the dates are of the calendar that the style reads them in; a dual-dated
+	 * date is already counted from 1 January.
+	 *
+	 * @return	The calendar, {@code null} if the date has no (known) rule or if the rule cannot be written.
+	 */
+	private static String newYearCalendar(final Element date){
+		final String rule = GrampsXML.attribute(date, "newyear");
+		if(rule == null || "1".equals(GrampsXML.attribute(date, "dualdated")))
+			return null;
+
+		final String calendar = calendarOf(date);
+		final boolean julian = CALENDAR_JULIAN.equals(calendar);
+		if(!julian && !CALENDAR_GREGORIAN.equals(calendar))
+			return null;
+
+		final String style = switch(rule.toLowerCase(Locale.ROOT)){
+			case "mar1" -> DateReader.ENUM_CALENDAR_VENETAN;
+			//the year N begins on 25 March N, after 1 January: the English (Lady Day) numbering of the years
+			case "mar25" -> DateReader.ENUM_CALENDAR_FLORENTINE;
+			case "sep1" -> DateReader.ENUM_CALENDAR_BYZANTINE_STYLE;
+			case "dec25" -> DateReader.ENUM_CALENDAR_NATIVITY;
+			case "easter" -> DateReader.ENUM_CALENDAR_EASTER_STYLE;
+			default -> null;
+		};
+		if(style == null)
+			return null;
+
+		final List<String> values = switch(GrampsXML.name(date)){
+			case "dateval" -> List.of(StringUtils.defaultString(GrampsXML.attribute(date, "val")));
+			case "daterange", "datespan" -> List.of(StringUtils.defaultString(GrampsXML.attribute(date, "start")),
+				StringUtils.defaultString(GrampsXML.attribute(date, "stop")));
+			default -> List.<String>of();
+		};
+		if(values.isEmpty())
+			return null;
+
+		for(final String value : values){
+			final int key = dayKey(value);
+			if(key < 0 || julian == (key >= GREGORIAN_START))
+				return null;
+		}
+		return style;
+	}
+
+	/** @return	The date {@code year-month-day} as {@code yyyymmdd} (the unknown parts are {@code 0}), {@code -1} if it is not one. */
+	private static int dayKey(final String value){
+		final String[] fields = StringUtils.split(value, '-');
+		if(fields.length < 1 || fields.length > 3)
+			return -1;
+
+		try{
+			final int year = Integer.parseInt(fields[0].trim());
+			final int month = (fields.length > 1? Integer.parseInt(fields[1].trim()): 0);
+			final int day = (fields.length > 2? Integer.parseInt(fields[2].trim()): 0);
+			return (year > 0 && month >= 0 && month <= 99 && day >= 0 && day <= 99? year * 10000 + month * 100 + day: -1);
+		}
+		catch(final NumberFormatException ignored){
+			return -1;
+		}
+	}
+
 	/** @return	The calendar as FLEF names it, {@code null} if FLEF cannot write the dates of it here. */
 	private static String calendarOf(final Element date){
 		final String calendar = GrampsXML.attribute(date, "cformat");
@@ -197,6 +323,9 @@ final class GrampsDates{
 			case "julian" -> CALENDAR_JULIAN;
 			case "hebrew" -> CALENDAR_HEBREW;
 			case "french republican" -> CALENDAR_FRENCH;
+			case "islamic" -> CALENDAR_ISLAMIC;
+			case "persian" -> CALENDAR_PERSIAN;
+			case "swedish" -> CALENDAR_SWEDISH;
 			default -> null;
 		};
 	}
@@ -231,11 +360,7 @@ final class GrampsDates{
 		if(year <= 0)
 			return null;
 
-		final List<String> months = switch(calendar){
-			case CALENDAR_HEBREW -> HEBREW_MONTHS;
-			case CALENDAR_FRENCH -> FRENCH_MONTHS;
-			default -> MONTHS;
-		};
+		final List<String> months = monthsOf(calendar);
 		final StringBuilder sb = new StringBuilder();
 		if(month >= 1 && month <= months.size()){
 			if(day > 0)
@@ -247,7 +372,21 @@ final class GrampsDates{
 			sb.append('/').append(String.format("%02d", (year + 1) % 100));
 		if(negative)
 			sb.append(" BCE");
-		return new Single(sb.toString(), calendar);
+		return new Single(sb.toString(), calendar, (negative? -year: year));
+	}
+
+	/** @return	The names of the months of the calendar, as its parser wants them, in the order Gramps numbers them. */
+	private static List<String> monthsOf(final String calendar){
+		if(CALENDAR_HEBREW.equalsIgnoreCase(calendar))
+			return HEBREW_MONTHS;
+		if(CALENDAR_FRENCH.equalsIgnoreCase(calendar))
+			return FRENCH_MONTHS;
+		if(CALENDAR_ISLAMIC.equalsIgnoreCase(calendar))
+			return ISLAMIC_MONTHS;
+		if(CALENDAR_PERSIAN.equalsIgnoreCase(calendar))
+			return PERSIAN_MONTHS;
+		//the Gregorian, the Julian and the Swedish calendars share the months
+		return MONTHS;
 	}
 
 	private static FLEFRecord single(final String tag, final Single date, final String basis){
@@ -255,12 +394,12 @@ final class GrampsDates{
 			return null;
 
 		final FLEFRecord record = FLEFRecord.createChildWithTag(tag)
-			.addChild(FLEFRecord.createChildWithTag("value")
-				.addChild(FLEFRecord.createChildWithTagAndValue("full_date", date.value())))
-			.addChild(FLEFRecord.createChildWithTagAndValue("calendar", date.calendar()));
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, date.value())))
+			.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_CALENDAR, date.calendar()));
 		if(basis != null)
-			record.addChild(FLEFRecord.createChildWithTag("approximate")
-				.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis)));
+			record.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_APPROXIMATE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_BASIS, basis)));
 		return record;
 	}
 
@@ -276,7 +415,7 @@ final class GrampsDates{
 			return null;
 
 		return FLEFRecord.createChildWithTag(tag)
-			.addChild(FLEFRecord.createChildWithTag("value")
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
 				.addChild(kind != null? FLEFRecord.createChildWithTag(kind).addChild(content): content));
 	}
 

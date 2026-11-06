@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
@@ -105,16 +106,16 @@ class PresentationOrderTest{
 
 	@Test
 	void unionDateIsTheMarriageThenTheEarliestRelatedEventThenTheRelationshipStart(){
-		final var banns = new UnionChronology.SharedEvent("marriage_bann", day(10));
-		final var marriage = new UnionChronology.SharedEvent("marriage", day(20));
-		final var laterMarriage = new UnionChronology.SharedEvent("marriage", day(30));
-		final var divorce = new UnionChronology.SharedEvent("divorce", day(40));
+		final var banns = new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_MARRIAGE_BANN, day(10));
+		final var marriage = new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_MARRIAGE, day(20));
+		final var laterMarriage = new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_MARRIAGE, day(30));
+		final var divorce = new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_DIVORCE, day(40));
 		final var unrelated = new UnionChronology.SharedEvent("residence", day(1));
 
 		Assertions.assertEquals(day(20), UnionChronology.unionDate(List.of(divorce, banns, laterMarriage, marriage, unrelated), day(5)));
 		Assertions.assertEquals(day(10), UnionChronology.unionDate(List.of(divorce, banns, unrelated), day(5)));
 		Assertions.assertEquals(day(5), UnionChronology.unionDate(List.of(unrelated), day(5)));
-		Assertions.assertNull(UnionChronology.unionDate(List.of(unrelated, new UnionChronology.SharedEvent("marriage", null)), null));
+		Assertions.assertNull(UnionChronology.unionDate(List.of(unrelated, new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_MARRIAGE, null)), null));
 	}
 
 }

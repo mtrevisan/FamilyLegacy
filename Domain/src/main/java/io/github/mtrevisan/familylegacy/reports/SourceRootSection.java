@@ -126,7 +126,7 @@ public final class SourceRootSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(line.toString()));
 
 			if(repo != null){
-				for(final FLEFRecord contact : ctx.visibleChildren(repo, "contact")){
+				for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
 					final String rendered = ReportFormatters.renderContact(contact);
 					if(rendered != null)
 						out.add(new ReportSection.Paragraph("  " + rendered));
@@ -172,7 +172,7 @@ public final class SourceRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceCitedBy()));
 		final List<String> items = new ArrayList<>(citations.size());
 		for(final FLEFRecord c : citations){
-			final FLEFRecord owner = findOwnerOf(c);
+			final FLEFRecord owner = ctx.ownerOfCitation(c);
 			final String ownerLabel = (owner != null? ctx.displayText(owner): "?");
 			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			final StringBuilder sb = new StringBuilder(ReportFormatters.escape(ownerLabel));
@@ -181,21 +181,6 @@ public final class SourceRootSection implements SectionBuilder{
 			items.add(sb.toString());
 		}
 		out.add(new ReportSection.BulletList(items));
-	}
-
-
-	/**
-	 * Finds the record that contains the given {@code source} citation.
-	 * Because the citation is an embedded structure, this method relies on
-	 * identity comparison across all top-level records.
-	 */
-	private FLEFRecord findOwnerOf(final FLEFRecord citation){
-		for(final FLEFRecord rec : ctx.model.getRecords()){
-			for(final FLEFRecord c : FLEFRecordHelper.findChildren(rec, "source"))
-				if(c == citation)
-					return rec;
-		}
-		return null;
 	}
 
 }

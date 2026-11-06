@@ -184,17 +184,17 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 	private List<String> partVariants(final FLEFRecord nameRec){
 		final List<String> out = new ArrayList<>();
 		for(final FLEFRecord part : nameRec.getChildren()){
-			if(!"part".equalsIgnoreCase(part.getTag()))
+			if(!NameReader.TAG_PART.equalsIgnoreCase(part.getTag()))
 				continue;
 			final List<String> vs = new ArrayList<>();
-			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(part, "variant")){
+			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(part, NameReader.TAG_PART_VARIANT)){
 				final String v = ReportFormatters.renderNameVariant(variant);
 				if(v != null)
 					vs.add(v);
 			}
 			if(vs.isEmpty())
 				continue;
-			final String partType = FLEFRecordHelper.getChildValue(part, "type");
+			final String partType = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
 			final String sb = "  *" + ReportFormatters.escape(ReportFormatters.orEmpty(partType)) +
 				":* " + ReportFormatters.escape(String.join(", ", vs));
 			out.add(sb);
@@ -432,10 +432,10 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 	}
 
 	private static String memberGroupId(final FLEFRecord rel){
-		final String direct = FLEFRecordHelper.getChildValue(rel, "target.group");
+		final String direct = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TARGET_GROUP);
 		if(direct != null)
 			return direct;
-		final FLEFRecord targetNode = FLEFRecordHelper.findChild(rel, "target");
+		final FLEFRecord targetNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_TARGET);
 		if(targetNode == null)
 			return null;
 		final FLEFRecord ref = targetNode.getTheOnlyChild();
@@ -449,9 +449,9 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE));
 		final String role = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_ROLE);
 		final String from = GenealogicalDateHelper.formatDateStructure(
-			rel, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(
-			rel, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
+			rel, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final String objectId = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
 		final FLEFRecord object = (objectId != null? ctx.model.getRecordById(objectId): null);
 		final String objectLabel = (object != null? ctx.displayText(object)

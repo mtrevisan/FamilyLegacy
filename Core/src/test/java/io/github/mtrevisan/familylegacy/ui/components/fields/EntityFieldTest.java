@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -42,11 +44,11 @@ class EntityFieldTest{
 	}
 
 	private static FLEFRecord individual(){
-		return FLEFRecord.createMainRecord("I1", "individual");
+		return FLEFRecord.createMainRecord("I1", IndividualReader.TYPE);
 	}
 
 	private static FLEFRecord group(){
-		return FLEFRecord.createMainRecord("G1", "group");
+		return FLEFRecord.createMainRecord("G1", GroupReader.TYPE);
 	}
 
 
@@ -75,7 +77,7 @@ class EntityFieldTest{
 		final FLEFRecord individual = individual();
 		field.setEntity(individual);
 		Assertions.assertSame(group, field.getEntity(), "an individual is not accepted any more");
-		final FLEFRecord anotherGroup = FLEFRecord.createMainRecord("G2", "group");
+		final FLEFRecord anotherGroup = FLEFRecord.createMainRecord("G2", GroupReader.TYPE);
 		field.setEntity(anotherGroup);
 		Assertions.assertSame(anotherGroup, field.getEntity());
 

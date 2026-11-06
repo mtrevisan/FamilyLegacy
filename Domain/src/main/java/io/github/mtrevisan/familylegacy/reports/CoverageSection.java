@@ -24,8 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
@@ -48,9 +56,9 @@ import java.util.List;
  */
 public final class CoverageSection implements SectionBuilder{
 
-	private static final String TAG_EVIDENCE = "evidence";
-	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
+	private static final String TAG_EVIDENCE = EvidenceQualifiersReader.TAG_EVIDENCE;
+	private static final String TAG_DATE = EventReader.TAG_DATE;
+	private static final String TAG_PLACE = EventReader.TAG_PLACE;
 
 
 	private final ReportContext ctx;
@@ -99,29 +107,34 @@ public final class CoverageSection implements SectionBuilder{
 
 		switch(ctx.rootKind()){
 			case INDIVIDUAL -> {
-				out.add(coverageOf(ctx.root, IndividualReader.TYPE, "name", "sex"));
+				out.add(coverageOf(ctx.root, kindLabel(IndividualReader.TYPE), IndividualReader.TAG_NAME, IndividualReader.TAG_SEX));
 				for(final FLEFRecord e : ctx.index.eventsOf(ctx.root))
-					out.add(coverageOf(e, "event", "type", "date", "place"));
+					out.add(coverageOf(e, kindLabel(EventReader.TYPE), EventReader.TAG_TYPE, EventReader.TAG_DATE, EventReader.TAG_PLACE));
 				for(final FLEFRecord a : ctx.index.attributesOf(ctx.root))
-					out.add(coverageOf(a, "attribute", "type", "value"));
+					out.add(coverageOf(a, kindLabel(IndividualAttributeReader.TYPE), IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.TAG_VALUE));
 				for(final FLEFRecord r : ctx.index.relationshipsOfSubject(ctx.root))
-					out.add(coverageOf(r, "relationship", "type", "subject", "target"));
+					out.add(coverageOf(r, kindLabel(RelationshipReader.TYPE), RelationshipReader.TAG_TYPE, RelationshipReader.TAG_SUBJECT,
+						RelationshipReader.TAG_TARGET));
 			}
 			case GROUP -> {
-				out.add(coverageOf(ctx.root, "group", "name", "type"));
+				out.add(coverageOf(ctx.root, kindLabel(GroupReader.TYPE), GroupReader.TAG_NAME, GroupReader.TAG_TYPE));
 				for(final FLEFRecord a : ctx.index.attributesOfGroup(ctx.root))
-					out.add(coverageOf(a, "group_attribute", "type", "value"));
+					out.add(coverageOf(a, kindLabel(GroupAttributeReader.TYPE), GroupAttributeReader.TAG_TYPE, GroupAttributeReader.TAG_VALUE));
 				for(final FLEFRecord e : ctx.index.eventsOfGroup(ctx.root))
-					out.add(coverageOf(e, "event", "type", "date", "place"));
+					out.add(coverageOf(e, kindLabel(EventReader.TYPE), EventReader.TAG_TYPE, EventReader.TAG_DATE, EventReader.TAG_PLACE));
 			}
-			case EVENT -> out.add(coverageOf(ctx.root, "event",
-				"type", "date", "place"));
-			case SOURCE -> out.add(coverageOf(ctx.root, "source",
-				"title", "author", "publisher", "date", "repository"));
-			case PLACE -> out.add(coverageOf(ctx.root, "place", "name", "type"));
+			case EVENT -> out.add(coverageOf(ctx.root, kindLabel(EventReader.TYPE),
+				EventReader.TAG_TYPE, EventReader.TAG_DATE, EventReader.TAG_PLACE));
+			case SOURCE -> out.add(coverageOf(ctx.root, kindLabel(SourceReader.TYPE),
+				SourceReader.TAG_TITLE, SourceReader.TAG_AUTHOR, SourceReader.TAG_PUBLISHER, SourceReader.TAG_DATE, SourceReader.TAG_REPOSITORY));
+			case PLACE -> out.add(coverageOf(ctx.root, kindLabel(PlaceReader.TYPE), PlaceReader.TAG_NAME, PlaceReader.TAG_TYPE));
 			case OTHER -> { /* no coverage report */ }
 		}
 		return out;
+	}
+
+	private String kindLabel(final String type){
+		return ctx.labels.sections().coverageKind(type);
 	}
 
 	private CoverageEntry coverageOf(final FLEFRecord rec, final String kind,
@@ -131,18 +144,23 @@ public final class CoverageSection implements SectionBuilder{
 			if(isPopulated(rec, field))
 				present ++;
 		final boolean hasSource = SourceCitationReader.hasSupportingCitation(rec);
-		final boolean hasEvidence = FLEFRecordHelper.findChild(rec, TAG_EVIDENCE) != null;
+		final boolean hasEvidence = hasChild(rec, TAG_EVIDENCE);
 		return new CoverageEntry(rec, kind, present, expectedFields.length, hasSource, hasEvidence);
 	}
 
 	private static boolean isPopulated(final FLEFRecord rec, final String field){
-		if("type".equals(field) || "value".equals(field))
-			return FLEFRecordHelper.getChildValue(rec, field) != null;
-		if("date".equals(field))
-			return FLEFRecordHelper.findChild(rec, TAG_DATE) != null;
-		if("place".equals(field))
-			return FLEFRecordHelper.findChild(rec, TAG_PLACE) != null;
-		return FLEFRecordHelper.findChild(rec, field) != null;
+		if(EventReader.TAG_TYPE.equals(field) || IndividualAttributeReader.TAG_VALUE.equals(field))
+			return FLEFRecordHelper.findChildren(rec, field).stream().anyMatch(child -> child.getValue() != null);
+		if(TAG_DATE.equals(field))
+			return hasChild(rec, TAG_DATE);
+		if(TAG_PLACE.equals(field))
+			return hasChild(rec, TAG_PLACE);
+		return hasChild(rec, field);
+	}
+
+	/** A record may repeat a tag (several names, several evidences): it counts as populated when there is at least one. */
+	private static boolean hasChild(final FLEFRecord rec, final String path){
+		return !FLEFRecordHelper.findChildren(rec, path).isEmpty();
 	}
 
 	private List<List<String>> buildRows(final List<CoverageEntry> entries){

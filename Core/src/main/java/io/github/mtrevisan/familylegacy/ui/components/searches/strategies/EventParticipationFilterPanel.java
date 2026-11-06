@@ -47,7 +47,8 @@ import java.util.function.Consumer;
  */
 public class EventParticipationFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private static final String[] PARTICIPANT_TYPES = {"individual", "group", "place"};
+	private static final String[] PARTICIPANT_TYPES = {EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, EventParticipationReader.TAG_PARTICIPANT_GROUP,
+		EventParticipationReader.TAG_PARTICIPANT_PLACE};
 
 
 	private final JComboBox<String> roleCombo = new JComboBox<>(GUIHelper.fillCombo(EventParticipationReader.ROLES,

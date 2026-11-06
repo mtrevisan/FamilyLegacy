@@ -25,8 +25,12 @@
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -81,23 +85,28 @@ public class RepositoryConverter{
 
 		FLEFRecord repository = FLEFRecord.createMainRecord(xref, RepositoryReader.TYPE);
 		repositoryMap.put(xref, repository);
+		GEDCOMImportContext.setRecord(xref);
 
 		// ---- 1. NAME (name+: NameStructure) ----
-		final String name = GEDCOMHelper.findFirstValue(repoNode, "NAME");
-		repository.addChild(FLEFRecord.createChildWithTag("name")
-			.addChild(FLEFRecord.createChildWithTagAndValue("value", (name != null? name: "Repository " + xref))));
+		final String name = GEDCOMHelper.findFirstValue(repoNode, GEDCOMMapper.TAG_NAME);
+		repository.addChild(FLEFRecord.createChildWithTag(RepositoryReader.TAG_NAME)
+			.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, (name != null? name: "Repository " + xref))));
 
 		// ---- 2. PLAC (place: PlaceCitation) ----
-		GEDCOMRecordBuilder.attachPlaceCitation(repository, model, GEDCOMHelper.findFirstChild(repoNode, "PLAC"), null, noteRawMap,
+		GEDCOMRecordBuilder.attachPlaceCitation(repository, model, GEDCOMHelper.findFirstChild(repoNode, GEDCOMMapper.TAG_PLACE), null, noteRawMap,
 			placeCache);
 
 		// ---- 3. ADDRESS_STRUCTURE (ADDR, PHON, EMAIL, FAX, WWW) ----
 		GEDCOMRecordBuilder.attachContacts(repository, repoNode, null);
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")){
-			GEDCOMRecordBuilder.attachNote(repository, noteNode, noteRawMap);
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, GEDCOMMapper.TAG_NOTE)){
+			GEDCOMRecordBuilder.attachNote(repository, model, noteNode, noteRawMap);
 		}
+
+		// ---- What has no field in FLEF is kept as notes ----
+		KeptNotes.keepIdentifiers(repository, repoNode, StringUtils.EMPTY, repoNode);
+		KeptNotes.keepUnmapped(repository, repoNode, GEDCOMMapper.REPOSITORY_CONSUMED_TAGS, StringUtils.EMPTY, repoNode);
 
 		// ---- Privacy (RESN, an extension of some programs) ----
 		GEDCOMRecordBuilder.attachRestriction(repository, repoNode);

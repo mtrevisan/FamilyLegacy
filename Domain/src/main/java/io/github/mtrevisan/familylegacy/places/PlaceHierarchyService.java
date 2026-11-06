@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.places;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -245,8 +246,8 @@ public final class PlaceHierarchyService{
 	 */
 	private static List<String> extractNotes(final FLEFRecord record){
 		final List<String> notes = new ArrayList<>();
-		for(final FLEFRecord note : FLEFRecordHelper.findChildren(record, "note")){
-			final String text = FLEFRecordHelper.getChildValue(note, "text");
+		for(final FLEFRecord note : FLEFRecordHelper.findChildren(record, PlaceReader.TAG_NOTE)){
+			final String text = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT);
 			if(text != null && !text.isBlank())
 				notes.add(text.trim());
 		}

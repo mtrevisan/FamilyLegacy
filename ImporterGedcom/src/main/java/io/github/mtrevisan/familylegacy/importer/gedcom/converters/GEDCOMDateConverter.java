@@ -69,6 +69,9 @@ public final class GEDCOMDateConverter{
 	private static final Pattern COMMON_ERA_PATTERN = Pattern.compile("\\s*\\b(?:C\\.?\\s?E|A\\.?\\s?D)\\.?$");
 	private static final Pattern MONTH_DATE_PATTERN = Pattern.compile("^(?:(?:(\\d{1,2})\\s+)?([A-Z]{3,4})\\s+)?(\\d{1,4})$");
 
+	/** A GEDCOM age: {@code [<|>] [Ny] [Nm] [Nw] [Nd]}. */
+	private static final Pattern AGE_PATTERN = Pattern.compile("^([<>])?\\s*(?:(\\d{1,3})\\s*Y)?\\s*(?:(\\d{1,4})\\s*M)?\\s*(?:(\\d{1,4})\\s*W)?\\s*(?:(\\d{1,5})\\s*D)?$");
+
 	private static final Map<String, String> HEBREW_MONTHS = Map.ofEntries(
 		Map.entry("TSH", "tishrei"), Map.entry("CSH", "cheshvan"), Map.entry("KSL", "kislev"), Map.entry("TVT", "tevet"),
 		Map.entry("SHV", "shevat"), Map.entry("ADR", "adar"), Map.entry("ADS", "veadar"), Map.entry("NSN", "nisan"),
@@ -84,11 +87,6 @@ public final class GEDCOMDateConverter{
 		.parseCaseInsensitive()
 		.appendPattern("d MMM uuuu")
 		.toFormatter(Locale.ENGLISH);
-
-	private static final String CALENDAR_GREGORIAN = "gregorian";
-	private static final String CALENDAR_JULIAN = "julian";
-	private static final String CALENDAR_HEBREW = "hebrew";
-	private static final String CALENDAR_FRENCH_REPUBLICAN = "french_republican";
 
 
 	private record SingleDate(String date, String calendar){}
@@ -116,7 +114,7 @@ public final class GEDCOMDateConverter{
 		final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
 			.addChild(value);
 		if(StringUtils.isNotBlank(dateInfo.getPhrase()))
-			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue("original_text", dateInfo.getPhrase()));
+			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
 		return dateStructure;
 	}
 
@@ -140,61 +138,61 @@ public final class GEDCOMDateConverter{
 		final FLEFRecord validTo;
 		switch(dateInfo.getType()){
 			case SPANNING -> {
-				validFrom = buildPointValidity("valid_from", dateInfo.getFrom(), dateInfo);
-				validTo = buildPointValidity("valid_to", dateInfo.getTo(), dateInfo);
+				validFrom = buildPointValidity(DateReader.TAG_VALID_FROM, dateInfo.getFrom(), dateInfo);
+				validTo = buildPointValidity(DateReader.TAG_VALID_TO, dateInfo.getTo(), dateInfo);
 				if(dateInfo.getFrom() != null && validFrom == null || dateInfo.getTo() != null && validTo == null)
 					return null;
 			}
 			case BOUNDED -> {
 				// the fact was true at some date in [notBefore, notAfter]
-				validFrom = buildBoundedValidity("valid_from", "not_after", dateInfo.getNotAfter(), dateInfo);
-				validTo = buildBoundedValidity("valid_to", "not_before", dateInfo.getNotBefore(), dateInfo);
+				validFrom = buildBoundedValidity(DateReader.TAG_VALID_FROM, DateReader.TAG_NOT_AFTER, dateInfo.getNotAfter(), dateInfo);
+				validTo = buildBoundedValidity(DateReader.TAG_VALID_TO, DateReader.TAG_NOT_BEFORE, dateInfo.getNotBefore(), dateInfo);
 				if(dateInfo.getNotAfter() != null && validFrom == null || dateInfo.getNotBefore() != null && validTo == null)
 					return null;
 			}
 			default -> {
-				final FLEFRecord notAfter = buildSingleDate("not_after", dateInfo.getValue(), basis);
-				final FLEFRecord notBefore = buildSingleDate("not_before", dateInfo.getValue(), basis);
+				final FLEFRecord notAfter = buildSingleDate(DateReader.TAG_NOT_AFTER, dateInfo.getValue(), basis);
+				final FLEFRecord notBefore = buildSingleDate(DateReader.TAG_NOT_BEFORE, dateInfo.getValue(), basis);
 				if(notAfter == null)
 					return null;
 
-				validFrom = wrapDateValue("valid_from", "bounded", notAfter, dateInfo);
-				validTo = wrapDateValue("valid_to", "bounded", notBefore, dateInfo);
+				validFrom = wrapDateValue(DateReader.TAG_VALID_FROM, DateReader.TAG_BOUNDED, notAfter, dateInfo);
+				validTo = wrapDateValue(DateReader.TAG_VALID_TO, DateReader.TAG_BOUNDED, notBefore, dateInfo);
 			}
 		}
 		return new FLEFRecord[]{validFrom, validTo};
 	}
 
 	private static FLEFRecord buildPointValidity(final String tag, final String date, final DateInfo dateInfo){
-		final FLEFRecord singleDate = buildSingleDate("point", date, null);
+		final FLEFRecord singleDate = buildSingleDate(DateReader.TAG_POINT, date, null);
 		return (singleDate != null? wrapDateValue(tag, null, singleDate, dateInfo): null);
 	}
 
 	private static FLEFRecord buildBoundedValidity(final String tag, final String boundTag, final String date,
 			final DateInfo dateInfo){
 		final FLEFRecord singleDate = buildSingleDate(boundTag, date, null);
-		return (singleDate != null? wrapDateValue(tag, "bounded", singleDate, dateInfo): null);
+		return (singleDate != null? wrapDateValue(tag, DateReader.TAG_BOUNDED, singleDate, dateInfo): null);
 	}
 
 	private static FLEFRecord wrapDateValue(final String tag, final String kind, final FLEFRecord content, final DateInfo dateInfo){
-		final FLEFRecord value = FLEFRecord.createChildWithTag("value")
+		final FLEFRecord value = FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
 			.addChild(kind != null? FLEFRecord.createChildWithTag(kind).addChild(content): content);
 		final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
 			.addChild(value);
 		if(StringUtils.isNotBlank(dateInfo.getPhrase()))
-			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue("original_text", dateInfo.getPhrase()));
+			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
 		return dateStructure;
 	}
 
 	private static FLEFRecord buildDateValue(final DateInfo dateInfo){
 		final FLEFRecord content;
 		switch(dateInfo.getType()){
-			case POINT -> content = buildSingleDate("point", dateInfo.getValue(), mapBasis(dateInfo));
-			case BOUNDED -> content = buildRange("bounded", "not_before", dateInfo.getNotBefore(),
-				"not_after", dateInfo.getNotAfter());
-			default -> content = buildRange("spanning", "from", dateInfo.getFrom(), "to", dateInfo.getTo());
+			case POINT -> content = buildSingleDate(DateReader.TAG_POINT, dateInfo.getValue(), mapBasis(dateInfo));
+			case BOUNDED -> content = buildRange(DateReader.TAG_BOUNDED, DateReader.TAG_NOT_BEFORE, dateInfo.getNotBefore(),
+				DateReader.TAG_NOT_AFTER, dateInfo.getNotAfter());
+			default -> content = buildRange(DateReader.TAG_SPANNING, DateReader.TAG_FROM, dateInfo.getFrom(), DateReader.TAG_TO, dateInfo.getTo());
 		}
-		return (content != null? FLEFRecord.createChildWithTag("value").addChild(content): null);
+		return (content != null? FLEFRecord.createChildWithTag(DateReader.TAG_VALUE).addChild(content): null);
 	}
 
 	private static FLEFRecord buildRange(final String kind, final String startTag, final String start, final String endTag,
@@ -224,18 +222,106 @@ public final class GEDCOMDateConverter{
 	 * @return	The structure, or {@code null} if the date cannot be normalized.
 	 */
 	private static FLEFRecord buildSingleDate(final String tag, final String gedcomDate, final String approximateBasis){
-		final SingleDate singleDate = resolve(gedcomDate);
+		return buildSingleDate(tag, resolve(gedcomDate), approximateBasis);
+	}
+
+	private static FLEFRecord buildSingleDate(final String tag, final SingleDate singleDate, final String approximateBasis){
 		if(singleDate == null)
 			return null;
 
 		final FLEFRecord record = FLEFRecord.createChildWithTag(tag)
-			.addChild(FLEFRecord.createChildWithTag("value")
-				.addChild(FLEFRecord.createChildWithTagAndValue("full_date", singleDate.date())))
-			.addChild(FLEFRecord.createChildWithTagAndValue("calendar", singleDate.calendar()));
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, singleDate.date())))
+			.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_CALENDAR, singleDate.calendar()));
 		if(approximateBasis != null)
-			record.addChild(FLEFRecord.createChildWithTag("approximate")
-				.addChild(FLEFRecord.createChildWithTagAndValue("basis", approximateBasis)));
+			record.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_APPROXIMATE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_BASIS, approximateBasis)));
 		return record;
+	}
+
+	/**
+	 * Builds the {@code DateStructure} of the birth of a participant, calculated from its age at an event.
+	 * <p>
+	 * The year of the birth is the year of the event minus the years of the age, in the calendar of the event date; the full
+	 * date is calculated only for a full gregorian date and an age with years, months, and days (or an age without years). An
+	 * age qualified by {@code <} (less than) gives a lower bound ({@code not_before}), one qualified by {@code >} (more than) an
+	 * upper bound ({@code not_after}), instead of a point.
+	 *
+	 * @param tag	The tag of the structure (e.g. {@code date}).
+	 * @param gedcomDate	The GEDCOM date of the event.
+	 * @param age	The GEDCOM age (e.g. {@code 25y}, {@code < 8y}, {@code 3y 2m 10d}).
+	 * @return	The structure, or {@code null} if the age is not a numeric one (e.g. {@code CHILD}), or the date of the event is not
+	 * 	a point that can be calculated from.
+	 */
+	public static FLEFRecord buildBirthDateFromAge(final String tag, final String gedcomDate, final String age){
+		if(StringUtils.isBlank(age) || StringUtils.isBlank(gedcomDate))
+			return null;
+
+		final Matcher ageMatcher = AGE_PATTERN.matcher(StringUtils.normalizeSpace(age).toUpperCase(Locale.ROOT));
+		if(!ageMatcher.matches())
+			return null;
+
+		final Integer years = parseAgeUnit(ageMatcher.group(2));
+		final Integer months = parseAgeUnit(ageMatcher.group(3));
+		final Integer weeks = parseAgeUnit(ageMatcher.group(4));
+		final Integer days = parseAgeUnit(ageMatcher.group(5));
+		if(years == null && months == null && weeks == null && days == null)
+			return null;
+
+		final DateInfo dateInfo = GEDCOMDateParser.parse(gedcomDate);
+		if(dateInfo == null || dateInfo.isPhraseOnly() || dateInfo.getType() != DateInfo.Type.POINT)
+			return null;
+
+		final SingleDate eventDate = resolve(dateInfo.getValue());
+		if(eventDate == null || eventDate.date().contains("BCE"))
+			return null;
+
+		final String[] tokens = StringUtils.split(eventDate.date());
+		final String yearToken = StringUtils.substringBefore(tokens[tokens.length - 1], "/");
+		if(!StringUtils.isNumeric(yearToken))
+			return null;
+
+		final int eventYear = Integer.parseInt(yearToken);
+		//the full date can be calculated only with the gregorian calendar
+		LocalDate fullDate = null;
+		final Matcher dateMatcher = GREGORIAN_DATE_PATTERN.matcher(eventDate.date());
+		if(DateReader.ENUM_CALENDAR_GREGORIAN.equals(eventDate.calendar()) && dateMatcher.matches() && dateMatcher.group(1) != null
+				&& dateMatcher.group(2) != null && dateMatcher.group(4) == null && dateMatcher.group(5) == null){
+			try{
+				fullDate = LocalDate.parse(StringUtils.normalizeSpace(eventDate.date()), GEDCOM_DATE_EXACT);
+			}
+			catch(final DateTimeParseException ignored){}
+		}
+
+		final String birth;
+		if(fullDate != null && (years == null || months != null && (days != null || weeks != null))){
+			final LocalDate birthDate = fullDate.minusYears(years != null? years: 0)
+				.minusMonths(months != null? months: 0)
+				.minusDays((weeks != null? weeks * 7L: 0L) + (days != null? days: 0));
+			birth = GEDCOM_DATE_EXACT.format(birthDate).toUpperCase(Locale.ROOT);
+		}
+		else if(years != null && eventYear - years > 0)
+			birth = String.valueOf(eventYear - years);
+		else
+			return null;
+
+		final String qualifier = ageMatcher.group(1);
+		final SingleDate birthSingleDate = new SingleDate(birth, eventDate.calendar());
+		final FLEFRecord content;
+		if(qualifier == null)
+			content = buildSingleDate(DateReader.TAG_POINT, birthSingleDate, DateReader.ENUM_BASIS_CALCULATED);
+		else
+			//younger than the age: born after the calculated date, older: born before it
+			content = FLEFRecord.createChildWithTag(DateReader.TAG_BOUNDED)
+				.addChild(buildSingleDate(("<".equals(qualifier)? DateReader.TAG_NOT_BEFORE: DateReader.TAG_NOT_AFTER), birthSingleDate,
+					DateReader.ENUM_BASIS_CALCULATED));
+		return FLEFRecord.createChildWithTag(tag)
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(content));
+	}
+
+	private static Integer parseAgeUnit(final String value){
+		return (value != null? Integer.valueOf(value): null);
 	}
 
 	private static SingleDate resolve(final String gedcomDate){
@@ -247,10 +333,10 @@ public final class GEDCOMDateConverter{
 		final Matcher escapeMatcher = ESCAPE_PATTERN.matcher(date);
 		if(escapeMatcher.matches()){
 			calendar = switch(escapeMatcher.group(1).trim().toUpperCase(Locale.ROOT)){
-				case "GREGORIAN" -> CALENDAR_GREGORIAN;
-				case "JULIAN" -> CALENDAR_JULIAN;
-				case "HEBREW" -> CALENDAR_HEBREW;
-				case "FRENCH R" -> CALENDAR_FRENCH_REPUBLICAN;
+				case "GREGORIAN" -> DateReader.ENUM_CALENDAR_GREGORIAN;
+				case "JULIAN" -> DateReader.ENUM_CALENDAR_JULIAN;
+				case "HEBREW" -> DateReader.ENUM_CALENDAR_HEBREW;
+				case "FRENCH R" -> DateReader.ENUM_CALENDAR_FRENCH_REPUBLICAN;
 				//ROMAN, UNKNOWN
 				default -> null;
 			};
@@ -265,17 +351,17 @@ public final class GEDCOMDateConverter{
 		if(calendar == null && m.matches() && m.group(2) != null){
 			// some programs omit the escape: the month codes of these calendars tell it
 			if(HEBREW_MONTHS.containsKey(m.group(2)))
-				calendar = CALENDAR_HEBREW;
+				calendar = DateReader.ENUM_CALENDAR_HEBREW;
 			else if(FRENCH_REPUBLICAN_MONTHS.containsKey(m.group(2)))
-				calendar = CALENDAR_FRENCH_REPUBLICAN;
+				calendar = DateReader.ENUM_CALENDAR_FRENCH_REPUBLICAN;
 		}
-		if(CALENDAR_HEBREW.equals(calendar) || CALENDAR_FRENCH_REPUBLICAN.equals(calendar)){
+		if(DateReader.ENUM_CALENDAR_HEBREW.equals(calendar) || DateReader.ENUM_CALENDAR_FRENCH_REPUBLICAN.equals(calendar)){
 			if(!m.matches())
 				return null;
 
 			final StringBuilder sb = new StringBuilder();
 			if(m.group(2) != null){
-				final String month = (CALENDAR_HEBREW.equals(calendar)? HEBREW_MONTHS: FRENCH_REPUBLICAN_MONTHS)
+				final String month = (DateReader.ENUM_CALENDAR_HEBREW.equals(calendar)? HEBREW_MONTHS: FRENCH_REPUBLICAN_MONTHS)
 					.get(m.group(2));
 				if(month == null)
 					return null;
@@ -298,7 +384,7 @@ public final class GEDCOMDateConverter{
 			return null;
 
 		if(calendar == null)
-			calendar = (gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? CALENDAR_JULIAN: CALENDAR_GREGORIAN);
+			calendar = (gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN);
 		return new SingleDate(date, calendar);
 	}
 

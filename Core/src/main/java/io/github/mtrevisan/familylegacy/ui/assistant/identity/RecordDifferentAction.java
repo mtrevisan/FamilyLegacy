@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialo
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
 import java.util.List;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 
 
@@ -54,7 +55,6 @@ final class RecordDifferentAction implements DiagnosticAction{
 	/** The confidence proposed for a hypothesis that is being rejected. */
 	private static final String CONFIDENCE = ConfidenceReader.ENUM_LOW;
 	private static final String ISSUE_IDENTITY = "identity";
-	private static final String PROOF_STATUS_DISPROVEN = "disproven";
 
 	private final IdentityDraft draft;
 	private final boolean people;
@@ -104,7 +104,7 @@ final class RecordDifferentAction implements DiagnosticAction{
 
 		ConclusionRecordDialog.createNew(context.owner(), model)
 			.withResolvedTarget(hypothesis, ISSUE_IDENTITY)
-			.withDraft(PROOF_STATUS_DISPROVEN, narrative(model, left, right))
+			.withDraft(ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, narrative(model, left, right))
 			.setVisible(true);
 	}
 

@@ -25,6 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -101,8 +106,8 @@ class ConclusionCheckerTest{
 	private static Builder twoBirths(){
 		return new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("b2", "a", "birth", day("1 June 1801"), 1, null));
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), 1, null));
 	}
 
 	private static List<String> titles(final List<Diagnostic> findings){
@@ -125,19 +130,19 @@ class ConclusionCheckerTest{
 		//a source is added to one of the events: the suggestion of the candidate changes, the conflict does not
 		final Diagnostic withSupport = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("b2", "a", "birth", day("1 June 1801"), 4, "high"))
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), 4, ConfidenceReader.ENUM_HIGH))
 			.check());
 		Assertions.assertNotEquals(finding.explanation(), withSupport.explanation());
 		Assertions.assertEquals(finding.key(), withSupport.key());
 
 		//a third birth, or another date: it is another conflict
 		Assertions.assertNotEquals(finding.key(), only(twoBirths()
-			.event(event("b3", "a", "birth", day("1 June 1802"), 1, null)).check()).key());
+			.event(event("b3", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1802"), 1, null)).check()).key());
 		Assertions.assertNotEquals(finding.key(), only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(new ConclusionData.PrincipalEvent("b2", "a", "birth", day("1 June 1805"), "1 JUN 1805", Set.of("b2", "part-b2"), 1,
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(new ConclusionData.PrincipalEvent("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1805"), "1 JUN 1805", Set.of("b2", "part-b2"), 1,
 				null))
 			.check()).key());
 	}
@@ -146,12 +151,12 @@ class ConclusionCheckerTest{
 	void everyKindOfFindingHasAKey(){
 		final List<Diagnostic> findings = new Builder()
 			.person("a", SexType.MALE).person("c", SexType.MALE).person("m1", SexType.FEMALE).person("m2", SexType.FEMALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("b2", "a", "birth", day("1 June 1801"), 1, null))
-			.parent("c", "m1", "biological_child").parent("c", "m2", "biological_child")
-			.parent("c", "m1", "adoptive_child")
-			.parent("a", "c", "biological_child").parent("c", "a", "biological_child")
-			.attribute("t1", "a", "national_id", "X1").attribute("t2", "a", "national_id", "X2")
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), 1, null))
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "m2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)
+			.parent("a", "c", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "a", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.attribute("t1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X1").attribute("t2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X2")
 			.hypothesis("h", "a", "c")
 			.check();
 
@@ -164,9 +169,9 @@ class ConclusionCheckerTest{
 	void aSingleBirthHasNothingToResolve(){
 		Assertions.assertTrue(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("d1", "a", "death", day("1 June 1860"), 1, null))
-			.parent("a", "p", "biological_child")
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("d1", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1860"), 1, null))
+			.parent("a", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check().isEmpty());
 	}
 
@@ -187,8 +192,8 @@ class ConclusionCheckerTest{
 	void deathsWithDifferentDatesConflict(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("d1", "a", "death", day("1 June 1800"), 1, null))
-			.event(event("d2", "a", "death", day("1 June 1810"), 1, null))
+			.event(event("d1", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1800"), 1, null))
+			.event(event("d2", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1810"), 1, null))
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Conflicting death dates"));
@@ -198,8 +203,8 @@ class ConclusionCheckerTest{
 	void birthsWithCompatibleDatesAreOnlyReported(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("b2", "a", "birth", day("1 June 1800"), 1, null))
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
@@ -210,8 +215,8 @@ class ConclusionCheckerTest{
 	void anUndatedEventDoesNotMakeAConflict(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, null))
-			.event(event("b2", "a", "birth", null, 1, null))
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, null, 1, null))
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
@@ -221,8 +226,8 @@ class ConclusionCheckerTest{
 	void theBetterSupportedAssertionIsSuggested(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 1, "low"))
-			.event(event("b2", "a", "birth", day("1 June 1801"), 3, "high"))
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, ConfidenceReader.ENUM_LOW))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), 3, ConfidenceReader.ENUM_HIGH))
 			.check());
 
 		Assertions.assertTrue(finding.explanation().contains("Candidate for the preferred assertion: b2"), finding.explanation());
@@ -230,8 +235,8 @@ class ConclusionCheckerTest{
 		//with the same support there is no candidate
 		final Diagnostic tie = only(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("b1", "a", "birth", day("1 June 1800"), 2, "medium"))
-			.event(event("b2", "a", "birth", day("1 June 1801"), 2, "medium"))
+			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 2, ConfidenceReader.ENUM_MEDIUM))
+			.event(event("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), 2, ConfidenceReader.ENUM_MEDIUM))
 			.check());
 		Assertions.assertTrue(tie.explanation().contains("No assertion is better supported"), tie.explanation());
 		Assertions.assertFalse(tie.explanation().contains("Candidate for the preferred assertion"));
@@ -240,18 +245,18 @@ class ConclusionCheckerTest{
 	@Test
 	void aConclusionSettlesTheConflict(){
 		//it can point to the events or to the participations
-		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("b1", "b2"), "b1", "supported").check().isEmpty());
-		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("part-b1", "part-b2"), "part-b2", "proven").check().isEmpty());
+		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("b1", "b2"), "b1", ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED).check().isEmpty());
+		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("part-b1", "part-b2"), "part-b2", ConclusionReader.ENUM_PROOF_STATUS_PROVEN).check().isEmpty());
 	}
 
 	@Test
 	void aConclusionThatDoesNotSettleTheConflict(){
 		//it evaluates only one of the assertions
-		Assertions.assertEquals(1, twoBirths().conclusion("c1", Set.of("b1"), "b1", "supported").check().size());
+		Assertions.assertEquals(1, twoBirths().conclusion("c1", Set.of("b1"), "b1", ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED).check().size());
 		//it does not prefer one of them
-		Assertions.assertEquals(1, twoBirths().conclusion("c1", Set.of("b1", "b2"), null, "supported").check().size());
+		Assertions.assertEquals(1, twoBirths().conclusion("c1", Set.of("b1", "b2"), null, ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED).check().size());
 		//the evidence is conflicting: the researcher has evaluated them, and none prevails
-		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("b1", "b2"), null, "conflicting_evidence").check().isEmpty());
+		Assertions.assertTrue(twoBirths().conclusion("c1", Set.of("b1", "b2"), null, ConclusionReader.ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE).check().isEmpty());
 		//a conclusion without a proof status is not an evaluation
 		Assertions.assertEquals(1, twoBirths().conclusion("c1", Set.of("b1", "b2"), null, null).check().size());
 	}
@@ -260,7 +265,7 @@ class ConclusionCheckerTest{
 	void moreThanTwoBiologicalParents(){
 		final Diagnostic finding = only(new Builder()
 			.person("c", SexType.MALE).person("p1", SexType.MALE).person("p2", SexType.FEMALE).person("p3", SexType.MALE)
-			.parent("c", "p1", "biological_child").parent("c", "p2", "biological_child").parent("c", "p3", "child")
+			.parent("c", "p1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p3", RelationshipReader.ENUM_TYPE_CHILD)
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
@@ -272,8 +277,8 @@ class ConclusionCheckerTest{
 	void adoptiveAndStepParentsDoNotCount(){
 		Assertions.assertTrue(new Builder()
 			.person("c", SexType.MALE).person("p1", SexType.MALE).person("p2", SexType.FEMALE).person("p3", SexType.MALE)
-			.parent("c", "p1", "biological_child").parent("c", "p2", "biological_child").parent("c", "p3", "adoptive_child")
-			.parent("c", "p3", "step_child")
+			.parent("c", "p1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p3", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)
+			.parent("c", "p3", RelationshipReader.ENUM_TYPE_STEP_CHILD)
 			.check().isEmpty());
 	}
 
@@ -281,14 +286,14 @@ class ConclusionCheckerTest{
 	void twoBiologicalMothers(){
 		final Diagnostic finding = only(new Builder()
 			.person("c", SexType.MALE).person("m1", SexType.FEMALE).person("m2", SexType.FEMALE)
-			.parent("c", "m1", "biological_child").parent("c", "m2", "biological_child")
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "m2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Two biological mothers: Person c"));
 		//a mother and a parent of unknown sex are possible
 		Assertions.assertTrue(new Builder()
 			.person("c", SexType.MALE).person("m1", SexType.FEMALE).person("m2", SexType.UNKNOWN)
-			.parent("c", "m1", "biological_child").parent("c", "m2", "biological_child")
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "m2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check().isEmpty());
 	}
 
@@ -296,9 +301,9 @@ class ConclusionCheckerTest{
 	void aConclusionSettlesTheParentage(){
 		Assertions.assertTrue(new Builder()
 			.person("c", SexType.MALE).person("p1", SexType.MALE).person("p2", SexType.FEMALE).person("p3", SexType.MALE)
-			.parent("c", "p1", "biological_child").parent("c", "p2", "biological_child").parent("c", "p3", "biological_child")
+			.parent("c", "p1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p3", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.conclusion("k", Set.of("rel-c-p1-biological_child", "rel-c-p3-biological_child"), "rel-c-p1-biological_child",
-				"supported")
+				ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED)
 			.check().isEmpty());
 	}
 
@@ -306,7 +311,7 @@ class ConclusionCheckerTest{
 	void biologicalAndAdoptiveRelationshipOfTheSamePair(){
 		final Diagnostic finding = only(new Builder()
 			.person("c", SexType.MALE).person("p", SexType.MALE)
-			.parent("c", "p", "biological_child").parent("c", "p", "adoptive_child")
+			.parent("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
@@ -314,7 +319,7 @@ class ConclusionCheckerTest{
 		//an adoptive and a step relationship can coexist
 		Assertions.assertTrue(new Builder()
 			.person("c", SexType.MALE).person("p", SexType.MALE)
-			.parent("c", "p", "adoptive_child").parent("c", "p", "step_child")
+			.parent("c", "p", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD).parent("c", "p", RelationshipReader.ENUM_TYPE_STEP_CHILD)
 			.check().isEmpty());
 	}
 
@@ -322,8 +327,8 @@ class ConclusionCheckerTest{
 	void anIndividualCannotBeTheirOwnAncestor(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE).person("c", SexType.MALE).person("x", SexType.MALE)
-			.parent("a", "b", "biological_child").parent("b", "c", "biological_child").parent("c", "a", "adoptive_child")
-			.parent("x", "a", "biological_child")
+			.parent("a", "b", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("b", "c", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "a", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)
+			.parent("x", "a", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.ERROR, finding.severity());
@@ -337,7 +342,7 @@ class ConclusionCheckerTest{
 	void aCycleIsReportedOnce(){
 		Assertions.assertEquals(1, new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE)
-			.parent("a", "b", "biological_child").parent("b", "a", "biological_child")
+			.parent("a", "b", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("b", "a", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check().stream().filter(f -> f.title().startsWith("Own ancestor")).count());
 	}
 
@@ -345,7 +350,7 @@ class ConclusionCheckerTest{
 	void stepRelationshipsDoNotMakeACycle(){
 		Assertions.assertTrue(new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE)
-			.parent("a", "b", "biological_child").parent("b", "a", "step_child")
+			.parent("a", "b", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("b", "a", RelationshipReader.ENUM_TYPE_STEP_CHILD)
 			.check().isEmpty());
 	}
 
@@ -353,18 +358,18 @@ class ConclusionCheckerTest{
 	void conflictingNationalIds(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE)
-			.attribute("t1", "a", "national_id", "RSS MRA 80A01 H501Z")
-			.attribute("t2", "a", "national_id", "RSS MRA 80A01 H501X")
+			.attribute("t1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "RSS MRA 80A01 H501Z")
+			.attribute("t2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "RSS MRA 80A01 H501X")
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Conflicting national_id: Person a"));
 		//the same value written differently is the same value; other attributes can have several values
 		Assertions.assertTrue(new Builder()
 			.person("a", SexType.MALE)
-			.attribute("t1", "a", "national_id", "RSSMRA80A01H501Z")
-			.attribute("t2", "a", "national_id", "rss-mra 80a01 h501z")
-			.attribute("o1", "a", "occupation", "farmer")
-			.attribute("o2", "a", "occupation", "miller")
+			.attribute("t1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "RSSMRA80A01H501Z")
+			.attribute("t2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "rss-mra 80a01 h501z")
+			.attribute("o1", "a", IndividualAttributeReader.ENUM_TYPE_OCCUPATION, "farmer")
+			.attribute("o2", "a", IndividualAttributeReader.ENUM_TYPE_OCCUPATION, "miller")
 			.check().isEmpty());
 	}
 
@@ -383,7 +388,7 @@ class ConclusionCheckerTest{
 		Assertions.assertTrue(new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE)
 			.hypothesis("h", "a", "b")
-			.conclusion("k", Set.of("h"), null, "disproven")
+			.conclusion("k", Set.of("h"), null, ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN)
 			.check().isEmpty());
 	}
 
@@ -406,36 +411,36 @@ class ConclusionCheckerTest{
 		Assertions.assertTrue(finding.diagnostic().explanation().contains("A ConclusionRecord can resolve it"));
 
 		//a death, and events that agree
-		Assertions.assertEquals("death", ConclusionChecker.findings(data(new Builder()
+		Assertions.assertEquals(EventReader.ENUM_TYPE_DEATH, ConclusionChecker.findings(data(new Builder()
 			.person("a", SexType.MALE)
-			.event(event("d1", "a", "death", day("1 June 1800"), 1, null))
-			.event(event("d2", "a", "death", day("1 June 1800"), 1, null)))).getFirst().draft().issue());
+			.event(event("d1", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1800"), 1, null))
+			.event(event("d2", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1800"), 1, null)))).getFirst().draft().issue());
 	}
 
 	@Test
 	void theDraftsOfTheOtherConflicts(){
 		final ConclusionFinding parentage = ConclusionChecker.findings(data(new Builder()
 			.person("c", SexType.MALE).person("m1", SexType.FEMALE).person("m2", SexType.FEMALE)
-			.parent("c", "m1", "biological_child").parent("c", "m2", "biological_child"))).getFirst();
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "m2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD))).getFirst();
 		Assertions.assertEquals("parentage", parentage.draft().issue());
 		Assertions.assertEquals(List.of("rel-c-m1-biological_child", "rel-c-m2-biological_child"), parentage.draft().resolves());
 
 		final ConclusionFinding relationship = ConclusionChecker.findings(data(new Builder()
 			.person("c", SexType.MALE).person("p", SexType.MALE)
-			.parent("c", "p", "biological_child").parent("c", "p", "adoptive_child"))).getFirst();
+			.parent("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "p", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD))).getFirst();
 		Assertions.assertEquals("relationship_type", relationship.draft().issue());
 		Assertions.assertEquals(2, relationship.draft().resolves().size());
 
 		final ConclusionFinding cycle = ConclusionChecker.findings(data(new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE)
-			.parent("a", "b", "biological_child").parent("b", "a", "biological_child"))).getFirst();
+			.parent("a", "b", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("b", "a", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD))).getFirst();
 		Assertions.assertEquals("parentage", cycle.draft().issue());
 		Assertions.assertEquals(2, cycle.draft().resolves().size());
 
 		final ConclusionFinding attribute = ConclusionChecker.findings(data(new Builder()
 			.person("a", SexType.MALE)
-			.attribute("t1", "a", "national_id", "X1").attribute("t2", "a", "national_id", "X2"))).getFirst();
-		Assertions.assertEquals("national_id", attribute.draft().issue());
+			.attribute("t1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X1").attribute("t2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X2"))).getFirst();
+		Assertions.assertEquals(IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, attribute.draft().issue());
 		Assertions.assertEquals(List.of("t1", "t2"), attribute.draft().resolves());
 
 		final ConclusionFinding hypothesis = ConclusionChecker.findings(data(new Builder()
@@ -457,8 +462,8 @@ class ConclusionCheckerTest{
 	void everyFindingHasADraft(){
 		final Builder builder = twoBirths()
 			.person("c", SexType.MALE).person("m1", SexType.FEMALE).person("m2", SexType.FEMALE)
-			.parent("c", "m1", "biological_child").parent("c", "m2", "biological_child")
-			.attribute("t1", "a", "national_id", "X1").attribute("t2", "a", "national_id", "X2")
+			.parent("c", "m1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("c", "m2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.attribute("t1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X1").attribute("t2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "X2")
 			.hypothesis("h", "a", "c");
 
 		final List<ConclusionFinding> findings = ConclusionChecker.findings(data(builder));
@@ -478,8 +483,8 @@ class ConclusionCheckerTest{
 		Assertions.assertTrue(new Builder()
 			.person("a", SexType.MALE)
 			.hypothesis("h", "a", "hidden")
-			.parent("a", "hidden1", "biological_child").parent("a", "hidden2", "biological_child")
-			.parent("a", "hidden3", "biological_child")
+			.parent("a", "hidden1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).parent("a", "hidden2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.parent("a", "hidden3", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check().isEmpty());
 	}
 

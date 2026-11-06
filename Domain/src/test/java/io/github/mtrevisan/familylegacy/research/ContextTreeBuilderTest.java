@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.research;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -159,17 +165,17 @@ class ContextTreeBuilderTest{
 	@Test
 	void historicEventsAreInChronologicalOrderAndTheLabelHasTheDateAndThePlaceNotTheirIds(){
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("P1", "PLACE")
-			.addChild(FLEFRecord.createChildWithTag("name").addChild(FLEFRecord.createChildWithTagAndValue("value", "Treviso"))));
-		model.addRecord(FLEFRecord.createMainRecord("H1", "HISTORIC_EVENT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Alpha"))
+		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME).addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Treviso"))));
+		model.addRecord(FLEFRecord.createMainRecord("H1", HistoricEventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Alpha"))
 			.addChild(point("date", "1 JAN 1900"))
-			.addChild(FLEFRecord.createChildWithTag("place").addChild(FLEFRecord.createChildWithTagAndValue("place", "P1"))));
-		model.addRecord(FLEFRecord.createMainRecord("H2", "HISTORIC_EVENT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Beta"))
+			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_PLACE).addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, "P1"))));
+		model.addRecord(FLEFRecord.createMainRecord("H2", HistoricEventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Beta"))
 			.addChild(point("date", "1 JAN 1800")));
-		model.addRecord(FLEFRecord.createMainRecord("H3", "HISTORIC_EVENT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Gamma")));
+		model.addRecord(FLEFRecord.createMainRecord("H3", HistoricEventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Gamma")));
 
 		final ContextTreeBuilder.Node events = ContextTreeBuilder.build(model).get(0);
 

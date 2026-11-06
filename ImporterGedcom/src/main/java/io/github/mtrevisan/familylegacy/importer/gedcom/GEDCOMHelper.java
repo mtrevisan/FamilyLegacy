@@ -138,7 +138,7 @@ public class GEDCOMHelper{
 					final boolean level1 = "1".equals(split[0]);
 					if(level1){
 						final String id = split[1];
-						if(generatorName == null && "SOUR".equals(id))
+						if(generatorName == null && GEDCOMMapper.TAG_SOURCE.equals(id))
 							generatorName = split[2];
 						else if("CHAR".equals(id)){
 							//get encoding
@@ -147,7 +147,7 @@ public class GEDCOMHelper{
 							line = in.readLine();
 							if(line != null){
 								split = PATTERN_SPACES.split(line, 3);
-								if(split.length == 3 && "2".equals(split[0]) && "VERS".equals(split[1]))
+								if(split.length == 3 && "2".equals(split[0]) && GEDCOMMapper.TAG_VERSION.equals(split[1]))
 									version = split[2];
 							}
 						}

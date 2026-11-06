@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -139,14 +141,14 @@ class ManagementDialogTest{
 				}
 			}
 			""");
-		model.addRecord(FLEFRecord.createMainRecord("E1", "EVENT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "birth"))
-			.addChild(FLEFRecord.createChildWithTag("place").addChild(FLEFRecord.createChildWithTagAndValue("place", "P1"))));
-		model.addRecord(FLEFRecord.createMainRecord("E2", "EVENT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "death")));
-		model.addRecord(FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION")
-			.addChild(FLEFRecord.createChildWithTag("participant").addChild(FLEFRecord.createChildWithTagAndValue("individual", "I1")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", "E1")));
+		model.addRecord(FLEFRecord.createMainRecord("E1", EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_BIRTH))
+			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_PLACE).addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, "P1"))));
+		model.addRecord(FLEFRecord.createMainRecord("E2", EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_DEATH)));
+		model.addRecord(FLEFRecord.createMainRecord("EP1", EventParticipationReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT).addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I1")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, "E1")));
 
 		final List<JTable> tables = new ArrayList<>();
 		final List<String> participant = new ArrayList<>();
@@ -163,7 +165,7 @@ class ManagementDialogTest{
 
 		//the selected individual is the participant filter: only its event is listed
 		Assertions.assertEquals("1", participant.getFirst());
-		Assertions.assertEquals("birth", row.get(1));
+		Assertions.assertEquals(EventReader.ENUM_TYPE_BIRTH, row.get(1));
 		Assertions.assertEquals("Treviso", row.get(2));
 		Assertions.assertTrue(row.get(3).contains("Anna"), row.toString());
 	}

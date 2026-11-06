@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -66,6 +68,8 @@ public final class ChronomapIndex{
 	 * Once a person would be older than this, the person is considered no
 	 * longer alive.
 	 */
+	/** The prefix of the kind of an anchor that comes from an event: {@code event:birth}. */
+	private static final String KIND_EVENT_PREFIX = EventReader.TYPE.toLowerCase(Locale.ROOT) + ":";
 	private static final int MAX_PLAUSIBLE_AGE_YEARS = 120;
 
 	/** Same cap, expressed as a JDN offset from the birth date. */
@@ -126,9 +130,9 @@ public final class ChronomapIndex{
 		final Set<String> types = new TreeSet<>();
 		for(final List<GeoAnchor> list : anchorsByOwner.values())
 			for(final GeoAnchor a : list)
-				if(a.kind().startsWith("event:"))
+				if(a.kind().startsWith(KIND_EVENT_PREFIX))
 					types.add(a.kind()
-						.substring("event:".length()));
+						.substring(KIND_EVENT_PREFIX.length()));
 		return types;
 	}
 
@@ -311,7 +315,7 @@ public final class ChronomapIndex{
 
 			final String placeName = extractPlaceName(event);
 			final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
-			final String kind = "event:" + (type != null? type: "event");
+			final String kind = KIND_EVENT_PREFIX + (type != null? type: "event");
 
 			result.computeIfAbsent(ownerId, k -> new ArrayList<>())
 				.add(new GeoAnchor(ownerId, date.jdn(), date.jdn(), position,
@@ -442,7 +446,7 @@ public final class ChronomapIndex{
 
 		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(record, PlaceReader.TYPE);
 		if(placeCitation != null){
-			final String original = FLEFRecordHelper.getChildValue(placeCitation, "original_text");
+			final String original = FLEFRecordHelper.getChildValue(placeCitation, PlaceCitationReader.TAG_ORIGINAL_TEXT);
 			if(StringUtils.isNotEmpty(original))
 				return original;
 		}

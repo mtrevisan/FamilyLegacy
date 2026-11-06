@@ -25,6 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
@@ -99,8 +104,8 @@ class ContextCheckerTest{
 	@Test
 	void aWarInThePlaceAndThePeriodMayHaveInfluencedADeath(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P1")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P1")
 			.findings(), "context.candidate");
 
 		Assertions.assertEquals(1, found.size());
@@ -111,7 +116,7 @@ class ContextCheckerTest{
 		//the place and the period match, the event is inside the period
 		Assertions.assertEquals(65., diagnostic.rank());
 		final ContextFinding.ImpactDraft draft = found.getFirst().impact();
-		Assertions.assertEquals(new ContextFinding.ImpactDraft("H1", "E1", "influences", draft.rationale()), draft);
+		Assertions.assertEquals(new ContextFinding.ImpactDraft("H1", "E1", ContextImpactReader.ENUM_IMPACT_TYPE_INFLUENCES, draft.rationale()), draft);
 		Assertions.assertNull(found.getFirst().historic());
 		Assertions.assertTrue(diagnostic.explanation().contains("Title H1"), diagnostic.explanation());
 		Assertions.assertTrue(draft.rationale().contains("Title H1"), draft.rationale());
@@ -120,8 +125,8 @@ class ContextCheckerTest{
 	@Test
 	void withoutAPlaceOnlyThePeriodMatchesAndItCountsLess(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), null)
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), null)
 			.findings(), "context.candidate");
 
 		Assertions.assertEquals(1, found.size());
@@ -131,9 +136,9 @@ class ContextCheckerTest{
 	@Test
 	void anotherPlaceIsNotAMatch(){
 		final Builder builder = new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.event("E2", "death", day("1916-05-10"), null, "I2")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P3");
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), null, "I2")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P3");
 
 		Assertions.assertTrue(ofKind(builder.findings(), "context.candidate").isEmpty());
 	}
@@ -141,8 +146,8 @@ class ContextCheckerTest{
 	@Test
 	void aPlaceInsideThePlaceOfTheContextIsAMatch(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P2")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P2")
 			.inside("P1", "P2")
 			.findings(), "context.candidate");
 
@@ -153,19 +158,19 @@ class ContextCheckerTest{
 	void anEventOfAnotherKindIsNotInfluenced(){
 		//a war and a birth: nothing says the war touched the birth
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "birth", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P1")
+			.event("E1", EventReader.ENUM_TYPE_BIRTH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P1")
 			.findings(), "context.candidate").isEmpty());
 	}
 
 	@Test
 	void anEventOutsideThePeriodOrWithoutAPreciseDateIsLeftOut(){
 		final Builder builder = new Builder()
-			.event("E1", "death", day("1930-05-10"), "P1", "I1")
-			.event("E2", "death", null, "P1", "I2")
-			.event("E3", "death", range("1800-01-01", "1990-12-31"), "P1", "I3")
-			.event("E4", "death", new DateRange(CalendarType.GREGORIAN.parseToJdn("1916-01-01"), Long.MAX_VALUE), "P1", "I4")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P1");
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1930-05-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, null, "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, range("1800-01-01", "1990-12-31"), "P1", "I3")
+			.event("E4", EventReader.ENUM_TYPE_DEATH, new DateRange(CalendarType.GREGORIAN.parseToJdn("1916-01-01"), Long.MAX_VALUE), "P1", "I4")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P1");
 
 		Assertions.assertTrue(ofKind(builder.findings(), "context.candidate").isEmpty());
 	}
@@ -173,17 +178,17 @@ class ContextCheckerTest{
 	@Test
 	void aHistoricEventWithNoDateIsNotUsed(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", null, "P1")
-			.historic("H2", "war", new DateRange(CalendarType.GREGORIAN.parseToJdn("1914-01-01"), Long.MAX_VALUE), "P1")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, null, "P1")
+			.historic("H2", HistoricEventReader.ENUM_TYPE_WAR, new DateRange(CalendarType.GREGORIAN.parseToJdn("1914-01-01"), Long.MAX_VALUE), "P1")
 			.findings(), "context.candidate").isEmpty());
 	}
 
 	@Test
 	void anImpactThatAlreadyExistsIsNotProposed(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "war", range("1914-07-28", "1918-11-11"), "P1")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_WAR, range("1914-07-28", "1918-11-11"), "P1")
 			.impact("H1", "E1")
 			.findings(), "context.candidate").isEmpty());
 	}
@@ -191,8 +196,8 @@ class ContextCheckerTest{
 	@Test
 	void aTypeThatIsNotKnownOrIsMissingIsNotUsed(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1916-05-10"), "P1", "I1")
-			.historic("H1", "scientific_discovery", range("1914-07-28", "1918-11-11"), "P1")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1916-05-10"), "P1", "I1")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_SCIENTIFIC_DISCOVERY, range("1914-07-28", "1918-11-11"), "P1")
 			.historic("H2", null, range("1914-07-28", "1918-11-11"), "P1")
 			.norm("N1", null, range("1914-07-28", "1918-11-11"), "P1")
 			.findings(), "context.candidate").isEmpty());
@@ -202,23 +207,23 @@ class ContextCheckerTest{
 	@Test
 	void aMarriageLawInThePlaceAndThePeriodMayHaveInfluencedAMarriage(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "marriage", day("1810-05-10"), "P1", "I1", "I2")
-			.event("E2", "birth", day("1810-05-10"), "P1", "I3")
-			.norm("N1", "marriage_minimum_age", range("1804-03-21", "1814-12-31"), "P2")
+			.event("E1", EventReader.ENUM_TYPE_MARRIAGE, day("1810-05-10"), "P1", "I1", "I2")
+			.event("E2", EventReader.ENUM_TYPE_BIRTH, day("1810-05-10"), "P1", "I3")
+			.norm("N1", CulturalNormReader.ENUM_TYPE_MARRIAGE_MINIMUM_AGE, range("1804-03-21", "1814-12-31"), "P2")
 			.inside("P1", "P2")
 			.findings(), "context.candidate");
 
 		Assertions.assertEquals(1, found.size());
-		Assertions.assertEquals("constrains", found.getFirst().impact().impactType());
+		Assertions.assertEquals(ContextImpactReader.ENUM_IMPACT_TYPE_CONSTRAINS, found.getFirst().impact().impactType());
 		Assertions.assertEquals(List.of("N1", "E1"), found.getFirst().diagnostic().recordIds());
 	}
 
 	@Test
 	void aNormOpenOnOneSideStillHasABasis(){
 		final Builder builder = new Builder()
-			.event("E1", "marriage", day("1900-05-10"), "P1", "I1")
-			.event("E2", "marriage", day("1700-05-10"), "P1", "I2")
-			.norm("N1", "marriage_practice", new DateRange(CalendarType.GREGORIAN.parseToJdn("1804-03-21"), Long.MAX_VALUE), null);
+			.event("E1", EventReader.ENUM_TYPE_MARRIAGE, day("1900-05-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_MARRIAGE, day("1700-05-10"), "P1", "I2")
+			.norm("N1", CulturalNormReader.ENUM_TYPE_MARRIAGE_PRACTICE, new DateRange(CalendarType.GREGORIAN.parseToJdn("1804-03-21"), Long.MAX_VALUE), null);
 
 		final List<ContextFinding> found = ofKind(builder.findings(), "context.candidate");
 
@@ -230,20 +235,20 @@ class ContextCheckerTest{
 	@Test
 	void aNormWithNeitherDatesNorPlaceWouldMatchEverythingSoItIsNotUsed(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "marriage", day("1900-05-10"), "P1", "I1")
-			.norm("N1", "marriage_practice", null, null)
+			.event("E1", EventReader.ENUM_TYPE_MARRIAGE, day("1900-05-10"), "P1", "I1")
+			.norm("N1", CulturalNormReader.ENUM_TYPE_MARRIAGE_PRACTICE, null, null)
 			.findings(), "context.candidate").isEmpty());
 	}
 
 	@Test
 	void aNormOfAPlaceWithNoDatesIsInEffectAllTheTime(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "birth", day("1900-05-10"), "P1", "I1")
-			.norm("N1", "patronymic_system", null, "P1")
+			.event("E1", EventReader.ENUM_TYPE_BIRTH, day("1900-05-10"), "P1", "I1")
+			.norm("N1", CulturalNormReader.ENUM_TYPE_PATRONYMIC_SYSTEM, null, "P1")
 			.findings(), "context.candidate");
 
 		Assertions.assertEquals(1, found.size());
-		Assertions.assertEquals("explains", found.getFirst().impact().impactType());
+		Assertions.assertEquals(ContextImpactReader.ENUM_IMPACT_TYPE_EXPLAINS, found.getFirst().impact().impactType());
 		Assertions.assertEquals(55., found.getFirst().diagnostic().rank());
 	}
 
@@ -251,9 +256,9 @@ class ContextCheckerTest{
 	@Test
 	void atMostThreeEventsAreProposedForAContext(){
 		final Builder builder = new Builder()
-			.historic("H1", "epidemic", range("1855-01-01", "1855-12-31"), "P1");
+			.historic("H1", HistoricEventReader.ENUM_TYPE_EPIDEMIC, range("1855-01-01", "1855-12-31"), "P1");
 		for(int i = 1; i <= 6; i ++)
-			builder.event("E" + i, "death", day("1855-0" + i + "-10"), "P1", "I" + i);
+			builder.event("E" + i, EventReader.ENUM_TYPE_DEATH, day("1855-0" + i + "-10"), "P1", "I" + i);
 
 		final List<ContextFinding> found = ofKind(builder.findings(), "context.candidate");
 
@@ -264,8 +269,8 @@ class ContextCheckerTest{
 	void manyImpactsAreSummedUp(){
 		final Builder builder = new Builder();
 		for(int i = 0; i < 12; i ++){
-			builder.historic("H" + i, "epidemic", range("1855-01-01", "1855-12-31"), "P1");
-			builder.event("E" + i, "death", day("1855-03-10"), "P1", "I" + i);
+			builder.historic("H" + i, HistoricEventReader.ENUM_TYPE_EPIDEMIC, range("1855-01-01", "1855-12-31"), "P1");
+			builder.event("E" + i, EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I" + i);
 		}
 
 		final List<ContextFinding> found = builder.findings();
@@ -279,15 +284,15 @@ class ContextCheckerTest{
 	@Test
 	void severalDeathsInAPlaceInAShortTimeAreACrisisToLookFor(){
 		final List<ContextFinding> found = ofKind(new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
-			.event("E3", "burial", day("1856-01-10"), "P1", "I3")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_BURIAL, day("1856-01-10"), "P1", "I3")
 			.findings(), "context.cluster");
 
 		Assertions.assertEquals(1, found.size());
 		final ContextFinding finding = found.getFirst();
 		Assertions.assertEquals(List.of("P1", "E1", "E2", "E3"), finding.diagnostic().recordIds());
-		Assertions.assertEquals("epidemic", finding.historic().type());
+		Assertions.assertEquals(HistoricEventReader.ENUM_TYPE_EPIDEMIC, finding.historic().type());
 		Assertions.assertTrue(finding.historic().title().contains("Treviso"), finding.historic().title());
 		Assertions.assertTrue(finding.historic().title().contains("1855"), finding.historic().title());
 		Assertions.assertNull(finding.impact());
@@ -297,13 +302,13 @@ class ContextCheckerTest{
 	@Test
 	void twoDeathsOrDeathsSpreadOverManyYearsAreNotACrisis(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
 			.findings(), "context.cluster").isEmpty());
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1850-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
-			.event("E3", "death", day("1860-01-10"), "P1", "I3")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1850-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1860-01-10"), "P1", "I3")
 			.findings(), "context.cluster").isEmpty());
 	}
 
@@ -311,47 +316,47 @@ class ContextCheckerTest{
 	void theSamePersonIsCountedOnce(){
 		//the death and the burial of one individual, and one more: two persons
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "burial", day("1855-03-12"), "P1", "I1")
-			.event("E3", "death", day("1855-07-10"), "P1", "I2")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_BURIAL, day("1855-03-12"), "P1", "I1")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
 			.findings(), "context.cluster").isEmpty());
 	}
 
 	@Test
 	void deathsInDifferentPlacesAreNotACluster(){
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P3", "I2")
-			.event("E3", "death", day("1855-09-10"), "P2", "I3")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P3", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1855-09-10"), "P2", "I3")
 			.findings(), "context.cluster").isEmpty());
 	}
 
 	@Test
 	void aHistoricEventThatCoversThePlaceAndThePeriodExplainsTheDeaths(){
 		final Builder builder = new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
-			.event("E3", "death", day("1855-09-10"), "P1", "I3");
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1855-09-10"), "P1", "I3");
 
-		Assertions.assertTrue(ofKind(builder.historic("H1", "epidemic", year(1855), null).findings(), "context.cluster").isEmpty());
+		Assertions.assertTrue(ofKind(builder.historic("H1", HistoricEventReader.ENUM_TYPE_EPIDEMIC, year(1855), null).findings(), "context.cluster").isEmpty());
 		//in a place that contains the place of the deaths
 		Assertions.assertTrue(ofKind(new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
-			.event("E3", "death", day("1855-09-10"), "P1", "I3")
-			.historic("H1", "famine", year(1855), "P2").inside("P1", "P2").findings(), "context.cluster").isEmpty());
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1855-09-10"), "P1", "I3")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_FAMINE, year(1855), "P2").inside("P1", "P2").findings(), "context.cluster").isEmpty());
 	}
 
 	@Test
 	void aHistoricEventOfAnotherPlaceOrPeriodDoesNotExplainTheDeaths(){
 		final Builder elsewhere = new Builder()
-			.event("E1", "death", day("1855-03-10"), "P1", "I1")
-			.event("E2", "death", day("1855-07-10"), "P1", "I2")
-			.event("E3", "death", day("1855-09-10"), "P1", "I3")
-			.historic("H1", "epidemic", year(1855), "P3")
+			.event("E1", EventReader.ENUM_TYPE_DEATH, day("1855-03-10"), "P1", "I1")
+			.event("E2", EventReader.ENUM_TYPE_DEATH, day("1855-07-10"), "P1", "I2")
+			.event("E3", EventReader.ENUM_TYPE_DEATH, day("1855-09-10"), "P1", "I3")
+			.historic("H1", HistoricEventReader.ENUM_TYPE_EPIDEMIC, year(1855), "P3")
 			//and a reform is not a crisis
-			.historic("H2", "legal_reform", year(1855), null)
-			.historic("H3", "epidemic", year(1900), null);
+			.historic("H2", HistoricEventReader.ENUM_TYPE_LEGAL_REFORM, year(1855), null)
+			.historic("H3", HistoricEventReader.ENUM_TYPE_EPIDEMIC, year(1900), null);
 
 		Assertions.assertEquals(1, ofKind(elsewhere.findings(), "context.cluster").size());
 	}
@@ -360,7 +365,7 @@ class ContextCheckerTest{
 	void theUsefulnessOfACrisisGrowsWithTheDeathsUpToALimit(){
 		final Builder builder = new Builder();
 		for(int i = 1; i <= 9; i ++)
-			builder.event("E" + i, "death", day("1855-0" + i + "-10"), "P1", "I" + i);
+			builder.event("E" + i, EventReader.ENUM_TYPE_DEATH, day("1855-0" + i + "-10"), "P1", "I" + i);
 
 		Assertions.assertEquals(70., ofKind(builder.findings(), "context.cluster").getFirst().diagnostic().rank());
 	}
@@ -368,9 +373,9 @@ class ContextCheckerTest{
 	@Test
 	void anEmptyModelHasNothing(){
 		Assertions.assertTrue(new Builder().findings().isEmpty());
-		Assertions.assertEquals("high", ContextChecker.level(70));
-		Assertions.assertEquals("medium", ContextChecker.level(45));
-		Assertions.assertEquals("low", ContextChecker.level(44));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, ContextChecker.level(70));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, ContextChecker.level(45));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, ContextChecker.level(44));
 	}
 
 }

@@ -25,8 +25,24 @@
 package io.github.mtrevisan.familylegacy.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -258,11 +274,11 @@ public final class SourceHelper{
 	 */
 	public static List<String> allSourceCitingTypes(){
 		return List.of(
-			"individual", "group", "event", "individual_attribute",
-			"event_participation", "group_attribute", "relationship",
-			"place", "place_relationship", "source", "cultural_norm",
-			"historic_event", "context_impact", "identity_hypothesis",
-			"research_question", "research_activity", "conclusion"
+			IndividualReader.TYPE, GroupReader.TYPE, EventReader.TYPE, IndividualAttributeReader.TYPE,
+			EventParticipationReader.TYPE, GroupAttributeReader.TYPE, RelationshipReader.TYPE,
+			PlaceReader.TYPE, PlaceRelationshipReader.TYPE, SourceReader.TYPE, CulturalNormReader.TYPE,
+			HistoricEventReader.TYPE, ContextImpactReader.TYPE, IdentityHypothesisReader.TYPE,
+			ResearchQuestionReader.TYPE, ResearchActivityReader.TYPE, ConclusionReader.TYPE
 		);
 	}
 

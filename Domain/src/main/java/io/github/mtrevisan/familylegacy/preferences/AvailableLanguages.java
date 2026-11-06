@@ -62,6 +62,7 @@ public final class AvailableLanguages{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AvailableLanguages.class);
 
+
 	private static final String UI_DIRECTORY = "/i18n/ui";
 	private static final String UI_BASE_NAME = "messages";
 	private static final String KEY_LANGUAGE_NAME = "language.name";

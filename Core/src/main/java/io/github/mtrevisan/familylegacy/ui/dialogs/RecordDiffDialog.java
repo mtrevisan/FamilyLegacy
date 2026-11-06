@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -73,7 +74,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 
 
 /**
@@ -779,17 +779,17 @@ public class RecordDiffDialog extends JDialog{
 			final JFrame frame = new JFrame("Test Record Diff");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-			final FLEFRecord before = FLEFRecord.createChildWithTag("individual");
+			final FLEFRecord before = FLEFRecord.createChildWithTag(IndividualReader.TYPE);
 			before.setId("I1");
-			before.addChild(FLEFRecord.createChildWithTagAndValue("name", "John Doe"));
-			before.addChild(FLEFRecord.createChildWithTagAndValue("sex", IndividualReader.ENUM_SEX_MALE));
+			before.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NAME, "John Doe"));
+			before.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-01"));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("ill", "2010-01-01"));
 
-			final FLEFRecord after = FLEFRecord.createChildWithTag("individual");
+			final FLEFRecord after = FLEFRecord.createChildWithTag(IndividualReader.TYPE);
 			after.setId("I1");
-			after.addChild(FLEFRecord.createChildWithTagAndValue("name", "John Doe"));
-			after.addChild(FLEFRecord.createChildWithTagAndValue("sex", IndividualReader.ENUM_SEX_MALE));
+			after.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NAME, "John Doe"));
+			after.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-02"));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("death", "2024-12-31"));
 

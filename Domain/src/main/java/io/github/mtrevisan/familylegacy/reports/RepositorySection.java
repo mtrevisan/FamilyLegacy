@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -99,8 +100,8 @@ public final class RepositorySection implements SectionBuilder{
 		// Sources cited by the root's relationships too (SourceCollector
 		// already covers individual/group roots, but relationships are not
 		// part of the default traversal for group roots).
-		for(final FLEFRecord r : ctx.visibleRecordsByType("relationship"))
-			for(final FLEFRecord rc : FLEFRecordHelper.findChildren(r, "source"))
+		for(final FLEFRecord r : ctx.visibleRecordsByType(RelationshipReader.TYPE))
+			for(final FLEFRecord rc : FLEFRecordHelper.findChildren(r, RelationshipReader.TAG_SOURCE))
 				collectFromSource(ReportFormatters.extractSourceId(rc), ids);
 
 		final List<FLEFRecord> out = new ArrayList<>(ids.size());

@@ -52,6 +52,7 @@ public final class NoteReader{
 
 	public static final String TYPE = "NOTE";
 
+	public static final String TAG_NOTE = "note";
 	public static final String TAG_TITLE = "title";
 	public static final String TAG_TEXT = "text";
 	public static final String TAG_MIME = "mime";

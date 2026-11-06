@@ -39,8 +39,18 @@ public enum ReportType{
 	GROUP,
 	INDIVIDUAL,
 	RELATIONSHIP,
+	PLACE,
+	SOURCE,
+	RESEARCH_QUESTION,
 	BIBLIOGRAPHY,
-	RESEARCH_PROGRESS;
+	RESEARCH_PROGRESS,
+	FULL_BIBLIOGRAPHY,
+	FAMILY_BOOK;
+
+	/** @return	Whether the report is about the whole file, not about a record. */
+	public boolean isGlobal(){
+		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK);
+	}
 
 	public String getTitle(){
 		return I18N.t("enum.report.type." + name().toLowerCase(Locale.ROOT));

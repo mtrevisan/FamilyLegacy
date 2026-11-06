@@ -49,6 +49,8 @@ public final class MultiPersonReportGenerator{
 
 	private final FLEFModel model;
 	private final List<FLEFRecord> persons;
+	/** The groups that have a page after the persons. */
+	private final List<FLEFRecord> groups;
 	private final ReportConfig config;
 	private final String title;
 	private final List<SectionBuilder> opening;
@@ -62,8 +64,18 @@ public final class MultiPersonReportGenerator{
 
 	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final ReportConfig config,
 			final String title, final List<SectionBuilder> opening){
+		this(model, persons, List.of(), config, title, opening);
+	}
+
+
+	/**
+	 * @param groups	The groups that have a page after the one of the persons.
+	 */
+	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final List<FLEFRecord> groups,
+			final ReportConfig config, final String title, final List<SectionBuilder> opening){
 		this.model = model;
 		this.persons = List.copyOf(persons);
+		this.groups = List.copyOf(groups);
 		this.config = config;
 		this.title = title;
 		this.opening = List.copyOf(opening);
@@ -76,12 +88,12 @@ public final class MultiPersonReportGenerator{
 
 
 	public ReportDocument generate(final ReportProgressListener listener){
-		if(persons.isEmpty())
+		if(persons.isEmpty() && groups.isEmpty())
 			return placeholder();
 
 		final RelationIndex sharedIndex = RelationIndex.build(model, r -> true);
 
-		final ReportContext first = ReportContext.build(model, persons.getFirst(),
+		final ReportContext first = ReportContext.build(model, (persons.isEmpty()? groups.getFirst(): persons.getFirst()),
 			config, sharedIndex);
 		final List<ReportSection> sections = new ArrayList<>();
 
@@ -103,9 +115,18 @@ public final class MultiPersonReportGenerator{
 				List.of(first.labels.sections().columnIndividual()), rows));
 		}
 
+		//the groups have an index of their own, after the one of the persons (the same option decides both)
+		if(config.indexIndividuals() && !groups.isEmpty()){
+			sections.add(new ReportSection.Heading(1, first.labels.sections().indexOfGroups()));
+			final List<List<String>> rows = new ArrayList<>(groups.size());
+			for(final FLEFRecord group : groups)
+				rows.add(List.of(ReportFormatters.escape(first.displayText(group))));
+			sections.add(new ReportSection.Table(List.of(first.labels.sections().columnGroup()), rows));
+		}
+
 		// Reserve a small slice for the cover, give the rest to the persons.
 		final int coverPercent = 5;
-		final int perPerson = (100 - coverPercent) / persons.size();
+		final int perPerson = (100 - coverPercent) / (persons.size() + groups.size());
 		listener.onProgress(coverPercent, null);
 
 		for(int i = 0; i < persons.size(); i ++){
@@ -122,6 +143,31 @@ public final class MultiPersonReportGenerator{
 			listener.onProgress(coverPercent + (i + 1) * perPerson,
 				ctx.displayText(person));
 		}
+
+		for(int i = 0; i < groups.size(); i ++){
+			if(Thread.currentThread().isInterrupted())
+				throw new RuntimeException("Report generation cancelled");
+
+			final FLEFRecord group = groups.get(i);
+			final ReportContext ctx = ReportContext.build(model, group, config, sharedIndex);
+			sections.add(new ReportSection.PageBreak());
+			sections.add(new ReportSection.Heading(1, ctx.displayText(group)));
+			sections.addAll(new GroupIntroductionSection(ctx).build());
+			sections.addAll(new GroupStorySection(ctx).build());
+
+			listener.onProgress(coverPercent + (persons.size() + i + 1) * perPerson, ctx.displayText(group));
+		}
+
+		//what the persons and the groups cite together, once: the repositories, the sources, the media, the places and their index (the
+		//index of the persons is already above)
+		final List<FLEFRecord> subjects = new ArrayList<>(persons);
+		subjects.addAll(groups);
+		final ReportContext all = ReportContext.buildForSubjects(model, config.withIndexIndividuals(false), sharedIndex, subjects);
+		sections.addAll(new RepositorySection(all).build());
+		sections.addAll(new SourcesSection(all).build());
+		sections.addAll(new MediaSection(all).build());
+		sections.addAll(new PlacesSection(all).build());
+		sections.addAll(new IndexSection(all).build());
 
 		return new ReportDocument(title, null, sections, first.labels.language().locale().toLanguageTag(),
 			first.labels.sections().contents());

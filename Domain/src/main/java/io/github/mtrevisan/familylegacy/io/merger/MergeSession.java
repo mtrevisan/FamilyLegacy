@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ import java.util.Set;
  */
 final class MergeSession implements RecordStore{
 
-	private static final String TAG_DATE = "date";
+	private static final String TAG_DATE = HeaderReader.TAG_DATE;
 
 
 	final GrammarSupport grammar;
@@ -149,7 +150,7 @@ final class MergeSession implements RecordStore{
 			&& grammar.resolve(flefGrammar.getHeaderType()) instanceof StructType struct? struct: null);
 		if(headerType != null)
 			// differences in the singular fields (protocol, source, date) are expected between two files: they are not conflicts
-			fields.mergeStructure(header, incomingHeader, headerType, "header", new ArrayList<>());
+			fields.mergeStructure(header, incomingHeader, headerType, ModelIndex.kind(HeaderReader.TYPE), new ArrayList<>());
 
 		final FLEFRecord date = FieldMerger.first(header, TAG_DATE);
 		if(date != null)

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
@@ -77,23 +78,23 @@ class ConclusionDraftDialogTest{
 			dialog.withResolvedTarget(model.getRecordById(id), finding.draft().issue());
 
 		//the draft is in the editor only: no record in the model, the conflict is still open
-		Assertions.assertTrue(model.getRecordsByType("conclusion").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(ConclusionReader.TYPE).isEmpty());
 		Assertions.assertFalse(dialog.isSaved());
 		Assertions.assertEquals(1, ConclusionChecker.check(ConclusionDataLoader.load(model)).size());
 
 		//the researcher picks a proof status, without preferring any assertion, and saves
-		dialog.withDraft("supported", null);
+		dialog.withDraft(ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED, null);
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
-		final List<FLEFRecord> conclusions = model.getRecordsByType("conclusion");
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionReader.TYPE);
 		Assertions.assertEquals(1, conclusions.size());
 		final FLEFRecord conclusion = conclusions.getFirst();
-		Assertions.assertEquals("birth_date", FLEFRecordHelper.getChildValue(conclusion, "issue"));
-		Assertions.assertEquals("supported", FLEFRecordHelper.getChildValue(conclusion, "proof_status"));
-		Assertions.assertTrue(FLEFRecordHelper.getChildValue(conclusion, "narrative").startsWith("Conflicting birth dates: Anna"));
-		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(conclusion, "resolves").size());
-		Assertions.assertNull(FLEFRecordHelper.findChild(conclusion, "preferred"));
+		Assertions.assertEquals("birth_date", FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE));
+		Assertions.assertEquals(ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED, FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS));
+		Assertions.assertTrue(FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_NARRATIVE).startsWith("Conflicting birth dates: Anna"));
+		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES).size());
+		Assertions.assertNull(FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED));
 
 		//a draft without a judgement does not settle the conflict
 		Assertions.assertEquals(1, ConclusionChecker.check(ConclusionDataLoader.load(model)).size());

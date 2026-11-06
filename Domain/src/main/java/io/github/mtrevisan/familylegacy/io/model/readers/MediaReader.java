@@ -55,6 +55,7 @@ import java.util.Set;
  *     cylindrical_equirectangular_horizontal,   // Cylindrical panorama wrapped horizontally around a cylinder.
  *     cylindrical_equirectangular_vertical      // Cylindrical panorama wrapped vertically around a cylinder.
  *   } | Text
+ *   date?: DateStructure // date the media was created, captured, recorded, published, or otherwise produced
  *   description?: Text   // Optional description of the media (e.g. "cover", "back", "page 3", "index", "cemetery entrance").
  *   note*: NoteStructure
  *   privacy?: PrivacyStructure
@@ -70,6 +71,7 @@ public final class MediaReader{
 	public static final String TAG_URI = "uri";
 	public static final String TAG_KIND = "kind";
 	public static final String TAG_MAPPING = "mapping";
+	public static final String TAG_DATE = "date";
 	public static final String TAG_DESCRIPTION = "description";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PRIVACY = "privacy";

@@ -48,6 +48,7 @@ public final class ReportRenderers{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReportRenderers.class);
 
+
 	/** The format that is selected when nothing was chosen. */
 	public static final String DEFAULT_ID = "markdown";
 	/** The formats the application knows, in the order of the dialog: the ones without a renderer are offered as not available. */

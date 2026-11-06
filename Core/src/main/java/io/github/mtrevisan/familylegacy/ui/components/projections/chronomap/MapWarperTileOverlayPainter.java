@@ -66,6 +66,7 @@ public final class MapWarperTileOverlayPainter implements ChronomapLayer{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapWarperTileOverlayPainter.class);
 
+
 	/**
 	 * Lowest OSM zoom level for which MapWarper is expected to serve
 	 * tiles. Below this level the server almost always answers with an

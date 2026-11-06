@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
 import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
@@ -80,7 +81,7 @@ class GroupViewZoomTest{
 		+ membership("R1", "G1", "president", "1900-01-01", "1910-01-01", null)
 		+ membership("R2", "G1", "member", "1910-01-01", null, null)
 		+ membership("R3", "G2", "guest", null, null, null)
-		+ membership("R4", "G3", "guest", "1920-01-01", "1925-01-01", "ended");
+		+ membership("R4", "G3", "guest", "1920-01-01", "1925-01-01", RelationshipReader.ENUM_STATUS_ENDED);
 
 
 	private static String group(final String id, final String name){

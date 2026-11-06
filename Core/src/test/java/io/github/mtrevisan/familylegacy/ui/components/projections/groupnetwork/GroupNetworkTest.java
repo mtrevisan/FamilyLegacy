@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
 import io.github.mtrevisan.familylegacy.groups.GroupNetworkBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupViewDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -70,13 +71,13 @@ public class GroupNetworkTest{
 	public static final String FLEF = HEADER
 		+ person("I1", "Anna") + person("I2", "Bruno") + person("I3", "Carla")
 		+ group("G1", "Federation") + group("G2", "Club") + group("G3", "Youth") + group("G4", "Rivals") + group("G5", "Remote")
-		+ relationship("R1", "group G2", "G1", "part_of", "1900-01-01", "1950-01-01")
-		+ relationship("R2", "group G3", "G2", "part_of", "1920-01-01", null)
-		+ relationship("R3", "group G4", "G2", "associate", "1930-01-01", null)
-		+ relationship("R4", "group G5", "G4", "associate", null, null)
-		+ relationship("R5", "individual I1", "G2", "group_member", "1900-01-01", "1910-01-01")
-		+ relationship("R6", "individual I2", "G2", "group_member", null, null)
-		+ relationship("R7", "individual I3", "G3", "group_member", "1925-01-01", null);
+		+ relationship("R1", "group G2", "G1", RelationshipReader.ENUM_TYPE_PART_OF, "1900-01-01", "1950-01-01")
+		+ relationship("R2", "group G3", "G2", RelationshipReader.ENUM_TYPE_PART_OF, "1920-01-01", null)
+		+ relationship("R3", "group G4", "G2", RelationshipReader.ENUM_TYPE_ASSOCIATE, "1930-01-01", null)
+		+ relationship("R4", "group G5", "G4", RelationshipReader.ENUM_TYPE_ASSOCIATE, null, null)
+		+ relationship("R5", "individual I1", "G2", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "1900-01-01", "1910-01-01")
+		+ relationship("R6", "individual I2", "G2", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, null, null)
+		+ relationship("R7", "individual I3", "G3", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "1925-01-01", null);
 
 
 	public static String person(final String id, final String name){
@@ -222,8 +223,8 @@ public class GroupNetworkTest{
 	@Test
 	void aCycleOfPartOfDoesNotLoop(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + group("G6", "Six") + group("G7", "Seven")
-			+ relationship("R1", "group G6", "G7", "part_of", null, null)
-			+ relationship("R2", "group G7", "G6", "part_of", null, null));
+			+ relationship("R1", "group G6", "G7", RelationshipReader.ENUM_TYPE_PART_OF, null, null)
+			+ relationship("R2", "group G7", "G6", RelationshipReader.ENUM_TYPE_PART_OF, null, null));
 
 		final GroupNetworkLayout.Layout layout = GroupNetworkLayout.compute(GroupNetworkBuilder.build(model, "G6", 3, null));
 

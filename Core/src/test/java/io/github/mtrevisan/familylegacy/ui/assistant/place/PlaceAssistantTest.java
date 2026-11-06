@@ -28,6 +28,9 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -82,7 +85,7 @@ class PlaceAssistantTest{
 		Assertions.assertEquals(4, data.places().size());
 		//Treviso, Veneto, Italia: two relationships; Venezia: one more, to Veneto
 		Assertions.assertEquals(3, data.relations().size());
-		Assertions.assertTrue(data.relations().stream().allMatch(r -> r.type().equals("administrative_part_of")));
+		Assertions.assertTrue(data.relations().stream().allMatch(r -> r.type().equals(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF)));
 		final PlaceData.Place treviso = data.places().stream().filter(p -> p.label().equals("Treviso")).findFirst().orElseThrow();
 		Assertions.assertEquals(2, treviso.usage());
 	}
@@ -96,9 +99,9 @@ class PlaceAssistantTest{
 	void aPlaceAddedByHandIsReported() throws IOException{
 		final FLEFModel model = convert();
 		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceHandler.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Veneto")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "region")));
+			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Veneto")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_REGION)));
 
 		final List<Diagnostic> found = diagnose(model);
 
@@ -116,13 +119,13 @@ class PlaceAssistantTest{
 	void aMissingRelationshipComesWithADraft() throws IOException{
 		final FLEFModel model = new FLEFModel();
 		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceHandler.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Treviso, Veneto")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "city")));
+			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Treviso, Veneto")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_CITY)));
 		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceHandler.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Veneto")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "region")));
+			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Veneto")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_REGION)));
 
 		final List<Diagnostic> found = diagnose(model);
 
@@ -143,7 +146,7 @@ class PlaceAssistantTest{
 
 		SwingUtilities.invokeAndWait(() -> {
 			final PlaceRelationshipRecordDialog dialog = PlaceRelationshipRecordDialog.createNew(null, model)
-				.withDraft(subject, target, "administrative_part_of");
+				.withDraft(subject, target, PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF);
 			Assertions.assertNotNull(dialog);
 			dialog.dispose();
 		});

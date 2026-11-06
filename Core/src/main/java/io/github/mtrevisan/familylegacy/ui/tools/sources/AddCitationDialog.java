@@ -82,7 +82,7 @@ public final class AddCitationDialog extends JDialog{
 	private final JTextField sourceField = new JTextField(28);
 	private final JTextField locatorField = new JTextField(28);
 
-	private final JComboBox<String> stanceCombo = new JComboBox<>(new String[]{"supports", "contradicts"});
+	private final JComboBox<String> stanceCombo = new JComboBox<>(SourceCitationReader.STANCES);
 
 	private FLEFRecord targetRecord;
 	private FLEFRecord sourceRecord;
@@ -261,16 +261,15 @@ public final class AddCitationDialog extends JDialog{
 	private RecordDialog openEditorFor(final FLEFRecord record){
 		final Window owner = context.owner();
 		final FLEFModel model = context.model();
-		final String tag = record.getTag();
 		if(IndividualHandler.isOfType(record))
 			return IndividualHandler.getInstance().createEditDialog(owner, model, record);
-		if("group".equalsIgnoreCase(tag))
+		if(GroupHandler.isOfType(record))
 			return GroupHandler.getInstance().createEditDialog(owner, model, record);
-		if("event".equalsIgnoreCase(tag))
+		if(EventHandler.isOfType(record))
 			return EventHandler.getInstance().createEditDialog(owner, model, record);
-		if("place".equalsIgnoreCase(tag))
+		if(PlaceHandler.isOfType(record))
 			return PlaceHandler.getInstance().createEditDialog(owner, model, record);
-		if("relationship".equalsIgnoreCase(tag))
+		if(RelationshipHandler.isOfType(record))
 			return RelationshipHandler.getInstance().createEditDialog(owner, model, record);
 		return null;
 	}

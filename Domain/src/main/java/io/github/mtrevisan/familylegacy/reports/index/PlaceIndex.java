@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -85,7 +86,7 @@ public final class PlaceIndex{
 		for(final FLEFRecord event : events){
 			if(!filter.test(event))
 				continue;
-			final String placeId = FLEFRecordHelper.getChildValue(event, "place.place");
+			final String placeId = FLEFRecordHelper.getChildValue(event, FLEFRecordHelper.composePath(EventReader.TAG_PLACE, PlaceCitationReader.TAG_PLACE));
 			if(placeId != null)
 				placeToEventsMap.computeIfAbsent(placeId, k -> new ArrayList<>())
 					.add(event);
@@ -120,7 +121,7 @@ public final class PlaceIndex{
 		for(final FLEFRecord individualAttribute : individualAttributes){
 			if(!filter.test(individualAttribute))
 				continue;
-			final String placeId = FLEFRecordHelper.getChildValue(individualAttribute, "place.place");
+			final String placeId = FLEFRecordHelper.getChildValue(individualAttribute, FLEFRecordHelper.composePath(IndividualAttributeReader.TAG_PLACE, PlaceCitationReader.TAG_PLACE));
 			if(placeId != null)
 				placeToAttributesMap.computeIfAbsent(placeId, k -> new ArrayList<>())
 					.add(individualAttribute);
@@ -131,8 +132,8 @@ public final class PlaceIndex{
 		for(final FLEFRecord placeRelationship : placeRelationships){
 			if(!filter.test(placeRelationship))
 				continue;
-			final String subjectPlace = FLEFRecordHelper.getChildValue(placeRelationship, "subject.place");
-			final String targetPlace = FLEFRecordHelper.getChildValue(placeRelationship, "target.place");
+			final String subjectPlace = FLEFRecordHelper.getChildValue(placeRelationship, PlaceRelationshipReader.TAG_SUBJECT_PLACE);
+			final String targetPlace = FLEFRecordHelper.getChildValue(placeRelationship, PlaceRelationshipReader.TAG_TARGET_PLACE);
 
 			if(subjectPlace != null)
 				placeToSubjectRelationshipsMap

@@ -119,7 +119,7 @@ public final class GroupsSection implements SectionBuilder{
 
 	/** Extracts the referenced group ID from the {@code target} branch of a {@code group_member}. */
 	private static String memberGroupId(final FLEFRecord rel){
-		final String direct = FLEFRecordHelper.getChildValue(rel, "target.group");
+		final String direct = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TARGET_GROUP);
 		if(direct != null)
 			return direct;
 		final FLEFRecord objectNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_TARGET);
@@ -303,8 +303,8 @@ public final class GroupsSection implements SectionBuilder{
 	private void appendGroupRelation(final List<ReportSection> out, final FLEFRecord rel,
 		final boolean useSubject){
 		final String counterpartId = (useSubject
-			? FLEFRecordHelper.getChildValue(rel, "subject.group")
-			: FLEFRecordHelper.getChildValue(rel, "target.group"));
+			? FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_SUBJECT_GROUP)
+			: FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TARGET_GROUP));
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? GroupReader.extractPrimaryName(counterpart): counterpartId);

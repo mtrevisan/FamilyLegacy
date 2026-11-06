@@ -22,25 +22,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.record;
-
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+package io.github.mtrevisan.familylegacy.reports;
 
 
-/** The audit structure of a record that has just been created by the user. */
-public final class AuditStamp{
+/** What a report does with an option, that tells how the dialog shows it. */
+public enum OptionState{
 
-	private AuditStamp(){}
-
-
-	/** @return	An {@code audit} structure with a {@code creation} dated today (in the format of the protocol, at the start of the day). */
-	public static FLEFRecord now(){
-		final String isoDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS));
-		return FLEFRecord.createChildWithTag("audit")
-			.addChild(FLEFRecord.createChildWithTag("creation")
-				.addChild(FLEFRecord.createChildWithTagAndValue("date", isoDateTime)));
-	}
+	/** The user decides: the option is shown and can be changed. */
+	EDITABLE,
+	/** The report always has it: the option is shown, on and not changeable. */
+	ALWAYS_ON,
+	/** The option has no effect on this report (it does not apply, or the report always leaves it out): it is not shown. */
+	HIDDEN
 
 }

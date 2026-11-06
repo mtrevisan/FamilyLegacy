@@ -58,6 +58,7 @@ final class HistoricalMapCatalog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoricalMapCatalog.class);
 
+
 	/** The world is divided in cells of this size, and every cell is searched once. */
 	private static final double CELL_DEGREES = 4.;
 	private static final long CELL_VALIDITY_MS = Duration.ofDays(30).toMillis();

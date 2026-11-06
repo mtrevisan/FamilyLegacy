@@ -6,17 +6,29 @@
 
 - The import replaces the current document. After you confirm, the changes of the open document are written to its file first, as with New and Open.
 - The original file is never modified. The import never merges into the open document.
-- There is no report at the end of the import: the data that has no counterpart is dropped silently. Some data that cannot be converted is kept as a **note** on the record instead (this page says where). After an import, look at the notes of the people, events and relationships to see what the conversion could not express.
+- At the end of the import, if some important information could not be kept, an **Import Report** lists it (see below). Purely technical data (program identifiers, bookmarks and the like) is not listed. Some data that cannot be converted is kept as a **note** on the record instead (this page says where); what became a note is not in the report, so also look at the notes of the people, events and relationships.
 
 ## The steps
 
 1. **File > Import** and choose **GEDCOM 5.5.x / 7.0...** or **Gramps XML 1.7.2...**. A file chooser opens (GEDCOM files `*.ged`; Gramps files `*.gramps` and `*.gpkg`).
 2. A confirmation says that the import will convert the file into a new FLEF file that replaces the current document. Answer **Yes**.
 3. A progress window follows the stages: reading, parsing, registering identifiers, parsing records, resolving family links, building the model.
-4. A **Save** chooser asks where to put the new `.flef`. It starts in the folder of the imported file, with the same name and the `.flef` extension, and asks before overwriting an existing file. If you **cancel** here, the import is discarded and the current document is left as it was.
-5. The file is written and then opened, exactly as with **File > Open**.
+4. If the GEDCOM 5.5 file embeds binary files (`BLOB`), a question asks where to save them: choose a folder and each file is written there (an existing file is never overwritten: a number is added to the name) and its media is linked to it. If you cancel (or press **Esc**), the media keep no file and are listed in the report.
+5. A **Save** chooser asks where to put the new `.flef`. It starts in the folder of the imported file, with the same name and the `.flef` extension, and asks before overwriting an existing file. If you **cancel** here, the import is discarded and the current document is left as it was.
+6. The file is written and then opened, exactly as with **File > Open**.
+7. If something important was dropped, the **Import Report** opens (see [The import report](#the-import-report)).
 
 If the file cannot be read, an **Import Error** dialog says that the file is not a valid GEDCOM (or Gramps) document, with the reason.
+
+## The import report
+
+The report appears after the new file is opened, and only if the import discarded something that matters. It has:
+
+- a **summary** with one line for each kind of loss (identifiers of records without notes, contact data of an address, place details, media details, name details, date details, source details, unknown data, other) and how many items there are;
+- a **detail** table with the kind, the lost item and where it was found; click a column header to sort it. Only the first 5000 items are listed in detail; the summary counts all of them, and a note says how many are not listed;
+- **Copy to Clipboard** and **Save as Text...**, which give the whole list as plain text, one line per item.
+
+Press **Esc** or **Close** to dismiss it; the report is not kept, so save it if you want to keep it.
 
 ## GEDCOM
 
@@ -30,8 +42,8 @@ Lines that are empty or malformed are skipped, and `CONC` and `CONT` lines are j
 
 ### People
 
-- **Names**: the given name, the family name, the prefix, the suffix and the nickname become parts of a personal name. The pieces written in the `GIVN`, `SURN`, `NPFX`, `NSFX`, `NICK` lines win over the text of the `NAME` line. A name with no parts is dropped. The name type is kept for *birth*, *maiden*, *married*, *immigrant* and *aka* (which becomes *alias*); a type longer than four words is lost. Phonetic and romanised forms become name variants, or a note.
-- **Sex**: M is male, F is female, U and X are unknown (so X is lossy).
+- **Names**: the given name, the family name, the prefix, the suffix and the nickname become parts of a personal name. The pieces written in the `GIVN`, `SURN`, `NPFX`, `NSFX`, `NICK` lines win over the text of the `NAME` line. A name with no parts is dropped. The name type is kept for *birth*, *maiden*, *married*, *immigrant* and *aka* (which becomes *alias*); a type longer than four words is kept as a note titled *Name type*. Phonetic and romanised forms become name variants, or a note.
+- **Sex**: M is male, F is female, U and X are unknown; for X a note *Sex: X (neither male nor female)* is added.
 - **Events** (birth, christening, death, burial, cremation, adoption, baptism, confirmation, naturalization, emigration, immigration, census, probate, will, graduation, retirement, ordination, and the LDS ordinances): each becomes **one event** with a participation of the person, with the role *principal*. The age becomes a note on the participation. Christening, baptism, bar and bat mitzvah, blessing, adult christening, confirmation, first communion and ordination become custom event types of their own. A generic `EVEN` takes its type from its `TYPE` line.
 - **Attributes** (caste, description, education, ID number, nationality, number of children, number of marriages, occupation, property, religion, residence, social security number, title, fact): each becomes an attribute record. Both *ID number* and *social security number* become *national ID*, which the application treats as confidential (see [Privacy](privacy.md)).
 - **Aliases**: a pointer to another person creates an identity hypothesis; an alias written as text becomes a name of type *alias*.
@@ -53,11 +65,11 @@ A `FAM` with no identifier is skipped.
 - **Citations**: the page becomes the **locator**; the quoted text becomes an **extract** of type *verbatim*; every citation has the stance *supports*. The quality of the data (`QUAY`) is converted into the *evidence qualifiers*: 3 is *primary* and *direct*, 2 is *secondary*, and 0 and 1 are both *undetermined* (they are not told apart).
 - **Repositories**: name, address, telephone, e-mail, fax and web address (as contacts), with the call number as the locator of the citation.
 - **Notes**: they are kept; a shared note is copied wherever it is referenced.
-- **Media**: only the **first file** of each object is kept, as its location, **written exactly as in the GEDCOM**. No file is copied or checked, so if the paths do not exist on your computer, the media will not open. The other files become notes. A media object that has no file is lost. A media link on a person becomes a citation of a source made of that media, and the first marked as primary becomes the preferred image, with its crop.
+- **Media**: only the **first file** of each object is kept, as its location, **written exactly as in the GEDCOM**. No file is copied or checked, so if the paths do not exist on your computer, the media will not open. The other files become notes. A media object that has no file but embeds its data (`BLOB`, GEDCOM 5.5) gets the file you save at step 4; without that it has no file. A media link on a person becomes a citation of a source made of that media, and the first marked as primary becomes the preferred image, with its crop.
 
 ### Places
 
-A place written as `San Martino, Treviso, Veneto` becomes one place for each level, each contained in the next (*administrative part of*), and places with the same name but different containers stay separate. The level names declared in `PLAC.FORM` are **not** read, so the places get no type. Coordinates become the coordinates of the most specific place only.
+A place written as `San Martino, Treviso, Veneto` becomes one place for each level, each contained in the next (*administrative part of*), and places with the same name but different containers stay separate. The level names declared in `PLAC.FORM` are **not** read, so the places get no type. Coordinates become the coordinates of the most specific place; other coordinates found for the same place become a note *Other coordinates*, and a translation of a place with several levels is also kept as a note *Translation*.
 
 ### Dates
 
@@ -70,22 +82,33 @@ A place written as `San Martino, Treviso, Veneto` becomes one place for each lev
 
 `RESN` becomes the **privacy level** of the record: *privacy* and *private* become *restricted*, *confidential* stays *confidential*; *locked* is dropped. The date of the last change becomes the audit date. There is no automatic marking of living people at import; see [Privacy](privacy.md).
 
+### What is kept as a note
+
+Data that has no field of its own is kept as a **note** of the closest record, so it is not lost and is not in the report:
+
+- **Identifiers** (`REFN` with its type, `UID`, `_UID`, `AFN`, `RFN`, `_FSFTID`, `EXID` with its authority): a note titled with the tag, whose text starts with `TAG: value`. An `EXID` of a place is a note of the place.
+- **Contact data of an address** of an event or attribute (postal code, phone, e-mail, fax, web address): a note *Contact* of the place made from the address, or of the event if there is no address.
+- A **second place** of the same event: a note *Other place* of the event.
+- The **status date** of an LDS ordinance: a note *Status date*.
+- **Any other tag the importer does not know** (also under names, events and families, and the private tags that start with an underscore): a note titled *GEDCOM* followed by the tag, with its value and its sub-lines.
+- The **notes of the submitter** go into the remark of the submitter of the file header.
+
 ### What is dropped
 
-These have no place in the result and are dropped without notice: the submitter and submission records, `ANCI`, `DESI`, `RFN`, `AFN`, `REFN`, `RIN`, `UID`, `EXID`, the address and the contact lines directly under a person, and **every tag that starts with an underscore** (the private tags of each program), except the few that mark the preferred image, the crop, and the e-mail and web address of a repository. Of the header, only the program that made the file, its date, the copyright, the submitter and the note are kept.
+These have no place in the result and are dropped (the ones that carry real information are listed in the [import report](#the-import-report); the purely technical ones are not): the submission record, `ANCI`, `DESI`, `RIN`, the identifiers and the unknown tags of a shared `NOTE` record, the media of a submitter, the default language of the file header, and the contact lines directly under a person. Of the header, only the program that made the file, its date, the copyright, the submitter and the note are kept.
 
 GEDCOM 7 is first rewritten into the older syntax: its shared notes become ordinary notes, its calendar keywords become escapes, and a link to a record that does not exist (`@VOID@`) becomes the citation of an unrecorded source, or a note, or is dropped.
 
 ## Gramps XML
 
-The file can be a `.gramps` file (compressed or not) or a `.gpkg` package. From a package, **only the data is taken**: the media files inside it are not extracted.
+The file can be a `.gramps` file (compressed or not) or a `.gpkg` package. From a package, the data is taken and the media files inside it are **extracted next to the package**, in a folder named like the package with `_media` added (`family.gpkg` gives `family_media`); files already there with the same size are left alone.
 
 - **People**: the first name is the primary one and the others are additional names (*Birth Name* is *birth*, *Also Known As* is *alias*, *Married Name* is *married*). Surname derivations (patronymic, matronymic, location, occupation, feudal) are kept as the type of the part. Addresses become *residence* attributes, and the URLs become notes. Associations become *associate* relationships.
 - **Families**: a group of type family, with the members and the parentage relationships (*Birth* is *biological child*, *Adopted*, *Stepchild*, *Foster*; anything else is the generic *child* with a note). A spouse relationship is created when both parents exist: *Civil Union* is *civil spouse*, *Unmarried* is *cohabiting partner*, otherwise the generic *spouse*. Unlike GEDCOM, no "to be revised" note is added.
 - **Events**: one event with a participation for every person and family that refers to it. The roles are converted (Primary, Family, Bride and Groom become *principal*; Clergy and Celebrant become *officiant*; Godparent becomes *sponsor*). A personal event that is really an attribute (occupation, residence, education, religion...) becomes an **attribute** instead.
 - **Places**: all the names (with language and validity dates), the type, the coordinates, and the hierarchy with its date ranges.
 - **Sources and citations**: title, author, publisher, repositories; in citations, the page is the locator and the confidence (0 to 4) is converted like the GEDCOM quality: 3 and 4 *primary* and *direct*, 2 *secondary*, 0 and 1 *undetermined*.
-- **Media**: relative paths are completed with the media path of the file; the files are **not copied**. The regions of an image are kept only as a note, not as a crop.
+- **Media**: relative paths are completed with the media path of the file (for a package, with the folder the media were extracted into); the files are **not copied** otherwise. The region of an image becomes a crop when the image can be read (always so for a package); when it cannot, the region is kept as a note, in percent, and listed in the import report.
 - **Notes**: bold, italic and links become Markdown; other styles are lost. Notes that no record refers to are not imported.
 - **Tags**: the names of the tags become a note titled *Tags*; their colours and priorities are lost.
 - **Dates**: *before*, *after*, *about*, ranges and spans are converted, and so are the Gregorian, Julian, Hebrew and French Republican calendars. The Islamic, Persian, Swedish and other calendars are not: such a date, and a date written as text, becomes a note titled *Date*.

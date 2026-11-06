@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.privacy;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -64,8 +66,8 @@ public final class PrivacyExporter{
 	public record Result(FLEFModel model, int omittedRecords, int omittedNodes){}
 
 
-	private static final String TAG_SUBMITTER = "submitter";
-	private static final String TAG_CONTACT = "contact";
+	private static final String TAG_SUBMITTER = HeaderReader.TAG_SUBMITTER;
+	private static final String TAG_CONTACT = RepositoryReader.TAG_CONTACT;
 	private static final String LINK_PREFIX = "flef:";
 	private static final String OMITTED = "[omitted]";
 	private static final Pattern CONFIDENTIAL_LINK = Pattern.compile("\\[[^\\]]*\\]\\(flef:confidential\\)");

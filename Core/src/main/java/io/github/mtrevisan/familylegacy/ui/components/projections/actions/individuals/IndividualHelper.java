@@ -25,9 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.record.AuditStamp;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditStamp;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -302,7 +303,7 @@ public final class IndividualHelper{
 		int eventCount = 0;
 		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationHandler.TYPE));
 		for(final FLEFRecord participation : participations){
-			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
+			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 			if(participantBlock == null)
 				continue;
 

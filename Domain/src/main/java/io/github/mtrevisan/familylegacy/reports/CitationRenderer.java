@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
@@ -54,13 +56,13 @@ public final class CitationRenderer{
 	 *                          Tags
 	 * ====================================================================== */
 
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_EVIDENCE = "evidence";
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TAG_NOTE = EventParticipationReader.TAG_NOTE;
+	private static final String TAG_EVIDENCE = EvidenceQualifiersReader.TAG_EVIDENCE;
 
-	private static final String TAG_AUDIT = "audit";
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
 
-	private static final String TAG_PRIVACY = "privacy";
+	private static final String TAG_PRIVACY = EventReader.TAG_PRIVACY;
 
 
 	private final ReportContext ctx;

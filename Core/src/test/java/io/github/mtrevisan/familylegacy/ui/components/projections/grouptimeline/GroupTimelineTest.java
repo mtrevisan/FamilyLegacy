@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
 import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -82,11 +84,11 @@ class GroupTimelineTest{
 	private static final String FLEF = HEADER
 		+ person("I1", "Anna") + person("I2", "Bruno") + person("I3", "Carla") + person("I4", "Dino")
 		+ group("G1", "Club") + group("G2", "Youth")
-		+ membership("R1", "individual I1", "G1", "group_member", "president", "1900-01-01", "1910-01-01")
-		+ membership("R2", "individual I1", "G1", "group_member", "member", "1910-01-01", null)
-		+ membership("R3", "individual I2", "G1", "group_member", null, null, null)
-		+ membership("R4", "group G2", "G1", "part_of", null, "1905-01-01", null)
-		+ membership("R5", "individual I3", "G2", "group_member", "scout", "1920-01-01", null);
+		+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "president", "1900-01-01", "1910-01-01")
+		+ membership("R2", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", "1910-01-01", null)
+		+ membership("R3", "individual I2", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, null, null, null)
+		+ membership("R4", "group G2", "G1", RelationshipReader.ENUM_TYPE_PART_OF, null, "1905-01-01", null)
+		+ membership("R5", "individual I3", "G2", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "scout", "1920-01-01", null);
 
 
 	private static String person(final String id, final String name){
@@ -141,7 +143,7 @@ class GroupTimelineTest{
 
 		Assertions.assertEquals(2, entries.size());
 		Assertions.assertEquals(List.of("member", "president"), entries.stream().map(TemporalEntry::role).sorted().toList());
-		Assertions.assertTrue(entries.stream().allMatch(entry -> entry.hasType("group_member")));
+		Assertions.assertTrue(entries.stream().allMatch(entry -> entry.hasType(RelationshipReader.ENUM_TYPE_GROUP_MEMBER)));
 	}
 
 	@Test
@@ -165,7 +167,7 @@ class GroupTimelineTest{
 	@Test
 	void anEndedMembershipWithNoEndDateIsNotCarriedToToday(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ membership("R1", "individual I1", "G1", "group_member", "member", "1900-01-01", null).replace("\ttype group_member\n",
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", "1900-01-01", null).replace("\ttype group_member\n",
 				"\ttype group_member\n\tstatus ended\n"));
 
 		final TemporalEntry entry = memberships(row(GroupTimelineBuilder.build(model, "G1"), "I1")).getFirst();
@@ -198,7 +200,7 @@ class GroupTimelineTest{
 	void aSubgroupIsAGroupRowWithItsOwnMembership(){
 		final TemporalRow subgroup = row(build("G1"), "G2");
 
-		Assertions.assertEquals("part_of", memberships(subgroup).getFirst().type());
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_PART_OF, memberships(subgroup).getFirst().type());
 		Assertions.assertEquals(1, memberships(subgroup).size());
 	}
 
@@ -215,7 +217,7 @@ class GroupTimelineTest{
 
 		Assertions.assertEquals(List.of("G1", "I3"), model.rows().stream().map(row -> row.entity().id()).toList(),
 			"the Club it is part of, then its member");
-		Assertions.assertEquals("part_of", memberships(row(model, "G1")).getFirst().type());
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_PART_OF, memberships(row(model, "G1")).getFirst().type());
 	}
 
 	@Test
@@ -273,11 +275,11 @@ class GroupTimelineTest{
 	@Test
 	void aSideOfAMembershipWithNoDateIsTheLimitOfTheLifeOfTheIndividual(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Elena") + group("G1", "Club") + group("G2", "Choir")
-			+ lifeEvent("E1", "birth", "1850-03-04") + lifeEvent("E2", "death", "1920-05-06")
+			+ lifeEvent("E1", EventReader.ENUM_TYPE_BIRTH, "1850-03-04") + lifeEvent("E2", EventReader.ENUM_TYPE_DEATH, "1920-05-06")
 			+ lifeParticipation("EP1", "E1") + lifeParticipation("EP2", "E2")
 			+ "individual_attribute A1 {\n\tindividual.individual I1\n\ttype relocation\n\tvalue Venezia\n\tvalid_from.value.point.value.full_date 1890-01-01\n}\n"
-			+ membership("R1", "individual I1", "G1", "group_member", "child", null, null)
-			+ membership("R2", "individual I1", "G2", "group_member", "singer", "1880-01-01", null));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.ENUM_TYPE_CHILD, null, null)
+			+ membership("R2", "individual I1", "G2", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "singer", "1880-01-01", null));
 
 		final TemporalProjectionModel career = IndividualCareerBuilder.build(model, "I1");
 
@@ -346,16 +348,16 @@ class GroupTimelineTest{
 	@Test
 	void withoutADateOfDeathTheBarsEndWithTheLastDateKnown(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Elena") + group("G1", "Club")
-			+ lifeEvent("E1", "birth", "1850-03-04") + lifeEvent("E2", "marriage", "1880-05-06")
+			+ lifeEvent("E1", EventReader.ENUM_TYPE_BIRTH, "1850-03-04") + lifeEvent("E2", EventReader.ENUM_TYPE_MARRIAGE, "1880-05-06")
 			+ "event E3 {\n\ttype death\n}\n"
 			+ lifeParticipation("EP1", "E1") + lifeParticipation("EP2", "E2") + lifeParticipation("EP3", "E3")
-			+ membership("R1", "individual I1", "G1", "group_member", "wife", null, null));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "wife", null, null));
 
 		final TemporalProjectionModel career = IndividualCareerBuilder.build(model, "I1");
 
 		final TemporalEntry undated = memberships(row(career, "G1")).getFirst();
 		final TemporalEntry marriage = row(career, "I1").findTrack(TemporalTrackType.EVENT).entries().stream()
-			.filter(entry -> entry.hasType("marriage")).findFirst().orElseThrow();
+			.filter(entry -> entry.hasType(EventReader.ENUM_TYPE_MARRIAGE)).findFirst().orElseThrow();
 		Assertions.assertEquals(marriage.span().start().jdn(), undated.span().end().jdn(), "it ends with the last date known");
 	}
 
@@ -433,8 +435,8 @@ class GroupTimelineTest{
 	@Test
 	void aRoleWrittenInMoreWaysIsOneInTheLegend(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + person("I2", "Bruno") + group("G1", "Club")
-			+ membership("R1", "individual I1", "G1", "group_member", "President", null, null)
-			+ membership("R2", "individual I2", "G1", "group_member", "president", null, null));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "President", null, null)
+			+ membership("R2", "individual I2", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "president", null, null));
 
 		final List<GroupRoleLegend.Role> roles = GroupRoleLegend.roles(GroupTimelineBuilder.build(model, "G1"));
 
@@ -472,9 +474,9 @@ class GroupTimelineTest{
 	void theStatusOfTheRelationshipIsTheStatusOfTheBar(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + person("I2", "Bruno") + person("I3", "Carla")
 			+ group("G1", "Club")
-			+ withStatus(membership("R1", "individual I1", "G1", "group_member", "guest", "1900-01-01", "1901-01-01"), "ended")
-			+ withStatus(membership("R2", "individual I2", "G1", "group_member", "host", "1900-01-01", null), "active")
-			+ membership("R3", "individual I3", "G1", "group_member", "owner", "1900-01-01", null));
+			+ withStatus(membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "guest", "1900-01-01", "1901-01-01"), RelationshipReader.ENUM_STATUS_ENDED)
+			+ withStatus(membership("R2", "individual I2", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "host", "1900-01-01", null), RelationshipReader.ENUM_STATUS_ACTIVE)
+			+ membership("R3", "individual I3", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "owner", "1900-01-01", null));
 		final TemporalProjectionModel timeline = GroupTimelineBuilder.build(model, "G1");
 
 		final TemporalEntry ended = memberships(row(timeline, "I1")).getFirst();
@@ -489,7 +491,7 @@ class GroupTimelineTest{
 	@Test
 	void aMembershipThatEndedWithoutDatesKeepsBothNotes(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ withStatus(membership("R1", "individual I1", "G1", "group_member", "guest", null, null), "ended"));
+			+ withStatus(membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "guest", null, null), RelationshipReader.ENUM_STATUS_ENDED));
 
 		final TemporalEntry entry = memberships(row(GroupTimelineBuilder.build(model, "G1"), "I1")).getFirst();
 
@@ -501,7 +503,7 @@ class GroupTimelineTest{
 	@Test
 	void theCareerHasTheStatusToo(){
 		final FLEFModel model = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ withStatus(membership("R1", "individual I1", "G1", "group_member", "guest", "1900-01-01", "1901-01-01"), "ended"));
+			+ withStatus(membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "guest", "1900-01-01", "1901-01-01"), RelationshipReader.ENUM_STATUS_ENDED));
 
 		Assertions.assertEquals(TemporalSpan.STATUS_ENDED,
 			memberships(row(IndividualCareerBuilder.build(model, "I1"), "G1")).getFirst().span().status());
@@ -525,7 +527,7 @@ class GroupTimelineTest{
 	void theTooltipOfADateTellsTheDateNotTheDayNumber(){
 		final String text = TemporalInteractionHandler.buildTooltip(new TemporalProjectionRef.EntryRef(
 			TemporalEntityRef.of(TemporalEntityType.INDIVIDUAL, new FLEFParser().parse(FLEF).getRecordById("I1"), "Anna"),
-			new TemporalEntry(TemporalSpan.point(NormalizedDate.exact(2_415_021L, DatePrecision.DAY)), "birth", "birth", "child", null, null)));
+			new TemporalEntry(TemporalSpan.point(NormalizedDate.exact(2_415_021L, DatePrecision.DAY)), EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_BIRTH, RelationshipReader.ENUM_TYPE_CHILD, null, null)));
 
 		Assertions.assertTrue(text.contains("1900-01-01"), text);
 		Assertions.assertFalse(text.contains("2415021"), text);

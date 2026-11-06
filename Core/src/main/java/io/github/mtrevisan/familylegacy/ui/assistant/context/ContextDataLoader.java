@@ -65,7 +65,6 @@ import java.util.Set;
  */
 final class ContextDataLoader{
 
-	private static final String ROLE_PRINCIPAL = "principal";
 	private static final String PLACE_OF = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
 	private static final Set<String> TERRITORIAL = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF);
 
@@ -100,7 +99,7 @@ final class ContextDataLoader{
 			final String personId = armValue(FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT));
 			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
-			if(personId != null && eventId != null && names.containsKey(personId) && (role == null || ROLE_PRINCIPAL.equals(role)))
+			if(personId != null && eventId != null && names.containsKey(personId) && (role == null || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)))
 				principals.computeIfAbsent(eventId, k -> new ArrayList<>()).add(personId);
 		}
 

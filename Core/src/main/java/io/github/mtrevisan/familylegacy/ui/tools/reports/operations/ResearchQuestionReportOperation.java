@@ -1,0 +1,54 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+
+
+public final class ResearchQuestionReportOperation implements ToolOperation{
+
+	@Override
+	public String getName(){
+		return I18N.t("menu.reports.research_question.report");
+	}
+
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return (context != null && context.hasAnyResearchQuestions());
+	}
+
+	@Override
+	public void run(final ToolContext context){
+		final FLEFRecord subject = ReportSubjectPicker.pick(context, ResearchQuestionHandler::isOfType, ResearchQuestionHandler.class);
+		if(subject != null)
+			ReportDialog.showDialog(context, ReportType.RESEARCH_QUESTION, subject);
+	}
+
+}

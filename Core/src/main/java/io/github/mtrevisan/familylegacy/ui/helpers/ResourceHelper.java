@@ -56,9 +56,11 @@ import java.util.Locale;
 
 
 public final class ResourceHelper{
-	public static final String EXTENSION_PDF = ".pdf";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceHelper.class);
+
+
+	public static final String EXTENSION_PDF = ".pdf";
 
 
 	private ResourceHelper(){}

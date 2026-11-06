@@ -91,6 +91,13 @@ public final class RelationshipReader{
 	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_ROLE = "role";
+	public static final String TAG_STATUS = "status";
+	public static final String TAG_INDIVIDUAL = "individual";
+	public static final String TAG_GROUP = "group";
+	public static final String TAG_SUBJECT_INDIVIDUAL = FLEFRecordHelper.composePath(TAG_SUBJECT, TAG_INDIVIDUAL);
+	public static final String TAG_SUBJECT_GROUP = FLEFRecordHelper.composePath(TAG_SUBJECT, TAG_GROUP);
+	public static final String TAG_TARGET_INDIVIDUAL = FLEFRecordHelper.composePath(TAG_TARGET, TAG_INDIVIDUAL);
+	public static final String TAG_TARGET_GROUP = FLEFRecordHelper.composePath(TAG_TARGET, TAG_GROUP);
 	public static final String TAG_VALID_FROM = "valid_from";
 	public static final String TAG_VALID_TO = "valid_to";
 	public static final String TAG_SOURCE = "source";
@@ -98,6 +105,10 @@ public final class RelationshipReader{
 	public static final String TAG_CONFIDENCE = "confidence";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_STATUS_ACTIVE = "active";
+	public static final String ENUM_STATUS_ENDED = "ended";
+	public static final String ENUM_STATUS_UNKNOWN = "unknown";
 
 	public static final String ENUM_TYPE_CHILD = "child";
 	public static final String ENUM_TYPE_BIOLOGICAL_CHILD = "biological_child";

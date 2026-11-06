@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -102,7 +103,7 @@ class AssistantDialogsEscapeTest{
 		final FLEFModel model = convert();
 		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
 
-		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType("individual"),
+		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
 			(owner, m, record) -> {});
 		pressEscape(chooser);
 
@@ -130,10 +131,10 @@ class AssistantDialogsEscapeTest{
 		final FLEFModel model = convert();
 		//an editor, the list of the records opened from the palette, the editor of one of them
 		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
-		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType("individual"),
+		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
 			(owner, m, record) -> {});
 		final JDialog opened = (JDialog)HandlerRegistry.getHandler("INDIVIDUAL").createEditDialog(chooser, model,
-			model.getRecordsByType("individual").getFirst()).window();
+			model.getRecordsByType(IndividualReader.TYPE).getFirst()).window();
 
 		pressEscape(opened);
 		Assertions.assertFalse(opened.isDisplayable());

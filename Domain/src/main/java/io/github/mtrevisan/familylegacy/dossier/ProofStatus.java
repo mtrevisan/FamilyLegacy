@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.dossier;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+
 
 /**
  * Proof status of an assertion, as declared by a
@@ -41,16 +43,16 @@ package io.github.mtrevisan.familylegacy.dossier;
 public enum ProofStatus{
 
 	/** Proven according to the Genealogical Proof Standard. */
-	PROVEN("proven"),
+	PROVEN(ConclusionReader.ENUM_PROOF_STATUS_PROVEN),
 
 	/** Preponderance of evidence, but not absolute certainty. */
-	SUPPORTED("supported"),
+	SUPPORTED(ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED),
 
 	/** The evidence is conflicting, none prevails. */
-	CONFLICTING("conflicting_evidence"),
+	CONFLICTING(ConclusionReader.ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE),
 
 	/** Proven false. */
-	DISPROVEN("disproven");
+	DISPROVEN(ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN);
 
 
 	private final String code;

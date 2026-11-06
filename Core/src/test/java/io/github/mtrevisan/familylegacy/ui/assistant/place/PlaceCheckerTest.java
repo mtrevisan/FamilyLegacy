@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,7 @@ class PlaceCheckerTest{
 	}
 
 	private static PlaceData.Relation part(final String id, final String subject, final String target){
-		return new PlaceData.Relation(id, subject, target, "administrative_part_of");
+		return new PlaceData.Relation(id, subject, target, PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF);
 	}
 
 	private static List<PlaceFinding> findings(final List<PlaceData.Place> places, final List<PlaceData.Relation> relations){
@@ -79,8 +81,8 @@ class PlaceCheckerTest{
 	@Test
 	void theDistanceIsOnTheSurfaceOfTheEarth(){
 		//Treviso - Venice: about 26 km
-		final double distance = PlaceChecker.distanceKm(place("P1", "Treviso", "city", 45.667, 12.243, 0),
-			place("P2", "Venice", "city", 45.438, 12.327, 0));
+		final double distance = PlaceChecker.distanceKm(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY, 45.667, 12.243, 0),
+			place("P2", "Venice", PlaceReader.ENUM_TYPE_CITY, 45.438, 12.327, 0));
 
 		Assertions.assertEquals(26., distance, 2.);
 	}
@@ -88,7 +90,7 @@ class PlaceCheckerTest{
 
 	@Test
 	void twoPlacesWithTheSameNameAndTypeMayBeTheSamePlace(){
-		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Treviso", "city"), place("P2", "treviso", "city")),
+		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY), place("P2", "treviso", PlaceReader.ENUM_TYPE_CITY)),
 			List.of()), "place.possible_duplicate");
 
 		Assertions.assertEquals(1, found.size());
@@ -102,7 +104,7 @@ class PlaceCheckerTest{
 
 	@Test
 	void aMissingTypeMakesItOnlyAnInformation(){
-		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Vérona", null), place("P2", "Verona", "city")),
+		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Vérona", null), place("P2", "Verona", PlaceReader.ENUM_TYPE_CITY)),
 			List.of()), "place.possible_duplicate");
 
 		Assertions.assertEquals(1, found.size());
@@ -111,23 +113,23 @@ class PlaceCheckerTest{
 
 	@Test
 	void aCityAndAProvinceWithTheSameNameAreDifferentPlaces(){
-		Assertions.assertTrue(ofKind(findings(List.of(place("P1", "Treviso", "city"), place("P2", "Treviso", "province")), List.of()),
+		Assertions.assertTrue(ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY), place("P2", "Treviso", PlaceReader.ENUM_TYPE_PROVINCE)), List.of()),
 			"place.possible_duplicate").isEmpty());
 	}
 
 	@Test
 	void placesThatAreAlreadyRelatedAreNotDuplicates(){
-		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P2", "P1", "successor_of"));
+		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P2", "P1", PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF));
 
-		Assertions.assertTrue(ofKind(findings(List.of(place("P1", "Treviso", "city"), place("P2", "Treviso", "city")), relations),
+		Assertions.assertTrue(ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY), place("P2", "Treviso", PlaceReader.ENUM_TYPE_CITY)), relations),
 			"place.possible_duplicate").isEmpty());
 	}
 
 	@Test
 	void theSameNameInDifferentPlacesIsNotTheSamePlace(){
 		//San Pietro in two different towns
-		final List<PlaceData.Place> places = List.of(place("P1", "San Pietro", "village"), place("P2", "San Pietro", "village"),
-			place("P3", "Feltre", "town"), place("P4", "Belluno", "town"));
+		final List<PlaceData.Place> places = List.of(place("P1", "San Pietro", PlaceReader.ENUM_TYPE_VILLAGE), place("P2", "San Pietro", PlaceReader.ENUM_TYPE_VILLAGE),
+			place("P3", "Feltre", PlaceReader.ENUM_TYPE_TOWN), place("P4", "Belluno", PlaceReader.ENUM_TYPE_TOWN));
 		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P3"), part("R2", "P2", "P4"));
 
 		Assertions.assertTrue(ofKind(findings(places, relations), "place.possible_duplicate").isEmpty());
@@ -135,8 +137,8 @@ class PlaceCheckerTest{
 
 	@Test
 	void theSameNameInPlacesWithTheSameNameIsThePlaceTwice(){
-		final List<PlaceData.Place> places = List.of(place("P1", "San Pietro", "village"), place("P2", "San Pietro", "village"),
-			place("P3", "Feltre", "town"), place("P4", "FELTRE", "town"));
+		final List<PlaceData.Place> places = List.of(place("P1", "San Pietro", PlaceReader.ENUM_TYPE_VILLAGE), place("P2", "San Pietro", PlaceReader.ENUM_TYPE_VILLAGE),
+			place("P3", "Feltre", PlaceReader.ENUM_TYPE_TOWN), place("P4", "FELTRE", PlaceReader.ENUM_TYPE_TOWN));
 		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P3"), part("R2", "P2", "P4"));
 
 		final List<PlaceFinding> found = ofKind(findings(places, relations), "place.possible_duplicate");
@@ -147,10 +149,10 @@ class PlaceCheckerTest{
 
 	@Test
 	void coordinatesTellWhetherTheyAreTheSamePlace(){
-		final List<PlaceFinding> near = ofKind(findings(List.of(place("P1", "Santa Maria", "village", 45.0, 12.0, 0),
-			place("P2", "Santa Maria", "village", 45.01, 12.01, 0)), List.of()), "place.possible_duplicate");
-		final List<PlaceFinding> far = ofKind(findings(List.of(place("P1", "Santa Maria", "village", 45.0, 12.0, 0),
-			place("P2", "Santa Maria", "village", 41.0, 14.0, 0)), List.of()), "place.possible_duplicate");
+		final List<PlaceFinding> near = ofKind(findings(List.of(place("P1", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 45.0, 12.0, 0),
+			place("P2", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 45.01, 12.01, 0)), List.of()), "place.possible_duplicate");
+		final List<PlaceFinding> far = ofKind(findings(List.of(place("P1", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 45.0, 12.0, 0),
+			place("P2", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 41.0, 14.0, 0)), List.of()), "place.possible_duplicate");
 
 		Assertions.assertEquals(1, near.size());
 		Assertions.assertTrue(near.getFirst().diagnostic().explanation().contains("km"), near.getFirst().diagnostic().explanation());
@@ -159,8 +161,8 @@ class PlaceCheckerTest{
 
 	@Test
 	void theMostUsedDuplicatesComeFirst(){
-		final List<PlaceFinding> found = ofKind(findings(List.of(used("P1", "A", "city", 1), used("P2", "A", "city", 1),
-			used("P3", "B", "city", 5), used("P4", "B", "city", 5)), List.of()), "place.possible_duplicate");
+		final List<PlaceFinding> found = ofKind(findings(List.of(used("P1", "A", PlaceReader.ENUM_TYPE_CITY, 1), used("P2", "A", PlaceReader.ENUM_TYPE_CITY, 1),
+			used("P3", "B", PlaceReader.ENUM_TYPE_CITY, 5), used("P4", "B", PlaceReader.ENUM_TYPE_CITY, 5)), List.of()), "place.possible_duplicate");
 
 		Assertions.assertEquals(2, found.size());
 		final double first = found.get(0).diagnostic().rank();
@@ -171,38 +173,38 @@ class PlaceCheckerTest{
 
 	@Test
 	void theNameOfAPlaceSaysWhereItIs(){
-		final List<PlaceData.Place> places = List.of(place("P1", "Treviso, Veneto", "city"), place("P2", "Veneto", "region"));
+		final List<PlaceData.Place> places = List.of(place("P1", "Treviso, Veneto", PlaceReader.ENUM_TYPE_CITY), place("P2", "Veneto", PlaceReader.ENUM_TYPE_REGION));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of()), "place.no_parent");
 
 		Assertions.assertEquals(1, found.size());
-		Assertions.assertEquals(new PlaceDraft("P1", "P2", "administrative_part_of"), found.getFirst().draft());
+		Assertions.assertEquals(new PlaceDraft("P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF), found.getFirst().draft());
 		Assertions.assertEquals(List.of("P1", "P2"), found.getFirst().diagnostic().recordIds());
 	}
 
 	@Test
 	void aContainerThatIsNotSingleIsNotGuessed(){
 		//two places named Veneto: which one is it?
-		final List<PlaceData.Place> places = List.of(place("P1", "Treviso, Veneto", "city"), place("P2", "Veneto", "region"),
-			place("P3", "Veneto", "region"));
+		final List<PlaceData.Place> places = List.of(place("P1", "Treviso, Veneto", PlaceReader.ENUM_TYPE_CITY), place("P2", "Veneto", PlaceReader.ENUM_TYPE_REGION),
+			place("P3", "Veneto", PlaceReader.ENUM_TYPE_REGION));
 
 		Assertions.assertTrue(ofKind(findings(places, List.of()), "place.no_parent").isEmpty());
 	}
 
 	@Test
 	void aContainerThatIsSmallerIsNotProposed(){
-		final List<PlaceData.Place> places = List.of(place("P1", "Veneto, Treviso", "region"), place("P2", "Treviso", "city"));
+		final List<PlaceData.Place> places = List.of(place("P1", "Veneto, Treviso", PlaceReader.ENUM_TYPE_REGION), place("P2", "Treviso", PlaceReader.ENUM_TYPE_CITY));
 
 		Assertions.assertTrue(ofKind(findings(places, List.of()), "place.no_parent").isEmpty());
 	}
 
 	@Test
 	void aUsedPlaceWithNoContainerIsReportedWithoutAProposal(){
-		final List<PlaceFinding> used = ofKind(findings(List.of(used("P1", "Treviso", "city", 3)), List.of()), "place.no_parent");
-		final List<PlaceFinding> unused = ofKind(findings(List.of(place("P1", "Treviso", "city")), List.of()), "place.no_parent");
+		final List<PlaceFinding> used = ofKind(findings(List.of(used("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY, 3)), List.of()), "place.no_parent");
+		final List<PlaceFinding> unused = ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY)), List.of()), "place.no_parent");
 
 		Assertions.assertEquals(1, used.size());
-		Assertions.assertEquals(new PlaceDraft("P1", null, "administrative_part_of"), used.getFirst().draft());
+		Assertions.assertEquals(new PlaceDraft("P1", null, PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF), used.getFirst().draft());
 		Assertions.assertEquals(3., used.getFirst().diagnostic().rank());
 		//a place nobody uses, and that says nothing about where it is, is not worth a finding
 		Assertions.assertTrue(unused.isEmpty());
@@ -210,8 +212,8 @@ class PlaceCheckerTest{
 
 	@Test
 	void aPlaceThatIsPartOfAnotherOneHasAParent(){
-		final List<PlaceData.Place> places = List.of(used("P1", "Treviso", "city", 3), used("P2", "Veneto", "region", 3),
-			used("P3", "Italy", "country", 3), used("P4", "Somewhere", null, 3));
+		final List<PlaceData.Place> places = List.of(used("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY, 3), used("P2", "Veneto", PlaceReader.ENUM_TYPE_REGION, 3),
+			used("P3", "Italy", PlaceReader.ENUM_TYPE_COUNTRY, 3), used("P4", "Somewhere", null, 3));
 		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P2"), part("R2", "P2", "P3"));
 
 		//the country is the top, a place with no type cannot be judged
@@ -222,7 +224,7 @@ class PlaceCheckerTest{
 	void manyPlacesAreSummedUp(){
 		final List<PlaceData.Place> places = new ArrayList<>();
 		for(int i = 0; i < 30; i ++)
-			places.add(used("P" + i, "Place " + i, "town", i + 1));
+			places.add(used("P" + i, "Place " + i, PlaceReader.ENUM_TYPE_TOWN, i + 1));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of()), "place.no_parent");
 
@@ -236,30 +238,30 @@ class PlaceCheckerTest{
 
 	@Test
 	void aParishBelongsToADiocese(){
-		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", "parish"), place("P2", "Diocese of Treviso", "diocese"));
+		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", PlaceReader.ENUM_TYPE_PARISH), place("P2", "Diocese of Treviso", PlaceReader.ENUM_TYPE_DIOCESE));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of()), "place.no_diocese");
 
 		Assertions.assertEquals(1, found.size());
-		Assertions.assertEquals(new PlaceDraft("P1", "P2", "ecclesiastical_part_of"), found.getFirst().draft());
+		Assertions.assertEquals(new PlaceDraft("P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF), found.getFirst().draft());
 	}
 
 	@Test
 	void whenThereIsMoreThanOneDioceseNoneIsProposed(){
-		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", "parish"), place("P2", "Diocese of Treviso", "diocese"),
-			place("P3", "Diocese of Padua", "diocese"));
+		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", PlaceReader.ENUM_TYPE_PARISH), place("P2", "Diocese of Treviso", PlaceReader.ENUM_TYPE_DIOCESE),
+			place("P3", "Diocese of Padua", PlaceReader.ENUM_TYPE_DIOCESE));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of()), "place.no_diocese");
 
 		Assertions.assertEquals(1, found.size());
-		Assertions.assertEquals(new PlaceDraft("P1", null, "ecclesiastical_part_of"), found.getFirst().draft());
+		Assertions.assertEquals(new PlaceDraft("P1", null, PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF), found.getFirst().draft());
 	}
 
 	@Test
 	void aParishAlreadyInADioceseIsFine(){
-		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", "parish"), place("P2", "Diocese of Treviso", "diocese"),
-			place("P3", "Santa Maria", "parish"));
-		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P1", "P2", "ecclesiastical_part_of"),
+		final List<PlaceData.Place> places = List.of(place("P1", "San Nicolò", PlaceReader.ENUM_TYPE_PARISH), place("P2", "Diocese of Treviso", PlaceReader.ENUM_TYPE_DIOCESE),
+			place("P3", "Santa Maria", PlaceReader.ENUM_TYPE_PARISH));
+		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF),
 			//an administrative relationship to a diocese says it too
 			part("R2", "P3", "P2"));
 
@@ -269,7 +271,7 @@ class PlaceCheckerTest{
 
 	@Test
 	void aProvinceInACityIsReported(){
-		final List<PlaceData.Place> places = List.of(place("P1", "Treviso", "province"), place("P2", "Treviso", "city"));
+		final List<PlaceData.Place> places = List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_PROVINCE), place("P2", "Treviso", PlaceReader.ENUM_TYPE_CITY));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of(part("R1", "P1", "P2"))), "place.inverted_hierarchy");
 
@@ -280,21 +282,21 @@ class PlaceCheckerTest{
 
 	@Test
 	void aCityInAProvinceIsFine(){
-		final List<PlaceData.Place> places = List.of(place("P1", "Treviso", "province"), place("P2", "Treviso", "city"));
+		final List<PlaceData.Place> places = List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_PROVINCE), place("P2", "Treviso", PlaceReader.ENUM_TYPE_CITY));
 
 		Assertions.assertTrue(ofKind(findings(places, List.of(part("R1", "P2", "P1"))), "place.inverted_hierarchy").isEmpty());
 		//a parish or a district are not on the scale: nothing can be said about them
-		Assertions.assertTrue(ofKind(findings(List.of(place("P3", "X", "parish"), place("P4", "Y", "village")),
+		Assertions.assertTrue(ofKind(findings(List.of(place("P3", "X", PlaceReader.ENUM_TYPE_PARISH), place("P4", "Y", PlaceReader.ENUM_TYPE_VILLAGE)),
 			List.of(part("R2", "P4", "P3"))), "place.inverted_hierarchy").isEmpty());
 		//and the ecclesiastical relationships do not follow the scale of the territory
-		Assertions.assertTrue(ofKind(findings(places, List.of(new PlaceData.Relation("R3", "P1", "P2", "ecclesiastical_part_of"))),
+		Assertions.assertTrue(ofKind(findings(places, List.of(new PlaceData.Relation("R3", "P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF))),
 			"place.inverted_hierarchy").isEmpty());
 	}
 
 	@Test
 	void aPlaceRelatedToItselfIsAnError(){
-		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Treviso", "city")),
-			List.of(new PlaceData.Relation("R1", "P1", "P1", "successor_of"))), "place.self_relation");
+		final List<PlaceFinding> found = ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY)),
+			List.of(new PlaceData.Relation("R1", "P1", "P1", PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF))), "place.self_relation");
 
 		Assertions.assertEquals(1, found.size());
 		Assertions.assertEquals(Diagnostic.Severity.ERROR, found.getFirst().diagnostic().severity());
@@ -303,7 +305,7 @@ class PlaceCheckerTest{
 
 	@Test
 	void placesThatArePartOfEachOtherAreAnError(){
-		final List<PlaceData.Place> places = List.of(place("P1", "A", "city"), place("P2", "B", "city"), place("P3", "C", "city"));
+		final List<PlaceData.Place> places = List.of(place("P1", "A", PlaceReader.ENUM_TYPE_CITY), place("P2", "B", PlaceReader.ENUM_TYPE_CITY), place("P3", "C", PlaceReader.ENUM_TYPE_CITY));
 		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P2"), part("R2", "P2", "P3"), part("R3", "P3", "P1"));
 
 		final List<PlaceFinding> found = ofKind(findings(places, relations), "place.cycle.part_of");
@@ -315,7 +317,7 @@ class PlaceCheckerTest{
 
 	@Test
 	void aChainIsNotACycle(){
-		final List<PlaceData.Place> places = List.of(place("P1", "A", "city"), place("P2", "B", "province"), place("P3", "C", "region"));
+		final List<PlaceData.Place> places = List.of(place("P1", "A", PlaceReader.ENUM_TYPE_CITY), place("P2", "B", PlaceReader.ENUM_TYPE_PROVINCE), place("P3", "C", PlaceReader.ENUM_TYPE_REGION));
 		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P2"), part("R2", "P2", "P3"));
 
 		Assertions.assertTrue(ofKind(findings(places, relations), "place.cycle.part_of").isEmpty());
@@ -323,9 +325,9 @@ class PlaceCheckerTest{
 
 	@Test
 	void placesThatSucceedEachOtherInACircleAreAWarning(){
-		final List<PlaceData.Place> places = List.of(place("P1", "A", "city"), place("P2", "B", "city"));
-		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P1", "P2", "successor_of"),
-			new PlaceData.Relation("R2", "P2", "P1", "successor_of"));
+		final List<PlaceData.Place> places = List.of(place("P1", "A", PlaceReader.ENUM_TYPE_CITY), place("P2", "B", PlaceReader.ENUM_TYPE_CITY));
+		final List<PlaceData.Relation> relations = List.of(new PlaceData.Relation("R1", "P1", "P2", PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF),
+			new PlaceData.Relation("R2", "P2", "P1", PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF));
 
 		final List<PlaceFinding> found = ofKind(findings(places, relations), "place.cycle.succession");
 
@@ -335,9 +337,9 @@ class PlaceCheckerTest{
 
 	@Test
 	void aFindingThatIsIgnoredComesBackWhenTheDataChanges(){
-		final String before = ofKind(findings(List.of(place("P1", "Treviso", "city"), place("P2", "Treviso", "city")), List.of()),
+		final String before = ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY), place("P2", "Treviso", PlaceReader.ENUM_TYPE_CITY)), List.of()),
 			"place.possible_duplicate").getFirst().diagnostic().key();
-		final String after = ofKind(findings(List.of(place("P1", "Treviso", "city"), place("P2", "TREVISO", "city")), List.of()),
+		final String after = ofKind(findings(List.of(place("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY), place("P2", "TREVISO", PlaceReader.ENUM_TYPE_CITY)), List.of()),
 			"place.possible_duplicate").getFirst().diagnostic().key();
 
 		//the key does not depend on the language, nor on how the name is written... but on the name that matched

@@ -267,6 +267,16 @@ public final class AppPreferences{
 		put(KEY_FONT_SIZE, Integer.toString(size));
 	}
 
+	/** Returns the persisted text of a key, or {@code defaultValue} when unset. */
+	public synchronized String stringValue(final String key, final String defaultValue){
+		return properties.getProperty(key, defaultValue);
+	}
+
+	/** Persists the text of a key; an empty text removes the key. */
+	public synchronized void setStringValue(final String key, final String value){
+		put(key, value);
+	}
+
 	/** Returns the file path of the preferences file (may not exist yet). */
 	public static Path filePath(){
 		return CONFIG_FILE;

@@ -111,10 +111,10 @@ public final class PrivacyResolver{
 
 
 	private static final int LIVING_YEARS = 110;
-	private static final String TAG_PRIVACY = "privacy";
-	private static final String TAG_DATE = "date";
-	private static final String ROLE_PRINCIPAL = "principal";
-	private static final String TYPE_NATIONAL_ID = "national_id";
+	private static final String TAG_PRIVACY = EventReader.TAG_PRIVACY;
+	private static final String TAG_DATE = EventReader.TAG_DATE;
+	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
+	private static final String TYPE_NATIONAL_ID = IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID;
 
 
 	private final FLEFModel model;
@@ -262,11 +262,11 @@ public final class PrivacyResolver{
 	private Effective defaultFor(final FLEFRecord record){
 		if(IndividualReader.isOfType(record)){
 			if(!notLiving.contains(record.getId()))
-				return new Effective(PrivacyLevel.RESTRICTED, Origin.LIVING_PERSON, "living_person", null);
+				return new Effective(PrivacyLevel.RESTRICTED, Origin.LIVING_PERSON, PrivacyReader.ENUM_REASON_LIVING_PERSON, null);
 		}
 		else if(IndividualAttributeReader.isOfType(record)
 				&& Strings.CI.equals(FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_TYPE), TYPE_NATIONAL_ID))
-			return new Effective(PrivacyLevel.CONFIDENTIAL, Origin.NATIONAL_ID, "sensitive_information", null);
+			return new Effective(PrivacyLevel.CONFIDENTIAL, Origin.NATIONAL_ID, PrivacyReader.ENUM_REASON_SENSITIVE_INFORMATION, null);
 		return Effective.PUBLIC;
 	}
 

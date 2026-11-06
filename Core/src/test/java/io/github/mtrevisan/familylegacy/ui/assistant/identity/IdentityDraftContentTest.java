@@ -28,6 +28,10 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
@@ -111,10 +115,10 @@ class IdentityDraftContentTest{
 
 	@Test
 	void aNarrativeWithNothingToListSaysSo(){
-		final IdentityDraft draft = new IdentityDraft("I1", "I2", "r", "low", List.of(), List.of(), List.of());
+		final IdentityDraft draft = new IdentityDraft("I1", "I2", "r", ConfidenceReader.ENUM_LOW, List.of(), List.of(), List.of());
 
 		final String narrative = new RecordDifferentAction(draft).narrative(new FLEFModel(),
-			FLEFRecord.createMainRecord("I1", "individual"), FLEFRecord.createMainRecord("I2", "individual"));
+			FLEFRecord.createMainRecord("I1", IndividualReader.TYPE), FLEFRecord.createMainRecord("I2", IndividualReader.TYPE));
 
 		Assertions.assertEquals(2, narrative.split("nothing recorded", -1).length - 1, narrative);
 	}
@@ -126,32 +130,32 @@ class IdentityDraftContentTest{
 		final IdentityDraft draft = finding(model).draft();
 
 		final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model)
-			.withCandidates(model.getRecordById(draft.leftId()), model.getRecordById(draft.rightId()), draft.rationale(), "low")
+			.withCandidates(model.getRecordById(draft.leftId()), model.getRecordById(draft.rightId()), draft.rationale(), ConfidenceReader.ENUM_LOW)
 			.withSources(draft.sharedSourceIds());
 		//the draft is in the editor only
-		Assertions.assertTrue(model.getRecordsByType("identity_hypothesis").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(IdentityHypothesisReader.TYPE).isEmpty());
 		dialog.save();
 
-		final FLEFRecord hypothesis = model.getRecordsByType("identity_hypothesis").getFirst();
-		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(hypothesis, "source");
+		final FLEFRecord hypothesis = model.getRecordsByType(IdentityHypothesisReader.TYPE).getFirst();
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(hypothesis, SourceCitationReader.TAG_SOURCE);
 		Assertions.assertEquals(1, citations.size());
-		Assertions.assertEquals(draft.sharedSourceIds().getFirst(), FLEFRecordHelper.getChildValue(citations.getFirst(), "source"));
-		Assertions.assertEquals("supports", FLEFRecordHelper.getChildValue(citations.getFirst(), "stance"));
+		Assertions.assertEquals(draft.sharedSourceIds().getFirst(), FLEFRecordHelper.getChildValue(citations.getFirst(), SourceCitationReader.TAG_SOURCE));
+		Assertions.assertEquals(SourceCitationReader.STANCE_SUPPORTS, FLEFRecordHelper.getChildValue(citations.getFirst(), SourceCitationReader.TAG_STANCE));
 	}
 
 	@Test
 	void aSourceThatDoesNotExistIsNotAdded(){
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editor needs a display");
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("I1", "individual"));
-		model.addRecord(FLEFRecord.createMainRecord("I2", "individual"));
+		model.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE));
+		model.addRecord(FLEFRecord.createMainRecord("I2", IndividualReader.TYPE));
 
 		final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model)
-			.withCandidates(model.getRecordById("I1"), model.getRecordById("I2"), "r", "low")
+			.withCandidates(model.getRecordById("I1"), model.getRecordById("I2"), "r", ConfidenceReader.ENUM_LOW)
 			.withSources(List.of("S404"));
 		dialog.save();
 
-		Assertions.assertTrue(FLEFRecordHelper.findChildren(model.getRecordsByType("identity_hypothesis").getFirst(), "source").isEmpty());
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(model.getRecordsByType(IdentityHypothesisReader.TYPE).getFirst(), SourceCitationReader.TAG_SOURCE).isEmpty());
 	}
 
 }

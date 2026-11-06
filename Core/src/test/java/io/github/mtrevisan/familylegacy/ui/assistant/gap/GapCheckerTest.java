@@ -25,6 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
@@ -131,10 +137,10 @@ class GapCheckerTest{
 		Assertions.assertTrue(new Builder()
 			.person("a", 1950, false)
 			.person("b", 1850, true)
-			.event("e1", "birth", 1, "b")
-			.question("q", "resolved", true)
-			.activity("act", "completed", "positive", false, false, "q")
-			.task("t", "completed", "normal", "2020-01-01", "q")
+			.event("e1", EventReader.ENUM_TYPE_BIRTH, 1, "b")
+			.question("q", ResearchQuestionReader.ENUM_STATUS_RESOLVED, true)
+			.activity("act", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
+			.task("t", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchTaskReader.ENUM_PRIORITY_NORMAL, "2020-01-01", "q")
 			.check().isEmpty());
 	}
 
@@ -275,9 +281,9 @@ class GapCheckerTest{
 		Assertions.assertTrue(new Builder().person("a", null, true).person("b", null, true).person("c", null, true)
 			.parent("c", "a").parent("c", "b").union("b", "a").check().isEmpty());
 		Assertions.assertTrue(new Builder().person("a", null, true).person("b", null, true).person("c", null, true)
-			.parent("c", "a").parent("c", "b").event("m", "marriage", 1, "b", "a").check().isEmpty());
+			.parent("c", "a").parent("c", "b").event("m", EventReader.ENUM_TYPE_MARRIAGE, 1, "b", "a").check().isEmpty());
 		//a marriage of other people is no help
-		Assertions.assertEquals(1, base.event("m", "marriage", 1, "a", "x").check().size());
+		Assertions.assertEquals(1, base.event("m", EventReader.ENUM_TYPE_MARRIAGE, 1, "a", "x").check().size());
 	}
 
 	@Test
@@ -290,8 +296,8 @@ class GapCheckerTest{
 	@Test
 	void theVitalEventsWithoutASourceAreOneFinding(){
 		final GapFinding finding = new Builder()
-			.event("e1", "birth", 0, "a").event("e2", "death", 0, "a").event("e3", "marriage", 0, "a", "b")
-			.event("e4", "birth", 2, "c").event("e5", "census", 0, "a").event("e6", "burial", 0, "a")
+			.event("e1", EventReader.ENUM_TYPE_BIRTH, 0, "a").event("e2", EventReader.ENUM_TYPE_DEATH, 0, "a").event("e3", EventReader.ENUM_TYPE_MARRIAGE, 0, "a", "b")
+			.event("e4", EventReader.ENUM_TYPE_BIRTH, 2, "c").event("e5", EventReader.ENUM_TYPE_CENSUS, 0, "a").event("e6", EventReader.ENUM_TYPE_BURIAL, 0, "a")
 			.findings().getFirst();
 
 		Assertions.assertEquals("3 vital event(s) without a source", finding.diagnostic().title());
@@ -300,14 +306,14 @@ class GapCheckerTest{
 		//the task to start: to find them
 		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
 		Assertions.assertTrue(finding.draft().text().contains("3 vital events"));
-		Assertions.assertEquals("normal", finding.draft().priority());
+		Assertions.assertEquals(ResearchTaskReader.ENUM_PRIORITY_NORMAL, finding.draft().priority());
 	}
 
 	@Test
 	void theListOfTheUnsourcedEventsIsCapped(){
 		final Builder builder = new Builder();
 		for(int i = 0; i < GapChecker.MAX_LISTED + 30; i ++)
-			builder.event("e" + i, "birth", 0, "a");
+			builder.event("e" + i, EventReader.ENUM_TYPE_BIRTH, 0, "a");
 
 		final Diagnostic finding = only(builder.check());
 
@@ -317,7 +323,7 @@ class GapCheckerTest{
 
 	@Test
 	void theSourcedOrOtherEventsAreNotGaps(){
-		Assertions.assertTrue(new Builder().event("e1", "birth", 1, "a").event("e2", "census", 0, "a").check().isEmpty());
+		Assertions.assertTrue(new Builder().event("e1", EventReader.ENUM_TYPE_BIRTH, 1, "a").event("e2", EventReader.ENUM_TYPE_CENSUS, 0, "a").check().isEmpty());
 	}
 
 	@Test
@@ -329,12 +335,12 @@ class GapCheckerTest{
 		Assertions.assertEquals("1 individual(s) in a census without a residence", finding.diagnostic().title());
 		Assertions.assertEquals(List.of("a"), finding.diagnostic().recordIds());
 		Assertions.assertEquals(40., finding.diagnostic().rank());
-		Assertions.assertEquals("low", finding.draft().priority());
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, finding.draft().priority());
 	}
 
 	@Test
 	void anOpenQuestionWithNoActivity(){
-		final GapFinding finding = new Builder().question("q", "open", false).findings().getFirst();
+		final GapFinding finding = new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).findings().getFirst();
 
 		Assertions.assertEquals("Research question with no activity: Title of q", finding.diagnostic().title());
 		Assertions.assertEquals(75., finding.diagnostic().rank());
@@ -343,22 +349,22 @@ class GapCheckerTest{
 		Assertions.assertTrue(finding.draft().text().contains("Title of q"));
 
 		//a question on hold is less urgent, a closed one is not a gap
-		Assertions.assertEquals(45., only(new Builder().question("q", "on_hold", false).check()).rank());
-		Assertions.assertTrue(new Builder().question("q", "resolved", false).check().isEmpty());
-		Assertions.assertTrue(new Builder().question("q", "disproven", false).check().isEmpty());
-		Assertions.assertTrue(new Builder().question("q", "abandoned", false).check().isEmpty());
+		Assertions.assertEquals(45., only(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_ON_HOLD, false).check()).rank());
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_RESOLVED, false).check().isEmpty());
+		Assertions.assertTrue(new Builder().question("q", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, false).check().isEmpty());
+		Assertions.assertTrue(new Builder().question("q", ResearchTaskReader.ENUM_STATUS_ABANDONED, false).check().isEmpty());
 	}
 
 	@Test
 	void aQuestionThatIsWorkedOnIsNotWithoutActivity(){
-		Assertions.assertTrue(new Builder().question("q", "open", false)
-			.activity("a", "in_progress", null, false, false, "q").check().isEmpty());
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false)
+			.activity("a", ResearchActivityReader.ENUM_STATUS_IN_PROGRESS, null, false, false, "q").check().isEmpty());
 	}
 
 	@Test
 	void aQuestionWhoseActivitiesAreAllOverIsStalled(){
-		final Diagnostic finding = only(new Builder().question("q", "open", false)
-			.activity("a1", "completed", "positive", false, false, "q").activity("a2", "abandoned", null, false, false, "q")
+		final Diagnostic finding = only(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false)
+			.activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q").activity("a2", ResearchTaskReader.ENUM_STATUS_ABANDONED, null, false, false, "q")
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Research question with nothing left to do: Title of q"));
@@ -367,29 +373,29 @@ class GapCheckerTest{
 
 	@Test
 	void aQuestionThatIsNotStalled(){
-		final Builder base = new Builder().question("q", "open", false).activity("a1", "completed", "positive", false, false, "q");
+		final Builder base = new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q");
 
 		//a task is planned
-		Assertions.assertTrue(base.task("t", "open", "normal", null, "q").check().isEmpty());
+		Assertions.assertTrue(base.task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ResearchTaskReader.ENUM_PRIORITY_NORMAL, null, "q").check().isEmpty());
 		//a conclusion
-		Assertions.assertTrue(new Builder().question("q", "open", true).activity("a1", "completed", "positive", false, false, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, true).activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
 			.check().isEmpty());
 		//an activity planned
-		Assertions.assertTrue(new Builder().question("q", "open", false).activity("a1", "completed", "positive", false, false, "q")
-			.activity("a2", "planned", null, false, false, "q").check().isEmpty());
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
+			.activity("a2", ResearchActivityReader.ENUM_STATUS_PLANNED, null, false, false, "q").check().isEmpty());
 		//on hold it is not asked to move
-		Assertions.assertTrue(new Builder().question("q", "on_hold", false).activity("a1", "completed", "positive", false, false, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_ON_HOLD, false).activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
 			.check().isEmpty());
 		//a task that is over does not count as planned
-		Assertions.assertEquals(1, new Builder().question("q", "open", false).activity("a1", "completed", "positive", false, false, "q")
-			.task("t", "completed", "normal", null, "q").check().size());
+		Assertions.assertEquals(1, new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
+			.task("t", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchTaskReader.ENUM_PRIORITY_NORMAL, null, "q").check().size());
 	}
 
 	@Test
 	void aSearchThatFoundNothingAndLedToNothing(){
-		final GapFinding finding = new Builder().question("q", "open", false)
-			.activity("a", "completed", "negative", false, false, "q").question("q2", "resolved", true)
-			.activity("a2", "completed", "positive", false, false, "q2")
+		final GapFinding finding = new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false)
+			.activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, false, false, "q").question("q2", ResearchQuestionReader.ENUM_STATUS_RESOLVED, true)
+			.activity("a2", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q2")
 			.findings().stream().filter(f -> f.diagnostic().title().startsWith("Search without a follow-up")).findFirst().orElseThrow();
 
 		Assertions.assertTrue(finding.diagnostic().title().contains("action a"));
@@ -397,35 +403,35 @@ class GapCheckerTest{
 		Assertions.assertEquals(50., finding.diagnostic().rank());
 		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
 		Assertions.assertEquals(List.of("q"), finding.draft().records());
-		Assertions.assertTrue(finding.draft().text().contains("negative"));
+		Assertions.assertTrue(finding.draft().text().contains(ResearchActivityReader.ENUM_RESULT_NEGATIVE));
 	}
 
 	@Test
 	void aSearchThatHasAFollowUpOrNoLoss(){
-		for(final String result : List.of("negative", "inconclusive", "unavailable"))
-			Assertions.assertTrue(new Builder().question("q", "open", false).task("t", "open", "normal", null, "q")
-				.activity("a", "completed", result, false, false, "q").check().stream()
+		for(final String result : List.of(ResearchActivityReader.ENUM_RESULT_NEGATIVE, ResearchActivityReader.ENUM_RESULT_INCONCLUSIVE, ResearchActivityReader.ENUM_RESULT_UNAVAILABLE))
+			Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ResearchTaskReader.ENUM_PRIORITY_NORMAL, null, "q")
+				.activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, result, false, false, "q").check().stream()
 				.anyMatch(f -> f.title().startsWith("Search without a follow-up")), result);
 
 		//a follow-up task, an activity that originated from it, a positive result, a question that is closed: nothing is missing
 		final String followUp = "Search without a follow-up";
-		Assertions.assertTrue(new Builder().question("q", "open", false).activity("a", "completed", "negative", true, false, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, true, false, "q")
 			.check().stream().noneMatch(f -> f.title().startsWith(followUp)));
-		Assertions.assertTrue(new Builder().question("q", "open", false).activity("a", "completed", "negative", false, true, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, false, true, "q")
 			.check().stream().noneMatch(f -> f.title().startsWith(followUp)));
-		Assertions.assertTrue(new Builder().question("q", "open", false).activity("a", "completed", "positive", false, false, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false, "q")
 			.check().stream().noneMatch(f -> f.title().startsWith(followUp)));
-		Assertions.assertTrue(new Builder().question("q", "resolved", true).activity("a", "completed", "negative", false, false, "q")
+		Assertions.assertTrue(new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_RESOLVED, true).activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, false, false, "q")
 			.check().stream().noneMatch(f -> f.title().startsWith(followUp)));
 		//a search of no question in particular is still a search
-		Assertions.assertTrue(new Builder().activity("a", "completed", "negative", false, false)
+		Assertions.assertTrue(new Builder().activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, false, false)
 			.check().stream().anyMatch(f -> f.title().startsWith(followUp)));
 	}
 
 	@Test
 	void aTaskPastItsDueDate(){
-		final GapFinding finding = new Builder().question("q", "resolved", true)
-			.task("t", "open", "high", "2026-10-27", "q").findings().getFirst();
+		final GapFinding finding = new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_RESOLVED, true)
+			.task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, "2026-10-27", "q").findings().getFirst();
 
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.diagnostic().severity());
 		Assertions.assertEquals("Overdue task: do t", finding.diagnostic().title());
@@ -434,26 +440,26 @@ class GapCheckerTest{
 		Assertions.assertEquals(List.of("t", "q"), finding.diagnostic().recordIds());
 		//the task is there already: there is no draft to start
 		Assertions.assertNull(finding.draft());
-		Assertions.assertEquals(75., only(new Builder().task("t", "in_progress", "normal", "2020-01-01").check()).rank());
-		Assertions.assertEquals(70., only(new Builder().task("t", "open", "low", "2020-01-01").check()).rank());
-		Assertions.assertEquals(70., only(new Builder().task("t", "open", null, "2020-01-01").check()).rank());
+		Assertions.assertEquals(75., only(new Builder().task("t", ResearchActivityReader.ENUM_STATUS_IN_PROGRESS, ResearchTaskReader.ENUM_PRIORITY_NORMAL, "2020-01-01").check()).rank());
+		Assertions.assertEquals(70., only(new Builder().task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_LOW, "2020-01-01").check()).rank());
+		Assertions.assertEquals(70., only(new Builder().task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, null, "2020-01-01").check()).rank());
 	}
 
 	@Test
 	void aTaskThatIsNotOverdue(){
 		//due today is not overdue, a task that is done or has no date is not either
-		Assertions.assertTrue(new Builder().task("t", "open", "high", "2026-10-28").check().isEmpty());
-		Assertions.assertTrue(new Builder().task("t", "open", "high", "2027-01-01").check().isEmpty());
-		Assertions.assertTrue(new Builder().task("t", "completed", "high", "2020-01-01").check().isEmpty());
-		Assertions.assertTrue(new Builder().task("t", "abandoned", "high", "2020-01-01").check().isEmpty());
-		Assertions.assertTrue(new Builder().task("t", "open", "high", null).check().isEmpty());
+		Assertions.assertTrue(new Builder().task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, "2026-10-28").check().isEmpty());
+		Assertions.assertTrue(new Builder().task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, "2027-01-01").check().isEmpty());
+		Assertions.assertTrue(new Builder().task("t", ResearchTaskReader.ENUM_STATUS_COMPLETED, ConfidenceReader.ENUM_HIGH, "2020-01-01").check().isEmpty());
+		Assertions.assertTrue(new Builder().task("t", ResearchTaskReader.ENUM_STATUS_ABANDONED, ConfidenceReader.ENUM_HIGH, "2020-01-01").check().isEmpty());
+		Assertions.assertTrue(new Builder().task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, null).check().isEmpty());
 	}
 
 	@Test
 	void theCompletedActivitiesWithoutAResultAreOneFinding(){
 		final Diagnostic finding = only(new Builder()
-			.activity("a1", "completed", null, false, false).activity("a2", "completed", null, false, false)
-			.activity("a3", "planned", null, false, false).activity("a4", "completed", "positive", false, false)
+			.activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false).activity("a2", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false)
+			.activity("a3", ResearchActivityReader.ENUM_STATUS_PLANNED, null, false, false).activity("a4", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false)
 			.check());
 
 		Assertions.assertEquals("2 completed activity(ies) without a result", finding.title());
@@ -463,12 +469,12 @@ class GapCheckerTest{
 
 	@Test
 	void theUsefulnessHasALevel(){
-		Assertions.assertEquals("high", GapChecker.level(85));
-		Assertions.assertEquals("high", GapChecker.level(GapChecker.HIGH_USEFULNESS));
-		Assertions.assertEquals("medium", GapChecker.level(GapChecker.HIGH_USEFULNESS - 1));
-		Assertions.assertEquals("medium", GapChecker.level(GapChecker.MEDIUM_USEFULNESS));
-		Assertions.assertEquals("low", GapChecker.level(GapChecker.MEDIUM_USEFULNESS - 1));
-		Assertions.assertTrue(only(new Builder().activity("a", "completed", null, false, false).check()).explanation()
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, GapChecker.level(85));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, GapChecker.level(GapChecker.HIGH_USEFULNESS));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, GapChecker.level(GapChecker.HIGH_USEFULNESS - 1));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, GapChecker.level(GapChecker.MEDIUM_USEFULNESS));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, GapChecker.level(GapChecker.MEDIUM_USEFULNESS - 1));
+		Assertions.assertTrue(only(new Builder().activity("a", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false).check()).explanation()
 			.contains("Estimated usefulness: low (25 of 100)"));
 	}
 
@@ -477,10 +483,10 @@ class GapCheckerTest{
 		final List<Diagnostic> findings = new Builder()
 			.person("a", 1900, false).person(person("p", false, false, true, 2)).person("b", null, true).person("c", null, true)
 			.parent("c", "a").parent("c", "b").parent("a", "p")
-			.event("e", "birth", 0, "a")
-			.question("q", "open", false).question("q2", "open", false).activity("x", "completed", "negative", false, false, "q2")
-			.activity("y", "completed", null, false, false)
-			.task("t", "open", "high", "2020-01-01", "q")
+			.event("e", EventReader.ENUM_TYPE_BIRTH, 0, "a")
+			.question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).question("q2", ResearchQuestionReader.ENUM_STATUS_OPEN, false).activity("x", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_NEGATIVE, false, false, "q2")
+			.activity("y", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false)
+			.task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, "2020-01-01", "q")
 			.check();
 
 		Assertions.assertTrue(findings.size() >= 8, titles(findings).toString());

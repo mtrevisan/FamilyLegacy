@@ -42,9 +42,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public final class AttachedTextExtractor{
 
-	private static final String TAG_NOTE = "note";
-
-
 	private AttachedTextExtractor(){}
 
 
@@ -66,7 +63,7 @@ public final class AttachedTextExtractor{
 	private static void collect(final FLEFRecord node, final StringBuilder sb){
 		for(final FLEFRecord child : node.getChildren()){
 			final String tag = child.getTag();
-			if(TAG_NOTE.equalsIgnoreCase(tag))
+			if(NoteReader.TYPE.equalsIgnoreCase(tag))
 				appendNote(child, sb);
 			else if(SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(tag))
 				appendCitation(child, sb);

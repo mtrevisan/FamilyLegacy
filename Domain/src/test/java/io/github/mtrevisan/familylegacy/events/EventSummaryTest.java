@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.events;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -59,41 +60,41 @@ class EventSummaryTest{
 		model.addRecord(relationship("PR2", "P2", "P3"));
 
 		model.addRecord(FLEFRecord.createMainRecord("E1", EventReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "birth"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_BIRTH))
 			.addChild(point("date", "2 MAR 1850"))
-			.addChild(FLEFRecord.createChildWithTag("place")
-				.addChild(FLEFRecord.createChildWithTagAndValue("place", "P1")))
+			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_PLACE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, "P1")))
 			.addChild(FLEFRecord.createChildWithTagAndValue("description", "Baptised at home")));
-		model.addRecord(participation("EP1", "E1", "individual", "I1", "principal"));
-		model.addRecord(participation("EP2", "E1", "individual", "I2", "witness"));
+		model.addRecord(participation("EP1", "E1", EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("EP2", "E1", EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I2", EventParticipationReader.ENUM_ROLE_WITNESS));
 
 		//no date, no place, no participants
 		model.addRecord(FLEFRecord.createMainRecord("E2", EventReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "death")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_DEATH)));
 	}
 
 
 	private static FLEFRecord place(final String id, final String name){
 		return FLEFRecord.createMainRecord(id, PlaceReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue("value", name)));
 	}
 
 	private static FLEFRecord relationship(final String id, final String subject, final String target){
 		return FLEFRecord.createMainRecord(id, PlaceRelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("subject")
-				.addChild(FLEFRecord.createChildWithTagAndValue("place", subject)))
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, subject)))
 			.addChild(FLEFRecord.createChildWithTag("target")
-				.addChild(FLEFRecord.createChildWithTagAndValue("place", target)));
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, target)));
 	}
 
 	private static FLEFRecord participation(final String id, final String eventId, final String entityTag, final String entityId,
 			final String role){
 		return FLEFRecord.createMainRecord(id, EventParticipationReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("participant")
+			.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(entityTag, entityId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE, role));
 	}
 
 	private static FLEFRecord point(final String tag, final String fullDate){
@@ -131,9 +132,9 @@ class EventSummaryTest{
 
 	@Test
 	void thePrincipalParticipantsComeFirstAndTheOthersAreCounted(){
-		model.addRecord(participation("EP3", "E1", "individual", "I3", "witness"));
-		model.addRecord(participation("EP4", "E1", "individual", "I4", "witness"));
-		model.addRecord(participation("EP5", "E1", "individual", "I5", "witness"));
+		model.addRecord(participation("EP3", "E1", EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I3", EventParticipationReader.ENUM_ROLE_WITNESS));
+		model.addRecord(participation("EP4", "E1", EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I4", EventParticipationReader.ENUM_ROLE_WITNESS));
+		model.addRecord(participation("EP5", "E1", EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I5", EventParticipationReader.ENUM_ROLE_WITNESS));
 		EventSummary.invalidate();
 
 		final String names = EventSummary.participantNames(model.getRecordById("E1"), model);
@@ -167,21 +168,21 @@ class EventSummaryTest{
 
 	@Test
 	void aParticipationIsFilteredByRoleEventTypeAndTypeOfParticipant(){
-		model.addRecord(participation("EP3", "E2", "group", "G1", "principal"));
+		model.addRecord(participation("EP3", "E2", EventParticipationReader.TAG_PARTICIPANT_GROUP, "G1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
 		final EventParticipationSearchStrategy strategy = new EventParticipationSearchStrategy();
 		final FLEFRecord principalOfBirth = model.getRecordById("EP1");
 		final FLEFRecord witnessOfBirth = model.getRecordById("EP2");
 		final FLEFRecord groupOfDeath = model.getRecordById("EP3");
 
-		final SearchCriteria witnesses = criteria().withFilter("role", "witness");
+		final SearchCriteria witnesses = criteria().withFilter(EventParticipationReader.TAG_ROLE, EventParticipationReader.ENUM_ROLE_WITNESS);
 		Assertions.assertFalse(strategy.buildPredicate(witnesses, model).test(principalOfBirth));
 		Assertions.assertTrue(strategy.buildPredicate(witnesses, model).test(witnessOfBirth));
 
-		final SearchCriteria deaths = criteria().withFilter(EventReader.TAG_TYPE, "death");
+		final SearchCriteria deaths = criteria().withFilter(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_DEATH);
 		Assertions.assertFalse(strategy.buildPredicate(deaths, model).test(principalOfBirth));
 		Assertions.assertTrue(strategy.buildPredicate(deaths, model).test(groupOfDeath));
 
-		final SearchCriteria groups = criteria().withFilter(EventParticipationSearchStrategy.FILTER_PARTICIPANT_TYPE, "group");
+		final SearchCriteria groups = criteria().withFilter(EventParticipationSearchStrategy.FILTER_PARTICIPANT_TYPE, EventParticipationReader.TAG_PARTICIPANT_GROUP);
 		Assertions.assertFalse(strategy.buildPredicate(groups, model).test(principalOfBirth));
 		Assertions.assertTrue(strategy.buildPredicate(groups, model).test(groupOfDeath));
 

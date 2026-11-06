@@ -72,7 +72,7 @@ import java.util.function.DoubleConsumer;
  */
 public class FLEFValidator{
 
-	private static final String FIELD_HEADER = "header";
+	private static final String FIELD_HEADER = FLEFGrammarParser.FIELD_HEADER;
 
 	/** The share of the work that the schema is, and the share done when the integrity is: the business rules are the rest. */
 	private static final double PROGRESS_SCHEMA = 0.7;
@@ -482,7 +482,7 @@ public class FLEFValidator{
 
 	private void validateIdentityHypothesis(final FLEFRecord hypothesis, final String contextPath,
 			final FLEFModel model, final List<String> errors){
-		final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(hypothesis, "IDENTITY");
+		final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY);
 		if(identities == null || identities.size() != 2){
 			errors.add(String.format(
 				"Constraint violation at '%s': IDENTITY must be present twice",

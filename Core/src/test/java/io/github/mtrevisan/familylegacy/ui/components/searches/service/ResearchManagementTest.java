@@ -68,29 +68,29 @@ class ResearchManagementTest{
 
 		model = new FLEFModel();
 		model.addRecord(FLEFRecord.createMainRecord("RQ1", ResearchQuestionReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Origins of the family"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("question", "Where was Anna born?"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("status", "open")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Origins of the family"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, "Where was Anna born?"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_STATUS, ResearchQuestionReader.ENUM_STATUS_OPEN)));
 		model.addRecord(FLEFRecord.createMainRecord("RQ2", ResearchQuestionReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Another question")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Another question")));
 		model.addRecord(activity("RA1", "Searched the parish register", "RQ1"));
 		model.addRecord(activity("RA2", "Searched the census", "RQ1"));
 		model.addRecord(FLEFRecord.createMainRecord("RT1", ResearchTaskReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("description", "Ask the archive"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("question", "RQ1")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_DESCRIPTION, "Ask the archive"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, "RQ1")));
 		model.addRecord(FLEFRecord.createMainRecord("C1", ConclusionReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("issue", "Birthplace"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("narrative", "The register says Treviso, and the census agrees."))
-			.addChild(FLEFRecord.createChildWithTagAndValue("research", "RQ1"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("resolves", "E1"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("resolves", "E2")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_ISSUE, "Birthplace"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_NARRATIVE, "The register says Treviso, and the census agrees."))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_RESEARCH, "RQ1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_RESOLVES, "E1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_RESOLVES, "E2")));
 	}
 
 
 	private static FLEFRecord activity(final String id, final String action, final String questionId){
 		return FLEFRecord.createMainRecord(id, ResearchActivityReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("action", action))
-			.addChild(FLEFRecord.createChildWithTagAndValue("question", questionId));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTION, action))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, questionId));
 	}
 
 	private static void buttons(final Container container, final List<String> texts){

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.fileimporter;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
+import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
@@ -77,6 +78,11 @@ public final class GedcomFileImporter implements FileImporter{
 
 	@Override
 	public FLEFModel read(final Path file, final ProgressListener progress) throws IOException{
+		return read(file, progress, new ImportReport());
+	}
+
+	@Override
+	public FLEFModel read(final Path file, final ProgressListener progress, final ImportReport report) throws IOException{
 		progress.onProgress(-1, I18N.t("progress.reading_file"));
 		final String gedcomContent;
 		try(final InputStream in = Files.newInputStream(file);
@@ -92,7 +98,7 @@ public final class GedcomFileImporter implements FileImporter{
 		}
 
 		return new GEDCOMToFLEFConverter()
-			.convert(roots, progress::onProgress);
+			.convert(roots, progress::onProgress, report);
 	}
 
 }

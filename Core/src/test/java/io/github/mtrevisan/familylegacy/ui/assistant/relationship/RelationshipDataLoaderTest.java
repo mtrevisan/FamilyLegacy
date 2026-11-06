@@ -28,7 +28,10 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
@@ -89,7 +92,7 @@ class RelationshipDataLoaderTest{
 	}
 
 	private static String id(final FLEFModel model, final String name){
-		return model.getRecordsByType("individual").stream()
+		return model.getRecordsByType(IndividualReader.TYPE).stream()
 			.filter(r -> IndividualReader.extractPrimaryFullname(r).contains(name))
 			.findFirst()
 			.orElseThrow()
@@ -98,12 +101,12 @@ class RelationshipDataLoaderTest{
 
 	/** A relationship written as the editor writes it. */
 	private static FLEFRecord relationship(final String id, final String subject, final String target, final String type){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(id, "relationship");
-		relationship.addChild(FLEFRecord.createChildWithTag("subject")
-			.addChild(FLEFRecord.createChildWithTagAndValue("individual", subject)));
-		relationship.addChild(FLEFRecord.createChildWithTag("target")
-			.addChild(FLEFRecord.createChildWithTagAndValue("individual", target)));
-		relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(id, RelationshipReader.TYPE);
+		relationship.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_INDIVIDUAL, subject)));
+		relationship.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_INDIVIDUAL, target)));
+		relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type));
 		return relationship;
 	}
 
@@ -118,16 +121,16 @@ class RelationshipDataLoaderTest{
 		Assertions.assertEquals(1, data.groups().size());
 		//the child and the spouse relationships, and the memberships of the family group
 		final List<String> types = data.relationships().stream().map(RelationshipData.Relationship::type).toList();
-		Assertions.assertTrue(types.contains("biological_child"), types.toString());
-		Assertions.assertTrue(types.stream().anyMatch(t -> t.endsWith("spouse")), types.toString());
-		Assertions.assertTrue(types.contains("group_member"), types.toString());
+		Assertions.assertTrue(types.contains(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD), types.toString());
+		Assertions.assertTrue(types.stream().anyMatch(t -> t.endsWith(RelationshipReader.ENUM_TYPE_SPOUSE)), types.toString());
+		Assertions.assertTrue(types.contains(RelationshipReader.ENUM_TYPE_GROUP_MEMBER), types.toString());
 		//the groups are read as groups, and the individuals as individuals
 		Assertions.assertTrue(data.relationships().stream()
-			.filter(r -> "group_member".equals(r.type()))
+			.filter(r -> RelationshipReader.ENUM_TYPE_GROUP_MEMBER.equals(r.type()))
 			.allMatch(r -> r.subjectKind() == RelationshipData.Kind.INDIVIDUAL && r.targetKind() == RelationshipData.Kind.GROUP));
 		//the marriage is an event the spouses took part in
 		Assertions.assertTrue(data.events().stream()
-			.anyMatch(e -> "marriage".equals(e.type()) && e.participants().size() >= 2 && e.date() != null));
+			.anyMatch(e -> EventReader.ENUM_TYPE_MARRIAGE.equals(e.type()) && e.participants().size() >= 2 && e.date() != null));
 		Assertions.assertNotNull(data.persons().get(id(model, "Dino")).birth());
 	}
 
@@ -148,7 +151,7 @@ class RelationshipDataLoaderTest{
 		final FLEFModel model = convert();
 		final RelationshipData data = RelationshipDataLoader.load(model);
 		for(final RelationshipData.Relationship relationship : data.relationships())
-			if(relationship.type().endsWith("spouse"))
+			if(relationship.type().endsWith(RelationshipReader.ENUM_TYPE_SPOUSE))
 				model.removeRecord(relationship.id());
 
 		final List<RelationshipFinding> findings = findings(model).stream()
@@ -160,7 +163,7 @@ class RelationshipDataLoaderTest{
 		Assertions.assertEquals(List.of(id(model, "Carlo"), id(model, "Anna")).stream().sorted().toList(),
 			List.of(draft.subjectId(), draft.targetId()).stream().sorted().toList());
 		//the draft is a suggestion: nothing was created in the model
-		Assertions.assertTrue(model.getRecordsByType("relationship").stream()
+		Assertions.assertTrue(model.getRecordsByType(RelationshipReader.TYPE).stream()
 			.noneMatch(r -> r.getId().equals(draft.subjectId())));
 	}
 
@@ -172,17 +175,17 @@ class RelationshipDataLoaderTest{
 		final String carlo = id(model, "Carlo");
 		final String anna = id(model, "Anna");
 		//Fede is a generic parent of Dino, and married to Carlo (the other parent) when Dino was already grown
-		model.addRecord(relationship("R90", dino, fede, "child"));
-		final FLEFRecord marriage = relationship("R91", fede, carlo, "civil_spouse");
-		marriage.addChild(FLEFRecord.createChildWithTag("valid_from")
-			.addChild(FLEFRecord.createChildWithTag("value")
-				.addChild(FLEFRecord.createChildWithTag("point")
-					.addChild(FLEFRecord.createChildWithTag("value")
-						.addChild(FLEFRecord.createChildWithTagAndValue("full_date", "1 JAN 1890")))
-					.addChild(FLEFRecord.createChildWithTagAndValue("calendar", "gregorian")))));
+		model.addRecord(relationship("R90", dino, fede, RelationshipReader.ENUM_TYPE_CHILD));
+		final FLEFRecord marriage = relationship("R91", fede, carlo, RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE);
+		marriage.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_VALID_FROM)
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_POINT)
+					.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+						.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, "1 JAN 1890")))
+					.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_CALENDAR, DateReader.ENUM_CALENDAR_GREGORIAN)))));
 		model.addRecord(marriage);
 		//and a relationship of Anna with herself
-		model.addRecord(relationship("R92", anna, anna, "associate"));
+		model.addRecord(relationship("R92", anna, anna, RelationshipReader.ENUM_TYPE_ASSOCIATE));
 
 		final List<String> titles = findings(model).stream()
 			.map(f -> f.diagnostic().title())
@@ -197,7 +200,7 @@ class RelationshipDataLoaderTest{
 	void everyFindingCanBeOpenedAndIgnored() throws IOException{
 		final FLEFModel model = convert();
 		final String anna = id(model, "Anna");
-		model.addRecord(relationship("R92", anna, anna, "associate"));
+		model.addRecord(relationship("R92", anna, anna, RelationshipReader.ENUM_TYPE_ASSOCIATE));
 
 		final List<Diagnostic> found = new RelationshipAssistantContributor().diagnosticProviders().getFirst()
 			.diagnose(new AssistantContext(null, null, model));
@@ -215,7 +218,7 @@ class RelationshipDataLoaderTest{
 		final FLEFModel model = convert();
 		final RelationshipData data = RelationshipDataLoader.load(model);
 		for(final RelationshipData.Relationship relationship : data.relationships())
-			if(relationship.type().endsWith("spouse"))
+			if(relationship.type().endsWith(RelationshipReader.ENUM_TYPE_SPOUSE))
 				model.removeRecord(relationship.id());
 
 		final List<Diagnostic> found = new RelationshipAssistantContributor().diagnosticProviders().getFirst()

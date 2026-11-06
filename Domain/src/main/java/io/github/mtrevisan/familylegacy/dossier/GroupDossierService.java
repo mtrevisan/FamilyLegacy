@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.Name;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -67,10 +68,10 @@ import java.util.Set;
  */
 public final class GroupDossierService{
 
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_EVIDENCE = "evidence";
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TAG_LOCATOR = SourceCitationReader.TAG_LOCATOR;
+	private static final String TAG_NOTE = EventReader.TAG_NOTE;
+	private static final String TAG_EVIDENCE = EvidenceQualifiersReader.TAG_EVIDENCE;
 
 
 	private final FLEFModel model;
@@ -136,7 +137,7 @@ public final class GroupDossierService{
 		for(final Name name : names){
 			entries.add(DossierEntry.nameHeader(name.displayType(), group));
 			if(StringUtils.isNotEmpty(name.value()))
-				entries.add(DossierEntry.namePart("value", name.value(), group));
+				entries.add(DossierEntry.namePart(NameReader.TAG_PART_VALUE, name.value(), group));
 		}
 
 		if(names.isEmpty())
@@ -192,8 +193,8 @@ public final class GroupDossierService{
 
 			final String name = resolveIndividualName(memberId);
 			final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
-			final String validity = formatting.formatValidity(relationship, GroupAttributeReader.TAG_VALID_FROM,
-				GroupAttributeReader.TAG_VALID_TO);
+			final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
+				RelationshipReader.TAG_VALID_TO);
 
 			final StringBuilder subtitle = new StringBuilder();
 			if(StringUtils.isNotEmpty(role))

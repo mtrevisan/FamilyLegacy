@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.dossier;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
@@ -46,7 +47,7 @@ import java.util.Locale;
  */
 public final class DossierFormatting{
 
-	private static final String TAG_DATE = "date";
+	private static final String TAG_DATE = EventReader.TAG_DATE;
 
 
 	private final FLEFModel model;

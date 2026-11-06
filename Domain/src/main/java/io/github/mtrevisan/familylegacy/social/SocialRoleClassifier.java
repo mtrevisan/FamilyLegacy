@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.social;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -190,8 +191,8 @@ public final class SocialRoleClassifier{
 		// ---------- RELIGIOUS ----------
 		// Protocol-suggested event roles that are typically religious in a
 		// genealogical context.
-		table.put("witness", SocialRelationCategory.RELIGIOUS);
-		table.put("officiant", SocialRelationCategory.RELIGIOUS);
+		table.put(EventParticipationReader.ENUM_ROLE_WITNESS, SocialRelationCategory.RELIGIOUS);
+		table.put(EventParticipationReader.ENUM_ROLE_OFFICIANT, SocialRelationCategory.RELIGIOUS);
 		table.put("godparent", SocialRelationCategory.RELIGIOUS);
 		table.put("godfather", SocialRelationCategory.RELIGIOUS);
 		table.put("godmother", SocialRelationCategory.RELIGIOUS);
@@ -225,10 +226,10 @@ public final class SocialRoleClassifier{
 		table.put("apprentice", SocialRelationCategory.PROFESSIONAL);
 		table.put("mentor", SocialRelationCategory.PROFESSIONAL);
 		table.put("master", SocialRelationCategory.PROFESSIONAL);
-		table.put("landlord", SocialRelationCategory.PROFESSIONAL);
-		table.put("tenant", SocialRelationCategory.PROFESSIONAL);
-		table.put("soldier", SocialRelationCategory.PROFESSIONAL);
-		table.put("commander", SocialRelationCategory.PROFESSIONAL);
+		table.put(EventParticipationReader.ENUM_ROLE_LANDLORD, SocialRelationCategory.PROFESSIONAL);
+		table.put(EventParticipationReader.ENUM_ROLE_TENANT, SocialRelationCategory.PROFESSIONAL);
+		table.put(EventParticipationReader.ENUM_ROLE_SOLDIER, SocialRelationCategory.PROFESSIONAL);
+		table.put(EventParticipationReader.ENUM_ROLE_COMMANDER, SocialRelationCategory.PROFESSIONAL);
 		table.put("datore_di_lavoro", SocialRelationCategory.PROFESSIONAL);
 		table.put("dipendente", SocialRelationCategory.PROFESSIONAL);
 		table.put("socio", SocialRelationCategory.PROFESSIONAL);
@@ -241,13 +242,13 @@ public final class SocialRoleClassifier{
 		table.put("comandante", SocialRelationCategory.PROFESSIONAL);
 
 		// ---------- LEGAL ----------
-		table.put("executor", SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_EXECUTOR, SocialRelationCategory.LEGAL);
 		table.put("notary", SocialRelationCategory.LEGAL);
-		table.put("judge", SocialRelationCategory.LEGAL);
-		table.put("accused", SocialRelationCategory.LEGAL);
-		table.put("grantor", SocialRelationCategory.LEGAL);
-		table.put("grantee", SocialRelationCategory.LEGAL);
-		table.put("power_of_attorney", SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_JUDGE, SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_ACCUSED, SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_GRANTOR, SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_GRANTEE, SocialRelationCategory.LEGAL);
+		table.put(EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY, SocialRelationCategory.LEGAL);
 		table.put("guardian", SocialRelationCategory.LEGAL);
 		table.put("esecutore", SocialRelationCategory.LEGAL);
 		table.put("esecutore_testamentario", SocialRelationCategory.LEGAL);

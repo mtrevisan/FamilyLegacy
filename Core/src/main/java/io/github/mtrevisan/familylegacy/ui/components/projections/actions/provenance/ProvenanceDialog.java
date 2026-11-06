@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.actions.prove
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.ProvenanceService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
@@ -234,7 +235,7 @@ public final class ProvenanceDialog extends JDialog{
 		public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
 				final boolean hasFocus, final int row, final int column){
 			final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-			final boolean contradicting = "contradicts".equals(value);
+			final boolean contradicting = SourceCitationReader.STANCE_CONTRADICTS.equals(value);
 			component.setForeground(contradicting && !isSelected? ToolDialogs.ERROR_COLOR: (isSelected? table.getSelectionForeground(): table.getForeground()));
 			return component;
 		}

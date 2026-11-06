@@ -69,7 +69,8 @@ import java.util.regex.Pattern;
 final class ProofSummaryDialog extends JDialog{
 
 	/** The four proof statuses declared by the protocol, in reading order. */
-	private static final List<String> DECLARED_STATUSES = List.of("conflicting_evidence", "supported", "proven", "disproven");
+	private static final List<String> DECLARED_STATUSES = List.of(ConclusionReader.ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE, ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED,
+		ConclusionReader.ENUM_PROOF_STATUS_PROVEN, ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN);
 	private static final String NOT_SET = "";
 
 

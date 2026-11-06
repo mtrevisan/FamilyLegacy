@@ -24,7 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -38,6 +51,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -52,38 +66,38 @@ import java.util.TreeSet;
  */
 final class ModelIndex{
 
-	static final String KIND_INDIVIDUAL = "individual";
-	static final String KIND_GROUP = "group";
-	static final String KIND_EVENT = "event";
-	static final String KIND_EVENT_PARTICIPATION = "event_participation";
-	static final String KIND_RELATIONSHIP = "relationship";
-	static final String KIND_PLACE = "place";
-	static final String KIND_PLACE_RELATIONSHIP = "place_relationship";
-	static final String KIND_INDIVIDUAL_ATTRIBUTE = "individual_attribute";
-	static final String KIND_GROUP_ATTRIBUTE = "group_attribute";
-	static final String KIND_SOURCE = "source";
+	static final String KIND_INDIVIDUAL = kind(IndividualReader.TYPE);
+	static final String KIND_GROUP = kind(GroupReader.TYPE);
+	static final String KIND_EVENT = kind(EventReader.TYPE);
+	static final String KIND_EVENT_PARTICIPATION = kind(EventParticipationReader.TYPE);
+	static final String KIND_RELATIONSHIP = kind(RelationshipReader.TYPE);
+	static final String KIND_PLACE = kind(PlaceReader.TYPE);
+	static final String KIND_PLACE_RELATIONSHIP = kind(PlaceRelationshipReader.TYPE);
+	static final String KIND_INDIVIDUAL_ATTRIBUTE = kind(IndividualAttributeReader.TYPE);
+	static final String KIND_GROUP_ATTRIBUTE = kind(GroupAttributeReader.TYPE);
+	static final String KIND_SOURCE = kind(SourceReader.TYPE);
 
-	static final String TAG_TYPE = "type";
-	static final String TAG_DATE = "date";
-	static final String TAG_PLACE = "place";
-	static final String TAG_ROLE = "role";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_NAME = "name";
-	private static final String TAG_SOURCE = "source";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_RESOLVES = "resolves";
-	private static final String TAG_PROOF_STATUS = "proof_status";
-	private static final String TAG_AUDIT = "audit";
-	private static final String TAG_CREATION = "creation";
-	private static final String TAG_UPDATE = "update";
-	static final String PROOF_STATUS_DISPROVEN = "disproven";
-	private static final String TAG_VALUE = "value";
+	static final String TAG_TYPE = EventReader.TAG_TYPE;
+	static final String TAG_DATE = EventReader.TAG_DATE;
+	static final String TAG_PLACE = EventReader.TAG_PLACE;
+	static final String TAG_ROLE = EventParticipationReader.TAG_ROLE;
+	private static final String TAG_PARTICIPANT = EventParticipationReader.TAG_PARTICIPANT;
+	private static final String TAG_EVENT = EventParticipationReader.TAG_EVENT;
+	private static final String TAG_SUBJECT = RelationshipReader.TAG_SUBJECT;
+	private static final String TAG_TARGET = RelationshipReader.TAG_TARGET;
+	private static final String TAG_NAME = IndividualReader.TAG_NAME;
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TAG_LOCATOR = SourceCitationReader.TAG_LOCATOR;
+	private static final String TAG_RESOLVES = ConclusionReader.TAG_RESOLVES;
+	private static final String TAG_PROOF_STATUS = ConclusionReader.TAG_PROOF_STATUS;
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
+	private static final String TAG_CREATION = AuditReader.TAG_CREATION;
+	private static final String TAG_UPDATE = AuditReader.TAG_UPDATE;
+	static final String PROOF_STATUS_DISPROVEN = ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN;
+	private static final String TAG_VALUE = IndividualAttributeReader.TAG_VALUE;
 
-	static final String ROLE_PRINCIPAL = "principal";
-	private static final String PART_OF_SUFFIX = "_part_of";
+	static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
+	private static final String PART_OF_SUFFIX = "_" + RelationshipReader.ENUM_TYPE_PART_OF;
 
 
 	private final Map<String, FLEFRecord> byId = new HashMap<>();
@@ -103,20 +117,25 @@ final class ModelIndex{
 	private final Map<String, Integer> referenceCount = new HashMap<>();
 
 
+	/** The tag a record of the given type has in the model (tags are kept lowercase). */
+	static String kind(final String type){
+		return type.toLowerCase(Locale.ROOT);
+	}
+
 	ModelIndex(final Collection<FLEFRecord> records, final ReferenceRewriter references){
 		final List<FLEFRecord> hypotheses = new ArrayList<>();
 		final List<FLEFRecord> conclusions = new ArrayList<>();
 		for(final FLEFRecord record : records){
 			byId.put(record.getId(), record);
 
-			switch(record.getTag()){
-				case KIND_EVENT_PARTICIPATION -> indexParticipation(record);
-				case KIND_RELATIONSHIP -> indexRelationship(record);
-				case KIND_PLACE_RELATIONSHIP -> indexPlaceRelationship(record);
-				case ProtocolRules.KIND_IDENTITY_HYPOTHESIS -> hypotheses.add(record);
-				case ProtocolRules.KIND_CONCLUSION -> conclusions.add(record);
-				case KIND_INDIVIDUAL_ATTRIBUTE -> {
-					final String individual = value(record, KIND_INDIVIDUAL);
+			switch(StringUtils.upperCase(record.getTag(), Locale.ROOT)){
+				case EventParticipationReader.TYPE -> indexParticipation(record);
+				case RelationshipReader.TYPE -> indexRelationship(record);
+				case PlaceRelationshipReader.TYPE -> indexPlaceRelationship(record);
+				case IdentityHypothesisReader.TYPE -> hypotheses.add(record);
+				case ConclusionReader.TYPE -> conclusions.add(record);
+				case IndividualAttributeReader.TYPE -> {
+					final String individual = value(record, IndividualAttributeReader.TAG_INDIVIDUAL);
 					if(individual != null)
 						attributesOf.computeIfAbsent(individual, k -> new ArrayList<>())
 							.add(record);
@@ -218,8 +237,8 @@ final class ModelIndex{
 	 */
 	private String subjectsOf(final FLEFRecord owner){
 		final Set<String> subjects = new TreeSet<>();
-		switch(owner.getTag()){
-			case KIND_EVENT -> {
+		switch(StringUtils.upperCase(owner.getTag(), Locale.ROOT)){
+			case EventReader.TYPE -> {
 				final Set<String> all = new TreeSet<>();
 				for(final FLEFRecord participation : participationsOfEvent(owner.getId())){
 					final String participant = armValue(FieldMerger.first(participation, TAG_PARTICIPANT));
@@ -234,10 +253,10 @@ final class ModelIndex{
 				if(subjects.isEmpty())
 					subjects.addAll(all);
 			}
-			case KIND_EVENT_PARTICIPATION -> addIfPresent(subjects, armValue(FieldMerger.first(owner, TAG_PARTICIPANT)));
-			case KIND_INDIVIDUAL_ATTRIBUTE -> addIfPresent(subjects, value(owner, KIND_INDIVIDUAL));
-			case KIND_GROUP_ATTRIBUTE -> addIfPresent(subjects, value(owner, KIND_GROUP));
-			case KIND_RELATIONSHIP -> {
+			case EventParticipationReader.TYPE -> addIfPresent(subjects, armValue(FieldMerger.first(owner, TAG_PARTICIPANT)));
+			case IndividualAttributeReader.TYPE -> addIfPresent(subjects, value(owner, IndividualAttributeReader.TAG_INDIVIDUAL));
+			case GroupAttributeReader.TYPE -> addIfPresent(subjects, value(owner, GroupAttributeReader.TAG_GROUP));
+			case RelationshipReader.TYPE -> {
 				final String subject = armValue(FieldMerger.first(owner, TAG_SUBJECT));
 				final String target = armValue(FieldMerger.first(owner, TAG_TARGET));
 				// the direction matters: the child of a parent is not the parent of a child

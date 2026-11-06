@@ -90,7 +90,7 @@ public final class GroupTimelineBuilder{
 	/** The text added to the label of a membership that has begun and has no end: it goes on to today. */
 	public static final String ONGOING = "ongoing";
 
-	private static final String TAG_STATUS = "status";
+	private static final String TAG_STATUS = RelationshipReader.TAG_STATUS;
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
 	/** The span of an axis that no date tells: a century. */
 	private static final long FALLBACK_SPAN_DAYS = 36_525L;

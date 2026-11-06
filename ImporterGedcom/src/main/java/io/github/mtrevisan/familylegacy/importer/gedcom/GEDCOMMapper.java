@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,13 +54,163 @@ public final class GEDCOMMapper{
 	/** Type of the generic event (EVEN) and fact (FACT) tags, whose actual type is given by their TYPE. */
 	public static final String TAG_GENERIC_EVENT = "EVEN";
 	public static final String TAG_GENERIC_FACT = "FACT";
+	public static final String TAG_NOTE = "NOTE";
+	public static final String TAG_SOURCE = "SOUR";
+	public static final String TAG_DATE = "DATE";
+	public static final String TAG_TYPE = "TYPE";
+	public static final String TAG_MULTIMEDIA = "OBJE";
+	public static final String TAG_PLACE = "PLAC";
+	public static final String TAG_LANGUAGE = "LANG";
+	public static final String TAG_WIFE = "WIFE";
+	public static final String TAG_HUSBAND = "HUSB";
+	public static final String TAG_ROLE = "ROLE";
+	public static final String TAG_REPOSITORY = "REPO";
+	public static final String TAG_INDIVIDUAL = "INDI";
+	public static final String TAG_ADOPTION = "ADOP";
+	public static final String TAG_VERSION = "VERS";
+	public static final String TAG_TRANSLATION = "TRAN";
+	public static final String TAG_TITLE = "TITL";
+	public static final String TAG_NAME = "NAME";
+	public static final String TAG_FAMILY_CHILD = "FAMC";
+	public static final String TAG_ASSOCIATION = "ASSO";
+	public static final String TAG_AGE = "AGE";
+	public static final String TAG_ADDRESS = "ADDR";
+	public static final String TAG_HEADER = "HEAD";
+	public static final String TAG_FAMILY = "FAM";
+	public static final String TAG_FORM = "FORM";
+	public static final String TAG_DESCRIPTION = "DESC";
+	public static final String TAG_SEALING_CHILD = "SLGC";
+	/** Custom tag: a task to do. */
+	public static final String TAG_TODO = "_TODO";
+	/** Custom tag: the married name. */
+	public static final String TAG_MARRIED_NAME = "_MARNM";
+	/** Custom tag: an alias ("also known as"). */
+	public static final String TAG_AKA = "_AKA";
+	/** The prefix of the links to the records of the file in the notes. */
+	public static final String FLEF_LINK_PREFIX = "flef:";
+	/** The media type of a note with links. */
+	public static final String MIME_MARKDOWN = "text/markdown";
+
+	public static final String TAG_REFERENCE_NUMBER = "REFN";
+	public static final String TAG_UID = "UID";
+	public static final String TAG_CUSTOM_UID = "_UID";
+	public static final String TAG_EXTERNAL_ID = "EXID";
+	public static final String TAG_RECORD_FILE_NUMBER = "RFN";
+	public static final String TAG_ANCESTRAL_FILE_NUMBER = "AFN";
+	public static final String TAG_FAMILY_SEARCH_ID = "_FSFTID";
+	public static final String TAG_POSTAL_CODE = "POST";
+	public static final String TAG_PHONE = "PHON";
+	public static final String TAG_EMAIL = "EMAIL";
+	public static final String TAG_FAX = "FAX";
+	public static final String TAG_WEB = "WWW";
+	public static final String TAG_CUSTOM_EMAIL = "_EMAIL";
+	public static final String TAG_CUSTOM_WEB = "_WWW";
+	public static final String TAG_MAP = "MAP";
+	public static final String TAG_CROP = "CROP";
+	public static final String TAG_BLOB = "BLOB";
+	public static final String TAG_STATUS = "STAT";
+	public static final String TAG_SEX = "SEX";
+	public static final String TAG_DATA = "DATA";
+	public static final String TAG_CHANGE = "CHAN";
+	public static final String TAG_CREATION = "CREA";
+	public static final String TAG_RESTRICTION = "RESN";
+	public static final String TAG_SPOUSE_FAMILY = "FAMS";
+	public static final String TAG_CHILD = "CHIL";
+	public static final String TAG_NON_EVENT = "NO";
+	public static final String TAG_ALIAS = "ALIA";
+	public static final String TAG_SUBMITTER = "SUBM";
+	public static final String TAG_ABBREVIATION = "ABBR";
+	public static final String TAG_AUTHOR = "AUTH";
+	public static final String TAG_PUBLICATION = "PUBL";
+	public static final String TAG_TEXT = "TEXT";
+	public static final String TAG_FILE = "FILE";
+	public static final String TAG_NUMBER_OF_CHILDREN = "NCHI";
+	public static final String TAG_CAUSE = "CAUS";
+	public static final String TAG_AGENCY = "AGNC";
+	public static final String TAG_RELIGION = "RELI";
+	public static final String TAG_TEMPLE = "TEMP";
+	public static final String TAG_CONCATENATION = "CONC";
+	public static final String TAG_CONTINUATION = "CONT";
+	public static final String TAG_MIME = "MIME";
+	public static final String TAG_CUSTOM_DATE = "_DATE";
+	public static final String TAG_CUSTOM_PUBLISHER = "_PUBL";
+	public static final String TAG_CUSTOM_PRIMARY = "_PRIMARY";
+	public static final String TAG_CUSTOM_PREFERRED = "_PREF";
+	public static final String TAG_CUSTOM_CUT = "_CUTD";
+	public static final String TAG_LATITUDE = "LATI";
+	public static final String TAG_LONGITUDE = "LONG";
+	public static final String TAG_PHONETIC = "FONE";
+	public static final String TAG_ROMANIZED = "ROMN";
+	public static final String TAG_NAME_PREFIX = "NPFX";
+	public static final String TAG_GIVEN_NAME = "GIVN";
+	public static final String TAG_NICKNAME = "NICK";
+	public static final String TAG_SURNAME_PREFIX = "SPFX";
+	public static final String TAG_SURNAME = "SURN";
+	public static final String TAG_NAME_SUFFIX = "NSFX";
+
+	/** The identifiers that FLEF cannot store: reported as discarded. */
+	public static final Set<String> IDENTIFIER_TAGS = Set.of(TAG_REFERENCE_NUMBER, TAG_UID, TAG_CUSTOM_UID, TAG_EXTERNAL_ID,
+		TAG_RECORD_FILE_NUMBER, TAG_ANCESTRAL_FILE_NUMBER, TAG_FAMILY_SEARCH_ID);
+	/**
+	 * The technical tags (metadata about the file or about the program that wrote it, links redundant with other records): their
+	 * loss is not reported.
+	 */
+	public static final Set<String> TECHNICAL_TAGS = Set.of("RIN", "SUBN", "SDATE", "ANCI", "DESI", TAG_SPOUSE_FAMILY, TAG_SUBMITTER,
+		"CHAR", "GEDC", "DEST", TAG_FILE, "SCHMA", "_CRE", "_UPD", TAG_CHANGE, TAG_CREATION, TAG_CONCATENATION, TAG_CONTINUATION);
+	/** The contact tags of an address. */
+	public static final Set<String> CONTACT_TAGS = Set.of(TAG_PHONE, TAG_EMAIL, TAG_FAX, TAG_WEB, TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB);
+
+	/** The tags of an individual read by the converter (apart from the events and the attributes). */
+	public static final Set<String> INDIVIDUAL_CONSUMED_TAGS = Set.of(TAG_NAME, TAG_SEX, TAG_SOURCE, TAG_NOTE, TAG_MULTIMEDIA,
+		TAG_FAMILY_CHILD, TAG_ALIAS, TAG_ASSOCIATION, TAG_RESTRICTION);
+	/** The tags of a family read by the converter (apart from the events and the attributes). */
+	public static final Set<String> FAMILY_CONSUMED_TAGS = Set.of(TAG_HUSBAND, TAG_WIFE, TAG_CHILD, TAG_NUMBER_OF_CHILDREN, TAG_SOURCE,
+		TAG_NOTE, TAG_NON_EVENT, TAG_ASSOCIATION, TAG_MULTIMEDIA, TAG_RESTRICTION);
+	/** The tags of an event or of an attribute read by the converter. */
+	public static final Set<String> EVENT_CONSUMED_TAGS = Set.of(TAG_TYPE, TAG_DATE, TAG_PLACE, TAG_ADDRESS, TAG_CAUSE, TAG_AGENCY,
+		TAG_RELIGION, TAG_TEMPLE, TAG_STATUS, TAG_FAMILY_CHILD, TAG_SOURCE, TAG_NOTE, TAG_MULTIMEDIA, TAG_RESTRICTION, TAG_AGE,
+		TAG_HUSBAND, TAG_WIFE, TAG_ASSOCIATION, TAG_POSTAL_CODE, TAG_PHONE, TAG_EMAIL, TAG_FAX, TAG_WEB, TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB);
+	/** The tags of a source read by the converter. */
+	public static final Set<String> SOURCE_CONSUMED_TAGS = Set.of(TAG_TITLE, TAG_ABBREVIATION, TAG_AUTHOR, TAG_PUBLICATION, TAG_DATA,
+		TAG_TEXT, TAG_REPOSITORY, TAG_MULTIMEDIA, TAG_NOTE, TAG_RESTRICTION);
+	/** The tags of a repository read by the converter. */
+	public static final Set<String> REPOSITORY_CONSUMED_TAGS = Set.of(TAG_NAME, TAG_PLACE, TAG_ADDRESS, TAG_PHONE, TAG_EMAIL, TAG_FAX,
+		TAG_WEB, TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB, TAG_NOTE, TAG_RESTRICTION);
+	/** The tags of a multimedia record read by the converter. */
+	public static final Set<String> MULTIMEDIA_CONSUMED_TAGS = Set.of(TAG_FILE, TAG_FORM, TAG_TITLE, TAG_CUSTOM_DATE, TAG_CUSTOM_PUBLISHER,
+		TAG_CUSTOM_PRIMARY, TAG_CUSTOM_PREFERRED, TAG_CUSTOM_CUT, TAG_CROP, TAG_NOTE, TAG_RESTRICTION, TAG_SOURCE, TAG_BLOB);
+	/** The tags of a submitter read by the converter (or reported apart). */
+	public static final Set<String> SUBMITTER_CONSUMED_TAGS = Set.of(TAG_NAME, TAG_ADDRESS, TAG_PHONE, TAG_EMAIL, TAG_FAX, TAG_WEB,
+		TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB, TAG_LANGUAGE, TAG_RECORD_FILE_NUMBER, TAG_NOTE, TAG_MULTIMEDIA);
+	/** The tags of a note record read by the converter. */
+	public static final Set<String> NOTE_CONSUMED_TAGS = Set.of(TAG_SOURCE, TAG_MIME, TAG_LANGUAGE, TAG_TRANSLATION);
+	/** The tags of a personal name read by the converter. */
+	public static final Set<String> NAME_CONSUMED_TAGS = Set.of(TAG_TYPE, TAG_NAME_PREFIX, TAG_GIVEN_NAME, TAG_NICKNAME,
+		TAG_SURNAME_PREFIX, TAG_SURNAME, TAG_NAME_SUFFIX, TAG_PHONETIC, TAG_ROMANIZED, TAG_TRANSLATION, TAG_SOURCE, TAG_NOTE);
+
+	/** Custom tags (underscore tags) that never are an event, even with a date: they are about the record itself. */
+	private static final Set<String> CUSTOM_NON_EVENT_TAGS = Set.of("_UID", "_FSFTID", "_CRE", "_UPD");
+
+	/**
+	 * Whether a custom tag (underscore tag) of an individual or of a family is an event: it holds a date or a place.
+	 * <p>
+	 * The custom tags without data (flags, identifiers, creation and update stamps) are not.
+	 */
+	public static boolean isCustomEvent(final GEDCOMNode node){
+		final String tag = node.getTag();
+		if(!StringUtils.startsWith(tag, "_") || CUSTOM_NON_EVENT_TAGS.contains(tag.toUpperCase(Locale.ROOT))
+				|| TAG_TODO.equalsIgnoreCase(tag) || TAG_MARRIED_NAME.equalsIgnoreCase(tag) || TAG_AKA.equalsIgnoreCase(tag))
+			return false;
+
+		return (GEDCOMHelper.findFirstChild(node, TAG_DATE) != null || GEDCOMHelper.findFirstChild(node, TAG_PLACE) != null);
+	}
 
 	// ---- Tag degli eventi (INDIVIDUAL_EVENT_STRUCTURE, FAMILY_EVENT_STRUCTURE, LDS ordinances) ----
-	public static final Set<String> INDIVIDUAL_EVENT_TAGS = Set.of("BIRT", "CHR", "DEAT", "BURI", "CREM", "ADOP", "BAPM",
+	public static final Set<String> INDIVIDUAL_EVENT_TAGS = Set.of("BIRT", "CHR", "DEAT", "BURI", "CREM", TAG_ADOPTION, "BAPM",
 		"BARM", "BASM", "BLES", "CHRA", "CONF", "FCOM", "ORDN", "NATU", "EMIG", "IMMI", "CENS", "PROB", "WILL", "GRAD", "RETI",
-		"EVEN", "BAPL", "CONL", "ENDL", "INIL", "SLGC");
+		TAG_GENERIC_EVENT, "BAPL", "CONL", "ENDL", "INIL", "SLGC");
 	public static final Set<String> FAMILY_EVENT_TAGS = Set.of("ANUL", "CENS", "DIV", "DIVF", "ENGA", "MARB", "MARC", "MARR",
-		"MARL", "MARS", "EVEN", "SLGS");
+		"MARL", "MARS", TAG_GENERIC_EVENT, "SLGS");
 
 	// ---- Tipi di evento definiti da FLEF (EventRecord.type) ----
 	private static final Set<String> FLEF_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_ADOPTION, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_BURIAL,
@@ -70,11 +222,11 @@ public final class GEDCOMMapper{
 		EventReader.ENUM_TYPE_EMANCIPATION, EventReader.ENUM_TYPE_RELOCATION, EventReader.ENUM_TYPE_CENSUS, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY, EventReader.ENUM_TYPE_WILL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_GUARDIANSHIP);
 	// ---- Sinonimi del TYPE di EVEN verso i tipi di evento FLEF ----
 	private static final Map<String, String> EVENT_TYPE_SYNONYMS = Map.ofEntries(
-		Map.entry("move", "relocation"),
-		Map.entry("moved", "relocation"),
-		Map.entry("military_enlistment", "military_induction"),
-		Map.entry("enlistment", "military_induction"),
-		Map.entry("military", "military_service"),
+		Map.entry("move", EventReader.ENUM_TYPE_RELOCATION),
+		Map.entry("moved", EventReader.ENUM_TYPE_RELOCATION),
+		Map.entry("military_enlistment", EventReader.ENUM_TYPE_MILITARY_INDUCTION),
+		Map.entry("enlistment", EventReader.ENUM_TYPE_MILITARY_INDUCTION),
+		Map.entry("military", EventReader.ENUM_TYPE_MILITARY_SERVICE),
 		Map.entry("hospitalisation", EventReader.ENUM_TYPE_HOSPITALIZATION),
 		Map.entry("medical", EventReader.ENUM_TYPE_MEDICAL_PROCEDURE),
 		Map.entry("surgery", EventReader.ENUM_TYPE_MEDICAL_PROCEDURE),
@@ -86,14 +238,14 @@ public final class GEDCOMMapper{
 		Map.entry("separated", EventReader.ENUM_TYPE_SEPARATION),
 		Map.entry("award", EventReader.ENUM_TYPE_HONOR),
 		Map.entry("decoration", EventReader.ENUM_TYPE_HONOR),
-		Map.entry("incarceration", "prison"),
-		Map.entry("degree", "graduation"),
-		Map.entry("probate", "probate"));
+		Map.entry("incarceration", EventReader.ENUM_TYPE_PRISON),
+		Map.entry("degree", EventReader.ENUM_TYPE_GRADUATION),
+		Map.entry("probate", EventReader.ENUM_TYPE_PROBATE));
 	// ---- TYPE di EVEN/FACT che FLEF rappresenta altrove ----
 	/** EVEN/FACT types that are names of the individual: they become a {@code PersonalNameStructure} with this name part type. */
 	public static final Map<String, String> NAME_PART_FACT_TYPES = Map.of(
-		"family_nickname", "family_nickname",
-		"nickname", "nickname");
+		NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME, NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME,
+		NameReader.ENUM_PART_TYPE_NICKNAME, NameReader.ENUM_PART_TYPE_NICKNAME);
 	/**
 	 * EVEN/FACT types that are attributes of the individual (the FLEF types of IndividualAttributeRecord, and their synonyms):
 	 * they become an {@code IndividualAttributeRecord} of this type.
@@ -101,37 +253,37 @@ public final class GEDCOMMapper{
 	public static final Map<String, String> ATTRIBUTE_FACT_TYPES = Map.ofEntries(
 		Map.entry("family_address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
 		Map.entry("address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
-		Map.entry("residence", IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
-		Map.entry("characteristic", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_RESIDENCE, IndividualAttributeReader.ENUM_TYPE_RESIDENCE),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC, IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
 		Map.entry("physical_description", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
 		Map.entry("description", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC),
-		Map.entry("occupation", IndividualAttributeReader.ENUM_TYPE_OCCUPATION),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_OCCUPATION, IndividualAttributeReader.ENUM_TYPE_OCCUPATION),
 		Map.entry("profession", IndividualAttributeReader.ENUM_TYPE_OCCUPATION),
-		Map.entry("possession", IndividualAttributeReader.ENUM_TYPE_POSSESSION),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_POSSESSION, IndividualAttributeReader.ENUM_TYPE_POSSESSION),
 		Map.entry("property", IndividualAttributeReader.ENUM_TYPE_POSSESSION),
-		Map.entry("military_rank", IndividualAttributeReader.ENUM_TYPE_MILITARY_RANK),
-		Map.entry("caste", IndividualAttributeReader.ENUM_TYPE_CASTE),
-		Map.entry("social_class", IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS),
-		Map.entry("ethnicity", IndividualAttributeReader.ENUM_TYPE_ETHNICITY),
-		Map.entry("citizenship", IndividualAttributeReader.ENUM_TYPE_CITIZENSHIP),
-		Map.entry("nationality", IndividualAttributeReader.ENUM_TYPE_NATIONALITY),
-		Map.entry("national_id", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID),
-		Map.entry("title", IndividualAttributeReader.ENUM_TYPE_TITLE),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_MILITARY_RANK, IndividualAttributeReader.ENUM_TYPE_MILITARY_RANK),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_CASTE, IndividualAttributeReader.ENUM_TYPE_CASTE),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS, IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_ETHNICITY, IndividualAttributeReader.ENUM_TYPE_ETHNICITY),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_CITIZENSHIP, IndividualAttributeReader.ENUM_TYPE_CITIZENSHIP),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_NATIONALITY, IndividualAttributeReader.ENUM_TYPE_NATIONALITY),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_TITLE, IndividualAttributeReader.ENUM_TYPE_TITLE),
 		Map.entry("nobility_title", IndividualAttributeReader.ENUM_TYPE_TITLE),
-		Map.entry("children_count", IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT),
-		Map.entry("marriages_count", IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT),
-		Map.entry("religion", IndividualAttributeReader.ENUM_TYPE_RELIGION),
-		Map.entry("language", IndividualAttributeReader.ENUM_TYPE_LANGUAGE),
-		Map.entry("literacy", IndividualAttributeReader.ENUM_TYPE_LITERACY),
-		Map.entry("apprenticeship", IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP));
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT, IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT, IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_RELIGION, IndividualAttributeReader.ENUM_TYPE_RELIGION),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_LANGUAGE, IndividualAttributeReader.ENUM_TYPE_LANGUAGE),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_LITERACY, IndividualAttributeReader.ENUM_TYPE_LITERACY),
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP, IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP));
 	/** EVEN types of a family that are attributes of the family: they become a {@code GroupAttributeRecord} of this type. */
 	public static final Map<String, String> GROUP_ATTRIBUTE_FACT_TYPES = Map.of(
 		"family_address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
 		"address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
-		"residence", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
-		"religion", IndividualAttributeReader.ENUM_TYPE_RELIGION,
-		"language", IndividualAttributeReader.ENUM_TYPE_LANGUAGE,
-		"social_class", "social_class");
+		IndividualAttributeReader.ENUM_TYPE_RESIDENCE, IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
+		IndividualAttributeReader.ENUM_TYPE_RELIGION, IndividualAttributeReader.ENUM_TYPE_RELIGION,
+		IndividualAttributeReader.ENUM_TYPE_LANGUAGE, IndividualAttributeReader.ENUM_TYPE_LANGUAGE,
+		IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS, IndividualAttributeReader.ENUM_TYPE_SOCIAL_CLASS);
 
 	private static final Pattern PATTERN_NON_TOKEN = Pattern.compile("[^a-z0-9]+");
 	private static final Pattern PATTERN_DIACRITICS = Pattern.compile("\\p{M}+");
@@ -161,7 +313,7 @@ public final class GEDCOMMapper{
 		EVENT_MAP.put("DEAT", EventReader.ENUM_TYPE_DEATH);
 		EVENT_MAP.put("BURI", EventReader.ENUM_TYPE_BURIAL);
 		EVENT_MAP.put("CREM", EventReader.ENUM_TYPE_CREMATION);
-		EVENT_MAP.put("ADOP", EventReader.ENUM_TYPE_ADOPTION);
+		EVENT_MAP.put(TAG_ADOPTION, EventReader.ENUM_TYPE_ADOPTION);
 		EVENT_MAP.put("BAPM", "baptism");
 		EVENT_MAP.put("BARM", "bar_mitzvah");
 		EVENT_MAP.put("BASM", "bat_mitzvah");
@@ -211,7 +363,7 @@ public final class GEDCOMMapper{
 		ATTRIBUTE_MAP.put("RELI", IndividualAttributeReader.ENUM_TYPE_RELIGION);
 		ATTRIBUTE_MAP.put("RESI", IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
 		ATTRIBUTE_MAP.put("SSN", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
-		ATTRIBUTE_MAP.put("TITL", IndividualAttributeReader.ENUM_TYPE_TITLE);
+		ATTRIBUTE_MAP.put(TAG_TITLE, IndividualAttributeReader.ENUM_TYPE_TITLE);
 		ATTRIBUTE_MAP.put(TAG_GENERIC_FACT, "fact");
 
 		// ------------------------------
@@ -225,19 +377,19 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Media type
 		// ------------------------------
-		MEDIA_TYPE_MAP.put("AUDIO", "audio");
-		MEDIA_TYPE_MAP.put("BOOK", "book");
-		MEDIA_TYPE_MAP.put("CARD", "card");
-		MEDIA_TYPE_MAP.put("ELECTRONIC", "electronic");
-		MEDIA_TYPE_MAP.put("FICHE", "fiche");
-		MEDIA_TYPE_MAP.put("FILM", "film");
-		MEDIA_TYPE_MAP.put("MAGAZINE", "magazine");
-		MEDIA_TYPE_MAP.put("MANUSCRIPT", "manuscript");
-		MEDIA_TYPE_MAP.put("MAP", "map");
-		MEDIA_TYPE_MAP.put("NEWSPAPER", "newspaper");
-		MEDIA_TYPE_MAP.put("PHOTO", "photo");
-		MEDIA_TYPE_MAP.put("TOMBSTONE", "tombstone");
-		MEDIA_TYPE_MAP.put("VIDEO", "video");
+		MEDIA_TYPE_MAP.put("AUDIO", SourceReader.ENUM_MEDIA_TYPE_AUDIO);
+		MEDIA_TYPE_MAP.put("BOOK", SourceReader.ENUM_MEDIA_TYPE_BOOK);
+		MEDIA_TYPE_MAP.put("CARD", SourceReader.ENUM_MEDIA_TYPE_CARD);
+		MEDIA_TYPE_MAP.put("ELECTRONIC", SourceReader.ENUM_MEDIA_TYPE_ELECTRONIC);
+		MEDIA_TYPE_MAP.put("FICHE", SourceReader.ENUM_MEDIA_TYPE_FICHE);
+		MEDIA_TYPE_MAP.put("FILM", SourceReader.ENUM_MEDIA_TYPE_FILM);
+		MEDIA_TYPE_MAP.put("MAGAZINE", SourceReader.ENUM_MEDIA_TYPE_MAGAZINE);
+		MEDIA_TYPE_MAP.put("MANUSCRIPT", SourceReader.ENUM_MEDIA_TYPE_MANUSCRIPT);
+		MEDIA_TYPE_MAP.put("MAP", SourceReader.ENUM_MEDIA_TYPE_MAP);
+		MEDIA_TYPE_MAP.put("NEWSPAPER", SourceReader.ENUM_MEDIA_TYPE_NEWSPAPER);
+		MEDIA_TYPE_MAP.put("PHOTO", SourceReader.ENUM_MEDIA_TYPE_PHOTO);
+		MEDIA_TYPE_MAP.put("TOMBSTONE", SourceReader.ENUM_MEDIA_TYPE_TOMBSTONE);
+		MEDIA_TYPE_MAP.put("VIDEO", SourceReader.ENUM_MEDIA_TYPE_VIDEO);
 
 		// ------------------------------
 		// Roles
@@ -245,25 +397,25 @@ public final class GEDCOMMapper{
 		ROLE_MAP.put("CHILD", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
 		ROLE_MAP.put("PARENT", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
 		ROLE_MAP.put("SPOUSE", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
-		ROLE_MAP.put("SPONSOR", "sponsor");
-		ROLE_MAP.put("POWER_OF_ATTORNEY", "power_of_attorney");
-		ROLE_MAP.put("PRISONER", "prisoner");
-		ROLE_MAP.put("WITNESS", "witness");
-		ROLE_MAP.put("OFFICIANT", "officiant");
-		ROLE_MAP.put("DECLARANT", "informant");
-		ROLE_MAP.put("INFORMANT", "informant");
-		ROLE_MAP.put("EXECUTOR", "executor");
-		ROLE_MAP.put("GRANTOR", "grantor");
-		ROLE_MAP.put("GRANTEE", "grantee");
-		ROLE_MAP.put("LANDLORD", "landlord");
-		ROLE_MAP.put("TENANT", "tenant");
-		ROLE_MAP.put("SOLDIER", "soldier");
-		ROLE_MAP.put("COMMANDER", "commander");
-		ROLE_MAP.put("VICTIM", "victim");
-		ROLE_MAP.put("SURVIVOR", "survivor");
-		ROLE_MAP.put("ACCUSED", "accused");
-		ROLE_MAP.put("JUDGE", "judge");
-		ROLE_MAP.put("PROPERTY", "property");
+		ROLE_MAP.put("SPONSOR", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		ROLE_MAP.put("POWER_OF_ATTORNEY", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
+		ROLE_MAP.put("PRISONER", EventParticipationReader.ENUM_ROLE_PRISONER);
+		ROLE_MAP.put("WITNESS", EventParticipationReader.ENUM_ROLE_WITNESS);
+		ROLE_MAP.put("OFFICIANT", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		ROLE_MAP.put("DECLARANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
+		ROLE_MAP.put("INFORMANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
+		ROLE_MAP.put("EXECUTOR", EventParticipationReader.ENUM_ROLE_EXECUTOR);
+		ROLE_MAP.put("GRANTOR", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		ROLE_MAP.put("GRANTEE", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		ROLE_MAP.put("LANDLORD", EventParticipationReader.ENUM_ROLE_LANDLORD);
+		ROLE_MAP.put("TENANT", EventParticipationReader.ENUM_ROLE_TENANT);
+		ROLE_MAP.put("SOLDIER", EventParticipationReader.ENUM_ROLE_SOLDIER);
+		ROLE_MAP.put("COMMANDER", EventParticipationReader.ENUM_ROLE_COMMANDER);
+		ROLE_MAP.put("VICTIM", EventParticipationReader.ENUM_ROLE_VICTIM);
+		ROLE_MAP.put("SURVIVOR", EventParticipationReader.ENUM_ROLE_SURVIVOR);
+		ROLE_MAP.put("ACCUSED", EventParticipationReader.ENUM_ROLE_ACCUSED);
+		ROLE_MAP.put("JUDGE", EventParticipationReader.ENUM_ROLE_JUDGE);
+		ROLE_MAP.put("PROPERTY", EventParticipationReader.ENUM_ROLE_PROPERTY);
 
 		// ------------------------------
 		// Privacy level
@@ -301,6 +453,12 @@ public final class GEDCOMMapper{
 	 * @return	The FLEF event type.
 	 */
 	public static String mapEventType(final String gedcomTag, final String gedcomType){
+		//a custom tag (e.g. _MILT) gives a custom type, without the leading underscore
+		if(StringUtils.startsWith(gedcomTag, "_")){
+			final String customToken = toTypeToken(gedcomTag);
+			if(customToken != null)
+				return EVENT_TYPE_SYNONYMS.getOrDefault(customToken, customToken);
+		}
 		if(!TAG_GENERIC_EVENT.equalsIgnoreCase(gedcomTag))
 			return mapEvent(gedcomTag, gedcomTag);
 
@@ -338,7 +496,7 @@ public final class GEDCOMMapper{
 	 */
 	public static String mapNameType(final String gedcomNameType){
 		final String token = toTypeToken(gedcomNameType);
-		return ("aka".equals(token)? "alias": token);
+		return ("aka".equals(token)? NameReader.ENUM_PERSONAL_TYPE_ALIAS: token);
 	}
 
 	/**
@@ -391,9 +549,9 @@ public final class GEDCOMMapper{
 
 		final String role = gedcomRole.trim().toUpperCase(Locale.ROOT);
 		return switch(role){
-			case "WITN" -> "witness";
-			case "OFFICIATOR", "CLERGY" -> "officiant";
-			case "GODP" -> "sponsor";
+			case "WITN" -> EventParticipationReader.ENUM_ROLE_WITNESS;
+			case "OFFICIATOR", "CLERGY" -> EventParticipationReader.ENUM_ROLE_OFFICIANT;
+			case "GODP" -> EventParticipationReader.ENUM_ROLE_SPONSOR;
 			// the principals of an event are linked by the event itself, not as associates
 			case "CHILD", "PARENT", "SPOUSE" -> null;
 			default -> ROLE_MAP.get(role);
@@ -416,14 +574,14 @@ public final class GEDCOMMapper{
 			case "FATH" -> "Father";
 			case "FRIEND" -> "Friend";
 			case "GODP" -> "Godparent";
-			case "HUSB" -> "Husband";
+			case TAG_HUSBAND -> "Husband";
 			case "MOTH" -> "Mother";
 			case "MULTIPLE" -> "Multiple";
 			case "NGHBR" -> "Neighbor";
 			case "OFFICIATOR" -> "Officiator";
 			case "PARENT" -> "Parent";
 			case "SPOU" -> "Spouse";
-			case "WIFE" -> "Wife";
+			case TAG_WIFE -> "Wife";
 			case "WITN" -> "Witness";
 			case "OTHER" -> "Other";
 			default -> gedcomRole.trim();
@@ -505,13 +663,13 @@ public final class GEDCOMMapper{
 	public static String mapMediaKind(final String gedcomMediaType, final String gedcomFormat, final String uri){
 		if(gedcomMediaType != null)
 			switch(gedcomMediaType.trim().toLowerCase(Locale.ROOT)){
-				case "photo" -> {
+				case SourceReader.ENUM_MEDIA_TYPE_PHOTO -> {
 					return MediaReader.ENUM_KIND_IMAGE;
 				}
-				case "audio" -> {
+				case SourceReader.ENUM_MEDIA_TYPE_AUDIO -> {
 					return MediaReader.ENUM_KIND_AUDIO;
 				}
-				case "video" -> {
+				case SourceReader.ENUM_MEDIA_TYPE_VIDEO -> {
 					return MediaReader.ENUM_KIND_VIDEO;
 				}
 				default -> {}

@@ -234,9 +234,7 @@ public final class IndividualSummary{
 			tooltip.add(deathInfo != null? deathInfo.date(): NO_DATA);
 		}
 		infoText = sj.toString();
-		infoTooltip = RecordTooltips.appendParagraph(tooltip.toString(),
-			evidenceLine("tooltip.evidence.birth", birthInfo),
-			evidenceLine("tooltip.evidence.death", deathInfo));
+		infoTooltip = tooltip.toString();
 		this.birthDate = normalizedBirthDate;
 
 	}
@@ -420,20 +418,15 @@ public final class IndividualSummary{
 	}
 
 	private static int rankOfStatus(final String status){
-		if("proven".equals(status))
+		if(ConclusionReader.ENUM_PROOF_STATUS_PROVEN.equals(status))
 			return 3;
-		if("supported".equals(status))
+		if(ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED.equals(status))
 			return 2;
-		if("conflicting_evidence".equals(status))
+		if(ConclusionReader.ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE.equals(status))
 			return 1;
 		return 0;
 	}
 
-
-	private static String evidenceLine(final String key, final EventInfo info){
-		final String evidence = (info != null? RecordTooltips.evidence(info.record()): null);
-		return (evidence != null? I18N.tf(key, evidence): null);
-	}
 
 	private record EventInfo(
 		String type,

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.FileValidation;
 import org.junit.jupiter.api.Assertions;
@@ -164,7 +165,7 @@ class ValidationProgressTest{
 	void theReportOpensAtOnceWithTheBarAndShowsWhatTheValidationFindsWhenItIsDone() throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialog needs a display");
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("I1", "individual"));
+		model.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE));
 		final CountDownLatch halfWay = new CountDownLatch(1);
 		final CountDownLatch release = new CountDownLatch(1);
 		final AtomicReference<ValidationReportDialog> created = new AtomicReference<>();

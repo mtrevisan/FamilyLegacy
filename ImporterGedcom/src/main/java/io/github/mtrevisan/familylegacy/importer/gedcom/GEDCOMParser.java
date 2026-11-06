@@ -137,7 +137,7 @@ public class GEDCOMParser{
 				}
 				if(!stack.isEmpty()){
 					// HEAD.GEDC.VERS, the version, comes before any record
-					if(level == 2 && "VERS".equals(tag) && "GEDC".equals(stack.peek().getTag()) && value != null
+					if(level == 2 && GEDCOMMapper.TAG_VERSION.equals(tag) && "GEDC".equals(stack.peek().getTag()) && value != null
 							&& value.trim().startsWith("7"))
 						gedcom7 = true;
 					stack.peek()

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -58,12 +59,12 @@ class IdentityCheckerTest{
 
 	@Test
 	void theConfidenceFollowsTheScore(){
-		Assertions.assertEquals("high", IdentityChecker.confidence(95));
-		Assertions.assertEquals("high", IdentityChecker.confidence(IdentityChecker.HIGH_SCORE));
-		Assertions.assertEquals("medium", IdentityChecker.confidence(IdentityChecker.HIGH_SCORE - 1));
-		Assertions.assertEquals("medium", IdentityChecker.confidence(IdentityChecker.MEDIUM_SCORE));
-		Assertions.assertEquals("low", IdentityChecker.confidence(IdentityChecker.MEDIUM_SCORE - 1));
-		Assertions.assertEquals("low", IdentityChecker.confidence(60));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, IdentityChecker.confidence(95));
+		Assertions.assertEquals(ConfidenceReader.ENUM_HIGH, IdentityChecker.confidence(IdentityChecker.HIGH_SCORE));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, IdentityChecker.confidence(IdentityChecker.HIGH_SCORE - 1));
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, IdentityChecker.confidence(IdentityChecker.MEDIUM_SCORE));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, IdentityChecker.confidence(IdentityChecker.MEDIUM_SCORE - 1));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, IdentityChecker.confidence(60));
 	}
 
 	@Test
@@ -107,7 +108,7 @@ class IdentityCheckerTest{
 
 		Assertions.assertEquals("I1", finding.draft().leftId());
 		Assertions.assertEquals("I2", finding.draft().rightId());
-		Assertions.assertEquals("medium", finding.draft().confidence());
+		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, finding.draft().confidence());
 		Assertions.assertTrue(finding.draft().rationale().startsWith("Proposed by the Identity Assistant (similarity score 75)"),
 			finding.draft().rationale());
 		Assertions.assertTrue(finding.draft().rationale().contains("Name: same full name (+40)"));

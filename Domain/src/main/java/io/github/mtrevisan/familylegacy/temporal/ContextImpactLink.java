@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.temporal;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -54,11 +55,11 @@ public record ContextImpactLink(
 ){
 
 	/** The FLEF {@code ContextImpactRecord.impact_type} values. */
-	public static final String IMPACT_EXPLAINS = "explains";
-	public static final String IMPACT_INFLUENCES = "influences";
-	public static final String IMPACT_CONSTRAINS = "constrains";
-	public static final String IMPACT_MOTIVATES = "motivates";
-	public static final String IMPACT_CAUSES = "causes";
+	public static final String IMPACT_EXPLAINS = ContextImpactReader.ENUM_IMPACT_TYPE_EXPLAINS;
+	public static final String IMPACT_INFLUENCES = ContextImpactReader.ENUM_IMPACT_TYPE_INFLUENCES;
+	public static final String IMPACT_CONSTRAINS = ContextImpactReader.ENUM_IMPACT_TYPE_CONSTRAINS;
+	public static final String IMPACT_MOTIVATES = ContextImpactReader.ENUM_IMPACT_TYPE_MOTIVATES;
+	public static final String IMPACT_CAUSES = ContextImpactReader.ENUM_IMPACT_TYPE_CAUSES;
 
 
 	/**

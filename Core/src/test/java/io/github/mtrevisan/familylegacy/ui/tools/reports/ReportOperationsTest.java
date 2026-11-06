@@ -26,12 +26,19 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +70,44 @@ class ReportOperationsTest{
 		Assertions.assertTrue(new AncestorReportOperation().isEnabled(context));
 		Assertions.assertTrue(new RelationshipReportOperation().isEnabled(context));
 		Assertions.assertTrue(new BibliographyOperation().isEnabled(context));
+	}
+
+	@Test
+	void theReportsOnAPlaceASourceOrAQuestionNeedOneInTheFile(){
+		final FLEFModel without = new FLEFModel();
+		without.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE));
+		final FLEFModel with = new FLEFModel();
+		with.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE));
+		with.addRecord(FLEFRecord.createMainRecord("P1", PlaceReader.TYPE));
+		with.addRecord(FLEFRecord.createMainRecord("S1", SourceReader.TYPE));
+		with.addRecord(FLEFRecord.createMainRecord("RQ1", ResearchQuestionReader.TYPE));
+
+		//no selection is needed: the user picks the record
+		final ToolContext none = new ToolContext(without, null, null, null);
+		final ToolContext all = new ToolContext(with, null, null, null);
+
+		Assertions.assertFalse(new PlaceReportOperation().isEnabled(none));
+		Assertions.assertFalse(new SourceReportOperation().isEnabled(none));
+		Assertions.assertFalse(new ResearchQuestionReportOperation().isEnabled(none));
+		Assertions.assertTrue(new PlaceReportOperation().isEnabled(all));
+		Assertions.assertTrue(new SourceReportOperation().isEnabled(all));
+		Assertions.assertTrue(new ResearchQuestionReportOperation().isEnabled(all));
+	}
+
+	@Test
+	void theBooksNeedOnlyWhatTheyAreMadeOf(){
+		final FLEFModel nothing = new FLEFModel();
+		final FLEFModel people = new FLEFModel();
+		people.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE));
+		final FLEFModel sources = new FLEFModel();
+		sources.addRecord(FLEFRecord.createMainRecord("S1", SourceReader.TYPE));
+
+		Assertions.assertFalse(new FamilyBookOperation().isEnabled(new ToolContext(nothing, null, null, null)));
+		Assertions.assertFalse(new FullBibliographyOperation().isEnabled(new ToolContext(nothing, null, null, null)));
+		Assertions.assertTrue(new FamilyBookOperation().isEnabled(new ToolContext(people, null, null, null)));
+		Assertions.assertFalse(new FullBibliographyOperation().isEnabled(new ToolContext(people, null, null, null)));
+		Assertions.assertTrue(new FullBibliographyOperation().isEnabled(new ToolContext(sources, null, null, null)));
+		Assertions.assertFalse(new FamilyBookOperation().isEnabled(new ToolContext(sources, null, null, null)));
 	}
 
 }

@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefiniti
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayList;
@@ -45,7 +47,7 @@ import java.util.TreeMap;
  */
 final class RecordSignature{
 
-	private static final String TAG_AUDIT = "audit";
+	private static final String TAG_AUDIT = AuditReader.TAG_AUDIT;
 
 
 	private final GrammarSupport grammar;
@@ -106,7 +108,7 @@ final class RecordSignature{
 	}
 
 	/** Marker for a field that must be left out of the signature. */
-	private static final TypeDefinition EVIDENCE = new UnionType("evidence", Map.of());
+	private static final TypeDefinition EVIDENCE = new UnionType(EvidenceQualifiersReader.TAG_EVIDENCE, Map.of());
 
 	private TypeDefinition childType(final TypeDefinition parentType, final String tag){
 		if(parentType instanceof StructType struct){

@@ -111,8 +111,9 @@ public final class ResearchActivityReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_ACTIVITY_TYPE_REVIEW = "review";
 	public static final String[] TYPES = new String[]{
-		"search", "review", "analysis", "correspondence", "interview", "hypothesis"
+		"search", ENUM_ACTIVITY_TYPE_REVIEW, "analysis", "correspondence", "interview", "hypothesis"
 	};
 	public static final String ENUM_STATUS_PLANNED = "planned";
 	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
@@ -127,8 +128,13 @@ public final class ResearchActivityReader{
 		"partial_source",
 		"selected_entries"
 	};
+	public static final String ENUM_RESULT_POSITIVE = "positive";
+	public static final String ENUM_RESULT_NEGATIVE = "negative";
+	public static final String ENUM_RESULT_INCONCLUSIVE = "inconclusive";
+	public static final String ENUM_RESULT_CONFLICTING = "conflicting";
+	public static final String ENUM_RESULT_UNAVAILABLE = "unavailable";
 	public static final String[] RESULTS = new String[]{
-		"positive", "negative", "inconclusive", "conflicting", "unavailable"
+		ENUM_RESULT_POSITIVE, ENUM_RESULT_NEGATIVE, ENUM_RESULT_INCONCLUSIVE, ENUM_RESULT_CONFLICTING, ENUM_RESULT_UNAVAILABLE
 	};
 
 

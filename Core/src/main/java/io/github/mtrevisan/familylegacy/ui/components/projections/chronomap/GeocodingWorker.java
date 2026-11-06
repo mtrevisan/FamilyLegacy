@@ -39,6 +39,7 @@ final class GeocodingWorker{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeocodingWorker.class);
 
+
 	/** Minimum interval between two refreshes of the map while the geocoding is running. */
 	private static final long INCREMENTAL_REFRESH_MS = 3_000L;
 

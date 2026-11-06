@@ -24,6 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
@@ -122,6 +133,7 @@ class GEDCOM7ToFLEFConverterTest{
 		2 DATE 1990
 		1 NO MARR
 		2 DATE FROM 1720 TO 1760
+		2 NOTE Checked the registers
 		2 SOUR @S1@
 		3 PAGE Folio 30
 		1 ASSO @I3@
@@ -149,12 +161,16 @@ class GEDCOM7ToFLEFConverterTest{
 		0 @I3@ INDI
 		1 NAME Marco /Bianchi/
 		1 SEX X
+		1 NO DEAT
 		1 NOTE Mail a@@b
 		0 @F1@ FAM
 		1 HUSB @I2@
 		1 WIFE @VOID@
 		2 PHRASE Unknown mother
 		1 CHIL @I1@
+		1 NO MARR
+		2 SOUR @S1@
+		3 PAGE Folio 31
 		1 FACT Catholic
 		2 TYPE Religion
 		1 ASSO @I3@
@@ -176,18 +192,18 @@ class GEDCOM7ToFLEFConverterTest{
 
 	/** The first event of a type (the birth of I1 comes before that of I2). */
 	private static FLEFRecord eventOfType(final FLEFModel model, final String type){
-		return recordsWith(model, "event", "type", type).getFirst();
+		return recordsWith(model, EventReader.TYPE, EventReader.TAG_TYPE, type).getFirst();
 	}
 
 	private static FLEFRecord noteWithTitle(final FLEFRecord record, final String title){
-		return FLEFRecordHelper.findChildren(record, "note").stream()
-			.filter(note -> title.equals(FLEFRecordHelper.getChildValue(note, "title")))
+		return FLEFRecordHelper.findChildren(record, NoteReader.TAG_NOTE).stream()
+			.filter(note -> title.equals(FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE)))
 			.findFirst()
 			.orElse(null);
 	}
 
 	private static boolean hasNoteWithText(final FLEFRecord record, final String text){
-		return FLEFRecordHelper.findChildren(record, "note").stream()
+		return FLEFRecordHelper.findChildren(record, NoteReader.TAG_NOTE).stream()
 			.anyMatch(note -> text.equals(FLEFRecordHelper.getChildValue(note, "text")));
 	}
 
@@ -235,7 +251,7 @@ class GEDCOM7ToFLEFConverterTest{
 
 	@Test
 	void sharedNote() throws IOException{
-		final FLEFRecord note = FLEFRecordHelper.findChildren(convert().getRecordById("I1"), "note").stream()
+		final FLEFRecord note = FLEFRecordHelper.findChildren(convert().getRecordById("I1"), NoteReader.TAG_NOTE).stream()
 			.filter(n -> "A shared note".equals(FLEFRecordHelper.getChildValue(n, "text")))
 			.findFirst()
 			.orElseThrow();
@@ -248,10 +264,10 @@ class GEDCOM7ToFLEFConverterTest{
 
 	@Test
 	void names() throws IOException{
-		final FLEFRecord name = FLEFRecordHelper.findChild(convert().getRecordById("I1"), "name");
+		final FLEFRecord name = FLEFRecordHelper.findChild(convert().getRecordById("I1"), IndividualReader.TAG_NAME);
 
 		// TYPE OTHER takes its PHRASE
-		Assertions.assertEquals("baptismal_name", FLEFRecordHelper.getChildValue(name, "type"));
+		Assertions.assertEquals("baptismal_name", FLEFRecordHelper.getChildValue(name, NameReader.TAG_TYPE));
 		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(name, "part");
 		Assertions.assertEquals("John", FLEFRecordHelper.getChildValue(parts.get(0), "variant.transcription.value"));
 		Assertions.assertEquals("anglicized", FLEFRecordHelper.getChildValue(parts.get(0), "variant.transcription.type"));
@@ -262,7 +278,7 @@ class GEDCOM7ToFLEFConverterTest{
 	void dates() throws IOException{
 		final FLEFModel model = convert();
 
-		final FLEFRecord birth = eventOfType(model, "birth");
+		final FLEFRecord birth = eventOfType(model, EventReader.ENUM_TYPE_BIRTH);
 		Assertions.assertEquals("1 MAR 1700", FLEFRecordHelper.getChildValue(birth, "date.value.point.value.full_date"));
 		Assertions.assertEquals("julian", FLEFRecordHelper.getChildValue(birth, "date.value.point.calendar"));
 		final FLEFRecord death = eventOfType(model, "death");
@@ -291,17 +307,17 @@ class GEDCOM7ToFLEFConverterTest{
 	void places() throws IOException{
 		final FLEFModel model = convert();
 
-		final FLEFRecord venice = model.getRecordsByType("place").stream()
+		final FLEFRecord venice = model.getRecordsByType(PlaceReader.TYPE).stream()
 			.filter(place -> "Venezia".equals(FLEFRecordHelper.getChildValue(place, "name[0].value")))
 			.findFirst()
 			.orElseThrow();
 		Assertions.assertEquals("it", FLEFRecordHelper.getChildValue(venice, "name[0].locale"));
 		// the place is cited twice, with the same translation
-		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(venice, "name");
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(venice, PlaceReader.TAG_NAME);
 		Assertions.assertEquals(2, names.size());
 		final FLEFRecord translated = names.getLast();
 		Assertions.assertEquals("Venice", FLEFRecordHelper.getChildValue(translated, "value"));
-		Assertions.assertEquals("translated", FLEFRecordHelper.getChildValue(translated, "type"));
+		Assertions.assertEquals("translated", FLEFRecordHelper.getChildValue(translated, NameReader.TAG_TYPE));
 		Assertions.assertEquals("en", FLEFRecordHelper.getChildValue(translated, "locale"));
 	}
 
@@ -309,9 +325,9 @@ class GEDCOM7ToFLEFConverterTest{
 	void citations() throws IOException{
 		final FLEFModel model = convert();
 
-		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(eventOfType(model, "birth"), "source");
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(eventOfType(model, EventReader.ENUM_TYPE_BIRTH), SourceCitationReader.TAG_SOURCE);
 		final FLEFRecord citation = citations.getFirst();
-		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, "source"));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
 		Assertions.assertEquals("Folio 12", FLEFRecordHelper.getChildValue(citation, "locator"));
 		Assertions.assertEquals("la", FLEFRecordHelper.getChildValue(citation, "extract.locale"));
 		final FLEFRecord crop = FLEFRecordHelper.findChildren(citation, "extract").stream()
@@ -327,11 +343,11 @@ class GEDCOM7ToFLEFConverterTest{
 		final FLEFRecord voidCitation = citations.get(1);
 		Assertions.assertEquals("Family tradition", FLEFRecordHelper.getChildValue(voidCitation, "locator"));
 		Assertions.assertEquals("Unspecified source", FLEFRecordHelper.getChildValue(
-			model.getRecordById(FLEFRecordHelper.getChildValue(voidCitation, "source")), "title.value"));
+			model.getRecordById(FLEFRecordHelper.getChildValue(voidCitation, SourceCitationReader.TAG_SOURCE)), "title.value"));
 
 		// a call number in an unrecorded repository
 		final FLEFRecord source = model.getRecordById("S1");
-		Assertions.assertNull(FLEFRecordHelper.findChild(source, "repository"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, SourceReader.TAG_REPOSITORY));
 		Assertions.assertTrue(hasNoteWithText(source, "Call number in an unrecorded repository: 12/A"));
 	}
 
@@ -349,38 +365,73 @@ class GEDCOM7ToFLEFConverterTest{
 	void associates() throws IOException{
 		final FLEFModel model = convert();
 
-		final String birthId = eventOfType(model, "birth").getId();
-		final List<FLEFRecord> participations = recordsWith(model, "event_participation", "event", birthId);
+		final String birthId = eventOfType(model, EventReader.ENUM_TYPE_BIRTH).getId();
+		final List<FLEFRecord> participations = recordsWith(model, EventParticipationReader.TYPE, EventParticipationReader.TAG_EVENT, birthId);
 		final FLEFRecord witness = participations.stream()
 			.filter(participation -> "I3".equals(FLEFRecordHelper.getChildValue(participation, "participant.individual")))
 			.findFirst()
 			.orElseThrow();
-		Assertions.assertEquals("witness", FLEFRecordHelper.getChildValue(witness, "role"));
+		Assertions.assertEquals(EventParticipationReader.ENUM_ROLE_WITNESS, FLEFRecordHelper.getChildValue(witness, EventParticipationReader.TAG_ROLE));
 		// a kinship is not a role in the event
 		final FLEFRecord father = participations.stream()
 			.filter(participation -> "I2".equals(FLEFRecordHelper.getChildValue(participation, "participant.individual")))
 			.findFirst()
 			.orElseThrow();
-		Assertions.assertNull(FLEFRecordHelper.getChildValue(father, "role"));
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(father, EventParticipationReader.TAG_ROLE));
 		Assertions.assertEquals("Father", FLEFRecordHelper.getChildValue(noteWithTitle(father, "Role"), "text"));
 
-		final List<FLEFRecord> associations = recordsWith(model, "relationship", "type", "associate");
+		final List<FLEFRecord> associations = recordsWith(model, RelationshipReader.TYPE, RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_ASSOCIATE);
 		Assertions.assertTrue(associations.stream()
 			.anyMatch(association -> "I1".equals(FLEFRecordHelper.getChildValue(association, "target.individual"))
-				&& "Godparent".equals(FLEFRecordHelper.getChildValue(association, "role"))));
+				&& "Godparent".equals(FLEFRecordHelper.getChildValue(association, EventParticipationReader.TAG_ROLE))));
 		Assertions.assertTrue(associations.stream()
 			.anyMatch(association -> "G1".equals(FLEFRecordHelper.getChildValue(association, "target.group"))
-				&& "Friend".equals(FLEFRecordHelper.getChildValue(association, "role"))));
+				&& "Friend".equals(FLEFRecordHelper.getChildValue(association, EventParticipationReader.TAG_ROLE))));
 		// an unrecorded associate
 		Assertions.assertTrue(hasNoteWithText(model.getRecordById("I1"), "Associate: Mr Stockdale (Friend)"));
 	}
 
 	@Test
 	void nonEvent() throws IOException{
-		final FLEFRecord note = noteWithTitle(convert().getRecordById("I1"), "Did not happen");
+		final FLEFModel model = convert();
+		final FLEFRecord activity = recordsWith(model, ResearchActivityReader.TYPE, ResearchActivityReader.TAG_TARGET + ".individual", "I1")
+			.getFirst();
 
-		Assertions.assertEquals("marriage (FROM 1720 TO 1760)", FLEFRecordHelper.getChildValue(note, "text"));
-		Assertions.assertEquals("Folio 30", FLEFRecordHelper.getChildValue(note, "source.locator"));
+		Assertions.assertEquals("review", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_ACTIVITY_TYPE));
+		Assertions.assertEquals("completed", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_STATUS));
+		Assertions.assertEquals("Checked that no marriage is recorded",
+			FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_ACTION));
+		Assertions.assertEquals("negative", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_RESULT));
+		Assertions.assertEquals("Period: FROM 1720 TO 1760\nChecked the registers",
+			FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_OBSERVATION));
+		Assertions.assertEquals("Folio 30", FLEFRecordHelper.getChildValue(activity, "source.locator"));
+		//the absence of the expected information is negative evidence
+		Assertions.assertEquals(EvidenceQualifiersReader.EVIDENCE_TYPE_NEGATIVE, FLEFRecordHelper.getChildValue(activity,
+			FLEFRecordHelper.composePath(SourceCitationReader.TAG_SOURCE, SourceCitationReader.TAG_EVIDENCE, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE)));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(activity, ResearchActivityReader.TAG_AUDIT));
+		// no more a note of the individual
+		Assertions.assertNull(noteWithTitle(model.getRecordById("I1"), "Did not happen"));
+	}
+
+	@Test
+	void nonEventWithoutOptionalParts() throws IOException{
+		final FLEFRecord activity = recordsWith(convert(), ResearchActivityReader.TYPE,
+			ResearchActivityReader.TAG_TARGET + ".individual", "I3").getFirst();
+
+		Assertions.assertEquals("Checked that no death is recorded", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_ACTION));
+		Assertions.assertEquals("negative", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_RESULT));
+		Assertions.assertNull(FLEFRecordHelper.findChild(activity, ResearchActivityReader.TAG_OBSERVATION));
+		Assertions.assertNull(FLEFRecordHelper.findChild(activity, ResearchActivityReader.TAG_SOURCE));
+	}
+
+	@Test
+	void nonEventOfFamily() throws IOException{
+		final FLEFRecord activity = recordsWith(convert(), ResearchActivityReader.TYPE,
+			ResearchActivityReader.TAG_TARGET + ".group", "G1").getFirst();
+
+		Assertions.assertEquals("Checked that no marriage is recorded", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_ACTION));
+		Assertions.assertEquals("negative", FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_RESULT));
+		Assertions.assertEquals("Folio 31", FLEFRecordHelper.getChildValue(activity, "source.locator"));
 	}
 
 	@Test
@@ -390,7 +441,7 @@ class GEDCOM7ToFLEFConverterTest{
 		// the pointer to nothing (the wife) is dropped
 		Assertions.assertEquals(List.of("biological_child"), recordsWith(model, "relationship", "subject.individual", "I1").stream()
 			.filter(relationship -> "I2".equals(FLEFRecordHelper.getChildValue(relationship, "target.individual")))
-			.map(relationship -> FLEFRecordHelper.getChildValue(relationship, "type"))
+			.map(relationship -> FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE))
 			.toList());
 		final FLEFRecord religion = recordsWith(model, "group_attribute", "type", "religion").getFirst();
 		Assertions.assertEquals("Catholic", FLEFRecordHelper.getChildValue(religion, "value"));

@@ -61,7 +61,7 @@ public class AgentStructureDialog extends BaseRecordDialog{
 	private static final String CARD_NAME_TEXT = "text";
 
 	private static final String ENUM_TYPE_AGENT = "agent";
-	private static final String ENUM_TYPE_TEXT = "text";
+	private static final String ENUM_TYPE_TEXT = AgentReader.TAG_TEXT;
 
 
 	private final JPanel propertiesPanel;

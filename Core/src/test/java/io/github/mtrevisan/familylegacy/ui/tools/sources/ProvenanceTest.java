@@ -1,11 +1,38 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.ProvenanceService;
@@ -31,48 +58,48 @@ class ProvenanceTest{
 		model = new FLEFModel();
 
 		final FLEFRecord repository = FLEFRecord.createMainRecord("R1", RepositoryReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "State Archive")));
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "State Archive")));
 		final FLEFRecord register = FLEFRecord.createMainRecord("S1", SourceReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("title")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Parish register")))
-			.addChild(FLEFRecord.createChildWithTag("repository")
-				.addChild(FLEFRecord.createChildWithTagAndValue("repository", "R1")));
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Parish register")))
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_REPOSITORY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_REPOSITORY, "R1")));
 		final FLEFRecord census = FLEFRecord.createMainRecord("S2", SourceReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("title")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Census 1881")));
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Census 1881")));
 
 		individual = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
-			.addChild(citation("S1", "p. 12", "supports",
-				FLEFRecord.createChildWithTag("evidence")
-					.addChild(FLEFRecord.createChildWithTagAndValue("source_type", "original"))
-					.addChild(FLEFRecord.createChildWithTagAndValue("information_type", "primary"))
-					.addChild(FLEFRecord.createChildWithTagAndValue("evidence_type", "direct")),
-				FLEFRecord.createChildWithTag("extract")
-					.addChild(FLEFRecord.createChildWithTagAndValue("text", "born on the 3rd"))
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "verbatim"))
-					.addChild(FLEFRecord.createChildWithTag("media_part")
-						.addChild(FLEFRecord.createChildWithTagAndValue("media", "M1")))));
+			.addChild(citation("S1", "p. 12", SourceCitationReader.STANCE_SUPPORTS,
+				FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EVIDENCE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_SOURCE_TYPE, EvidenceQualifiersReader.ENUM_SOURCE_TYPE_ORIGINAL))
+					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY))
+					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT)),
+				FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, "born on the 3rd"))
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM))
+					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
+						.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, "M1")))));
 		event = FLEFRecord.createMainRecord("E1", EventReader.TYPE)
-			.addChild(citation("S2", null, "contradicts"));
+			.addChild(citation("S2", null, SourceCitationReader.STANCE_CONTRADICTS));
 		final FLEFRecord participation = FLEFRecord.createMainRecord("P1", EventParticipationReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("participant")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", "I1")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", "E1"));
+			.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I1")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, "E1"));
 		attribute = FLEFRecord.createMainRecord("A1", IndividualAttributeReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("individual", "I1"))
-			.addChild(citation("S1", "p. 40", "supports"));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I1"))
+			.addChild(citation("S1", "p. 40", SourceCitationReader.STANCE_SUPPORTS));
 
 		for(final FLEFRecord record : List.of(repository, register, census, individual, event, participation, attribute))
 			model.addRecord(record);
 	}
 
 	private static FLEFRecord citation(final String sourceId, final String locator, final String stance, final FLEFRecord... more){
-		final FLEFRecord citation = FLEFRecord.createChildWithTag("source")
-			.addChild(FLEFRecord.createChildWithTagAndValue("source", sourceId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("stance", stance));
+		final FLEFRecord citation = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, stance));
 		if(locator != null)
-			citation.addChild(FLEFRecord.createChildWithTagAndValue("locator", locator));
+			citation.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCATOR, locator));
 		for(final FLEFRecord child : more)
 			citation.addChild(child);
 		return citation;
@@ -89,9 +116,9 @@ class ProvenanceTest{
 		Assertions.assertEquals("S1", row.sourceId());
 		Assertions.assertEquals("Parish register", row.sourceTitle());
 		Assertions.assertEquals("p. 12", row.locator());
-		Assertions.assertEquals("supports", row.stance());
+		Assertions.assertEquals(SourceCitationReader.STANCE_SUPPORTS, row.stance());
 		Assertions.assertEquals("born on the 3rd", row.extractText());
-		Assertions.assertEquals("verbatim", row.extractType());
+		Assertions.assertEquals(SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM, row.extractType());
 		Assertions.assertEquals("original, primary, direct", row.evidence());
 		Assertions.assertEquals("State Archive", row.repositories());
 		Assertions.assertEquals("M1", row.documents());

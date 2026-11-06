@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
@@ -56,13 +58,13 @@ class RecordDiffLinksTest{
 	private static FLEFModel model(){
 		final FLEFModel model = new FLEFModel();
 		model.addRecord(FLEFRecord.createMainRecord("S1", SourceReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("title")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Parish register"))));
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Parish register"))));
 		for(final String id : List.of("I1", "I2"))
 			model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE)
-				.addChild(FLEFRecord.createChildWithTag("source")
-					.addChild(FLEFRecord.createChildWithTagAndValue("source", "S1")))
-				.addChild(FLEFRecord.createChildWithTagAndValue("sex", "M")));
+				.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1")))
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "M")));
 		return model;
 	}
 

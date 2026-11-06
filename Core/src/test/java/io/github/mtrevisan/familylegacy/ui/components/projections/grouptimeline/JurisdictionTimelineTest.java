@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupYearFilter;
 import io.github.mtrevisan.familylegacy.groups.JurisdictionTimelineBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
@@ -63,11 +64,11 @@ class JurisdictionTimelineTest{
 	private static final String FLEF = HEADER
 		+ place("P1", "San Martino") + place("P2", "Diocesi di Treviso") + place("P3", "Diocesi di Ceneda") + place("P4", "Comune")
 		+ place("P5", "Cappella") + place("P6", "Elsewhere")
-		+ relation("PR1", "P1", "P2", "ecclesiastical_part_of", "1700-01-01", "1818-01-01")
-		+ relation("PR2", "P1", "P3", "ecclesiastical_part_of", "1818-01-01", null)
-		+ relation("PR3", "P1", "P4", "administrative_part_of", null, null)
-		+ relation("PR4", "P5", "P1", "administrative_part_of", "1900-01-01", null)
-		+ relation("PR5", "P6", "P4", "administrative_part_of", "1900-01-01", null);
+		+ relation("PR1", "P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, "1700-01-01", "1818-01-01")
+		+ relation("PR2", "P1", "P3", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, "1818-01-01", null)
+		+ relation("PR3", "P1", "P4", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, null, null)
+		+ relation("PR4", "P5", "P1", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, "1900-01-01", null)
+		+ relation("PR5", "P6", "P4", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, "1900-01-01", null);
 
 
 	private static String place(final String id, final String name){
@@ -121,11 +122,11 @@ class JurisdictionTimelineTest{
 		final TemporalEntry diocese = bars(row(model, "P2")).getFirst();
 		final TemporalEntry municipality = bars(row(model, "P4")).getFirst();
 
-		Assertions.assertEquals("ecclesiastical_part_of", diocese.role());
-		Assertions.assertEquals("ecclesiastical_part_of", diocese.type());
-		Assertions.assertEquals(TemporalRoleColors.of("ecclesiastical_part_of"), TemporalRoleColors.of(diocese.role()));
-		Assertions.assertEquals("administrative_part_of", municipality.role());
-		Assertions.assertTrue(diocese.label().startsWith("ecclesiastical_part_of"), diocese.label());
+		Assertions.assertEquals(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, diocese.role());
+		Assertions.assertEquals(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, diocese.type());
+		Assertions.assertEquals(TemporalRoleColors.of(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF), TemporalRoleColors.of(diocese.role()));
+		Assertions.assertEquals(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, municipality.role());
+		Assertions.assertTrue(diocese.label().startsWith(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF), diocese.label());
 	}
 
 	@Test
@@ -159,7 +160,7 @@ class JurisdictionTimelineTest{
 
 		//everything has ended: the axis stops at the last end
 		final FLEFModel closed = new FLEFParser().parse(HEADER + place("P1", "A") + place("P2", "B")
-			+ relation("PR1", "P1", "P2", "ecclesiastical_part_of", "1700-01-01", "1818-01-01"));
+			+ relation("PR1", "P1", "P2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, "1700-01-01", "1818-01-01"));
 		Assertions.assertTrue(JurisdictionTimelineBuilder.build(closed, "P1").domainEnd().jdn() < today);
 	}
 
@@ -188,7 +189,7 @@ class JurisdictionTimelineTest{
 		final TemporalProjectionModel model = build("P5");
 
 		Assertions.assertEquals(List.of("P1"), ids(model));
-		Assertions.assertEquals("administrative_part_of", bars(row(model, "P1")).getFirst().type());
+		Assertions.assertEquals(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, bars(row(model, "P1")).getFirst().type());
 	}
 
 	@Test

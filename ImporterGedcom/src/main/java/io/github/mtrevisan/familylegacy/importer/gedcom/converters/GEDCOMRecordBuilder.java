@@ -24,10 +24,23 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.importer.ImportReasons;
+import io.github.mtrevisan.familylegacy.importer.PendingFile;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -39,6 +52,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.ObjectUtils;
@@ -63,6 +79,10 @@ public final class GEDCOMRecordBuilder{
 	private static final Pattern NAME_WITH_PHONETIC = Pattern.compile("^(?<name>[^/]+?)\\s*(?<phonetic>/[^/]+/)$");
 
 
+	/** The types of the events covered by the sources (DATA.EVEN), by id of the source. */
+	private static final Map<String, Set<String>> SOURCE_EVENT_TYPES = new HashMap<>();
+
+
 	private GEDCOMRecordBuilder(){}
 
 
@@ -82,8 +102,8 @@ public final class GEDCOMRecordBuilder{
 	]
 	*/
 	public static void attachNote(FLEFRecord parent,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap){
-		attachNote(parent, node, noteRawMap, null);
+			FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap){
+		attachNote(parent, model, node, noteRawMap, null);
 	}
 
 	/**
@@ -92,7 +112,7 @@ public final class GEDCOMRecordBuilder{
 	 * @param title	The title of the note, may be {@code null}.
 	 */
 	public static void attachNote(FLEFRecord parent,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, String title){
+			FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, String title){
 		if(node == null || StringUtils.isBlank(node.getValue()))
 			return;
 
@@ -105,7 +125,39 @@ public final class GEDCOMRecordBuilder{
 			return;
 
 		attachNoteFormat(note, noteNode);
+		attachNoteSources(note, model, noteNode, noteRawMap);
 		parent.addChild(note);
+	}
+
+	/**
+	 * Attaches the source citations of a NOTE (record or structure) to the NoteStructure, before its audit.
+	 * <p>
+	 * A citation of a source record not (yet) in the model is skipped, to not create a placeholder that the conversion of the
+	 * source would then clash with (it happens for the notes of the records converted before the sources).
+	 */
+	private static void attachNoteSources(final FLEFRecord note, final FLEFModel model, final GEDCOMNode noteNode,
+			final Map<String, GEDCOMNode> noteRawMap){
+		if(model == null)
+			return;
+
+		final FLEFRecord citations = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE);
+		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(noteNode, GEDCOMMapper.TAG_SOURCE)){
+			final String sourceId = GEDCOMHelper.pointer(sourNode.getValue());
+			if(sourceId == null || model.hasRecord(sourceId))
+				attachSource(citations, model, sourNode, noteRawMap);
+		}
+		// a note cannot have notes: those of the citations (see attachSource) are appended to its text
+		final List<FLEFRecord> citationNotes = FLEFRecordHelper.findChildren(citations, NoteReader.TAG_NOTE);
+		if(!citationNotes.isEmpty()){
+			citations.getChildren().removeAll(citationNotes);
+			final FLEFRecord textRecord = FLEFRecordHelper.findChild(note, NoteReader.TAG_TEXT);
+			final StringBuilder text = new StringBuilder(textRecord.getValue());
+			for(final FLEFRecord citationNote : citationNotes)
+				text.append(StringUtils.LF).append(FLEFRecordHelper.getChildValue(citationNote, NoteReader.TAG_TEXT));
+			textRecord.setValue(text.toString());
+		}
+		note.getChildren()
+			.addAll(note.getChildren().size() - 1, citations.getChildren());
 	}
 
 	/**
@@ -135,20 +187,20 @@ public final class GEDCOMRecordBuilder{
 		final List<FLEFRecord> format = new ArrayList<>();
 		final String mime = GEDCOMHelper.findFirstValue(noteNode, "MIME");
 		if(mime != null)
-			format.add(FLEFRecord.createChildWithTagAndValue("mime", mime));
-		final String locale = GEDCOMHelper.findFirstValue(noteNode, "LANG");
+			format.add(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_MIME, mime));
+		final String locale = GEDCOMHelper.findFirstValue(noteNode, GEDCOMMapper.TAG_LANGUAGE);
 		if(locale != null)
-			format.add(FLEFRecord.createChildWithTagAndValue("locale", locale));
-		for(final GEDCOMNode tranNode : GEDCOMHelper.findChildren(noteNode, "TRAN")){
+			format.add(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, locale));
+		for(final GEDCOMNode tranNode : GEDCOMHelper.findChildren(noteNode, GEDCOMMapper.TAG_TRANSLATION)){
 			final String text = StringUtils.trimToNull(GEDCOMHelper.extractFullText(tranNode));
 			if(text == null)
 				continue;
 
-			final FLEFRecord translation = FLEFRecord.createChildWithTag("translation")
-				.addChild(FLEFRecord.createChildWithTagAndValue("text", text));
-			final String translationLocale = GEDCOMHelper.findFirstValue(tranNode, "LANG");
+			final FLEFRecord translation = FLEFRecord.createChildWithTag(NoteReader.TAG_TRANSLATION)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, text));
+			final String translationLocale = GEDCOMHelper.findFirstValue(tranNode, GEDCOMMapper.TAG_LANGUAGE);
 			if(translationLocale != null)
-				translation.addChild(FLEFRecord.createChildWithTagAndValue("locale", translationLocale));
+				translation.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, translationLocale));
 			format.add(translation);
 		}
 		note.getChildren()
@@ -159,11 +211,25 @@ public final class GEDCOMRecordBuilder{
 		if(StringUtils.isBlank(text))
 			return null;
 
-		final FLEFRecord note = FLEFRecord.createChildWithTag("note");
+		final FLEFRecord note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE);
 		if(StringUtils.isNotBlank(title))
-			note.addChild(FLEFRecord.createChildWithTagAndValue("title", title));
-		return note.addChild(FLEFRecord.createChildWithTagAndValue("text", text.trim()))
+			note.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TITLE, title));
+		return note.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, text.trim()))
 			.addChild(AuditBuilder.build(node));
+	}
+
+	/**
+	 * Creates a note whose text has links to the records of the file ({@code flef:<Id>}), so it is a markdown one.
+	 *
+	 * @return	The note, or {@code null} if the text is blank.
+	 */
+	public static FLEFRecord createLinkNote(final String title, final String text, final GEDCOMNode node){
+		final FLEFRecord note = createNoteStruct(title, text, node);
+		if(note != null)
+			//the media type goes before the audit, the last field of a note
+			note.getChildren()
+				.add(note.getChildren().size() - 1, FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_MIME, GEDCOMMapper.MIME_MARKDOWN));
+		return note;
 	}
 
 
@@ -192,23 +258,30 @@ public final class GEDCOMRecordBuilder{
 		if(nameNode == null)
 			return;
 
-		final FLEFRecord name = createPersonalName(nameNode.getValue(), nameNode,
-			GEDCOMMapper.mapNameType(GEDCOMHelper.findFirstValue(nameNode, "TYPE")));
+		final String nameType = GEDCOMHelper.findFirstValue(nameNode, GEDCOMMapper.TAG_TYPE);
+		final String mappedNameType = GEDCOMMapper.mapNameType(nameType);
+		final FLEFRecord name = createPersonalName(nameNode.getValue(), nameNode, mappedNameType);
 		if(name == null)
 			return;
 
 		for(GEDCOMNode foneNode : GEDCOMHelper.findChildren(nameNode, "FONE"))
-			attachNameVariant(name, foneNode, "phonetic", "Phonetic variation");
+			attachNameVariant(name, foneNode, TextValueVariantReader.TAG_PHONETIC, "Phonetic variation");
 		for(GEDCOMNode romnNode : GEDCOMHelper.findChildren(nameNode, "ROMN"))
-			attachNameVariant(name, romnNode, "transcription", "Romanized variation");
+			attachNameVariant(name, romnNode, TextValueVariantReader.TAG_TRANSCRIPTION, "Romanized variation");
 		// GEDCOM 7 replaces FONE and ROMN with translations, distinguished by their language
-		for(GEDCOMNode tranNode : GEDCOMHelper.findChildren(nameNode, "TRAN"))
-			attachNameVariant(name, tranNode, "transcription", "Translated name");
+		for(GEDCOMNode tranNode : GEDCOMHelper.findChildren(nameNode, GEDCOMMapper.TAG_TRANSLATION))
+			attachNameVariant(name, tranNode, TextValueVariantReader.TAG_TRANSCRIPTION, "Translated name");
 
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(nameNode, "SOUR"))
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(nameNode, GEDCOMMapper.TAG_SOURCE))
 			attachSource(name, model, sourNode, noteRawMap);
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(nameNode, "NOTE"))
-			attachNote(name, noteNode, noteRawMap);
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(nameNode, GEDCOMMapper.TAG_NOTE))
+			attachNote(name, model, noteNode, noteRawMap);
+
+		//a type that is a description rather than a type (too many words) is kept as a note
+		if(nameType != null && mappedNameType == null)
+			KeptNotes.add(name, KeptNotes.TITLE_NAME_TYPE, nameType, nameNode);
+		KeptNotes.keepIdentifiers(name, nameNode, GEDCOMMapper.TAG_NAME, nameNode);
+		KeptNotes.keepUnmapped(name, nameNode, GEDCOMMapper.NAME_CONSUMED_TAGS, GEDCOMMapper.TAG_NAME, nameNode);
 
 		parent.addChild(name);
 	}
@@ -226,9 +299,9 @@ public final class GEDCOMRecordBuilder{
 		if(pieces.isEmpty())
 			return null;
 
-		final FLEFRecord name = FLEFRecord.createChildWithTag("name");
+		final FLEFRecord name = FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME);
 		if(type != null)
-			name.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+			name.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_TYPE, type));
 		for(final Map.Entry<String, List<String>> entry : pieces.entrySet())
 			for(final String piece : entry.getValue())
 				name.addChild(createNamePart(entry.getKey(), piece));
@@ -248,14 +321,14 @@ public final class GEDCOMRecordBuilder{
 			phonetic = matcher.group("phonetic");
 		}
 
-		final FLEFRecord part = FLEFRecord.createChildWithTag("part")
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type))
-			.addChild(FLEFRecord.createChildWithTagAndValue("value", partValue));
+		final FLEFRecord part = FLEFRecord.createChildWithTag(NameReader.TAG_PART)
+			.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_PART_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_PART_VALUE, partValue));
 		if(phonetic != null)
-			part.addChild(FLEFRecord.createChildWithTag("variant")
-				.addChild(FLEFRecord.createChildWithTag("phonetic")
-					.addChild(FLEFRecord.createChildWithTagAndValue("system", "ipa"))
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", phonetic))));
+			part.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART_VARIANT)
+				.addChild(FLEFRecord.createChildWithTag(TextValueVariantReader.TAG_PHONETIC)
+					.addChild(FLEFRecord.createChildWithTagAndValue(TextValueVariantReader.TAG_PHONETIC_SYSTEM, "ipa"))
+					.addChild(FLEFRecord.createChildWithTagAndValue(TextValueVariantReader.TAG_PHONETIC_VALUE, phonetic))));
 		return part;
 	}
 
@@ -282,20 +355,21 @@ public final class GEDCOMRecordBuilder{
 		}
 
 		final Map<String, List<String>> pieces = new LinkedHashMap<>();
-		putNamePieces(pieces, "prefix", GEDCOMHelper.findFirstValue(piecesNode, "NPFX"));
-		putNamePieces(pieces, "given", ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(piecesNode, "GIVN"),
+		putNamePieces(pieces, NameReader.ENUM_PART_TYPE_PREFIX, GEDCOMHelper.findFirstValue(piecesNode, "NPFX"));
+		putNamePieces(pieces, NameReader.ENUM_PART_TYPE_GIVEN, ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(piecesNode, "GIVN"),
 			StringUtils.trimToNull(given)));
-		putNamePieces(pieces, "nickname", GEDCOMHelper.findFirstValue(piecesNode, "NICK"));
+		putNamePieces(pieces, NameReader.ENUM_PART_TYPE_NICKNAME, GEDCOMHelper.findFirstValue(piecesNode, "NICK"));
 		final String surnamePrefix = GEDCOMHelper.findFirstValue(piecesNode, "SPFX");
 		final String surnames = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(piecesNode, "SURN"), StringUtils.trimToNull(surname));
 		if(surnames != null){
-			//the surname prefix (e.g. "de", "van der") is part of the family name
+			//the surname prefix (e.g. "de", "van der") is a part of its own, just before the family name (unless the surname
+			//already starts with it)
 			final String[] families = StringUtils.split(surnames, ',');
 			if(surnamePrefix != null && families.length > 0 && !Strings.CI.startsWith(families[0].trim(), surnamePrefix))
-				families[0] = surnamePrefix + StringUtils.SPACE + families[0].trim();
-			putNamePieces(pieces, "family", String.join(",", families));
+				putNamePieces(pieces, NameReader.ENUM_PART_TYPE_FAMILY_PREFIX, surnamePrefix);
+			putNamePieces(pieces, NameReader.ENUM_PART_TYPE_FAMILY, String.join(",", families));
 		}
-		putNamePieces(pieces, "suffix", ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(piecesNode, "NSFX"),
+		putNamePieces(pieces, NameReader.ENUM_PART_TYPE_SUFFIX, ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(piecesNode, "NSFX"),
 			StringUtils.trimToNull(suffix)));
 		return pieces;
 	}
@@ -322,24 +396,24 @@ public final class GEDCOMRecordBuilder{
 	 */
 	private static void attachNameVariant(final FLEFRecord name, final GEDCOMNode variantNode, final String kind,
 			final String noteTitle){
-		final String typeValue = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(variantNode, "TYPE"), GEDCOMHelper.findFirstValue(variantNode, "LANG"));
-		final String system = ObjectUtils.firstNonNull(GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(variantNode, "TYPE")),
+		final String typeValue = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(variantNode, GEDCOMMapper.TAG_TYPE), GEDCOMHelper.findFirstValue(variantNode, GEDCOMMapper.TAG_LANGUAGE));
+		final String system = ObjectUtils.firstNonNull(GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(variantNode, GEDCOMMapper.TAG_TYPE)),
 			"unspecified");
 		// the language of a translation tells how the name was adapted (e.g. anglicized, romanized)
-		final String transcriptionType = ("transcription".equals(kind)
-			? GEDCOMMapper.mapTranslationType(GEDCOMHelper.findFirstValue(variantNode, "LANG"))
+		final String transcriptionType = (TextValueVariantReader.TAG_TRANSCRIPTION.equals(kind)
+			? GEDCOMMapper.mapTranslationType(GEDCOMHelper.findFirstValue(variantNode, GEDCOMMapper.TAG_LANGUAGE))
 			: null);
 
 		final Map<String, List<String>> pieces = extractNamePieces(variantNode.getValue(), variantNode);
 		final Map<String, Integer> occurrences = new HashMap<>();
-		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(name, "part");
+		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(name, NameReader.TAG_PART);
 		//a variation without the surname delimiters cannot be matched to the parts of a name made of more parts
 		final boolean splittable = (parts.size() == 1 || StringUtils.contains(variantNode.getValue(), '/')
 			|| GEDCOMHelper.findFirstChild(variantNode, "GIVN") != null || GEDCOMHelper.findFirstChild(variantNode, "SURN") != null);
 		boolean attached = false;
 		if(splittable)
 			for(final FLEFRecord part : parts){
-				final String partType = FLEFRecordHelper.getChildValue(part, "type");
+				final String partType = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
 				final int index = occurrences.merge(partType, 1, Integer::sum) - 1;
 				List<String> values = pieces.get(partType);
 				if(values == null && parts.size() == 1)
@@ -348,11 +422,11 @@ public final class GEDCOMRecordBuilder{
 						.toList();
 				if(values != null && index < values.size()){
 					final FLEFRecord variant = FLEFRecord.createChildWithTag(kind)
-						.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
+						.addChild(FLEFRecord.createChildWithTagAndValue(TextValueVariantReader.TAG_TRANSCRIPTION_SYSTEM, system));
 					if(transcriptionType != null)
-						variant.addChild(FLEFRecord.createChildWithTagAndValue("type", transcriptionType));
-					part.addChild(FLEFRecord.createChildWithTag("variant")
-						.addChild(variant.addChild(FLEFRecord.createChildWithTagAndValue("value", values.get(index)))));
+						variant.addChild(FLEFRecord.createChildWithTagAndValue(TextValueVariantReader.TAG_TRANSCRIPTION_TYPE, transcriptionType));
+					part.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART_VARIANT)
+						.addChild(variant.addChild(FLEFRecord.createChildWithTagAndValue(TextValueVariantReader.TAG_TRANSCRIPTION_VALUE, values.get(index)))));
 					attached = true;
 				}
 			}
@@ -409,8 +483,8 @@ public final class GEDCOMRecordBuilder{
 			if(source == null){
 				// dangling pointer: keep the citation with a placeholder source
 				source = FLEFRecord.createMainRecord(sourceId, SourceReader.TYPE)
-					.addChild(FLEFRecord.createChildWithTag("title")
-						.addChild(FLEFRecord.createChildWithTagAndValue("value", "Source " + sourceId)))
+					.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+						.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Source " + sourceId)))
 					.addChild(AuditBuilder.build(node));
 				model.addRecord(source);
 			}
@@ -419,8 +493,8 @@ public final class GEDCOMRecordBuilder{
 			// a source description: the text is the title of an unrecorded source (GEDCOM 7 cites it as @VOID@, without text)
 			final String description = ObjectUtils.firstNonNull(StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)), "Unspecified source");
 			source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
-				.addChild(FLEFRecord.createChildWithTag("title")
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", description)))
+				.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, description)))
 				.addChild(AuditBuilder.build(node));
 			sourceId = Deduplicator.getDeduplicatedRecordId(model, source);
 			source = model.getRecordById(sourceId);
@@ -429,13 +503,13 @@ public final class GEDCOMRecordBuilder{
 		final String page = GEDCOMHelper.findFirstValue(node, "PAGE");
 		if(page != null)
 			locator.add(page);
-		final GEDCOMNode evenNode = GEDCOMHelper.findFirstChild(node, "EVEN");
+		final GEDCOMNode evenNode = GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_GENERIC_EVENT);
 		if(evenNode != null && StringUtils.isNotBlank(evenNode.getValue())){
-			final String role = GEDCOMHelper.findFirstValue(evenNode, "ROLE");
+			final String role = GEDCOMHelper.findFirstValue(evenNode, GEDCOMMapper.TAG_ROLE);
 			locator.add("Event: " + evenNode.getValue().trim() + (role != null? " (role: " + role + ")": StringUtils.EMPTY));
 		}
 		final GEDCOMNode dataNode = GEDCOMHelper.findFirstChild(node, "DATA");
-		final String entryDate = GEDCOMHelper.findFirstValue(dataNode, "DATE");
+		final String entryDate = GEDCOMHelper.findFirstValue(dataNode, GEDCOMMapper.TAG_DATE);
 		if(entryDate != null)
 			locator.add("Date: " + entryDate);
 
@@ -445,50 +519,135 @@ public final class GEDCOMRecordBuilder{
 		for(final GEDCOMNode textNode : textNodes){
 			final String text = GEDCOMHelper.extractFullText(textNode);
 			if(StringUtils.isNotBlank(text)){
-				final FLEFRecord extract = FLEFRecord.createChildWithTag("extract")
-					.addChild(FLEFRecord.createChildWithTagAndValue("text", text.trim()))
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "verbatim"));
+				final FLEFRecord extract = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, text.trim()))
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM));
 				// GEDCOM 7 states the language of the text
-				final String locale = GEDCOMHelper.findFirstValue(textNode, "LANG");
+				final String locale = GEDCOMHelper.findFirstValue(textNode, GEDCOMMapper.TAG_LANGUAGE);
 				if(locale != null)
-					extract.addChild(FLEFRecord.createChildWithTagAndValue("locale", locale));
+					extract.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCALE, locale));
 				extracts.add(extract);
 			}
 		}
-		for(final GEDCOMNode objeNode : GEDCOMHelper.findChildren(node, "OBJE")){
+		for(final GEDCOMNode objeNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_MULTIMEDIA)){
 			final FLEFRecord crop = buildCrop(objeNode);
 			for(final String mediaId : resolveMedia(model, objeNode, noteRawMap)){
 				// a media of an extract must be a media of the source
 				addMediaReference(source, mediaId);
-				extracts.add(FLEFRecord.createChildWithTag("extract")
-					.addChild(FLEFRecord.createChildWithTag("media_part")
-						.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId))
+				extracts.add(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
+					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
+						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_MEDIA, mediaId))
 						.addChild(crop)));
 			}
 		}
 
-		final FLEFRecord citation = FLEFRecord.createChildWithTag("source")
-			.addChild(FLEFRecord.createChildWithTagAndValue("source", sourceId));
+		final FLEFRecord citation = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId));
 		if(!locator.isEmpty())
-			citation.addChild(FLEFRecord.createChildWithTagAndValue("locator", String.join(", ", locator)));
-		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, "NOTE")){
+			citation.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCATOR, String.join(", ", locator)));
+		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_NOTE)){
 			if(extracts.isEmpty())
-				attachNote(parent, noteNode, noteRawMap, "Citation of " + sourceId);
+				attachNote(parent, model, noteNode, noteRawMap, "Citation of " + sourceId);
 			else{
 				final String noteId = GEDCOMHelper.pointer(noteNode.getValue());
 				final String text = GEDCOMHelper.extractFullText(noteId != null && noteRawMap != null? noteRawMap.get(noteId): noteNode);
 				if(StringUtils.isNotBlank(text))
 					extracts.getFirst()
-						.addChild(FLEFRecord.createChildWithTagAndValue("remark", text.trim()));
+						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, text.trim()));
 			}
 		}
 		for(final FLEFRecord extract : extracts)
 			citation.addChild(extract);
 		//GEDCOM has no way to cite a source against an assertion
 		citation.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS));
-		citation.addChild(buildEvidence(node));
+		citation.addChild(adjustEvidence(buildEvidence(node), node, parent, sourceId));
 
 		parent.addChild(citation);
+	}
+
+	/** Registers the types of the events a source covers (the values of its DATA.EVEN), by the id of the source. */
+	public static void registerSourceEventTypes(final String sourceId, final Set<String> eventTypes){
+		if(!eventTypes.isEmpty())
+			SOURCE_EVENT_TYPES.put(sourceId, eventTypes);
+	}
+
+	/** Forgets the types of the events covered by the sources, call it before a conversion. */
+	public static void resetSourceEventTypes(){
+		SOURCE_EVENT_TYPES.clear();
+	}
+
+	/** Maps a list of GEDCOM event types (e.g. {@code BIRT, CHR}) to the FLEF types of the events and of the attributes. */
+	public static Set<String> mapEventTypes(final String gedcomEventTypes){
+		final Set<String> types = new HashSet<>();
+		if(gedcomEventTypes != null)
+			for(final String gedcomType : StringUtils.split(gedcomEventTypes, ", ;")){
+				types.add(GEDCOMMapper.mapEvent(gedcomType, gedcomType));
+				types.add(GEDCOMMapper.mapAttribute(gedcomType, gedcomType));
+			}
+		return types;
+	}
+
+	/**
+	 * Adjusts the evidence qualifiers of a citation to the event it is attached to.
+	 * <p>
+	 * The event recorded by the cited entry (the {@code EVEN} of the citation or, if it has none, the {@code DATA.EVEN} of the
+	 * source) is compared to the type of the event (or attribute, or relationship) the citation is attached to: when they are the
+	 * same, the source states the event ({@code direct}); when they differ (e.g. a baptism cited for a birth, a burial for a
+	 * death) the source only implies it ({@code indirect}), and its information cannot be primary. With no information on the
+	 * cited event, the evidence is left as is.
+	 *
+	 * @param evidence	The evidence built from the QUAY, may be {@code null}.
+	 * @param parent	The record the citation is attached to.
+	 * @return	The evidence, may be {@code null}.
+	 */
+	private static FLEFRecord adjustEvidence(final FLEFRecord evidence, final GEDCOMNode citationNode, final FLEFRecord parent,
+			final String sourceId){
+		if(ResearchActivityReader.isOfType(parent)){
+			//the sources of a 'did not occur' assertion contribute through the absence of the expected information
+			final FLEFRecord negative = (evidence != null? evidence: FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EVIDENCE));
+			final FLEFRecord type = FLEFRecordHelper.findChild(negative, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE);
+			if(type != null)
+				type.setValue(EvidenceQualifiersReader.EVIDENCE_TYPE_NEGATIVE);
+			else
+				negative.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE,
+					EvidenceQualifiersReader.EVIDENCE_TYPE_NEGATIVE));
+			return negative;
+		}
+
+		final boolean isEvent = EventReader.isOfType(parent);
+		if(!isEvent && !IndividualAttributeReader.isOfType(parent) && !RelationshipReader.isOfType(parent))
+			return evidence;
+
+		final String type = FLEFRecordHelper.getChildValue(parent, EventReader.TAG_TYPE);
+		if(type == null)
+			return evidence;
+
+		Set<String> citedTypes = mapEventTypes(GEDCOMHelper.findFirstValue(citationNode, GEDCOMMapper.TAG_GENERIC_EVENT));
+		//what the source covers is known only for the events
+		if(citedTypes.isEmpty() && isEvent)
+			citedTypes = SOURCE_EVENT_TYPES.getOrDefault(sourceId, Set.of());
+		if(citedTypes.isEmpty())
+			return evidence;
+
+		final FLEFRecord adjusted = (evidence != null? evidence: FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EVIDENCE));
+		final FLEFRecord evidenceType = FLEFRecordHelper.findChild(adjusted, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE);
+		if(citedTypes.contains(type)){
+			if(evidenceType == null)
+				adjusted.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE,
+					EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT));
+			return adjusted;
+		}
+
+		//the source is about a different event: it implies the assertion, it does not state it
+		if(evidenceType != null)
+			evidenceType.setValue(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT);
+		else
+			adjusted.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE,
+				EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT));
+		final FLEFRecord informationType = FLEFRecordHelper.findChild(adjusted, EvidenceQualifiersReader.TAG_INFORMATION_TYPE);
+		if(informationType != null && EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY.equals(informationType.getValue()))
+			informationType.setValue(EvidenceQualifiersReader.INFORMATION_TYPE_SECONDARY);
+		return adjusted;
 	}
 
 	/**
@@ -505,14 +664,14 @@ public final class GEDCOMRecordBuilder{
 		if(quay == null)
 			return null;
 
-		final FLEFRecord evidence = FLEFRecord.createChildWithTag("evidence");
+		final FLEFRecord evidence = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EVIDENCE);
 		switch(quay){
-			case "3" -> evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type",
+			case "3" -> evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE,
 					EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY))
-				.addChild(FLEFRecord.createChildWithTagAndValue("evidence_type", "direct"));
-			case "2" -> evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type",
+				.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT));
+			case "2" -> evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE,
 				EvidenceQualifiersReader.INFORMATION_TYPE_SECONDARY));
-			default -> evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type",
+			default -> evidence.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE,
 				EvidenceQualifiersReader.INFORMATION_TYPE_UNDETERMINED));
 		}
 		return evidence;
@@ -549,30 +708,35 @@ public final class GEDCOMRecordBuilder{
 			return;
 		}
 
+		//a CROP without width or height cannot be stored
+		final GEDCOMNode cropNode = GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_CROP);
+		if(!mediaIds.isEmpty() && cropNode != null && buildCrop(node) == null)
+			GEDCOMImportContext.discard(ImportReasons.MEDIA_DETAIL, cropNode, GEDCOMMapper.TAG_MULTIMEDIA);
+
 		final boolean preferred = ("Y".equalsIgnoreCase(GEDCOMHelper.findFirstValue(node, "_PRIMARY"))
 			|| "Y".equalsIgnoreCase(GEDCOMHelper.findFirstValue(node, "_PREF")));
 		final boolean canHavePreferredImage = (IndividualReader.isOfType(parent) || GroupReader.isOfType(parent));
 		for(final String mediaId : mediaIds){
-			if(preferred && canHavePreferredImage && FLEFRecordHelper.findChild(parent, "preferred_image") == null)
-				parent.addChild(FLEFRecord.createChildWithTag("preferred_image")
-					.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId))
+			if(preferred && canHavePreferredImage && FLEFRecordHelper.findChild(parent, IndividualReader.TAG_PREFERRED_IMAGE) == null)
+				parent.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_PREFERRED_IMAGE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(CropReader.TAG_MEDIA, mediaId))
 					.addChild(buildCrop(node)));
 
 			final FLEFRecord media = model.getRecordById(mediaId);
-			final String title = ObjectUtils.firstNonNull(FLEFRecordHelper.getChildValue(media, "description"),
+			final String title = ObjectUtils.firstNonNull(FLEFRecordHelper.getChildValue(media, MediaReader.TAG_DESCRIPTION),
 				"Media " + mediaId);
 			final FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
-				.addChild(FLEFRecord.createChildWithTag("title")
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", title)))
-				.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId))
+				.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, title)))
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, mediaId))
 				.addChild(AuditBuilder.build(node));
 			final String sourceId = Deduplicator.getDeduplicatedRecordId(model, source);
 
-			parent.addChild(FLEFRecord.createChildWithTag("source")
-				.addChild(FLEFRecord.createChildWithTagAndValue("source", sourceId))
-				.addChild(FLEFRecord.createChildWithTag("extract")
-					.addChild(FLEFRecord.createChildWithTag("media_part")
-						.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId))
+			parent.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId))
+				.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
+					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
+						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_MEDIA, mediaId))
 						.addChild(buildCrop(node))))
 				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS)));
 		}
@@ -591,54 +755,92 @@ public final class GEDCOMRecordBuilder{
 			return (model.hasRecord(objeId)? List.of(objeId): List.of());
 
 		final List<String> mediaIds = new ArrayList<>();
-		for(final GEDCOMNode fileNode : GEDCOMHelper.findChildren(node, "FILE")){
+		final List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(node, "FILE");
+		if(fileNodes.isEmpty() && GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_BLOB) != null){
+			//an embedded file (BLOB, GEDCOM 5.5)
+			final FLEFRecord media = FLEFRecord.createMainRecord(IDGenerator.nextId(MediaReader.ID_PREFIX), MediaReader.TYPE);
+			fillMediaRecord(media, model, node, null, noteRawMap);
+			final String mediaId = Deduplicator.getDeduplicatedRecordId(model, media);
+			registerEmbeddedFile(mediaId, node);
+			mediaIds.add(mediaId);
+		}
+		for(final GEDCOMNode fileNode : fileNodes){
 			final FLEFRecord media = FLEFRecord.createMainRecord(IDGenerator.nextId(MediaReader.ID_PREFIX),
 				MediaReader.TYPE);
-			fillMediaRecord(media, node, fileNode, noteRawMap);
+			fillMediaRecord(media, model, node, fileNode, noteRawMap);
 			mediaIds.add(Deduplicator.getDeduplicatedRecordId(model, media));
 		}
 		return mediaIds;
 	}
 
 	/**
+	 * Decodes the BLOB (GEDCOM 5.5) of a multimedia record or link, and registers it as a file that the application must write to
+	 * disk and set as the uri of the media. A BLOB that cannot be decoded is reported.
+	 *
+	 * @param mediaId	The id of the MediaRecord.
+	 */
+	static void registerEmbeddedFile(final String mediaId, final GEDCOMNode objeNode){
+		final GEDCOMNode blobNode = GEDCOMHelper.findFirstChild(objeNode, GEDCOMMapper.TAG_BLOB);
+		if(blobNode == null)
+			return;
+
+		final byte[] data = GEDCOMBlobDecoder.decode(blobNode);
+		if(data == null || data.length == 0){
+			GEDCOMImportContext.discard(ImportReasons.MEDIA_DETAIL, blobNode, (objeNode.getXrefId() != null? StringUtils.EMPTY
+				: GEDCOMMapper.TAG_MULTIMEDIA));
+			return;
+		}
+
+		final String format = StringUtils.lowerCase(GEDCOMHelper.findFirstValue(objeNode, GEDCOMMapper.TAG_FORM));
+		final StringBuilder extension = new StringBuilder();
+		for(final char c : StringUtils.defaultString(format).toCharArray())
+			if(Character.isLetterOrDigit(c) && c < 128)
+				extension.append(c);
+		final String suffix = ("jpeg".contentEquals(extension)? "jpg": (extension.isEmpty()? "bin": extension.toString()));
+		GEDCOMImportContext.addPendingFile(new PendingFile(mediaId, mediaId + "." + suffix, data));
+	}
+
+	/**
 	 * Fills a MediaRecord from a multimedia record or link and one of its files.
 	 * <p>
 	 * The kind comes from the media type (FORM.TYPE, or FORM.MEDI), else from the format (FORM), else from the extension of the
-	 * file. The format, the media type, and the custom date ({@code _DATE}) and publisher ({@code _PUBL}) have no place in a
-	 * MediaRecord, and become notes.
+	 * file. The custom date ({@code _DATE}) is the date of the media (kept as a note when it cannot be normalized). The format,
+	 * the media type, and the custom publisher ({@code _PUBL}) have no place in a MediaRecord, and become notes.
 	 *
 	 * @param fileNode	The FILE, may be {@code null}.
 	 */
-	public static void fillMediaRecord(final FLEFRecord media, final GEDCOMNode objeNode, final GEDCOMNode fileNode,
+	public static void fillMediaRecord(final FLEFRecord media, final FLEFModel model, final GEDCOMNode objeNode, final GEDCOMNode fileNode,
 			final Map<String, GEDCOMNode> noteRawMap){
+		//the uri of a media with an embedded file (BLOB, GEDCOM 5.5) is a placeholder, until the file is written (see registerEmbeddedFile)
 		final String uri = (fileNode != null? StringUtils.trimToNull(fileNode.getValue()): null);
 		// 5.5.1 has FORM under FILE, 5.5 under OBJE
 		final GEDCOMNode formNode = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstChild(fileNode, "FORM"), GEDCOMHelper.findFirstChild(objeNode, "FORM"));
 		final String format = (formNode != null? StringUtils.trimToNull(formNode.getValue()): null);
-		final String mediaType = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(formNode, "TYPE"), GEDCOMHelper.findFirstValue(formNode, "MEDI"));
-		media.addChild(FLEFRecord.createChildWithTagAndValue("uri", ObjectUtils.firstNonNull(uri, "unknown")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("kind", GEDCOMMapper.mapMediaKind(mediaType, format, uri)));
+		final String mediaType = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(formNode, GEDCOMMapper.TAG_TYPE), GEDCOMHelper.findFirstValue(formNode, "MEDI"));
+		media.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_URI, ObjectUtils.firstNonNull(uri, "unknown")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_KIND, GEDCOMMapper.mapMediaKind(mediaType, format, uri)));
 
-		final String title = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(fileNode, "TITL"), GEDCOMHelper.findFirstValue(objeNode, "TITL"));
+		final String title = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(fileNode, GEDCOMMapper.TAG_TITLE), GEDCOMHelper.findFirstValue(objeNode, GEDCOMMapper.TAG_TITLE));
 		if(title != null)
-			media.addChild(FLEFRecord.createChildWithTagAndValue("description", title));
+			media.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_DESCRIPTION, title));
 
+		//the custom date is the one the media was created (a date that cannot be normalized is kept as a note)
+		attachDate(media, MediaReader.TAG_DATE, GEDCOMHelper.findFirstValue(objeNode, "_DATE"));
 		media.addChild(createNoteStruct("Format", format, objeNode))
-			.addChild(createNoteStruct("Media type", mediaType, objeNode))
-			.addChild(createNoteStruct("Date", GEDCOMHelper.findFirstValue(objeNode, "_DATE"), objeNode));
+			.addChild(createNoteStruct("Media type", mediaType, objeNode));
 		final String publisher = GEDCOMHelper.findFirstValue(objeNode, "_PUBL");
 		if(publisher != null && !GEDCOMHelper.isFlag(publisher))
 			media.addChild(createNoteStruct("Published by", publisher, objeNode));
 		// GEDCOM 7 alternative versions of the file (e.g. a thumbnail, a transcription)
-		for(final GEDCOMNode tranNode : GEDCOMHelper.findChildren(fileNode, "TRAN")){
+		for(final GEDCOMNode tranNode : GEDCOMHelper.findChildren(fileNode, GEDCOMMapper.TAG_TRANSLATION)){
 			final String tranUri = StringUtils.trimToNull(tranNode.getValue());
 			final String tranFormat = GEDCOMHelper.findFirstValue(tranNode, "FORM");
 			if(tranUri != null)
 				media.addChild(createNoteStruct("Alternative file",
 					tranUri + (tranFormat != null? " (" + tranFormat + ")": StringUtils.EMPTY), objeNode));
 		}
-		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(objeNode, "NOTE"))
-			attachNote(media, noteNode, noteRawMap);
+		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(objeNode, GEDCOMMapper.TAG_NOTE))
+			attachNote(media, model, noteNode, noteRawMap);
 
 		attachRestriction(media, objeNode);
 		media.addChild(AuditBuilder.build(objeNode));
@@ -646,10 +848,10 @@ public final class GEDCOMRecordBuilder{
 
 	/** Adds a reference to a media to a SourceRecord, if not already there. */
 	private static void addMediaReference(final FLEFRecord source, final String mediaId){
-		final boolean present = FLEFRecordHelper.findChildren(source, "media").stream()
+		final boolean present = FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA).stream()
 			.anyMatch(reference -> mediaId.equals(reference.getValue()));
 		if(!present)
-			source.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaId));
+			source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, mediaId));
 	}
 
 	/*
@@ -688,11 +890,11 @@ public final class GEDCOMRecordBuilder{
 			if(w <= 0 || h <= 0)
 				return null;
 
-			return FLEFRecord.createChildWithTag("crop")
-				.addChild(FLEFRecord.createChildWithTagAndValue("x", String.valueOf(Integer.parseInt(x))))
-				.addChild(FLEFRecord.createChildWithTagAndValue("y", String.valueOf(Integer.parseInt(y))))
-				.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)))
-				.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
+			return FLEFRecord.createChildWithTag(CropReader.TAG_CROP)
+				.addChild(FLEFRecord.createChildWithTagAndValue(CropReader.TAG_X, String.valueOf(Integer.parseInt(x))))
+				.addChild(FLEFRecord.createChildWithTagAndValue(CropReader.TAG_Y, String.valueOf(Integer.parseInt(y))))
+				.addChild(FLEFRecord.createChildWithTagAndValue(CropReader.TAG_WIDTH, String.valueOf(w)))
+				.addChild(FLEFRecord.createChildWithTagAndValue(CropReader.TAG_HEIGHT, String.valueOf(h)));
 		}
 		catch(final NumberFormatException ignored){
 			return null;
@@ -724,10 +926,10 @@ public final class GEDCOMRecordBuilder{
 	public static FLEFRecord createEvent(FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap,
 			PlaceCache placeCache){
 		final String tag = node.getTag();
-		final String typeValue = GEDCOMHelper.findFirstValue(node, "TYPE");
+		final String typeValue = GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_TYPE);
 		final String type = GEDCOMMapper.mapEventType(tag, typeValue);
 		final FLEFRecord event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventReader.ID_PREFIX), EventReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, type));
 
 		// Description: the value of the event (e.g. of EVEN), or else a TYPE that does not give the type of the event
 		final boolean typeConsumed = (GEDCOMMapper.TAG_GENERIC_EVENT.equals(tag) && GEDCOMMapper.toTypeToken(typeValue) != null);
@@ -739,18 +941,59 @@ public final class GEDCOMRecordBuilder{
 				event.addChild(createNoteStruct("Type", typeValue, node));
 		}
 		if(description != null)
-			event.addChild(FLEFRecord.createChildWithTagAndValue("description", description));
+			event.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_DESCRIPTION, description));
 
-		attachDate(event, "date", GEDCOMHelper.findFirstValue(node, "DATE"));
-		attachPlaceCitation(event, model, GEDCOMHelper.findFirstChild(node, "PLAC"), GEDCOMHelper.findFirstChild(node, "ADDR"), noteRawMap, placeCache);
+		attachDate(event, EventReader.TAG_DATE, GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_DATE));
+		final FLEFRecord place = attachPlaceCitation(event, model, GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_PLACE),
+			GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_ADDRESS), noteRawMap, placeCache);
 
 		final String cause = GEDCOMHelper.findFirstValue(node, "CAUS");
 		if(cause != null)
-			event.addChild(FLEFRecord.createChildWithTag("cause")
-				.addChild(FLEFRecord.createChildWithTagAndValue("reason", cause)));
+			event.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_CAUSE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_REASON, cause)));
 
-		attachEventDetail(event, model, node, noteRawMap);
+		attachEventDetail(event, place, model, node, noteRawMap);
 		return event;
+	}
+
+	/**
+	 * Creates a ResearchTaskRecord from a custom to-do tag ({@code _TODO}), and adds it to the model.
+	 * <p>
+	 * The description is the text of the tag, or else its {@code DESC} or {@code NOTE}; the task is open. A task has no field for
+	 * the person or the family it is about, so a research question targeting it is created and the task is linked to that question.
+	 *
+	 * @param targetTag	The tag of the target of the question ({@link AgentReader#TAG_INDIVIDUAL} or {@link AgentReader#TAG_GROUP}).
+	 * @param targetId	The ID of the individual or the group the to-do is about.
+	 * @return	The task, or {@code null} if the tag holds no text.
+	 */
+	public static FLEFRecord createResearchTask(final FLEFModel model, final GEDCOMNode node, final Map<String, GEDCOMNode> noteRawMap,
+			final String targetTag, final String targetId){
+		String description = (!GEDCOMHelper.isFlag(node.getValue())? StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)): null);
+		if(description == null)
+			description = StringUtils.trimToNull(GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_DESCRIPTION)));
+		if(description == null)
+			description = StringUtils.trimToNull(GEDCOMHelper.extractFullText(resolveNote(GEDCOMHelper.findFirstChild(node,
+				GEDCOMMapper.TAG_NOTE), noteRawMap)));
+		if(description == null)
+			return null;
+
+		final FLEFRecord question = FLEFRecord.createMainRecord(IDGenerator.nextId(ResearchQuestionReader.ID_PREFIX),
+				ResearchQuestionReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, description))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_QUESTION, description))
+			.addChild(FLEFRecord.createChildWithTag(ResearchQuestionReader.TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(targetTag, targetId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_STATUS, ResearchQuestionReader.ENUM_STATUS_OPEN))
+			.addChild(AuditBuilder.build(node));
+		model.addRecord(question);
+
+		final FLEFRecord task = FLEFRecord.createMainRecord(IDGenerator.nextId(ResearchTaskReader.ID_PREFIX), ResearchTaskReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_DESCRIPTION, description))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_QUESTION, question.getId()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchTaskReader.TAG_STATUS, ResearchTaskReader.ENUM_STATUS_OPEN))
+			.addChild(AuditBuilder.build(node));
+		model.addRecord(task);
+		return task;
 	}
 
 	/**
@@ -762,7 +1005,7 @@ public final class GEDCOMRecordBuilder{
 	public static FLEFRecord createIndividualAttribute(FLEFModel model, String individualId, GEDCOMNode node, String type,
 			Map<String, GEDCOMNode> noteRawMap, PlaceCache placeCache){
 		final String tag = node.getTag();
-		final String typeValue = GEDCOMHelper.findFirstValue(node, "TYPE");
+		final String typeValue = GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_TYPE);
 		boolean typeConsumed = (type != null);
 		if(type == null){
 			type = GEDCOMMapper.mapAttribute(tag, tag);
@@ -774,8 +1017,8 @@ public final class GEDCOMRecordBuilder{
 
 		final FLEFRecord attribute = FLEFRecord.createMainRecord(IDGenerator.nextId(IndividualAttributeReader.ID_PREFIX),
 				IndividualAttributeReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("individual", individualId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, individualId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, type));
 
 		// Value: the value of the attribute, or else its TYPE (that some programs use to hold it)
 		String value = (!GEDCOMHelper.isFlag(node.getValue())? StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)): null);
@@ -786,36 +1029,70 @@ public final class GEDCOMRecordBuilder{
 				attribute.addChild(createNoteStruct("Type", typeValue, node));
 		}
 		if(value != null)
-			attribute.addChild(FLEFRecord.createChildWithTagAndValue("value", value));
+			attribute.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, value));
 
-		attachValidity(attribute, GEDCOMHelper.findFirstValue(node, "DATE"));
-		attachPlaceCitation(attribute, model, GEDCOMHelper.findFirstChild(node, "PLAC"), GEDCOMHelper.findFirstChild(node, "ADDR"), noteRawMap,
-			placeCache);
+		attachValidity(attribute, GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_DATE));
+		final FLEFRecord place = attachPlaceCitation(attribute, model, GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_PLACE),
+			GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_ADDRESS), noteRawMap, placeCache);
 
 		// Cause and age have no place in an attribute
 		attribute.addChild(createNoteStruct("Cause", GEDCOMHelper.findFirstValue(node, "CAUS"), node));
-		attribute.addChild(createNoteStruct("Age", GEDCOMHelper.findFirstValue(node, "AGE"), node));
+		attribute.addChild(createNoteStruct(AgeBirthConverter.AGE_NOTE_TITLE, GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_AGE), node));
 
-		attachEventDetail(attribute, model, node, noteRawMap);
+		attachEventDetail(attribute, place, model, node, noteRawMap);
 		return attribute;
 	}
 
-	/** Attaches the details shared by events and attributes, the audit, and adds the record to the model. */
-	private static void attachEventDetail(FLEFRecord record, FLEFModel model, GEDCOMNode node,
-			Map<String, GEDCOMNode> noteRawMap){
-		attachNote(record, GEDCOMHelper.findFirstChild(node, "AGNC"), noteRawMap, "Agency");
-		attachNote(record, GEDCOMHelper.findFirstChild(node, "RELI"), noteRawMap, "Religion");
-		// LDS ordinances
-		attachNote(record, GEDCOMHelper.findFirstChild(node, "TEMP"), noteRawMap, "Temple");
-		attachNote(record, GEDCOMHelper.findFirstChild(node, "STAT"), noteRawMap, "Status");
+	/**
+	 * Keeps, as notes of an event or of an attribute, what has no field in FLEF: the identifiers, the places beyond the first one,
+	 * the contact data of the address (on the place built from the address), the date of the status of an LDS ordinance, and the
+	 * tags that are not read.
+	 *
+	 * @param place	The place of the event, may be {@code null}.
+	 */
+	public static void keepEventLosses(final FLEFRecord record, final FLEFRecord place, final GEDCOMNode node){
+		final String path = node.getTag();
+		KeptNotes.keepIdentifiers(record, node, path, node);
 
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, "SOUR"))
+		final List<GEDCOMNode> places = GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_PLACE);
+		for(int i = 1; i < places.size(); i ++)
+			if(GEDCOMImportContext.isSignificant(places.get(i)))
+				KeptNotes.keepOtherPlace(record, places.get(i), node);
+
+		KeptNotes.keepContactData(record, place, node);
+
+		final GEDCOMNode statusDate = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_STATUS),
+			GEDCOMMapper.TAG_DATE);
+		if(statusDate != null && StringUtils.isNotBlank(statusDate.getValue()))
+			KeptNotes.add(record, KeptNotes.TITLE_STATUS_DATE, KeptNotes.TITLE_STATUS_DATE + ": " + statusDate.getValue().trim(), node);
+
+		KeptNotes.keepUnmapped(record, node, GEDCOMMapper.EVENT_CONSUMED_TAGS, path, node);
+	}
+
+	/** Attaches the details shared by events and attributes, the audit, and adds the record to the model. */
+	private static void attachEventDetail(FLEFRecord record, FLEFRecord place, FLEFModel model, GEDCOMNode node,
+			Map<String, GEDCOMNode> noteRawMap){
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "AGNC"), noteRawMap, "Agency");
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "RELI"), noteRawMap, "Religion");
+		// LDS ordinances
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "TEMP"), noteRawMap, "Temple");
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "STAT"), noteRawMap, "Status");
+		// the family a child was sealed to (LDS ordinance): the group has the same id as the FAM record, converted or not yet
+		if(GEDCOMMapper.TAG_SEALING_CHILD.equalsIgnoreCase(node.getTag())){
+			final String familyId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_FAMILY_CHILD));
+			if(familyId != null)
+				record.addChild(createLinkNote("Sealed to family", "Sealed to the family [" + familyId + "](" + GEDCOMMapper.FLEF_LINK_PREFIX
+					+ familyId + ")", node));
+		}
+
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_SOURCE))
 			attachSource(record, model, sourNode, noteRawMap);
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, "NOTE"))
-			attachNote(record, noteNode, noteRawMap);
-		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(node, "OBJE"))
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_NOTE))
+			attachNote(record, model, noteNode, noteRawMap);
+		for(GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_MULTIMEDIA))
 			attachMultimediaLink(record, model, multimediaLinkNode, noteRawMap);
 
+		keepEventLosses(record, place, node);
 		attachRestriction(record, node);
 		record.addChild(AuditBuilder.build(node));
 
@@ -828,22 +1105,22 @@ public final class GEDCOMRecordBuilder{
 	 * @param age	The age of the participant at the event, may be {@code null}.
 	 * @param node	The GEDCOM node used as the audit source, may be {@code null}.
 	 */
-	public static void attachEventParticipation(String eventId, String entityType, String entityId, String role, String age,
+	public static String attachEventParticipation(String eventId, String entityType, String entityId, String role, String age,
 			GEDCOMNode node, FLEFModel model){
 		if(StringUtils.isEmpty(eventId) || StringUtils.isEmpty(entityId))
-			return;
+			return null;
 
 		final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationReader.ID_PREFIX),
 				EventParticipationReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("participant")
+			.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
 				.addChild(FLEFRecord.createChildWithTagAndValue(entityType, entityId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId));
 		if(role != null)
-			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
-		participation.addChild(createNoteStruct("Age", age, node))
+			participation.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE, role));
+		participation.addChild(createNoteStruct(AgeBirthConverter.AGE_NOTE_TITLE, age, node))
 			.addChild(AuditBuilder.build(node));
 
-		Deduplicator.getDeduplicatedRecordId(model, participation);
+		return Deduplicator.getDeduplicatedRecordId(model, participation);
 	}
 
 	/*
@@ -866,27 +1143,27 @@ public final class GEDCOMRecordBuilder{
 	 */
 	public static void attachEventAssociates(String eventId, GEDCOMNode eventNode, FLEFModel model,
 			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> recordsById){
-		for(GEDCOMNode assoNode : GEDCOMHelper.findChildren(eventNode, "ASSO")){
+		for(GEDCOMNode assoNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_ASSOCIATION)){
 			final String associateId = GEDCOMHelper.pointer(assoNode.getValue());
 			final GEDCOMNode associate = recordsById.get(associateId);
-			if(associate == null || !"INDI".equals(associate.getTag()))
+			if(associate == null || !GEDCOMMapper.TAG_INDIVIDUAL.equals(associate.getTag()))
 				continue;
 
-			final String gedcomRole = GEDCOMHelper.findFirstValue(assoNode, "ROLE");
+			final String gedcomRole = GEDCOMHelper.findFirstValue(assoNode, GEDCOMMapper.TAG_ROLE);
 			final String role = GEDCOMMapper.mapEventRole(gedcomRole);
 			final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationReader.ID_PREFIX),
 					EventParticipationReader.TYPE)
-				.addChild(FLEFRecord.createChildWithTag("participant")
-					.addChild(FLEFRecord.createChildWithTagAndValue("individual", associateId)))
-				.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
+				.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
+					.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, associateId)))
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId));
 			if(role != null)
-				participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
-			for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(assoNode, "SOUR"))
+				participation.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE, role));
+			for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(assoNode, GEDCOMMapper.TAG_SOURCE))
 				attachSource(participation, model, sourNode, noteRawMap);
 			if(role == null)
 				participation.addChild(createNoteStruct("Role", GEDCOMMapper.mapAssociationRoleLabel(gedcomRole), assoNode));
-			for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(assoNode, "NOTE"))
-				attachNote(participation, noteNode, noteRawMap);
+			for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(assoNode, GEDCOMMapper.TAG_NOTE))
+				attachNote(participation, model, noteNode, noteRawMap);
 			participation.addChild(AuditBuilder.build(eventNode));
 
 			Deduplicator.getDeduplicatedRecordId(model, participation);
@@ -902,38 +1179,67 @@ public final class GEDCOMRecordBuilder{
 	  +1 <<SOURCE_CITATION>>    {0:M}
 	*/
 	/**
-	 * Attaches the note that an event did not happen (in the period given, if any), with the sources stating it.
+	 * Creates the ResearchActivityRecord stating that an event did not happen (in the period given, if any), and adds it to
+	 * the model: a completed review with a negative result, on the individual or group, with the sources stating it.
+	 *
+	 * @param targetTag	The tag of the target, {@link AgentReader#TAG_INDIVIDUAL} or {@link AgentReader#TAG_GROUP}.
+	 * @param targetId	The id of the individual or group.
+	 * @return	The activity, or {@code null} if the event type is missing.
 	 */
-	public static void attachNonEvent(FLEFRecord parent, GEDCOMNode node, FLEFModel model, Map<String, GEDCOMNode> noteRawMap){
+	public static FLEFRecord createNonEventActivity(final FLEFModel model, final String targetTag, final String targetId,
+			final GEDCOMNode node, final Map<String, GEDCOMNode> noteRawMap){
 		final String eventTag = StringUtils.trimToNull(node.getValue());
 		if(eventTag == null)
-			return;
+			return null;
 
-		final StringBuilder text = new StringBuilder(GEDCOMMapper.mapEvent(eventTag, eventTag).replace('_', ' '));
-		final String period = GEDCOMHelper.findFirstValue(node, "DATE");
+		final String eventType = GEDCOMMapper.mapEvent(eventTag, eventTag).replace('_', ' ');
+		final StringBuilder observation = new StringBuilder();
+		final String period = GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_DATE);
 		if(period != null)
-			text.append(" (").append(period).append(')');
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, "NOTE")){
+			observation.append("Period: ").append(period);
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_NOTE)){
 			final String noteText = StringUtils.trimToNull(GEDCOMHelper.extractFullText(resolveNote(noteNode, noteRawMap)));
-			if(noteText != null)
-				text.append(StringUtils.LF).append(noteText);
+			if(noteText != null){
+				if(!observation.isEmpty())
+					observation.append(StringUtils.LF);
+				observation.append(noteText);
+			}
 		}
 
-		final FLEFRecord note = createNoteStruct("Did not happen", text.toString(), node);
-		// the sources go before the audit, the last field of a note
-		final FLEFRecord audit = note.getChildren().removeLast();
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, "SOUR"))
-			attachSource(note, model, sourNode, noteRawMap);
-		// a note cannot have notes: those of the citations (see attachSource) are appended to its text
-		final List<FLEFRecord> citationNotes = FLEFRecordHelper.findChildren(note, "note");
+		final FLEFRecord activity = FLEFRecord.createMainRecord(IDGenerator.nextId(ResearchActivityReader.ID_PREFIX),
+				ResearchActivityReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTIVITY_TYPE,
+				ResearchActivityReader.ENUM_ACTIVITY_TYPE_REVIEW))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_STATUS, ResearchActivityReader.ENUM_STATUS_COMPLETED))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTION,
+				"Checked that no " + eventType + " is recorded"))
+			.addChild(FLEFRecord.createChildWithTag(ResearchActivityReader.TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(targetTag, targetId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_RESULT, ResearchActivityReader.ENUM_RESULT_NEGATIVE));
+		final FLEFRecord observationField = FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_OBSERVATION,
+			observation.toString());
+		if(!observation.isEmpty())
+			activity.addChild(observationField);
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_SOURCE))
+			attachSource(activity, model, sourNode, noteRawMap);
+		// an activity cannot have notes: those of the citations (see attachSource) are appended to its observation
+		final List<FLEFRecord> citationNotes = FLEFRecordHelper.findChildren(activity, NoteReader.TAG_NOTE);
 		if(!citationNotes.isEmpty()){
-			note.getChildren().removeAll(citationNotes);
-			for(final FLEFRecord citationNote : citationNotes)
-				text.append(StringUtils.LF).append(FLEFRecordHelper.getChildValue(citationNote, "text"));
-			FLEFRecordHelper.findChild(note, "text").setValue(text.toString());
+			activity.getChildren().removeAll(citationNotes);
+			for(final FLEFRecord citationNote : citationNotes){
+				if(!observation.isEmpty())
+					observation.append(StringUtils.LF);
+				observation.append(FLEFRecordHelper.getChildValue(citationNote, NoteReader.TAG_TEXT));
+			}
+			observationField.setValue(observation.toString());
+			// the observation goes before the sources
+			if(!activity.getChildren().contains(observationField))
+				activity.getChildren().add(activity.getChildren().indexOf(FLEFRecordHelper.findChild(activity,
+					ResearchActivityReader.TAG_RESULT)) + 1, observationField);
 		}
-		note.addChild(audit);
-		parent.addChild(note);
+		activity.addChild(AuditBuilder.build(node));
+		model.addRecord(activity);
+		return activity;
 	}
 
 
@@ -953,20 +1259,20 @@ public final class GEDCOMRecordBuilder{
 	public static void attachAdoptiveParents(FLEFRecord individual, FLEFModel model, GEDCOMNode indiNode,
 			GEDCOMNode adoptionNode, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> recordsById){
 		final Set<String> biologicalParents = biologicalParents(indiNode, recordsById);
-		for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(adoptionNode, "FAMC")){
+		for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(adoptionNode, GEDCOMMapper.TAG_FAMILY_CHILD)){
 			final GEDCOMNode familyNode = recordsById.get(GEDCOMHelper.pointer(famcNode.getValue()));
 			if(familyNode == null)
 				continue;
 
-			final String adoptedBy = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(famcNode, "ADOP"), "BOTH")
+			final String adoptedBy = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(famcNode, GEDCOMMapper.TAG_ADOPTION), "BOTH")
 				.toUpperCase(Locale.ROOT);
-			final String husbandId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(familyNode, "HUSB"));
-			final String wifeId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(familyNode, "WIFE"));
+			final String husbandId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(familyNode, GEDCOMMapper.TAG_HUSBAND));
+			final String wifeId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(familyNode, GEDCOMMapper.TAG_WIFE));
 			if(husbandId != null && !biologicalParents.contains(husbandId)
-					&& ("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
+					&& (GEDCOMMapper.TAG_HUSBAND.equals(adoptedBy) || "BOTH".equals(adoptedBy)))
 				attachAdoptiveRelationship(individual, model, adoptionNode, famcNode, husbandId, noteRawMap);
 			if(wifeId != null && !biologicalParents.contains(wifeId)
-					&& ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
+					&& (GEDCOMMapper.TAG_WIFE.equals(adoptedBy) || "BOTH".equals(adoptedBy)))
 				attachAdoptiveRelationship(individual, model, adoptionNode, famcNode, wifeId, noteRawMap);
 		}
 	}
@@ -981,19 +1287,19 @@ public final class GEDCOMRecordBuilder{
 	 */
 	public static Set<String> biologicalParents(GEDCOMNode indiNode, Map<String, GEDCOMNode> recordsById){
 		final Set<String> adoptionFamilyIds = new HashSet<>();
-		for(GEDCOMNode adoptionNode : GEDCOMHelper.findChildren(indiNode, "ADOP"))
-			for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(adoptionNode, "FAMC"))
+		for(GEDCOMNode adoptionNode : GEDCOMHelper.findChildren(indiNode, GEDCOMMapper.TAG_ADOPTION))
+			for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(adoptionNode, GEDCOMMapper.TAG_FAMILY_CHILD))
 				adoptionFamilyIds.add(GEDCOMHelper.pointer(famcNode.getValue()));
 
 		final Set<String> parents = new HashSet<>();
-		for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(indiNode, "FAMC")){
+		for(GEDCOMNode famcNode : GEDCOMHelper.findChildren(indiNode, GEDCOMMapper.TAG_FAMILY_CHILD)){
 			final String familyId = GEDCOMHelper.pointer(famcNode.getValue());
 			final GEDCOMNode familyNode = recordsById.get(familyId);
 			if(familyNode == null || adoptionFamilyIds.contains(familyId)
 					|| !RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD.equals(GEDCOMMapper.mapPedigree(GEDCOMHelper.findFirstValue(famcNode, "PEDI"))))
 				continue;
 
-			for(String spouseTag : List.of("HUSB", "WIFE")){
+			for(String spouseTag : List.of(GEDCOMMapper.TAG_HUSBAND, GEDCOMMapper.TAG_WIFE)){
 				final String parentId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(familyNode, spouseTag));
 				if(parentId != null)
 					parents.add(parentId);
@@ -1006,14 +1312,14 @@ public final class GEDCOMRecordBuilder{
 			GEDCOMNode famcNode, String parentId, Map<String, GEDCOMNode> noteRawMap){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
 				RelationshipReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTag("subject")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", individual.getId())))
-			.addChild(FLEFRecord.createChildWithTag("target")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD));
-		attachDate(relationship, "valid_from", GEDCOMHelper.findFirstValue(adoptionNode, "DATE"));
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(famcNode, "NOTE"))
-			attachNote(relationship, noteNode, noteRawMap);
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, individual.getId())))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, parentId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD));
+		attachDate(relationship, RelationshipReader.TAG_VALID_FROM, GEDCOMHelper.findFirstValue(adoptionNode, GEDCOMMapper.TAG_DATE));
+		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(famcNode, GEDCOMMapper.TAG_NOTE))
+			attachNote(relationship, model, noteNode, noteRawMap);
 		relationship.addChild(AuditBuilder.build(adoptionNode));
 
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
@@ -1057,13 +1363,15 @@ public final class GEDCOMRecordBuilder{
 
 
 	/**
-	 * Parses a GEDCOM PLAC node and returns a PlaceCitation.
+	 * Parses a GEDCOM PLAC node and attaches a PlaceCitation.
 	 * It also creates/updates the underlying PlaceRecord with subfields.
+	 *
+	 * @return	The place record (the most specific one), or {@code null} if there is none.
 	 */
-	public static void attachPlaceCitation(FLEFRecord parent, FLEFModel model,
+	public static FLEFRecord attachPlaceCitation(FLEFRecord parent, FLEFModel model,
 			GEDCOMNode placNode, GEDCOMNode addrNode, Map<String, GEDCOMNode> noteRawMap, PlaceCache placeCache){
 		if(placNode == null && addrNode == null)
-			return;
+			return null;
 
 		final String placeName = (placNode != null? StringUtils.trimToNull(placNode.getValue()): null);
 
@@ -1100,15 +1408,20 @@ public final class GEDCOMRecordBuilder{
 
 		final String finalPlaceName;
 		final GEDCOMNode targetPlacNode;
+		//the levels of the jurisdictions (PLAC.FORM): the default one when null, none when empty
+		String form = null;
 		if(StringUtils.isEmpty(basePlaceName)){
 			// Only a street address exists, use it as place name
 			finalPlaceName = StringUtils.trimToNull(streetAddr.toString().replace(StringUtils.LF, ", "));
-			targetPlacNode = new GEDCOMNode(1, "PLAC", finalPlaceName);
+			targetPlacNode = new GEDCOMNode(1, GEDCOMMapper.TAG_PLACE, finalPlaceName);
+			form = StringUtils.EMPTY;
 		}
 		else if(streetAddr.isEmpty()){
 			// Only PLAC exists
 			finalPlaceName = basePlaceName;
-			targetPlacNode = (placNode != null? placNode: new GEDCOMNode(1, "PLAC", finalPlaceName));
+			targetPlacNode = (placNode != null? placNode: new GEDCOMNode(1, GEDCOMMapper.TAG_PLACE, finalPlaceName));
+			if(placNode == null)
+				form = StringUtils.EMPTY;
 		}
 		else{
 			// Both exist: combine street address with place name, avoiding duplication
@@ -1120,28 +1433,45 @@ public final class GEDCOMRecordBuilder{
 				finalPlaceName = streetStr;
 			}
 			targetPlacNode = createSyntheticPlacNode(placNode, finalPlaceName);
+			form = shiftPlaceForm(placNode, placeCache, StringUtils.countMatches(finalPlaceName, ',') - StringUtils.countMatches(basePlaceName, ','));
 		}
 
 		if(StringUtils.isEmpty(finalPlaceName))
-			return;
+			return null;
 
 		// Use PlaceCache to handle hierarchy, splitting, deduplication, and links (and FONE, ROMN, MAP)
-		final FLEFRecord placeRecord = (placeCache != null? placeCache.getOrCreatePlace(targetPlacNode): null);
+		final FLEFRecord placeRecord = (placeCache != null? placeCache.getOrCreatePlace(targetPlacNode, form): null);
 		if(placeRecord == null)
-			return;
+			return null;
 
 		// Attach NOTE (notes under PLAC) to the leaf place if needed
-		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(placNode, "NOTE")){
-			attachNote(placeRecord, noteNode, noteRawMap);
+		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(placNode, GEDCOMMapper.TAG_NOTE)){
+			attachNote(placeRecord, model, noteNode, noteRawMap);
 		}
 
-		parent.addChild(FLEFRecord.createChildWithTag("place")
-			.addChild(FLEFRecord.createChildWithTagAndValue("place", placeRecord.getId()))
+		parent.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_PLACE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceCitationReader.TAG_PLACE, placeRecord.getId()))
 		);
+		return placeRecord;
+	}
+
+	/**
+	 * Returns the levels of the jurisdictions of a place that has a street address before them: the levels of its PLAC.FORM (or
+	 * the default ones), with an empty level for each part of the street address.
+	 *
+	 * @param streetParts	The number of the parts of the street address.
+	 * @return	The levels, empty if the place is not a PLAC or the street address is not before it.
+	 */
+	private static String shiftPlaceForm(final GEDCOMNode placNode, final PlaceCache placeCache, final int streetParts){
+		if(placNode == null || placeCache == null || streetParts <= 0)
+			return StringUtils.EMPTY;
+
+		final String form = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(placNode, GEDCOMMapper.TAG_FORM), placeCache.getDefaultForm());
+		return (form != null? StringUtils.repeat(',', streetParts) + form: StringUtils.EMPTY);
 	}
 
 	private static GEDCOMNode createSyntheticPlacNode(final GEDCOMNode originalPlac, final String newAddress){
-		final GEDCOMNode synthetic = new GEDCOMNode((originalPlac != null? originalPlac.getLevel(): 1), "PLAC", newAddress);
+		final GEDCOMNode synthetic = new GEDCOMNode((originalPlac != null? originalPlac.getLevel(): 1), GEDCOMMapper.TAG_PLACE, newAddress);
 		if(originalPlac != null)
 			for(final GEDCOMNode child : originalPlac.getChildren())
 				synthetic.addChild(child);
@@ -1152,8 +1482,8 @@ public final class GEDCOMRecordBuilder{
 	public static void attachRestriction(FLEFRecord parent, GEDCOMNode node){
 		final String level = GEDCOMMapper.mapPrivacyLevel(GEDCOMHelper.findFirstValue(node, "RESN"));
 		if(level != null)
-			parent.addChild(FLEFRecord.createChildWithTag("privacy")
-				.addChild(FLEFRecord.createChildWithTagAndValue("level", level)));
+			parent.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_PRIVACY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(PrivacyReader.TAG_LEVEL, level)));
 	}
 
 
@@ -1176,7 +1506,7 @@ public final class GEDCOMRecordBuilder{
 	 * @param contactName	The name of the person or organization the contacts belong to, may be {@code null}.
 	 */
 	public static void attachContacts(FLEFRecord parent, GEDCOMNode parentNode, String contactName){
-		final GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(parentNode, "ADDR");
+		final GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(parentNode, GEDCOMMapper.TAG_ADDRESS);
 		if(addrNode != null){
 			final String formattedAddress = StringUtils.trimToNull(GEDCOMHelper.extractFullText(addrNode));
 			final StringBuilder fullAddr = new StringBuilder(StringUtils.defaultString(formattedAddress));
@@ -1189,7 +1519,7 @@ public final class GEDCOMRecordBuilder{
 					fullAddr.append(sub);
 				}
 			}
-			addContact(parent, fullAddr.toString(), "postal", contactName, parentNode);
+			addContact(parent, fullAddr.toString(), ContactReader.ENUM_TYPE_POSTAL, contactName, parentNode);
 		}
 
 		final List<GEDCOMNode> holders = new ArrayList<>(2);
@@ -1199,10 +1529,10 @@ public final class GEDCOMRecordBuilder{
 		for(final GEDCOMNode holder : holders)
 			for(final GEDCOMNode child : holder.getChildren()){
 				final String type = switch(child.getTag()){
-					case "PHON" -> "phone";
-					case "EMAIL", "_EMAIL" -> "email";
-					case "FAX" -> "fax";
-					case "WWW", "_WWW" -> "website";
+					case "PHON" -> ContactReader.ENUM_TYPE_PHONE;
+					case "EMAIL", "_EMAIL" -> ContactReader.ENUM_TYPE_EMAIL;
+					case "FAX" -> ContactReader.ENUM_TYPE_FAX;
+					case "WWW", "_WWW" -> ContactReader.ENUM_TYPE_WEBSITE;
 					default -> null;
 				};
 				if(type != null)
@@ -1214,12 +1544,12 @@ public final class GEDCOMRecordBuilder{
 		if(StringUtils.isBlank(value))
 			return;
 
-		final FLEFRecord contact = FLEFRecord.createChildWithTag("contact")
-			.addChild(FLEFRecord.createChildWithTagAndValue("value", value.trim()))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+		final FLEFRecord contact = FLEFRecord.createChildWithTag(RepositoryReader.TAG_CONTACT)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ContactReader.TAG_VALUE, value.trim()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ContactReader.TAG_TYPE, type));
 		if(StringUtils.isNotBlank(contactName))
-			contact.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", contactName.trim())));
+			contact.addChild(FLEFRecord.createChildWithTag(ContactReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, contactName.trim())));
 		contact.addChild(AuditBuilder.build(auditNode));
 		parent.addChild(contact);
 	}

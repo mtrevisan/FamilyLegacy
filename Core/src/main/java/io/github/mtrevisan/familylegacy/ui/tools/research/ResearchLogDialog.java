@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -196,9 +197,9 @@ public final class ResearchLogDialog extends JDialog{
 
 	/** The date the activity was created ({@code audit.creation.date}), or {@code null}. */
 	private static String creationDate(final FLEFRecord activity){
-		final FLEFRecord audit = FLEFRecordHelper.findChild(activity, "audit");
-		final FLEFRecord creation = (audit != null? FLEFRecordHelper.findChild(audit, "creation"): null);
-		final String date = (creation != null? ResearchHelper.firstTextValue(creation, "date"): null);
+		final FLEFRecord audit = FLEFRecordHelper.findChild(activity, ResearchActivityReader.TAG_AUDIT);
+		final FLEFRecord creation = (audit != null? FLEFRecordHelper.findChild(audit, AuditReader.TAG_CREATION): null);
+		final String date = (creation != null? ResearchHelper.firstTextValue(creation, AuditReader.TAG_DATE): null);
 		return (StringUtils.isNotBlank(date)? date: null);
 	}
 

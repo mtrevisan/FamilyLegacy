@@ -72,6 +72,9 @@ public final class EventParticipationReader{
 	public static final String ID_PREFIX = "EP";
 
 	public static final String TAG_PARTICIPANT = "participant";
+	public static final String TAG_PARTICIPANT_INDIVIDUAL = "individual";
+	public static final String TAG_PARTICIPANT_GROUP = "group";
+	public static final String TAG_PARTICIPANT_PLACE = "place";
 	public static final String TAG_EVENT = "event";
 	public static final String TAG_ROLE = "role";
 	public static final String TAG_SOURCE = "source";

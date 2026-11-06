@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
@@ -74,14 +75,12 @@ import java.io.IOException;
  */
 public class MediaRecordDialog extends BaseRecordDialog{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaRecordDialog.class);
-
-
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField uriField;
 	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mappingCombo;
+	private final DateField dateField;
 	private final BoundTextArea descriptionArea;
 
 
@@ -97,7 +96,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	private MediaRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, MediaHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]10[]");
 
 		uriField = new BoundTextField(MediaReader.TAG_URI);
 		BindingsHelper.installBehavior(uriField,
@@ -113,6 +112,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 		mappingCombo = new BoundComboBox<>(MediaReader.TAG_MAPPING, GUIHelper.fillCombo(MediaReader.MAPPINGS, null));
 		mappingCombo.setI18NPrefix("enum.media.mapping");
 		mappingCombo.setEditable(true);
+		dateField = DateField.createWithWrapperTag(MediaReader.TAG_DATE, this, I18N.t("dialog.media.date"), model);
 		descriptionArea = new BoundTextArea(MediaReader.TAG_DESCRIPTION, 3, 25);
 
 		// Build common panels using the builder
@@ -157,6 +157,9 @@ public class MediaRecordDialog extends BaseRecordDialog{
 
 		// mapping
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.mapping"), mappingCombo);
+
+		// date of creation or capture
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.date"), dateField);
 
 		// description
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.description"), descriptionArea);
@@ -209,6 +212,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		dateField.load(record);
 	}
 
 	@Override
@@ -234,6 +238,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		dateField.save(record);
 	}
 
 

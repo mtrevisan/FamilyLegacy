@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReportText;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.tools.consanguinity.ConsanguinityReportDialog;
 import org.junit.jupiter.api.Assertions;
@@ -70,8 +71,8 @@ class ConsanguinityReportLinksTest{
 		final FLEFModel model = new FLEFModel();
 		for(final String id : List.of("I1", "I2", "I3", "I4", "A1", "A2"))
 			model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE));
-		model.addRecord(FLEFRecord.createMainRecord("R1", "relationship"));
-		model.addRecord(FLEFRecord.createMainRecord("R2", "relationship"));
+		model.addRecord(FLEFRecord.createMainRecord("R1", RelationshipReader.TYPE));
+		model.addRecord(FLEFRecord.createMainRecord("R2", RelationshipReader.TYPE));
 		return model;
 	}
 

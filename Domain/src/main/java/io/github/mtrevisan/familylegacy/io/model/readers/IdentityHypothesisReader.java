@@ -69,6 +69,7 @@ public final class IdentityHypothesisReader{
 	public static final String ID_PREFIX = "IH";
 
 	public static final String TAG_IDENTITY = "identity";
+	public static final String TAG_IDENTITY_INDIVIDUAL = "individual";
 	public static final String TAG_RATIONALE = "rationale";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_CONFIDENCE = "confidence";

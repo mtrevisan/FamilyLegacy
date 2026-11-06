@@ -42,7 +42,7 @@ import java.util.Set;
 public final class ConclusionResolution{
 
 	/** The proof statuses with which a conclusion settles a conflict without preferring any of the assertions. */
-	private static final Set<String> NO_PREVAILING_STATUSES = Set.of("conflicting_evidence", "disproven");
+	private static final Set<String> NO_PREVAILING_STATUSES = Set.of(ConclusionReader.ENUM_PROOF_STATUS_CONFLICTING_EVIDENCE, ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN);
 
 
 	/**

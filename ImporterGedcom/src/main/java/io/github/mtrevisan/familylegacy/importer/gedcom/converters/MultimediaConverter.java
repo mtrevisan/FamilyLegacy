@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -45,7 +48,8 @@ import java.util.Map;
  * <ul>
  *   <li>FILE → uri (the first one; the others are kept as notes, as a record id can identify one media only)</li>
  *   <li>TITL (under OBJE or FILE) → description</li>
- *   <li>FORM, FORM.TYPE (or FORM.MEDI), _DATE, _PUBL, the alternative versions of a file (FILE.TRAN, GEDCOM 7) → notes</li>
+ *   <li>_DATE → date (a note if it cannot be normalized)</li>
+ *   <li>FORM, FORM.TYPE (or FORM.MEDI), _PUBL, the alternative versions of a file (FILE.TRAN, GEDCOM 7) → notes</li>
  *   <li>NOTE → note; RESN → privacy</li>
  *   <li>SOUR → the media becomes one of the media of the cited source (see {@link #linkSources()})</li>
  *   <li>CHAN → audit</li>
@@ -84,22 +88,29 @@ public class MultimediaConverter{
 			return;
 
 		IDGenerator.registerExistingId(xref);
+		GEDCOMImportContext.setRecord(xref);
 
 		final FLEFRecord media = FLEFRecord.createMainRecord(xref, MediaReader.TYPE);
 		final List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(objNode, "FILE");
-		GEDCOMRecordBuilder.fillMediaRecord(media, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
+		GEDCOMRecordBuilder.fillMediaRecord(media, model, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
 		for(int i = 1; i < fileNodes.size(); i ++){
 			final FLEFRecord note = GEDCOMRecordBuilder.createNoteStruct("Additional file", fileNodes.get(i).getValue(), objNode);
 			// notes go before privacy and audit, the last fields of a MediaRecord
 			media.getChildren()
 				.add(media.getChildren().size() - 1, note);
 		}
+		// what has no field in FLEF is kept as notes
+		KeptNotes.keepIdentifiers(media, objNode, StringUtils.EMPTY, objNode);
+		KeptNotes.keepUnmapped(media, objNode, GEDCOMMapper.MULTIMEDIA_CONSUMED_TAGS, StringUtils.EMPTY, objNode);
 
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")){
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, GEDCOMMapper.TAG_SOURCE)){
 			final String sourceId = GEDCOMHelper.pointer(sourNode.getValue());
 			if(sourceId != null)
 				mediaSources.add(new String[]{xref, sourceId});
 		}
+
+		if(fileNodes.isEmpty())
+			GEDCOMRecordBuilder.registerEmbeddedFile(xref, objNode);
 
 		multimediaMap.put(xref, media);
 		model.addRecord(media);
@@ -116,10 +127,10 @@ public class MultimediaConverter{
 			if(!SourceReader.isOfType(source))
 				continue;
 
-			final boolean present = FLEFRecordHelper.findChildren(source, "media").stream()
+			final boolean present = FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA).stream()
 				.anyMatch(reference -> mediaSource[0].equals(reference.getValue()));
 			if(!present)
-				source.addChild(FLEFRecord.createChildWithTagAndValue("media", mediaSource[0]));
+				source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, mediaSource[0]));
 		}
 	}
 

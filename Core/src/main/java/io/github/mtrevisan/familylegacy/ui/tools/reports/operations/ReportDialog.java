@@ -25,16 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.reports.AncestorReportGenerator;
-import io.github.mtrevisan.familylegacy.reports.DescendantReportGenerator;
+import io.github.mtrevisan.familylegacy.reports.OptionState;
+import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportGenerator;
+import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.reports.ReportPreferences;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
-import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -73,6 +73,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,24 +107,46 @@ public final class ReportDialog extends JDialog{
 	private final Map<ReportRenderer, JCheckBox> formatBoxes = new LinkedHashMap<>();
 
 	private final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.values());
+	/** What the user chose the last time: the language, the formats, the options and the folder. */
+	private final ReportPreferences preferences = ReportPreferences.application();
 
 
-	private ReportDialog(final ToolContext context, final ReportType reportType){
+	/** The record the report is about when it is not the selected one (the place, source or question the user picked). */
+	private final FLEFRecord subject;
+
+
+	private ReportDialog(final ToolContext context, final ReportType reportType, final FLEFRecord subject){
 		super(context.owner(), reportType.getTitle(), ModalityType.APPLICATION_MODAL);
 		ToolDialogs.installEscapeToClose(this);
 
 		this.context = context;
 		this.reportType = reportType;
-		this.optionsPanel = new ReportOptionsPanel(ReportConfig.defaults());
+		this.subject = subject;
 
 		resolveSelectedEntity();
+
+		//the options the report does not use are not shown, the ones it always applies cannot be changed; they start from what the user
+		//chose the last time
+		this.optionsPanel = new ReportOptionsPanel(preferences.options(reportType, ReportConfig.defaults()),
+			option -> ReportBuilder.optionState(reportType, selectedEntity, option));
+		language.setSelectedItem(preferences.language());
 
 		initComponents();
 	}
 
 	public static void showDialog(final ToolContext context, final ReportType reportType){
+		showDialog(context, reportType, null);
+	}
+
+	/**
+	 * @param context	The context.
+	 * @param reportType	The type of the report.
+	 * @param subject	The record the report is about, for the reports about a place, a source or a research question (that are not
+	 * 	selected in the views); {@code null} for the others, that are about the selected record.
+	 */
+	public static void showDialog(final ToolContext context, final ReportType reportType, final FLEFRecord subject){
 		SwingUtilities.invokeLater(() -> {
-			final ReportDialog dialog = new ReportDialog(context, reportType);
+			final ReportDialog dialog = new ReportDialog(context, reportType, subject);
 
 			dialog.pack();
 
@@ -151,6 +174,8 @@ public final class ReportDialog extends JDialog{
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
+			case PLACE, SOURCE, RESEARCH_QUESTION -> selectedEntity = subject;
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK -> selectedEntity = null;
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> {
 				// Global reports: fallback to active individual or first
 				// record in the model.
@@ -167,7 +192,7 @@ public final class ReportDialog extends JDialog{
 			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]20[]10[]"));
 
 		// 1. Header panel displaying report type and targeted root entity
-		String targetText = I18N.t("text.report.no_subject");
+		String targetText = I18N.t(reportType.isGlobal()? "text.report.whole_file": "text.report.no_subject");
 		if(selectedEntity != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(selectedEntity.getTag());
 			targetText = handler.getDisplayText(selectedEntity, context.model());
@@ -192,12 +217,15 @@ public final class ReportDialog extends JDialog{
 
 		// Bottom button panel
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
+		final JButton restoreBtn = new JButton(I18N.t("button.report.restore_defaults"));
 		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 		final JButton generateBtn = new JButton(I18N.t("button.generate"));
 
+		restoreBtn.addActionListener(e -> restoreDefaults());
 		cancelBtn.addActionListener(e -> dispose());
 		generateBtn.addActionListener(e -> onGenerate());
 
+		buttons.add(restoreBtn);
 		buttons.add(cancelBtn);
 		buttons.add(generateBtn);
 
@@ -218,13 +246,18 @@ public final class ReportDialog extends JDialog{
 			.filter(id -> !ids.contains(id))
 			.forEach(ids::add);
 
+		final List<String> chosen = new ArrayList<>(preferences.formats());
+		chosen.retainAll(available.keySet());
+		if(chosen.isEmpty())
+			chosen.add(ReportRenderers.DEFAULT_ID);
+
 		final JPanel panel = new JPanel(new GridLayout(Math.max(1, (ids.size() + 2) / 3), 3, 8, 4));
 		panel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.output_formats")));
 
 		for(final String id : ids){
 			final ReportRenderer renderer = available.get(id);
 			final String label = I18N.t("checkbox.format_" + id, (renderer != null? renderer.displayName(): id));
-			final JCheckBox checkBox = new JCheckBox(label, renderer != null && ReportRenderers.DEFAULT_ID.equals(id));
+			final JCheckBox checkBox = new JCheckBox(label, renderer != null && chosen.contains(id));
 			if(renderer != null)
 				formatBoxes.put(renderer, checkBox);
 			else{
@@ -259,7 +292,7 @@ public final class ReportDialog extends JDialog{
 
 	private void onGenerate(){
 		//every report is about a record: without one nothing is written (it would be a file with a note and nothing else)
-		if(selectedEntity == null){
+		if(selectedEntity == null && !reportType.isGlobal()){
 			JOptionPane.showMessageDialog(this,
 				I18N.tf("dialog.report.missing_subject.message", reportType.getTitle()), I18N.t("dialog.report.missing_subject.title"), JOptionPane.WARNING_MESSAGE);
 
@@ -277,6 +310,9 @@ public final class ReportDialog extends JDialog{
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle(I18N.t("dialog.report.output_directory.title"));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		final String lastDirectory = preferences.directory();
+		if(lastDirectory != null && Files.isDirectory(Path.of(lastDirectory)))
+			chooser.setSelectedFile(new File(lastDirectory));
 
 		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
@@ -292,7 +328,28 @@ public final class ReportDialog extends JDialog{
 		final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
 		final ReportConfig config = optionsPanel.toConfig(selectedLang);
 
+		remember(outDir, renderers, selectedLang, config);
 		runWithProgress(outDir, renderers, config);
+	}
+
+	/** Keeps what the user chose, to offer it again the next time (not the privacy policy: see {@link ReportPreferences}). */
+	private void remember(final Path outDir, final Map<String, ReportRenderer> renderers, final ReportLanguage selectedLang,
+			final ReportConfig config){
+		preferences.setDirectory(outDir.toString());
+		preferences.setFormats(renderers.values().stream()
+			.map(ReportRenderer::id)
+			.toList());
+		preferences.setLanguage(selectedLang);
+		preferences.setOptions(reportType, config, Arrays.stream(ReportOption.values())
+			.filter(option -> ReportBuilder.optionState(reportType, selectedEntity, option) == OptionState.EDITABLE)
+			.toList());
+	}
+
+	/** Back to the options, the language and the formats a report starts with when nothing was chosen yet. */
+	private void restoreDefaults(){
+		optionsPanel.reset(ReportConfig.defaults());
+		language.setSelectedItem(preferences.defaultLanguage());
+		formatBoxes.forEach((renderer, box) -> box.setSelected(ReportRenderers.DEFAULT_ID.equals(renderer.id())));
 	}
 
 
@@ -433,248 +490,9 @@ public final class ReportDialog extends JDialog{
 	 *                          Report document assembly
 	 * ====================================================================== */
 
-	/**
-	 * Assembles the {@link ReportDocument} for the current
-	 * {@link ReportType}.
-	 *
-	 * <p>The report type drives two orthogonal decisions:</p>
-	 * <ol>
-	 *   <li><b>which root record</b> to feed to the generator — resolved by
-	 *       {@link #resolveRootFor(ReportType)};</li>
-	 *   <li><b>which sections</b> to enable — resolved by
-	 *       {@link #tailorConfigFor(ReportType, ReportConfig)}, which starts
-	 *       from the user's {@link ReportConfig} and toggles the narrative
-	 *       flags that do not make sense for the chosen perspective.</li>
-	 * </ol>
-	 *
-	 * <p>The generator itself (see {@link ReportGenerator}) dispatches by
-	 * root kind, so passing a group, a source, a place, etc. as root is
-	 * already supported without any change here.</p>
-	 *
-	 * @param userConfig the configuration selected by the user in the dialog
-	 * @return the assembled document, never {@code null}
-	 */
+	/** Assembles the document of the report, from the options the user chose. */
 	private ReportDocument buildReportDocument(final ReportConfig userConfig, final ReportProgressListener listener){
-		final ReportConfig tailored = tailorConfigFor(reportType, userConfig);
-
-		return switch(reportType){
-			case INDIVIDUAL, GROUP, RELATIONSHIP,
-				  BIBLIOGRAPHY, RESEARCH_PROGRESS ->
-				new ReportGenerator(context.model(), selectedEntity, tailored)
-					.generate(listener);
-
-			case ANCESTOR ->
-				new AncestorReportGenerator(context.model(), selectedEntity, tailored)
-					.generate(listener);
-
-			case DESCENDANT ->
-				new DescendantReportGenerator(context.model(), selectedEntity, tailored)
-					.generate(listener);
-		};
-	}
-
-
-	/* ----- Root resolution ------------------------------------------------- */
-
-	/**
-	 * Chooses the record to use as root for the report generator.
-	 *
-	 * <p>Individual-scoped and group reports use the entity selected in the
-	 * caller's context. Global reports (bibliography, research progress) fall
-	 * back to the currently selected individual, or to the first individual
-	 * of the model when nothing is selected — this lets them still produce a
-	 * document, even though the "true" global scope is not fully expressed
-	 * by the current single-root architecture.</p>
-	 */
-	private FLEFRecord resolveRootFor(final ReportType type){
-		return switch(type){
-			case INDIVIDUAL, ANCESTOR, DESCENDANT, RELATIONSHIP -> selectedEntity;
-			case GROUP -> selectedEntity;
-			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> firstAvailableIndividual();
-		};
-	}
-
-	/**
-	 * Fallback used by global reports when no individual is selected:
-	 * returns the first individual of the model, or {@code null} when the
-	 * model contains no individuals at all.
-	 */
-	private FLEFRecord firstAvailableIndividual(){
-		if(selectedEntity != null)
-			return selectedEntity;
-		final FLEFModel model = context.model();
-		final var individuals = model.getRecordsByType(IndividualHandler.TYPE);
-		for(final FLEFRecord r : individuals)
-			return r;
-		return null;
-	}
-
-
-	/* ----- Config tailoring ----------------------------------------------- */
-
-	/**
-	 * Adapts the user's {@link ReportConfig} to the perspective requested
-	 * by the report type.
-	 *
-	 * <p>Only the <em>narrative</em> flags are toggled: privacy, audit,
-	 * sources, evidence, media, cultural norms, groups, indexes and style
-	 * are left exactly as the user chose them, because they are
-	 * perspective-independent.</p>
-	 *
-	 * <ul>
-	 *   <li><b>INDIVIDUAL</b> — user config unchanged.</li>
-	 *   <li><b>GROUP</b> — user config unchanged; the group sections are
-	 *       selected automatically by the generator's dispatch.</li>
-	 *   <li><b>ANCESTOR</b> — ancestry and introduction only; descendants
-	 *       and relations disabled.</li>
-	 *   <li><b>DESCENDANT</b> — descendants, direct relations and
-	 *       introduction; ancestry disabled.</li>
-	 *   <li><b>RELATIONSHIP</b> — direct and indirect relations; ancestry
-	 *       and descendants disabled.</li>
-	 *   <li><b>BIBLIOGRAPHY</b> — sources, media, repositories and evidence;
-	 *       everything else minimized.</li>
-	 *   <li><b>RESEARCH_PROGRESS</b> — context and research, evidence,
-	 *       coverage report; narrative sections disabled.</li>
-	 * </ul>
-	 */
-	private static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
-		return switch(type){
-			case INDIVIDUAL, GROUP, ANCESTOR, DESCENDANT -> base;
-			case RELATIONSHIP -> withNarrative(base, base.introduction(), false, false, false, true, true);
-			case BIBLIOGRAPHY -> withSourcesFocus(base);
-			case RESEARCH_PROGRESS -> withResearchFocus(base);
-		};
-	}
-
-
-	/* ----- Config copy helpers -------------------------------------------- */
-
-	/**
-	 * Returns a copy of {@code base} with the six narrative flags replaced.
-	 * Everything else — including {@code collateralScope} — is preserved
-	 * verbatim, because it is the user's choice for this report.
-	 */
-	private static ReportConfig withNarrative(final ReportConfig base,
-		final boolean introduction,
-		final boolean paternal, final boolean maternal,
-		final boolean descendants,
-		final boolean direct, final boolean indirect){
-		return new ReportConfig(
-			base.language(),
-			base.privacyPolicy(),
-			base.showPrivacyDetails(),
-			base.audit(),
-			base.header(),
-			introduction,
-			paternal,
-			maternal,
-			descendants,
-			direct,
-			indirect,
-			base.collateralScope(),          // <-- preservato
-			base.notes(),
-			base.sources(),
-			base.media(),
-			base.evidence(),
-			base.contextAndResearch(),
-			base.culturalNorms(),
-			base.groups(),
-			base.groupMembers(),
-			base.groupSubgroups(),
-			base.groupAttributes(),
-			base.historicEvents(),
-			base.repositories(),
-			base.eventFullParticipants(),
-			base.coverageReport(),
-			base.timeline(),
-			base.indexIndividuals(),
-			base.indexPlaces(),
-			base.includeDescriptions(),
-			base.includePictures());
-	}
-
-
-	/**
-	 * Config for a bibliography report: sources, media, repositories and
-	 * evidence in focus, with every narrative section disabled.
-	 * {@code collateralScope} is forced to {@link CollateralScope#NONE}
-	 * because a bibliography does not follow a direct line.
-	 */
-	private static ReportConfig withSourcesFocus(final ReportConfig base){
-		return new ReportConfig(
-			base.language(),
-			base.privacyPolicy(),
-			base.showPrivacyDetails(),
-			base.audit(),
-			base.header(),
-			/*introduction*/          false,
-			/*paternalAncestry*/      false,
-			/*maternalAncestry*/      false,
-			/*descendants*/           false,
-			/*directRelations*/       false,
-			/*indirectRelations*/     false,
-			/*collateralScope*/       CollateralScope.NONE,
-			/*notes*/                 base.notes(),
-			/*sources*/               true,
-			/*media*/                 base.media(),
-			/*evidence*/              true,
-			/*contextAndResearch*/    false,
-			/*culturalNormIds*/         false,
-			/*groups*/                false,
-			/*groupMembers*/          false,
-			/*groupSubgroups*/        false,
-			/*groupAttributes*/       false,
-			/*historicEvents*/        false,
-			/*repositories*/          true,
-			/*eventFullParticipants*/ false,
-			/*coverageReport*/        base.coverageReport(),
-			/*timeline*/              false,
-			/*indexIndividuals*/      false,
-			/*indexPlaces*/           true,
-			base.includeDescriptions(),
-			base.includePictures());
-	}
-
-
-	/**
-	 * Config for a research-progress report: research questions, context
-	 * impacts, evidence and coverage in focus; narrative sections disabled.
-	 * {@code collateralScope} is forced to {@link CollateralScope#NONE}
-	 * because a research-progress report does not follow a direct line.
-	 */
-	private static ReportConfig withResearchFocus(final ReportConfig base){
-		return new ReportConfig(
-			base.language(),
-			base.privacyPolicy(),
-			base.showPrivacyDetails(),
-			base.audit(),
-			base.header(),
-			/*introduction*/          true,
-			/*paternalAncestry*/      false,
-			/*maternalAncestry*/      false,
-			/*descendants*/           false,
-			/*directRelations*/       false,
-			/*indirectRelations*/     false,
-			/*collateralScope*/       CollateralScope.NONE,
-			/*notes*/                 base.notes(),
-			/*sources*/               true,
-			/*media*/                 false,
-			/*evidence*/              true,
-			/*contextAndResearch*/    true,
-			/*culturalNormIds*/         base.culturalNorms(),
-			/*groups*/                false,
-			/*groupMembers*/          false,
-			/*groupSubgroups*/        false,
-			/*groupAttributes*/       false,
-			/*historicEvents*/        true,
-			/*repositories*/          true,
-			/*eventFullParticipants*/ false,
-			/*coverageReport*/        true,
-			/*timeline*/              base.timeline(),
-			/*indexIndividuals*/      true,
-			/*indexPlaces*/           false,
-			base.includeDescriptions(),
-			base.includePictures());
+		return ReportBuilder.build(reportType, context.model(), selectedEntity, userConfig, listener);
 	}
 
 

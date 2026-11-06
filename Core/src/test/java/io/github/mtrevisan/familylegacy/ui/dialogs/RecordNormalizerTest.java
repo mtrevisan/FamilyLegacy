@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,22 +58,22 @@ class RecordNormalizerTest{
 	@Test
 	void childrenFollowTheOrderOfTheGrammar(){
 		//the grammar declares: name, sex, source, note, preferred_image, privacy, audit
-		final FLEFRecord record = FLEFRecord.createMainRecord("I1", "individual")
-			.addChild(FLEFRecord.createChildWithTag("audit"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("note", "n"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("sex", "male"))
-			.addChild(FLEFRecord.createChildWithTag("name"));
+		final FLEFRecord record = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT))
+			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "n"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE))
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME));
 
 		Assertions.assertEquals(List.of("name", "sex", "note", "audit"), tags(RecordNormalizer.normalize(record, grammar)));
 	}
 
 	@Test
 	void unknownChildrenComeLastAndRepeatedChildrenAreSorted(){
-		final FLEFRecord record = FLEFRecord.createMainRecord("I1", "individual")
+		final FLEFRecord record = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("zzz", "1"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("note", "b"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("note", "a"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("sex", "male"));
+			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "b"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "a"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 
 		final FLEFRecord normalized = RecordNormalizer.normalize(record, grammar);
 
@@ -80,10 +83,10 @@ class RecordNormalizerTest{
 
 	@Test
 	void withoutGrammarTheChildrenAreSortedByTag(){
-		final FLEFRecord record = FLEFRecord.createMainRecord("I1", "individual")
-			.addChild(FLEFRecord.createChildWithTag("name"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("note", "n"))
-			.addChild(FLEFRecord.createChildWithTag("audit"));
+		final FLEFRecord record = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME))
+			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "n"))
+			.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT));
 
 		Assertions.assertEquals(List.of("audit", "name", "note"), tags(RecordNormalizer.normalize(record, null)));
 	}

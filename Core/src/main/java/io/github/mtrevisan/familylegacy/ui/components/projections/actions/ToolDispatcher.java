@@ -76,8 +76,11 @@ public interface ToolDispatcher{
 	 * Saves a model imported from another format as a new FLEF file, chosen by the user, and opens it.
 	 *
 	 * @param source	The file the model was imported from.
+	 * @return	{@code false} if the save was cancelled or failed.
 	 */
-	default void openImported(final FLEFModel importedModel, final File source){}
+	default boolean openImported(final FLEFModel importedModel, final File source){
+		return false;
+	}
 
 	/**
 	 * @return	A copy of the model as it is now that nobody changes, to be read from another thread while the user goes on editing (call it

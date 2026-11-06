@@ -64,6 +64,7 @@ public final class ResearchAssistantService{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchAssistantService.class);
 
+
 	/** An action with how well it matches what the user typed. */
 	public record RankedAction(AssistantAction action, int score){}
 

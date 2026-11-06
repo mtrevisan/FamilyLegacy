@@ -26,6 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
@@ -103,8 +108,8 @@ public final class CitationAnalysisTool implements ToolOperation{
 	 * common types to keep the report focused.
 	 */
 	private static final List<String> ASSERTION_TYPES = List.of(
-		"individual", "event", "individual_attribute",
-		"relationship", "place"
+		IndividualReader.TYPE, EventReader.TYPE, IndividualAttributeReader.TYPE,
+		RelationshipReader.TYPE, PlaceReader.TYPE
 	);
 
 	private static boolean hasCitation(final FLEFRecord record){

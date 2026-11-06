@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import org.junit.jupiter.api.Assertions;
@@ -86,14 +88,14 @@ class RecalculationTest{
 			.toList();
 		Assertions.assertEquals(2, events.size(), conflict.recordIds().toString());
 
-		final FLEFRecord conclusion = FLEFRecord.createMainRecord("C1", "conclusion");
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("issue", "birth_date"));
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("proof_status", "supported"));
+		final FLEFRecord conclusion = FLEFRecord.createMainRecord("C1", ConclusionReader.TYPE);
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_ISSUE, "birth_date"));
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED));
 		for(final String event : events)
-			conclusion.addChild(FLEFRecord.createChildWithTag("resolves")
-				.addChild(FLEFRecord.createChildWithTagAndValue("event", event)));
-		conclusion.addChild(FLEFRecord.createChildWithTag("preferred")
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", events.getFirst())));
+			conclusion.addChild(FLEFRecord.createChildWithTag(ConclusionReader.TAG_RESOLVES)
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, event)));
+		conclusion.addChild(FLEFRecord.createChildWithTag(ConclusionReader.TAG_PREFERRED)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, events.getFirst())));
 		return conclusion;
 	}
 

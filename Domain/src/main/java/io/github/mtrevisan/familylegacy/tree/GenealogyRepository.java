@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
@@ -236,6 +237,40 @@ public class GenealogyRepository{
 			}
 
 		return UnionChronology.unionDate(sharedEvents, partnerValidFromMap.get(partnerKey(individualId, partnerId)));
+	}
+
+	/** A marriage event (civil, religious, ...) shared by two partners; any field may be {@code null} if not recorded. */
+	public record UnionMarriage(String description, String date, String place, NormalizedDate sortDate){}
+
+	/**
+	 * @return	The marriage events both partners took part in (civil, religious, ...), the dated ones first, in chronological order.
+	 */
+	public List<UnionMarriage> getUnionMarriages(final String individualId, final String partnerId){
+		ensureIndices();
+
+		final Set<String> partnerEventIds = new HashSet<>();
+		for(final FLEFRecord event : individualToEventMap.getOrDefault(partnerId, Collections.emptyList()))
+			partnerEventIds.add(event.getId());
+
+		final List<UnionMarriage> marriages = new ArrayList<>();
+		final Set<String> seen = new HashSet<>();
+		for(final FLEFRecord event : individualToEventMap.getOrDefault(individualId, Collections.emptyList())){
+			final String eventId = event.getId();
+			if(!partnerEventIds.contains(eventId) || !seen.add(eventId)
+					|| !EventReader.ENUM_TYPE_MARRIAGE.equalsIgnoreCase(EventReader.extractType(event)))
+				continue;
+
+			final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+			final TemporalSpan span = DateReader.extractTemporalSpan(dateRecord);
+			marriages.add(new UnionMarriage(EventReader.extractDescription(event), DateReader.extractPrettyPrintDate(dateRecord),
+				PlaceCitationReader.extractPlace(event, model), (span != null? span.representativeDate(): null)));
+		}
+		marriages.sort((a, b) -> {
+			if(a.sortDate() == null || b.sortDate() == null)
+				return Boolean.compare(a.sortDate() == null, b.sortDate() == null);
+			return a.sortDate().compareTo(b.sortDate());
+		});
+		return marriages;
 	}
 
 	private void indexEventParticipation(final FLEFRecord eventParticipation){

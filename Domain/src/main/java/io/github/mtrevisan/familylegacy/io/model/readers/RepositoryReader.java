@@ -39,6 +39,9 @@ import java.util.List;
  * // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
  * record RepositoryRecord {
  *   name+: NameStructure                 // the official name of the archive in which the stated source material is stored
+ *   type?: enum {
+ *     archive, library, church, cemetery, website, collection, private_collection, bookstore, government, museum, university, institution
+ *   } | Text
  *   custodian?: Agent                    // the current custodian of the repository or of its material
  *   place?: PlaceCitation                // the location of the repository
  *   contact*: ContactStructure
@@ -60,12 +63,30 @@ public final class RepositoryReader{
 	public static final String ID_PREFIX = "R";
 
 	public static final String TAG_NAME = "name";
+	public static final String TAG_TYPE = "type";
 	public static final String TAG_CUSTODIAN = "custodian";
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_CONTACT = "contact";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_TYPE_ARCHIVE = "archive";
+	public static final String ENUM_TYPE_LIBRARY = "library";
+	public static final String ENUM_TYPE_CHURCH = "church";
+	public static final String ENUM_TYPE_CEMETERY = "cemetery";
+	public static final String ENUM_TYPE_WEBSITE = "website";
+	public static final String ENUM_TYPE_COLLECTION = "collection";
+	public static final String ENUM_TYPE_PRIVATE_COLLECTION = "private_collection";
+	public static final String ENUM_TYPE_BOOKSTORE = "bookstore";
+	public static final String ENUM_TYPE_GOVERNMENT = "government";
+	public static final String ENUM_TYPE_MUSEUM = "museum";
+	public static final String ENUM_TYPE_UNIVERSITY = "university";
+	public static final String ENUM_TYPE_INSTITUTION = "institution";
+	public static final String[] TYPES = new String[]{
+		ENUM_TYPE_ARCHIVE, ENUM_TYPE_LIBRARY, ENUM_TYPE_CHURCH, ENUM_TYPE_CEMETERY, ENUM_TYPE_WEBSITE, ENUM_TYPE_COLLECTION,
+		ENUM_TYPE_PRIVATE_COLLECTION, ENUM_TYPE_BOOKSTORE, ENUM_TYPE_GOVERNMENT, ENUM_TYPE_MUSEUM, ENUM_TYPE_UNIVERSITY, ENUM_TYPE_INSTITUTION
+	};
 
 
 	private RepositoryReader(){}
@@ -94,6 +115,11 @@ public final class RepositoryReader{
 	public static String extractPrimaryName(final FLEFRecord repository){
 		final List<String> names = extractNames(repository);
 		return (!names.isEmpty()? names.getFirst(): null);
+	}
+
+	/** @return the type of the repository (one of {@link #TYPES} or a custom token), or {@code null} */
+	public static String extractType(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 	}
 
 	public static String extractCustodian(final FLEFRecord record){

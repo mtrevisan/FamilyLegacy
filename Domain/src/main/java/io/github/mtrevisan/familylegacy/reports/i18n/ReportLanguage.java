@@ -135,6 +135,24 @@ public enum ReportLanguage{
 		return locale;
 	}
 
+	/**
+	 * @param tag	A BCP 47 language tag, as the one of the user interface ({@code "it"}, {@code "en-US"}, {@code "zh-CN"}).
+	 * @return	The language of that tag, or the closest one with the same base language; English if there is none.
+	 */
+	public static ReportLanguage forLanguageTag(final String tag){
+		if(tag == null || tag.isBlank())
+			return ENGLISH;
+
+		final Locale wanted = Locale.forLanguageTag(tag.strip());
+		for(final ReportLanguage language : values())
+			if(language.locale.equals(wanted))
+				return language;
+		for(final ReportLanguage language : values())
+			if(language.locale.getLanguage().equals(wanted.getLanguage()))
+				return language;
+		return ENGLISH;
+	}
+
 	public String displayName(){
 		return displayName;
 	}

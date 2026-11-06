@@ -614,7 +614,7 @@ public final class PlaceCoordinateResolver{
 
 			if(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF.equals(type))
 				administrativeContainerOf.putIfAbsent(childId, objectId);
-			else if("geographic_part_of".equals(type))
+			else if(PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF.equals(type))
 				geographicContainerOf.putIfAbsent(childId, objectId);
 
 			childrenOf.computeIfAbsent(objectId, k -> new ArrayList<>())

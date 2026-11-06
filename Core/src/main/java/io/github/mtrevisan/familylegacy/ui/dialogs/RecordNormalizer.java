@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -71,7 +72,7 @@ public final class RecordNormalizer{
 	 * as significant, so a {@code name} block is the one container that
 	 * must not be sorted.
 	 */
-	private static final String ORDER_SIGNIFICANT_TAG = "name";
+	private static final String ORDER_SIGNIFICANT_TAG = IndividualReader.TAG_NAME;
 
 	private static final int MAX_RESOLVE_DEPTH = 8;
 

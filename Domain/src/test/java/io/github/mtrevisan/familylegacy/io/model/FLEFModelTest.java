@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.model;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.merger.RecordIdReplacer;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
@@ -90,7 +91,7 @@ class FLEFModelTest{
 
 		Assertions.assertNull(model.getRecordById("P1"));
 		Assertions.assertFalse(model.getRecords().stream().anyMatch(record -> "P1".equals(record.getId())));
-		Assertions.assertEquals(2, model.getRecordsByType("place").size());
+		Assertions.assertEquals(2, model.getRecordsByType(PlaceReader.TYPE).size());
 		Assertions.assertFalse(model.getPlacesById().containsKey("P1"));
 
 		final FLEFRecord event = model.getRecordById("E1");

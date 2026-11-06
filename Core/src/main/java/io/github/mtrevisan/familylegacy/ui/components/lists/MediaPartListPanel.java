@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -102,7 +101,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		final FLEFRecord documentPart = listModel.get(itemIndex);
-		final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_MEDIA);
+		final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_MEDIA);
 		final FLEFRecord document = model.getRecordById(documentId);
 
 		if(document == null)
@@ -159,7 +158,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected String getDisplayText(final FLEFRecord documentPart){
 		if(documentPart != null){
-			final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceReader.TAG_MEDIA);
+			final String documentId = FLEFRecordHelper.getChildValue(documentPart, SourceCitationReader.TAG_MEDIA);
 			if(documentId != null){
 				final FLEFRecord doc = model.getRecordById(documentId);
 				if(doc != null){
@@ -194,7 +193,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				if(document != null){
 					// Wrap the document in a media_part structure as required by the FLEF protocol
 					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART);
-					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, document.getId()));
+					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_MEDIA, document.getId()));
 
 					final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
 
@@ -308,7 +307,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		// Resolve the underlying document to edit its properties
-		final String documentId = FLEFRecordHelper.getChildValue(record, SourceReader.TAG_MEDIA);
+		final String documentId = FLEFRecordHelper.getChildValue(record, SourceCitationReader.TAG_MEDIA);
 		final FLEFRecord document = (documentId != null ? model.getRecordById(documentId) : record);
 
 		if(document != null){

@@ -24,6 +24,7 @@ An archive, a library, a parish office. Open it with **Source > New Repository..
 | Field | Meaning |
 |---|---|
 | **Name** | The names of the repository; at least one is required. |
+| **Type** | What kind of repository it is: archive, library, church, cemetery, website, collection, private collection, bookstore, government, museum, university or institution. Editable: you can also type your own word (lowercase letters, digits and underscores). |
 | **Custodian** | Who looks after it, as an [agent](#agent). |
 | **Place** | Where it is. |
 | **Contacts** | The [contacts](#contact). |

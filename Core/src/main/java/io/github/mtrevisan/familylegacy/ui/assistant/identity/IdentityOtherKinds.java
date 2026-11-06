@@ -30,7 +30,14 @@ import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -44,6 +51,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 
 
@@ -60,7 +68,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 final class IdentityOtherKinds{
 
 	/** The kinds, in the order they are listed. */
-	static final List<String> KINDS = List.of("group", "place", "source", "repository", "media", "cultural_norm", "historic_event");
+	static final List<String> KINDS = Stream.of(GroupReader.TYPE, PlaceReader.TYPE, SourceReader.TYPE, RepositoryReader.TYPE, MediaReader.TYPE,
+			CulturalNormReader.TYPE, HistoricEventReader.TYPE)
+		.map(kind -> kind.toLowerCase(Locale.ROOT))
+		.toList();
 	/** The probability from which a pair is a strong candidate (a warning), and the confidence proposed is high. */
 	static final double HIGH_PROBABILITY = 0.9;
 	/** The most pairs proposed for each kind. */

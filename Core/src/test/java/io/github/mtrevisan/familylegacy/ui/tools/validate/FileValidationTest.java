@@ -29,6 +29,16 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.quality.ConsistencyService;
@@ -144,13 +154,13 @@ class FileValidationTest{
 	@Test
 	void aRelationshipWithItselfIsAnErrorWhateverTheKindOfRecord() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(FLEFRecord.createMainRecord("R900", "relationship")
-			.addChild(FLEFRecord.createChildWithTag("subject").addChild(FLEFRecord.createChildWithTagAndValue("group", "G7")))
-			.addChild(FLEFRecord.createChildWithTag("target").addChild(FLEFRecord.createChildWithTagAndValue("group", "G7")))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "part_of")));
-		model.addRecord(FLEFRecord.createMainRecord("PR900", "place_relationship")
-			.addChild(FLEFRecord.createChildWithTag("subject").addChild(FLEFRecord.createChildWithTagAndValue("place", "P1")))
-			.addChild(FLEFRecord.createChildWithTag("target").addChild(FLEFRecord.createChildWithTagAndValue("place", "P1"))));
+		model.addRecord(FLEFRecord.createMainRecord("R900", RelationshipReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT).addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_GROUP, "G7")))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET).addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_GROUP, "G7")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_PART_OF)));
+		model.addRecord(FLEFRecord.createMainRecord("PR900", PlaceRelationshipReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(PlaceRelationshipReader.TAG_SUBJECT).addChild(FLEFRecord.createChildWithTagAndValue(PlaceRelationshipReader.TAG_PLACE, "P1")))
+			.addChild(FLEFRecord.createChildWithTag(PlaceRelationshipReader.TAG_TARGET).addChild(FLEFRecord.createChildWithTagAndValue(PlaceRelationshipReader.TAG_PLACE, "P1"))));
 
 		final List<String> selves = issues(model, ConsistencyService.Severity.ERROR).stream()
 			.filter(issue -> issue.message().contains("points to itself"))
@@ -180,10 +190,10 @@ class FileValidationTest{
 	private static FLEFModel peopleOf(final String... ids){
 		final FLEFModel model = new FLEFModel();
 		for(final String id : ids)
-			model.addRecord(FLEFRecord.createMainRecord(id, "individual")
-				.addChild(FLEFRecord.createChildWithTag("name").addChild(FLEFRecord.createChildWithTag("part")
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", "given"))
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", "Name" + id)))));
+			model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE)
+				.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME).addChild(FLEFRecord.createChildWithTag(DateReader.TAG_PART)
+					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_TYPE, NameReader.ENUM_PART_TYPE_GIVEN))
+					.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_VALUE, "Name" + id)))));
 		return model;
 	}
 
@@ -277,13 +287,13 @@ class FileValidationTest{
 	void aMissingOrUnknownSexIsNotChecked() throws IOException{
 		//Sconosciuto (I7) has no sex recorded here: with a male (I1) as the other parent nothing can be said
 		final FLEFModel missing = model();
-		FLEFRecordHelper.removeChild(missing.getRecordById("I7"), "sex");
+		FLEFRecordHelper.removeChild(missing.getRecordById("I7"), IndividualReader.TAG_SEX);
 		missing.addRecord(biologicalChild("RA", "I6", "I1"));
 		missing.addRecord(biologicalChild("RB", "I6", "I7"));
 		//a parent whose sex is unknown
 		final FLEFModel unknown = model();
-		unknown.addRecord(FLEFRecord.createMainRecord("I8", "individual")
-			.addChild(FLEFRecord.createChildWithTagAndValue("sex", "unknown")));
+		unknown.addRecord(FLEFRecord.createMainRecord("I8", IndividualReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_UNKNOWN)));
 		unknown.addRecord(biologicalChild("RA", "I6", "I1"));
 		unknown.addRecord(biologicalChild("RB", "I6", "I8"));
 
@@ -301,10 +311,10 @@ class FileValidationTest{
 	}
 
 	private static FLEFRecord biologicalChild(final String id, final String childId, final String parentId){
-		return FLEFRecord.createMainRecord(id, "relationship")
-			.addChild(FLEFRecord.createChildWithTag("subject").addChild(FLEFRecord.createChildWithTagAndValue("individual", childId)))
-			.addChild(FLEFRecord.createChildWithTag("target").addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", "biological_child"));
+		return FLEFRecord.createMainRecord(id, RelationshipReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT).addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, childId)))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET).addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, parentId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 	}
 
 	@Test
@@ -343,7 +353,7 @@ class FileValidationTest{
 		final FLEFValidator validator = new FLEFValidator(MergeGrammar.instance());
 		final FLEFModel model = model();
 		//a record without its audit does not follow the grammar: the validator stops at the schema
-		FLEFRecordHelper.removeChild(model.getRecordById("I6"), "audit");
+		FLEFRecordHelper.removeChild(model.getRecordById("I6"), IndividualReader.TAG_AUDIT);
 		final List<FLEFValidator.ValidationError> byGrammar = validator.validateAllStructured(model);
 
 		final List<FLEFValidator.ValidationError> found = FileValidation.run(validator, model);
@@ -395,26 +405,26 @@ class FileValidationTest{
 
 	private static FLEFRecord relationship(final String id, final String type, final String subjectKind, final String subjectId,
 			final String targetKind, final String targetId){
-		return FLEFRecord.createMainRecord(id, "relationship")
-			.addChild(link("subject", subjectKind, subjectId))
-			.addChild(link("target", targetKind, targetId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+		return FLEFRecord.createMainRecord(id, RelationshipReader.TYPE)
+			.addChild(link(RelationshipReader.TAG_SUBJECT, subjectKind, subjectId))
+			.addChild(link(RelationshipReader.TAG_TARGET, targetKind, targetId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type));
 	}
 
 	private static FLEFRecord placeRelationship(final String id, final String type, final String subjectId, final String targetId){
-		return FLEFRecord.createMainRecord(id, "place_relationship")
-			.addChild(link("subject", "place", subjectId))
-			.addChild(link("target", "place", targetId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+		return FLEFRecord.createMainRecord(id, PlaceRelationshipReader.TYPE)
+			.addChild(link(PlaceRelationshipReader.TAG_SUBJECT, PlaceRelationshipReader.TAG_PLACE, subjectId))
+			.addChild(link(PlaceRelationshipReader.TAG_TARGET, PlaceRelationshipReader.TAG_PLACE, targetId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceRelationshipReader.TAG_TYPE, type));
 	}
 
 	private static FLEFRecord conclusion(final String id, final String proofStatus, final List<String> resolves, final String preferred){
-		final FLEFRecord conclusion = FLEFRecord.createMainRecord(id, "conclusion")
-			.addChild(FLEFRecord.createChildWithTagAndValue("proof_status", proofStatus));
+		final FLEFRecord conclusion = FLEFRecord.createMainRecord(id, ConclusionReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_PROOF_STATUS, proofStatus));
 		for(final String target : resolves)
-			conclusion.addChild(link("resolves", "individual", target));
+			conclusion.addChild(link(ConclusionReader.TAG_RESOLVES, AgentReader.TAG_INDIVIDUAL, target));
 		if(preferred != null)
-			conclusion.addChild(link("preferred", "individual", preferred));
+			conclusion.addChild(link(ConclusionReader.TAG_PREFERRED, AgentReader.TAG_INDIVIDUAL, preferred));
 		return conclusion;
 	}
 
@@ -427,8 +437,8 @@ class FileValidationTest{
 	@Test
 	void thePreferredRecordOfAConclusionMustBeOneOfTheOnesItResolves() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(conclusion("CC1", "proven", List.of("I1", "I2"), "I3"));
-		model.addRecord(conclusion("CC2", "proven", List.of("I1", "I2"), "I2"));
+		model.addRecord(conclusion("CC1", ConclusionReader.ENUM_PROOF_STATUS_PROVEN, List.of("I1", "I2"), "I3"));
+		model.addRecord(conclusion("CC2", ConclusionReader.ENUM_PROOF_STATUS_PROVEN, List.of("I1", "I2"), "I2"));
 
 		final List<ConsistencyService.Issue> found = issuesContaining(model, "preferred record");
 
@@ -440,9 +450,9 @@ class FileValidationTest{
 	@Test
 	void aConclusionThatDisprovesNormallyResolvesTwoRecordsAndPrefersNone() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(conclusion("CC1", "disproven", List.of("I1"), null));
-		model.addRecord(conclusion("CC2", "disproven", List.of("I1", "I2"), "I1"));
-		model.addRecord(conclusion("CC3", "disproven", List.of("I1", "I2"), null));
+		model.addRecord(conclusion("CC1", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, List.of("I1"), null));
+		model.addRecord(conclusion("CC2", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, List.of("I1", "I2"), "I1"));
+		model.addRecord(conclusion("CC3", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, List.of("I1", "I2"), null));
 
 		final List<ConsistencyService.Issue> few = issuesContaining(model, "at least two records");
 		final List<ConsistencyService.Issue> preferred = issuesContaining(model, "no preferred record");
@@ -458,12 +468,12 @@ class FileValidationTest{
 	void aRelationshipTypeMustBeValidBetweenTheKindsOfRecordItLinks() throws IOException{
 		final FLEFModel model = model();
 		//a spouse that is a group, a membership between two individuals, and the valid ones
-		model.addRecord(relationship("X1", "spouse", "individual", "I1", "group", "G1"));
-		model.addRecord(relationship("X2", "group_member", "individual", "I1", "individual", "I2"));
-		model.addRecord(relationship("X3", "part_of", "group", "G1", "individual", "I1"));
-		model.addRecord(relationship("X4", "group_member", "individual", "I1", "group", "G1"));
-		model.addRecord(relationship("X5", "part_of", "group", "G1", "group", "G2"));
-		model.addRecord(relationship("X6", "spouse", "individual", "I1", "individual", "I2"));
+		model.addRecord(relationship("X1", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_GROUP, "G1"));
+		model.addRecord(relationship("X2", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2"));
+		model.addRecord(relationship("X3", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G1", RelationshipReader.TAG_INDIVIDUAL, "I1"));
+		model.addRecord(relationship("X4", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_GROUP, "G1"));
+		model.addRecord(relationship("X5", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G1", RelationshipReader.TAG_GROUP, "G2"));
+		model.addRecord(relationship("X6", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2"));
 
 		final List<String> wrong = issuesContaining(model, "cannot link").stream()
 			.map(ConsistencyService.Issue::recordId)
@@ -481,11 +491,11 @@ class FileValidationTest{
 	@Test
 	void aCircleInTheHierarchyOfTheGroupsIsReportedOnce() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(relationship("X1", "part_of", "group", "G1", "group", "G2"));
-		model.addRecord(relationship("X2", "part_of", "group", "G2", "group", "G3"));
-		model.addRecord(relationship("X3", "part_of", "group", "G3", "group", "G1"));
+		model.addRecord(relationship("X1", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G1", RelationshipReader.TAG_GROUP, "G2"));
+		model.addRecord(relationship("X2", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G2", RelationshipReader.TAG_GROUP, "G3"));
+		model.addRecord(relationship("X3", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G3", RelationshipReader.TAG_GROUP, "G1"));
 		//a chain that is not a circle
-		model.addRecord(relationship("X4", "part_of", "group", "G4", "group", "G5"));
+		model.addRecord(relationship("X4", RelationshipReader.ENUM_TYPE_PART_OF, RelationshipReader.TAG_GROUP, "G4", RelationshipReader.TAG_GROUP, "G5"));
 
 		final List<ConsistencyService.Issue> found = issuesContaining(model, "Circular hierarchy of groups");
 
@@ -497,10 +507,10 @@ class FileValidationTest{
 	@Test
 	void aCircleInTheJurisdictionsOfThePlacesIsAnErrorAndInTheirSuccessionAWarning() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(placeRelationship("PR1", "administrative_part_of", "P1", "P2"));
-		model.addRecord(placeRelationship("PR2", "ecclesiastical_part_of", "P2", "P1"));
-		model.addRecord(placeRelationship("PR3", "successor_of", "P3", "P4"));
-		model.addRecord(placeRelationship("PR4", "split_from", "P4", "P3"));
+		model.addRecord(placeRelationship("PR1", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, "P1", "P2"));
+		model.addRecord(placeRelationship("PR2", PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, "P2", "P1"));
+		model.addRecord(placeRelationship("PR3", PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF, "P3", "P4"));
+		model.addRecord(placeRelationship("PR4", PlaceRelationshipReader.ENUM_TYPE_SPLIT_FROM, "P4", "P3"));
 
 		final List<ConsistencyService.Issue> jurisdiction = issuesContaining(model, "Circular jurisdiction");
 		final List<ConsistencyService.Issue> succession = issuesContaining(model, "Circular succession");
@@ -514,14 +524,14 @@ class FileValidationTest{
 	@Test
 	void theSameRelationshipWrittenTwiceIsOneWarningAndACoupleFromBothSidesIsTheSame() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(relationship("X1", "spouse", "individual", "I1", "individual", "I2"));
+		model.addRecord(relationship("X1", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2"));
 		//the same couple written from the other side
-		model.addRecord(relationship("X2", "spouse", "individual", "I2", "individual", "I1"));
+		model.addRecord(relationship("X2", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I2", RelationshipReader.TAG_INDIVIDUAL, "I1"));
 		//a child is not symmetric: the parent of the child and the child of the parent are not the same
-		model.addRecord(relationship("X3", "biological_child", "individual", "I6", "individual", "I1"));
-		model.addRecord(relationship("X4", "biological_child", "individual", "I1", "individual", "I6"));
+		model.addRecord(relationship("X3", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.TAG_INDIVIDUAL, "I6", RelationshipReader.TAG_INDIVIDUAL, "I1"));
+		model.addRecord(relationship("X4", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I6"));
 		//a different type between the same two is another relationship
-		model.addRecord(relationship("X5", "civil_spouse", "individual", "I1", "individual", "I2"));
+		model.addRecord(relationship("X5", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2"));
 
 		final List<ConsistencyService.Issue> found = issuesContaining(model, "is written");
 
@@ -533,10 +543,10 @@ class FileValidationTest{
 
 	private static FLEFRecord date(final String tag, final String isoDate){
 		return FLEFRecord.createChildWithTag(tag)
-			.addChild(FLEFRecord.createChildWithTag("value")
-				.addChild(FLEFRecord.createChildWithTag("point")
-					.addChild(FLEFRecord.createChildWithTag("value")
-						.addChild(FLEFRecord.createChildWithTagAndValue("full_date", isoDate)))));
+			.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+				.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_POINT)
+					.addChild(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE)
+						.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, isoDate)))));
 	}
 
 	private static List<String> validityErrors(final FLEFModel model){
@@ -549,15 +559,15 @@ class FileValidationTest{
 	@Test
 	void aRelationshipThatEndsBeforeItBeginsIsAnErrorByTheDaysNotByTheText() throws IOException{
 		final FLEFModel model = model();
-		model.addRecord(relationship("X1", "spouse", "individual", "I1", "individual", "I2")
-			.addChild(date("valid_from", "1900-05-01")).addChild(date("valid_to", "1850-01-01")));
+		model.addRecord(relationship("X1", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2")
+			.addChild(date(RelationshipReader.TAG_VALID_FROM, "1900-05-01")).addChild(date(RelationshipReader.TAG_VALID_TO, "1850-01-01")));
 		//a text that sorts the other way: 9 is after 10 as text, but the day is before
-		model.addRecord(relationship("X2", "spouse", "individual", "I3", "individual", "I4")
-			.addChild(date("valid_from", "0999-03-01")).addChild(date("valid_to", "1000-03-01")));
-		model.addRecord(relationship("X3", "spouse", "individual", "I5", "individual", "I6")
-			.addChild(date("valid_from", "1850-01-01")).addChild(date("valid_to", "1900-05-01")));
-		model.addRecord(placeRelationship("PR1", "administrative_part_of", "P1", "P2")
-			.addChild(date("valid_from", "1900-05-01")).addChild(date("valid_to", "1850-01-01")));
+		model.addRecord(relationship("X2", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I3", RelationshipReader.TAG_INDIVIDUAL, "I4")
+			.addChild(date(RelationshipReader.TAG_VALID_FROM, "0999-03-01")).addChild(date(RelationshipReader.TAG_VALID_TO, "1000-03-01")));
+		model.addRecord(relationship("X3", RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "I5", RelationshipReader.TAG_INDIVIDUAL, "I6")
+			.addChild(date(RelationshipReader.TAG_VALID_FROM, "1850-01-01")).addChild(date(RelationshipReader.TAG_VALID_TO, "1900-05-01")));
+		model.addRecord(placeRelationship("PR1", PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, "P1", "P2")
+			.addChild(date(RelationshipReader.TAG_VALID_FROM, "1900-05-01")).addChild(date(RelationshipReader.TAG_VALID_TO, "1850-01-01")));
 
 		final List<String> errors = validityErrors(model);
 
@@ -571,16 +581,16 @@ class FileValidationTest{
 	 * ====================================================================== */
 
 	private static FLEFRecord event(final String id, final String type){
-		return FLEFRecord.createMainRecord(id, "event")
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type));
+		return FLEFRecord.createMainRecord(id, EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, type));
 	}
 
 	private static FLEFRecord participation(final String id, final String eventId, final String individualId, final String role){
-		final FLEFRecord participation = FLEFRecord.createMainRecord(id, "event_participation")
-			.addChild(link("participant", "individual", individualId))
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
+		final FLEFRecord participation = FLEFRecord.createMainRecord(id, EventParticipationReader.TYPE)
+			.addChild(link(EventParticipationReader.TAG_PARTICIPANT, EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, individualId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId));
 		if(role != null)
-			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
+			participation.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE, role));
 		return participation;
 	}
 
@@ -596,7 +606,7 @@ class FileValidationTest{
 		final FLEFModel model = model();
 		model.addRecord(event("E1", "residence"));
 		model.addRecord(event("E2", "residence"));
-		model.addRecord(participation("P2", "E2", "I1", "principal"));
+		model.addRecord(participation("P2", "E2", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
 
 		final List<ConsistencyService.Issue> found = ConsistencyService.check(model).issues().stream()
 			.filter(issue -> issue.message().contains("has no participants"))
@@ -611,21 +621,21 @@ class FileValidationTest{
 	void aLifeEventWhoseParticipantsAreAllKnownNotToBeThePrincipalIsNotAboutAnybody() throws IOException{
 		final FLEFModel model = model();
 		//a birth with a witness only: nobody was born
-		model.addRecord(event("E1", "birth"));
-		model.addRecord(participation("P1", "E1", "I1", "witness"));
+		model.addRecord(event("E1", EventReader.ENUM_TYPE_BIRTH));
+		model.addRecord(participation("P1", "E1", "I1", EventParticipationReader.ENUM_ROLE_WITNESS));
 		//a birth with a principal, a death with a principal and a witness: fine
-		model.addRecord(event("E2", "birth"));
-		model.addRecord(participation("P2", "E2", "I2", "principal"));
-		model.addRecord(event("E3", "death"));
-		model.addRecord(participation("P3a", "E3", "I3", "principal"));
-		model.addRecord(participation("P3b", "E3", "I4", "witness"));
+		model.addRecord(event("E2", EventReader.ENUM_TYPE_BIRTH));
+		model.addRecord(participation("P2", "E2", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(event("E3", EventReader.ENUM_TYPE_DEATH));
+		model.addRecord(participation("P3a", "E3", "I3", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("P3b", "E3", "I4", EventParticipationReader.ENUM_ROLE_WITNESS));
 		//a baptism with a participant that has no role: the role is optional, nothing can be said
 		model.addRecord(event("E4", "baptism"));
-		model.addRecord(participation("P4a", "E4", "I1", "sponsor"));
+		model.addRecord(participation("P4a", "E4", "I1", EventParticipationReader.ENUM_ROLE_SPONSOR));
 		model.addRecord(participation("P4b", "E4", "I2", null));
 		//a marriage with a witness only is not judged: the other spouse may be unknown
-		model.addRecord(event("E5", "marriage"));
-		model.addRecord(participation("P5", "E5", "I1", "witness"));
+		model.addRecord(event("E5", EventReader.ENUM_TYPE_MARRIAGE));
+		model.addRecord(participation("P5", "E5", "I1", EventParticipationReader.ENUM_ROLE_WITNESS));
 
 		Assertions.assertEquals(List.of("E1"), eventIssues(model));
 	}
@@ -635,14 +645,14 @@ class FileValidationTest{
 		final String gedcom = "0 HEAD\n1 CHAR UTF-8\n0 @I1@ INDI\n1 NAME Mario /Rossi/\n1 SEX M\n1 BIRT\n2 DATE 1 JAN 1850\n1 DEAT\n2 DATE 1 JAN 1920\n";
 		final FLEFModel imported = new GEDCOMToFLEFConverter().convert(new GEDCOMParser().parse(new StringReader(gedcom)));
 
-		Assertions.assertFalse(imported.getRecordsByType("event").isEmpty());
+		Assertions.assertFalse(imported.getRecordsByType(EventReader.TYPE).isEmpty());
 		Assertions.assertTrue(eventIssues(imported).isEmpty(), eventIssues(imported).toString());
 	}
 
 	private static FLEFRecord media(final String id, final String uri){
-		return FLEFRecord.createMainRecord(id, "media")
-			.addChild(FLEFRecord.createChildWithTagAndValue("uri", uri))
-			.addChild(FLEFRecord.createChildWithTagAndValue("kind", "image"));
+		return FLEFRecord.createMainRecord(id, MediaReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_URI, uri))
+			.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_KIND, MediaReader.ENUM_KIND_IMAGE));
 	}
 
 	@Test

@@ -28,6 +28,9 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -117,18 +120,18 @@ class ConclusionDataLoaderTest{
 	void aConclusionRecordSettlesAConflict() throws IOException{
 		final FLEFModel model = convert();
 		final List<ConclusionData.PrincipalEvent> births = ConclusionDataLoader.load(model).events().stream()
-			.filter(e -> "birth".equals(e.type()))
+			.filter(e -> EventReader.ENUM_TYPE_BIRTH.equals(e.type()))
 			.toList();
 		Assertions.assertEquals(2, births.size());
 
-		final FLEFRecord conclusion = FLEFRecord.createMainRecord("C1", "conclusion");
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("issue", "birth_date"));
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("proof_status", "supported"));
+		final FLEFRecord conclusion = FLEFRecord.createMainRecord("C1", ConclusionReader.TYPE);
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_ISSUE, "birth_date"));
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue(ConclusionReader.TAG_PROOF_STATUS, ConclusionReader.ENUM_PROOF_STATUS_SUPPORTED));
 		for(final ConclusionData.PrincipalEvent birth : births)
-			conclusion.addChild(FLEFRecord.createChildWithTag("resolves")
-				.addChild(FLEFRecord.createChildWithTagAndValue("event", birth.eventId())));
-		conclusion.addChild(FLEFRecord.createChildWithTag("preferred")
-			.addChild(FLEFRecord.createChildWithTagAndValue("event", births.getFirst().eventId())));
+			conclusion.addChild(FLEFRecord.createChildWithTag(ConclusionReader.TAG_RESOLVES)
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, birth.eventId())));
+		conclusion.addChild(FLEFRecord.createChildWithTag(ConclusionReader.TAG_PREFERRED)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, births.getFirst().eventId())));
 		model.addRecord(conclusion);
 
 		final List<String> titles = titles(model);

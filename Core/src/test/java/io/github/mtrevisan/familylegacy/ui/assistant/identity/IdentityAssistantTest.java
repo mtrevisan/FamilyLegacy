@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -94,7 +96,7 @@ class IdentityAssistantTest{
 	}
 
 	private static String id(final FLEFModel model, final String name, final int nth){
-		return model.getRecordsByType("individual").stream()
+		return model.getRecordsByType(IndividualReader.TYPE).stream()
 			.filter(r -> IndividualReader.extractPrimaryFullname(r).contains(name))
 			.skip(nth)
 			.findFirst()
@@ -156,10 +158,10 @@ class IdentityAssistantTest{
 		final FLEFModel model = convert();
 		Assertions.assertEquals(1, found(model).size());
 
-		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", "identity_hypothesis");
+		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", IdentityHypothesisReader.TYPE);
 		for(final String id : List.of(id(model, "Mario", 0), id(model, "Mario", 1)))
-			hypothesis.addChild(FLEFRecord.createChildWithTag("identity")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", id)));
+			hypothesis.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_IDENTITY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TAG_IDENTITY_INDIVIDUAL, id)));
 		model.addRecord(hypothesis);
 
 		Assertions.assertTrue(found(model).isEmpty());
@@ -179,22 +181,22 @@ class IdentityAssistantTest{
 			.withCandidates(first, second, finding.draft().rationale(), finding.draft().confidence());
 
 		//the draft is in the editor only
-		Assertions.assertTrue(model.getRecordsByType("identity_hypothesis").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(IdentityHypothesisReader.TYPE).isEmpty());
 		Assertions.assertFalse(dialog.isSaved());
 
 		//the researcher confirms it as it is
 		dialog.save();
 
 		Assertions.assertTrue(dialog.isSaved());
-		final List<FLEFRecord> hypotheses = model.getRecordsByType("identity_hypothesis");
+		final List<FLEFRecord> hypotheses = model.getRecordsByType(IdentityHypothesisReader.TYPE);
 		Assertions.assertEquals(1, hypotheses.size());
 		final FLEFRecord hypothesis = hypotheses.getFirst();
-		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(hypothesis, "identity").size());
-		Assertions.assertTrue(FLEFRecordHelper.getChildValue(hypothesis, "rationale")
+		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY).size());
+		Assertions.assertTrue(FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_RATIONALE)
 			.startsWith("Proposed by the Identity Assistant"));
-		Assertions.assertEquals(finding.draft().confidence(), FLEFRecordHelper.getChildValue(hypothesis, "confidence"));
+		Assertions.assertEquals(finding.draft().confidence(), FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_CONFIDENCE));
 		//no record was merged or removed: the two individuals are still there
-		Assertions.assertEquals(4, model.getRecordsByType("individual").size());
+		Assertions.assertEquals(4, model.getRecordsByType(IndividualReader.TYPE).size());
 		//the possibility is recorded: the pair is not proposed again, and what the finding was is resolved
 		Assertions.assertTrue(found(model).isEmpty());
 	}
@@ -208,7 +210,7 @@ class IdentityAssistantTest{
 		final FLEFRecord second = model.getRecordById(id(model, "Mario", 1));
 
 		final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model)
-			.withCandidates(first, second, "rationale", "low");
+			.withCandidates(first, second, "rationale", ConfidenceReader.ENUM_LOW);
 		//ESC, which is Cancel
 		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);

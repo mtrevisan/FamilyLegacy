@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
@@ -51,8 +52,8 @@ import java.util.function.Function;
  */
 public final class IndexSection implements SectionBuilder{
 
-	private static final String TAG_PLACE = "place";
-	private static final String TAG_ORIGINAL_TEXT = "original_text";
+	private static final String TAG_PLACE = PlaceCitationReader.TAG_PLACE;
+	private static final String TAG_ORIGINAL_TEXT = PlaceCitationReader.TAG_ORIGINAL_TEXT;
 
 	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
 
@@ -140,8 +141,15 @@ public final class IndexSection implements SectionBuilder{
 
 	private List<String> individualPlaces(){
 		final Set<String> places = new LinkedHashSet<>();
-		for(final FLEFRecord e : ctx.index.eventsOf(ctx.root)) addPlacesOf(e, places);
-		for(final FLEFRecord a : ctx.index.attributesOf(ctx.root)) addPlacesOf(a, places);
+		for(final FLEFRecord subject : ctx.subjects()){
+			if(ReportContext.rootKindOf(subject) == ReportContext.RootKind.GROUP){
+				for(final FLEFRecord e : ctx.index.eventsOfGroup(subject)) addPlacesOf(e, places);
+				continue;
+			}
+
+			for(final FLEFRecord e : ctx.index.eventsOf(subject)) addPlacesOf(e, places);
+			for(final FLEFRecord a : ctx.index.attributesOf(subject)) addPlacesOf(a, places);
+		}
 		final List<String> out = new ArrayList<>(places);
 		out.sort(String.CASE_INSENSITIVE_ORDER);
 		return out;

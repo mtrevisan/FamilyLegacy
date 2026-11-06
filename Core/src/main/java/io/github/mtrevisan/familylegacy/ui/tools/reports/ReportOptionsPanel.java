@@ -26,12 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.reports.OptionState;
+import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -40,7 +44,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 
 /**
@@ -60,12 +67,21 @@ import java.util.Locale;
  * widths from its own natural content, producing the misalignment this
  * layout is designed to prevent.</p>
  *
+ * <p>The panel shows only what the report does with the options: an option that has no effect on it is not shown (and a group left
+ * without options disappears), an option that the report always applies is shown on and cannot be changed. See
+ * {@link OptionState}.</p>
+ *
  * <p>{@link #toConfig(ReportLanguage)} reads the current state of the widgets
  * and returns a fresh immutable {@link ReportConfig}. The panel itself holds
  * no state beyond the widgets, so it can be shown, hidden or rebuilt without
  * leaking anything.</p>
  */
 public final class ReportOptionsPanel extends JPanel{
+
+	private final Function<ReportOption, OptionState> states;
+	/** The options that the report always applies: they are on, whatever the configuration the panel was seeded with. */
+	private final List<JCheckBox> alwaysOn = new ArrayList<>();
+
 
 	/* ======================================================================
 	 *                          Privacy
@@ -88,6 +104,8 @@ public final class ReportOptionsPanel extends JPanel{
 	private final JCheckBox directRel = cb("direct_relations");
 	private final JCheckBox indirectRel = cb("indirect_relations");
 	private final JComboBox<CollateralScope> collaterals = createCollateralCombo();
+	private final JComboBox<Integer> generations = createGenerationsCombo();
+	private final JComboBox<PersonOrder> personOrder = createPersonOrderCombo();
 
 
 	/* ======================================================================
@@ -150,19 +168,37 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                {@code null}
 	 */
 	public ReportOptionsPanel(final ReportConfig initial){
-		super(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]", "[]8[]8[]8[]8[]8[]8[]"));
+		this(initial, option -> OptionState.EDITABLE);
+	}
 
-		add(privacyGroup(), "growx");
-		add(narrativeGroup(), "growx");
-		add(contentGroup(), "growx");
-		add(groupsGroup(), "growx");
-		add(diagnosticsGroup(), "growx");
-		add(indexesGroup(), "growx");
-		add(styleGroup(), "growx");
+	/**
+	 * Builds a panel that shows the options as the report uses them.
+	 *
+	 * @param initial	The configuration to seed the panel with; must not be {@code null}.
+	 * @param states	What the report does with each option.
+	 */
+	public ReportOptionsPanel(final ReportConfig initial, final Function<ReportOption, OptionState> states){
+		super(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]"));
+
+		this.states = states;
+
+		for(final JPanel group : new JPanel[]{privacyGroup(), narrativeGroup(), contentGroup(), groupsGroup(), diagnosticsGroup(),
+				indexesGroup(), styleGroup()})
+			if(group != null)
+				add(group, "growx");
 
 		applyInitial(initial);
 	}
 
+
+	/**
+	 * Puts the options of the configuration in the widgets (the ones that the report always applies stay on).
+	 *
+	 * @param config	The configuration to show.
+	 */
+	public void reset(final ReportConfig config){
+		applyInitial(config);
+	}
 
 	/** Copies every field of {@code initial} into the corresponding widget. */
 	private void applyInitial(final ReportConfig initial){
@@ -178,6 +214,8 @@ public final class ReportOptionsPanel extends JPanel{
 		directRel.setSelected(initial.directRelations());
 		indirectRel.setSelected(initial.indirectRelations());
 		collaterals.setSelectedItem(initial.collateralScope());
+		selectGenerations(initial.generations());
+		personOrder.setSelectedItem(initial.personOrder());
 
 		notes.setSelected(initial.notes());
 		sources.setSelected(initial.sources());
@@ -202,6 +240,8 @@ public final class ReportOptionsPanel extends JPanel{
 
 		descriptions.setSelected(initial.includeDescriptions());
 		pictures.setSelected(initial.includePictures());
+
+		alwaysOn.forEach(box -> box.setSelected(true));
 	}
 
 
@@ -232,6 +272,8 @@ public final class ReportOptionsPanel extends JPanel{
 			directRel.isSelected(),
 			indirectRel.isSelected(),
 			(CollateralScope)collaterals.getSelectedItem(),
+			(generations.getSelectedItem() instanceof final Integer count? count: 0),
+			(PersonOrder)personOrder.getSelectedItem(),
 			notes.isSelected(),
 			sources.isSelected(),
 			media.isSelected(),
@@ -253,6 +295,46 @@ public final class ReportOptionsPanel extends JPanel{
 			pictures.isSelected());
 	}
 
+
+	/** The orders of the persons of a book, by name ("alphabetical", "birth_date"), in the language of the user. */
+	private static JComboBox<PersonOrder> createPersonOrderCombo(){
+		final JComboBox<PersonOrder> combo = new JComboBox<>(PersonOrder.values());
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof PersonOrder order? I18N.t("enum.person_order." + order.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
+	/** The numbers of generations to follow: all of them (0), or up to the number. */
+	private static JComboBox<Integer> createGenerationsCombo(){
+		final JComboBox<Integer> combo = new JComboBox<>(new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20});
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (Integer.valueOf(0).equals(value)? I18N.t("text.report.generations.all"): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
+	/** Selects the number of generations, adding it to the list if the list does not have it (a value kept in the preferences). */
+	private void selectGenerations(final int count){
+		final DefaultComboBoxModel<Integer> model = (DefaultComboBoxModel<Integer>)generations.getModel();
+		if(model.getIndexOf(count) < 0){
+			int position = 0;
+			while(position < model.getSize() && model.getElementAt(position) < count)
+				position ++;
+			model.insertElementAt(count, position);
+		}
+		generations.setSelectedItem(count);
+	}
 
 	/** The collateral scopes by name ("none", "spouses", ...), in the language of the user. */
 	private static JComboBox<CollateralScope> createCollateralCombo(){
@@ -290,12 +372,11 @@ public final class ReportOptionsPanel extends JPanel{
 	 * ====================================================================== */
 
 	private JPanel privacyGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("tab.title.privacy")));
+		final JPanel p = singleColumn("tab.title.privacy");
 		p.add(privacyPolicy, "growx");
-		p.add(showPrivacyDetails);
-		p.add(audit);
-		p.add(header);
+		addOption(p, ReportOption.SHOW_PRIVACY_DETAILS, showPrivacyDetails);
+		addOption(p, ReportOption.AUDIT, audit);
+		addOption(p, ReportOption.HEADER, header);
 		return p;
 	}
 
@@ -305,71 +386,114 @@ public final class ReportOptionsPanel extends JPanel{
 	 * the same width, regardless of the natural width of the labels.
 	 */
 	private JPanel narrativeGroup(){
-		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.narrative")));
-		p.add(introduction);
-		p.add(descendants);
-		p.add(paternal);
-		p.add(directRel);
-		p.add(maternal);
-		p.add(indirectRel);
-		// A small label + combo, still inside the grid.
-		p.add(new JLabel(I18N.l("label.collaterals")));
-		p.add(collaterals);
-		return p;
+		final JPanel p = twoColumns("border.narrative");
+		addOption(p, ReportOption.INTRODUCTION, introduction);
+		addOption(p, ReportOption.DESCENDANTS, descendants);
+		addOption(p, ReportOption.PATERNAL_ANCESTRY, paternal);
+		addOption(p, ReportOption.DIRECT_RELATIONS, directRel);
+		addOption(p, ReportOption.MATERNAL_ANCESTRY, maternal);
+		addOption(p, ReportOption.INDIRECT_RELATIONS, indirectRel);
+		addCombo(p, ReportOption.COLLATERAL_SCOPE, "label.collaterals", "tooltip.report.collaterals", collaterals);
+		addCombo(p, ReportOption.GENERATIONS, "label.generations", "tooltip.report.generations", generations);
+		addCombo(p, ReportOption.PERSON_ORDER, "label.person_order", "tooltip.report.person_order", personOrder);
+		return nonEmpty(p);
 	}
 
 
 	private JPanel contentGroup(){
-		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.content_sections")));
-		p.add(notes);
-		p.add(contextResearch);
-		p.add(sources);
-		p.add(culturalNorms);
-		p.add(media);
-		p.add(historicEvents);
-		p.add(evidence);
-		p.add(repositories);
-		return p;
+		final JPanel p = twoColumns("border.content_sections");
+		addOption(p, ReportOption.NOTES, notes);
+		addOption(p, ReportOption.CONTEXT_AND_RESEARCH, contextResearch);
+		addOption(p, ReportOption.SOURCES, sources);
+		addOption(p, ReportOption.CULTURAL_NORMS, culturalNorms);
+		addOption(p, ReportOption.MEDIA, media);
+		addOption(p, ReportOption.HISTORIC_EVENTS, historicEvents);
+		addOption(p, ReportOption.EVIDENCE, evidence);
+		addOption(p, ReportOption.REPOSITORIES, repositories);
+		return nonEmpty(p);
 	}
 
 
 	private JPanel groupsGroup(){
-		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.group_report")));
-		p.add(groups);
-		p.add(groupMembers);
-		p.add(groupSubgroups);
-		p.add(groupAttributes);
-		return p;
+		final JPanel p = twoColumns("border.group_report");
+		addOption(p, ReportOption.GROUPS, groups);
+		addOption(p, ReportOption.GROUP_MEMBERS, groupMembers);
+		addOption(p, ReportOption.GROUP_SUBGROUPS, groupSubgroups);
+		addOption(p, ReportOption.GROUP_ATTRIBUTES, groupAttributes);
+		return nonEmpty(p);
 	}
 
 
 	private JPanel diagnosticsGroup(){
-		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.diagnostics")));
-		p.add(eventFull);
-		p.add(coverageReport);
-		p.add(timeline);
-		return p;
+		final JPanel p = twoColumns("border.diagnostics");
+		addOption(p, ReportOption.EVENT_FULL_PARTICIPANTS, eventFull);
+		addOption(p, ReportOption.COVERAGE_REPORT, coverageReport);
+		addOption(p, ReportOption.TIMELINE, timeline);
+		return nonEmpty(p);
 	}
 
 
 	private JPanel indexesGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.indexes")));
-		p.add(idxIndividuals);
-		p.add(idxPlaces);
-		return p;
+		final JPanel p = singleColumn("border.indexes");
+		addOption(p, ReportOption.INDEX_INDIVIDUALS, idxIndividuals);
+		addOption(p, ReportOption.INDEX_PLACES, idxPlaces);
+		return nonEmpty(p);
 	}
 
 
 	private JPanel styleGroup(){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]"));
-		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.style")));
-		p.add(descriptions);
-		p.add(pictures);
+		final JPanel p = singleColumn("border.style");
+		addOption(p, ReportOption.INCLUDE_DESCRIPTIONS, descriptions);
+		addOption(p, ReportOption.INCLUDE_PICTURES, pictures);
+		return nonEmpty(p);
+	}
+
+
+	/** Adds the check box unless the report does nothing with the option; one that the report always applies is on and disabled. */
+	private void addOption(final JPanel group, final ReportOption option, final JCheckBox box){
+		switch(states.apply(option)){
+			case HIDDEN -> {
+				return;
+			}
+			case ALWAYS_ON -> {
+				box.setEnabled(false);
+				box.setToolTipText(I18N.t("tooltip.report.always_included"));
+				alwaysOn.add(box);
+			}
+			case EDITABLE -> {
+			}
+		}
+		group.add(box);
+	}
+
+	/** Adds a label and a combo, still inside the grid, on a row of their own. */
+	private void addCombo(final JPanel group, final ReportOption option, final String labelKey, final String tooltipKey,
+			final JComboBox<?> combo){
+		if(states.apply(option) == OptionState.HIDDEN)
+			return;
+
+		if(group.getComponentCount() % 2 != 0)
+			group.add(new JLabel());
+		final JLabel label = new JLabel(I18N.l(labelKey));
+		label.setToolTipText(I18N.t(tooltipKey, null));
+		combo.setToolTipText(I18N.t(tooltipKey, null));
+		group.add(label);
+		group.add(combo);
+	}
+
+	private static JPanel nonEmpty(final JPanel group){
+		return (group.getComponentCount() > 0? group: null);
+	}
+
+	private static JPanel twoColumns(final String titleKey){
+		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t(titleKey)));
+		return p;
+	}
+
+	private static JPanel singleColumn(final String titleKey){
+		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t(titleKey)));
 		return p;
 	}
 
@@ -379,7 +503,9 @@ public final class ReportOptionsPanel extends JPanel{
 	 * ====================================================================== */
 
 	private static JCheckBox cb(final String key){
-		return new JCheckBox(I18N.t("checkbox.report." + key));
+		final JCheckBox box = new JCheckBox(I18N.t("checkbox.report." + key));
+		box.setToolTipText(I18N.t("tooltip.report." + key, null));
+		return box;
 	}
 
 }

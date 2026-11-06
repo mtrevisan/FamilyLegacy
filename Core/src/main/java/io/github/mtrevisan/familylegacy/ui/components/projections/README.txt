@@ -16,24 +16,24 @@ stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno 
 
 ### Menu da verificarne la completezza
 - Research
-- Reports
-- Help | Keyboard Shortcuts, Help | Check for Updates, Help | Report a Bug, Help | Diagnostics
+- Help | Keyboard Shortcuts, Help | Diagnostics
 
 ### ALTA
+- Rete di parentela, ascendenza proiettata con duplicati collegati ("stesso individuo"): lo stesso antenato che compare più volte è
+  marcato e collegato; `PedigreeCollapseDetector` dice già chi è duplicato. Partire dalla versione economica: evidenziare tutte le
+  occorrenze al passaggio del mouse o al clic.
+
+### MEDIA
+- Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
+- ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).
 - Export GEDCOM 5.5.1 / 7.0 (`ExportGedcom551Tool` / `ExportGedcom7Tool`, commentati in `FileToolRegistry`, classi inesistenti): oggi
   esistono solo import ed export FLEF. Va dichiarato cosa si perde (conclusioni, ricerca, contesto, privacy) e applicato
   `PrivacyExporter`. Sarà un plugin come gli importatori (`FileExporter`).
 - Test di round-trip per l'export GEDCOM, una volta scritto.
-
-### MEDIA
 - Export immagine (PNG/SVG) di una vista (`ExportImageTool` commentato, classe inesistente; per il PNG basta dipingere il pannello su
   un `BufferedImage`).
-- Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
-- ~ Badge grafico (icona) per l'evidenza (`EvidenceQualifiers`): oggi solo testo del tooltip, e solo per nascita e morte.
-- ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).
-- Rete di parentela, ascendenza proiettata con duplicati collegati ("stesso individuo"): lo stesso antenato che compare più volte è
-  marcato e collegato; `PedigreeCollapseDetector` dice già chi è duplicato. Partire dalla versione economica: evidenziare tutte le
-  occorrenze al passaggio del mouse o al clic.
+- Export diretto del dossier (basta un report che lo usi).
+- Export CSV di sottoinsiemi (`ExportExcelTool` commentato; fare solo CSV).
 
 ### BASSA
 - Rete di parentela, heatmap dell'endogamia: ascendenza a griglia (generazione x posizione) colorata per F o per numero di occorrenze
@@ -49,12 +49,11 @@ stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno 
 - Contesto: impact network (vista per bersaglio).
 - Research Board: timeline delle attività.
 - Dossier: filtri (solo tipo di evento e intervallo; il resto è già nelle sezioni).
-- Export diretto del dossier (basta un report che lo usi).
-- Export CSV di sottoinsiemi (`ExportExcelTool` commentato; fare solo CSV).
-- ~ Ricerca in note e citazioni: non cerca nei nomi di luoghi annidati.
-- ~ Tooltip dell'unione (`PartnersData.marriageTooltip`) ancora commentato.
+- ~ Ricerca nei nomi di luoghi annidati.
 - ~ Viste temporale e social (nascoste): riusare i filtri per tipo di relazione di `SocialFilters`; strip e timeline globale non
   compaiono sotto le due viste.
+- Name usage classifications, if future experience shows a need to distinguish structured usage categories beyond the existing name types.
+- Coverage information on sources, since archival coverage (e.g. a parish register covering baptisms from 1780 to 1820) is genealogically significant and currently resides only in notes.
 
 ### Assistente di ricerca (`ui/assistant`): "Still to do" di ogni assistente (tutti ~BASSA salvo dove indicato)
 - Framework: ~MEDIA il record selezionato nel contesto (le viste non lo espongono ancora; serve anche a "Check Chronology" per un
@@ -364,9 +363,8 @@ Stato rispetto alle idee originali:
   con il nome sulla banda, un tooltip (doppio clic apre l'editor) e la casella "Context" per nasconderle; non allargano l'asse.
   Senza filtro per luogo: una banda con luogo appare per chiunque. TODO impact network (bassa priorità).
 - Meta-informazioni: DONE icone di privacy (`PrivacyBadge`); DONE tooltip di audit (creazione e ultima modifica) sul nome di
-  individui e gruppi e tooltip delle date con le qualifiche di evidenza (`EvidenceQualifiers`: tipo di informazione, di fonte, di
-  prova) della nascita e della morte (`RecordTooltips`, `IndividualData`, `GroupData`; `RecordTooltipsTest`). TODO un badge
-  grafico (icona) per l'evidenza: oggi è solo testo del tooltip, e solo per nascita e morte.
+  individui e gruppi. Scelta (non TODO): l'evidenza (`EvidenceQualifiers`) non è nei tooltip dei box (andrebbe messa per ogni evento e
+  diventerebbe illeggibile); si vede nel dossier (badge testuale `orig/prim/dir`) e in Provenance.
 
 
 ## Per coprire il protocollo FLEF

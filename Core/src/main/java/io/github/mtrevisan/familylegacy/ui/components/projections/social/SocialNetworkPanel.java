@@ -28,6 +28,8 @@ import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -452,11 +454,11 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	private static RecordTypeHandler<?> handlerForTag(final String tag){
 		if(tag == null)
 			return null;
-		return switch(tag.toLowerCase()){
-			case "individual" -> IndividualHandler.getInstance();
-			case "group" -> GroupHandler.getInstance();
-			default -> null;
-		};
+		if(IndividualReader.TYPE.equalsIgnoreCase(tag))
+			return IndividualHandler.getInstance();
+		if(GroupReader.TYPE.equalsIgnoreCase(tag))
+			return GroupHandler.getInstance();
+		return null;
 	}
 
 

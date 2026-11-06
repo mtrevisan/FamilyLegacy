@@ -222,7 +222,7 @@ public final class IndividualNarrator{
 	 */
 	private void addNameVariants(final List<String> sentences, final FLEFRecord person){
 		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(person, IndividualReader.TAG_NAME)){
-			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameRec, "variant")){
+			for(final FLEFRecord variant : FLEFRecordHelper.findChildren(nameRec, NameReader.TAG_PART_VARIANT)){
 				final String v = ReportFormatters.renderNameVariant(variant);
 				if(v != null && !v.isBlank())
 					sentences.add("*" + labels.sections().nameVariant() + ":* "
@@ -426,7 +426,7 @@ public final class IndividualNarrator{
 	}
 
 	private String extractValidDate(final FLEFRecord attr, final String fieldTag){
-		final String original = FLEFRecordHelper.getChildValue(attr, fieldTag + ".original_text");
+		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(fieldTag, PlaceCitationReader.TAG_ORIGINAL_TEXT));
 		if(original != null && !original.isBlank())
 			return original;
 
@@ -449,11 +449,11 @@ public final class IndividualNarrator{
 	}
 
 	private String resolvePlace(final FLEFRecord attr){
-		final String original = FLEFRecordHelper.getChildValue(attr, "place.original_text");
+		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(IndividualAttributeReader.TAG_PLACE, PlaceCitationReader.TAG_ORIGINAL_TEXT));
 		if(original != null && !original.isBlank())
 			return original.trim();
 
-		final String ref = FLEFRecordHelper.getChildValue(attr, "place.place");
+		final String ref = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(IndividualAttributeReader.TAG_PLACE, PlaceCitationReader.TAG_PLACE));
 		if(ref == null)
 			return null;
 
@@ -520,11 +520,11 @@ public final class IndividualNarrator{
 
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationReader.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
-			final String eid = FLEFRecordHelper.getChildValue(eventParticipation, "event");
+			final String eid = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			if(!Objects.equals(eventId, eid))
 				continue;
 
-			final FLEFRecord pf = FLEFRecordHelper.findChild(eventParticipation, "participant");
+			final FLEFRecord pf = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
 			if(pf == null)
 				continue;
 

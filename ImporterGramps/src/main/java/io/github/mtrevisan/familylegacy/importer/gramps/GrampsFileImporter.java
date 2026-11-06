@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.importer.gramps;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
+import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 
 /** The importer of Gramps XML files, also when packed in a package ({@code .gpkg}): the XML is read and converted into a FLEF model. */
@@ -70,14 +72,24 @@ public final class GrampsFileImporter implements FileImporter{
 
 	@Override
 	public FLEFModel read(final Path file, final ProgressListener progress) throws IOException{
+		return read(file, progress, new ImportReport());
+	}
+
+	@Override
+	public FLEFModel read(final Path file, final ProgressListener progress, final ImportReport report) throws IOException{
 		progress.onProgress(-1, I18N.t("progress.reading_file"));
+		//the media of a package are extracted next to it, in a directory named after it (without the extension)
+		final String name = file.getFileName().toString();
+		final Path mediaDirectory = (name.toLowerCase(Locale.ROOT).endsWith(".gpkg")
+			? file.toAbsolutePath().resolveSibling(name.substring(0, name.length() - ".gpkg".length()) + "_media")
+			: null);
 		final byte[] grampsXml;
 		try(final InputStream in = Files.newInputStream(file)){
-			grampsXml = GrampsPackageReader.readXml(in);
+			grampsXml = GrampsPackageReader.readXml(in, mediaDirectory);
 		}
 
 		progress.onProgress(-1, I18N.t("progress.parsing_gramps"));
-		return GrampsXMLToFLEFConverter.convert(grampsXml, progress::onProgress);
+		return GrampsXMLToFLEFConverter.convert(grampsXml, progress::onProgress, report, mediaDirectory);
 	}
 
 }

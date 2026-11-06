@@ -62,8 +62,6 @@ import java.util.Set;
  */
 final class ConclusionDataLoader{
 
-	private static final String ROLE_PRINCIPAL = "principal";
-	private static final String TAG_IDENTITY_INDIVIDUAL = "individual";
 
 
 	private ConclusionDataLoader(){}
@@ -94,7 +92,7 @@ final class ConclusionDataLoader{
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 			if(personId == null || eventId == null || !individualIds.contains(personId)
-					|| (role != null && !ROLE_PRINCIPAL.equals(role)))
+					|| (role != null && !EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)))
 				continue;
 
 			final FLEFRecord event = model.getRecordById(eventId);
@@ -161,7 +159,7 @@ final class ConclusionDataLoader{
 		for(final FLEFRecord hypothesis : identityHypotheses){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord identity : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY))
-				if(!identity.getChildren().isEmpty() && TAG_IDENTITY_INDIVIDUAL.equals(identity.getChildren().getFirst().getTag())
+				if(!identity.getChildren().isEmpty() && IdentityHypothesisReader.TAG_IDENTITY_INDIVIDUAL.equals(identity.getChildren().getFirst().getTag())
 						&& armValue(identity) != null)
 					candidates.add(armValue(identity));
 			if(hypothesis.getId() != null && candidates.size() == 2)

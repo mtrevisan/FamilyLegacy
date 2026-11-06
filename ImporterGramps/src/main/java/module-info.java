@@ -31,6 +31,7 @@ open module io.github.mtrevisan.importers.gramps {
 	requires org.apache.commons.io;
 	requires org.slf4j;
 	requires java.xml;
+	requires java.desktop;
 
 	exports io.github.mtrevisan.familylegacy.importer.gramps;
 

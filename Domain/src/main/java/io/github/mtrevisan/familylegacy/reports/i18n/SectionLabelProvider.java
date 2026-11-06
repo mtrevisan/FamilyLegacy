@@ -102,6 +102,10 @@ public final class SectionLabelProvider{
 		return labels.getString("INDEX_OF_INDIVIDUALS");
 	}
 
+	public String indexOfGroups(){
+		return labels.getString("INDEX_OF_GROUPS");
+	}
+
 	public String indexOfPlaces(){
 		return labels.getString("INDEX_OF_PLACES");
 	}
@@ -758,6 +762,11 @@ public final class SectionLabelProvider{
 		return labels.getString("COVERAGE_EVIDENCE");
 	}
 
+	/** The display name of a kind of record in the coverage report; {@code kind} is the suffix of the key {@code COVERAGE_KIND_*}. */
+	public String coverageKind(final String kind){
+		return labels.getString("COVERAGE_KIND_" + kind);
+	}
+
 	public String coverageMissingSources(){
 		return labels.getString("COVERAGE_MISSING_SOURCES");
 	}
@@ -890,12 +899,24 @@ public final class SectionLabelProvider{
 		return labels.getString("DESCENDANT_REPORT_TITLE");
 	}
 
+	public String familyBookTitle(){
+		return labels.getString("FAMILY_BOOK_TITLE");
+	}
+
+	public String fullBibliographyTitle(){
+		return labels.getString("FULL_BIBLIOGRAPHY_TITLE");
+	}
+
 	public String multiPersonCover(){
 		return labels.getString("MULTI_PERSON_COVER");
 	}
 
 	public String columnIndividual(){
 		return labels.getString("COLUMN_INDIVIDUAL");
+	}
+
+	public String columnGroup(){
+		return labels.getString("COLUMN_GROUP");
 	}
 
 }

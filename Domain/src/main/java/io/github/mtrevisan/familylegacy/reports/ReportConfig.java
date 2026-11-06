@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 
+import java.lang.reflect.RecordComponent;
+import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -52,6 +54,10 @@ public record ReportConfig(
 	// Additional sections
 	boolean indirectRelations,
 	CollateralScope collateralScope,
+	/** How many generations the ancestor and descendant reports follow, the root not counted; 0 for all of them. */
+	int generations,
+	/** How the persons of the Family Book are put in order. */
+	PersonOrder personOrder,
 	boolean notes,
 	boolean sources,
 	boolean media,
@@ -78,6 +84,8 @@ public record ReportConfig(
 	public ReportConfig{
 		Objects.requireNonNull(language, "language");
 		Objects.requireNonNull(privacyPolicy, "privacyPolicy");
+		Objects.requireNonNull(personOrder, "personOrder");
+		generations = Math.max(0, generations);
 	}
 
 
@@ -86,6 +94,44 @@ public record ReportConfig(
 		return privacyPolicy != PrivacyPolicy.SHOW_ALL;
 	}
 
+
+	/** @return	A copy of this configuration with the index of the individuals on or off. */
+	public ReportConfig withIndexIndividuals(final boolean value){
+		return with(ReportOption.INDEX_INDIVIDUALS, value);
+	}
+
+	/**
+	 * @param option	The option to change.
+	 * @param value	Its new value: a {@code Boolean}, an {@code Integer} (the generations) or a {@link CollateralScope}.
+	 * @return	A copy of this configuration with the option changed.
+	 */
+	public ReportConfig with(final ReportOption option, final Object value){
+		final RecordComponent[] components = ReportConfig.class.getRecordComponents();
+		final Object[] arguments = new Object[components.length];
+		try{
+			for(int i = 0; i < components.length; i ++)
+				arguments[i] = (components[i].getName().equals(option.componentName())? value: components[i].getAccessor().invoke(this));
+			return ReportConfig.class.getDeclaredConstructor(Arrays.stream(components).map(RecordComponent::getType).toArray(Class<?>[]::new))
+				.newInstance(arguments);
+		}
+		catch(final ReflectiveOperationException e){
+			throw new IllegalStateException(e);
+		}
+	}
+
+	/**
+	 * @param value	Whether every option is on or off ({@code collateralScope} is the widest or none, {@code generations} is all, {@code personOrder} is by birth date or alphabetical).
+	 * @param language	The language.
+	 * @param privacyPolicy	The privacy policy.
+	 * @return	A configuration with every option the same.
+	 */
+	public static ReportConfig uniform(final boolean value, final ReportLanguage language, final PrivacyPolicy privacyPolicy){
+		final CollateralScope[] scopes = CollateralScope.values();
+		return new ReportConfig(language, privacyPolicy, value, value, value, value, value, value, value, value, value,
+			(value? scopes[scopes.length - 1]: CollateralScope.NONE), 0, (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL), value, value,
+			value, value, value, value, value, value, value,
+			value, value, value, value, value, value, value, value, value, value);
+	}
 
 	public static ReportConfig defaults(){
 		return new ReportConfig(
@@ -101,6 +147,8 @@ public record ReportConfig(
 			true,   // directRelations
 			false,  // indirectRelations
 			CollateralScope.NONE,
+			0,      // generations (all)
+			PersonOrder.ALPHABETICAL,
 			true,   // notes
 			true,   // sources
 			true,   // media

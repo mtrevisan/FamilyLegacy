@@ -28,6 +28,10 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -70,16 +74,16 @@ class PlannerAssistantTest{
 	}
 
 	private static FLEFRecord question(final String id, final String targetId){
-		return FLEFRecord.createMainRecord(id, "RESEARCH_QUESTION")
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Parents of Bruno"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("question", "Who were the parents of Bruno?"))
-			.addChild(FLEFRecord.createChildWithTag("target")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", targetId)))
-			.addChild(FLEFRecord.createChildWithTagAndValue("status", "open"));
+		return FLEFRecord.createMainRecord(id, ResearchQuestionReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_TITLE, "Parents of Bruno"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_QUESTION, "Who were the parents of Bruno?"))
+			.addChild(FLEFRecord.createChildWithTag(ResearchQuestionReader.TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, targetId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchQuestionReader.TAG_STATUS, ResearchQuestionReader.ENUM_STATUS_OPEN));
 	}
 
 	private static String idOf(final FLEFModel model, final String name){
-		return model.getRecordsByType("INDIVIDUAL").stream()
+		return model.getRecordsByType(IndividualReader.TYPE).stream()
 			.filter(r -> io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader.extractPrimaryFullname(r).contains(name))
 			.findFirst().orElseThrow().getId();
 	}

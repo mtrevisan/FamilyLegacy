@@ -25,7 +25,9 @@
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,17 +45,17 @@ public class AuditBuilder{
 	}
 
 	public static FLEFRecord build(GEDCOMNode node){
-		FLEFRecord audit = FLEFRecord.createChildWithTag("audit");
+		FLEFRecord audit = FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT);
 		GEDCOMNode chanNode = (node != null? GEDCOMHelper.findFirstChild(node, "CHAN"): null);
 
 		// Extraction of CHAN -> DATE and TIME
 		String isoDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS));
-		final String chanDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(chanNode, "DATE"));
+		final String chanDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(chanNode, GEDCOMMapper.TAG_DATE));
 		if(chanDateTime != null)
 			isoDateTime = chanDateTime;
 
 		// Extraction of CHAN -> NOTE
-		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(chanNode, "NOTE");
+		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(chanNode, GEDCOMMapper.TAG_NOTE);
 		String chanNoteText = GEDCOMHelper.extractFullText(noteNode);
 //		if(chanNoteText == null){
 //			chanNoteText = "From GEDCOM conversion";
@@ -61,17 +63,18 @@ public class AuditBuilder{
 
 		// GEDCOM 7 records the creation (CREA): the last change (CHAN) is then an update
 		final GEDCOMNode creaNode = (node != null? GEDCOMHelper.findFirstChild(node, "CREA"): null);
-		final String creationDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(creaNode, "DATE"));
+		final String creationDateTime = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(creaNode, GEDCOMMapper.TAG_DATE));
 
-		final FLEFRecord creation = FLEFRecord.createChildWithTag("creation")
-			.addChild(FLEFRecord.createChildWithTagAndValue("date", (creationDateTime != null? creationDateTime: isoDateTime)));
-		final FLEFRecord update = (creationDateTime != null && chanDateTime != null
-			? FLEFRecord.createChildWithTag("update")
-				.addChild(FLEFRecord.createChildWithTagAndValue("date", chanDateTime))
+		final FLEFRecord creation = FLEFRecord.createChildWithTag(AuditReader.TAG_CREATION)
+			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, (creationDateTime != null? creationDateTime: isoDateTime)));
+		//the last change (CHAN) is always an update; when there is no CREA, its date is also the creation fallback (creation is mandatory)
+		final FLEFRecord update = (chanDateTime != null
+			? FLEFRecord.createChildWithTag(AuditReader.TAG_UPDATE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, chanDateTime))
 			: null);
 		if(StringUtils.isNotEmpty(chanNoteText))
 			(update != null? update: creation)
-				.addChild(FLEFRecord.createChildWithTagAndValue("comment", chanNoteText));
+				.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, chanNoteText));
 
 		audit.addChild(creation)
 			.addChild(update);

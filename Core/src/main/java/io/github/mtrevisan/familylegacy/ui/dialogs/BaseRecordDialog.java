@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.io.model.record.RecordChangeSummary;
+import io.github.mtrevisan.familylegacy.io.model.RecordChangeSummary;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -635,7 +635,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	 * @param previous	The record as it was before the save.
 	 */
 	private void recordChanges(final FLEFRecord previous){
-		final FLEFRecord audit = FLEFRecordHelper.findChild(record, "audit");
+		final FLEFRecord audit = FLEFRecordHelper.findChild(record, AuditReader.TAG_AUDIT);
 		if(audit == null)
 			return;
 

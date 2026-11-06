@@ -50,8 +50,9 @@ public final class RecordIdReplacer{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordIdReplacer.class);
 
-	private static final String TAG_NOTE_TEXT = "text";
-	private static final String TAG_NOTE_TRANSLATION_TEXT = "translation.text";
+
+	private static final String TAG_NOTE_TEXT = NoteReader.TAG_TEXT;
+	private static final String TAG_NOTE_TRANSLATION_TEXT = FLEFRecordHelper.composePath(NoteReader.TAG_TRANSLATION, NoteReader.TAG_TEXT);
 
 
 	private RecordIdReplacer(){}

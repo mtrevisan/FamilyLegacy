@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
@@ -112,8 +113,8 @@ class ChronologyCheckerTest{
 			.person(person("m", SexType.FEMALE, day("1 March 1800"), day("1 May 1870")))
 			.person(person("c", SexType.MALE, day("1 June 1825"), day("1 June 1890")))
 			.parent("c", "m", true)
-			.event("e1", "c", "marriage", day("1 June 1850"))
-			.event("e2", "c", "burial", day("5 June 1890"))
+			.event("e1", "c", EventReader.ENUM_TYPE_MARRIAGE, day("1 June 1850"))
+			.event("e2", "c", EventReader.ENUM_TYPE_BURIAL, day("5 June 1890"))
 			.check();
 
 		Assertions.assertTrue(findings.isEmpty(), titles(findings).toString());
@@ -145,8 +146,8 @@ class ChronologyCheckerTest{
 	void theKeysOfTheFindingsOfAModelAreDistinct(){
 		final List<Diagnostic> findings = new Builder()
 			.person(person("a", SexType.MALE, day("1 June 1800"), day("1 June 1860")))
-			.event("e1", "a", "census", day("1 June 1799"))
-			.event("e2", "a", "census", day("1 June 1861"))
+			.event("e1", "a", EventReader.ENUM_TYPE_CENSUS, day("1 June 1799"))
+			.event("e2", "a", EventReader.ENUM_TYPE_CENSUS, day("1 June 1861"))
 			.check();
 
 		Assertions.assertEquals(2, findings.size());
@@ -180,7 +181,7 @@ class ChronologyCheckerTest{
 		//an event in the same year of the death can be before it
 		Assertions.assertTrue(new Builder()
 			.person(person("a", SexType.MALE, year(1800), year(1850)))
-			.event("e", "a", "census", year(1850))
+			.event("e", "a", EventReader.ENUM_TYPE_CENSUS, year(1850))
 			.check().isEmpty());
 	}
 
@@ -201,12 +202,12 @@ class ChronologyCheckerTest{
 	void eventBeforeBirthAndAfterDeath(){
 		final List<Diagnostic> findings = new Builder()
 			.person(person("a", SexType.MALE, day("1 June 1800"), day("1 June 1860")))
-			.event("e1", "a", "census", day("1 June 1799"))
-			.event("e2", "a", "marriage", day("1 June 1799"))
-			.event("e3", "a", "census", day("1 June 1861"))
-			.event("e4", "a", "burial", day("5 June 1860"))
-			.event("e5", "a", "probate", day("1 June 1870"))
-			.event("e6", "a", "birth", day("1 June 1800"))
+			.event("e1", "a", EventReader.ENUM_TYPE_CENSUS, day("1 June 1799"))
+			.event("e2", "a", EventReader.ENUM_TYPE_MARRIAGE, day("1 June 1799"))
+			.event("e3", "a", EventReader.ENUM_TYPE_CENSUS, day("1 June 1861"))
+			.event("e4", "a", EventReader.ENUM_TYPE_BURIAL, day("5 June 1860"))
+			.event("e5", "a", EventReader.ENUM_TYPE_PROBATE, day("1 June 1870"))
+			.event("e6", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"))
 			.check();
 
 		Assertions.assertEquals(3, findings.size(), titles(findings).toString());

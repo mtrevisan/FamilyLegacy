@@ -60,7 +60,7 @@ public final class DescendantReportGenerator{
 	public ReportDocument generate(final ReportProgressListener listener){
 		final RelationIndex index = RelationIndex.build(model);
 
-		final List<FLEFRecord> direct = index.descendantsByGeneration(root);
+		final List<FLEFRecord> direct = index.descendantsByGeneration(root, config.generations());
 		final List<FLEFRecord> all;
 		final List<FLEFRecord> collaterals;
 		if(config.collateralScope() == CollateralScope.NONE){
@@ -68,57 +68,20 @@ public final class DescendantReportGenerator{
 			collaterals = List.of();
 		}
 		else{
-			all = index.descendantsWithCollaterals(root, config.collateralScope());
+			all = index.descendantsWithCollaterals(root, config.collateralScope(), config.generations());
 			collaterals = new ArrayList<>(all);
 			collaterals.removeAll(direct);
 		}
 
 		final ReportContext ctx = ReportContext.build(model, root, config, index);
-		final String title = String.format(ctx.labels.sections().ancestorReportTitle(),
+		final String title = String.format(ctx.labels.sections().descendantReportTitle(),
 			ctx.displayText(root));
 
 		final PedigreeTreeSection tree = new PedigreeTreeSection(ctx, direct, collaterals,
 			PedigreeTreeSection.Direction.DESCENDANTS);
 
-		final ReportConfig perPerson = perPersonConfig(config);
-		return new MultiPersonReportGenerator(model, all, perPerson, title, List.of(tree))
+		return new MultiPersonReportGenerator(model, all, config, title, List.of(tree))
 			.generate(listener);
-	}
-
-
-	private static ReportConfig perPersonConfig(final ReportConfig base){
-		return new ReportConfig(
-			base.language(),
-			base.privacyPolicy(),
-			base.showPrivacyDetails(),
-			base.audit(),
-			base.header(),
-			/*introduction*/          true,
-			/*paternalAncestry*/      false,
-			/*maternalAncestry*/      false,
-			/*descendants*/           false,
-			/*directRelations*/       false,
-			/*indirectRelations*/     false,
-			base.collateralScope(),
-			base.notes(),
-			base.sources(),
-			base.media(),
-			base.evidence(),
-			base.contextAndResearch(),
-			base.culturalNorms(),
-			base.groups(),
-			base.groupMembers(),
-			base.groupSubgroups(),
-			base.groupAttributes(),
-			base.historicEvents(),
-			base.repositories(),
-			base.eventFullParticipants(),
-			base.coverageReport(),
-			base.timeline(),
-			/*indexIndividuals*/      false,
-			/*indexPlaces*/           base.indexPlaces(),
-			base.includeDescriptions(),
-			base.includePictures());
 	}
 
 }

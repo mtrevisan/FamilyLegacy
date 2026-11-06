@@ -73,10 +73,11 @@ public final class MediaSection implements SectionBuilder{
 
 
 	private void appendPreferredImage(final List<ReportSection> out){
-		if(!ctx.config.includePictures())
+		//(in a multi-person report each person shows the own image)
+		if(!ctx.config.includePictures() || ctx.subjects().size() > 1)
 			return;
 
-		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, "preferred_image");
+		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, IndividualReader.TAG_PREFERRED_IMAGE);
 		if(preferred == null)
 			return;
 		final String uri = MediaReader.extractUri(preferred);
@@ -155,9 +156,17 @@ public final class MediaSection implements SectionBuilder{
 
 	private List<FLEFRecord> individualRecords(){
 		final List<FLEFRecord> out = new ArrayList<>();
-		out.add(ctx.root);
-		out.addAll(ctx.index.eventsOf(ctx.root));
-		out.addAll(ctx.index.attributesOf(ctx.root));
+		for(final FLEFRecord subject : ctx.subjects()){
+			out.add(subject);
+			if(ReportContext.rootKindOf(subject) == ReportContext.RootKind.GROUP){
+				out.addAll(ctx.index.eventsOfGroup(subject));
+				out.addAll(ctx.index.attributesOfGroup(subject));
+			}
+			else{
+				out.addAll(ctx.index.eventsOf(subject));
+				out.addAll(ctx.index.attributesOf(subject));
+			}
+		}
 		return out;
 	}
 

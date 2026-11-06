@@ -70,10 +70,11 @@ public final class DateConsistency{
 
 	/** The events that happen after the death (or are about it): a date after the death is not a problem for them. */
 	private static final Set<String> POSTHUMOUS_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL,
-		EventReader.ENUM_TYPE_CREMATION, "coroner_report", "probate", "honor", "pardon", "deed", "escrow", "chancery");
+		EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_CORONER_REPORT, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_HONOR,
+		EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY);
 	/** The longest time between the death of the father and the birth of the child, in days. */
 	private static final int MAX_GESTATION_DAYS = 300;
-	private static final String ROLE_PRINCIPAL = "principal";
+	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 

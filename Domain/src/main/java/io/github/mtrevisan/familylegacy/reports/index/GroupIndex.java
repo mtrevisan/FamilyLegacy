@@ -58,7 +58,7 @@ public final class GroupIndex{
 		for(final FLEFRecord groupAttribute : groupAttributes){
 			if(!filter.test(groupAttribute))
 				continue;
-			final String groupId = FLEFRecordHelper.getChildValue(groupAttribute, "group");
+			final String groupId = FLEFRecordHelper.getChildValue(groupAttribute, GroupAttributeReader.TAG_GROUP);
 			if(groupId != null){
 				groupToAttrsMap.computeIfAbsent(groupId, k -> new ArrayList<>())
 					.add(groupAttribute);

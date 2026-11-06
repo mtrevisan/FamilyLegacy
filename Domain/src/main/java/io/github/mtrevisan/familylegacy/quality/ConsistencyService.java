@@ -95,7 +95,8 @@ public final class ConsistencyService{
 	/** The types of place relationship that put a place inside another one, and the ones that say that a place came from another. */
 	private static final Set<String> PLACE_PART_OF = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF, PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF,
 		PlaceRelationshipReader.ENUM_TYPE_JUDICIAL_PART_OF, PlaceRelationshipReader.ENUM_TYPE_CADASTRAL_PART_OF);
-	private static final Set<String> PLACE_SUCCESSION = Set.of("successor_of", "merged_from", "split_from", "received_territory_from");
+	private static final Set<String> PLACE_SUCCESSION = Set.of(PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF, PlaceRelationshipReader.ENUM_TYPE_MERGED_FROM, PlaceRelationshipReader.ENUM_TYPE_SPLIT_FROM,
+		PlaceRelationshipReader.ENUM_TYPE_RECEIVED_TERRITORY_FROM);
 	/** The types that can link an individual to an individual: the ones the editor offers. */
 	private static final Set<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = Set.of(RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_TYPES);
 	/** The events of the life of a person: they are about one of the participants, the principal. */
@@ -314,7 +315,7 @@ public final class ConsistencyService{
 			if(preferred != null && !resolved.contains(preferred))
 				issues.add(issue(Severity.ERROR, conclusion.getId(), "text.consistency.issue.preferred", preferred));
 
-			if("disproven".equals(ConclusionReader.extractProofStatus(conclusion))){
+			if(ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN.equals(ConclusionReader.extractProofStatus(conclusion))){
 				if(resolved.size() < 2)
 					issues.add(issue(Severity.WARNING, conclusion.getId(), "text.consistency.issue.disproven_few", resolved.size()));
 				if(preferred != null)

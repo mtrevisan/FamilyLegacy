@@ -80,6 +80,7 @@ public final class FileMenuController{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileMenuController.class);
 
+
 	private static final String FLEF_EXTENSION = "flef";
 	/** How long a change waits for others before it is written, so that a burst of edits makes a single write. */
 	private static final int AUTOSAVE_DELAY = 600;
@@ -461,17 +462,20 @@ public final class FileMenuController{
 	 * import is discarded and the current document is left as it is.
 	 *
 	 * @param source	The file the model was imported from.
+	 * @return	{@code false} if the save was cancelled or failed (the import is discarded).
 	 */
-	public void openImported(final FLEFModel importedModel, final File source){
+	public boolean openImported(final FLEFModel importedModel, final File source){
 		final File suggested = new File(source.getParentFile(),
 			FilenameUtils.getBaseName(source.getName()) + "." + FLEF_EXTENSION);
 		final File target = chooseSaveTarget(I18N.t("dialog.file.save_imported.title"), source.getParentFile(), suggested);
 		if(target == null)
-			return;
+			return false;
 
 		// the document is the saved file, read back as any other file
-		if(writeTo(target, importedModel))
-			openFile(target);
+		if(!writeTo(target, importedModel))
+			return false;
+		openFile(target);
+		return true;
 	}
 
 

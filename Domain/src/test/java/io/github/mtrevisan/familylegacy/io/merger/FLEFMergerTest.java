@@ -29,6 +29,12 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -124,11 +130,11 @@ class FLEFMergerTest{
 		final MergeReport report = merger().merge(base, incoming);
 		final FLEFModel merged = report.mergedModel();
 
-		Assertions.assertEquals(1, merged.getRecordsByType("individual").size());
-		Assertions.assertEquals(1, merged.getRecordsByType("event").size());
-		Assertions.assertEquals(1, merged.getRecordsByType("event_participation").size());
-		Assertions.assertEquals(1, merged.getRecordsByType("place").size());
-		Assertions.assertEquals(1, merged.getRecordsByType("source").size());
+		Assertions.assertEquals(1, merged.getRecordsByType(IndividualReader.TYPE).size());
+		Assertions.assertEquals(1, merged.getRecordsByType(EventReader.TYPE).size());
+		Assertions.assertEquals(1, merged.getRecordsByType(EventParticipationReader.TYPE).size());
+		Assertions.assertEquals(1, merged.getRecordsByType(PlaceReader.TYPE).size());
+		Assertions.assertEquals(1, merged.getRecordsByType(SourceReader.TYPE).size());
 		// the citation found only in the incoming file is kept
 		final FLEFRecord event = merged.getRecordById("E1");
 		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(event, "source.source"));
@@ -152,7 +158,7 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().deduplicate(model);
 
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
 	}
 
@@ -171,7 +177,7 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().deduplicate(model);
 
-		Assertions.assertEquals(4, report.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(4, report.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
 	}
 
@@ -190,9 +196,9 @@ class FLEFMergerTest{
 		final MergeReport weak = merger().merge(withoutCitations, parse(file.replace(citation, "")));
 		final MergeReport strong = merger().merge(withCitations, parse(file));
 
-		Assertions.assertEquals(4, weak.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(4, weak.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertEquals(2, weak.decisionsNeedingReview().size());
-		Assertions.assertEquals(2, strong.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(2, strong.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertTrue(strong.decisionsNeedingReview().isEmpty(), strong.decisionsNeedingReview().toString());
 		Assertions.assertEquals(1, strong.mergedModel().getRecordsByType("relationship").size());
 	}
@@ -209,10 +215,10 @@ class FLEFMergerTest{
 		final MergeReport other = merger().merge(base, otherJurisdiction);
 
 		Assertions.assertEquals("P1", same.idMapping().get("P1"));
-		Assertions.assertEquals(2, same.mergedModel().getRecordsByType("place").size());
+		Assertions.assertEquals(2, same.mergedModel().getRecordsByType(PlaceReader.TYPE).size());
 		// two villages named alike in different provinces are different places
 		Assertions.assertNotEquals("P1", other.idMapping().get("P1"));
-		Assertions.assertTrue(other.decisionsNeedingReview().stream().noneMatch(d -> d.kind().equals("place")),
+		Assertions.assertTrue(other.decisionsNeedingReview().stream().noneMatch(d -> d.kind().equalsIgnoreCase(PlaceReader.TYPE)),
 			other.decisionsNeedingReview().toString());
 	}
 
@@ -228,13 +234,13 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().merge(base, incoming);
 
-		Assertions.assertEquals(1, report.mergedModel().getRecordsByType("place").size());
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType(PlaceReader.TYPE).size());
 		final MergeReport.Decision placeMerge = report.decisions(MergeReport.DecisionType.AUTO_MERGED).stream()
-			.filter(d -> d.kind().equals("place"))
+			.filter(d -> d.kind().equalsIgnoreCase(PlaceReader.TYPE))
 			.findFirst()
 			.orElseThrow();
 		Assertions.assertTrue(placeMerge.rationale().contains("uses in common"), placeMerge.rationale());
-		Assertions.assertEquals(1, report.mergedModel().getRecordsByType("event").size());
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType(EventReader.TYPE).size());
 		Assertions.assertTrue(report.decisionsNeedingReview().isEmpty(), report.decisionsNeedingReview().toString());
 	}
 
@@ -246,7 +252,7 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().deduplicate(model);
 
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("place").size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(PlaceReader.TYPE).size());
 		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
 	}
 
@@ -262,7 +268,7 @@ class FLEFMergerTest{
 		final FLEFModel merged = report.mergedModel();
 
 		// the same volume twice is one source, another volume of the same series is another source
-		Assertions.assertEquals(2, merged.getRecordsByType("source").size());
+		Assertions.assertEquals(2, merged.getRecordsByType(SourceReader.TYPE).size());
 		Assertions.assertEquals("S1", report.idMapping().get("S2"));
 		Assertions.assertNotNull(merged.getRecordById("S3"));
 		Assertions.assertTrue(report.decisionsNeedingReview().isEmpty(), report.decisionsNeedingReview().toString());
@@ -312,7 +318,7 @@ class FLEFMergerTest{
 		// neither the hand merge nor the automatic one propose the pair again
 		Assertions.assertTrue(absorber.candidates(model, "P1", FLEFMerger.DEFAULT_REVIEW_THRESHOLD).isEmpty());
 		final MergeReport report = merger().deduplicate(model);
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("place").size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(PlaceReader.TYPE).size());
 		Assertions.assertTrue(report.decisions().isEmpty(), report.decisions().toString());
 
 		// a second rejection reuses the hypothesis
@@ -330,7 +336,7 @@ class FLEFMergerTest{
 		final MergeReport report = merger().deduplicate(model);
 		final FLEFModel merged = report.mergedModel();
 
-		Assertions.assertEquals(2, merged.getRecordsByType("individual").size());
+		Assertions.assertEquals(2, merged.getRecordsByType(IndividualReader.TYPE).size());
 		final List<MergeReport.Decision> review = report.decisionsNeedingReview();
 		Assertions.assertEquals(1, review.size());
 		final FLEFRecord hypothesis = merged.getRecordById(review.getFirst().recordId());
@@ -349,7 +355,7 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().deduplicate(model);
 
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertTrue(report.decisions().isEmpty());
 	}
 
@@ -362,8 +368,8 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().deduplicate(model);
 
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("event").size());
-		Assertions.assertEquals(2, report.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(EventReader.TYPE).size());
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 	}
 
 	@Test
@@ -398,7 +404,7 @@ class FLEFMergerTest{
 		final MergeReport report = merger().deduplicate(model);
 		final FLEFModel merged = report.mergedModel();
 
-		Assertions.assertEquals(1, merged.getRecordsByType("individual").size());
+		Assertions.assertEquals(1, merged.getRecordsByType(IndividualReader.TYPE).size());
 		Assertions.assertNull(merged.getRecordById("IH1"));
 		Assertions.assertNull(merged.getRecordById("C1"));
 		// a repeated reference to the deleted hypothesis is removed, the rest of the record stays
@@ -418,13 +424,13 @@ class FLEFMergerTest{
 			+ birth("E2", "EP2", "I2", "15 JUN 1900", null));
 
 		final MergeReport report = merger().deduplicate(model);
-		final FLEFRecord survivor = report.mergedModel().getRecordsByType("individual").getFirst();
+		final FLEFRecord survivor = report.mergedModel().getRecordsByType(IndividualReader.TYPE).getFirst();
 
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, "sex").size());
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, IndividualReader.TAG_SEX).size());
 		// a known sex wins over an unknown one
-		Assertions.assertEquals("male", FLEFRecordHelper.getChildValue(survivor, "sex"));
+		Assertions.assertEquals("male", FLEFRecordHelper.getChildValue(survivor, IndividualReader.TAG_SEX));
 		Assertions.assertEquals("confidential", FLEFRecordHelper.getChildValue(survivor, "privacy.level"));
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, "name").size());
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, IndividualReader.TAG_NAME).size());
 		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, "audit").size());
 		Assertions.assertEquals(List.of(), schemaErrors(report.mergedModel()));
 	}
@@ -439,9 +445,9 @@ class FLEFMergerTest{
 
 		final MergeReport report = merger().merge(base, incoming);
 
-		Assertions.assertEquals(1, report.mergedModel().getRecordsByType("individual").size());
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType(IndividualReader.TYPE).size());
 		// the two births differ and are kept as competing assertions, the two equal deaths are collapsed
-		Assertions.assertEquals(3, report.mergedModel().getRecordsByType("event").size());
+		Assertions.assertEquals(3, report.mergedModel().getRecordsByType(EventReader.TYPE).size());
 		Assertions.assertEquals(1, report.warnings().size(), report.warnings().toString());
 		Assertions.assertTrue(report.warnings().getFirst().contains("2 birth events"), report.warnings().getFirst());
 	}
@@ -497,7 +503,7 @@ class FLEFMergerTest{
 		Assertions.assertNull(model.getRecordById("I2"));
 		Assertions.assertNull(model.getRecordById("IH1"));
 		// the participation of I2 became identical to that of I1
-		Assertions.assertEquals(1, model.getRecordsByType("event_participation").size());
+		Assertions.assertEquals(1, model.getRecordsByType(EventParticipationReader.TYPE).size());
 		Assertions.assertEquals(List.of("EP2"), result.collapsedIds());
 		Assertions.assertEquals(List.of("IH1"), result.deletedIds());
 		Assertions.assertEquals("Merged record I2: same baptism record",
@@ -525,7 +531,7 @@ class FLEFMergerTest{
 
 	private static String givenName(final FLEFRecord individual){
 		for(final FLEFRecord part : FLEFRecordHelper.findChildren(individual, "name.part"))
-			if("given".equals(FLEFRecordHelper.getChildValue(part, "type")))
+			if("given".equals(FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE)))
 				return FLEFRecordHelper.getChildValue(part, "value");
 		return null;
 	}
@@ -543,7 +549,7 @@ class FLEFMergerTest{
 
 	private static String birth(final String eventId, final String participationId, final String individualId, final String date,
 			final String placeId){
-		return event(eventId, participationId, individualId, "birth", date, placeId);
+		return event(eventId, participationId, individualId, EventReader.ENUM_TYPE_BIRTH, date, placeId);
 	}
 
 	private static String death(final String eventId, final String participationId, final String individualId, final String date){

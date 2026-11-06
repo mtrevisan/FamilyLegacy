@@ -48,9 +48,6 @@ import java.util.Set;
  */
 public class FLEFModel implements RecordLookup{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(FLEFModel.class);
-
-
 	public static final String FLEF_LINK_PREFIX = "flef:";
 
 

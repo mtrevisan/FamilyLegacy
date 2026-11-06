@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
 import io.github.mtrevisan.familylegacy.groups.GroupYearFilter;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
 import org.junit.jupiter.api.Assertions;
@@ -64,10 +65,10 @@ class GroupViewFiltersTest{
 	private static final String FLEF = HEADER
 		+ person("I1", "Anna") + person("I2", "Bruno")
 		+ group("G1", "Club") + group("G2", "Youth")
-		+ membership("R1", "individual I1", "G1", "group_member", "president", "1900-01-01", "1910-01-01")
-		+ membership("R2", "individual I1", "G1", "group_member", "member", "1910-01-01", null)
-		+ membership("R3", "individual I2", "G1", "group_member", null, null, null)
-		+ membership("R4", "group G2", "G1", "part_of", null, "1905-01-01", null);
+		+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "president", "1900-01-01", "1910-01-01")
+		+ membership("R2", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", "1910-01-01", null)
+		+ membership("R3", "individual I2", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, null, null, null)
+		+ membership("R4", "group G2", "G1", RelationshipReader.ENUM_TYPE_PART_OF, null, "1905-01-01", null);
 
 
 	private static String person(final String id, final String name){
@@ -158,7 +159,7 @@ class GroupViewFiltersTest{
 		final TemporalProjectionModel youth = GroupTimelineBuilder.build(model(), "G2");
 
 		Assertions.assertEquals(List.of("G1"), rowIds(youth), "the Club, that Youth is part of (Youth has no member)");
-		Assertions.assertEquals("part_of", youth.rows().getFirst().findTrack(TemporalTrackType.MEMBERSHIP).entries().getFirst().type());
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_PART_OF, youth.rows().getFirst().findTrack(TemporalTrackType.MEMBERSHIP).entries().getFirst().type());
 		Assertions.assertFalse(rowIds(timeline()).contains("G1"), "a group is not part of itself");
 	}
 
@@ -166,7 +167,7 @@ class GroupViewFiltersTest{
 	void theAxisHasADomainEvenWithOpenOrUndatedBars(){
 		//open: from 1900 with no end, to today
 		final FLEFModel open = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ membership("R1", "individual I1", "G1", "group_member", "member", "1900-01-01", null));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", "1900-01-01", null));
 		final TemporalProjectionModel opened = GroupTimelineBuilder.build(open, "G1");
 		Assertions.assertTrue(opened.hasDomain());
 		Assertions.assertEquals(2_415_021L, opened.domainStart().jdn(), "1 January 1900");
@@ -174,14 +175,14 @@ class GroupViewFiltersTest{
 
 		//no start: a century before the end
 		final FLEFModel noStart = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ membership("R1", "individual I1", "G1", "group_member", "member", null, "1950-01-01"));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", null, "1950-01-01"));
 		final TemporalProjectionModel ended = GroupTimelineBuilder.build(noStart, "G1");
 		Assertions.assertTrue(ended.domainStart().jdn() < ended.domainEnd().jdn());
 		Assertions.assertTrue(ended.domainEnd().jdn() - ended.domainStart().jdn() >= 36_000L, "about a century");
 
 		//no date at all: the last century
 		final FLEFModel none = new FLEFParser().parse(HEADER + person("I1", "Anna") + group("G1", "Club")
-			+ membership("R1", "individual I1", "G1", "group_member", "member", null, null));
+			+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", null, null));
 		final TemporalProjectionModel undated = GroupTimelineBuilder.build(none, "G1");
 		Assertions.assertTrue(undated.hasDomain());
 		Assertions.assertTrue(undated.domainEnd().jdn() >= today() - 1L && undated.domainEnd().jdn() <= today() + 1L);

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
@@ -39,7 +40,7 @@ import java.awt.Window;
 public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 	public static final String TYPE = RepositoryCitationReader.TYPE;
-	public static final String CITED_TYPE = "REPOSITORY";
+	public static final String CITED_TYPE = RepositoryReader.TYPE;
 
 
 	private static final class SingletonHelper{

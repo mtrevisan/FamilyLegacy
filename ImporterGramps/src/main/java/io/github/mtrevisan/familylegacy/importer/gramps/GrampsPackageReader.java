@@ -28,6 +28,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
@@ -46,6 +48,7 @@ public final class GrampsPackageReader{
 	private static final int TAR_NAME_LENGTH = 100;
 	private static final int TAR_SIZE_OFFSET = 124;
 	private static final int TAR_SIZE_LENGTH = 12;
+	private static final int TAR_TYPE_OFFSET = 156;
 	private static final int TAR_MAGIC_OFFSET = 257;
 	private static final String TAR_MAGIC = "ustar";
 	private static final String PACKAGE_DATA_NAME = "data.gramps";
@@ -60,6 +63,17 @@ public final class GrampsPackageReader{
 	 * @throws IOException	If the content cannot be read, or the package has no data.
 	 */
 	public static byte[] readXml(final InputStream in) throws IOException{
+		return readXml(in, null);
+	}
+
+	/**
+	 * @param in	The content of a {@code .gramps} or {@code .gpkg} file.
+	 * @param mediaDirectory	Where the media files of a package are extracted ({@code null} to not extract them). Existing files of
+	 * 	the same size are left alone; the entries that would end outside the directory are skipped.
+	 * @return	The XML document.
+	 * @throws IOException	If the content cannot be read, or the package has no data.
+	 */
+	public static byte[] readXml(final InputStream in, final Path mediaDirectory) throws IOException{
 		final byte[] content = gunzip(in.readAllBytes());
 		if(!isTar(content))
 			return content;
@@ -68,7 +82,37 @@ public final class GrampsPackageReader{
 		if(data == null)
 			throw new IOException("The package has no " + PACKAGE_DATA_NAME);
 
+		if(mediaDirectory != null)
+			extractMedia(content, mediaDirectory);
 		return gunzip(data);
+	}
+
+	/** Extracts every regular file of the archive, but the data, into the directory. */
+	private static void extractMedia(final byte[] archive, final Path directory) throws IOException{
+		final Path root = directory.toAbsolutePath().normalize();
+		int position = 0;
+		while(position + TAR_BLOCK <= archive.length){
+			final String entryName = cString(archive, position, TAR_NAME_LENGTH);
+			if(entryName.isEmpty())
+				return;
+
+			final int size = octal(cString(archive, position + TAR_SIZE_OFFSET, TAR_SIZE_LENGTH));
+			final int start = position + TAR_BLOCK;
+			final byte type = archive[position + TAR_TYPE_OFFSET];
+			if(start + size > archive.length)
+				throw new IOException("The package is truncated");
+
+			if((type == '0' || type == 0) && !entryName.endsWith(PACKAGE_DATA_NAME)){
+				final Path target = root.resolve(entryName).normalize();
+				if(target.startsWith(root) && !target.equals(root)
+						&& !(Files.isRegularFile(target) && Files.size(target) == size)){
+					Files.createDirectories(target.getParent());
+					Files.write(target, Arrays.copyOfRange(archive, start, start + size));
+				}
+			}
+
+			position = start + ((size + TAR_BLOCK - 1) / TAR_BLOCK) * TAR_BLOCK;
+		}
 	}
 
 	/** Decompresses the content while it is compressed (a file can be compressed twice, as the package and its data). */

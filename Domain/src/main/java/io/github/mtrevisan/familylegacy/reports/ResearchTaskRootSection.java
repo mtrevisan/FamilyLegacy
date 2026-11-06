@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -114,7 +115,7 @@ public final class ResearchTaskRootSection implements SectionBuilder{
 		if(activity == null)
 			return;
 		final String action = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(activity, "action"));
+			FLEFRecordHelper.getChildValue(activity, ResearchActivityReader.TAG_ACTION));
 		out.add(new ReportSection.Paragraph(
 			"**" + ctx.labels.sections().researchTaskCreatedBy() + ":** "
 				+ ReportFormatters.escape(action)));

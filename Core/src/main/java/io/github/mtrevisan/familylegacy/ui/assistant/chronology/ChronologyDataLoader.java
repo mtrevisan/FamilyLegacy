@@ -55,9 +55,6 @@ import java.util.Set;
  */
 final class ChronologyDataLoader{
 
-	private static final String TAG_STATUS = "status";
-	private static final String STATUS_ENDED = "ended";
-	private static final String ROLE_PRINCIPAL = "principal";
 	/** A relationship of a child with the parent it descends from: the generic "child" is taken as biological. */
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
@@ -107,7 +104,7 @@ final class ChronologyDataLoader{
 			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
 			final FLEFRecord date = (dates.isEmpty()? null: dates.getFirst());
 			events.add(new ChronologyData.LifeEvent(eventId, personId, EventReader.extractType(event), range(date), text(date),
-				role == null || ROLE_PRINCIPAL.equals(role)));
+				role == null || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)));
 		}
 		return events;
 	}
@@ -153,9 +150,9 @@ final class ChronologyDataLoader{
 		else if(RelationshipReader.isTypePartner(type)){
 			final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
 			final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
-			final String status = FLEFRecordHelper.getChildValue(relationship, TAG_STATUS);
+			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
 			unions.add(new ChronologyData.Union(relationship.getId(), subjectId, targetId, MARRIAGE_UNION_TYPES.contains(type),
-				range(from), range(to), STATUS_ENDED.equals(status) && to == null, text(from)));
+				range(from), range(to), RelationshipReader.ENUM_STATUS_ENDED.equals(status) && to == null, text(from)));
 		}
 	}
 

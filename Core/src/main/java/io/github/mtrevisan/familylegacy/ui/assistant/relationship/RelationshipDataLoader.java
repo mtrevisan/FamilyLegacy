@@ -58,9 +58,6 @@ import java.util.Set;
  */
 final class RelationshipDataLoader{
 
-	private static final String ROLE_PRINCIPAL = "principal";
-	private static final String TAG_STATUS = "status";
-	private static final String STATUS_ENDED = "ended";
 
 
 	private RelationshipDataLoader(){}
@@ -98,7 +95,7 @@ final class RelationshipDataLoader{
 
 			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
 			participants.computeIfAbsent(eventId, k -> new ArrayList<>())
-				.add(new RelationshipData.Participant(personId, role == null || ROLE_PRINCIPAL.equals(role), role));
+				.add(new RelationshipData.Participant(personId, role == null || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role), role));
 		}
 
 		final List<RelationshipData.Event> events = new ArrayList<>();
@@ -143,7 +140,7 @@ final class RelationshipDataLoader{
 			final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
 			filteredRelationships.add(new RelationshipData.Relationship(relationship.getId(), subject[0], kind(subject[1]), target[0],
 				kind(target[1]), type, RelationshipReader.extractRole(relationship), range(from), range(to), text(from),
-				STATUS_ENDED.equals(FLEFRecordHelper.getChildValue(relationship, TAG_STATUS))));
+				RelationshipReader.ENUM_STATUS_ENDED.equals(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS))));
 		}
 		return filteredRelationships;
 	}

@@ -50,6 +50,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  */
 public final class PrivacyReader{
 
+	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_LEVEL = "level";
 	public static final String TAG_REASON = "reason";
 	public static final String TAG_EXPIRES = "expires";

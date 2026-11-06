@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -167,7 +168,7 @@ public final class RelationsSection implements SectionBuilder{
 			return;
 
 		for(final FLEFRecord imp : impacts){
-			final String rationale = FLEFRecordHelper.getChildValue(imp, "rationale");
+			final String rationale = FLEFRecordHelper.getChildValue(imp, ContextImpactReader.TAG_RATIONALE);
 			if(rationale != null && !rationale.isBlank()){
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().contextImpact() + ":** "

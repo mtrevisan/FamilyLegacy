@@ -60,7 +60,7 @@ public final class ResearchIndex{
 		for(final FLEFRecord researchActivity : researchActivities){
 			if(!filter.test(researchActivity))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, "question"))
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchActivity, ResearchActivityReader.TAG_QUESTION))
 				if(qRef.getValue() != null)
 					questionToActivitiesMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
 						.add(researchActivity);
@@ -70,11 +70,11 @@ public final class ResearchIndex{
 		for(final FLEFRecord researchTask : researchTasks){
 			if(!filter.test(researchTask))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, "question"))
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(researchTask, ResearchTaskReader.TAG_QUESTION))
 				if(qRef.getValue() != null)
 					questionToTasksMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
 						.add(researchTask);
-			final String createdBy = FLEFRecordHelper.getChildValue(researchTask, "created_by");
+			final String createdBy = FLEFRecordHelper.getChildValue(researchTask, ResearchTaskReader.TAG_CREATED_BY);
 			if(createdBy != null)
 				activityToTasksMap.computeIfAbsent(createdBy, k -> new ArrayList<>())
 					.add(researchTask);
@@ -84,7 +84,7 @@ public final class ResearchIndex{
 		for(final FLEFRecord conclusion : conclusions){
 			if(!filter.test(conclusion))
 				continue;
-			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, "research"))
+			for(final FLEFRecord qRef : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESEARCH))
 				if(qRef.getValue() != null)
 					questionToConclusionsMap.computeIfAbsent(qRef.getValue(), k -> new ArrayList<>())
 						.add(conclusion);
@@ -95,7 +95,7 @@ public final class ResearchIndex{
 			if(!filter.test(contextImpact))
 				continue;
 
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(contextImpact, "target")){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(contextImpact, ContextImpactReader.TAG_TARGET)){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref == null)
 					continue;
@@ -112,7 +112,7 @@ public final class ResearchIndex{
 			if(!filter.test(researchQuestion))
 				continue;
 
-			for(final FLEFRecord t : FLEFRecordHelper.findChildren(researchQuestion, "target")){
+			for(final FLEFRecord t : FLEFRecordHelper.findChildren(researchQuestion, ResearchQuestionReader.TAG_TARGET)){
 				final FLEFRecord ref = t.getTheOnlyChild();
 				if(ref == null)
 					continue;

@@ -56,18 +56,18 @@ public final class HeaderReader{
 
 	public static final String TYPE = "HEADER";
 
-	private static final String TAG_PROTOCOL = "protocol";
-	private static final String TAG_NAME = "name";
+	public static final String TAG_PROTOCOL = "protocol";
+	public static final String TAG_NAME = "name";
 	public static final String TAG_PROTOCOL_NAME = FLEFRecordHelper.composePath(TAG_PROTOCOL, TAG_NAME);
-	private static final String TAG_VERSION = "version";
+	public static final String TAG_VERSION = "version";
 	public static final String TAG_PROTOCOL_VERSION = FLEFRecordHelper.composePath(TAG_PROTOCOL, TAG_VERSION);
-	private static final String TAG_SOURCE = "source";
+	public static final String TAG_SOURCE = "source";
 	public static final String TAG_SOURCE_NAME = FLEFRecordHelper.composePath(TAG_SOURCE, TAG_NAME);
 	public static final String TAG_SOURCE_VERSION = FLEFRecordHelper.composePath(TAG_SOURCE, TAG_VERSION);
 	public static final String TAG_SOURCE_ORGANIZATION = "organization";
 	public static final String TAG_DATE = "date";
 	public static final String TAG_COPYRIGHT = "copyright";
-	private static final String TAG_SUBMITTER = "submitter";
+	public static final String TAG_SUBMITTER = "submitter";
 	public static final String TAG_SUBMITTER_CONTACT = FLEFRecordHelper.composePath(TAG_SUBMITTER, "contact");
 	public static final String TAG_SUBMITTER_REMARK = FLEFRecordHelper.composePath(TAG_SUBMITTER, "remark");
 	public static final String TAG_SCOPE = "scope";

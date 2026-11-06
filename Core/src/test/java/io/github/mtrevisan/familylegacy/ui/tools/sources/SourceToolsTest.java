@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -50,7 +51,7 @@ class SourceToolsTest{
 		model = new FLEFModel();
 		individual = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE);
 		source = FLEFRecord.createMainRecord("S1", SourceReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue("title", "Parish register"));
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_TITLE, "Parish register"));
 		model.addRecord(individual);
 		model.addRecord(source);
 	}
@@ -67,12 +68,12 @@ class SourceToolsTest{
 
 	@Test
 	void addingACitationKeepsTheLocatorAndTheStanceAndMakesBothListsClean(){
-		AddCitationDialog.addCitation(individual, source, "  p. 12  ", "contradicts");
+		AddCitationDialog.addCitation(individual, source, "  p. 12  ", SourceCitationReader.STANCE_CONTRADICTS);
 
-		final FLEFRecord citation = FLEFRecordHelper.findChild(individual, "source");
-		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, "source"));
-		Assertions.assertEquals("p. 12", FLEFRecordHelper.getChildValue(citation, "locator"));
-		Assertions.assertEquals("contradicts", FLEFRecordHelper.getChildValue(citation, "stance"));
+		final FLEFRecord citation = FLEFRecordHelper.findChild(individual, SourceCitationReader.TAG_SOURCE);
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
+		Assertions.assertEquals("p. 12", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_LOCATOR));
+		Assertions.assertEquals(SourceCitationReader.STANCE_CONTRADICTS, FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_STANCE));
 		final CitationAnalysisTool.Analysis analysis = CitationAnalysisTool.analyze(model);
 		Assertions.assertTrue(analysis.unusedSources().isEmpty());
 		Assertions.assertTrue(analysis.uncited().isEmpty());
@@ -80,16 +81,16 @@ class SourceToolsTest{
 
 	@Test
 	void aBlankLocatorIsNotWritten(){
-		AddCitationDialog.addCitation(individual, source, "   ", "supports");
+		AddCitationDialog.addCitation(individual, source, "   ", SourceCitationReader.STANCE_SUPPORTS);
 
-		Assertions.assertNull(FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(individual, "source"), "locator"));
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(individual, SourceCitationReader.TAG_SOURCE), "locator"));
 	}
 
 	@Test
 	void aSourceSaysHowManyCitationsItHas(){
 		Assertions.assertEquals("0 citations", SourceUsage.citations(source, model));
 
-		AddCitationDialog.addCitation(individual, source, null, "supports");
+		AddCitationDialog.addCitation(individual, source, null, SourceCitationReader.STANCE_SUPPORTS);
 		SourceUsage.invalidate();
 
 		Assertions.assertEquals("1 citation", SourceUsage.citations(source, model));

@@ -59,6 +59,7 @@ public class TimeRangeDialog extends JDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TimeRangeDialog.class);
 
+
 	private JTextField startField;
 	private JTextField endField;
 	private WaveformPanel waveformPanel;

@@ -26,7 +26,19 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -61,9 +73,6 @@ import java.util.Map;
  */
 public final class EvidenceQualifiersTool implements ToolOperation{
 
-	private static final String TAG_EVIDENCE = "evidence";
-
-
 	@Override
 	public String getName(){
 		return I18N.t("menu.research.evidence_qualifiers");
@@ -82,7 +91,7 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		for(final String type : SCANNED_TYPES){
 			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
 			for(final FLEFRecord record : records){
-				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, TAG_EVIDENCE);
+				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, EvidenceQualifiersReader.TAG_EVIDENCE);
 				if(qualifiers == null){
 					missing.add(record);
 					continue;
@@ -105,10 +114,10 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 	 * practice.
 	 */
 	private static final String[] SCANNED_TYPES = {
-		"event", "individual_attribute", "group_attribute", "relationship",
-		"place", "place_relationship", "event_participation", "source",
-		"cultural_norm", "historic_event", "context_impact",
-		"identity_hypothesis"
+		EventReader.TYPE, IndividualAttributeReader.TYPE, GroupAttributeReader.TYPE, RelationshipReader.TYPE,
+		PlaceReader.TYPE, PlaceRelationshipReader.TYPE, EventParticipationReader.TYPE, SourceReader.TYPE,
+		CulturalNormReader.TYPE, HistoricEventReader.TYPE, ContextImpactReader.TYPE,
+		IdentityHypothesisReader.TYPE
 	};
 
 	private static void merge(final Map<String, Integer> map, final String value){

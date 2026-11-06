@@ -116,6 +116,7 @@ public final class NameReader{
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_PART = "part";
+	public static final String TAG_VARIANT = "variant";
 	public static final String TAG_LOCALE = "locale";
 	public static final String TAG_CULTURAL_NORM = "cultural_norm";
 	public static final String TAG_SOURCE = "source";
@@ -198,6 +199,7 @@ public final class NameReader{
 	public static final String ENUM_PART_TYPE_MATRONYMIC = "matronymic";
 	public static final String ENUM_PART_TYPE_KUNYA = "kunya";
 	public static final String ENUM_PART_TYPE_FAMILY = "family";
+	public static final String ENUM_PART_TYPE_FAMILY_PREFIX = "family_prefix";
 	public static final String ENUM_PART_TYPE_FAMILY_NICKNAME = "family_nickname";
 	public static final String ENUM_PART_TYPE_LINEAGE = "lineage";
 	public static final String ENUM_PART_TYPE_HOUSE = "house";
@@ -216,7 +218,7 @@ public final class NameReader{
 	public static final String[] PART_TYPES = {
 		ENUM_PART_TYPE_GIVEN, ENUM_PART_TYPE_GENERATION,
 		ENUM_PART_TYPE_PATRONYMIC, ENUM_PART_TYPE_MATRONYMIC, ENUM_PART_TYPE_KUNYA,
-		ENUM_PART_TYPE_FAMILY, ENUM_PART_TYPE_FAMILY_NICKNAME, ENUM_PART_TYPE_LINEAGE, ENUM_PART_TYPE_HOUSE, ENUM_PART_TYPE_CLAN, ENUM_PART_TYPE_TRIBAL, ENUM_PART_TYPE_CASTE,
+		ENUM_PART_TYPE_FAMILY_PREFIX, ENUM_PART_TYPE_FAMILY, ENUM_PART_TYPE_FAMILY_NICKNAME, ENUM_PART_TYPE_LINEAGE, ENUM_PART_TYPE_HOUSE, ENUM_PART_TYPE_CLAN, ENUM_PART_TYPE_TRIBAL, ENUM_PART_TYPE_CASTE,
 		ENUM_PART_TYPE_TOPONYMIC,
 		ENUM_PART_TYPE_TITLE, ENUM_PART_TYPE_OCCUPATIONAL, ENUM_PART_TYPE_PREFIX, ENUM_PART_TYPE_SUFFIX,
 		ENUM_PART_TYPE_NICKNAME, ENUM_PART_TYPE_REGNAL, ENUM_PART_TYPE_RELIGIOUS, ENUM_PART_TYPE_POSTHUMOUS

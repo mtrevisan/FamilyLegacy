@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupNetwork;
 import io.github.mtrevisan.familylegacy.groups.GroupNetworkBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -117,9 +118,9 @@ class GroupNetworkFeaturesTest{
 	void aCycleOfPartOfDoesNotLoopCountingTheMembers(){
 		final FLEFModel model = new FLEFParser().parse(GroupNetworkTest.HEADER + GroupNetworkTest.person("I1", "Anna")
 			+ GroupNetworkTest.group("G6", "Six") + GroupNetworkTest.group("G7", "Seven")
-			+ GroupNetworkTest.relationship("R1", "group G6", "G7", "part_of", null, null)
-			+ GroupNetworkTest.relationship("R2", "group G7", "G6", "part_of", null, null)
-			+ GroupNetworkTest.relationship("R3", "individual I1", "G6", "group_member", null, null));
+			+ GroupNetworkTest.relationship("R1", "group G6", "G7", RelationshipReader.ENUM_TYPE_PART_OF, null, null)
+			+ GroupNetworkTest.relationship("R2", "group G7", "G6", RelationshipReader.ENUM_TYPE_PART_OF, null, null)
+			+ GroupNetworkTest.relationship("R3", "individual I1", "G6", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, null, null));
 
 		final GroupNetwork network = GroupNetworkBuilder.build(model, "G6", 2, null, EnumSet.allOf(GroupNetwork.Kind.class), true);
 
@@ -131,8 +132,8 @@ class GroupNetworkFeaturesTest{
 	void aRelationshipTellsItsDatesAndItsRole(){
 		final FLEFModel model = new FLEFParser().parse(GroupNetworkTest.HEADER + GroupNetworkTest.group("G1", "Federation")
 			+ GroupNetworkTest.group("G2", "Club") + GroupNetworkTest.group("G3", "Youth")
-			+ withLine(GroupNetworkTest.relationship("R1", "group G2", "G1", "part_of", "1900-01-01", "1950-01-01"), "role founder")
-			+ GroupNetworkTest.relationship("R2", "group G3", "G2", "part_of", null, null));
+			+ withLine(GroupNetworkTest.relationship("R1", "group G2", "G1", RelationshipReader.ENUM_TYPE_PART_OF, "1900-01-01", "1950-01-01"), "role founder")
+			+ GroupNetworkTest.relationship("R2", "group G3", "G2", RelationshipReader.ENUM_TYPE_PART_OF, null, null));
 
 		final GroupNetwork network = GroupNetworkBuilder.build(model, "G2", 1, null);
 

@@ -47,6 +47,7 @@ public final class JavaHelper{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHelper.class);
 
+
 	static{
 		//check whether an optional SLF4J binding is available
 		final ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();

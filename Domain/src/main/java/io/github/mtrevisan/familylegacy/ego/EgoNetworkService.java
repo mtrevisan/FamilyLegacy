@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -149,12 +150,12 @@ public class EgoNetworkService{
 
 	private static String normalizeStatus(final String raw){
 		if(raw == null)
-			return "unknown";
+			return RelationshipReader.ENUM_STATUS_UNKNOWN;
 
-		return switch(raw.toLowerCase()){
-			case "active" -> "active";
-			case "ended" -> "ended";
-			default -> "unknown";
+		return switch(raw.toLowerCase(Locale.ROOT)){
+			case RelationshipReader.ENUM_STATUS_ACTIVE -> RelationshipReader.ENUM_STATUS_ACTIVE;
+			case RelationshipReader.ENUM_STATUS_ENDED -> RelationshipReader.ENUM_STATUS_ENDED;
+			default -> RelationshipReader.ENUM_STATUS_UNKNOWN;
 		};
 	}
 

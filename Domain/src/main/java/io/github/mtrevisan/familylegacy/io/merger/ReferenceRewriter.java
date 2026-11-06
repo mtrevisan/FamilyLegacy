@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 import io.github.mtrevisan.familylegacy.io.grammar.XrefPathIndex;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.Strings;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,9 +53,9 @@ import java.util.regex.Pattern;
  */
 final class ReferenceRewriter{
 
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_TEXT = "text";
-	private static final String TAG_TRANSLATION = "translation";
+	private static final String TAG_NOTE = NoteReader.TYPE.toLowerCase(Locale.ROOT);
+	private static final String TAG_TEXT = NoteReader.TAG_TEXT;
+	private static final String TAG_TRANSLATION = NoteReader.TAG_TRANSLATION;
 	private static final String WILDCARD = "[*]";
 
 	/** A {@code flef:} link; the id stops at the first character that cannot belong to an id, so {@code flef:I1} never matches {@code flef:I12}. */

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -54,16 +56,16 @@ class SocialLayoutTest{
 
 
 	private static SocialNodeRef node(final String id, final int degree){
-		final FLEFRecord record = FLEFRecord.createMainRecord(id, "individual");
+		final FLEFRecord record = FLEFRecord.createMainRecord(id, IndividualReader.TYPE);
 		return new SocialNodeRef(new TemporalEntityRef(TemporalEntityType.INDIVIDUAL, id, record, id), degree,
 			SocialRelationCategory.OTHER);
 	}
 
 	private static SocialEdgeRef edge(final SocialNodeRef from, final SocialNodeRef to){
 		final String id = "R-" + from.id() + "-" + to.id();
-		return new SocialEdgeRef(from.entity(), to.entity(), "associate", null, SocialRelationCategory.OTHER,
+		return new SocialEdgeRef(from.entity(), to.entity(), RelationshipReader.ENUM_TYPE_ASSOCIATE, null, SocialRelationCategory.OTHER,
 			SocialEdgeDirection.UNDIRECTED, TemporalSpan.point(NormalizedDate.exact(2_400_000L, DatePrecision.YEAR)),
-			FLEFRecord.createMainRecord(id, "relationship"));
+			FLEFRecord.createMainRecord(id, RelationshipReader.TYPE));
 	}
 
 	/** A focus with {@code first} contacts, each with {@code second} contacts, each with {@code third} contacts. */

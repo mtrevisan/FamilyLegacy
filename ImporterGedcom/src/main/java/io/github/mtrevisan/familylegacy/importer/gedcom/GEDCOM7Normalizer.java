@@ -67,7 +67,7 @@ public final class GEDCOM7Normalizer{
 	public static boolean isGEDCOM7(final List<GEDCOMNode> roots){
 		for(final GEDCOMNode root : roots)
 			if("HEAD".equals(root.getTag())){
-				final String version = GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(root, "GEDC"), "VERS");
+				final String version = GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(root, "GEDC"), GEDCOMMapper.TAG_VERSION);
 				return (version != null && version.startsWith("7"));
 			}
 		return false;
@@ -80,8 +80,8 @@ public final class GEDCOM7Normalizer{
 
 	private static void normalizeNode(final GEDCOMNode node){
 		if("SNOTE".equals(node.getTag()))
-			node.setTag("NOTE");
-		if("DATE".equals(node.getTag()))
+			node.setTag(GEDCOMMapper.TAG_NOTE);
+		if(GEDCOMMapper.TAG_DATE.equals(node.getTag()))
 			normalizeDate(node);
 		else
 			applyPhrase(node);
@@ -143,25 +143,25 @@ public final class GEDCOM7Normalizer{
 	private static GEDCOMNode replaceVoidPointer(final GEDCOMNode node){
 		return switch(node.getTag()){
 			// the citation of an unrecorded source
-			case "SOUR" -> {
+			case GEDCOMMapper.TAG_SOURCE -> {
 				node.setValue(null);
 				yield node;
 			}
-			case "REPO" -> {
+			case GEDCOMMapper.TAG_REPOSITORY -> {
 				final List<String> callNumbers = new ArrayList<>();
 				for(final GEDCOMNode calnNode : GEDCOMHelper.findChildren(node, "CALN"))
 					if(StringUtils.isNotBlank(calnNode.getValue()))
 						callNumbers.add(calnNode.getValue().trim());
 				yield (!callNumbers.isEmpty()
-					? new GEDCOMNode(node.getLevel(), "NOTE", "Call number in an unrecorded repository: "
+					? new GEDCOMNode(node.getLevel(), GEDCOMMapper.TAG_NOTE, "Call number in an unrecorded repository: "
 						+ String.join("; ", callNumbers))
 					: null);
 			}
-			case "ASSO" -> {
+			case GEDCOMMapper.TAG_ASSOCIATION -> {
 				final String associate = GEDCOMHelper.findFirstValue(node, "PHRASE");
-				final String role = GEDCOMMapper.mapAssociationRoleLabel(GEDCOMHelper.findFirstValue(node, "ROLE"));
+				final String role = GEDCOMMapper.mapAssociationRoleLabel(GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_ROLE));
 				yield (associate != null || role != null
-					? new GEDCOMNode(node.getLevel(), "NOTE", "Associate: " + Objects.toString(associate, "unknown")
+					? new GEDCOMNode(node.getLevel(), GEDCOMMapper.TAG_NOTE, "Associate: " + Objects.toString(associate, "unknown")
 						+ (role != null? " (" + role + ")": StringUtils.EMPTY))
 					: null);
 			}

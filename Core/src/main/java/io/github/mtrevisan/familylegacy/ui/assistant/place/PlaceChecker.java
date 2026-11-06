@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 
 
@@ -72,16 +73,17 @@ final class PlaceChecker{
 	private static final Set<String> PART_OF = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF, PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF,
 		PlaceRelationshipReader.ENUM_TYPE_JUDICIAL_PART_OF, PlaceRelationshipReader.ENUM_TYPE_CADASTRAL_PART_OF);
 	private static final Set<String> TERRITORIAL = Set.of(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF, PlaceRelationshipReader.ENUM_TYPE_GEOGRAPHIC_PART_OF);
-	private static final Set<String> SUCCESSION = Set.of("successor_of", "merged_from", "split_from", "received_territory_from");
-	private static final String ECCLESIASTICAL = "ecclesiastical_part_of";
+	private static final Set<String> SUCCESSION = Set.of(PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF, PlaceRelationshipReader.ENUM_TYPE_MERGED_FROM, PlaceRelationshipReader.ENUM_TYPE_SPLIT_FROM,
+		PlaceRelationshipReader.ENUM_TYPE_RECEIVED_TERRITORY_FROM);
+	private static final String ECCLESIASTICAL = PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF;
 
 	/** How large the types of place are (only the ones that can be compared: a parish or a district is not on the scale). */
 	private static final Map<String, Integer> SCALE = Map.ofEntries(
-		Map.entry("address", 0), Map.entry("building", 1), Map.entry("street", 1), Map.entry("cemetery", 1), Map.entry("hamlet", 2),
-		Map.entry("village", 3), Map.entry("town", 4), Map.entry("municipality", 4), Map.entry("city", 4),
-		Map.entry("metropolitan_area", 5), Map.entry("county", 6), Map.entry("province", 6), Map.entry("department", 6),
-		Map.entry("region", 7), Map.entry("macro_region", 8), Map.entry("country", 9), Map.entry("empire", 10));
-	private static final int COUNTRY_SCALE = SCALE.get("country");
+		Map.entry(PlaceReader.ENUM_TYPE_ADDRESS, 0), Map.entry(PlaceReader.ENUM_TYPE_BUILDING, 1), Map.entry(PlaceReader.ENUM_TYPE_STREET, 1), Map.entry(PlaceReader.ENUM_TYPE_CEMETERY, 1), Map.entry(PlaceReader.ENUM_TYPE_HAMLET, 2),
+		Map.entry(PlaceReader.ENUM_TYPE_VILLAGE, 3), Map.entry(PlaceReader.ENUM_TYPE_TOWN, 4), Map.entry(PlaceReader.ENUM_TYPE_MUNICIPALITY, 4), Map.entry(PlaceReader.ENUM_TYPE_CITY, 4),
+		Map.entry(PlaceReader.ENUM_TYPE_METROPOLITAN_AREA, 5), Map.entry(PlaceReader.ENUM_TYPE_COUNTY, 6), Map.entry(PlaceReader.ENUM_TYPE_PROVINCE, 6), Map.entry(PlaceReader.ENUM_TYPE_DEPARTMENT, 6),
+		Map.entry(PlaceReader.ENUM_TYPE_REGION, 7), Map.entry(PlaceReader.ENUM_TYPE_MACRO_REGION, 8), Map.entry(PlaceReader.ENUM_TYPE_COUNTRY, 9), Map.entry(PlaceReader.ENUM_TYPE_EMPIRE, 10));
+	private static final int COUNTRY_SCALE = SCALE.get(PlaceReader.ENUM_TYPE_COUNTRY);
 
 	private static final Pattern COORDINATES = Pattern.compile("^([+-]\\d+(?:\\.\\d+)?)([+-]\\d+(?:\\.\\d+)?)");
 	private static final Pattern DIACRITICS = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
@@ -439,8 +441,8 @@ final class PlaceChecker{
 
 
 	private static List<PlaceFinding> missingDioceses(final PlaceData data, final Map<String, PlaceData.Place> byId){
-		final List<PlaceData.Place> dioceses = data.places().stream().filter(place -> "diocese".equals(place.type())).toList();
-		final List<PlaceData.Place> archdioceses = data.places().stream().filter(place -> "archdiocese".equals(place.type())).toList();
+		final List<PlaceData.Place> dioceses = data.places().stream().filter(place -> PlaceReader.ENUM_TYPE_DIOCESE.equals(place.type())).toList();
+		final List<PlaceData.Place> archdioceses = data.places().stream().filter(place -> PlaceReader.ENUM_TYPE_ARCHDIOCESE.equals(place.type())).toList();
 		final PlaceData.Place proposed = (dioceses.size() == 1? dioceses.getFirst()
 			: (dioceses.isEmpty() && archdioceses.size() == 1? archdioceses.getFirst(): null));
 
@@ -449,13 +451,13 @@ final class PlaceChecker{
 		for(final PlaceData.Relation relation : data.relations()){
 			final PlaceData.Place target = byId.get(relation.targetId());
 			if(ECCLESIASTICAL.equals(relation.type()) || (PART_OF.contains(relation.type()) && target != null
-					&& ("diocese".equals(target.type()) || "archdiocese".equals(target.type()))))
+					&& (PlaceReader.ENUM_TYPE_DIOCESE.equals(target.type()) || PlaceReader.ENUM_TYPE_ARCHDIOCESE.equals(target.type()))))
 				subjectsOfEcclesiastical.add(relation.subjectId());
 		}
 
 		final List<PlaceFinding> findings = new ArrayList<>();
 		for(final PlaceData.Place place : data.places()){
-			if(!"parish".equals(place.type()) || subjectsOfEcclesiastical.contains(place.id()))
+			if(!PlaceReader.ENUM_TYPE_PARISH.equals(place.type()) || subjectsOfEcclesiastical.contains(place.id()))
 				continue;
 
 			final PlaceDraft draft = new PlaceDraft(place.id(), (proposed != null? proposed.id(): null), ECCLESIASTICAL);

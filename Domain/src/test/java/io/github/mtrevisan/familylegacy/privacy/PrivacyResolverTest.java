@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.privacy;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -114,7 +116,7 @@ class PrivacyResolverTest{
 		final FLEFModel model = parse(individual("I1", "")
 			+ individual("I2", "")
 			+ event("E1", "death", "")
-			+ participation("EP1", "E1", "I2", "principal"));
+			+ participation("EP1", "E1", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
 		final PrivacyResolver resolver = new PrivacyResolver(model, TODAY);
 
 		final PrivacyResolver.Effective living = resolver.describe(model.getRecordById("I1"));
@@ -129,12 +131,12 @@ class PrivacyResolverTest{
 		final FLEFModel model = parse(individual("I1", "")
 			+ individual("I2", "")
 			+ individual("I3", "")
-			+ event("E1", "birth", "\tdate.value.point.value.full_date 1850-03-04\n")
-			+ event("E2", "birth", "\tdate.value.point.value.full_date 1990-03-04\n")
-			+ event("E3", "birth", "")
-			+ participation("EP1", "E1", "I1", "principal")
-			+ participation("EP2", "E2", "I2", "principal")
-			+ participation("EP3", "E3", "I3", "principal"));
+			+ event("E1", EventReader.ENUM_TYPE_BIRTH, "\tdate.value.point.value.full_date 1850-03-04\n")
+			+ event("E2", EventReader.ENUM_TYPE_BIRTH, "\tdate.value.point.value.full_date 1990-03-04\n")
+			+ event("E3", EventReader.ENUM_TYPE_BIRTH, "")
+			+ participation("EP1", "E1", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP2", "E2", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP3", "E3", "I3", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
 		final PrivacyResolver resolver = new PrivacyResolver(model, TODAY);
 
 		Assertions.assertEquals(PrivacyLevel.PUBLIC, resolver.effectiveLevel(model.getRecordById("I1")));
@@ -147,7 +149,7 @@ class PrivacyResolverTest{
 	void onlyThePrincipalCountsAsBornOrDead(){
 		final FLEFModel model = parse(individual("I1", "")
 			+ event("E1", "death", "")
-			+ participation("EP1", "E1", "I1", "witness"));
+			+ participation("EP1", "E1", "I1", EventParticipationReader.ENUM_ROLE_WITNESS));
 		final PrivacyResolver resolver = new PrivacyResolver(model, TODAY);
 
 		Assertions.assertEquals(PrivacyLevel.RESTRICTED, resolver.effectiveLevel(model.getRecordById("I1")));
@@ -166,7 +168,7 @@ class PrivacyResolverTest{
 		final FLEFModel model = parse(individual("I1", "")
 			+ individual("I2", "")
 			+ event("E1", "death", "")
-			+ participation("EP1", "E1", "I2", "principal")
+			+ participation("EP1", "E1", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
 			+ attribute("A1", "I1", "occupation")
 			+ attribute("A2", "I2", "occupation")
 			+ attribute("A3", "I2", "national_id"));
@@ -186,10 +188,10 @@ class PrivacyResolverTest{
 			+ event("E1", "death", "")
 			+ event("E2", "marriage", "")
 			+ event("E3", "marriage", "")
-			+ participation("EP1", "E1", "I2", "principal")
-			+ participation("EP2", "E2", "I1", "principal")
-			+ participation("EP3", "E2", "I2", "principal")
-			+ participation("EP4", "E3", "I2", "principal"));
+			+ participation("EP1", "E1", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP2", "E2", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP3", "E2", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP4", "E3", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
 		final PrivacyResolver resolver = new PrivacyResolver(model, TODAY);
 
 		//a living participant restricts the event

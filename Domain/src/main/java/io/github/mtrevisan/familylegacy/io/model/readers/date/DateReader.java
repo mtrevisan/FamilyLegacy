@@ -115,6 +115,9 @@ public final class DateReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_CONFIDENCE = "confidence";
 
+	public static final String TAG_VALID_FROM = "valid_from";
+	public static final String TAG_VALID_TO = "valid_to";
+
 	public static final String TAG_POINT = "point";
 	public static final String TAG_BOUNDED = "bounded";
 	public static final String TAG_SPANNING = "spanning";
@@ -144,8 +147,24 @@ public final class DateReader{
 	public static final String TAG_VALUE_CENTURY = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY);
 	public static final String TAG_VALUE_CENTURY_ORDINAL = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY, TAG_ORDINAL);
 	public static final String TAG_VALUE_CENTURY_PART = FLEFRecordHelper.composePath(TAG_VALUE, TAG_CENTURY, TAG_PART);
+	public static final String TAG_VALUE_POINT = FLEFRecordHelper.composePath(TAG_VALUE, TAG_POINT);
+	public static final String TAG_VALUE_BOUNDED_NOT_BEFORE = FLEFRecordHelper.composePath(TAG_VALUE, TAG_BOUNDED, TAG_NOT_BEFORE);
+	public static final String TAG_VALUE_BOUNDED_NOT_AFTER = FLEFRecordHelper.composePath(TAG_VALUE, TAG_BOUNDED, TAG_NOT_AFTER);
+	public static final String TAG_VALUE_SPANNING_FROM = FLEFRecordHelper.composePath(TAG_VALUE, TAG_SPANNING, TAG_FROM);
+	public static final String TAG_VALUE_SPANNING_TO = FLEFRecordHelper.composePath(TAG_VALUE, TAG_SPANNING, TAG_TO);
 
 	public static final String ENUM_CALENDAR_GREGORIAN = CalendarType.GREGORIAN.getCode();
+	public static final String ENUM_CALENDAR_JULIAN = CalendarType.JULIAN.getCode();
+	public static final String ENUM_CALENDAR_HEBREW = CalendarType.HEBREW.getCode();
+	public static final String ENUM_CALENDAR_FRENCH_REPUBLICAN = CalendarType.FRENCH_REPUBLICAN.getCode();
+	public static final String ENUM_CALENDAR_ISLAMIC = CalendarType.ISLAMIC.getCode();
+	public static final String ENUM_CALENDAR_PERSIAN = CalendarType.PERSIAN.getCode();
+	public static final String ENUM_CALENDAR_SWEDISH = CalendarType.SWEDISH.getCode();
+	public static final String ENUM_CALENDAR_VENETAN = CalendarType.VENETAN.getCode();
+	public static final String ENUM_CALENDAR_FLORENTINE = CalendarType.FLORENTINE.getCode();
+	public static final String ENUM_CALENDAR_NATIVITY = CalendarType.NATIVITY.getCode();
+	public static final String ENUM_CALENDAR_BYZANTINE_STYLE = CalendarType.BYZANTINE_STYLE.getCode();
+	public static final String ENUM_CALENDAR_EASTER_STYLE = CalendarType.EASTER_STYLE.getCode();
 	public static final String[] CALENDARS = Arrays.stream(CalendarType.values())
 		.map(CalendarType::getCode)
 		.toArray(String[]::new);

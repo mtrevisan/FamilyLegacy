@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class ModelHistoryTest{
 
 	private static FLEFModel model(){
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("P1", "place")
+		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("name.value", "Treviso")));
 		return model;
 	}
@@ -55,13 +56,13 @@ class ModelHistoryTest{
 		final ModelHistory history = new ModelHistory(model);
 		Assertions.assertFalse(history.isModified());
 
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 		Assertions.assertTrue(history.isModified());
 
 		//the model is written from a copy, while the user goes on editing
 		final ModelHistory.SaveTicket ticket = history.prepareSave();
 		Assertions.assertEquals(2, ticket.view().getRecordCount());
-		model.addRecord(FLEFRecord.createMainRecord("P3", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P3", PlaceReader.TYPE));
 		Assertions.assertEquals(2, ticket.view().getRecordCount());
 
 		history.markSaved(ticket);
@@ -77,7 +78,7 @@ class ModelHistoryTest{
 		final ModelHistory history = new ModelHistory(model);
 
 		model.getRecordById("P1").getChildren().getFirst().setValue("Venezia");
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 
 		Assertions.assertTrue(history.undo());
 		Assertions.assertEquals(1, model.getRecordCount());
@@ -97,16 +98,16 @@ class ModelHistoryTest{
 		final FLEFModel model = model();
 		final ModelHistory history = new ModelHistory(model);
 
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 		history.checkpoint();
-		model.addRecord(FLEFRecord.createMainRecord("P3", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P3", PlaceReader.TYPE));
 		history.checkpoint();
 
 		history.undo();
 		Assertions.assertTrue(model.hasRecord("P2"));
 		Assertions.assertFalse(model.hasRecord("P3"));
 
-		model.addRecord(FLEFRecord.createMainRecord("P4", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P4", PlaceReader.TYPE));
 		Assertions.assertFalse(history.canRedo());
 		history.undo();
 		Assertions.assertTrue(model.hasRecord("P2"));
@@ -125,7 +126,7 @@ class ModelHistoryTest{
 		final FLEFModel model = model();
 		final ModelHistory history = new ModelHistory(model);
 
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 
 		Assertions.assertTrue(history.isModified());
 	}
@@ -134,7 +135,7 @@ class ModelHistoryTest{
 	void savingMakesTheModelNotModifiedAndAnUndoAfterTheSaveModifiesItAgain(){
 		final FLEFModel model = model();
 		final ModelHistory history = new ModelHistory(model);
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 		history.checkpoint();
 
 		history.markSaved();
@@ -186,7 +187,7 @@ class ModelHistoryTest{
 	void childrenOrderIsAChange(){
 		final FLEFModel model = model();
 		final FLEFRecord record = model.getRecordById("P1");
-		record.addChild(FLEFRecord.createChildWithTagAndValue("note", "a"));
+		record.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "a"));
 		final ModelHistory history = new ModelHistory(model);
 
 		Collections.reverse(record.getChildren());
@@ -202,7 +203,7 @@ class ModelHistoryTest{
 		final ModelHistory history = new ModelHistory(model);
 		Assertions.assertNull(history.peekUndoOrigin());
 
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 		history.checkpoint(ModelHistory.Origin.DIALOG);
 
 		Assertions.assertEquals(ModelHistory.Origin.DIALOG, history.peekUndoOrigin());
@@ -214,7 +215,7 @@ class ModelHistoryTest{
 		final ModelHistory history = new ModelHistory(model);
 
 		model.getRecordById("P1").getChildren().getFirst().setValue("Venezia");
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
 		history.checkpoint();
 		model.getRecords().removeIf(record -> "P2".equals(record.getId()));
 		history.checkpoint();

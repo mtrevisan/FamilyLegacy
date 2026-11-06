@@ -60,9 +60,9 @@ public final class RelationshipIndex{
 				continue;
 			final String t = type.toLowerCase(Locale.ROOT);
 
-			final String subjectId = FLEFRecordHelper.getChildValue(relationship, "subject.individual");
-			final String objectId = FLEFRecordHelper.getChildValue(relationship, "object.individual");
-			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, "object.group");
+			final String subjectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_SUBJECT_INDIVIDUAL);
+			final String objectId = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TARGET_INDIVIDUAL);
+			final String objectGroup = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TARGET_GROUP);
 
 			if(subjectId != null)
 				personToRelationshipsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())

@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.reports.index;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -65,8 +67,8 @@ public final class SourceAndMediaIndex{
 				}
 			}
 
-			for(final FLEFRecord repoRef : FLEFRecordHelper.findChildren(source, "repository")){
-				final String repoId = FLEFRecordHelper.getChildValue(repoRef, "repository");
+			for(final FLEFRecord repoRef : FLEFRecordHelper.findChildren(source, SourceReader.TAG_REPOSITORY)){
+				final String repoId = FLEFRecordHelper.getChildValue(repoRef, RepositoryCitationReader.TAG_REPOSITORY);
 				if(repoId != null){
 					sourceToRepositoriesMap.computeIfAbsent(srcId, k -> new ArrayList<>())
 						.add(repoRef);
@@ -78,13 +80,13 @@ public final class SourceAndMediaIndex{
 
 		final List<FLEFRecord> records = model.getRecords();
 		for(final FLEFRecord record : records){
-			for(final FLEFRecord cit : ReportFormatters.collectDescendantsWithTag(record, "source")){
+			for(final FLEFRecord cit : ReportFormatters.collectDescendantsWithTag(record, SourceCitationReader.TAG_SOURCE)){
 				final String sid = ReportFormatters.extractSourceId(cit);
 				if(sid != null && filter.test(model.getRecordById(sid))){
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>())
 						.add(cit);
 				}
-				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, "extract.media_part.media")){
+				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, SourceCitationReader.TAG_EXTRACT_MEDIA_PART_MEDIA)){
 					final String did = dp.getValue();
 					if(did != null){
 						docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>())

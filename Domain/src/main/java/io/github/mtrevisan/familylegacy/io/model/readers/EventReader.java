@@ -73,8 +73,9 @@ public final class EventReader{
 	public static final String TAG_DESCRIPTION = "description";
 	public static final String TAG_DATE = "date";
 	public static final String TAG_PLACE = "place";
-	private static final String TAG_CAUSE = "cause";
-	public static final String TAG_CAUSE_REASON = FLEFRecordHelper.composePath(TAG_CAUSE, "reason");
+	public static final String TAG_CAUSE = "cause";
+	public static final String TAG_REASON = "reason";
+	public static final String TAG_CAUSE_REASON = FLEFRecordHelper.composePath(TAG_CAUSE, TAG_REASON);
 	public static final String TAG_CAUSE_SOURCE = FLEFRecordHelper.composePath(TAG_CAUSE, "source");
 	public static final String TAG_CAUSE_CONFIDENCE = FLEFRecordHelper.composePath(TAG_CAUSE, "evidence");
 	public static final String TAG_SOURCE = "source";

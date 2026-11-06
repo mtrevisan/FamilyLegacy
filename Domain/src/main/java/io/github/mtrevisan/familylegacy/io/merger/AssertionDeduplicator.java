@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,10 +50,10 @@ import java.util.TreeSet;
 final class AssertionDeduplicator{
 
 	private static final List<List<String>> STAGES = List.of(
-		List.of(ModelIndex.KIND_RELATIONSHIP, "individual_attribute", "group_attribute", ModelIndex.KIND_PLACE_RELATIONSHIP),
+		List.of(ModelIndex.KIND_RELATIONSHIP, ModelIndex.KIND_INDIVIDUAL_ATTRIBUTE, ModelIndex.KIND_GROUP_ATTRIBUTE, ModelIndex.KIND_PLACE_RELATIONSHIP),
 		List.of(ModelIndex.KIND_EVENT),
 		List.of(ModelIndex.KIND_EVENT_PARTICIPATION),
-		List.of("context_impact"),
+		List.of(ModelIndex.kind(ContextImpactReader.TYPE)),
 		List.of(ProtocolRules.KIND_CONCLUSION)
 	);
 
@@ -174,7 +176,7 @@ final class AssertionDeduplicator{
 		final TreeSet<String> principals = new TreeSet<>();
 		final TreeSet<String> all = new TreeSet<>();
 		for(final FLEFRecord participation : index.participationsOfEvent(eventId)){
-			final FLEFRecord participant = FieldMerger.first(participation, "participant");
+			final FLEFRecord participant = FieldMerger.first(participation, EventParticipationReader.TAG_PARTICIPANT);
 			final String who = ModelIndex.armTag(participant) + ":" + ModelIndex.armValue(participant);
 			final String role = ModelIndex.value(participation, ModelIndex.TAG_ROLE);
 			if(role == null || ModelIndex.ROLE_PRINCIPAL.equals(role))

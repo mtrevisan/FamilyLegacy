@@ -119,9 +119,6 @@ import java.util.Set;
  */
 public class ChronomapPanel extends JPanel{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChronomapPanel.class);
-
-
 	// Global view constants
 	private static final GeoPosition WORLD_CENTER = new GeoPosition(0., 0.);
 	private static final int WORLD_ZOOM = 18;

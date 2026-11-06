@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
@@ -264,19 +266,19 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		culturalNorm.addChild(FLEFRecord.createChildWithTagAndValue("NAME", "Primogeniture"));
 
 		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", IndividualHandler.TYPE);
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", IndividualReader.ENUM_SEX_MALE));
+		individual.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 
 		final FLEFRecord contextImpact = FLEFRecord.createMainRecord("CI1", ContextImpactHandler.TYPE);
-		contextImpact.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "CN1")));
-		contextImpact.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "I1")));
-		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("IMPACT_TYPE", "constrains"));
-		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("RATIONALE", "rationale"));
-		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("CONFIDENCE", "medium"));
+		contextImpact.addChild(FLEFRecord.createChildWithTag(ContextImpactReader.TAG_CONTEXT)
+			.addChild(FLEFRecord.createChildWithTagAndValue(CulturalNormReader.TYPE, "CN1")));
+		contextImpact.addChild(FLEFRecord.createChildWithTag(ContextImpactReader.TAG_TARGET)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TYPE, "I1")));
+		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue(ContextImpactReader.TAG_IMPACT_TYPE, ContextImpactReader.ENUM_IMPACT_TYPE_CONSTRAINS));
+		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue(ContextImpactReader.TAG_RATIONALE, "rationale"));
+		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue(ContextImpactReader.TAG_CONFIDENCE, ConfidenceReader.ENUM_MEDIUM));
 
 		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", SourceHandler.TYPE);
-		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
+		source1.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Historical study")));
 
 		final Consumer<FLEFModel> modelFiller = model -> {

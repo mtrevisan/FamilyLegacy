@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import org.junit.jupiter.api.Assertions;
@@ -112,7 +113,7 @@ class ChronologyDataLoaderTest{
 			.filter(link -> link.childId().equals(bruno.id()) && link.parentId().equals(anna.id()) && link.biological())
 			.count());
 		Assertions.assertFalse(data.events().isEmpty());
-		Assertions.assertTrue(data.events().stream().anyMatch(e -> "burial".equals(e.type()) && e.personId().equals(carlo.id())));
+		Assertions.assertTrue(data.events().stream().anyMatch(e -> EventReader.ENUM_TYPE_BURIAL.equals(e.type()) && e.personId().equals(carlo.id())));
 		Assertions.assertTrue(data.events().stream().allMatch(ChronologyData.LifeEvent::principal));
 		Assertions.assertFalse(data.unions().isEmpty());
 		Assertions.assertTrue(data.unions().stream().allMatch(u -> u.firstId() != null && u.secondId() != null));
@@ -131,7 +132,7 @@ class ChronologyDataLoaderTest{
 		//Anna marries Carlo in 1875, after his death in 1870
 		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Event after death: Carlo")), titles.toString());
 		//the burial five days after the death is fine, and so is the approximate birth of Carlo
-		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains("burial")), titles.toString());
+		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains(EventReader.ENUM_TYPE_BURIAL)), titles.toString());
 		Assertions.assertFalse(titles.stream().anyMatch(t -> t.contains("Carlo") && t.startsWith("Death before")), titles.toString());
 	}
 

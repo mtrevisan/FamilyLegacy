@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -36,9 +37,9 @@ class ModelHistoryReadOnlyViewTest{
 
 	private static FLEFModel model(){
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("P1", "place")
+		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("name.value", "Treviso")));
-		model.addRecord(FLEFRecord.createMainRecord("P2", "place")
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue("name.value", "Padova")));
 		return model;
 	}
@@ -56,7 +57,7 @@ class ModelHistoryReadOnlyViewTest{
 		Assertions.assertEquals(2, view.getRecordCount());
 		Assertions.assertEquals("Treviso", nameOf(view, "P1"));
 		Assertions.assertEquals("Padova", nameOf(view, "P2"));
-		Assertions.assertEquals(2, view.getRecordsByType("place").size(), "the lookups by type work");
+		Assertions.assertEquals(2, view.getRecordsByType(PlaceReader.TYPE).size(), "the lookups by type work");
 		Assertions.assertEquals(model.getHeader(), view.getHeader());
 	}
 
@@ -68,7 +69,7 @@ class ModelHistoryReadOnlyViewTest{
 
 		//the model is edited in place, from anywhere: changed, added, removed
 		model.getRecordById("P1").getChildren().getFirst().setValue("Venezia");
-		model.addRecord(FLEFRecord.createMainRecord("P3", "place"));
+		model.addRecord(FLEFRecord.createMainRecord("P3", PlaceReader.TYPE));
 		model.removeRecord("P2");
 
 		Assertions.assertEquals(2, view.getRecordCount());
@@ -153,7 +154,7 @@ class ModelHistoryReadOnlyViewTest{
 		final FLEFModel before = history.readOnlyView();
 
 		final FLEFModel other = new FLEFModel();
-		other.addRecord(FLEFRecord.createMainRecord("P9", "place"));
+		other.addRecord(FLEFRecord.createMainRecord("P9", PlaceReader.TYPE));
 		history.reset(other);
 
 		final FLEFModel after = history.readOnlyView();

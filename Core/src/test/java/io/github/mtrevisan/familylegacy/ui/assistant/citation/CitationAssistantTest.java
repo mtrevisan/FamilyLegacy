@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
@@ -78,7 +79,7 @@ class CitationAssistantTest{
 	}
 
 	private static FLEFRecord source(final FLEFModel model){
-		return model.getRecordsByType("SOURCE").getFirst();
+		return model.getRecordsByType(SourceReader.TYPE).getFirst();
 	}
 
 	private static void onEdt(final Runnable action){

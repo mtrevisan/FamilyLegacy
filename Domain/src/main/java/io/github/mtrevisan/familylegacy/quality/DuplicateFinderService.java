@@ -33,8 +33,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
@@ -322,7 +326,7 @@ public final class DuplicateFinderService{
 		final Map<String, List<FLEFRecord>> participationsByIndividual = new HashMap<>();
 		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationReader.TYPE));
 		for(final FLEFRecord participation : participations){
-			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, "participant");
+			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 			if(participantBlock == null)
 				continue;
 			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
@@ -357,12 +361,12 @@ public final class DuplicateFinderService{
 		// O(1) per individual.
 		final Map<String, Set<String>> childrenByParent = new HashMap<>();
 		for(final FLEFRecord rel : relationships){
-			final String type = FLEFRecordHelper.getChildValue(rel, "type");
+			final String type = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE);
 			if(!RelationshipReader.isTypeBiologicalChild(type))
 				continue;
 
-			final String child = rel.extractReferencedId("subject", IndividualReader.TYPE);
-			final String target = rel.extractReferencedId("target", IndividualReader.TYPE);
+			final String child = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String target = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
 			if(child != null && target != null)
 				childrenByParent.computeIfAbsent(target, k -> new LinkedHashSet<>())
 					.add(child);
@@ -424,7 +428,7 @@ public final class DuplicateFinderService{
 		final Map<String, Set<String>> placeNamesById,
 		final Map<String, String> sourceTitlesById){
 		final String id = individual.getId();
-		final String sex = FLEFRecordHelper.getChildValue(individual, "sex");
+		final String sex = FLEFRecordHelper.getChildValue(individual, IndividualReader.TAG_SEX);
 		final NameTokens names = extractNames(individual);
 		final String displayName = (names.fullNameVariants.isEmpty()
 			? id
@@ -435,11 +439,11 @@ public final class DuplicateFinderService{
 		final Set<String> children = new LinkedHashSet<>();
 		final Set<String> spouses = new LinkedHashSet<>();
 		for(final FLEFRecord rel : relationshipsByEndpoint.getOrDefault(id, List.of())){
-			final String type = FLEFRecordHelper.getChildValue(rel, "type");
+			final String type = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE);
 			if(type == null)
 				continue;
-			final String subject = rel.extractReferencedId("subject", IndividualReader.TYPE);
-			final String target = rel.extractReferencedId("target", IndividualReader.TYPE);
+			final String subject = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String target = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
 			if(subject == null || target == null)
 				continue;
 
@@ -470,14 +474,14 @@ public final class DuplicateFinderService{
 		Integer birthYear = null;
 		Integer deathYear = null;
 		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
-			final String eventId = FLEFRecordHelper.getChildValue(participation, "event");
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(eventId == null)
 				continue;
 			eventIds.add(eventId);
 			final FLEFRecord event = eventsById.get(eventId);
 			if(event == null)
 				continue;
-			final String eventType = FLEFRecordHelper.getChildValue(event, "type");
+			final String eventType = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
 			if(eventType == null)
 				continue;
 			final String type = eventType.toLowerCase(Locale.ROOT);
@@ -493,8 +497,8 @@ public final class DuplicateFinderService{
 		final Set<String> occupations = new LinkedHashSet<>();
 		final Map<String, Set<String>> attributeTexts = new LinkedHashMap<>();
 		for(final FLEFRecord attr : attributesByIndividual.getOrDefault(id, List.of())){
-			final String type = FLEFRecordHelper.getChildValue(attr, "type");
-			final String value = FLEFRecordHelper.getChildValue(attr, "value");
+			final String type = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_VALUE);
 			if(IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(type) && value != null){
 				final String occupation = TextSimilarity.normalize(value);
 				if(!occupation.isEmpty())
@@ -515,7 +519,7 @@ public final class DuplicateFinderService{
 		final Set<String> sourceIds = new LinkedHashSet<>();
 		collectSources(individual, sourceIds);
 		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
-			final String eventId = FLEFRecordHelper.getChildValue(participation, "event");
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			final FLEFRecord event = (eventId != null? eventsById.get(eventId): null);
 			if(event != null)
 				collectSources(event, sourceIds);
@@ -527,13 +531,13 @@ public final class DuplicateFinderService{
 		// Places: from the events the individual participated in.
 		final Set<String> placeIds = new LinkedHashSet<>();
 		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
-			final String eventId = FLEFRecordHelper.getChildValue(participation, "event");
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			final FLEFRecord event = (eventId != null? eventsById.get(eventId): null);
 			if(event == null)
 				continue;
-			final FLEFRecord place = FLEFRecordHelper.findChild(event, "place");
+			final FLEFRecord place = FLEFRecordHelper.findChild(event, EventReader.TAG_PLACE);
 			if(place != null){
-				final String placeId = FLEFRecordHelper.getChildValue(place, "place");
+				final String placeId = FLEFRecordHelper.getChildValue(place, PlaceCitationReader.TAG_PLACE);
 				if(placeId != null)
 					placeIds.add(placeId);
 			}
@@ -600,14 +604,16 @@ public final class DuplicateFinderService{
 		final Set<String> full = new LinkedHashSet<>();
 
 		for(final FLEFRecord nameBlock : individual.getChildren()){
-			if(!"name".equalsIgnoreCase(nameBlock.getTag()))
+			if(!IndividualReader.TAG_NAME.equalsIgnoreCase(nameBlock.getTag()))
 				continue;
 			final StringBuilder fullName = new StringBuilder();
+			//the prefix of a family name belongs to the family name that follows it
+			String familyPrefix = StringUtils.EMPTY;
 			for(final FLEFRecord part : nameBlock.getChildren()){
-				if(!"part".equalsIgnoreCase(part.getTag()))
+				if(!NameReader.TAG_PART.equalsIgnoreCase(part.getTag()))
 					continue;
-				final String type = FLEFRecordHelper.getChildValue(part, "type");
-				final String value = FLEFRecordHelper.getChildValue(part, "value");
+				final String type = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
+				final String value = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
 				if(StringUtils.isEmpty(value))
 					continue;
 				final String norm = normalize(value);
@@ -616,10 +622,14 @@ public final class DuplicateFinderService{
 				fullName.append(norm);
 				if(type != null){
 					final String t = type.toLowerCase(Locale.ROOT);
-					if("given".equals(t))
+					if(NameReader.ENUM_PART_TYPE_GIVEN.equals(t))
 						given.add(norm);
-					else if("family".equals(t))
-						family.add(norm);
+					else if(NameReader.ENUM_PART_TYPE_FAMILY_PREFIX.equals(t))
+						familyPrefix = norm + ' ';
+					else if(NameReader.ENUM_PART_TYPE_FAMILY.equals(t)){
+						family.add(familyPrefix + norm);
+						familyPrefix = StringUtils.EMPTY;
+					}
 				}
 			}
 			if(fullName.length() > 0)
@@ -662,7 +672,7 @@ public final class DuplicateFinderService{
 	 * start year, and a {@code century} ordinal.
 	 */
 	private static Integer extractYearFromEvent(final FLEFRecord event){
-		final FLEFRecord date = FLEFRecordHelper.findChild(event, "date");
+		final FLEFRecord date = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
 		if(date == null)
 			return null;
 
@@ -682,7 +692,7 @@ public final class DuplicateFinderService{
 	}
 
 	private static String findFirstValue(final FLEFRecord record){
-		final String direct = FLEFRecordHelper.getChildValue(record, "value");
+		final String direct = FLEFRecordHelper.getChildValue(record, DateReader.TAG_VALUE);
 		if(direct != null && !direct.isBlank())
 			return direct;
 		for(final FLEFRecord child : record.getChildren()){
@@ -716,14 +726,14 @@ public final class DuplicateFinderService{
 
 	private static void collectSources(final FLEFRecord record, final Set<String> out){
 		for(final FLEFRecord child : record.getChildren()){
-			if(!"source".equalsIgnoreCase(child.getTag()))
+			if(!SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(child.getTag()))
 				continue;
-			final String sourceId = FLEFRecordHelper.getChildValue(child, "source");
+			final String sourceId = FLEFRecordHelper.getChildValue(child, SourceCitationReader.TAG_SOURCE);
 			if(sourceId != null)
 				out.add(sourceId);
 			else{
 				// Nested form: source { source S1, ... }
-				final FLEFRecord inner = FLEFRecordHelper.findChild(child, "source");
+				final FLEFRecord inner = FLEFRecordHelper.findChild(child, SourceCitationReader.TAG_SOURCE);
 				if(inner != null){
 					final String v = (inner.getTheOnlyChild() != null
 						? inner.getTheOnlyChild().getValue(): inner.getValue());
@@ -801,7 +811,7 @@ public final class DuplicateFinderService{
 		for(final FLEFRecord identityHypothesis : identityHypotheses){
 			final List<String> candidates = new ArrayList<>();
 			for(final FLEFRecord child : identityHypothesis.getChildren()){
-				if(!"identity".equalsIgnoreCase(child.getTag()))
+				if(!IdentityHypothesisReader.TAG_IDENTITY.equalsIgnoreCase(child.getTag()))
 					continue;
 				final FLEFRecord oneof = child.getTheOnlyChild();
 				if(oneof == null)

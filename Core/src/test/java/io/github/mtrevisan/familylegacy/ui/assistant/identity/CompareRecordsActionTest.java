@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
@@ -44,10 +45,10 @@ class CompareRecordsActionTest{
 
 	private static FLEFModel model(){
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("I1", "individual")
-			.addChild(FLEFRecord.createChildWithTagAndValue("sex", "M")));
-		model.addRecord(FLEFRecord.createMainRecord("I2", "individual")
-			.addChild(FLEFRecord.createChildWithTagAndValue("sex", "F")));
+		model.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "M")));
+		model.addRecord(FLEFRecord.createMainRecord("I2", IndividualReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "F")));
 		return model;
 	}
 

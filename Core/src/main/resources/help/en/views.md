@@ -26,6 +26,7 @@ The selected box has an orange-red border. Empty placeholder boxes (an unknown p
 The **Biological Tree** is a classic pedigree: one box per individual, couples side by side, with empty boxes where an ancestor is unknown.
 
 - A solid thin line joins a birth connection; a **dashed line** joins an adoptive or other non-birth connection.
+- The small square between the two partners is the **union**. Hover it to see every marriage the two share (civil, religious, ...), each with its date and place, earliest first. Its border is **solid** when at least one marriage is recorded and **dashed** when none is.
 - `Ctrl+L` switches the layout between vertical and horizontal.
 - `Ctrl+K` opens the kinship dialog between the root and a second person (see [Kinship and consanguinity](kinship.md)).
 - The number of ancestor levels is fixed; no control changes it.

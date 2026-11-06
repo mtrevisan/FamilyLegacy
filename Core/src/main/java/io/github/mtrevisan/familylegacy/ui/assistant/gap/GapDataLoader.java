@@ -65,9 +65,6 @@ import java.util.Set;
  */
 public final class GapDataLoader{
 
-	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
-	private static final String TYPE_RESIDENCE = "residence";
-	private static final String EVENT_CENSUS = "census";
 	private static final String TAG_FOLLOW_UP = ResearchActivityReader.TAG_FOLLOW_UP;
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
 
@@ -90,7 +87,7 @@ public final class GapDataLoader{
 			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
 			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
 			if(personId == null || eventId == null || !filteredIndividuals.containsKey(personId)
-					|| (role != null && !ROLE_PRINCIPAL.equals(role)))
+					|| (role != null && !EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)))
 				continue;
 
 			principals.computeIfAbsent(eventId, k -> new ArrayList<>())
@@ -121,14 +118,14 @@ public final class GapDataLoader{
 				}
 				else if(EventReader.ENUM_TYPE_DEATH.equals(type))
 					withDeath.add(personId);
-				else if(EVENT_CENSUS.equals(type))
+				else if(EventReader.ENUM_TYPE_CENSUS.equals(type))
 					withCensus.add(personId);
 		}
 
 		final Set<String> withResidence = new HashSet<>();
 		final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
 		for(final FLEFRecord individualAttribute : individualAttributes)
-			if(TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE)))
+			if(IndividualAttributeReader.ENUM_TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE)))
 				withResidence.add(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_INDIVIDUAL));
 
 		final Map<String, GapData.Person> persons = new LinkedHashMap<>();

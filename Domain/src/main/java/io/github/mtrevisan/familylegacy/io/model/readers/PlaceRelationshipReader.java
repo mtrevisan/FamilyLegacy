@@ -69,6 +69,9 @@ public final class PlaceRelationshipReader{
 	public static final String TAG_SUBJECT = "subject";
 	public static final String TAG_TARGET = "target";
 	public static final String TAG_TYPE = "type";
+	public static final String TAG_PLACE = "place";
+	public static final String TAG_SUBJECT_PLACE = FLEFRecordHelper.composePath(TAG_SUBJECT, TAG_PLACE);
+	public static final String TAG_TARGET_PLACE = FLEFRecordHelper.composePath(TAG_TARGET, TAG_PLACE);
 	public static final String TAG_VALID_FROM = "valid_from";
 	public static final String TAG_VALID_TO = "valid_to";
 	public static final String TAG_SOURCE = "source";

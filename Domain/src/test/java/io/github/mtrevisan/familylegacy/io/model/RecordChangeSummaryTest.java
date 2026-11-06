@@ -22,8 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.io.model.record;
+package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +36,7 @@ import java.util.List;
 class RecordChangeSummaryTest{
 
 	private static FLEFRecord record(final String... tagValuePairs){
-		final FLEFRecord record = FLEFRecord.createMainRecord("I1", "individual");
+		final FLEFRecord record = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE);
 		for(int i = 0; i < tagValuePairs.length; i += 2)
 			record.addChild(FLEFRecord.createChildWithTagAndValue(tagValuePairs[i], tagValuePairs[i + 1]));
 		return record;
@@ -42,13 +45,13 @@ class RecordChangeSummaryTest{
 
 	@Test
 	void nothingChanged(){
-		Assertions.assertTrue(RecordChangeSummary.describe(record("sex", "male"), record("sex", "male")).isEmpty());
+		Assertions.assertTrue(RecordChangeSummary.describe(record(IndividualReader.TAG_SEX, "male"), record(IndividualReader.TAG_SEX, "male")).isEmpty());
 	}
 
 	@Test
 	void addedChangedAndRemoved(){
-		final FLEFRecord before = record("sex", "male", "note", "old");
-		final FLEFRecord after = record("sex", "female", "occupation", "smith");
+		final FLEFRecord before = record(IndividualReader.TAG_SEX, "male", NoteReader.TAG_NOTE, "old");
+		final FLEFRecord after = record(IndividualReader.TAG_SEX, "female", "occupation", "smith");
 
 		final List<String> changes = RecordChangeSummary.describe(before, after);
 
@@ -57,8 +60,8 @@ class RecordChangeSummaryTest{
 
 	@Test
 	void repeatedFieldsAreIndexed(){
-		final FLEFRecord before = record("note", "a");
-		final FLEFRecord after = record("note", "a", "note", "b");
+		final FLEFRecord before = record(NoteReader.TAG_NOTE, "a");
+		final FLEFRecord after = record(NoteReader.TAG_NOTE, "a", NoteReader.TAG_NOTE, "b");
 
 		Assertions.assertEquals(List.of("+ note[1]: b"), RecordChangeSummary.describe(before, after));
 	}
@@ -66,10 +69,10 @@ class RecordChangeSummaryTest{
 	@Test
 	void nestedFieldsUseTheFullPath(){
 		final FLEFRecord before = record();
-		before.addChild(FLEFRecord.createChildWithTag("name")
+		before.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
 			.addChild(FLEFRecord.createChildWithTagAndValue("given", "John")));
 		final FLEFRecord after = record();
-		after.addChild(FLEFRecord.createChildWithTag("name")
+		after.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
 			.addChild(FLEFRecord.createChildWithTagAndValue("given", "Jon")));
 
 		Assertions.assertEquals(List.of("~ name.given: John → Jon"), RecordChangeSummary.describe(before, after));
@@ -77,8 +80,8 @@ class RecordChangeSummaryTest{
 
 	@Test
 	void theAuditIsIgnored(){
-		final FLEFRecord before = record("sex", "male");
-		final FLEFRecord after = record("sex", "male");
+		final FLEFRecord before = record(IndividualReader.TAG_SEX, "male");
+		final FLEFRecord after = record(IndividualReader.TAG_SEX, "male");
 		after.addChild(FLEFRecord.createChildWithTag("audit")
 			.addChild(FLEFRecord.createChildWithTagAndValue("comment", "x")));
 

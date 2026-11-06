@@ -78,10 +78,10 @@ import java.util.Set;
  */
 public final class IndividualDossierService{
 
-	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_LOCATOR = "locator";
-	private static final String TAG_NOTE = "note";
-	private static final String TAG_EVIDENCE = "evidence";
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TAG_LOCATOR = SourceCitationReader.TAG_LOCATOR;
+	private static final String TAG_NOTE = EventReader.TAG_NOTE;
+	private static final String TAG_EVIDENCE = EvidenceQualifiersReader.TAG_EVIDENCE;
 
 
 	private final FLEFModel model;
@@ -164,7 +164,7 @@ public final class IndividualDossierService{
 						entries.add(DossierEntry.namePart(part.displayType(), part.value(), individual));
 			}
 			else if(StringUtils.isNotEmpty(name.value())){
-				entries.add(DossierEntry.namePart("value", name.value(), individual));
+				entries.add(DossierEntry.namePart(NameReader.TAG_PART_VALUE, name.value(), individual));
 			}
 		}
 
@@ -217,7 +217,7 @@ public final class IndividualDossierService{
 			return direct;
 
 		final StringBuilder sb = new StringBuilder();
-		for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, "part")){
+		for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, NameReader.TAG_PART)){
 			final String v = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
 			if(StringUtils.isNotEmpty(v)){
 				if(!sb.isEmpty())
@@ -596,7 +596,7 @@ public final class IndividualDossierService{
 			if(!targets)
 				continue;
 
-			final String issue = FLEFRecordHelper.getChildValue(conclusion, "issue");
+			final String issue = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE);
 			final String proof = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
 			entries.add(new DossierEntry(I18N.t("text.dossier.conclusion"),
 				(StringUtils.isNotEmpty(issue)? issue: "?"),

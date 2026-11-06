@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.ArrayList;
@@ -241,9 +242,9 @@ final class EntityLinker{
 	}
 
 	private static String creationDate(final FLEFRecord record){
-		final FLEFRecord audit = FieldMerger.first(record, "audit");
-		final FLEFRecord creation = (audit != null? FieldMerger.first(audit, "creation"): null);
-		final String date = (creation != null? ModelIndex.value(creation, "date"): null);
+		final FLEFRecord audit = FieldMerger.first(record, AuditReader.TAG_AUDIT);
+		final FLEFRecord creation = (audit != null? FieldMerger.first(audit, AuditReader.TAG_CREATION): null);
+		final String date = (creation != null? ModelIndex.value(creation, AuditReader.TAG_DATE): null);
 		// a record without creation date sorts last
 		return (date != null? date: "~");
 	}

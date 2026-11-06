@@ -275,8 +275,8 @@ public final class GroupStorySection implements SectionBuilder{
 	private void writeGroupRelation(final List<ReportSection> out, final FLEFRecord rel,
 		final boolean useSubject){
 		final String counterpartId = (useSubject
-			? FLEFRecordHelper.getChildValue(rel, "subject.group")
-			: FLEFRecordHelper.getChildValue(rel, "target.group"));
+			? FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_SUBJECT_GROUP)
+			: FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TARGET_GROUP));
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
 		final String label = (counterpart != null? ctx.displayText(counterpart): counterpartId);
@@ -385,10 +385,10 @@ public final class GroupStorySection implements SectionBuilder{
 	/* ----- Helpers --------------------------------------------------------- */
 
 	private static String memberIndividualId(final FLEFRecord rel){
-		final String direct = FLEFRecordHelper.getChildValue(rel, "subject.individual");
+		final String direct = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_SUBJECT_INDIVIDUAL);
 		if(direct != null)
 			return direct;
-		final FLEFRecord subjNode = FLEFRecordHelper.findChild(rel, "subject");
+		final FLEFRecord subjNode = FLEFRecordHelper.findChild(rel, RelationshipReader.TAG_SUBJECT);
 		if(subjNode == null)
 			return null;
 		final FLEFRecord ref = subjNode.getTheOnlyChild();

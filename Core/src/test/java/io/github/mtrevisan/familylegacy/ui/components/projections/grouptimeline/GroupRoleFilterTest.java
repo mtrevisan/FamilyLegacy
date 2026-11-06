@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.groups.GroupTimelineBuilder;
 import io.github.mtrevisan.familylegacy.groups.IndividualCareerBuilder;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
@@ -64,10 +65,10 @@ class GroupRoleFilterTest{
 	private static final String FLEF = HEADER
 		+ person("I1", "Anna") + person("I2", "Bruno")
 		+ group("G1", "Club") + group("G2", "Youth")
-		+ membership("R1", "individual I1", "G1", "group_member", "president", "1900-01-01", "1910-01-01")
-		+ membership("R2", "individual I1", "G1", "group_member", "member", "1910-01-01", null)
-		+ membership("R3", "individual I2", "G1", "group_member", null, null, null)
-		+ membership("R4", "group G2", "G1", "part_of", null, "1905-01-01", null);
+		+ membership("R1", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "president", "1900-01-01", "1910-01-01")
+		+ membership("R2", "individual I1", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "member", "1910-01-01", null)
+		+ membership("R3", "individual I2", "G1", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, null, null, null)
+		+ membership("R4", "group G2", "G1", RelationshipReader.ENUM_TYPE_PART_OF, null, "1905-01-01", null);
 
 
 	private static String person(final String id, final String name){
