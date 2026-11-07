@@ -94,6 +94,7 @@ public class CitationAssistantDialog extends JDialog{
 	public CitationAssistantDialog(final Window parent, final FLEFModel model, final FLEFRecord source,
 			final String currentLocator, final Consumer<String> locatorApplier, final Consumer<FLEFRecord> repositoryApplier){
 		super(parent, I18N.t("dialog.citation_assistant.title"), ModalityType.APPLICATION_MODAL);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;

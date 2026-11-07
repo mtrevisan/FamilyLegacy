@@ -236,23 +236,25 @@ final class KeptNotes{
 	 */
 	static void keepContactData(final FLEFRecord record, final FLEFRecord place, final GEDCOMNode node){
 		final GEDCOMNode addressNode = GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_ADDRESS);
-		final List<String> lines = new ArrayList<>();
+		final List<String[]> contacts = new ArrayList<>();
 		if(addressNode != null)
-			collectContactLines(addressNode, lines);
-		collectContactLines(node, lines);
-		if(lines.isEmpty())
+			collectContactLines(addressNode, contacts);
+		collectContactLines(node, contacts);
+		if(contacts.isEmpty())
 			return;
 
 		//the place is the one built from the address, not the one of a PLAC
-		add((addressNode != null && place != null? place: record), TITLE_CONTACT, String.join(StringUtils.LF, lines), node);
+		final FLEFRecord target = (addressNode != null && place != null? place: record);
+		for(final String[] contact : contacts)
+			add(target, contact[0], contact[1], node);
 	}
 
-	private static void collectContactLines(final GEDCOMNode holder, final List<String> lines){
+	private static void collectContactLines(final GEDCOMNode holder, final List<String[]> contacts){
 		for(final GEDCOMNode child : holder.getChildren()){
 			final String label = CONTACT_LABELS.get(child.getTag());
 			final String value = StringUtils.trimToNull(child.getValue());
 			if(label != null && value != null)
-				lines.add(label + SEPARATOR + value);
+				contacts.add(new String[]{label, value});
 		}
 	}
 

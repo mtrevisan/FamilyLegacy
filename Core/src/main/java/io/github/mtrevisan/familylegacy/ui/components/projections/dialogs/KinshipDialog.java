@@ -103,6 +103,7 @@ public class KinshipDialog extends JDialog{
 	public KinshipDialog(final Window owner, final FLEFModel model, final TreeService service,
 			final FLEFRecord initialA, final FLEFRecord initialB){
 		super(owner, I18N.t("dialog.kinship.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		if(service == null)

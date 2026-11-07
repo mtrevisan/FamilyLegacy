@@ -90,6 +90,7 @@ public class ConsanguinityReportDialog extends JDialog{
 	public ConsanguinityReportDialog(final Window owner, final FLEFModel model, final ConsanguinityReport report,
 			final Function<String, String> names){
 		super(owner, I18N.t("dialog.consanguinity_report.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		if(report == null)

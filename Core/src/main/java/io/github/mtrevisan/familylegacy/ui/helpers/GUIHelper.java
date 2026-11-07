@@ -130,9 +130,6 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK);
 	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK);
 
-	public static final KeyStroke CTRL_K_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_K, MENU_MASK);
-	public static final KeyStroke CTRL_P_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_MASK);
-
 	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";

@@ -88,7 +88,10 @@ final class HelpMenu{
 		menu.add(reportBug);
 
 		final JMenuItem diagnostics = new JMenuItem(I18N.t("menu.help.diagnostics"), KeyEvent.VK_I);
-		diagnostics.addActionListener(e -> DiagnosticsDialog.show(frame, frame.model()));
+		diagnostics.addActionListener(e -> {
+			final java.io.File file = frame.fileController().currentFile();
+			DiagnosticsDialog.show(frame, frame.model(), file);
+		});
 		menu.add(diagnostics);
 
 		menu.add(new JSeparator());

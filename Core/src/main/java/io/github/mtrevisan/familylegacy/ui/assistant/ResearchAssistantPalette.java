@@ -128,6 +128,7 @@ final class ResearchAssistantPalette extends JDialog{
 	ResearchAssistantPalette(final ResearchAssistantService service, final AssistantContext context,
 			final ResearchAssistantService.Recalculation recalculation, final State state){
 		super(context.owner(), I18N.t("assistant.title"), ModalityType.APPLICATION_MODAL);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.service = service;

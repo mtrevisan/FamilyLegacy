@@ -143,6 +143,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	public HistoricalDateAssistantDialog(final Window parent, final Tool initialTool, final String calendarCode, final String dateText,
 			final FLEFModel model, final Consumer<DateSuggestion> applier){
 		super(parent, I18N.t("dialog.date_assistant.title"), ModalityType.APPLICATION_MODAL);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.applier = applier;

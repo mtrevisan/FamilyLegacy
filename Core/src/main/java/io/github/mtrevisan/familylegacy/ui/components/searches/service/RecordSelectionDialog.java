@@ -252,6 +252,7 @@ public class RecordSelectionDialog extends JDialog{
 			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
 			final boolean allowCreation, final boolean manageMode, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, I18N.t("search.title.select_record"), ModalityType.APPLICATION_MODAL);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		this.model = model;

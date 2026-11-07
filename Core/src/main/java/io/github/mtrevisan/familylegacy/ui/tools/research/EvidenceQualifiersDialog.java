@@ -60,6 +60,7 @@ final class EvidenceQualifiersDialog extends JDialog{
 			final Map<String, Integer> informationTypes, final Map<String, Integer> evidenceTypes, final int withQualifiers,
 			final List<FLEFRecord> missing){
 		super(owner, I18N.t("dialog.evidence_qualifiers.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		this.recordModel = recordModel;

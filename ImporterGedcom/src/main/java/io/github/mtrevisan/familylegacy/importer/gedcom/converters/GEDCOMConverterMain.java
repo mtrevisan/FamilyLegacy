@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.Writer;
 import java.net.URISyntaxException;
@@ -51,13 +52,14 @@ public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
 	public static void main(String[] args) throws IOException, URISyntaxException{
-		String inputResource = "/tests/TGMZ.ged";
+		String inputResource = "Core/src/main/resources/tests/TGMZ.ged";
 		String outputPath = "Core/src/main/resources/tests/TGMZ.flef";
-//		String inputResource = "/tests/TGC55C.ged";
+//		String inputResource = "Core/src/main/resources/tests/TGC55C.ged";
 //		String outputPath = "Core/src/main/resources/tests/TGC55C.flef";
 
 		String gedcomContent;
-		try(BufferedReader br = GEDCOMHelper.getBufferedReader(GEDCOMConverterMain.class.getResourceAsStream(inputResource))){
+		try(final InputStream is = Files.newInputStream(Paths.get(inputResource));
+			final BufferedReader br = GEDCOMHelper.getBufferedReader(is)){
 			gedcomContent = br.lines()
 				.collect(Collectors.joining(System.lineSeparator()));
 		}
@@ -90,12 +92,11 @@ public class GEDCOMConverterMain{
 	}
 
 	private static void validate(FLEFModel model) throws IOException, URISyntaxException{
-		final Path root = Paths.get(GEDCOMConverterMain.class
-			.getProtectionDomain()
-			.getCodeSource()
-			.getLocation()
-			.toURI());
-		final Path path = root.resolve("gedg/flef_0.2.0.gedg");
+		final var grammarUrl = FLEFGrammar.class.getResource("/gedg/flef_0.2.0.gedg");
+		if(grammarUrl == null)
+			throw new IllegalStateException("Resource /gedg/flef_0.2.0.gedg non trovato sul module path");
+
+		final Path path = Paths.get(grammarUrl.toURI());
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		final List<String> grammarWarnings = grammar.getParseWarnings();
 		for(final String warning : grammarWarnings)

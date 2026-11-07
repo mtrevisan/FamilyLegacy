@@ -178,6 +178,7 @@ public final class ValidationReportDialog extends JDialog{
 	private ValidationReportDialog(final Window owner, final FLEFModel model, final List<FLEFValidator.ValidationError> errors,
 			final Supplier<FLEFModel> viewSupplier, final Validation validator){
 		super(owner, I18N.t("dialog.validate.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		this.model = model;

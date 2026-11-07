@@ -117,6 +117,7 @@ public final class ReportDialog extends JDialog{
 
 	private ReportDialog(final ToolContext context, final ReportType reportType, final FLEFRecord subject){
 		super(context.owner(), reportType.getTitle(), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		this.context = context;

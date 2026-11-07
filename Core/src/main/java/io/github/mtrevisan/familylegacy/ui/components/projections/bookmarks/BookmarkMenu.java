@@ -26,18 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -101,8 +99,7 @@ public final class BookmarkMenu extends JMenu{
 		removeAll();
 
 		final JMenuItem save = new JMenuItem(I18N.t("menu.item.bookmark_current_view"));
-		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D,
-			Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+		save.setAccelerator(ShortcutRegistry.BOOKMARK_CURRENT_VIEW.keyStroke());
 		save.addActionListener(this::onSave);
 		add(save);
 

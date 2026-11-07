@@ -158,8 +158,9 @@ public class RecordDiffDialog extends JDialog{
 	 *                 editor of that record; {@code null} for no links
 	 */
 	public RecordDiffDialog(final Window owner, final String title, final FLEFRecord before,
-		final FLEFRecord after, final boolean readOnly, final FLEFModel model){
+			final FLEFRecord after, final boolean readOnly, final FLEFModel model){
 		super(owner, title, ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		this.model = model;

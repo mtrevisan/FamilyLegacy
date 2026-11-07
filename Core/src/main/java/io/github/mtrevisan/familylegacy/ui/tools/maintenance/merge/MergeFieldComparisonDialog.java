@@ -355,8 +355,9 @@ public final class MergeFieldComparisonDialog extends JDialog{
 	 * ====================================================================== */
 
 	public MergeFieldComparisonDialog(final Window owner, final MergeField field,
-		final FLEFRecord targetRecord, final FLEFModel model){
+			final FLEFRecord targetRecord, final FLEFModel model){
 		super(owner, I18N.tf("dialog.merge.field.title", field.tag()), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		this.field = field;

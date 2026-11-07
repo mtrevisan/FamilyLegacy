@@ -79,6 +79,7 @@ public final class SocialCategorySelectionDialog extends JDialog{
 
 	private SocialCategorySelectionDialog(final Window owner, final Set<SocialRelationCategory> initial){
 		super(owner, I18N.t("dialog.social_categories.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		initComponents(initial);

@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
 
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
@@ -61,8 +60,8 @@ public final class TreeShortcutInstaller{
 	public static void installAll(final JComponent component, final Runnable toggleLayout, final Runnable openKinship,
 			final Runnable showCollapse, final Runnable toggleStrip){
 		install(component, ShortcutRegistry.TREE_TOGGLE_LAYOUT.keyStroke(), "toggleTreeLayout", toggleLayout);
-		install(component, GUIHelper.CTRL_K_STROKE, "openKinshipDialog", openKinship);
-		install(component, GUIHelper.CTRL_P_STROKE, "showPedigreeCollapse", showCollapse);
+		install(component, ShortcutRegistry.TREE_KINSHIP.keyStroke(), "openKinshipDialog", openKinship);
+		install(component, ShortcutRegistry.TREE_PEDIGREE_COLLAPSE.keyStroke(), "showPedigreeCollapse", showCollapse);
 		install(component, ShortcutRegistry.TREE_TOGGLE_LIFESPAN_EVENTS_STRIP.keyStroke(), "toggleLifespansStrip", toggleStrip);
 	}
 

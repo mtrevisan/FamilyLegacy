@@ -59,6 +59,7 @@ public final class HelpViewerDialog extends JDialog{
 
 	private HelpViewerDialog(final Window owner, final String title, final String html){
 		super(owner, title, ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		final JEditorPane editor = new JEditorPane();

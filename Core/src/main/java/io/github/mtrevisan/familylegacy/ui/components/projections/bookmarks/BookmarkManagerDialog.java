@@ -62,6 +62,7 @@ public final class BookmarkManagerDialog extends JDialog{
 	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier,
 			final Supplier<String> filePathSupplier){
 		super(owner, I18N.t("dialog.bookmarks.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		this.store = store;

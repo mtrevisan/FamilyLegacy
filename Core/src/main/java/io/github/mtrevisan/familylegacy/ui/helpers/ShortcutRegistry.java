@@ -47,7 +47,8 @@ public final class ShortcutRegistry{
 		String action,
 		KeyStroke defaultStroke,
 		KeyStroke macStroke,
-		String displayKeys
+		String displayKeys,
+		String context
 	){
 		/**
 		 * Returns the appropriate KeyStroke for the current operating system.
@@ -102,8 +103,39 @@ public final class ShortcutRegistry{
 
 	public static final ShortcutDefinition TREE_TOGGLE_LAYOUT = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.layout"), KeyStroke.getKeyStroke(KeyEvent.VK_L, MENU_MASK), "Ctrl+L");
 	public static final ShortcutDefinition TREE_TOGGLE_LIFESPAN_EVENTS_STRIP = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.toggle.lifespan.strip"), KeyStroke.getKeyStroke(KeyEvent.VK_T, MENU_MASK), "Ctrl+T");
+	public static final ShortcutDefinition TREE_KINSHIP = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.kinship"), KeyStroke.getKeyStroke(KeyEvent.VK_K, MENU_MASK), "Ctrl+K");
+	public static final ShortcutDefinition TREE_PEDIGREE_COLLAPSE = register(I18N.t("menu.view.biological_tree"), I18N.t("menu.view.biological_tree.pedigree.collapse"), KeyStroke.getKeyStroke(KeyEvent.VK_P, MENU_MASK), "Ctrl+P");
+
+	public static final ShortcutDefinition BOOKMARK_CURRENT_VIEW = register(I18N.t("menu.bookmarks"), I18N.t("menu.item.bookmark_current_view"), KeyStroke.getKeyStroke(KeyEvent.VK_D, MENU_MASK), "Ctrl+D");
 
 	public static final ShortcutDefinition HELP_CONTENTS = register(I18N.t("menu.help"), I18N.t("menu.help.help.contents"), KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "F1");
+
+	// Contextual shortcuts — active only inside a specific component
+	public static final String CTX_CHRONOMAP = I18N.t("shortcut.context.chronomap");
+	public static final String CTX_RESEARCH_PALETTE = I18N.t("shortcut.context.research_palette");
+	public static final String CTX_LIST = I18N.t("shortcut.context.list");
+	public static final String CTX_DIALOG = I18N.t("shortcut.context.dialog");
+
+	public static final ShortcutDefinition CHRONOMAP_TOGGLE_3D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.3d"), KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK), "Ctrl+2", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TOGGLE_2D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.2d"), KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK), "Ctrl+3", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TIMELINE_PREV_MONTH = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.prev.month"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "Left", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TIMELINE_NEXT_MONTH = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.next.month"), KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "Right", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TIMELINE_PREV_YEAR = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.prev.year"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK), "Shift+Left", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TIMELINE_NEXT_YEAR = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.next.year"), KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.SHIFT_DOWN_MASK), "Shift+Right", CTX_CHRONOMAP);
+
+	public static final ShortcutDefinition RESEARCH_EXECUTE = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.execute"), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "Enter", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_EXECUTE_ALT_1 = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.execute.alt.context"), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "Ctrl+Enter", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_EXECUTE_ALT_2 = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.execute.alt.context.2"), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+Enter", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_EXECUTE_ALT_3 = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.execute.alt.context.3"), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Ctrl+Alt+Enter", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_IGNORE = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.ignore"), KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK), "Ctrl+D", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_TOGGLE_IGNORED = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.toggle.ignored"), KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK), "Ctrl+I", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_NAVIGATE_UP = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.navigate.up"), KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "Up", CTX_RESEARCH_PALETTE);
+	public static final ShortcutDefinition RESEARCH_NAVIGATE_DOWN = register(I18N.t("shortcut.category.research"), I18N.t("shortcut.research.navigate.down"), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "Down", CTX_RESEARCH_PALETTE);
+
+	public static final ShortcutDefinition LIST_MOVE_UP = register(I18N.t("shortcut.category.list"), I18N.t("shortcut.list.move.up"), KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK), "Ctrl+Up", CTX_LIST);
+	public static final ShortcutDefinition LIST_MOVE_DOWN = register(I18N.t("shortcut.category.list"), I18N.t("shortcut.list.move.down"), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK), "Ctrl+Down", CTX_LIST);
+
+	public static final ShortcutDefinition DIALOG_CLOSE = register(I18N.t("shortcut.category.dialog"), I18N.t("shortcut.dialog.close"), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Esc", CTX_DIALOG);
 
 
 	private ShortcutRegistry(){}
@@ -111,12 +143,22 @@ public final class ShortcutRegistry{
 
 	public static ShortcutDefinition register(final String category, final String action,
 			final KeyStroke defaultStroke, final String displayKeys){
-		return register(category, action, defaultStroke, null, displayKeys);
+		return register(category, action, defaultStroke, null, displayKeys, null);
 	}
 
 	public static ShortcutDefinition register(final String category, final String action,
 			final KeyStroke defaultStroke, final KeyStroke macStroke, final String displayKeys){
-		final ShortcutDefinition def = new ShortcutDefinition(category, action, defaultStroke, macStroke, displayKeys);
+		return register(category, action, defaultStroke, macStroke, displayKeys, null);
+	}
+
+	public static ShortcutDefinition register(final String category, final String action,
+			final KeyStroke defaultStroke, final String displayKeys, final String context){
+		return register(category, action, defaultStroke, null, displayKeys, context);
+	}
+
+	public static ShortcutDefinition register(final String category, final String action,
+			final KeyStroke defaultStroke, final KeyStroke macStroke, final String displayKeys, final String context){
+		final ShortcutDefinition def = new ShortcutDefinition(category, action, defaultStroke, macStroke, displayKeys, context);
 		REGISTRY.add(def);
 		return def;
 	}

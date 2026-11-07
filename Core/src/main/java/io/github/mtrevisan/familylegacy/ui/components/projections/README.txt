@@ -16,7 +16,19 @@ stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno 
 
 ### Menu da verificarne la completezza
 - Research
-- Help | Keyboard Shortcuts, Help | Diagnostics
+- TOBEVERIFIED Help | Keyboard Shortcuts, Help | Diagnostics
+- i sottomenu Undo e Redo del menu Edit devono essere attivi solo se c'è qualcosa da fare undo e redo
+- quando faccio edit individual e viene mostrata la lista dei personal name, i nickname (di nome o di famiglia) devono apparire in italico
+- quando si fa l'import da gedcom, ad esempio di education, la data viene riportata in flef come valid from before `date` e valid to after `date`, con la stessa `date`: non dovrebbe essere un punto nel tempo quindi valid from `date` e valid to `date`?
+- quando si creano i source citation, in locator ci deve finire solo il luogo in cui è locata la citazione, non altro tipo "Event: MARR (witness), Date: 12 SEP 1954"
+- quando faccio delete di un individuo mi appare una dialog di scelta di un file flef: perché? a cosa serve?
+- unlink relationships da menu è abilitato, ma quando lo faccio sull'individuo viene mostrato disabilitato; se elimino tutti i link l'individuo deve apparire come isolato nell'albero, invece lo vedo ancora connesso
+- nel Manage Places ho la lista dei luoghi, ma non riesco a sapere a cosa sono collegati
+- se un source ha una nota con una data solamente, quella data è il date del source; se contiene "place : year", allora uno è il place e l'altro è il date
+- nel menu le lettere di scelta rapida si sovrappongono, scegliere cosa mantenere o cosa no, o se ha senso averli
+- nei contatti, se value è una mail/numero di telefono/indirizzo/etc, il corrispondente type deve essere valorizzato adeguatamente
+- nel manage media, selezionando un media, la preview non appare
+- nel citation analysis, controlla gli unused documents, perché non mi risulta siano non usati
 
 ### ALTA
 - Rete di parentela, ascendenza proiettata con duplicati collegati ("stesso individuo"): lo stesso antenato che compare più volte è

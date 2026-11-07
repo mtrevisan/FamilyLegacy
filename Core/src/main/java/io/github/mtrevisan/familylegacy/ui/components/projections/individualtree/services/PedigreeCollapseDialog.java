@@ -74,6 +74,7 @@ public class PedigreeCollapseDialog extends JDialog{
 	 */
 	public PedigreeCollapseDialog(final Window owner, final List<PedigreeCollapse> collapses){
 		super(owner, I18N.t("dialog.pedigree_collapse.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		if(collapses == null)

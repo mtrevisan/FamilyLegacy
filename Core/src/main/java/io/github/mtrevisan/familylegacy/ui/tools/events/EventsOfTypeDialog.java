@@ -59,7 +59,9 @@ final class EventsOfTypeDialog extends JDialog{
 
 	EventsOfTypeDialog(final Window owner, final FLEFModel model, final String type){
 		super(owner, I18N.tf("dialog.events_of_type.title", type), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 
 		final List<Object[]> rows = new ArrayList<>();

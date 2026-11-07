@@ -87,6 +87,7 @@ final class ProofSummaryDialog extends JDialog{
 
 	ProofSummaryDialog(final Window owner, final FLEFModel model){
 		super(owner, I18N.t("dialog.proof_summary.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		this.model = model;

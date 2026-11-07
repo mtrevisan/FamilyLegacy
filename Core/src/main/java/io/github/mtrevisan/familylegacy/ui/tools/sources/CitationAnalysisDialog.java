@@ -80,7 +80,9 @@ final class CitationAnalysisDialog extends JDialog{
 
 	CitationAnalysisDialog(final Window owner, final FLEFModel model){
 		super(owner, I18N.t("dialog.citation_analysis.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 
 		tabs.setPreferredSize(new Dimension(820, 520));

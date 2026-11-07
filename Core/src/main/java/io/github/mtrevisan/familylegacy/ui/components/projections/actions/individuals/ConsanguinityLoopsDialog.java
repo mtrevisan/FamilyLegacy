@@ -64,7 +64,9 @@ final class ConsanguinityLoopsDialog extends JDialog{
 
 	ConsanguinityLoopsDialog(final Window owner, final FLEFModel model, final ConsanguinityLoops.Result result){
 		super(owner, I18N.tf("dialog.consanguinity_loops.title", describe(model, result.individualId())), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 
 		final List<Object[]> rows = rowsOf(model, result, ancestorIds);

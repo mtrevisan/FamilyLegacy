@@ -53,6 +53,7 @@ public final class KeyboardShortcutsDialog extends JDialog{
 
 	private KeyboardShortcutsDialog(final Window owner){
 		super(owner, I18N.t("dialog.keyboard.shortcuts.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		final List<ShortcutRegistry.ShortcutDefinition> shortcuts = ShortcutRegistry.getAllShortcuts().stream()
@@ -63,12 +64,13 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		final String[] columns = {
 			I18N.t("dialog.keyboard.shortcuts.table.category"),
 			I18N.t("dialog.keyboard.shortcuts.table.action"),
-			I18N.t("dialog.keyboard.shortcuts.table.shortcut")
+			I18N.t("dialog.keyboard.shortcuts.table.shortcut"),
+			I18N.t("dialog.keyboard.shortcuts.table.context")
 		};
 		final Object[][] rows = new Object[shortcuts.size()][];
 		for(int i = 0; i < shortcuts.size(); i ++){
 			final ShortcutRegistry.ShortcutDefinition s = shortcuts.get(i);
-			rows[i] = new Object[]{s.category(), s.action(), s.displayKeys()};
+			rows[i] = new Object[]{s.category(), s.action(), s.displayKeys(), s.context()};
 		}
 
 		final DefaultTableModel model = new DefaultTableModel(rows, columns){
@@ -85,7 +87,8 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		final TableColumnModel columnModel = table.getColumnModel();
 		columnModel.getColumn(0).setPreferredWidth(140);
 		columnModel.getColumn(1).setPreferredWidth(320);
-		columnModel.getColumn(2).setPreferredWidth(180);
+		columnModel.getColumn(2).setPreferredWidth(140);
+		columnModel.getColumn(3).setPreferredWidth(160);
 
 		final DefaultTableCellRenderer leftAligned = new DefaultTableCellRenderer(){
 			@Override
@@ -97,9 +100,10 @@ public final class KeyboardShortcutsDialog extends JDialog{
 			}
 		};
 		columnModel.getColumn(2).setCellRenderer(leftAligned);
+		columnModel.getColumn(3).setCellRenderer(leftAligned);
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setPreferredSize(new Dimension(700, 520));
+		scroll.setPreferredSize(new Dimension(800, 520));
 
 		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());

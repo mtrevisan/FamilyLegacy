@@ -93,7 +93,9 @@ public final class ProvenanceDialog extends JDialog{
 
 	private ProvenanceDialog(final Window owner, final FLEFModel model, final String targetId, final boolean forSource){
 		super(owner, titleOf(model, targetId, forSource), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 		this.targetId = targetId;
 		this.forSource = forSource;

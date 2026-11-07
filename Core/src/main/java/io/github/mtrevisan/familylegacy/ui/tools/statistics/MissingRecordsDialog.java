@@ -70,10 +70,12 @@ final class MissingRecordsDialog extends JDialog{
 	private final JList<FLEFRecord> list = new JList<>(listModel);
 
 
-	MissingRecordsDialog(final Window owner, final String category,
-		final FLEFModel model, final List<FLEFRecord> records){
+	MissingRecordsDialog(final Window owner, final String category, final FLEFModel model,
+			final List<FLEFRecord> records){
 		super(owner, category, ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

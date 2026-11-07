@@ -68,6 +68,7 @@ public final class FilePropertiesDialog extends JDialog{
 
 	private FilePropertiesDialog(final Window owner, final File file, final FLEFModel model){
 		super(owner, I18N.t("dialog.file_properties.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
 
 		final String report = buildReport(file, model);

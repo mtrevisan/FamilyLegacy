@@ -99,7 +99,9 @@ public final class StatisticsDialog extends JDialog{
 
 	public StatisticsDialog(final Window owner, final Statistics stats, final FLEFModel model){
 		super(owner, I18N.t("dialog.statistics.title"), ModalityType.APPLICATION_MODAL);
+
 		ToolDialogs.installEscapeToClose(this);
+
 		this.model = model;
 
 		final JTabbedPane tabs = new JTabbedPane();

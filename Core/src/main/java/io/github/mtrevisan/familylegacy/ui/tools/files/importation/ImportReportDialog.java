@@ -64,8 +64,10 @@ public final class ImportReportDialog extends JDialog{
 
 	private ImportReportDialog(final Window owner, final ImportReport report){
 		super(owner, I18N.t("dialog.import.report.title"), ModalityType.APPLICATION_MODAL);
-		this.report = report;
+
 		GUIHelper.installEscapeToClose(this);
+
+		this.report = report;
 
 		final JLabel intro = new JLabel("<html><body style='width: 560px'>" + escapeHtml(I18N.t("dialog.import.report.intro"))
 			+ "</body></html>");

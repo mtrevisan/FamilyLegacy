@@ -113,7 +113,7 @@ public final class GEDCOMRecordBuilder{
 	 */
 	public static void attachNote(FLEFRecord parent,
 			FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, String title){
-		if(node == null || StringUtils.isBlank(node.getValue()))
+		if(parent == null || node == null || StringUtils.isBlank(node.getValue()))
 			return;
 
 		final GEDCOMNode noteNode = resolveNote(node, noteRawMap);
@@ -126,6 +126,13 @@ public final class GEDCOMRecordBuilder{
 
 		attachNoteFormat(note, noteNode);
 		attachNoteSources(note, model, noteNode, noteRawMap);
+
+		final String noteSig = Deduplicator.computeSignature(note);
+		for(final FLEFRecord child : parent.getChildren()){
+			if(NoteReader.TAG_NOTE.equalsIgnoreCase(child.getTag()) && Deduplicator.computeSignature(child).equals(noteSig))
+				return;
+		}
+
 		parent.addChild(note);
 	}
 

@@ -43,6 +43,7 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.jxmapviewer.jxmapviewer2;
 	requires net.coobird.thumbnailator;
 	requires org.apache.pdfbox;
+	requires java.management;
 
 	// Assistants that plug into the Research Assistant
 	uses io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;

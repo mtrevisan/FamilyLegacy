@@ -68,7 +68,7 @@ public class AuditBuilder{
 		final FLEFRecord creation = FLEFRecord.createChildWithTag(AuditReader.TAG_CREATION)
 			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, (creationDateTime != null? creationDateTime: isoDateTime)));
 		//the last change (CHAN) is always an update; when there is no CREA, its date is also the creation fallback (creation is mandatory)
-		final FLEFRecord update = (chanDateTime != null
+		final FLEFRecord update = (chanDateTime != null && !chanDateTime.equals((creationDateTime != null? creationDateTime: isoDateTime))
 			? FLEFRecord.createChildWithTag(AuditReader.TAG_UPDATE)
 				.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, chanDateTime))
 			: null);

@@ -78,6 +78,7 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	public SocialNetworkPathFinderDialog(final Window owner, final FLEFModel model, final FLEFRecord initialFromEntity,
 			final FLEFRecord initialToEntity){
 		super(owner, I18N.t("dialog.social_path.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
 		this.model = model;

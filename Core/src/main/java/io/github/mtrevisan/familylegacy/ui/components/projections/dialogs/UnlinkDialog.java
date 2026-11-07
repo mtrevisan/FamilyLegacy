@@ -214,7 +214,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 	}
 
 	public UnlinkDialog(final Window parent, final FLEFModel model,
-		final Predicate<String> relationshipTypeFilter, final String entityId){
+			final Predicate<String> relationshipTypeFilter, final String entityId){
 		super(parent, I18N.t("dialog.unlink.title"), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;

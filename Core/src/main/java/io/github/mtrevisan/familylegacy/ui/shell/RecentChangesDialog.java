@@ -97,6 +97,7 @@ final class RecentChangesDialog extends JDialog{
 	RecentChangesDialog(final Window owner, final Supplier<FLEFModel> modelSupplier,
 			final Supplier<List<ModelHistory.Entry>> historySupplier){
 		super(owner, I18N.t("recent_changes.title"), ModalityType.MODELESS);
+
 		GUIHelper.installEscapeToClose(this);
 
 		this.modelSupplier = modelSupplier;

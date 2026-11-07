@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ReportText;
 
 import javax.swing.JButton;
@@ -41,19 +42,28 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
  * Read-only dialog that reports environment and model diagnostics.
  * <p>
- * The content is grouped into three sections:
+ * The content is grouped into several sections:
  * <ul>
+ *   <li><b>Application</b> — application name and version;</li>
  *   <li><b>Runtime</b> — Java version, VM, OS, locale, encoding, and
  *       available processors;</li>
  *   <li><b>Memory</b> — maximum, allocated, and free heap memory;</li>
+ *   <li><b>Garbage Collector</b> — names of the active garbage collectors;</li>
+ *   <li><b>User</b> — user home and working directory;</li>
+ *   <li><b>Graphics</b> — screen resolution, DPI, and 2D acceleration;</li>
+ *   <li><b>Disk Space</b> — model file path and free disk space;</li>
  *   <li><b>Model</b> — total number of records in the loaded
  *       {@link FLEFModel}, grouped by tag.</li>
  * </ul>
@@ -66,11 +76,12 @@ public final class DiagnosticsDialog extends JDialog{
 	private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
-	private DiagnosticsDialog(final Window owner, final FLEFModel model){
+	private DiagnosticsDialog(final Window owner, final FLEFModel model, final File modelFile){
 		super(owner, I18N.t("dialog.diagnostics.title"), ModalityType.APPLICATION_MODAL);
+
 		GUIHelper.installEscapeToClose(this);
 
-		final String report = buildReport(model);
+		final String report = buildReport(model, modelFile);
 
 		final JTextArea area = new JTextArea(report);
 		area.setEditable(false);
@@ -104,8 +115,8 @@ public final class DiagnosticsDialog extends JDialog{
 	}
 
 
-	public static void show(final Window owner, final FLEFModel model){
-		final DiagnosticsDialog dialog = new DiagnosticsDialog(owner, model);
+	public static void show(final Window owner, final FLEFModel model, final File modelFile){
+		final DiagnosticsDialog dialog = new DiagnosticsDialog(owner, model, modelFile);
 		dialog.setVisible(true);
 	}
 
@@ -114,19 +125,31 @@ public final class DiagnosticsDialog extends JDialog{
 	 *                          Report
 	 * ====================================================================== */
 
-	private static String buildReport(final FLEFModel model){
+	private static String buildReport(final FLEFModel model, final File modelFile){
 		final StringBuilder sb = new StringBuilder();
 
 		ReportText.heading(sb, I18N.t("text.diagnostics.heading"));
 		ReportText.line(sb, "text.diagnostics.generated", LocalDateTime.now().format(TIMESTAMP_FORMAT));
 		ReportText.blank(sb);
 
+		appendApplication(sb);
 		appendRuntime(sb);
 		appendMemory(sb);
+		appendGarbageCollector(sb);
+		appendUser(sb);
+		appendGraphics(sb);
+		appendDisk(sb, modelFile);
 		ReportText.section(sb, "text.report.section.model");
 		ReportText.modelStatistics(sb, model);
 
 		return sb.toString();
+	}
+
+	private static void appendApplication(final StringBuilder sb){
+		ReportText.section(sb, "text.diagnostics.section.application");
+		ReportText.line(sb, "text.diagnostics.app_name", ProjectInfo.getAppName());
+		ReportText.line(sb, "text.diagnostics.app_version", ProjectInfo.getAppVersion());
+		ReportText.blank(sb);
 	}
 
 	private static void appendRuntime(final StringBuilder sb){
@@ -163,6 +186,60 @@ public final class DiagnosticsDialog extends JDialog{
 		if(mb >= 1024L)
 			return String.format("%.2f GB", mb / 1024.);
 		return mb + " MB";
+	}
+
+	private static void appendGarbageCollector(final StringBuilder sb){
+		ReportText.section(sb, "text.diagnostics.section.garbage_collector");
+		try{
+			final List<String> gcNames = new CopyOnWriteArrayList<>();
+			for(final var gc : ManagementFactory.getGarbageCollectorMXBeans())
+				gcNames.add(gc.getName());
+			ReportText.line(sb, "text.diagnostics.gc_name", String.join(", ", gcNames));
+		}
+		catch(final Exception e){
+			ReportText.line(sb, "text.diagnostics.gc_name", "unavailable");
+		}
+		ReportText.blank(sb);
+	}
+
+	private static void appendUser(final StringBuilder sb){
+		ReportText.section(sb, "text.diagnostics.section.user");
+		ReportText.line(sb, "text.diagnostics.user_home", System.getProperty("user.home"));
+		ReportText.line(sb, "text.diagnostics.user_dir", System.getProperty("user.dir"));
+		ReportText.blank(sb);
+	}
+
+	private static void appendGraphics(final StringBuilder sb){
+		ReportText.section(sb, "text.diagnostics.section.graphics");
+		final Toolkit toolkit = Toolkit.getDefaultToolkit();
+		final Dimension screenSize = toolkit.getScreenSize();
+		ReportText.line(sb, "text.diagnostics.screen_resolution", screenSize.width + "x" + screenSize.height);
+		ReportText.line(sb, "text.diagnostics.screen_dpi", toolkit.getScreenResolution());
+
+		// Check 2D hardware acceleration via system properties
+		final boolean d3d = "true".equals(System.getProperty("sun.java2d.d3d"));
+		final boolean opengl = "true".equals(System.getProperty("sun.java2d.opengl"));
+		final boolean metal = "true".equals(System.getProperty("sun.java2d.metal"));
+		final String pipeline;
+		if(d3d) pipeline = "Direct3D";
+		else if(opengl) pipeline = "OpenGL";
+		else if(metal) pipeline = "Metal";
+		else pipeline = "software";
+		ReportText.line(sb, "text.diagnostics.graphics_accelerated", pipeline);
+		ReportText.line(sb, "text.diagnostics.awt_toolkit", System.getProperty("awt.toolkit"));
+		ReportText.blank(sb);
+	}
+
+	private static void appendDisk(final StringBuilder sb, final File modelFile){
+		ReportText.section(sb, "text.diagnostics.section.disk");
+		if(modelFile != null){
+			ReportText.line(sb, "text.diagnostics.model_file", modelFile.getAbsolutePath());
+			final long freeSpace = modelFile.getParentFile().getFreeSpace();
+			ReportText.line(sb, "text.diagnostics.disk_free", formatBytes(freeSpace));
+		}
+		else
+			ReportText.line(sb, "text.diagnostics.model_file", "(unsaved)");
+		ReportText.blank(sb);
 	}
 
 }
