@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 
 import java.util.List;
 import java.util.Map;

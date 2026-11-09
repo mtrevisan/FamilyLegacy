@@ -24,11 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
@@ -152,6 +152,99 @@ class ChronologyCheckerTest{
 
 		Assertions.assertEquals(2, findings.size());
 		Assertions.assertEquals(2, findings.stream().map(Diagnostic::key).distinct().count());
+	}
+
+	private static Builder mother(final DateRange... childrenBirths){
+		final Builder builder = new Builder()
+			.person(person("m", SexType.FEMALE, day("1 March 1800"), null));
+		for(int i = 0; i < childrenBirths.length; i ++){
+			builder.person(person("c" + i, SexType.MALE, childrenBirths[i], null));
+			builder.parent("c" + i, "m", true);
+		}
+		return builder;
+	}
+
+	@Test
+	void childrenOfTheSameMotherLessThanNineMonthsApartAreAWarning(){
+		final Diagnostic finding = only(mother(day("1 June 1825"), day("1 January 1826")).check());
+
+		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
+		Assertions.assertTrue(finding.title().startsWith("Children born too close together"));
+		Assertions.assertTrue(finding.recordIds().containsAll(List.of("m", "c0", "c1")));
+	}
+
+	@Test
+	void theOrderOfTheChildrenDoesNotMatter(){
+		Assertions.assertEquals(1, mother(day("1 January 1826"), day("1 June 1825")).check().size());
+	}
+
+	@Test
+	void childrenNineMonthsOrMoreApartAreNotReported(){
+		Assertions.assertTrue(mother(day("1 June 1825"), day("1 April 1826")).check().isEmpty());
+	}
+
+	@Test
+	void twinsAreNotReported(){
+		Assertions.assertTrue(mother(day("1 June 1825"), day("1 June 1825")).check().isEmpty());
+		Assertions.assertTrue(mother(day("1 June 1825"), day("4 June 1825")).check().isEmpty());
+	}
+
+	@Test
+	void uncertainBirthsOfSiblingsNeverRaiseAnAlarm(){
+		//same year: they can be 11 months apart
+		Assertions.assertTrue(mother(year(1825), year(1825)).check().isEmpty());
+		//1825 and 1826: they can be almost two years apart
+		Assertions.assertTrue(mother(year(1825), year(1826)).check().isEmpty());
+	}
+
+	@Test
+	void onlyTheBiologicalChildrenOfAMotherCount(){
+		final List<Diagnostic> findings = new Builder()
+			.person(person("m", SexType.FEMALE, day("1 March 1800"), null))
+			.person(person("c0", SexType.MALE, day("1 June 1825"), null))
+			.person(person("c1", SexType.MALE, day("1 January 1826"), null))
+			.parent("c0", "m", true)
+			.parent("c1", "m", false)
+			.check();
+
+		Assertions.assertTrue(findings.isEmpty(), titles(findings).toString());
+	}
+
+	@Test
+	void aSpouseMarriedTooYoungIsAWarning(){
+		final Diagnostic finding = only(new Builder()
+			.person(person("a", SexType.FEMALE, day("1 June 1800"), null))
+			.event("e1", "a", EventReader.ENUM_TYPE_MARRIAGE, day("1 June 1810"))
+			.check());
+
+		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
+		Assertions.assertTrue(finding.title().startsWith("Married too young"));
+		Assertions.assertEquals(List.of("a", "e1"), finding.recordIds());
+	}
+
+	@Test
+	void aUnionOfMarriageTooYoungIsReportedOncePerPerson(){
+		final Diagnostic finding = only(new Builder()
+			.person(person("a", SexType.MALE, day("1 June 1800"), null))
+			.person(person("b", SexType.FEMALE, day("1 June 1790"), null))
+			.union("u1", "a", "b", true, day("1 June 1812"), null, false)
+			.event("e1", "a", EventReader.ENUM_TYPE_MARRIAGE, day("1 June 1812"))
+			.check());
+
+		Assertions.assertEquals(List.of("a", "e1"), finding.recordIds());
+	}
+
+	@Test
+	void aMarriageAtAPlausibleAgeOrOfUncertainDateIsNotReported(){
+		Assertions.assertTrue(new Builder()
+			.person(person("a", SexType.FEMALE, day("1 June 1800"), null))
+			.event("e1", "a", EventReader.ENUM_TYPE_MARRIAGE, day("1 June 1820"))
+			.check().isEmpty());
+		//born 1800, married 1812: can be 12 (or older)
+		Assertions.assertTrue(new Builder()
+			.person(person("a", SexType.FEMALE, year(1800), null))
+			.event("e1", "a", EventReader.ENUM_TYPE_MARRIAGE, year(1812))
+			.check().isEmpty());
 	}
 
 	@Test
@@ -311,7 +404,7 @@ class ChronologyCheckerTest{
 	@Test
 	void unionBeforeBirthAndAfterDeath(){
 		final List<Diagnostic> findings = new Builder()
-			.person(person("a", SexType.MALE, day("1 June 1800"), day("1 June 1850")))
+			.person(person("a", SexType.MALE, day("1 June 1780"), day("1 June 1850")))
 			.person(person("b", SexType.FEMALE, day("1 June 1810"), null))
 			.union("u1", "a", "b", true, day("1 June 1805"), null, false)
 			.union("u2", "a", "b", true, day("1 June 1851"), null, false)

@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Container;
-
 import java.awt.IllegalComponentStateException;
 import java.awt.Point;
 import java.awt.Rectangle;

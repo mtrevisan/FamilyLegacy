@@ -233,10 +233,15 @@ final class RelationshipChecker{
 			if(relationship.subjectId().equals(relationship.targetId()))
 				continue;
 
-			final boolean symmetric = SYMMETRIC_TYPES.contains(relationship.type());
+			//an association with a role is not symmetric: the role is the one of the subject, so the same two written from both sides
+				//with different roles (e.g. "witness" and "newborn") are different relationships
+				final boolean hasRole = (ASSOCIATE.equals(relationship.type()) && relationship.role() != null
+					&& !relationship.role().isBlank());
+				final boolean symmetric = (SYMMETRIC_TYPES.contains(relationship.type()) && !hasRole);
 			final String key = (symmetric
 				? pair(relationship.subjectId(), relationship.targetId())
-				: relationship.subjectId() + ">" + relationship.targetId()) + "|" + relationship.type();
+				: relationship.subjectId() + ">" + relationship.targetId()) + "|" + relationship.type()
+					+ (hasRole? "|" + relationship.role().strip().toLowerCase(java.util.Locale.ROOT): "");
 			same.computeIfAbsent(key, k -> new ArrayList<>())
 				.add(relationship);
 		}
@@ -344,11 +349,12 @@ final class RelationshipChecker{
 					|| relationship.subjectId().equals(relationship.targetId()))
 				continue;
 
-			final String suggested = marriageTypeOf(index.eventsOf(relationship.subjectId(), relationship.targetId()));
-			if(suggested == null)
+			final MarriageEvidence marriage = marriageEvidence(data, index.eventsOf(relationship.subjectId(), relationship.targetId()));
+			if(marriage == null)
 				continue;
 
-			final String evidence = (CIVIL_SPOUSE.equals(suggested)? EVENT_LICENSE: EVENT_BANNS);
+			final String suggested = marriage.type();
+			final String evidence = marriage.description();
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_spouse",
 				List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null,
 				name(data, relationship.subjectId()), name(data, relationship.targetId()), suggested, evidence)
@@ -358,15 +364,36 @@ final class RelationshipChecker{
 	}
 
 	/**
-	 * The kind of marriage the events of a couple point to: the banns are announced by the church (religious), the license is issued
-	 * by the civil authority (civil). {@code null} if they do not tell, or they point to both.
+	 * @param type        the suggested type
+	 * @param description what points to it, for the explanation
 	 */
-	private static String marriageTypeOf(final List<RelationshipData.Event> events){
-		final boolean banns = events.stream().anyMatch(e -> EVENT_BANNS.equals(e.type()));
+	private record MarriageEvidence(String type, String description){}
+
+	/**
+	 * The kind of marriage the events of a couple point to, only as a hint: the banns are announced by the church, and so are the
+	 * marriage and the banns held in a place of the church (a parish) or in front of an officiant who is of the clergy (religious);
+	 * the license is issued by the civil authority (civil). {@code null} if they do not tell, or they point to both.
+	 */
+	private static MarriageEvidence marriageEvidence(final RelationshipData data, final List<RelationshipData.Event> events){
+		final List<String> religious = new ArrayList<>();
+		if(events.stream().anyMatch(e -> EVENT_BANNS.equals(e.type())))
+			religious.add(EVENT_BANNS);
+		for(final RelationshipData.Event event : events){
+			if(!EVENT_MARRIAGE.equals(event.type()) && !EVENT_BANNS.equals(event.type()))
+				continue;
+
+			if(event.placeId() != null && data.ecclesiasticalPlaces().contains(event.placeId()))
+				religious.add(I18N.t("relationship.evidence.church_place"));
+			for(final RelationshipData.Participant participant : event.participants())
+				if(EventParticipationReader.ENUM_ROLE_OFFICIANT.equals(participant.role()) && data.clergy().contains(participant.personId()))
+					religious.add(I18N.tf("relationship.evidence.clergy_officiant", name(data, participant.personId())));
+		}
 		final boolean license = events.stream().anyMatch(e -> EVENT_LICENSE.equals(e.type()));
-		if(banns == license)
+		if(religious.isEmpty() == !license)
 			return null;
-		return (banns? RELIGIOUS_SPOUSE: CIVIL_SPOUSE);
+
+		return (license? new MarriageEvidence(CIVIL_SPOUSE, EVENT_LICENSE)
+			: new MarriageEvidence(RELIGIOUS_SPOUSE, String.join(", ", religious.stream().distinct().toList())));
 	}
 
 	/**
@@ -428,7 +455,8 @@ final class RelationshipChecker{
 
 			final List<String> ids = new ArrayList<>(couple);
 			entry.getValue().forEach(e -> ids.add(e.id()));
-			final String type = marriageTypeOf(index.eventsOf(couple.get(0), couple.get(1)));
+			final MarriageEvidence evidence = marriageEvidence(data, index.eventsOf(couple.get(0), couple.get(1)));
+			final String type = (evidence != null? evidence.type(): null);
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "marriage_without_relationship", ids,
 				new RelationshipDraft(couple.get(0), couple.get(1), type, entry.getValue().getFirst().id(), true), name(data, couple.get(0)),
 				name(data, couple.get(1)),
@@ -604,7 +632,9 @@ final class RelationshipChecker{
 				.filter(r -> CHILD_TYPES.contains(r.type()) || PARTNER_TYPES.contains(r.type()))
 				.findFirst()
 				.orElse(null);
-			if(family != null)
+			//an association with a role says something that the tie does not (a witness, a ward, the birth it took part in): only one
+			//without a role adds nothing to the tie of the family
+			if(family != null && (relationship.role() == null || relationship.role().isBlank()))
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_redundant",
 					List.of(relationship.subjectId(), relationship.targetId(), relationship.id(), family.id()), null,
 					name(data, relationship.subjectId()), name(data, relationship.targetId()), family.type()));

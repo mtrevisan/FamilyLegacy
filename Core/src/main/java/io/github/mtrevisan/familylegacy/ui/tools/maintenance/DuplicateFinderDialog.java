@@ -24,12 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 
+import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,19 +48,16 @@ import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.text.Document;
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -68,7 +68,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.Set;
 
 
 /**
@@ -86,7 +86,7 @@ public final class DuplicateFinderDialog extends JDialog{
 	private final ToolContext context;
 	private final CandidateTableModel tableModel = new CandidateTableModel();
 	private final JTable table = new JTable(tableModel);
-	private final JTextField filterField = new JTextField(20);
+	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JSpinner thresholdSpinner = new JSpinner(new SpinnerNumberModel(
 		DuplicateFinderService.DEFAULT_THRESHOLD, 0, 500, 5));
 	private final JSpinner maxResultsSpinner = new JSpinner(new SpinnerNumberModel(
@@ -154,30 +154,15 @@ public final class DuplicateFinderDialog extends JDialog{
 		gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
 		toolbar.add(new JLabel(I18N.l("label.duplicates_filter")), gbc);
 		gbc.gridy = 2;
-		toolbar.add(filterField, gbc);
-		final Document document = filterField.getDocument();
-		document.addDocumentListener(new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void changedUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-		});
+		toolbar.add(searchBox, gbc);
+		searchBox.onChange(this::applyFilter);
 
 		return toolbar;
 	}
 
 	private JSplitPane createCenter(){
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		//more than one pair can be selected: the facts of all their individuals are compared (the details are the ones of the first)
+		table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
 		final TableColumnModel columnModel = table.getColumnModel();
@@ -220,6 +205,10 @@ public final class DuplicateFinderDialog extends JDialog{
 	private JPanel createFooter(){
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
+
+		final JButton compareFacts = new JButton(I18N.t("button.compare_facts"));
+		compareFacts.addActionListener(e -> compareFactsOfSelected());
+		footer.add(compareFacts);
 
 		final JButton compare = new JButton(I18N.t("button.compare_records"));
 		compare.addActionListener(e -> compareSelected());
@@ -301,25 +290,21 @@ public final class DuplicateFinderDialog extends JDialog{
 	}
 
 	private void applyFilter(){
-		final String text = filterField.getText();
-		@SuppressWarnings("unchecked")
+				@SuppressWarnings("unchecked")
 		final TableRowSorter<CandidateTableModel> sorter =
 			(TableRowSorter<CandidateTableModel>)table.getRowSorter();
-		if(StringUtils.isEmpty(text))
+		if(searchBox.isBlank())
 			sorter.setRowFilter(null);
 		else{
-			final String needle = text.trim()
-				.toLowerCase(Locale.ROOT);
+			final String query = searchBox.query();
+			final Set<SearchMode> modes = searchBox.modes();
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends CandidateTableModel, ? extends Integer> entry){
 					final DuplicateFinderService.Candidate c =
 						tableModel.getRow(entry.getIdentifier());
-					return contains(c.left().displayName(), needle)
-						|| contains(c.right().displayName(), needle)
-						|| contains(c.left().id(), needle)
-						|| contains(c.right().id(), needle)
-						|| matchesAnyFeature(c, needle);
+					return SearchBox.matches(query, modes, c.left().displayName(), c.right().displayName(), c.left().id(), c.right().id())
+						|| matchesAnyFeature(c, query, modes);
 				}
 			});
 		}
@@ -328,15 +313,11 @@ public final class DuplicateFinderDialog extends JDialog{
 	}
 
 	private static boolean matchesAnyFeature(final DuplicateFinderService.Candidate c,
-		final String needle){
+		final String query, final Set<SearchMode> modes){
 		for(final DuplicateFinderService.FeatureMatch m : c.matches())
-			if(contains(m.detail(), needle))
+			if(SearchBox.matches(query, modes, m.detail()))
 				return true;
 		return false;
-	}
-
-	private static boolean contains(final String haystack, final String needle){
-		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
 
@@ -378,7 +359,7 @@ public final class DuplicateFinderDialog extends JDialog{
 		sb.append(I18N.l("text.duplicates.matched_features"))
 			.append(StringUtils.LF);
 		for(final DuplicateFinderService.FeatureMatch m : c.matches())
-			sb.append("  +").append(m.score()).append("  ")
+			sb.append("  ").append(String.format("%+d", m.score())).append("  ")
 				.append(m.feature())
 				.append(" — ")
 				.append(m.detail())
@@ -403,6 +384,50 @@ public final class DuplicateFinderDialog extends JDialog{
 			return null;
 
 		return tableModel.getRow(table.convertRowIndexToModel(viewRow));
+	}
+
+	/** The most individuals the facts are compared of: more would be a column too narrow to read. */
+	private static final int MAX_COMPARED = 6;
+
+	/**
+	 * Compares the facts of the individuals of the selected pairs, side by side: the birth, the death, the parents, the spouses, the
+	 * children, the occupations and the rest, that the comparison of the records (the text of the individual only) does not show.
+	 */
+	private void compareFactsOfSelected(){
+		final List<String> ids = new ArrayList<>();
+		for(final int viewRow : table.getSelectedRows()){
+			final DuplicateFinderService.Candidate candidate = tableModel.getRow(table.convertRowIndexToModel(viewRow));
+			for(final String id : List.of(candidate.left().id(), candidate.right().id()))
+				if(!ids.contains(id))
+					ids.add(id);
+		}
+		if(ids.size() < 2)
+			return;
+
+		final int truncated = (ids.size() > MAX_COMPARED? MAX_COMPARED: 0);
+		final List<String> compared = ids.subList(0, Math.min(ids.size(), MAX_COMPARED));
+		final FLEFModel model = context.model();
+		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		//the indexes of the model are built to read the facts: on a large file it takes a moment, not on the event dispatch thread
+		new SwingWorker<IndividualFacts.Comparison, Void>(){
+			@Override
+			protected IndividualFacts.Comparison doInBackground(){
+				return IndividualFacts.compare(model, compared);
+			}
+
+			@Override
+			protected void done(){
+				setCursor(Cursor.getDefaultCursor());
+				try{
+					final IndividualFacts.Comparison comparison = get();
+					if(!comparison.isEmpty())
+						new FactsComparisonDialog(DuplicateFinderDialog.this, comparison, truncated).setVisible(true);
+				}
+				catch(final Exception ignored){
+					//the comparison is canceled, or the model changed: nothing to show
+				}
+			}
+		}.execute();
 	}
 
 	private void compareSelected(){

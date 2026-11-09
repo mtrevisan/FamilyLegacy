@@ -121,7 +121,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 		this.model = model;
 		if(assistant != null)
-			assistant.install(this::model, this::readOnlyModel, this::currentFilePath);
+			assistant.install(this::model, this::readOnlyModel, this::currentFilePath, this::currentSelectionId);
 		DialogEscapeSupport.install();
 		DialogPlacement.install();
 		history = new ModelHistory(model);
@@ -298,6 +298,19 @@ public class FamilyLegacyFrame extends JFrame{
 		recentChangesDialog.setVisible(true);
 	}
 
+	boolean canUndo(){
+		return history.canUndo();
+	}
+
+	boolean canRedo(){
+		return history.canRedo();
+	}
+
+	/** Told every time the history changes (a step recorded, an undo, a redo, another model). */
+	void addHistoryListener(final Runnable listener){
+		history.addChangeListener(listener);
+	}
+
 	void redo(){
 		if(history.redo())
 			rebuildViews();
@@ -394,7 +407,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	/** @return the path of the file being edited (what the findings ignored by the user are kept by), or {@code null} if it was never saved */
 	private String currentFilePath(){
-		final java.io.File file = fileController.currentFile();
+		final File file = fileController.currentFile();
 		return (file != null? file.getAbsolutePath(): null);
 	}
 
@@ -403,7 +416,7 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 	/** Opens the given FLEF file, as the File &gt; Open command does (with the progress dialog and the Recent files list). */
-	public void openFile(final java.io.File file){
+	public void openFile(final File file){
 		fileController.openFile(file);
 	}
 
@@ -504,7 +517,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	/** @return	The path the bookmarks are tied to (the file of the document, in its normal form), or {@code null} if it has none. */
 	String bookmarkFilePath(){
-		final java.io.File file = fileController.currentFile();
+		final File file = fileController.currentFile();
 		return (file != null? RecentFilesManager.normalized(file).getAbsolutePath(): null);
 	}
 

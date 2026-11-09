@@ -67,8 +67,6 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -77,6 +75,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
@@ -176,7 +175,7 @@ public final class ReportDialog extends JDialog{
 						.getRecordById(selectedId);
 			}
 			case PLACE, SOURCE, RESEARCH_QUESTION -> selectedEntity = subject;
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK -> selectedEntity = null;
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES -> selectedEntity = null;
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> {
 				// Global reports: fallback to active individual or first
 				// record in the model.
@@ -393,8 +392,36 @@ public final class ReportDialog extends JDialog{
 		final SwingWorker<GenerationResult, ProgressUpdate> worker =
 			new SwingWorker<>(){
 
+				/** The files this run writes (the one being written too), to be removed if the run is canceled: a report that is not complete is not a report. */
+				private final List<Path> written = new CopyOnWriteArrayList<>();
+
+
 				@Override
 				protected GenerationResult doInBackground() throws Exception{
+					try{
+						final GenerationResult result = generate();
+						if(isCancelled())
+							deleteWritten();
+						return result;
+					}
+					catch(final Exception e){
+						if(isCancelled())
+							deleteWritten();
+						throw e;
+					}
+				}
+
+				private void deleteWritten(){
+					for(final Path file : written)
+						try{
+							Files.deleteIfExists(file);
+						}
+						catch(final Exception ignored){
+							//a file that cannot be removed stays: nothing else can be done
+						}
+				}
+
+				private GenerationResult generate() throws Exception{
 					final ReportProgressListener listener = (percent, message) -> {
 						if(isCancelled())
 							throw new RuntimeException("Report generation cancelled");
@@ -415,6 +442,7 @@ public final class ReportDialog extends JDialog{
 							throw new RuntimeException("Report generation cancelled");
 
 						final Path targetFile = outDir.resolve(entry.getKey());
+						written.add(targetFile);
 						entry.getValue()
 							.render(doc, targetFile);
 						generatedFiles.add(targetFile);
@@ -473,14 +501,9 @@ public final class ReportDialog extends JDialog{
 				}
 			};
 
-		// If the user cancels, propagate the cancellation to the worker.
-		progressDialog.addWindowListener(new WindowAdapter(){
-			@Override
-			public void windowClosed(final WindowEvent e){
-				if(progressDialog.isCancelled())
-					worker.cancel(true);
-			}
-		});
+		// If the user cancels, the worker is told at once: the dialog stays open until the worker is over, so the closing of the
+		// dialog would be too late (the report would be written, and the user asked where to find it)
+		progressDialog.onCancel(() -> worker.cancel(true));
 
 		worker.execute();
 		progressDialog.setVisible(true);

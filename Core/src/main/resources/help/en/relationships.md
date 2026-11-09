@@ -41,7 +41,7 @@ The other tabs are *Context*, *Research*, *Sources*, *Notes*, *Privacy* and *Aud
 
 ### What the Research Assistant does with the relationships
 The Relationships findings are suggestions: nothing is created or changed until you save the editor that the action opens.
-- **Change type**: when the evidence points to another type (an adoption that both took part in, a parent married to the other after the child was born, the banns or the license of a marriage), the action opens the relationship with the suggested type already chosen. It is chosen only if the editor offers it for the two, and cancelling leaves the relationship as it was.
+- **Change type**: when the evidence points to another type (an adoption that both took part in, a parent married to the other after the child was born, the banns or the license of a marriage, a marriage in a parish or before an officiant who is of the clergy, which only hint at a religious marriage), the action opens the relationship with the suggested type already chosen. It is chosen only if the editor offers it for the two, and cancelling leaves the relationship as it was.
 - **Create Relationship Draft**: for a marriage event with no relationship, the new relationship starts with the **date of the marriage** as *Valid from* and the **sources of the event**; for the partner of a parent who has no relationship with the child, and for the informant of a birth who has none with the child, it starts with the two individuals and no type (the partner may be a parent or a step-parent, the informant a parent, a relative or a neighbour: the choice is yours), the informant's draft with the sources of the birth.
 - **Siblings** have no type: they are written as an *associate* relationship with a role such as *brother* or *half-brother*. The assistant checks that role against the biological parents (full siblings have both in common, half-siblings one) when both individuals have parents. A role that says a parent, a child or a spouse, for which there are types, and an association between two individuals already linked by a family relationship, are reported as information.
 
@@ -84,7 +84,7 @@ The same can be done from the editor of the individual: the subject is already t
 ## How the views read the relationships
 
 - **Parents and children** come from the child types. The family views (the ones the application opens with) follow all six: *child*, *biological child*, *adoptive child*, *foster child*, *guarded child* and *step child*. Only links between two individuals count.
-- **Father and mother** are told apart by the **sex** of the parent: a parent with no sex recorded may land in the wrong place. If the sexes do not decide, the first parent found is used.
+- **Father and mother** are told apart by the **sex** of the parent: a parent with no sex recorded (or whose sex assertions compete with nothing to settle them) may land in the wrong place. If the sexes do not decide, the first parent found is used.
 - **Partners** come from the spouse-like and partner types, in either direction. *Associate* is not a partner. Two people who are both parents of the same child are also drawn as a couple, even without a partner relationship.
 - A couple is drawn as **biological** only if both parents are biological parents. If any link is adoptive, foster, guarded or step, the couple is drawn with a dashed line.
 - A person hidden by the current **privacy** setting is ignored together with all their links.

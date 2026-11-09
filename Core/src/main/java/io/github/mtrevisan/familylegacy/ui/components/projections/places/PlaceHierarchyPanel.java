@@ -532,7 +532,36 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			selectedPlaceRecord = model.getRecordById(childId);
 		}
 
-		detailsPanel.showPlace(payload != null? payload.place(): null, hierarchy);
+		detailsPanel.showPlace(payload != null? payload.place(): null, hierarchy, (payload != null? usageOf(payload.place().id()): List.of()));
+	}
+
+	/** Number of records the details panel lists at most as using the place. */
+	private static final int MAX_USAGE_LINES = 100;
+
+	/**
+	 * What the place is linked to: one line, "type: text", for each record that refers to it (events, attributes, repositories...),
+	 * apart from the places of the hierarchy, that the panel shows on their own.
+	 */
+	private List<String> usageOf(final String placeId){
+		final List<String> lines = new ArrayList<>();
+		int total = 0;
+		for(final var entry : HandlerRegistry.getReferencingRecords(model, placeId).entrySet()){
+			if(PlaceRelationshipHandler.class.equals(entry.getKey()))
+				continue;
+
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(entry.getKey());
+			if(handler == null)
+				continue;
+
+			for(final FLEFRecord record : PrivacyService.visible(model, new ArrayList<>(entry.getValue()))){
+				total ++;
+				if(lines.size() < MAX_USAGE_LINES)
+					lines.add(handler.getLabel() + ": " + handler.getDisplayText(record, model));
+			}
+		}
+		if(total > lines.size())
+			lines.add(I18N.tf("text.place.used_by.more", total - lines.size()));
+		return lines;
 	}
 
 	@Override
@@ -784,7 +813,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 		}
 
 		void showPlace(final PlaceHierarchyService.PlaceReference place,
-				final PlaceHierarchyService.Hierarchy hierarchy){
+				final PlaceHierarchyService.Hierarchy hierarchy, final List<String> usage){
 			if(place == null){
 				content.setText(StringUtils.EMPTY);
 
@@ -853,6 +882,14 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			}
 			else
 				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.no_child") + "</div>");
+
+			// --- Usage Section: what the place is linked to ---
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.used_by") + "</div>");
+			if(usage.isEmpty())
+				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.not_used") + "</div>");
+			else
+				for(final String line : usage)
+					sb.append("<div style='margin-bottom: 4px; line-height: 1.4;'>").append(escape(line)).append("</div>");
 
 			// --- Notes Section ---
 			if(!place.notes().isEmpty()){

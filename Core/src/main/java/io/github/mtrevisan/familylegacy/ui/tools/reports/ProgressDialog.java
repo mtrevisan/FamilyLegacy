@@ -51,7 +51,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>The dialog is purely passive: it displays a message and a percentage,
  * and exposes a cancellation flag that the background task is expected to
  * poll between major steps. Closing the dialog via the window close button
- * or pressing Escape sets the same flag, so the user has several ways to abort.</p>
+ * or pressing Escape sets the same flag, so the user has several ways to abort.
+ * The task is also told at once, by the action given to {@link #onCancel(Runnable)}: the dialog stays open until the task
+ * is over, so waiting for it to close would never tell the task to stop.</p>
  *
  * <p>All mutating methods are safe to call from any thread; they marshal
  * to the Event Dispatch Thread internally.</p>
@@ -62,6 +64,7 @@ public final class ProgressDialog extends JDialog{
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
 	private final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 	private final AtomicBoolean cancelled = new AtomicBoolean(false);
+	private volatile Runnable cancelAction;
 
 
 	public ProgressDialog(final Window owner, final String title){
@@ -77,11 +80,7 @@ public final class ProgressDialog extends JDialog{
 		content.add(progressBar, "growx, h 22!");
 
 		final JPanel buttons = new JPanel();
-		cancelButton.addActionListener(e -> {
-			cancelled.set(true);
-			cancelButton.setEnabled(false);
-			messageLabel.setText(I18N.t("text.cancelling"));
-		});
+		cancelButton.addActionListener(e -> requestCancel());
 		buttons.add(cancelButton);
 
 		// Escape is the same as clicking Cancel (it does nothing once the cancellation has been requested).
@@ -95,13 +94,13 @@ public final class ProgressDialog extends JDialog{
 		addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(final WindowEvent e){
-				cancelled.set(true);
-				cancelButton.setEnabled(false);
-				messageLabel.setText(I18N.t("text.cancelling"));
+				requestCancel();
 			}
 		});
 
-		setPreferredSize(new Dimension(360, 130));
+		//only the width is chosen: the height is the one the content needs (a fixed height of the window, which counts the title bar,
+		//left too little to the bar, that was cut and had the percentage low)
+		setMinimumSize(new Dimension(360, 0));
 		pack();
 		setLocationRelativeTo(owner);
 	}
@@ -110,6 +109,25 @@ public final class ProgressDialog extends JDialog{
 	/* ======================================================================
 	 *                          Public API
 	 * ====================================================================== */
+
+	/**
+	 * @param action	What to do when the user asks to cancel (once): stop the task. It is called on the event dispatch thread.
+	 */
+	public void onCancel(final Runnable action){
+		cancelAction = action;
+	}
+
+	/** The user asks to cancel: the flag, the message, and the task is told (only the first time). */
+	private void requestCancel(){
+		if(!cancelled.compareAndSet(false, true))
+			return;
+
+		cancelButton.setEnabled(false);
+		messageLabel.setText(I18N.t("text.cancelling"));
+		final Runnable action = cancelAction;
+		if(action != null)
+			action.run();
+	}
 
 	/** Whether the user has asked to cancel the running task. */
 	public boolean isCancelled(){

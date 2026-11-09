@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import javax.swing.SwingUtilities;
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -136,7 +137,7 @@ class JurisdictionTimelineTest{
 		final TemporalEntry ceneda = bars(row(model, "P3")).getFirst();
 
 		Assertions.assertTrue(treviso.span().maxJdn() <= ceneda.span().minJdn(), "Treviso ends when Ceneda begins");
-		final long today = java.time.LocalDate.now().toEpochDay() + 2_440_588L;
+		final long today = LocalDate.now().toEpochDay() + 2_440_588L;
 		Assertions.assertEquals(today, ceneda.span().maxJdn(), "the last one has no end: it ends today");
 		Assertions.assertTrue(ceneda.label().contains(GroupTimelineBuilder.ONGOING), ceneda.label());
 		Assertions.assertFalse(treviso.label().contains(GroupTimelineBuilder.ONGOING), treviso.label());
@@ -144,7 +145,7 @@ class JurisdictionTimelineTest{
 
 	@Test
 	void noBarGoesBeyondToday(){
-		final long today = java.time.LocalDate.now().toEpochDay() + 2_440_588L;
+		final long today = LocalDate.now().toEpochDay() + 2_440_588L;
 		final TemporalProjectionModel model = build("P1");
 
 		Assertions.assertEquals(today, model.domainEnd().jdn(), "Ceneda has no end: the axis ends today");

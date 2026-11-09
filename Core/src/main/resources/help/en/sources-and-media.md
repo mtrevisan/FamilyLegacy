@@ -37,7 +37,9 @@ A **citation** ties a statement to its source and says where in the source it is
 
 - **Unused sources**: sources that no record cites;
 - **Unused documents**: media that no source or extract references;
-- **Uncited assertions**: the individuals, events, attributes, relationships and places that carry no citation, by name.
+- **Uncited assertions**: the individuals, events, attributes, relationships and places that carry no citation. A big file can have tens of thousands of them, so the tab opens on a **summary by type** (how many are uncited, out of how many, and the share that is cited). Double-click a type, or *All types*, to list its records, by name; **Back** returns to the summary, and the search field filters the list by id, type or name.
+
+**Export CSV...** writes the rows of the tab in view to a file (what the list shows, with its order and filter; from the summary of the uncited tab, every uncited record). The file is UTF-8 and opens in Excel with the accents right.
 
 The rows can be opened (double-click, or *Open record*) to fix the problem on the spot; the lists are made again afterwards. The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
 

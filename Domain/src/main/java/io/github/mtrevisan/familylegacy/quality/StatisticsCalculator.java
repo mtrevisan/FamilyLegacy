@@ -30,7 +30,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -143,6 +145,7 @@ public final class StatisticsCalculator{
 		p.update(20, I18N.t("progress.statistics.completeness"));
 		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualReader.TYPE));
 		final List<Statistics.Completeness.Category> categories = new ArrayList<>();
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 
 		final List<FLEFRecord> noBirth = new ArrayList<>();
 		final List<FLEFRecord> noDeath = new ArrayList<>();
@@ -162,8 +165,7 @@ public final class StatisticsCalculator{
 				noParents.add(ind);
 			if(!hasDirectSource(ind))
 				noSource.add(ind);
-			final String sex = IndividualReader.extractRawSex(ind);
-			if(StringUtils.isEmpty(sex))
+			if(PreferredSex.of(ind, sexes, model) == SexType.UNKNOWN)
 				noSex.add(ind);
 		}
 
@@ -205,10 +207,10 @@ public final class StatisticsCalculator{
 				}
 			}
 
-			final String sex = IndividualReader.extractRawSex(ind);
-			if(IndividualReader.isSexMale(sex))
+			final SexType sex = PreferredSex.of(ind, sexes, model);
+			if(sex == SexType.MALE)
 				male ++;
-			else if(IndividualReader.isSexFemale(sex))
+			else if(sex == SexType.FEMALE)
 				female ++;
 			else
 				unknownSex ++;

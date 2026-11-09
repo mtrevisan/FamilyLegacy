@@ -204,7 +204,7 @@ public class FLEFWriter{
 		this.lastReportedPercent = -1;
 
 		final List<FLEFRecord> records = model.getRecords();
-		final boolean hasHeader = (model.getHeader() != null);
+		final boolean hasHeader = model.getHeader().hasData();
 		// Each top-level record is one unit of work; the header counts too.
 		final int total = records.size() + (hasHeader? 1: 0);
 		int done = 0;
@@ -323,15 +323,20 @@ public class FLEFWriter{
 			// In compact mode, check if the child is compressible
 			final Effective effective = getEffectiveRecord(record);
 			writeRecordHeader(effective.record, writer, indentLevel, effective.path);
-			if(effective.record.hasChildren())
+			if(opensBlock(effective.record))
 				stack.push(new Frame(effective.record, indentLevel + 1));
 		}
 		else{
 			// Expanded mode: write the child as a separate block
 			writeRecordHeader(record, writer, indentLevel, null);
-			if(record.hasChildren())
+			if(opensBlock(record))
 				stack.push(new Frame(record, indentLevel + 1));
 		}
+	}
+
+	/** A record with children, or with an id (even with no children), is written as a block, that must be closed. */
+	private static boolean opensBlock(final FLEFRecord record){
+		return (record.hasChildren() || StringUtils.isNotEmpty(record.getFormattedId()));
 	}
 
 	/**
@@ -396,7 +401,7 @@ public class FLEFWriter{
 	 * @throws IOException if writing fails
 	 */
 	private void writeMultilineValue(final String text, final Writer writer, final int indentLevel) throws IOException{
-		final String[] lines = StringUtils.splitPreserveAllTokens(Strings.CS.replace(text, "\r\n", StringUtils.LF), '\n');
+		final String[] lines = StringUtils.splitPreserveAllTokens(Strings.CS.replace(Strings.CS.replace(text, "\r\n", StringUtils.LF), StringUtils.CR, StringUtils.LF), '\n');
 		for(int i = 0, length = lines.length; i < length; i ++){
 			final String line = lines[i];
 

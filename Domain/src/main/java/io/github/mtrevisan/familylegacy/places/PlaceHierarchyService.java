@@ -44,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 
 /**
@@ -334,7 +335,7 @@ public final class PlaceHierarchyService{
 
 	private static void sortRelationsByName(final List<PlaceRelation> list,
 			final Map<String, PlaceReference> places,
-			final java.util.function.Function<PlaceRelation, String> idExtractor){
+			final Function<PlaceRelation, String> idExtractor){
 		list.sort((a, b) -> compareByName(places, idExtractor.apply(a), idExtractor.apply(b)));
 	}
 

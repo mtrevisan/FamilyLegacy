@@ -48,6 +48,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.relationship.RelationshipAs
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -80,7 +81,7 @@ class LargeFileBenchmark{
 			try{
 				return SyntheticTree.model(size);
 			}
-			catch(final java.io.IOException ioe){
+			catch(final IOException ioe){
 				throw new IllegalStateException(ioe);
 			}
 		});

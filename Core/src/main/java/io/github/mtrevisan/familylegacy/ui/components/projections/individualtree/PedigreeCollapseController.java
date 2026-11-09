@@ -35,6 +35,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Par
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.PedigreeCollapseDialog;
 
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -57,6 +59,8 @@ public final class PedigreeCollapseController{
 
 	/** Collapses detected in the current tree, keyed by individual id. */
 	private Map<String, PedigreeCollapse> collapses = Map.of();
+	/** The boxes currently shown for each individual that appears more than once. */
+	private final Map<String, List<IndividualPanel>> slotsById = new HashMap<>();
 
 
 	public PedigreeCollapseController(final FLEFModel model){
@@ -73,6 +77,7 @@ public final class PedigreeCollapseController{
 
 	/** Applies the badge to every panel that shows an affected individual. */
 	public void apply(final Map<TreeNode, PartnersPanel> nodeToPanelMap){
+		slotsById.clear();
 		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
 			final TreeNode node = entry.getKey();
 			final PartnersPanel panel = entry.getValue();
@@ -94,6 +99,19 @@ public final class PedigreeCollapseController{
 			return;
 
 		slot.withCollapseInfo(collapse.occurrenceCount(), buildTooltip(collapse));
+		slotsById.computeIfAbsent(id, k -> new ArrayList<>())
+			.add(slot);
+		slot.withDuplicateHoverListener(hovered -> highlight(id, hovered));
+	}
+
+	/** Draws (or clears) the highlight on every box that shows the given individual, if there is more than one. */
+	private void highlight(final String id, final boolean on){
+		final List<IndividualPanel> slots = slotsById.get(id);
+		if(slots == null || slots.size() < 2)
+			return;
+
+		for(final IndividualPanel slot : slots)
+			slot.withDuplicateHighlighted(on);
 	}
 
 	/** Opens the report dialog listing every collapse. */

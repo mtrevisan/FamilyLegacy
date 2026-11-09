@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
@@ -45,9 +46,11 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.StringReader;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -123,12 +126,36 @@ class GapAssistantTest{
 
 		final List<String> titles = titles(findings(model));
 
-		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("No death recorded: Anna Rossi (born 1890)")), titles.toString());
-		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("Probably dead, no death recorded: Dino Bianchi (born 1930)")),
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("No death recorded: Anna Rossi [I1] (born 1890)")), titles.toString());
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("Probably dead, no death recorded: Dino Bianchi [I3] (born 1930)")),
 			titles.toString());
 		//Carlo has a death; the events of an import have no source
 		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains("Carlo")), titles.toString());
 		Assertions.assertTrue(titles.stream().anyMatch(t -> t.endsWith("vital event(s) without a source")), titles.toString());
+	}
+
+	@Test
+	void aSourceOnTheParticipationOrTheIndividualBacksTheEvent() throws IOException{
+		final FLEFModel model = convert();
+		final String anna = id(model, "Anna");
+		final String carlo = id(model, "Carlo");
+		Assertions.assertTrue(GapDataLoader.load(model, TODAY).events().stream().allMatch(e -> e.sourceCount() == 0));
+
+		//a citation on the individual
+		model.getRecordById(anna)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SOURCE, "SC1"));
+		//a citation on the participation of Carlo in his events
+		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE))
+			if(carlo.equals(FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT).getChildren().getFirst().getValue()))
+				participation.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_SOURCE, "SC2"));
+
+		final GapData data = GapDataLoader.load(model, TODAY);
+		for(final GapData.Event event : data.events()){
+			if(event.principals().contains(anna) || event.principals().contains(carlo))
+				Assertions.assertTrue(event.sourceCount() > 0, event.toString());
+			else
+				Assertions.assertEquals(0, event.sourceCount(), event.toString());
+		}
 	}
 
 	@Test
@@ -138,7 +165,7 @@ class GapAssistantTest{
 		final GapData data = GapDataLoader.load(model, TODAY);
 		Assertions.assertFalse(data.parents().isEmpty(), "the child has parents");
 
-		for(final FLEFRecord relationship : new java.util.ArrayList<>(model.getRecordsByType(RelationshipReader.TYPE)))
+		for(final FLEFRecord relationship : new ArrayList<>(model.getRecordsByType(RelationshipReader.TYPE)))
 			if(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_TYPE).endsWith(RelationshipReader.ENUM_TYPE_SPOUSE))
 				model.removeRecord(relationship.getId());
 		final List<GapFinding> found = findings(model).stream()
@@ -247,7 +274,7 @@ class GapAssistantTest{
 		Assertions.assertEquals("When and where did Anna Rossi die?", FLEFRecordHelper.getChildValue(questions.getFirst(), ResearchQuestionReader.TAG_QUESTION));
 		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(questions.getFirst(), ResearchQuestionReader.TAG_TARGET).size());
 		//the gap is not filled: it is a question to answer, and the individual still has no death
-		Assertions.assertTrue(titles(findings(model)).contains("No death recorded: Anna Rossi (born 1890)"));
+		Assertions.assertTrue(titles(findings(model)).contains("No death recorded: Anna Rossi [I1] (born 1890)"));
 	}
 
 	@Test
@@ -287,7 +314,7 @@ class GapAssistantTest{
 		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);
 		dialog.getRootPane().getActionMap().get(binding)
-			.actionPerformed(new java.awt.event.ActionEvent(dialog, java.awt.event.ActionEvent.ACTION_PERFORMED, "escape"));
+			.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));
 
 		Assertions.assertFalse(dialog.isSaved());
 		Assertions.assertEquals(records, model.getRecords().size());

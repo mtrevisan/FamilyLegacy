@@ -29,10 +29,10 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -86,6 +86,72 @@ public class SourceConverter {
 		this.noteRawMap = noteRawMap;
 		this.sourceMap = sourceMap;
 		this.placeCache = placeCache;
+	}
+
+	/**
+	 * A note of the source that is only a date is the date of the source; one that is "place : date" (or "date : place") gives its
+	 * place and its date. Nothing is done if the note says anything else, or the source has already what the note would give.
+	 *
+	 * @return	Whether the note was used (and so it is not a note of the source any more).
+	 */
+	private boolean consumeDateAndPlace(final FLEFRecord source, final GEDCOMNode noteNode){
+		final String noteId = GEDCOMHelper.pointer(noteNode.getValue());
+		final String text = StringUtils.trimToNull(GEDCOMHelper.extractFullText(noteId != null && noteRawMap != null
+			? noteRawMap.get(noteId): noteNode));
+		if(text == null)
+			return false;
+
+		final boolean dateFree = hasNoChild(source, SourceReader.TAG_DATE);
+		final boolean placeFree = hasNoChild(source, SourceReader.TAG_PLACE);
+		if(isDate(text)){
+			if(!dateFree)
+				return false;
+
+			GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, text);
+			return true;
+		}
+
+		final int colon = text.indexOf(':');
+		if(colon < 1 || colon != text.lastIndexOf(':') || !dateFree || !placeFree)
+			return false;
+
+		final String before = StringUtils.trimToNull(text.substring(0, colon));
+		final String after = StringUtils.trimToNull(text.substring(colon + 1));
+		if(before == null || after == null)
+			return false;
+
+		final String date;
+		final String place;
+		if(isDate(after) && !isDate(before)){
+			date = after;
+			place = before;
+		}
+		else if(isDate(before) && !isDate(after)){
+			date = before;
+			place = after;
+		}
+		else
+			return false;
+
+		GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, date);
+		GEDCOMRecordBuilder.attachPlaceCitation(source, model, new GEDCOMNode(noteNode.getLevel(), GEDCOMMapper.TAG_PLACE, place), null, noteRawMap,
+			placeCache);
+		return true;
+	}
+
+	private static boolean hasNoChild(final FLEFRecord record, final String tag){
+		return record.getChildren().stream().noneMatch(child -> tag.equals(child.getTag()));
+	}
+
+	/** Whether the text is a GEDCOM date: it is understood as such and has a year (a bare small number is not one). */
+	private static boolean isDate(final String text){
+		int run = 0;
+		boolean year = false;
+		for(int i = 0, length = text.length(); i < length; i ++){
+			run = (Character.isDigit(text.charAt(i))? run + 1: 0);
+			year |= (run >= 3);
+		}
+		return (year && GEDCOMDateConverter.buildDateStructure(SourceReader.TAG_DATE, text) != null);
 	}
 
 	/**
@@ -218,7 +284,9 @@ public class SourceConverter {
 
 		// ---- 7. Notes (NOTE, DATA.NOTE, events recorded, TEXT) – inline structs ----
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(sourNode, GEDCOMMapper.TAG_NOTE)){
-			GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);
+			//a note that is only a date, or "place : date", is the date (and the place) of the source
+			if(!consumeDateAndPlace(source, noteNode))
+				GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);
 		}
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(dataNode, GEDCOMMapper.TAG_NOTE)){
 			GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);

@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -183,7 +184,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	 * @return	This dialog.
 	 */
 	public ResearchTaskRecordDialog withDraft(final String description, final String priority,
-			final java.util.List<FLEFRecord> questions){
+			final List<FLEFRecord> questions){
 		if(descriptionArea.isEmpty() && description != null && !description.isBlank())
 			descriptionArea.setText(description);
 		statusCombo.setSelectedItem(ResearchTaskReader.ENUM_STATUS_OPEN);

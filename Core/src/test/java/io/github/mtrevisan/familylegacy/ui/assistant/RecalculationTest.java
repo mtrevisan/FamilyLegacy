@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -162,7 +163,7 @@ class RecalculationTest{
 		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 		final List<Diagnostic> before = service.diagnose(context(model));
 
-		final List<Diagnostic> reversed = new java.util.ArrayList<>(before);
+		final List<Diagnostic> reversed = new ArrayList<>(before);
 		java.util.Collections.reverse(reversed);
 
 		Assertions.assertFalse(service.recalculate(context(model), reversed).isChanged());

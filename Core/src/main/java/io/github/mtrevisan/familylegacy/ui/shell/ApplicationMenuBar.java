@@ -59,6 +59,8 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.Relationship
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchProgressOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.sources.SourceToolRegistry;
 import org.apache.commons.lang3.StringUtils;
@@ -202,7 +204,7 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem properties = new JMenuItem(I18N.t("menu.file.properties"), KeyEvent.VK_R);
+		final JMenuItem properties = new JMenuItem(I18N.t("menu.file.properties"), KeyEvent.VK_P);
 		properties.addActionListener(e -> fileController.showProperties());
 		menu.add(properties);
 
@@ -269,8 +271,28 @@ final class ApplicationMenuBar{
 		final JMenu menu = new JMenu(I18N.t("menu.edit"));
 		menu.setMnemonic(KeyEvent.VK_E);
 
-		menu.add(historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo));
-		menu.add(historyItem(ShortcutRegistry.EDIT_REDO, frame::redo));
+		final JMenuItem undo = historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo);
+		final JMenuItem redo = historyItem(ShortcutRegistry.EDIT_REDO, frame::redo);
+		menu.add(undo);
+		menu.add(redo);
+		//active only when there is something to undo or redo
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				undo.setEnabled(frame.canUndo());
+				redo.setEnabled(frame.canRedo());
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+		undo.setEnabled(false);
+		redo.setEnabled(false);
+		//the accelerators work only on enabled items: follow the history, not only the opening of the menu
+		frame.addHistoryListener(() -> {
+			undo.setEnabled(frame.canUndo());
+			redo.setEnabled(frame.canRedo());
+		});
 		final JMenuItem recentChanges = new JMenuItem(I18N.t("menu.edit.recent_changes"));
 		recentChanges.addActionListener(e -> frame.showRecentChanges());
 		menu.add(recentChanges);
@@ -604,28 +626,35 @@ final class ApplicationMenuBar{
 	 *                          Reports
 	 * ====================================================================== */
 
+	/**
+	 * @return	The reports in the groups of the menu: the ones about people and groups (they need one selected), the ones about a place, a
+	 * 	source or a research question (picked from a list), the bibliography and the research progress (about the selected record) and
+	 * 	the ones about the whole file.
+	 */
+	static List<List<ToolOperation>> reportOperationGroups(){
+		return List.of(
+			List.of(new AncestorReportOperation(), new DescendantReportOperation(), new IndividualSummaryOperation(),
+				new RelationshipReportOperation(), new GroupSheetOperation()),
+			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation()),
+			List.of(new BibliographyOperation(), new ResearchProgressOperation()),
+			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new SurnamesOperation()));
+	}
+
 	private JMenu createReportsMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.reports"));
-		menu.setMnemonic(KeyEvent.VK_R);
+		menu.setMnemonic(KeyEvent.VK_O);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		final List<ToolOperation> reportOperations = List.of(
-			new AncestorReportOperation(),
-			new DescendantReportOperation(),
-			new GroupSheetOperation(),
-			new IndividualSummaryOperation(),
-			new RelationshipReportOperation(),
-			new PlaceReportOperation(),
-			new SourceReportOperation(),
-			new ResearchQuestionReportOperation(),
-			new BibliographyOperation(),
-			new FullBibliographyOperation(),
-			new ResearchProgressOperation(),
-			new FamilyBookOperation()
-		);
+		//the reports are in groups, by what they start from, each one separated from the next
+		boolean first = true;
+		for(final List<ToolOperation> group : reportOperationGroups()){
+			if(!first)
+				menu.addSeparator();
+			first = false;
 
-		addToolsToMenu(menu, reportOperations, bindings);
+			addToolsToMenu(menu, group, bindings);
+		}
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -638,7 +667,7 @@ final class ApplicationMenuBar{
 
 	private JMenu createToolsMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.tools"));
-		menu.setMnemonic(KeyEvent.VK_T);
+		menu.setMnemonic(KeyEvent.VK_L);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 

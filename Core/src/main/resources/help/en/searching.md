@@ -25,13 +25,15 @@ Both open the same dialog, *Select Record*:
 - **Type**: only when more than one type is searchable.
 - **Search text**.
 - **Whole word** and **Fuzzy**, both off.
-- A box of **filters** for the type. For individuals: *Sex*, *Event Type*, *Date From* and *Date To* (each with its calendar), and *Place*. For groups: *Name* and *Type*. The filters on events, dates and places apply to the events of the individual.
+- A box of **filters** for the type. For individuals: *Sex* (the preferred sex of the person; a person whose sex is undetermined is not excluded), *Event Type*, *Date From* and *Date To* (each with its calendar), and *Place*. For groups: *Name* and *Type*. The filters on events, dates and places apply to the events of the individual.
 - **Results**: the list, with a status line (*Found N record(s)*) and a progress bar while it searches.
 - Buttons **Edit...**, **Unlink** and **Delete** (on the selected result), and **Select** and **Cancel**.
 
 The search starts by itself about 0.4 seconds after you stop typing or change a filter, and runs in the background. `Esc` stops a search in progress and, if none is running, closes the dialog. A double-click on a result is **Select** (in the *Manage* dialogs it is **Edit**: see [Manage dialogs](#manage-dialogs)). Records hidden by the [privacy](privacy.md) policy are not found.
 
 **What the text is matched against.** The *display text* of the record. For an individual it is the **first name** and the identifier, such as `Bortolo Gallinaro [I12]`: other names, dates and places are not searched by the text (use the filters for them). The text is split into words; each word is looked for in the words of the record, in any order (`gall bor` finds `Bortolo Gallinaro`). A record qualifies if **at least one** word matches, and the records that match more words come first, then by similarity, then alphabetically.
+
+**Places** are also found by the places that contain them: the text (and the *Name* filter) of a *place* search is matched against the names of the place and against the names of every place it is part of, through any relationship (administrative, ecclesiastical, ...), so `Treviso Veneto` finds Treviso, which is part of Veneto, and `Veneto` finds every place in Veneto. Events were already found by the complete name of their place.
 
 - By default a word matches a **part of a word**, ignoring capitals.
 - **Whole word**: a word must match a complete word.
@@ -51,6 +53,11 @@ The result list shows, for individuals, the sex (`[M]`, `[F]`, `[U]`), the name,
 - a double-click on a record **edits** it;
 - **New...** creates a record, and the dialog stays open with the new record in the list;
 - **Edit...**, **Unlink** and **Delete** work on the selected record. **Unlink** lists the records that refer to it and removes the ones you choose.
+- in **Manage Places...** the details of the selected place (on the right of the hierarchy) end with **Linked to**: the events, attributes, repositories... that use the place, so you can see what depends on it before you unlink or delete it.
+
+### Search fields in the lists and boards
+
+The search field of **Manage Media**, **Event Types**, **Research Log**, **Research Board**, **Context Board**, **Find Duplicates** and **Citation Analysis** works as the one of *Find record*: the text is matched word by word, a row with more of the words ranks higher, and the check boxes next to the field narrow the search to **Whole word** or widen it to typos (**Fuzzy**). In the list of uncited assertions of **Citation Analysis**, **Search in notes and citations** looks in the notes too, and the best matches come first.
 
 ## Bookmarks
 

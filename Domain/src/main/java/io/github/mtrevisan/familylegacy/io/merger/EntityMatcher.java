@@ -25,7 +25,19 @@
 package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.merger.TextSimilarity.Agreement;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -33,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -40,18 +53,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 
 
 /**
@@ -97,12 +98,10 @@ final class EntityMatcher{
 	private static final String TAG_COORDINATES = PlaceReader.TAG_COORDINATES;
 	private static final String TAG_URI = MediaReader.TAG_URI;
 	private static final String TAG_KIND = MediaReader.TAG_KIND;
-	private static final String TAG_SEX = IndividualReader.TAG_SEX;
 	private static final String AGENT_TEXT = AgentReader.TAG_TEXT;
 	private static final String PART_GIVEN = NameReader.ENUM_PART_TYPE_GIVEN;
 	private static final String PART_FAMILY = NameReader.ENUM_PART_TYPE_FAMILY;
 	private static final String PART_FAMILY_PREFIX = NameReader.ENUM_PART_TYPE_FAMILY_PREFIX;
-	private static final Set<String> KNOWN_SEXES = Set.of(IndividualReader.ENUM_SEX_MALE, IndividualReader.ENUM_SEX_FEMALE);
 
 	private static final double DAYS_PER_YEAR = 365.2425;
 	private static final double MAX_LIFESPAN_YEARS = 120.;
@@ -237,10 +236,10 @@ final class EntityMatcher{
 		final IndividualFeatures fb = individual(b.getId());
 		final MatchScore.Builder score = new MatchScore.Builder(PRIOR_INDIVIDUAL);
 
-		final String sexA = ModelIndex.value(a, TAG_SEX);
-		final String sexB = ModelIndex.value(b, TAG_SEX);
-		if(sexA != null && sexB != null && KNOWN_SEXES.contains(sexA) && KNOWN_SEXES.contains(sexB)){
-			if(!sexA.equals(sexB))
+		final Set<String> sexesA = index.sexes(a.getId());
+		final Set<String> sexesB = index.sexes(b.getId());
+		if(!sexesA.isEmpty() && !sexesB.isEmpty()){
+			if(Collections.disjoint(sexesA, sexesB))
 				return score.veto("opposite sexes")
 					.build();
 			score.add(0.5, "same sex");
@@ -564,7 +563,19 @@ final class EntityMatcher{
 		final Set<String> jurisdictionA = jurisdiction(a, namesA);
 		final Set<String> jurisdictionB = jurisdiction(b, namesB);
 		boolean differentJurisdictions = false;
-		if(!jurisdictionA.isEmpty() && !jurisdictionB.isEmpty()){
+		final List<String> chainA = ancestorChain(a);
+		final List<String> chainB = ancestorChain(b);
+		if(!chainA.isEmpty() && !chainB.isEmpty()){
+			//both places have a hierarchy: the whole chain of containers decides, level by level (Canizzano in Treviso (city) in
+			//Treviso (province) is not Canizzano in Treviso (province), even if they share names)
+			if(chainA.equals(chainB))
+				score.add(4., "same jurisdiction");
+			else{
+				score.add(-6., "different jurisdictions");
+				differentJurisdictions = true;
+			}
+		}
+		else if(!jurisdictionA.isEmpty() && !jurisdictionB.isEmpty()){
 			final int common = intersection(jurisdictionA, jurisdictionB);
 			if(common >= 2)
 				score.add(4., "same jurisdiction");
@@ -623,6 +634,32 @@ final class EntityMatcher{
 			}
 		}
 		return new PlaceNames(TextSimilarity.normalizeAll(leaves), qualifiers);
+	}
+
+	/**
+	 * The chain of the containers of a place, from the nearest to the farthest, as normalized names (the first container of each
+	 * level is followed, and the chain stops at a cycle).
+	 */
+	private List<String> ancestorChain(final FLEFRecord place){
+		final List<String> chain = new ArrayList<>();
+		final Set<String> seen = new HashSet<>();
+		seen.add(place.getId());
+		String current = place.getId();
+		while(true){
+			final Set<String> parents = index.placeParentsOf(current);
+			if(parents.isEmpty())
+				break;
+
+			final String parentId = parents.iterator().next();
+			final FLEFRecord parent = index.record(parentId);
+			if(parent == null || !seen.add(parentId))
+				break;
+
+			final List<String> names = placeNames(parent).leaves();
+			chain.add(names.isEmpty()? StringUtils.EMPTY: names.getFirst());
+			current = parentId;
+		}
+		return chain;
 	}
 
 	/**
@@ -694,16 +731,18 @@ final class EntityMatcher{
 
 		addRepositoryCitations(score, callNumbers(a), callNumbers(b));
 
-		// the scans or recordings of the source (media are merged on their resource before sources)
+		// the scans or recordings of the source (media are merged on their resource before sources): the same media make it probable
+		// that the sources are the same one, different media make it certain that they are not
 		final Set<String> mediaA = values(a, TAG_MEDIA);
 		final Set<String> mediaB = values(b, TAG_MEDIA);
 		if(!mediaA.isEmpty() && !mediaB.isEmpty()){
 			final int common = intersection(mediaA, mediaB);
 			if(common > 0)
-				score.add(6., common + " media in common");
+				score.add(8., common + " media in common");
+			//a source is its document: sources with different media are different sources
 			else
-				// a new scan of the same document is still the same document
-				score.add(-1., "different media");
+				return score.veto("different media")
+					.build();
 		}
 
 		// the uses: the same entries cited for the same assertions about the same (already merged) records

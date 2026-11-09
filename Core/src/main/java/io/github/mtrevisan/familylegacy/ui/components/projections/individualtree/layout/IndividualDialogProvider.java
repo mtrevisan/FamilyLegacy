@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.search.strategies.IndividualSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -109,7 +110,7 @@ public final class IndividualDialogProvider{
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		if(sex != null)
-			dialog.withFilter(IndividualReader.TAG_SEX, I18N.t("enum.individual.sex." + sex.name().toLowerCase(Locale.ROOT)));
+			dialog.withFilter(IndividualSearchStrategy.KEY_SEX, I18N.t("enum.individual.sex." + sex.name().toLowerCase(Locale.ROOT)));
 		dialog.setVisible(true);
 
 		return result[0];

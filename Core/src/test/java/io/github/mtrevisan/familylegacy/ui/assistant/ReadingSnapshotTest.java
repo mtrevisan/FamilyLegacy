@@ -150,4 +150,69 @@ class ReadingSnapshotTest{
 			"the indicator and the palette read the same copy, which costs once");
 	}
 
+
+	/** A service whose only assistant counts how many times it is asked for findings. */
+	private static ResearchAssistantService countingService(final java.util.concurrent.atomic.AtomicInteger calls){
+		final ResearchAssistantService service = new ResearchAssistantService(IgnoredFindings.inMemory());
+		service.register(new AssistantContributor(){
+			@Override
+			public List<AssistantAction> actions(){
+				return List.of();
+			}
+
+			@Override
+			public List<DiagnosticProvider> diagnosticProviders(){
+				return List.of(context -> {
+					calls.incrementAndGet();
+					return List.of();
+				});
+			}
+		});
+		return service;
+	}
+
+	@Test
+	void theFindingsOfTheSameCopyAreComputedOnce() throws IOException{
+		final FLEFModel model = convert();
+		final ModelHistory history = new ModelHistory(model);
+		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final ResearchAssistantService service = countingService(calls);
+		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+
+		//the indicator computes, then the palette is opened: it asks for the findings of the same copy
+		final List<Diagnostic> first = service.diagnose(context.forReading());
+		final List<Diagnostic> second = service.diagnose(context.forReading());
+
+		Assertions.assertEquals(1, calls.get());
+		Assertions.assertSame(first, second);
+	}
+
+	@Test
+	void theFindingsAreComputedAgainWhenTheModelChanged() throws IOException{
+		final FLEFModel model = convert();
+		final ModelHistory history = new ModelHistory(model);
+		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final ResearchAssistantService service = countingService(calls);
+		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+
+		service.diagnose(context.forReading());
+		editEverything(model);
+		service.diagnose(context.forReading());
+
+		Assertions.assertEquals(2, calls.get());
+	}
+
+	@Test
+	void aContextThatReadsTheModelAsItIsIsNeverKept() throws IOException{
+		final FLEFModel model = convert();
+		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final ResearchAssistantService service = countingService(calls);
+		final AssistantContext context = new AssistantContext(null, null, model, FILE);
+
+		service.diagnose(context);
+		service.diagnose(context);
+
+		Assertions.assertEquals(2, calls.get(), "the model may have been edited in place between the two");
+	}
+
 }

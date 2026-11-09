@@ -42,12 +42,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -105,10 +108,10 @@ public final class ProvenanceDialog extends JDialog{
 		table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		table.getSelectionModel()
 			.addListSelectionListener(e -> updateButtons());
-		table.addMouseListener(new java.awt.event.MouseAdapter(){
+		table.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final java.awt.event.MouseEvent e){
-				if(e.getClickCount() == 2 && javax.swing.SwingUtilities.isLeftMouseButton(e))
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
 					openSelectedRecord();
 			}
 		});

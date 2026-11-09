@@ -32,6 +32,9 @@ import io.github.mtrevisan.calendars.astronomy.Zenith;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -212,19 +215,19 @@ public final class SunTool{
 	}
 
 
-	private static java.time.LocalDate localDate(final ZonedDateTime utc, final double longitude){
+	private static LocalDate localDate(final ZonedDateTime utc, final double longitude){
 		return shiftToLocal(utc, longitude).toLocalDate();
 	}
 
-	private static java.time.LocalDateTime shiftToLocal(final ZonedDateTime utc, final double longitude){
-		return utc.withZoneSameInstant(java.time.ZoneOffset.UTC).toLocalDateTime().plusSeconds(Math.round(longitude / DEGREES_PER_HOUR * SECONDS_PER_HOUR));
+	private static LocalDateTime shiftToLocal(final ZonedDateTime utc, final double longitude){
+		return utc.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime().plusSeconds(Math.round(longitude / DEGREES_PER_HOUR * SECONDS_PER_HOUR));
 	}
 
 	private static String localTime(final ZonedDateTime utc, final double longitude){
 		if(utc == null)
 			return "none";
 
-		final java.time.LocalDateTime local = shiftToLocal(utc, longitude);
+		final LocalDateTime local = shiftToLocal(utc, longitude);
 		return String.format("%02d:%02d", local.getHour(), local.getMinute());
 	}
 

@@ -39,6 +39,8 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,9 +84,9 @@ class ValidationReportDialogTest{
 
 
 	private static void click(final JTable table, final int row){
-		final java.awt.Rectangle cell = table.getCellRect(row, 1, true);
-		table.dispatchEvent(new java.awt.event.MouseEvent(table, java.awt.event.MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
-			cell.x + 5, cell.y + cell.height / 2, 1, false, java.awt.event.MouseEvent.BUTTON1));
+		final Rectangle cell = table.getCellRect(row, 1, true);
+		table.dispatchEvent(new MouseEvent(table, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), 0,
+			cell.x + 5, cell.y + cell.height / 2, 1, false, MouseEvent.BUTTON1));
 	}
 
 

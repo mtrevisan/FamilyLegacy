@@ -31,9 +31,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,10 +64,10 @@ class RepositoryReaderTest{
 
 	@Test
 	void everyTypeHasALabel() throws IOException{
-		final java.util.Properties messages = new java.util.Properties();
+		final Properties messages = new Properties();
 		try(final InputStream is = RepositoryReaderTest.class.getResourceAsStream("/i18n/ui/messages.properties")){
 			Assertions.assertNotNull(is, "messages not found");
-			messages.load(new java.io.InputStreamReader(is, StandardCharsets.UTF_8));
+			messages.load(new InputStreamReader(is, StandardCharsets.UTF_8));
 		}
 
 		Assertions.assertAll(Arrays.stream(RepositoryReader.TYPES)

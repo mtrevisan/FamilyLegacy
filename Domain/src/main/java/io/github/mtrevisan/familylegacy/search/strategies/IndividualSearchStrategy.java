@@ -29,9 +29,12 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -57,6 +60,8 @@ import java.util.function.Predicate;
  */
 public class IndividualSearchStrategy implements SearchStrategy{
 
+	/** The key of the filter on the (preferred) sex of the individual. */
+	public static final String KEY_SEX = IndividualAttributeReader.ENUM_TYPE_SEX;
 	public static final String KEY_DATE_FROM = EventReader.TAG_DATE + "_" + DateReader.TAG_FROM;
 	public static final String KEY_CALENDAR_FROM = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_FROM;
 	public static final String KEY_DATE_TO = EventReader.TAG_DATE + "_" + DateReader.TAG_TO;
@@ -77,6 +82,8 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private Set<SearchMode> modes;
 
 	private FLEFModel model;
+	/** The sex assertions by individual: finding them for each record would be quadratic. */
+	private Map<String, List<FLEFRecord>> sexIndex;
 
 	private final Map<String, Integer> birthYears = new HashMap<>();
 	private final Map<String, Integer> deathYears = new HashMap<>();
@@ -85,7 +92,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		sex = criteria.getFilterFor(IndividualReader.TAG_SEX);
+		sex = criteria.getFilterFor(KEY_SEX);
 		eventType = criteria.getFilterFor(EventReader.TAG_TYPE);
 		eventDateFrom = criteria.getFilterFor(KEY_DATE_FROM);
 		calendarFrom = criteria.getFilterFor(KEY_CALENDAR_FROM);
@@ -95,6 +102,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		modes = criteria.modes();
 
 		this.model = model;
+		sexIndex = PreferredSex.indexByIndividual(model);
 
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
@@ -114,8 +122,9 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 		return individual -> {
 			if(StringUtils.isNotEmpty(sex)){
-				final String recordSex = IndividualReader.extractRawSex(individual);
-				if(!IndividualReader.isSexUnknown(recordSex) && !Strings.CI.equals(sex, recordSex))
+				//an individual whose sex is not determined is not excluded
+				final SexType recordSex = sexOf(individual, model);
+				if(recordSex != SexType.UNKNOWN && !Strings.CI.equals(sex, recordSex.getRawSex()))
 					return false;
 			}
 
@@ -124,6 +133,14 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 			return true;
 		};
+	}
+
+	private SexType sexOf(final FLEFRecord individual, final FLEFModel model){
+		return (sexIndex != null? PreferredSex.of(individual, sexIndex, model): PreferredSex.of(individual, model));
+	}
+
+	private List<FLEFRecord> sexAssertionsOf(final FLEFRecord individual, final FLEFModel model){
+		return (sexIndex != null? sexIndex.getOrDefault(individual.getId(), List.of()): PreferredSex.assertions(individual.getId(), model));
 	}
 
 	private boolean hasMatchingEvent(final FLEFRecord individual){
@@ -180,15 +197,14 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String baseDisplayText = RecordDisplay.describe(record, model);
-		final String recordSex = IndividualReader.extractRawSex(record);
-		if(StringUtils.isNotEmpty(recordSex)){
-			if(IndividualReader.isSexMale(recordSex))
-				baseDisplayText = SEX_ABBREVIATION_MALE + StringUtils.SPACE + baseDisplayText;
-			else if(IndividualReader.isSexFemale(recordSex))
-				baseDisplayText = SEX_ABBREVIATION_FEMALE + StringUtils.SPACE + baseDisplayText;
-			else
-				baseDisplayText = SEX_ABBREVIATION_UNKNOWN + StringUtils.SPACE + baseDisplayText;
-		}
+		final SexType recordSex = sexOf(record, model);
+		if(recordSex == SexType.MALE)
+			baseDisplayText = SEX_ABBREVIATION_MALE + StringUtils.SPACE + baseDisplayText;
+		else if(recordSex == SexType.FEMALE)
+			baseDisplayText = SEX_ABBREVIATION_FEMALE + StringUtils.SPACE + baseDisplayText;
+		else if(!sexAssertionsOf(record, model).isEmpty())
+			//there are assertions, but none prevails
+			baseDisplayText = SEX_ABBREVIATION_UNKNOWN + StringUtils.SPACE + baseDisplayText;
 
 		String birthDate = null;
 		String birthPlace = null;

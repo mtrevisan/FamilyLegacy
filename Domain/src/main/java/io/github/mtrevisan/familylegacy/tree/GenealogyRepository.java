@@ -84,6 +84,8 @@ public class GenealogyRepository{
 	private final Map<String, IndividualSummary> individualDataCache = new HashMap<>();
 
 	private boolean initialized;
+	/** Incremented every time the indices are dropped, so that whatever was derived from them can tell it is stale. */
+	private int indicesVersion;
 
 
 	public GenealogyRepository(final String[] relationshipAllowedTypes, final FLEFModel model){
@@ -482,12 +484,20 @@ public class GenealogyRepository{
 		individualsWithDescendantsSet.clear();
 		individualToRelationshipIdsMap.clear();
 		individualToParentLinksMap.clear();
+		//a partner whose relationship was removed must not stay connected
+		individualToPartnerIdsMap.clear();
 		partnerValidFromMap.clear();
 
 		// Clear the flyweight cache so IndividualSummary instances are recreated without deleted relations
 		individualDataCache.clear();
 
 		initialized = false;
+		indicesVersion ++;
+	}
+
+	/** @return	A number that changes every time the indices are invalidated. */
+	public synchronized int indicesVersion(){
+		return indicesVersion;
 	}
 
 	public String[] getRelationshipAllowedTypes(){

@@ -28,6 +28,7 @@ import javax.swing.SwingUtilities;
 import java.awt.AWTEvent;
 import java.awt.Dialog;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -105,7 +106,7 @@ public final class DialogPlacement{
 
 	private static Rectangle usableArea(final GraphicsConfiguration configuration){
 		final GraphicsConfiguration screen = (configuration != null? configuration
-			: java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
+			: GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration());
 		final Rectangle bounds = screen.getBounds();
 		final Insets insets = Toolkit.getDefaultToolkit()
 			.getScreenInsets(screen);

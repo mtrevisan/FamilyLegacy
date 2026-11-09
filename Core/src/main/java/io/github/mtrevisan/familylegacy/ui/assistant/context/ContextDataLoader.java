@@ -36,10 +36,11 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
+import io.github.mtrevisan.familylegacy.ui.assistant.PlaceAncestors;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -47,12 +48,10 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,32 +165,7 @@ final class ContextDataLoader{
 
 	/** The places that contain each place, through the relationships of territory, at any depth. */
 	private static Map<String, Set<String>> ancestors(final FLEFModel model){
-		final Map<String, Set<String>> parents = new HashMap<>();
-		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
-		for(final FLEFRecord placeRelationship : placeRelationships){
-			if(!TERRITORIAL.contains(PlaceRelationshipReader.extractType(placeRelationship)))
-				continue;
-
-			final String subject = FLEFRecordHelper.getChildValue(placeRelationship,
-				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE));
-			final String target = FLEFRecordHelper.getChildValue(placeRelationship,
-				FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_TARGET, PlaceHandler.TYPE));
-			if(subject != null && target != null)
-				parents.computeIfAbsent(subject, k -> new HashSet<>()).add(target);
-		}
-
-		final Map<String, Set<String>> ancestors = new HashMap<>();
-		for(final String place : parents.keySet()){
-			final Set<String> seen = new HashSet<>();
-			final List<String> queue = new ArrayList<>(parents.get(place));
-			while(!queue.isEmpty()){
-				final String next = queue.remove(queue.size() - 1);
-				if(!next.equals(place) && seen.add(next))
-					queue.addAll(parents.getOrDefault(next, Set.of()));
-			}
-			ancestors.put(place, seen);
-		}
-		return ancestors;
+		return PlaceAncestors.of(model);
 	}
 
 

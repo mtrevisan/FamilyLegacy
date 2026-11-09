@@ -100,7 +100,9 @@
 // ## Preferred assertion
 // Some assertion kinds are single-valued: a subject has at most one true assertion of that kind. Competing assertions of these
 // kinds are candidates for preferred assertion selection. Single-valued kinds are defined by the protocol version:
-// - SEX individual attribute, per individual (TODO).
+// - SEX individual attribute, per individual: its VALUE is male, female, or unknown. An assertion whose VALUE is unknown says
+//   nothing about the sex, so it is not counted among the candidates of the steps 2 and 3 below (it can still be preferred by a
+//   ConclusionRecord).
 // - BIRTH and DEATH events, per participant with role PRINCIPAL;
 // - BIOLOGICAL_CHILD and CHILD relationships: an individual has at most two biological parents, and a CHILD relationship counts as a
 //   possible biological parent. When more than two are asserted, the assertions SHOULD be resolved through ConclusionRecords; while
@@ -186,11 +188,11 @@ Record = oneof {
 record HeaderRecord {
   protocol: struct {
     name: Text        // the name of the protocol; MUST be `Family LEgacy Format`
-    version: SemVer   // the version of the protocol. It is defined and changed by the creators of the product.
+    version: SemVer   // Version of the FLEF protocol used by this file.
   }
   source?: struct {
-    name?: Text        // the human-readable name of the software product that produced this file
-    version?: SemVer   // the version of the software product. It is defined and changed by the creators of the product.
+    name?: Text           // the human-readable name of the software product that produced this file
+    version?: SemVer      // the version of the software product. It is defined and changed by the creators of the product.
     organization?: Text   // the name of the organization or person that produced or commissioned the product
   }
   date: DateTime     // the date this file was created
@@ -212,10 +214,7 @@ record HeaderRecord {
 // to that individual. Two records believed to describe the same individual are candidates for a merge (see IdentityHypothesisRecord and Merge).
 record IndividualRecord {
   name*: PersonalNameStructure   // names associated with this individual (birth name, married name, alias, etc.)
-  sex?: enum {                   // Biological sex as recorded in sources or inferred from evidence. This represents a genealogical conclusion and may be revised as additional evidence becomes available.
-    male, female, unknown
-  }
-  source*: SourceCitation        // the evidence that this individual existed and, when present, for SEX; facts about the individual are cited on their own records (names, events, attributes, relationships)
+  source*: SourceCitation        // the evidence that this individual existed; facts about the individual are cited on their own records (names, events, attributes, relationships, SEX included)
   note*: NoteStructure           // free-text notes about this individual
   preferred_image?: struct {
     media: Xref<MediaRecord>   // Resource pointing to a preferred image of this individual.
@@ -356,7 +355,7 @@ record EventRecord {
     probate,                // The judicial actions associated with the disposition of the estate of the deceased.
     guardianship            // The act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of themselves.
   } | Text
-  description?: Text              // Human-readable description of the event when a structured representation is insufficient.
+  description?: Text              // Human-readable description of the event when the event type and related structures do not fully capture its meaning.
   date?: DateStructure            // the date of the event
   place?: PlaceCitation           // the location of the event
   cause?: struct {
@@ -384,6 +383,7 @@ record EventRecord {
 record IndividualAttributeRecord {
   individual: Xref<IndividualRecord>   // The individual to whom this attribute applies.
   type: enum {                         // The type of attribute being asserted.
+    sex,               // Biological sex as recorded in sources or inferred from evidence. Single-valued: see Preferred assertion.
     characteristic,    // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
     residence,         // Place where the individual is known to have lived, resided, or maintained a household.
     occupation,        // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
@@ -404,7 +404,7 @@ record IndividualAttributeRecord {
     education,         // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
     apprenticeship     // Apprenticeship, trainee status, or participation in a master-apprentice relationship over a period of time.
   } | Text
-  value?: Text                         // The value of the attribute. When the value is a place (e.g. RESIDENCE), it is given by PLACE and VALUE MAY only add details not represented by the place record (e.g. "with his uncle", "as a servant").
+  value?: Text                         // The value of the attribute. For SEX it is male, female, or unknown. When the value is a place (e.g. RESIDENCE), it is given by PLACE and VALUE MAY only add details not represented by the place record (e.g. "with his uncle", "as a servant").
   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.
   valid_to?: DateStructure             // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation                // Place specifically associated with this attribute; for RESIDENCE, the place of residence.
@@ -413,6 +413,8 @@ record IndividualAttributeRecord {
   confidence?: Confidence              // confidence that this attribute was true
   privacy?: PrivacyStructure
   audit: AuditStructure
+
+  require if type == sex: value in (male, female, unknown)   // the VALUE of a SEX attribute is an enumeration
 }
 
 
@@ -967,7 +969,7 @@ record SourceRecord {
 Agent = oneof {
   individual: Xref<IndividualRecord>   // an individual described in this file
   group: Xref<GroupRecord>             // a group or organization described in this file (e.g. a parish, a confraternity)
-  text: Text                           // an agent not described in this file (e.g. a publisher's editor, an unidentified clerk)
+  text: Text                           // an agent not represented by an IndividualRecord or GroupRecord in this file (e.g. a publisher's editor, an unidentified clerk)
 }
 
 // embedded
@@ -978,8 +980,8 @@ struct SourceCitation {
   locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
   extract*: ExtractStructure
   stance: enum {   // Direction of this citation relative to the assertion it is cited for.
-    supports,     // the source backs the assertion
-    contradicts   // the source speaks against the assertion
+    supports,     // the source supports the assertion
+    contradicts   // the source contradicts the assertion
   }
   evidence?: EvidenceQualifiers   // classification of this source's contribution to the assertion it is cited for
   privacy?: PrivacyStructure
@@ -1262,7 +1264,7 @@ record ResearchActivityRecord {
     detail?: Text   // details about pages, years, volumes, entries, etc.
   }
 
-  result?: enum {
+  result?: enum {   // Result of the activity itself, not of the underlying research question.
     positive,       // relevant information was found
     negative,       // search completed with no relevant findings
     inconclusive,   // findings exist but do not answer the question
@@ -1308,7 +1310,7 @@ record ResearchTaskRecord {
 // assertions remain preserved so that the reasoning process remains transparent and auditable.
 // Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses, and researcher conclusions simultaneously.
 record ConclusionRecord {
-  issue: Text                               // the specific issue that is resolved, e.g. an event type, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
+  issue: Text                               // the specific issue that is resolved (e.g. an event type, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"). Human-readable identifier of the question being resolved.
   proof_status: enum {
     conflicting_evidence,   // the evidence is conflicting, none prevails
     supported,              // preponderance of evidence, but not absolute certainty
@@ -1388,7 +1390,7 @@ struct AuditStructure {
 // Multiple conclusions MAY evaluate the same identity hypothesis over time.
 record IdentityHypothesisRecord {
   identity+: IdentityCandidate
-  rationale?: Text          // the basis for the possible identity (e.g. same parents and parish in both records)
+  rationale?: Text          // the basis for the possible identity (e.g. same parents and parish in both records). Explanation of why the records may represent the same real-world entity.
   source*: SourceCitation   // the evidence that this hypothesis is true
   confidence?: Confidence   // confidence that this hypothesis is true
   audit: AuditStructure
@@ -1430,6 +1432,7 @@ struct EvidenceQualifiers {
 }
 
 // The researcher's confidence that an assertion is true, based on the citations supporting it.
+// Confidence expresses the researcher's assessment of the assertion, not the quality of any individual source.
 enum Confidence {
   low,      // limited evidence, unresolved conflicts, or speculative
   medium,   // evidence generally supports the assertion, but gaps or uncertainties remain

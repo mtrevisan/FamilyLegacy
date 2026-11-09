@@ -113,6 +113,45 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<RecordDialog>
 		return result;
 	}
 
+	/**
+	 * The text of a name as HTML, where the nicknames (the name parts of type nickname or family nickname, or all of a name of
+	 * type nickname) are in italic.
+	 *
+	 * @param record	The personal name.
+	 * @return	The HTML, or {@code null} if there is no nickname (the plain text is enough).
+	 */
+	public String getRichDisplayText(final FLEFRecord record){
+		if(record == null)
+			return null;
+
+		final boolean nicknameName = NameReader.ENUM_PERSONAL_TYPE_NICKNAME.equals(NameReader.extractType(record));
+		boolean hasNickname = nicknameName;
+		final StringBuilder sb = new StringBuilder("<html>");
+		boolean first = true;
+		for(final FLEFRecord part : FLEFRecordHelper.findChildren(record, NameReader.TAG_PART)){
+			final String value = NameReader.extractPartValue(part);
+			if(StringUtils.isEmpty(value))
+				continue;
+
+			final String partType = NameReader.extractPartType(part);
+			final boolean nickname = (nicknameName || NameReader.ENUM_PART_TYPE_NICKNAME.equals(partType)
+				|| NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME.equals(partType));
+			hasNickname |= nickname;
+			if(!first)
+				sb.append(StringUtils.SPACE);
+			first = false;
+			final String escaped = StringUtils.replaceEach(value, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
+			sb.append(nickname? "<i>" + escaped + "</i>": escaped);
+		}
+		if(!hasNickname || first)
+			return null;
+
+		final String type = NameReader.extractType(record);
+		if(StringUtils.isNotEmpty(type))
+			sb.append(" (").append(type).append(')');
+		return sb.append("</html>").toString();
+	}
+
 	@Override
 	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
 		return RecordDialogs.createNew(TYPE, parent, model);

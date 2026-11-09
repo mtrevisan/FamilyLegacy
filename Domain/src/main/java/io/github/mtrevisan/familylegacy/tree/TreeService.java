@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.tree;
 
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -60,6 +60,8 @@ public class TreeService{
 	private final Map<String, Map<IndividualSummary, SiblingsData>> childrenDataCache = new HashMap<>();
 	// version of the order preferences the cached data were ordered with (the order is a presentation choice: see OrderPreferences)
 	private int childrenDataOrderVersion = OrderPreferences.version();
+	// version of the repository indices the cached data were derived from
+	private int childrenDataIndicesVersion = -1;
 
 
 	public TreeService(final GenealogyRepository repository, final FLEFModel model){
@@ -232,9 +234,11 @@ public class TreeService{
 			return Collections.emptyMap();
 
 		repository.ensureIndices();
-		if(childrenDataOrderVersion != OrderPreferences.version()){
+		//the cache follows the order preferences and the indices of the repository (invalidated by the privacy policy, the edits, ...)
+		if(childrenDataOrderVersion != OrderPreferences.version() || childrenDataIndicesVersion != repository.indicesVersion()){
 			childrenDataCache.clear();
 			childrenDataOrderVersion = OrderPreferences.version();
+			childrenDataIndicesVersion = repository.indicesVersion();
 		}
 		return childrenDataCache.computeIfAbsent(parentId, this::computeChildrenData);
 	}
@@ -406,7 +410,7 @@ public class TreeService{
 		final Iterator<FLEFRecord> itr = parents.iterator();
 		while(itr.hasNext()){
 			final FLEFRecord parent = itr.next();
-			final SexType parentSex = IndividualReader.extractSex(parent);
+			final SexType parentSex = PreferredSex.of(parent, model);
 			if(parentSex != SexType.UNKNOWN && sex == parentSex){
 				itr.remove();
 

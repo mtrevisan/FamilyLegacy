@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.images;
 import io.github.mtrevisan.familylegacy.util.math.AffineTransform;
 import io.github.mtrevisan.familylegacy.util.math.Quaternion;
 import io.github.mtrevisan.familylegacy.util.math.ZeroException;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;

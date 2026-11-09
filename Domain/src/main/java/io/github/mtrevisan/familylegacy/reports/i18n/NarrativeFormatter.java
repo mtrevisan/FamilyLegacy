@@ -51,7 +51,7 @@ public final class NarrativeFormatter{
 	}
 
 	public String birth(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_BIRTH_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_BIRTH_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String birthUnknown(final String name){
@@ -60,12 +60,13 @@ public final class NarrativeFormatter{
 
 	public String marriage(final String name, final String spouse, final String date, final String place){
 		if(spouse != null)
-			return String.format(labels.getString("NARRATIVE_MARRIAGE_BASE"), name, spouse, dateFrag(date), placeFrag(place));
-		return String.format(labels.getString("NARRATIVE_MARRIAGE_NOSPOUSE_BASE"), name, dateFrag(date), placeFrag(place));
+			return tidy(String.format(labels.getString("NARRATIVE_MARRIAGE_BASE"), name, spouse, dateFrag(date), placeFrag(place)));
+		return tidy(String.format(labels.getString("NARRATIVE_MARRIAGE_NOSPOUSE_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String divorce(final String name, final String spouse, final String date){
-		return String.format(labels.getString("NARRATIVE_DIVORCE"), name, spouse, dateFrag(date));
+		return tidy(String.format(labels.getString("NARRATIVE_DIVORCE"), name, spouse,
+			(date != null? StringUtils.SPACE + dateFrag(date): StringUtils.EMPTY)));
 	}
 
 	public String childrenGroup(final String name, final int count, final String groupLabel, final String names){
@@ -89,15 +90,15 @@ public final class NarrativeFormatter{
 	}
 
 	public String residence(final String name, final String place, final String from, final String to){
-		return String.format(labels.getString("NARRATIVE_RESIDENCE_BASE"), name, place, periodFrag(from, to));
+		return tidy(String.format(labels.getString("NARRATIVE_RESIDENCE_BASE"), name, place, periodFrag(from, to)));
 	}
 
 	public String move(final String name, final String place, final String from, final String to){
-		return String.format(labels.getString("NARRATIVE_MOVE_BASE"), name, place, periodFrag(from, to));
+		return tidy(String.format(labels.getString("NARRATIVE_MOVE_BASE"), name, place, periodFrag(from, to)));
 	}
 
 	public String death(final String name, final String date, final String place, final String cause){
-		return String.format(labels.getString("NARRATIVE_DEATH_BASE"), name, causeFrag(cause), dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_DEATH_BASE"), name, causeFrag(cause), dateFrag(date), placeFrag(place)));
 	}
 
 	public String title(final String name, final String title){
@@ -105,23 +106,23 @@ public final class NarrativeFormatter{
 	}
 
 	public String baptism(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_BAPTISM_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_BAPTISM_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String emigration(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_EMIGRATION_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_EMIGRATION_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String immigration(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_IMMIGRATION_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_IMMIGRATION_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String burial(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_BURIAL_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_BURIAL_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String cremation(final String name, final String date, final String place){
-		return String.format(labels.getString("NARRATIVE_CREMATION_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("NARRATIVE_CREMATION_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 
@@ -171,7 +172,7 @@ public final class NarrativeFormatter{
 	}
 
 	public String groupNarrativeFounding(final String name, final String date, final String place){
-		return String.format(labels.getString("GROUP_NARRATIVE_FOUNDING_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("GROUP_NARRATIVE_FOUNDING_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String groupNarrativeFoundingUnknown(final String name){
@@ -183,7 +184,7 @@ public final class NarrativeFormatter{
 	}
 
 	public String groupNarrativeDissolution(final String name, final String date, final String place){
-		return String.format(labels.getString("GROUP_NARRATIVE_DISSOLUTION_BASE"), name, dateFrag(date), placeFrag(place));
+		return tidy(String.format(labels.getString("GROUP_NARRATIVE_DISSOLUTION_BASE"), name, dateFrag(date), placeFrag(place)));
 	}
 
 	public String groupCounts(final int members, final int subgroups, final int attributes){
@@ -209,6 +210,11 @@ public final class NarrativeFormatter{
 			case RelationshipReader.ENUM_TYPE_STEP_CHILD -> "REL_STEP_CHILD";
 			default -> "REL_CHILD";
 		};
+	}
+
+	/** Closes the gap left by a missing fragment (a date, a place, a cause), that would leave a double space or a space before the full stop. */
+	private static String tidy(final String sentence){
+		return StringUtils.replace(StringUtils.normalizeSpace(sentence), " .", ".");
 	}
 
 	private String dateFrag(final String date){

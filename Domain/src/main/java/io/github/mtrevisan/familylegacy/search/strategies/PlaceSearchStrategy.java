@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.places.PlaceNameResolver;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
@@ -60,9 +61,13 @@ public class PlaceSearchStrategy implements SearchStrategy{
 		type = criteria.getFilterFor(PlaceReader.TAG_TYPE);
 		modes = criteria.modes();
 
+		//a place is found by its own name or by the name of any place that contains it (searching "Veneto" finds "Treviso")
+		final PlaceNameResolver resolver = (StringUtils.isNotEmpty(name)? new PlaceNameResolver(model): null);
+
 		return place -> {
 			// Name filter
-			if(!SearchHelper.matchesPlaceName(place, name, modes, FUZZY_THRESHOLD))
+			if(!SearchHelper.matchesPlaceName(place, name, modes, FUZZY_THRESHOLD)
+					&& !SearchHelper.matchesAnyName(resolver.containerNames(place.getId()), name, modes, FUZZY_THRESHOLD))
 				return false;
 
 			// Type filter

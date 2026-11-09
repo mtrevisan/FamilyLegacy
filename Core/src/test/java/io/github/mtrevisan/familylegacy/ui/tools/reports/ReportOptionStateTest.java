@@ -92,7 +92,7 @@ class ReportOptionStateTest{
 			case SOURCE -> model.getRecordsByType(SourceReader.TYPE);
 			case RESEARCH_QUESTION -> model.getRecordsByType(ResearchQuestionReader.TYPE);
 			//(about the whole file: any record will do)
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK -> model.getRecords().subList(0, 1);
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES -> model.getRecords().subList(0, 1);
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> model.getRecords();
 			default -> model.getRecordsByType(IndividualReader.TYPE);
 		};

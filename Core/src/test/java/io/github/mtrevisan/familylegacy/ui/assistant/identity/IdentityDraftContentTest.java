@@ -49,7 +49,7 @@ import java.util.List;
 /** What the draft of an identity hypothesis carries: the shared sources, the reasons feature by feature, and the narrative of a "different people". */
 class IdentityDraftContentTest{
 
-	/** Mario Rossi twice, both citing the same source, with different death years that are not within the tolerance. */
+	/** Mario Rossi twice, both citing the same source, with different death years that are not within the tolerance (but not far apart). */
 	private static final String GEDCOM = """
 		0 HEAD
 		1 CHAR UTF-8
@@ -69,7 +69,7 @@ class IdentityDraftContentTest{
 		1 BIRT
 		2 DATE 1 JAN 1851
 		1 DEAT
-		2 DATE 1 JAN 1920
+		2 DATE 1 JAN 1906
 		1 SOUR @S1@
 		""";
 

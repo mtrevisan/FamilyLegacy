@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.quality;
 
-import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 
 
 /**

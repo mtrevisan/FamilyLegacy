@@ -24,14 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
-import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
+import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
@@ -138,6 +138,14 @@ public class GEDCOMToFLEFConverter {
 		IDGenerator.reset();
 		registerIds(roots);
 
+		// the elements of a record without a date of its own are as old as the record, or as the file
+		for(GEDCOMNode node : roots){
+			if(GEDCOMMapper.TAG_HEADER.equals(node.getTag()))
+				GEDCOMImportContext.registerFileDate(GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_DATE)));
+			else
+				GEDCOMImportContext.registerRecordDate(node.getXrefId(), AuditBuilder.dateTimeOf(node));
+		}
+
 		// index the records
 		for(GEDCOMNode node : roots){
 			final String xref = node.getXrefId();
@@ -219,10 +227,14 @@ public class GEDCOMToFLEFConverter {
 		listener.onProgress(75, "Resolving family links…");
 
 		// ---- 5. Second pass: resolve family links and the sources of the multimedia ----
+		individualConverter.resolveEventAssociations();
 		familyConverter.resolveLinks();
+		familyConverter.deriveStepRelationships();
 		familyConverter.reportChildLinksWithoutChild();
 		ageBirthConverter.convert();
 		multimediaConverter.linkSources();
+		//the sources with the same title and the same media are the same source
+		SourceMerger.merge(model, sourceMap);
 
 		// ---- 6. Add the records not yet in the model ----
 		listener.onProgress(95, "Building model…");

@@ -29,9 +29,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -95,6 +95,24 @@ class RelationshipCheckerTest{
 			return this;
 		}
 
+		private final java.util.Set<String> clergy = new java.util.LinkedHashSet<>();
+		private final java.util.Set<String> churches = new java.util.LinkedHashSet<>();
+
+		Builder clergy(final String personId){
+			clergy.add(personId);
+			return this;
+		}
+
+		Builder church(final String placeId){
+			churches.add(placeId);
+			return this;
+		}
+
+		Builder eventAt(final String id, final String type, final String placeId, final RelationshipData.Participant... participants){
+			events.add(new RelationshipData.Event(id, type, null, "date of " + id, List.of(participants), placeId));
+			return this;
+		}
+
 		List<Diagnostic> check(){
 			return RelationshipChecker.check(data());
 		}
@@ -104,7 +122,7 @@ class RelationshipCheckerTest{
 		}
 
 		private RelationshipData data(){
-			return new RelationshipData(persons, groups, relationships, events);
+			return new RelationshipData(persons, groups, relationships, events, clergy, churches);
 		}
 
 	}
@@ -193,6 +211,20 @@ class RelationshipCheckerTest{
 		Assertions.assertTrue(family()
 			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD).relationship("p", "c", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
 			.check().isEmpty());
+	}
+
+	@Test
+	void associatesWithDifferentRolesFromBothSidesAreNotDuplicates(){
+		//the role is the one of the subject: a birth witness and the newborn are two different relationships
+		Assertions.assertTrue(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, "newborn", null, null, false)
+			.relationship("q", "p", RelationshipReader.ENUM_TYPE_ASSOCIATE, "birth witness", null, null, false)
+			.check().isEmpty());
+		//the same role written twice in the same direction is still a duplicate
+		Assertions.assertTrue(only(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, "friend", null, null, false)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, "Friend", null, null, false)
+			.check()).title().startsWith("Duplicate relationship"));
 	}
 
 	@Test
@@ -300,6 +332,63 @@ class RelationshipCheckerTest{
 		Assertions.assertTrue(finding.title().startsWith("Marriage type: Person p and Person q"));
 		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
 		Assertions.assertTrue(finding.explanation().contains(EventReader.ENUM_TYPE_MARRIAGE_BANN));
+	}
+
+	@Test
+	void aMarriageInAPlaceOfTheChurchPointsToReligious(){
+		final Diagnostic finding = only(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.church("P1")
+			.eventAt("E1", EventReader.ENUM_TYPE_MARRIAGE, "P1", new RelationshipData.Participant("p", true),
+				new RelationshipData.Participant("q", true))
+			.check());
+
+		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains("place of the church"));
+		Assertions.assertTrue(finding.explanation().contains("only a hint"));
+	}
+
+	@Test
+	void anOfficiantOfTheClergyPointsToReligious(){
+		final Diagnostic finding = only(family()
+			.person("x", "1 June 1800")
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.clergy("x")
+			.eventAt("E1", EventReader.ENUM_TYPE_MARRIAGE, null, new RelationshipData.Participant("p", true),
+				new RelationshipData.Participant("q", true),
+				new RelationshipData.Participant("x", false, EventParticipationReader.ENUM_ROLE_OFFICIANT))
+			.check());
+
+		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains("is of the clergy"));
+	}
+
+	@Test
+	void anOfficiantWhoIsNotOfTheClergyOrAnOrdinaryPlaceDoNotDecide(){
+		final List<Diagnostic> findings = family()
+			.person("x", "1 June 1800")
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.eventAt("E1", EventReader.ENUM_TYPE_MARRIAGE, "P2", new RelationshipData.Participant("p", true),
+				new RelationshipData.Participant("q", true),
+				new RelationshipData.Participant("x", false, EventParticipationReader.ENUM_ROLE_OFFICIANT))
+			.check();
+
+		Assertions.assertEquals(1, findings.size(), titles(findings).toString());
+		Assertions.assertTrue(findings.getFirst().title().contains("generic type spouse"));
+	}
+
+	@Test
+	void theChurchAndTheLicenseTogetherDoNotDecide(){
+		final List<Diagnostic> findings = family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.church("P1")
+			.eventAt("E1", EventReader.ENUM_TYPE_MARRIAGE, "P1", new RelationshipData.Participant("p", true),
+				new RelationshipData.Participant("q", true))
+			.event("E2", EventReader.ENUM_TYPE_MARRIAGE_LICENSE, "p", "q")
+			.check();
+
+		Assertions.assertEquals(1, findings.size(), titles(findings).toString());
+		Assertions.assertTrue(findings.getFirst().title().contains("generic type spouse"));
 	}
 
 	@Test
@@ -512,16 +601,26 @@ class RelationshipCheckerTest{
 	}
 
 	@Test
-	void anAssociationBetweenRelativesAddsNothing(){
+	void anAssociationWithoutARoleBetweenRelativesAddsNothing(){
 		final Diagnostic finding = only(family()
 			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
-			.relationship("p", "c", RelationshipReader.ENUM_TYPE_ASSOCIATE, "mentor", null, null, false)
+			.relationship("p", "c", RelationshipReader.ENUM_TYPE_ASSOCIATE, null, null, null, false)
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Association between relatives: Person p and Person c"));
 		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
 		//between two that are not relatives it is what it should be
-		Assertions.assertTrue(family().relationship("c", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, "mentor", null, null, false).check().isEmpty());
+		Assertions.assertTrue(family().relationship("c", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, null, null, null, false).check().isEmpty());
+	}
+
+	@Test
+	void anAssociationWithARoleBetweenRelativesSaysSomethingMore(){
+		//a witness, a mentor, the birth it took part in: the role is not what the tie of the family says
+		for(final String role : List.of("mentor", "witness", "birth"))
+			Assertions.assertTrue(family()
+				.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+				.relationship("p", "c", RelationshipReader.ENUM_TYPE_ASSOCIATE, role, null, null, false)
+				.check().isEmpty(), role);
 	}
 
 	@Test

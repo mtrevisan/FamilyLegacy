@@ -25,14 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionResolution;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
@@ -49,11 +50,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import java.util.stream.Collectors;
 
 
 /**
- * Finds the conflicts of the research that no conclusion evaluates yet: several births or deaths of an individual, competing
+ * Finds the conflicts of the research that no conclusion evaluates yet: several births, baptisms, deaths or burials of an individual
+ * (dates or places that cannot all be right), competing
  * parentage, conflicting relationships, attributes with two values, identity hypotheses left open.
  * <p>
  * A conflict is settled when a ConclusionRecord evaluates it: its RESOLVES contains at least two of the competing assertions and
@@ -67,7 +69,8 @@ final class ConclusionChecker{
 	/** The most biological parents an individual can have. */
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
 	/** The attributes that can have only one value for a person (the other ones change in time, or can be several). */
-	private static final Set<String> SINGLE_VALUED_ATTRIBUTES = Set.of(IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
+	private static final Set<String> SINGLE_VALUED_ATTRIBUTES = Set.of(IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID,
+		IndividualAttributeReader.ENUM_TYPE_SEX);
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 	/** The relationships that make a person a descendant of another one: a cycle of them is impossible. */
@@ -131,43 +134,58 @@ final class ConclusionChecker{
 
 			final String type = events.getFirst().type();
 			final String dates = String.join("; ", events.stream()
-				.map(e -> e.eventId() + ": " + (e.dateText() != null && !e.dateText().isBlank()? e.dateText(): "?"))
+				.map(e -> e.eventId() + ": " + (e.dateText() != null && !e.dateText().isBlank()? e.dateText(): "?")
+					+ (e.placeId() != null? " @ " + e.placeId(): StringUtils.EMPTY))
 				.toList());
-			final boolean conflicting = areIncompatible(events);
+			final boolean conflicting = areIncompatible(events, data.placeAncestors());
 			findings.add(finding((conflicting? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION),
 				(conflicting? "conflicting_events": "multiple_events"), ids, type + (conflicting? "_date": StringUtils.EMPTY),
 				events.stream().map(ConclusionData.PrincipalEvent::eventId).toList(), person.name(), type, events.size(), dates,
-				suggestion(events)));
+				suggestion(events.stream().collect(Collectors.toMap(ConclusionData.PrincipalEvent::eventId,
+					ConclusionData.PrincipalEvent::backing, (a, b) -> a, LinkedHashMap::new)))));
 		}
 	}
 
-	/** Whether two of the events certainly differ in date: no day is common to all the dates of the events. */
-	private static boolean areIncompatible(final List<ConclusionData.PrincipalEvent> events){
+	/**
+	 * Whether two of the events certainly differ: no day is common to their dates, or their places are different and neither contains
+	 * the other (a town and its province are compatible).
+	 */
+	private static boolean areIncompatible(final List<ConclusionData.PrincipalEvent> events,
+			final Map<String, Set<String>> placeAncestors){
 		for(int i = 0; i < events.size(); i ++)
 			for(int j = i + 1; j < events.size(); j ++){
-				final DateRange first = events.get(i).date();
-				final DateRange second = events.get(j).date();
-				if(first != null && second != null && !first.intersects(second))
+				final ConclusionData.PrincipalEvent first = events.get(i);
+				final ConclusionData.PrincipalEvent second = events.get(j);
+				if(first.date() != null && second.date() != null && !first.date().intersects(second.date()))
+					return true;
+				if(first.placeId() != null && second.placeId() != null && !first.placeId().equals(second.placeId())
+						&& !placeAncestors.getOrDefault(first.placeId(), Set.of()).contains(second.placeId())
+						&& !placeAncestors.getOrDefault(second.placeId(), Set.of()).contains(first.placeId()))
 					return true;
 			}
 		return false;
 	}
 
-	/** The candidate preferred assertion, if one is better supported than all the others, or the reason there is none. */
-	private static String suggestion(final List<ConclusionData.PrincipalEvent> events){
-		final Comparator<ConclusionData.PrincipalEvent> byQuality = Comparator
-			.comparingInt((ConclusionData.PrincipalEvent e) -> rank(e.confidence()))
-			.thenComparingInt(ConclusionData.PrincipalEvent::sourceCount)
+	/**
+	 * The candidate preferred assertion, if one is better supported than all the others, or the reason there is none. The confidence the
+	 * researcher gave comes first, then what the sources weigh with their evidence qualifiers (original, primary, direct).
+	 *
+	 * @param backings how well each competing assertion is backed, by the identifier of the assertion
+	 */
+	private static String suggestion(final Map<String, ConclusionData.Backing> backings){
+		final Comparator<Map.Entry<String, ConclusionData.Backing>> byQuality = Comparator
+			.comparingInt((Map.Entry<String, ConclusionData.Backing> e) -> rank(e.getValue().confidence()))
+			.thenComparingInt(e -> e.getValue().weight())
 			.reversed();
-		final List<ConclusionData.PrincipalEvent> ranked = events.stream()
+		final List<Map.Entry<String, ConclusionData.Backing>> ranked = backings.entrySet().stream()
 			.sorted(byQuality)
 			.toList();
-		final ConclusionData.PrincipalEvent best = ranked.getFirst();
-		if(byQuality.compare(best, ranked.get(1)) == 0)
+		if(ranked.size() < 2 || byQuality.compare(ranked.get(0), ranked.get(1)) == 0)
 			return I18N.t("conclusion.suggest.none");
 
-		return I18N.tf("conclusion.suggest.preferred", best.eventId(), rank(best.confidence()) > 0
-			? best.confidence(): "-", best.sourceCount());
+		final ConclusionData.Backing best = ranked.getFirst().getValue();
+		return I18N.tf("conclusion.suggest.preferred", ranked.getFirst().getKey(), rank(best.confidence()) > 0? best.confidence(): "-",
+			best.sourceCount(), best.weight());
 	}
 
 	private static void checkParentage(final ConclusionData data, final List<ConclusionFinding> findings){
@@ -231,7 +249,9 @@ final class ConclusionChecker{
 			ids.addAll(competing);
 			findings.add(finding(Diagnostic.Severity.WARNING, "conflicting_relationships", ids, "relationship_type", competing,
 				child.name(), parent.name(),
-				String.join(", ", types)));
+				String.join(", ", types),
+				suggestion(links.stream().collect(Collectors.toMap(ConclusionData.ParentLink::relationshipId,
+					ConclusionData.ParentLink::backing, (a, b) -> a, LinkedHashMap::new)))));
 		}
 	}
 
@@ -291,7 +311,9 @@ final class ConclusionChecker{
 		final Map<String, List<ConclusionData.Attribute>> byPersonAndType = new LinkedHashMap<>();
 		for(final ConclusionData.Attribute attribute : data.attributes())
 			if(SINGLE_VALUED_ATTRIBUTES.contains(attribute.type()) && data.persons().containsKey(attribute.personId())
-					&& attribute.value() != null && !attribute.value().isBlank())
+					&& attribute.value() != null && !attribute.value().isBlank()
+					//an unknown sex says nothing: it does not contradict the others
+					&& !(IndividualAttributeReader.ENUM_TYPE_SEX.equals(attribute.type()) && IndividualReader.isSexUnknown(attribute.value())))
 				byPersonAndType.computeIfAbsent(attribute.personId() + "|" + attribute.type(), k -> new ArrayList<>())
 					.add(attribute);
 
@@ -312,7 +334,9 @@ final class ConclusionChecker{
 			ids.addAll(competing);
 			findings.add(finding(Diagnostic.Severity.WARNING, "conflicting_attributes", ids, attributes.getFirst().type(), competing,
 				person.name(),
-				attributes.getFirst().type(), String.join(" / ", attributes.stream().map(ConclusionData.Attribute::value).toList())));
+				attributes.getFirst().type(), String.join(" / ", attributes.stream().map(ConclusionData.Attribute::value).toList()),
+				suggestion(attributes.stream().collect(Collectors.toMap(ConclusionData.Attribute::id,
+					ConclusionData.Attribute::backing, (a, b) -> a, LinkedHashMap::new)))));
 		}
 	}
 
@@ -342,7 +366,8 @@ final class ConclusionChecker{
 
 	/** @return the data a finding reports, without the suggestion that closes the explanation of the conflicts of events (localized) */
 	private static Object[] keyData(final String key, final Object[] arguments){
-		return (key.endsWith("_events")? Arrays.copyOf(arguments, arguments.length - 1): arguments);
+		return (key.endsWith("_events") || key.equals("conflicting_attributes") || key.equals("conflicting_relationships")
+			? Arrays.copyOf(arguments, arguments.length - 1): arguments);
 	}
 
 	/**

@@ -30,13 +30,13 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -102,6 +102,7 @@ public class FamilyConverter{
 	private final AgeBirthConverter ageBirthConverter;
 
 	private final List<FamilyLink> familyLinks = new ArrayList<>();
+	private static final java.util.regex.Pattern YEAR_PATTERN = java.util.regex.Pattern.compile("\\d{4}");
 
 	private static class FamilyLink{
 		String familyId;
@@ -296,6 +297,8 @@ public class FamilyConverter{
 					GEDCOMRecordBuilder.createResearchTask(model, child, noteRawMap, AgentReader.TAG_GROUP, group.getId());
 				else if(GEDCOMMapper.FAMILY_EVENT_TAGS.contains(child.getTag()) || GEDCOMMapper.isCustomEvent(child)){
 					final FLEFRecord event = GEDCOMRecordBuilder.createEvent(model, child, noteRawMap, placeCache);
+					//the person the role of a citation refers to is not known
+					GEDCOMRecordBuilder.reportCitedRoles(child);
 					// The event is about the family and about each spouse
 					GEDCOMRecordBuilder.attachEventParticipation(event.getId(), AgentReader.TAG_GROUP, group.getId(), EventParticipationReader.ENUM_ROLE_PRINCIPAL, null, child,
 						model);
@@ -323,6 +326,68 @@ public class FamilyConverter{
 		}
 	}
 
+
+	/**
+	 * Derives the step relationships: a child of a spouse, from another family, is a step child of the other spouse (the file says
+	 * who the parents are, and who married whom; it does not say the rest). A child born after the marriage is left out, as the
+	 * spouse may be a parent of it as well: only what the file proves (the marriage, and the child of the other family) is used.
+	 * <p>
+	 * The relationships are marked as derived. To be called after {@link #resolveLinks()}.
+	 */
+	public void deriveStepRelationships(){
+		for(final FamilyLink marriage : familyLinks){
+			if(!individualMap.containsKey(marriage.husbandId) || !individualMap.containsKey(marriage.wifeId))
+				continue;
+
+			final String marriageYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(marriage.famNode, "MARR"),
+				GEDCOMMapper.TAG_DATE));
+			for(final String[] spouses : new String[][]{{marriage.husbandId, marriage.wifeId}, {marriage.wifeId, marriage.husbandId}}){
+				final String parentId = spouses[0];
+				final String stepParentId = spouses[1];
+				for(final FamilyLink other : familyLinks){
+					if(other == marriage || !(parentId.equals(other.husbandId) || parentId.equals(other.wifeId))
+							|| stepParentId.equals(other.husbandId) || stepParentId.equals(other.wifeId))
+						continue;
+
+					for(final String childId : other.childrenIds){
+						if(!individualMap.containsKey(childId) || marriage.childrenIds.contains(childId) || childId.equals(stepParentId))
+							continue;
+
+						final String birthYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(recordsById.get(childId),
+							"BIRT"), GEDCOMMapper.TAG_DATE));
+						if(marriageYear != null && birthYear != null && birthYear.compareTo(marriageYear) > 0)
+							continue;
+
+						createStepChild(childId, stepParentId, marriage.famNode);
+					}
+				}
+			}
+		}
+	}
+
+	private void createStepChild(final String childId, final String stepParentId, final GEDCOMNode marriageNode){
+		GEDCOMImportContext.setRecord(marriageNode.getXrefId());
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
+				RelationshipReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, childId)))
+			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, stepParentId)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_STEP_CHILD))
+			.addChild(GEDCOMRecordBuilder.createNoteStruct("Derived", "Not stated in the file: derived from the marriage of "
+				+ stepParentId + " with a parent of " + childId + ", and from the child being of another family.", marriageNode))
+			.addChild(AuditBuilder.build(marriageNode));
+		Deduplicator.getDeduplicatedRecordId(model, relationship);
+	}
+
+	/** @return the year of a GEDCOM date (the first four digits), {@code null} if it has none */
+	private static String yearOf(final String date){
+		if(date == null)
+			return null;
+
+		final java.util.regex.Matcher matcher = YEAR_PATTERN.matcher(date);
+		return (matcher.find()? matcher.group(): null);
+	}
 	/**
 	 * Reports the FAMC of an individual that points to a family not listing the individual as a child (FAM.CHIL): it creates no
 	 * relationship.

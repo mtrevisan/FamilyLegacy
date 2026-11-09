@@ -31,7 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeRead
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
@@ -124,13 +126,19 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 
 	/* ----- Personal data --------------------------------------------------- */
 
+	/** @return	The raw value of the preferred sex of the individual, {@code null} if it is undetermined. */
+	private String preferredSex(final FLEFRecord individual){
+		final SexType sex = PreferredSex.of(individual, ctx.model);
+		return (sex != SexType.UNKNOWN? sex.getRawSex(): null);
+	}
+
 	private void writePersonalData(final List<ReportSection> out){
 		out.add(new ReportSection.Heading(2, ctx.labels.personalData()));
 		final List<String> personal = new ArrayList<>();
 		personal.add("**" + ctx.labels.sections().id() + ":** "
 			+ ReportFormatters.escape(ReportFormatters.orEmpty(ctx.root.getId())));
 		personal.add("**" + ctx.labels.sections().sex() + ":** " + ReportFormatters.escape(
-			Optional.ofNullable(IndividualReader.extractRawSex(ctx.root))
+			Optional.ofNullable(preferredSex(ctx.root))
 				.orElse(ctx.labels.sections().sexUnknown())));
 
 		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, IndividualReader.TAG_NAME)){
@@ -174,8 +182,11 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 				if(provenance.isEmpty())
 					continue;
 				final String nameType = FLEFRecordHelper.getChildValue(nameRec, NameReader.TAG_TYPE);
+				//the name the provenance is about
+				final String name = ReportFormatters.buildName(nameRec);
 				out.add(new ReportSection.Heading(3,
-					ctx.labels.sections().name() + (nameType != null? " (" + nameType + ")": StringUtils.EMPTY)));
+					ctx.labels.sections().name() + (nameType != null? " (" + nameType + ")": StringUtils.EMPTY)
+						+ (name.isBlank()? StringUtils.EMPTY: ": " + ReportFormatters.escape(name))));
 				out.addAll(provenance);
 			}
 		}
@@ -454,13 +465,16 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			rel, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final String objectId = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
 		final FLEFRecord object = (objectId != null? ctx.model.getRecordById(objectId): null);
+		//the other end of the relationship is an individual or a group
+		final String groupId = (objectId == null? memberGroupId(rel): null);
+		final FLEFRecord group = (groupId != null? ctx.model.getRecordById(groupId): null);
 		final String objectLabel = (object != null? ctx.displayText(object)
-			: ReportFormatters.orEmpty(objectId));
+			: (group != null? ctx.displayText(group): ReportFormatters.orEmpty(StringUtils.defaultIfBlank(objectId, groupId))));
 
 		out.add(new ReportSection.Heading(3,
 			ReportFormatters.escape(relType)
 				+ (role != null? " / " + ReportFormatters.escape(role): StringUtils.EMPTY)
-				+ ": " + ReportFormatters.escape(objectLabel)));
+				+ (objectLabel.isEmpty()? StringUtils.EMPTY: ": " + ReportFormatters.escape(objectLabel))));
 
 		final List<String> meta = new ArrayList<>();
 		if(from != null)

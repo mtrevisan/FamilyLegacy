@@ -40,8 +40,8 @@ public final class FrameAssistantPort implements ResearchAssistantPort{
 
 	@Override
 	public void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
-			final Supplier<String> scopeSupplier){
-		DefaultResearchAssistant.getInstance().install(modelSupplier, snapshotSupplier, scopeSupplier);
+			final Supplier<String> scopeSupplier, final Supplier<String> selectionSupplier){
+		DefaultResearchAssistant.getInstance().install(modelSupplier, snapshotSupplier, scopeSupplier, selectionSupplier);
 	}
 
 	@Override

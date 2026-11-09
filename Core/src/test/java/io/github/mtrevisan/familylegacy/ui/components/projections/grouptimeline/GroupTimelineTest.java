@@ -57,12 +57,15 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -148,7 +151,7 @@ class GroupTimelineTest{
 
 	@Test
 	void aMembershipThatHasBegunAndHasNoEndEndsToday(){
-		final long today = java.time.LocalDate.now().toEpochDay() + 2_440_588L;
+		final long today = LocalDate.now().toEpochDay() + 2_440_588L;
 		final TemporalProjectionModel model = build("G1");
 
 		final TemporalEntry open = memberships(row(model, "I1")).stream().filter(entry -> entry.hasRole() && "member".equals(entry.role()))
@@ -325,7 +328,7 @@ class GroupTimelineTest{
 		Assertions.assertEquals(1, shown.bands().size());
 
 		javax.swing.JCheckBox box = null;
-		for(final java.awt.Component component : filters.topBar().getComponents())
+		for(final Component component : filters.topBar().getComponents())
 			if(component instanceof javax.swing.JCheckBox check)
 				box = check;
 		Assertions.assertNotNull(box, "the box of the context is in the bar above the view");
@@ -399,7 +402,7 @@ class GroupTimelineTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = new FLEFParser().parse(FLEF);
 
-		final List<JDialog> dialogs = new java.util.ArrayList<>();
+		final List<JDialog> dialogs = new ArrayList<>();
 		SwingUtilities.invokeAndWait(() -> {
 			final ToolContext context = new ToolContext(model, null, new JPanel(), null);
 			dialogs.add(GroupViewDialog.forGroup(context, "G1"));
@@ -512,9 +515,9 @@ class GroupTimelineTest{
 	@Test
 	void aDiamondCanBePointedAtWhereItIsDrawn(){
 		final TemporalSpan point = TemporalSpan.point(NormalizedDate.exact(2_415_021L, DatePrecision.DAY));
-		final java.awt.Rectangle rect = new java.awt.Rectangle(100, 20, 1, 14);
+		final Rectangle rect = new Rectangle(100, 20, 1, 14);
 
-		final java.awt.Rectangle hit = TemporalSpanRenderer.hitBounds(rect, point);
+		final Rectangle hit = TemporalSpanRenderer.hitBounds(rect, point);
 
 		Assertions.assertTrue(hit.contains(100 + 4, 27), "beside the one pixel of the day, still on the diamond");
 		Assertions.assertTrue(hit.contains(100, 27 - 5));

@@ -24,15 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
@@ -41,8 +32,18 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.util.SoftwareInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -205,6 +206,56 @@ class GEDCOMToFLEFConverterTest{
 		""";
 
 
+	/** An adoption written twice: by the family of the child (FAMC, PEDI adopted) and by an association of the adoptive father. */
+	private static final String GEDCOM_ADOPTION_WRITTEN_TWICE = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @I2@ INDI
+		1 NAME Mother /Biological/
+		1 FAMS @F2@
+		0 @I3@ INDI
+		1 NAME Father /Adoptive/
+		1 FAMS @F2@
+		1 ASSO @I4@
+		2 RELA adoptive child
+		2 NOTE Told by the neighbours
+		0 @I4@ INDI
+		1 NAME Child /Adopted/
+		1 FAMC @F2@
+		2 PEDI adopted
+		0 @F2@ FAM
+		1 HUSB @I3@
+		1 WIFE @I2@
+		1 CHIL @I4@
+		0 TRLR
+		""";
+
+
+	/** I1 and I2 are friends, each says it of the other; I3 is the guardian of I4, who is the ward of I3. */
+	private static final String GEDCOM_ASSOCIATIONS_FROM_BOTH_SIDES = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @I1@ INDI
+		1 NAME One /First/
+		1 ASSO @I2@
+		2 RELA Friend
+		0 @I2@ INDI
+		1 NAME Two /Second/
+		1 ASSO @I1@
+		2 RELA friend
+		2 NOTE Also told by the second one
+		0 @I3@ INDI
+		1 NAME Three /Third/
+		1 ASSO @I4@
+		2 RELA Ward
+		0 @I4@ INDI
+		1 NAME Four /Fourth/
+		1 ASSO @I3@
+		2 RELA Guardian
+		0 TRLR
+		""";
+
+
 	private static FLEFModel convert() throws IOException{
 		return convert(GEDCOM);
 	}
@@ -260,7 +311,9 @@ class GEDCOMToFLEFConverterTest{
 		final FLEFRecord header = convert().getHeader();
 
 		Assertions.assertEquals("Family LEgacy Format", FLEFRecordHelper.getChildValue(header, "protocol.name"));
-		Assertions.assertEquals("The Complete Genealogy Builder", FLEFRecordHelper.getChildValue(header, "source.name"));
+		Assertions.assertEquals("Family Legacy", FLEFRecordHelper.getChildValue(header, "source.name"), "the software that writes the file is this one");
+		Assertions.assertEquals(SoftwareInfo.version(), FLEFRecordHelper.getChildValue(header, "source.version"));
+		Assertions.assertEquals("Mauro Trevisan", FLEFRecordHelper.getChildValue(header, "source.organization"));
 		Assertions.assertEquals("2026-10-14T20:51:22Z", FLEFRecordHelper.getChildValue(header, "date"));
 		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(header, "submitter.contact");
 		Assertions.assertEquals(List.of("Main street 1", "john@example.com"), contacts.stream()
@@ -336,14 +389,15 @@ class GEDCOMToFLEFConverterTest{
 		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(christening, SourceCitationReader.TAG_SOURCE);
 		final FLEFRecord citation = citations.getFirst();
 		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
-		Assertions.assertEquals("#31, Date: 21 NOV 1926", FLEFRecordHelper.getChildValue(citation, "locator"));
+		Assertions.assertEquals("#31", FLEFRecordHelper.getChildValue(citation, "locator"));
 		Assertions.assertEquals("Baptized", FLEFRecordHelper.getChildValue(citation, "extract.text"));
 		Assertions.assertEquals("A citation note", FLEFRecordHelper.getChildValue(citation, "extract.remark"));
 		Assertions.assertEquals("primary", FLEFRecordHelper.getChildValue(citation, "evidence.information_type"));
 
-		// the citation data does not change the source record
+		// the entry date of the citation is the creation date of the source (and no note is created for it)
 		final FLEFRecord source = model.getRecordById("S1");
-		Assertions.assertNull(FLEFRecordHelper.findChild(source, "date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(christening, "note"));
 		Assertions.assertNull(FLEFRecordHelper.findChild(source, "evidence"));
 
 		// a source description is the title of an unrecorded source
@@ -389,6 +443,164 @@ class GEDCOMToFLEFConverterTest{
 		Assertions.assertEquals("image", FLEFRecordHelper.getChildValue(media, "kind"));
 		Assertions.assertEquals("Register page", FLEFRecordHelper.getChildValue(media, "description"));
 		Assertions.assertEquals("5 MAY 1900", FLEFRecordHelper.getChildValue(media, "date.value.point.value.full_date"));
+	}
+
+	@Test
+	void sameFileTwiceIsOneMedia() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @M1@ OBJE
+			1 FILE photos/a.jpg
+			1 _DATE 13 FEB 2011
+			0 @M2@ OBJE
+			1 FILE photos/a.jpg
+			1 SOUR @S1@
+			0 @S1@ SOUR
+			1 TITL Register
+			0 TRLR
+			""");
+
+		Assertions.assertNotNull(model.getRecordById("M1"));
+		Assertions.assertFalse(model.hasRecord("M2"));
+		Assertions.assertEquals("13 FEB 2011", FLEFRecordHelper.getChildValue(model.getRecordById("M1"), "date.value.point.value.full_date"));
+		Assertions.assertEquals("M1", FLEFRecordHelper.getChildValue(model.getRecordById("S1"), SourceReader.TAG_MEDIA));
+	}
+
+	@Test
+	void sameFileInLinksWithDifferentDataIsOneMedia() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME Emilio /Trevisan/
+			1 OBJE
+			2 FILE photos/a.jpg
+			2 _DATE 13 FEB 2011
+			1 OBJE
+			2 FILE photos/a.jpg
+			0 TRLR
+			""");
+
+		final List<FLEFRecord> media = model.getRecordsByType(MediaReader.TYPE);
+		Assertions.assertEquals(1, media.size());
+		Assertions.assertEquals("13 FEB 2011", FLEFRecordHelper.getChildValue(media.getFirst(), "date.value.point.value.full_date"));
+	}
+
+	@Test
+	void sourcesWithTheSameTitleAndMediaAreOneSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @M1@ OBJE
+			1 FILE photos/a.jpg
+			0 @S1@ SOUR
+			1 TITL naturalization
+			1 DATA
+			2 EVEN BIRT
+			3 DATE 3 AUG 1931
+			1 OBJE @M1@
+			0 @S2@ SOUR
+			1 TITL naturalization
+			1 OBJE @M1@
+			0 @S3@ SOUR
+			1 TITL naturalization
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 SOUR @S2@
+			2 PAGE 3
+			0 TRLR
+			""");
+
+		Assertions.assertNotNull(model.getRecordById("S1"));
+		Assertions.assertFalse(model.hasRecord("S2"));
+		//a source without media is not the same source: there is nothing that says so
+		Assertions.assertTrue(model.hasRecord("S3"));
+		//the citations of the merged source cite the survivor
+		Assertions.assertEquals(2, model.getRecordsByType("source").size());
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(model.getRecordById("I1"), "assertion.source.source") != null
+			? FLEFRecordHelper.getChildValue(model.getRecordById("I1"), "assertion.source.source")
+			: FLEFRecordHelper.getChildValue(model.getRecordById("I1"), "source.source"));
+	}
+
+	@Test
+	void anAssociationNamedAsAnEventIsAWitnessOfThatEvent() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME Argentino /Mazutti/
+			1 ASSO @I2@
+			2 RELA birth
+			1 ASSO @I2@
+			2 RELA godfather
+			1 ASSO @I3@
+			2 RELA birth
+			0 @I2@ INDI
+			1 NAME Zelia /Masutti/
+			1 BIRT
+			2 DATE 1 JAN 1900
+			0 @I3@ INDI
+			1 NAME Anna /Rossi/
+			0 TRLR
+			""");
+
+		final List<FLEFRecord> witnesses = model.getRecordsByType("event_participation").stream()
+			.filter(p -> "witness".equals(FLEFRecordHelper.getChildValue(p, "role")))
+			.toList();
+		//the birth of Zelia has a witness: Argentino (and there is no association for it)
+		Assertions.assertEquals(1, witnesses.size());
+		Assertions.assertEquals("I1", FLEFRecordHelper.getChildValue(witnesses.getFirst(), "participant.individual"));
+		final List<FLEFRecord> associations = model.getRecordsByType("relationship");
+		//godfather stays an association, and so does the birth of Anna, who has no birth recorded
+		Assertions.assertEquals(2, associations.size());
+	}
+
+	@Test
+	void theSpouseOfAParentIsAStepParentOfTheChildrenOfAnotherFamily() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME Lorenzo /Masutto/
+			1 FAMS @F1@
+			1 FAMS @F2@
+			0 @I2@ INDI
+			1 NAME Anna /Rossi/
+			1 FAMS @F1@
+			0 @I3@ INDI
+			1 NAME Zuanne /Masutto/
+			1 BIRT
+			2 DATE 1700
+			1 FAMC @F1@
+			0 @I4@ INDI
+			1 NAME Pasqua /Piazarola/
+			1 FAMS @F2@
+			0 @I5@ INDI
+			1 NAME Late /Masutto/
+			1 BIRT
+			2 DATE 1750
+			1 FAMC @F1@
+			0 @F1@ FAM
+			1 HUSB @I1@
+			1 WIFE @I2@
+			1 CHIL @I3@
+			1 CHIL @I5@
+			0 @F2@ FAM
+			1 HUSB @I1@
+			1 WIFE @I4@
+			1 MARR
+			2 DATE 1720
+			0 TRLR
+			""");
+
+		final List<FLEFRecord> steps = model.getRecordsByType("relationship").stream()
+			.filter(r -> "step_child".equals(FLEFRecordHelper.getChildValue(r, "type")))
+			.toList();
+		//Zuanne (born before the marriage) is a step child of Pasqua; the one born after is not derived, as she may be the mother
+		Assertions.assertEquals(1, steps.size());
+		Assertions.assertEquals("I3", FLEFRecordHelper.getChildValue(steps.getFirst(), "subject.individual"));
+		Assertions.assertEquals("I4", FLEFRecordHelper.getChildValue(steps.getFirst(), "target.individual"));
 	}
 
 	@Test
@@ -448,6 +660,37 @@ class GEDCOMToFLEFConverterTest{
 		// the mother is in the adoptive family too, but she stays the mother by birth
 		Assertions.assertEquals(List.of("biological_child"), childTypes(model, "I4", "I2"));
 		Assertions.assertEquals(List.of("adoptive_child"), childTypes(model, "I4", "I3"));
+	}
+
+	@Test
+	void theSameAdoptionWrittenTwiceIsOneRelationshipAndKeepsWhatBothSay() throws IOException{
+		final FLEFModel model = convert(GEDCOM_ADOPTION_WRITTEN_TWICE);
+
+		Assertions.assertEquals(List.of("adoptive_child"), childTypes(model, "I4", "I3"));
+		final FLEFRecord adoption = model.getRecordsByType("relationship").stream()
+			.filter(relationship -> "I4".equals(FLEFRecordHelper.getChildValue(relationship, "subject.individual"))
+				&& "I3".equals(FLEFRecordHelper.getChildValue(relationship, "target.individual")))
+			.findFirst()
+			.orElseThrow();
+		//the note of the association is not lost
+		Assertions.assertEquals("Told by the neighbours", FLEFRecordHelper.getChildValue(adoption, "note.text"));
+		//and the mother of that family is written once too
+		Assertions.assertEquals(List.of("adoptive_child"), childTypes(model, "I4", "I2"));
+	}
+
+	@Test
+	void theSameAssociationWrittenFromBothSidesIsOneAndTwoRolesAreTwo() throws IOException{
+		final FLEFModel model = convert(GEDCOM_ASSOCIATIONS_FROM_BOTH_SIDES);
+
+		final List<FLEFRecord> associates = relationships(model, "associate");
+		//the friends are one relationship, the guardian and the ward two
+		Assertions.assertEquals(3, associates.size());
+		final List<FLEFRecord> friends = associates.stream()
+			.filter(relationship -> "friend".equalsIgnoreCase(FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE)))
+			.toList();
+		Assertions.assertEquals(1, friends.size());
+		//and it keeps what the second one added
+		Assertions.assertEquals("Also told by the second one", FLEFRecordHelper.getChildValue(friends.getFirst(), "note.text"));
 	}
 
 	@Test

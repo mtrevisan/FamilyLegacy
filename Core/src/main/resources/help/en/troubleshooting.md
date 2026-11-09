@@ -79,11 +79,11 @@ Other messages you may meet:
 
 ## Reporting a problem
 
-1. Open **Help > Diagnostics...**, which shows: the Java version and vendor, the operating system, the language, the memory, and, for the open file, how many records there are of each type. Press **Copy to Clipboard**.
+1. Open **Help > Diagnostics...**, which shows: the Java version and vendor, the operating system, the language, the memory and how long the application has been running, the graphics, and, for the open file, its name, size and last modification and how many records there are of each type. Press **Copy to Clipboard**.
 2. Add the version of the application from **Help > About Family Legacy**, what you did, and, if relevant, the report of **Validate File**.
 3. Open **Help > Report a Bug...** (it opens the issue page in the browser) and paste.
 
-The diagnostics do not contain your data, the file path or the contents of the log.
+The diagnostics contain no record of your data and no log, but they do contain the path of the open file and your user folder: remove them from the text if you do not want to share them.
 
 **Logs.** By default the application writes its log only to the console of the program that started it, so you see it only if you start the application from a terminal. A rolling log file is prepared in the configuration but switched off.
 

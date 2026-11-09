@@ -2,7 +2,7 @@
 
 ## Undo and redo
 
-**Edit > Undo** (`Ctrl+Z`) and **Edit > Redo** (`Ctrl+Y`, or `Ctrl+Shift+Z`) step back and forward through your changes. On macOS they are `Cmd+Z` and `Cmd+Shift+Z`.
+**Edit > Undo** (`Ctrl+Z`) and **Edit > Redo** (`Ctrl+Y`, or `Ctrl+Shift+Z`) step back and forward through your changes. The two items are grey when there is nothing to undo or to redo. On macOS they are `Cmd+Z` and `Cmd+Shift+Z`.
 
 - **What a step is.** The application keeps a copy of the whole file after each action. A step is closed when you start the next action (a click, a key, a menu), or when the last dialog you used closes. Record windows opened one from the other, such as a name inside a person, that you save one after the other, count as **one** step.
 - **How far back.** Up to **100** steps; the older ones are dropped. A new change after an undo discards what you could have redone.

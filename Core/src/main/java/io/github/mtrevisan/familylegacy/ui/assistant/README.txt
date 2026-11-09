@@ -69,6 +69,10 @@ Design decisions that refine the text below:
 - Every action must respect the data safety rules below; a test cannot enforce this, so it is a review rule.
 
 - Showing the record in its view (selecting the individual in the tree) is not done: only the editors are opened.
+- The selected record (done, November 2026): the main window gives the identifier of what is selected (`ResearchAssistantPort.install`,
+  `FamilyLegacyFrame.currentSelectionId`), `AssistantContext.selectedRecordId` carries it (also in the copy for reading), and the palette
+  puts the findings that name the record first (`ResearchAssistantService.aboutRecord`) and offers "Only about ...". Opened from an editor
+  (a dialog) there is no selection. Not tested: the check box in the real palette (the ordering and the context are: `SelectedRecordContextTest`).
 - The indicator computes all the assistants at each change (the identity one compares the whole model): it is measured on a big file (see
   `components/projections/README.txt`, "Altri TODO emersi dalla revisione": from a few seconds to a couple of minutes for each assistant, away from the event dispatch thread), and it cannot be turned off,
   nor limited to some assistants. The model is read away from the event dispatch thread on a copy of it taken before leaving the thread
@@ -231,6 +235,8 @@ Done:
 - Fixed on the way (a defect that the gap messages showed, not specific to them): a year given to a message as a number came out with
   the separator of the thousands ("born 1,900"). Years are given as text.
 Still to do:
+- DONE (November 2026): the sources of the vital events are looked for on the event, on the participation of its principals and on the
+  principals themselves (`GapDataLoader`), so an event cited elsewhere is no longer "without a source" (`GapAssistantTest`).
 - Missing in the example of this section and not done: "a place is known but the birth record is missing" (needs the places of the
   residences and events against the birth), and a residence history that is incomplete beyond having none at all (the years between
   two censuses).
@@ -240,8 +246,7 @@ Still to do:
   important the individual is (a direct ancestor of the root, or a collateral), the period or the archives that exist.
 - The age for a missing death (110 and 90 years) is a convention; living people could be taken for dead in a tree with no dates of
   death, and a person with no year of birth is never reported.
-- The sources of the vital events are looked for on the event only (not on the participation, nor on the individual), and baptisms and
-  burials are not vital events here.
+- Baptisms and burials are not vital events here.
 - The drafts are in English and plain: no suggestion of where to look (repositories, sources, places), no due date, no link of a
   question to the tasks and activities that would follow.
 - The thresholds of the aggregation (25 findings, 200 listed) are not configurable.
@@ -303,7 +308,11 @@ Still to do, in order of priority (problem, then possible solutions):
   step_child, ...), but the action opens the editor as it is and the researcher has to find and choose it again. Solution: an action
   that opens the editor with the suggested type already selected (like `withParticipants` does for the participants), only if it is in
   `getValidTypes`; nothing is saved unless confirmed. Do it with the previous point, which it depends on.
-- MEDIUM, more evidence for the type. Problem: when the evidence does not decide, a generic `spouse` or `child` stays one generic
+- DONE (November 2026): the officiant (an individual whose occupation holds a word of `IndividualAttributeReader.CLERGY_OCCUPATIONS`, in
+  the role officiant of the marriage or banns event) and the place (a parish or a diocese, or a place that is part of another by an
+  ecclesiastical relationship) point to religious_spouse, only as a hint in the explanation; together with a license they do not decide
+  (`RelationshipCheckerTest`). The draft of the missing marriage uses the same hint.
+- MEDIUM, more evidence for the type (the first of the solutions, the officiant and the place, is done). Problem: when the evidence does not decide, a generic `spouse` or `child` stays one generic
   finding, although the file often says more. Solutions, one at a time, each with its weight and its explanation, never a rule of the
   validation (they are indications, not proofs): the officiant (a priest) and the place (a church) of the marriage for
   religious_spouse, the most reliable one, to start with; the evidence qualifiers of the sources (a parish register, a civil registry);
@@ -350,10 +359,11 @@ who gives birth after her death" is the same rule as the child born after the de
 The validation also warns of the dates that cannot be read (`date_invalid`: not valid in the notation of the calendar) and of the ones it
 did not check because the calendar needs the Ephemeris plugin (`date_not_checked`: not a problem of the file), told apart by
 `DateNormalizer.problem`.
+Done since (November 2026): children of the same mother born less than 270 days apart (`births_too_close`; certainly less, and certainly
+more than 7 days apart, so twins are never reported) and a spouse married younger than the age of a parent of the same sex
+(`marriage_too_young`, from the marriage event or, if none, the union), as warnings; both limits are in `Rules`.
 Still to do, and where it belongs:
-- The conventions are for this assistant, as warnings, never for the validation (a convention is not an error of the file): children of
-  the same mother born less than about 9 months apart (twins excepted: a threshold, and twins born days apart exist), age at marriage too
-  young, a spouse older than the lifespan.
+- A spouse older than the lifespan: a convention, so for this assistant as a warning, never for the validation.
 - Other overlapping incompatible events (residence, military service, prison, hospitalization) and overlapping attributes: not provable
   (two homes, a soldier who lives somewhere), so only an assistant warning, with weights that are a matter of judgement; not for the
   validation.
@@ -361,6 +371,8 @@ Still to do, and where it belongs:
   ("date not checked").
 - Age limits and the gestation limit configurable by the user (preferences, like the settings of the Identity Assistant); today only
   `Rules.DEFAULT`.
+- DONE (November 2026): "Check Chronology" for a selected individual is the "Only about ..." check box of the palette, for every assistant
+  (the selected record is in `AssistantContext.selectedRecordId`, see the Framework notes). Before it:
 - The "Check Chronology" action for a selected individual (needs the selected record in `AssistantContext`) and the filtering of the
   findings on it; for now the whole model is checked each time the palette opens.
 - Not worth doing: events of groups and events whose participant is not an individual (they have no birth or death to compare to).
@@ -425,18 +437,26 @@ Still to do:
   now settled is not detected. The narrative is English and is not translated.
 - The editor is not a wizard: the preferred assertion, the proof status and the reasoning are chosen in the usual tabs. A draft for
   an identity hypothesis resolves one target only (a disproven conclusion normally has two).
-- The candidate preferred assertion looks only at confidence and the number of sources: it should weigh the evidence qualifiers
-  (information type, original or derivative source, direct or indirect evidence). It is given only for births and deaths.
-- Other single-valued assertions: the place of birth or death that differs, the burial, the baptism, the sex (several values after a
-  merge), the type of a relationship that differs between sources.
+- DONE (November 2026): the candidate preferred assertion weighs the evidence qualifiers: the confidence of the researcher first, then the
+  weight of the citations (`SourceCitationReader.supportWeight`: one for each supporting citation, plus one for an original source, one
+  for primary information and one for direct evidence; minus one for a contradicting or negative citation). It is given for every
+  single-valued event (birth, baptism, death, burial), for the conflicting attributes and for the conflicting relationships, and the
+  explanation shows the weight. A rule of thumb, never a judgement of the sources (`ConclusionCheckerTest`, `SupportWeightTest`).
+- DONE (November 2026): baptisms and burials, like births and deaths, are single-valued, and a different place is a conflict when
+  neither place contains the other (a town and its province agree: `PlaceAncestors`, shared with the Context Assistant); the finding
+  lists the places (`ConclusionCheckerTest`). Not done, and not planned: the sex (one field of the individual, nothing to compare) and
+  the type of a relationship between sources (the parent-child one is already a finding; civil and religious marriages differ legitimately).
 - Attributes that change in time (residence, occupation, citizenship, religion) need a comparison aware of `valid_from` and
   `valid_to`, to tell a change from a conflict; the reported `children_count` and `marriages_count` against the tree.
-- Relationships: a child-parent pair that is also a spouse pair, civil and religious marriages of the same couple that differ in date,
-  parentage of a child by different couples in different sources.
+- DONE (November 2026): a biological child-parent pair that is also a pair of spouses (marriage, civil, religious or customary; an engagement
+  or an adoptive link does not count) is an error of the validation, not of the assistant (`ConsistencyService`, `child_married_to_parent`).
+- Relationships: civil and religious marriages of the same couple that differ in date, parentage of a child by different couples in
+  different sources.
 - Identity hypotheses: only "no conclusion" is checked; a hypothesis evaluated before new evidence arrived (a stale conclusion, by the
   audit dates), a candidate that is not an individual (place, source, repository).
-- The consistency of the conclusions themselves: a `preferred` that is not in RESOLVES, `proven` with a single source, RESOLVES that
-  point to records that no longer exist.
+- DONE (November 2026): the consistency of the conclusions is a check of the validation, not of the assistant: a `preferred` that is not
+  in RESOLVES was already an error, and now RESOLVES or `preferred` that point to records that no longer exist are one too
+  (`ConsistencyService`, `resolves_missing`). `proven` with a single source: not done (it can be legitimate).
 - DONE "Settled" has one definition, `ConclusionResolution`, shared with the merger (`ProtocolCleanup`); see `components/projections/README.txt`, "Altri TODO emersi dalla revisione".
 - Same limits as the Chronology Assistant: the whole model is read at each opening, away from the event dispatch thread while the
   user may be editing; English messages only.
@@ -485,7 +505,10 @@ Done:
   others summed up in one finding. The draft is a research QUESTION ("Who were the parents of X, born Y?").
 - Every suggestion says why and gives its usefulness (high, medium, low; a rule of thumb, as for the gaps); a step is the draft of a research
   TASK (description, priority from the usefulness, supports the question) in the usual editor, saved only if the researcher confirms.
+Done since (November 2026): the sources already in the tree count: the sources of the event, of the participation of its principals and of
+the individual (`GapDataLoader`), and the ones that cite the child-parent relationship (a source of the birth) or the marriage relationship
+(a source of the marriage), so the step to find a record is not proposed for what the tree already cites (`GapData.ParentLink` and
+`Union` carry `sourceCount`; `PlannerCheckerTest`).
 Still to do: the places and the periods (which parish, which archive keeps the records, which registers exist for the years: needs
-the repositories and the places of the individual), the sources already in the tree (the steps do not read the citations of the
-individual beyond the events), the conclusions of the question, a due date, the order of the steps as a plan (dependencies: the marriage
+the repositories and the places of the individual), the conclusions of the question, a due date, the order of the steps as a plan (dependencies: the marriage
 before the baptisms), questions about places and families, the weights are not calibrated nor configurable.

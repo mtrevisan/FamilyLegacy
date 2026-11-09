@@ -24,38 +24,22 @@
  */
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
-import java.io.InputStream;
-import java.util.Properties;
+import io.github.mtrevisan.familylegacy.util.SoftwareInfo;
 
 
 public final class ProjectInfo{
 
-	private static final String APP_NAME;
-	private static final String APP_VERSION;
-	static{
-		String name = "unknown";
-		String version = "unknown";
-		try(final InputStream is = ProjectInfo.class.getResourceAsStream("/version.properties")){
-			if(is != null){
-				final Properties props = new Properties();
-				props.load(is);
-				name = props.getProperty("app.name", name);
-				version = props.getProperty("app.version", version);
-			}
-		}
-		catch(final Exception ignored){}
-
-		APP_NAME = name;
-		APP_VERSION = version;
-	}
+	private ProjectInfo(){}
 
 
+	/** @return	The name of the application (the one written in the header of the files). */
 	public static String getAppName(){
-		return APP_NAME;
+		return SoftwareInfo.NAME;
 	}
 
+	/** @return	The version of the application: the one of the project. */
 	public static String getAppVersion(){
-		return APP_VERSION;
+		return SoftwareInfo.version();
 	}
 
 }

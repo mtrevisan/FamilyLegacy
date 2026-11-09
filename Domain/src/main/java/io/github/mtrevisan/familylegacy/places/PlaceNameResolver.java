@@ -30,8 +30,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +55,7 @@ public final class PlaceNameResolver{
 
 	private final FLEFModel model;
 	private final Map<String, String> parentByChild = new HashMap<>();
+	private final Map<String, List<String>> parentsByChild = new HashMap<>();
 
 
 	public PlaceNameResolver(final FLEFModel model){
@@ -60,9 +65,41 @@ public final class PlaceNameResolver{
 		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(PlaceRelationshipReader.TYPE))){
 			final String childId = relationship.extractReferencedId(PlaceRelationshipReader.TAG_SUBJECT, PlaceReader.TYPE);
 			final String parentId = relationship.extractReferencedId(PlaceRelationshipReader.TAG_TARGET, PlaceReader.TYPE);
-			if(childId != null && parentId != null)
+			if(childId != null && parentId != null){
 				parentByChild.putIfAbsent(childId, parentId);
+				final List<String> parents = parentsByChild.computeIfAbsent(childId, k -> new ArrayList<>());
+				if(!parents.contains(parentId))
+					parents.add(parentId);
+			}
 		}
+	}
+
+
+	/**
+	 * All the places that contain a place, at any distance and through any relationship (a town can be part of a province for the
+	 * administration and of a diocese for the church: both are containers), so that a place can be found by the name of any of
+	 * them. A cycle in a malformed file is cut at the first repeated place.
+	 *
+	 * @param placeId	the id of the place
+	 * @return	the names (all of them, with the alternative ones) of the containers, nearest first; empty if the place is not contained
+	 * 	in any other
+	 */
+	public List<String> containerNames(final String placeId){
+		final List<String> names = new ArrayList<>(0);
+		final Set<String> visited = new HashSet<>();
+		visited.add(placeId);
+		final Deque<String> queue = new ArrayDeque<>(parentsByChild.getOrDefault(placeId, List.of()));
+		while(!queue.isEmpty()){
+			final String id = queue.poll();
+			if(!visited.add(id))
+				continue;
+
+			final FLEFRecord place = model.getRecordById(id);
+			if(place != null)
+				names.addAll(PlaceReader.extractNames(place));
+			queue.addAll(parentsByChild.getOrDefault(id, List.of()));
+		}
+		return names;
 	}
 
 

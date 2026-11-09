@@ -30,14 +30,15 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -86,7 +87,7 @@ class ContextCheckerTest{
 		}
 
 		Builder inside(final String place, final String container){
-			ancestors.computeIfAbsent(place, k -> new java.util.HashSet<>()).add(container);
+			ancestors.computeIfAbsent(place, k -> new HashSet<>()).add(container);
 			return this;
 		}
 

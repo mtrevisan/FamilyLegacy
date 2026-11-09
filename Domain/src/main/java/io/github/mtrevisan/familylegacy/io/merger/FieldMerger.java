@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefiniti
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
@@ -36,8 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 
 
 /**
@@ -63,8 +62,6 @@ final class FieldMerger{
 	private static final String TAG_COMMENT = AuditReader.TAG_COMMENT;
 	private static final String TAG_LEVEL = PrivacyReader.TAG_LEVEL;
 	private static final String TAG_EXPIRES = PrivacyReader.TAG_EXPIRES;
-	private static final String TAG_SEX = IndividualReader.TAG_SEX;
-	private static final String SEX_UNKNOWN = IndividualReader.ENUM_SEX_UNKNOWN;
 
 	private static final List<String> PRIVACY_LEVELS = List.of(PrivacyReader.ENUM_LEVEL_PUBLIC, PrivacyReader.ENUM_LEVEL_RESTRICTED, PrivacyReader.ENUM_LEVEL_CONFIDENTIAL);
 
@@ -241,10 +238,9 @@ final class FieldMerger{
 		if(otherValue == null || otherValue.strip().equals(keptValue != null? keptValue.strip(): null))
 			return;
 
-		// an unknown sex carries no information against a known one
-		if(keptValue == null || TAG_SEX.equals(tag) && SEX_UNKNOWN.equals(keptValue))
+		if(keptValue == null)
 			kept.setValue(otherValue);
-		else if(!(TAG_SEX.equals(tag) && SEX_UNKNOWN.equals(otherValue)))
+		else
 			conflicts.add(path + ": kept '" + keptValue + "', discarded '" + otherValue + "'");
 	}
 

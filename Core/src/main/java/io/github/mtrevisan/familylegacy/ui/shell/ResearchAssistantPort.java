@@ -59,8 +59,11 @@ public interface ResearchAssistantPort{
 	 * @param snapshotSupplier gives a copy of the model as it is now that nobody changes, for what is computed away from the event
 	 *                         dispatch thread while the user may be editing (called on that thread)
 	 * @param scopeSupplier    gives what identifies the file being edited (its path), or {@code null} if it was never saved
+	 * @param selectionSupplier gives the identifier of the record selected in the view (called on the event dispatch thread), or
+	 *                         {@code null} if none
 	 */
-	void install(Supplier<FLEFModel> modelSupplier, Supplier<FLEFModel> snapshotSupplier, Supplier<String> scopeSupplier);
+	void install(Supplier<FLEFModel> modelSupplier, Supplier<FLEFModel> snapshotSupplier, Supplier<String> scopeSupplier,
+		Supplier<String> selectionSupplier);
 
 	/** Opens the assistant on what the user is doing now. */
 	void open();

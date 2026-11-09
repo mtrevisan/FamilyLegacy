@@ -24,16 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,11 +61,14 @@ final class ChronologyChecker{
 	 * @param maxFatherAgeYears the oldest age of a father (also for a parent of unknown sex)
 	 * @param maxGestationDays  the longest time between the death of the father and the birth of the child
 	 * @param maxLifespanYears  the longest plausible life
+	 * @param minBirthIntervalDays the shortest plausible time between the births of two children of the same mother (not twins)
+	 * @param maxTwinGapDays    the longest time between the births of twins: a closer pair is never reported
+	 * <p>The youngest age for a marriage is the one of a parent of the same sex.</p>
 	 */
 	record Rules(int minMotherAgeYears, int minFatherAgeYears, int maxMotherAgeYears, int maxFatherAgeYears, int maxGestationDays,
-			int maxLifespanYears){
+			int maxLifespanYears, int minBirthIntervalDays, int maxTwinGapDays){
 
-		static final Rules DEFAULT = new Rules(12, 14, 55, 90, 300, 120);
+		static final Rules DEFAULT = new Rules(12, 14, 55, 90, 300, 120, 270, 7);
 
 	}
 
@@ -95,7 +99,89 @@ final class ChronologyChecker{
 		checkParents(data, rules, findings);
 		checkUnions(data, findings);
 		checkOverlappingMarriages(data, findings);
+		checkBirthIntervals(data, rules, findings);
+		checkMarriageAges(data, rules, findings);
 		return findings;
+	}
+
+
+	/**
+	 * Two children of the same mother born less than the shortest plausible interval apart (a convention, so a warning). Twins are
+	 * not reported: a pair that may be born the same day, or within a few days, is left alone.
+	 */
+	private static void checkBirthIntervals(final ChronologyData data, final Rules rules, final List<Diagnostic> findings){
+		final Map<String, List<ChronologyData.Person>> childrenOfMother = new LinkedHashMap<>();
+		for(final ChronologyData.ParentLink link : data.parents()){
+			final ChronologyData.Person child = data.persons().get(link.childId());
+			final ChronologyData.Person parent = data.persons().get(link.parentId());
+			if(link.biological() && child != null && parent != null && parent.sex() == SexType.FEMALE && child.birth() != null){
+				final List<ChronologyData.Person> children = childrenOfMother.computeIfAbsent(parent.id(), k -> new ArrayList<>());
+				if(!children.contains(child))
+					children.add(child);
+			}
+		}
+
+		for(final Map.Entry<String, List<ChronologyData.Person>> entry : childrenOfMother.entrySet()){
+			final ChronologyData.Person mother = data.persons().get(entry.getKey());
+			final List<ChronologyData.Person> children = entry.getValue();
+			for(int i = 0; i < children.size(); i ++)
+				for(int j = i + 1; j < children.size(); j ++){
+					ChronologyData.Person earlier = children.get(i);
+					ChronologyData.Person later = children.get(j);
+					if(!earlier.birth().isBefore(later.birth())){
+						earlier = children.get(j);
+						later = children.get(i);
+						if(!earlier.birth().isBefore(later.birth()))
+							continue;
+					}
+
+					final long certainGap = later.birth().min() - earlier.birth().max();
+					final long longestGap = spanDays(later.birth().max(), earlier.birth().min());
+					if(certainGap > rules.maxTwinGapDays() && longestGap < rules.minBirthIntervalDays())
+						findings.add(finding(Diagnostic.Severity.WARNING, "births_too_close",
+							List.of(mother.id(), earlier.id(), later.id()), mother.name(), earlier.name(), later.name(),
+							rules.minBirthIntervalDays(), earlier.birthText(), later.birthText()));
+				}
+		}
+	}
+
+	/** A marriage (event or union) when the spouse was younger than the youngest plausible age (a convention, so a warning). */
+	private static void checkMarriageAges(final ChronologyData data, final Rules rules, final List<Diagnostic> findings){
+		final Set<String> reported = new HashSet<>();
+		for(final ChronologyData.LifeEvent event : data.events()){
+			final ChronologyData.Person person = data.persons().get(event.personId());
+			if(person != null && event.principal() && EventReader.ENUM_TYPE_MARRIAGE.equals(event.type()) && event.date() != null
+					&& isTooYoung(person, event.date(), rules)){
+				reported.add(person.id());
+				findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young", List.of(person.id(), event.eventId()),
+					person.name(), minMarriageAge(person, rules), person.birthText(), event.dateText()));
+			}
+		}
+		for(final ChronologyData.Union union : data.unions()){
+			if(!union.marriage() || union.from() == null)
+				continue;
+
+			for(final String partnerId : List.of(union.firstId(), union.secondId())){
+				final ChronologyData.Person partner = data.persons().get(partnerId);
+				if(partner != null && isTooYoung(partner, union.from(), rules) && reported.add(partner.id()))
+					findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young",
+						List.of(partner.id(), union.relationshipId()), partner.name(), minMarriageAge(partner, rules),
+						partner.birthText(), union.fromText()));
+			}
+		}
+	}
+
+	private static boolean isTooYoung(final ChronologyData.Person person, final DateRange marriage, final Rules rules){
+		//a marriage before the birth is an error reported elsewhere
+		if(person.birth() == null || marriage.isBefore(person.birth()))
+			return false;
+
+		return spanDays(marriage.max(), person.birth().min()) < (long)minMarriageAge(person, rules) * DAYS_IN_YEAR_SHORT;
+	}
+
+	private static int minMarriageAge(final ChronologyData.Person person, final Rules rules){
+		return (person.sex() == SexType.FEMALE? rules.minMotherAgeYears(): (person.sex() == SexType.MALE
+			? rules.minFatherAgeYears(): Math.min(rules.minMotherAgeYears(), rules.minFatherAgeYears())));
 	}
 
 

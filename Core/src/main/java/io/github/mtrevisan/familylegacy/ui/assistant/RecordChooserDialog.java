@@ -42,6 +42,7 @@ import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -128,7 +129,7 @@ final class RecordChooserDialog extends JDialog{
 
 	/** @return the records of the list */
 	List<FLEFRecord> records(){
-		return java.util.Collections.list(recordsModel.elements());
+		return Collections.list(recordsModel.elements());
 	}
 
 	void select(final int index){

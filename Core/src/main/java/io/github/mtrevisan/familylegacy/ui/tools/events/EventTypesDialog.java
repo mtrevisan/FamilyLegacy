@@ -29,8 +29,10 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -41,16 +43,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -86,7 +84,7 @@ public final class EventTypesDialog extends JDialog{
 	private final ToolContext context;
 	private final TypeTableModel tableModel = new TypeTableModel();
 	private final JTable table = new JTable(tableModel);
-	private final JTextField searchField = new JTextField(20);
+	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
@@ -116,13 +114,8 @@ public final class EventTypesDialog extends JDialog{
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
 		toolbar.add(new JLabel(I18N.l("label.search")));
-		toolbar.add(searchField);
-		final Document document = searchField.getDocument();
-		document.addDocumentListener(new DocumentListener(){
-			@Override public void insertUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void removeUpdate(final DocumentEvent e){ applyFilter(); }
-			@Override public void changedUpdate(final DocumentEvent e){ applyFilter(); }
-		});
+		toolbar.add(searchBox);
+		searchBox.onChange(this::applyFilter);
 
 		final JButton showEvents = new JButton(I18N.t("button.show_events"));
 		showEvents.addActionListener(e -> showEventsOfSelectedType());
@@ -197,22 +190,19 @@ public final class EventTypesDialog extends JDialog{
 	}
 
 	private void applyFilter(){
-		final String text = searchField.getText();
-		@SuppressWarnings("unchecked")
+				@SuppressWarnings("unchecked")
 		final TableRowSorter<TypeTableModel> sorter =
 			(TableRowSorter<TypeTableModel>)table.getRowSorter();
-		if(StringUtils.isEmpty(text))
+		if(searchBox.isBlank())
 			sorter.setRowFilter(null);
 		else{
-			final String needle = text.trim()
-				.toLowerCase(Locale.ROOT);
+			final String query = searchBox.query();
+			final Set<SearchMode> modes = searchBox.modes();
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends TypeTableModel, ? extends Integer> entry){
 					final TypeRow row = tableModel.getRow(entry.getIdentifier());
-					return row.type()
-						.toLowerCase(Locale.ROOT)
-						.contains(needle);
+					return SearchBox.matches(query, modes, row.type());
 				}
 			});
 		}

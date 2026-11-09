@@ -54,8 +54,13 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
@@ -137,9 +142,9 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		}
 
 		@Override
-		public void paintIcon(final java.awt.Component c, final java.awt.Graphics g, final int x, final int y){
-			final java.awt.Graphics2D g2d = (java.awt.Graphics2D)g.create();
-			g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+		public void paintIcon(final Component c, final Graphics g, final int x, final int y){
+			final Graphics2D g2d = (Graphics2D)g.create();
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 			// Triangle coordinates (pointing right or down depending on your preference, here pointing right '►' or down '▼')
 			// Let's draw a right arrow or down arrow. Assuming standard triangle:
@@ -630,7 +635,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 			container.revalidate();
 			container.repaint();
 
-			final java.awt.Container ancestor = javax.swing.SwingUtilities.getAncestorOfClass(JScrollPane.class, container);
+			final Container ancestor = SwingUtilities.getAncestorOfClass(JScrollPane.class, container);
 			if(ancestor != null){
 				ancestor.revalidate();
 				ancestor.repaint();

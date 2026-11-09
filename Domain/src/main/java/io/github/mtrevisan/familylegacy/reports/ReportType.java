@@ -45,11 +45,13 @@ public enum ReportType{
 	BIBLIOGRAPHY,
 	RESEARCH_PROGRESS,
 	FULL_BIBLIOGRAPHY,
-	FAMILY_BOOK;
+	FAMILY_BOOK,
+	TO_VERIFY,
+	SURNAMES;
 
 	/** @return	Whether the report is about the whole file, not about a record. */
 	public boolean isGlobal(){
-		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK);
+		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK || this == TO_VERIFY || this == SURNAMES);
 	}
 
 	public String getTitle(){

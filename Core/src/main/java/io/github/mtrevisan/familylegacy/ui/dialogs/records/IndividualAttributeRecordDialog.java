@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
@@ -47,10 +48,16 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.Arrays;
 
 
 /**
@@ -61,7 +68,7 @@ import java.io.IOException;
  * record IndividualAttributeRecord {
  *   individual: Xref&lt;IndividualRecord&gt;
  *   type: enum {
- *     characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
+ *     sex, characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
  *     nationality, national_id, title, children_count, marriages_count, religion, language, literacy, education,
  *     apprenticeship
  *   } | Text
@@ -88,10 +95,17 @@ import java.io.IOException;
  */
 public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
+	private static final String CARD_TEXT = "text";
+	private static final String CARD_SEX = "sex";
+
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
+	/** Replaces the text field of the value when the type is {@code sex}: its value is an enumeration (male, female, unknown). */
+	private final JComboBox<String> sexValueCombo;
+	private final CardLayout valueLayout = new CardLayout();
+	private final JPanel valuePanel = new JPanel(valueLayout);
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityField placeField;
@@ -136,6 +150,25 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		components.bind(typeCombo);
 		components.bind(valueField);
+
+		sexValueCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, null));
+		sexValueCombo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				return super.getListCellRendererComponent(list, (value != null? I18N.t("enum.individual.sex." + value): StringUtils.EMPTY),
+					index, isSelected, cellHasFocus);
+			}
+		});
+		valuePanel.add(valueField, CARD_TEXT);
+		valuePanel.add(sexValueCombo, CARD_SEX);
+		//the combo is the view of the value field, that is the one bound to the record
+		sexValueCombo.addActionListener(e -> {
+			if(isSexType())
+				valueField.setText((String)sexValueCombo.getSelectedItem());
+		});
+		typeCombo.addActionListener(e -> showValueComponent());
+		typeCombo.addItemListener(e -> showValueComponent());
 		components.bind(confidenceCombo);
 
 
@@ -143,6 +176,22 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		setupSourceListSelection();
 
 		finalizeDialog(parent);
+	}
+
+
+	private boolean isSexType(){
+		return IndividualAttributeReader.ENUM_TYPE_SEX.equals(typeCombo.getText());
+	}
+
+	/** Shows the combo of the sexes in place of the text field of the value when the type is sex. */
+	private void showValueComponent(){
+		if(isSexType()){
+			final String value = StringUtils.lowerCase(StringUtils.trim(valueField.getText()));
+			sexValueCombo.setSelectedItem(Arrays.asList(IndividualReader.SEXES).contains(value)? value: null);
+			valueLayout.show(valuePanel, CARD_SEX);
+		}
+		else
+			valueLayout.show(valuePanel, CARD_TEXT);
 	}
 
 
@@ -155,7 +204,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.individual_attribute.type"), typeCombo);
 
 		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.individual_attribute.value"), valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.individual_attribute.value"), valuePanel);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
@@ -271,6 +320,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		placeField.load(record);
 
 		components.load(record);
+		showValueComponent();
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -291,6 +341,14 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.individual_attribute.type")),
 				tabbedPane, propertiesPanel, typeCombo);
+
+			return false;
+		}
+
+		if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(typeCombo.getText())
+				&& !Arrays.asList(IndividualReader.SEXES).contains(StringUtils.lowerCase(StringUtils.trim(valueField.getText())))){
+			GUIHelper.showValidationErrorAndFocus(this, I18N.tf("validation.sex_value", String.join(", ", IndividualReader.SEXES)),
+				tabbedPane, propertiesPanel, sexValueCombo);
 
 			return false;
 		}

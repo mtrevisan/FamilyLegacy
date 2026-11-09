@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
@@ -215,7 +216,7 @@ class IdentityAssistantTest{
 		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);
 		dialog.getRootPane().getActionMap().get(binding)
-			.actionPerformed(new java.awt.event.ActionEvent(dialog, java.awt.event.ActionEvent.ACTION_PERFORMED, "escape"));
+			.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));
 
 		Assertions.assertFalse(dialog.isSaved());
 		Assertions.assertEquals(records, model.getRecords().size());

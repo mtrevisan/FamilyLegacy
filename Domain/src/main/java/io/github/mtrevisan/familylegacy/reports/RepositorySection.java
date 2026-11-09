@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.reports;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -120,7 +120,7 @@ public final class RepositorySection implements SectionBuilder{
 		if(src == null)
 			return;
 		for(final FLEFRecord rc : FLEFRecordHelper.findChildren(src, RepositoryReader.TYPE)){
-			final String rid = rc.extractReferencedId(RepositoryCitationReader.TAG_REPOSITORY, RepositoryReader.TYPE);
+			final String rid = RepositoryCitationReader.extractRepository(rc);
 			if(rid != null)
 				out.add(rid);
 		}

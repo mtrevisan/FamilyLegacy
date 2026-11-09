@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.citation;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CitationHost;
 
 import javax.swing.JPanel;

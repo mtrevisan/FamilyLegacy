@@ -48,6 +48,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
+import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.IdentityHashMap;
@@ -182,7 +183,7 @@ public final class ReportContext{
 		return citationOwners.of(model).get(citation);
 	}
 
-	/** The owner of every source citation of a model (a citation is an embedded structure, found by identity), built when first needed. */
+	/** The record that holds each source citation of a model (a citation is an embedded structure, found by identity), built when first needed. */
 	private static final class CitationOwners{
 
 		private Map<FLEFRecord, FLEFRecord> owners;
@@ -192,7 +193,8 @@ public final class ReportContext{
 			if(owners == null){
 				owners = new IdentityHashMap<>();
 				for(final FLEFRecord rec : model.getRecords())
-					for(final FLEFRecord citation : FLEFRecordHelper.findChildren(rec, SourceCitationReader.TAG_SOURCE))
+					//the citations of the parts of a record (a name, a note, a place, ...) belong to the record
+					for(final FLEFRecord citation : ReportFormatters.collectDescendantsWithTag(rec, SourceCitationReader.TAG_SOURCE))
 						owners.putIfAbsent(citation, rec);
 			}
 			return owners;

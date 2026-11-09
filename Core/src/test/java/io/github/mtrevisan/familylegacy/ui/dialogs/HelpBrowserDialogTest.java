@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.imageio.ImageIO;
 import javax.swing.JDialog;
@@ -40,6 +41,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -81,11 +84,13 @@ class HelpBrowserDialogTest{
 		}
 	}
 
-	/** Paints the pages to PNG files, to look at them: set HELP_VIEW_IMAGES to a folder. */
+	/** Paints the pages to PNG files (to look at them, set HELP_VIEW_IMAGES to a folder: otherwise a temporary one is used). */
 	@Test
-	void paintThePagesWhenAskedTo() throws InvocationTargetException, InterruptedException, IOException{
-		final String folder = System.getenv("HELP_VIEW_IMAGES");
-		Assumptions.assumeTrue(folder != null && !GraphicsEnvironment.isHeadless(), "HELP_VIEW_IMAGES is not set");
+	void paintThePages(@TempDir final Path temporaryFolder) throws InvocationTargetException, InterruptedException, IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The help needs a display");
+
+		final String requestedFolder = System.getenv("HELP_VIEW_IMAGES");
+		final File folder = (requestedFolder != null? new File(requestedFolder): temporaryFolder.toFile());
 
 		for(final String page : List.of(HelpTopics.INDEX, "editing.md", "shortcuts.md", "assistant.md")){
 			SwingUtilities.invokeAndWait(() -> HelpBrowserDialog.show(null, page));
@@ -96,7 +101,9 @@ class HelpBrowserDialogTest{
 			final Window help = helpWindows().getFirst();
 			final BufferedImage image = new BufferedImage(help.getWidth(), help.getHeight(), BufferedImage.TYPE_INT_RGB);
 			SwingUtilities.invokeAndWait(() -> help.paint(image.getGraphics()));
-			ImageIO.write(image, "png", new File(folder, "help-" + page.replace(".md", "") + ".png"));
+			final File png = new File(folder, "help-" + page.replace(".md", "") + ".png");
+			Assertions.assertTrue(ImageIO.write(image, "png", png));
+			Assertions.assertTrue(Files.size(png.toPath()) > 0, png.getName());
 
 			SwingUtilities.invokeAndWait(help::dispose);
 		}

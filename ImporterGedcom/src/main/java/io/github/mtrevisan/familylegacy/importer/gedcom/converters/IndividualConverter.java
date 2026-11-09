@@ -29,20 +29,24 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +57,7 @@ import java.util.Map;
  * Handles:
  * <ul>
  *   <li>Names (NAME) → PersonalNameStructure</li>
- *   <li>Sex (SEX) → sex</li>
+ *   <li>Sex (SEX) → an IndividualAttributeRecord of type sex</li>
  *   <li>Events (BIRT, DEAT, etc.) → EventRecord + EventParticipationRecord (role principal, with the age at the event); the
  *   individuals associated with the event (ASSO with ROLE, GEDCOM 7) → EventParticipationRecord</li>
  *   <li>Non-events (NO, GEDCOM 7) → note</li>
@@ -78,6 +82,7 @@ public class IndividualConverter {
 	private final Map<String, FLEFRecord> individualMap;
 	private final Map<String, GEDCOMNode> noteRawMap;
 	private final Map<String, GEDCOMNode> recordsById;
+	private final List<PendingEventAssociation> pendingEventAssociations = new ArrayList<>();
 	private final Map<String, GEDCOMNode> childFamilyLinks;
 	private final PlaceCache placeCache;
 	private final AgeBirthConverter ageBirthConverter;
@@ -132,7 +137,10 @@ public class IndividualConverter {
 		boolean sexX = false;
 		if(sexNode != null && sexNode.getValue() != null){
 			sexX = "X".equalsIgnoreCase(sexNode.getValue().trim());
-			individual.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, GEDCOMMapper.mapSex(sexNode.getValue())));
+			//the sex is an assertion of the file (with its own citations and notes): an attribute of the individual
+			final FLEFRecord sex = GEDCOMRecordBuilder.createIndividualAttribute(model, id, sexNode, IndividualAttributeReader.ENUM_TYPE_SEX,
+				noteRawMap, placeCache);
+			FLEFRecordHelper.updateChildValue(sex, IndividualAttributeReader.TAG_VALUE, GEDCOMMapper.mapSex(sexNode.getValue()));
 		}
 
 		// ---- Events and attributes, in the order of the file ----
@@ -172,8 +180,15 @@ public class IndividualConverter {
 					GEDCOMMapper.ATTRIBUTE_FACT_TYPES.get(typeToken), noteRawMap, placeCache), null, age, child);
 			else if(isEvent){
 				final FLEFRecord event = GEDCOMRecordBuilder.createEvent(model, child, noteRawMap, placeCache);
+				//a citation may state that the individual had a role in the event, other than the main one; but in the birth, the baptism,
+				//the death or the burial of the individual the individual is the principal, whatever the citation says: a role that does not
+				//agree with it is an error of the file, reported and not kept
+				final String citedRole = GEDCOMRecordBuilder.citedEventRole(child);
+				final boolean ownEvent = GEDCOMMapper.PRINCIPAL_ONLY_EVENT_TAGS.contains(tag);
 				final String participationId = GEDCOMRecordBuilder.attachEventParticipation(event.getId(), AgentReader.TAG_INDIVIDUAL, id,
-					EventParticipationReader.ENUM_ROLE_PRINCIPAL, age, child, model);
+					(citedRole != null && !ownEvent? citedRole: EventParticipationReader.ENUM_ROLE_PRINCIPAL), age, child, model);
+				if(citedRole != null && ownEvent)
+					GEDCOMRecordBuilder.reportInconsistentCitedRole(child, citedRole);
 				ageBirthConverter.track(id, event, participationId, age, child);
 				GEDCOMRecordBuilder.attachEventAssociates(event.getId(), child, model, noteRawMap, recordsById);
 				if(GEDCOMMapper.TAG_ADOPTION.equals(tag))
@@ -313,6 +328,18 @@ public class IndividualConverter {
 		final String type = (relationToken != null && ArrayUtils.contains(RelationshipReader.TYPES, relationToken)
 			? relationToken
 			: RelationshipReader.ENUM_TYPE_ASSOCIATE);
+		//a RELA that is the name of an event ("1 ASSO @I2@ 2 RELA birth") says that the individual took part in that event of the
+		//associate, as a witness: it is settled once all the individuals are converted, as the event may not be there yet
+		if(relationToken != null && ArrayUtils.contains(EventReader.TYPES, relationToken) && !"FAM".equals(associate.getTag())){
+			pendingEventAssociations.add(new PendingEventAssociation(individualId, associateId, relationToken, relation, indiNode, assoNode));
+			return;
+		}
+		createAssociation(individualId, indiNode, assoNode, associateId, associate, relation, relationToken, type);
+	}
+
+	/** Makes a plain association (a RelationshipRecord) between two individuals, or an individual and a group. */
+	private void createAssociation(final String individualId, final GEDCOMNode indiNode, final GEDCOMNode assoNode,
+			final String associateId, final GEDCOMNode associate, final String relation, final String relationToken, final String type){
 		//RELA states the relation of the associate to the individual ("1 ASSO @I2@ 2 RELA Godfather": I2 is the godfather),
 		//and the subject of a relationship is the one whose role is described; a group can only be the target
 		final boolean associateIsGroup = "FAM".equals(associate.getTag());
@@ -337,5 +364,64 @@ public class IndividualConverter {
 		// check for duplicates before adding
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
 	}
+
+	/**
+	 * Settles the associations whose RELA names an event of the associate ("1 ASSO @I2@ 2 RELA birth"): the individual is a witness
+	 * of that event of the associate. It is to be called once all the individuals (and the families) are converted. When the associate
+	 * has no such event, the association stays an association.
+	 */
+	public void resolveEventAssociations(){
+		if(pendingEventAssociations.isEmpty())
+			return;
+
+		//the events in which each individual is the principal, by type
+		final Map<String, String> principalEvents = new HashMap<>();
+		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE)){
+			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
+			final String individualId = FLEFRecordHelper.getChildValue(participation, FLEFRecordHelper.composePath(
+				EventParticipationReader.TAG_PARTICIPANT, AgentReader.TAG_INDIVIDUAL));
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
+			if(individualId == null || eventId == null || (role != null && !EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)))
+				continue;
+
+			final FLEFRecord event = model.getRecordById(eventId);
+			final String type = (event != null? FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE): null);
+			if(type != null)
+				principalEvents.putIfAbsent(individualId + "|" + type, eventId);
+		}
+
+		for(final PendingEventAssociation pending : pendingEventAssociations){
+			GEDCOMImportContext.setRecord(pending.individualId());
+			final String eventId = principalEvents.get(pending.associateId() + "|" + pending.eventType());
+			if(eventId == null){
+				final GEDCOMNode associate = recordsById.get(pending.associateId());
+				createAssociation(pending.individualId(), pending.indiNode(), pending.assoNode(), pending.associateId(), associate,
+					pending.relation(), pending.eventType(), RelationshipReader.ENUM_TYPE_ASSOCIATE);
+				continue;
+			}
+
+			final FLEFRecord participation = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationReader.ID_PREFIX),
+					EventParticipationReader.TYPE)
+				.addChild(FLEFRecord.createChildWithTag(EventParticipationReader.TAG_PARTICIPANT)
+					.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, pending.individualId())))
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId))
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE,
+					EventParticipationReader.ENUM_ROLE_WITNESS));
+			for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(pending.assoNode(), GEDCOMMapper.TAG_SOURCE))
+				GEDCOMRecordBuilder.attachSource(participation, model, sourNode, noteRawMap);
+			//what the file wrote is kept: the witness is an interpretation of it
+			participation.addChild(GEDCOMRecordBuilder.createNoteStruct("Association", pending.relation(), pending.assoNode()));
+			for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(pending.assoNode(), GEDCOMMapper.TAG_NOTE))
+				GEDCOMRecordBuilder.attachNote(participation, model, noteNode, noteRawMap);
+			participation.addChild(AuditBuilder.build(pending.indiNode()));
+
+			Deduplicator.getDeduplicatedRecordId(model, participation);
+		}
+		pendingEventAssociations.clear();
+	}
+
+	/** An association whose RELA names an event of the associate, waiting for the events to be there. */
+	private record PendingEventAssociation(String individualId, String associateId, String eventType, String relation,
+			GEDCOMNode indiNode, GEDCOMNode assoNode){}
 
 }

@@ -245,8 +245,13 @@ final class KeptNotes{
 
 		//the place is the one built from the address, not the one of a PLAC
 		final FLEFRecord target = (addressNode != null && place != null? place: record);
-		for(final String[] contact : contacts)
-			add(target, contact[0], contact[1], node);
+		final StringBuilder text = new StringBuilder();
+		for(final String[] contact : contacts){
+			if(!text.isEmpty())
+				text.append(StringUtils.LF);
+			text.append(contact[0]).append(SEPARATOR).append(contact[1]);
+		}
+		add(target, TITLE_CONTACT, text.toString(), node);
 	}
 
 	private static void collectContactLines(final GEDCOMNode holder, final List<String[]> contacts){

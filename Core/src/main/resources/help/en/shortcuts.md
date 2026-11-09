@@ -63,5 +63,6 @@ In the Chronomap the **Left** and **Right** keys move the timeline by a month, a
 | `Ctrl+Shift+A` | Research Assistant |
 | `F1` | Help contents |
 | `Esc` | Close the dialog that has the focus |
+| `Ctrl+Z`, `Ctrl+Y` | In a dialog: undo and redo the last edit of the field |
 
 On macOS, `Ctrl` is replaced by `Cmd` where the system convention says so.

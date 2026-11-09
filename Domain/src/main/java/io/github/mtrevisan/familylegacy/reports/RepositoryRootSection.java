@@ -194,7 +194,7 @@ public final class RepositoryRootSection implements SectionBuilder{
 
 			// Locator(s) of this source within the repository.
 			for(final FLEFRecord rc : ctx.index.repositoriesOfSource(src)){
-				final String rid = rc.extractReferencedId(RepositoryReader.TYPE, RepositoryCitationReader.TAG_REPOSITORY);
+				final String rid = RepositoryCitationReader.extractRepository(rc);
 				if(!ctx.root.getId().equals(rid))
 					continue;
 				final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);

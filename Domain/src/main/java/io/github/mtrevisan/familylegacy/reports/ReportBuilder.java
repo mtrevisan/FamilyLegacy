@@ -69,6 +69,8 @@ public final class ReportBuilder{
 				.generate(listener);
 			case FULL_BIBLIOGRAPHY -> new FullBibliographyGenerator(model, tailored).generate(listener);
 			case FAMILY_BOOK -> new FamilyBookGenerator(model, tailored).generate(listener);
+			case TO_VERIFY -> new ToVerifyGenerator(model, tailored).generate(listener);
+			case SURNAMES -> new SurnamesGenerator(model, tailored).generate(listener);
 			case ANCESTOR -> new AncestorReportGenerator(model, root, tailored).generate(listener);
 			case DESCENDANT -> new DescendantReportGenerator(model, root, tailored).generate(listener);
 		};
@@ -100,7 +102,7 @@ public final class ReportBuilder{
 	 */
 	public static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
 		return switch(type){
-			case INDIVIDUAL, GROUP, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY -> base;
+			case INDIVIDUAL, GROUP, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, SURNAMES -> base;
 			//one self-contained sub-report per person: the introduction and the life story, no ancestry, descendants or relations (the
 			//persons are the ancestors or the descendants)
 			case ANCESTOR, DESCENDANT, FAMILY_BOOK -> withNarrative(base, true, false, false, false, false, false);
@@ -151,6 +153,11 @@ public final class ReportBuilder{
 			//a catalogue of the sources: the front matter, the notes, the citations and the evidence of the sources
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.SHOW_PRIVACY_DETAILS, ReportOption.AUDIT, ReportOption.HEADER,
 				ReportOption.NOTES, ReportOption.SOURCES, ReportOption.EVIDENCE)));
+			return out;
+		}
+		if(type == ReportType.TO_VERIFY || type == ReportType.SURNAMES){
+			//a list on the whole file: only the front matter has a meaning (the privacy policy hides what it hides)
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER)));
 			return out;
 		}
 		if(type == ReportType.ANCESTOR || type == ReportType.DESCENDANT || type == ReportType.FAMILY_BOOK){

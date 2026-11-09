@@ -182,6 +182,34 @@ class PlannerCheckerTest{
 	}
 
 	@Test
+	void aSourceOnTheParentageOrTheMarriageCountsAsASourceOfTheBirthAndTheMarriage(){
+		//the birth event has no source, but a source cites the child-parent relationship; the marriage event has none, the relationship has one
+		final Builder builder = new Builder()
+			.person("a", 1990, true, true, 1).person("p", 1960).person("s", 1991)
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 0, "a").event("m", EventReader.ENUM_TYPE_MARRIAGE, 0, "a")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a");
+		builder.parents.add(new GapData.ParentLink("a", "p", 1));
+		builder.unions.add(new GapData.Union("a", "s", 1));
+
+		final List<String> tasks = tasks(ofKind(builder.findings(), "planner.next_step"));
+
+		Assertions.assertTrue(tasks.stream().noneMatch(t -> t.contains("to cite it") || t.contains("marriage record")), tasks.toString());
+	}
+
+	@Test
+	void aRelationshipWithoutSourcesDoesNotHideTheSteps(){
+		final Builder builder = new Builder()
+			.person("a", 1990, true, true, 1).person("p", 1960).person("s", 1991)
+			.event("b", EventReader.ENUM_TYPE_BIRTH, 0, "a").event("m", EventReader.ENUM_TYPE_MARRIAGE, 0, "a")
+			.parent("a", "p").union("a", "s")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a");
+
+		final List<String> tasks = tasks(ofKind(builder.findings(), "planner.next_step"));
+
+		Assertions.assertTrue(tasks.stream().anyMatch(t -> t.contains("to cite it")), tasks.toString());
+	}
+
+	@Test
 	void aTaskOrAnActivityThatCoversAStepMakesItNotProposed(){
 		final Builder builder = new Builder()
 			.person("a", 1850)

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
@@ -71,7 +72,8 @@ public final class DateConsistency{
 	/** The events that happen after the death (or are about it): a date after the death is not a problem for them. */
 	private static final Set<String> POSTHUMOUS_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL,
 		EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_CORONER_REPORT, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_HONOR,
-		EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY);
+		EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY,
+		EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
 	/** The longest time between the death of the father and the birth of the child, in days. */
 	private static final int MAX_GESTATION_DAYS = 300;
 	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
@@ -101,9 +103,10 @@ public final class DateConsistency{
 
 		final List<LifeEvent> events = loadEvents(model);
 		final Map<String, Person> persons = new LinkedHashMap<>();
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 		for(final FLEFRecord individual : model.getRecordsByType(IndividualReader.TYPE))
 			if(individual.getId() != null)
-				persons.put(individual.getId(), loadPerson(individual, events));
+				persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
 
 		checkLifespans(persons, issues);
 		checkEvents(persons, events, issues);
@@ -276,7 +279,7 @@ public final class DateConsistency{
 	}
 
 	/** The birth and the death of an individual are the events of that type the individual is the principal of. */
-	private static Person loadPerson(final FLEFRecord individual, final List<LifeEvent> events){
+	private static Person loadPerson(final FLEFRecord individual, final List<LifeEvent> events, final SexType sex){
 		DateRange birth = null;
 		DateRange death = null;
 		String birthText = null;
@@ -298,16 +301,7 @@ public final class DateConsistency{
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);
 		return new Person(individual.getId(), (StringUtils.isNotBlank(name)? name + " (" + individual.getId() + ")": individual.getId()),
-			sex(individual), birth, death, birthText, deathText);
-	}
-
-	private static SexType sex(final FLEFRecord individual){
-		try{
-			return IndividualReader.extractSex(individual);
-		}
-		catch(final IllegalArgumentException ignored){
-			return SexType.UNKNOWN;
-		}
+			sex, birth, death, birthText, deathText);
 	}
 
 	/** @return the days of a date structure, {@code null} if there is none or it cannot be read (it is judged where it is edited) */

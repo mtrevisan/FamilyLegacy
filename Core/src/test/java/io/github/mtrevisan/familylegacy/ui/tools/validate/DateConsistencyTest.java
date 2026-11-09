@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -110,8 +111,12 @@ class DateConsistencyTest{
 		model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME).addChild(FLEFRecord.createChildWithTag(DateReader.TAG_PART)
 				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_TYPE, NameReader.ENUM_PART_TYPE_GIVEN))
-				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_VALUE, "Name" + id))))
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, sex)));
+				.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_VALUE, "Name" + id)))));
+		//the sex is an attribute of the individual
+		model.addRecord(FLEFRecord.createMainRecord("IA" + id, IndividualAttributeReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, id))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, sex)));
 		return id;
 	}
 
@@ -325,6 +330,19 @@ class DateConsistencyTest{
 		event(mario, "residence", about("1901-01-01", null), EventParticipationReader.ENUM_ROLE_PRINCIPAL);
 
 		Assertions.assertEquals(List.of("event_after_death", "event_before_birth"), found().stream().sorted().toList());
+	}
+
+	@Test
+	void aStoryOrARemembranceCanComeAfterTheDeath(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		born(mario, exact("1850-01-01"));
+		died(mario, exact("1900-01-01"));
+		event(mario, EventReader.CUSTOM_TYPE_ANECDOTE, exact("1950-01-01"), EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		event(mario, EventReader.CUSTOM_TYPE_COMMEMORATION, exact("2000-01-01"), EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		//a census that lists someone after the death is still something to look at
+		event(mario, EventReader.ENUM_TYPE_CENSUS, exact("1910-01-01"), EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+
+		Assertions.assertEquals(List.of("event_after_death"), found());
 	}
 
 	@Test

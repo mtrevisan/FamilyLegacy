@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -151,7 +152,7 @@ public final class PresentationOrder{
 	 * items with equal or missing key is kept.
 	 */
 	private static <T, K> List<T> sortKeyed(final Collection<T> items, final Function<? super T, K> keyOf,
-			final java.util.Comparator<K> comparator){
+			final Comparator<K> comparator){
 		final List<Keyed<T, K>> keyed = new ArrayList<>(items.size());
 		for(final T item : items)
 			keyed.add(new Keyed<>(item, keyOf.apply(item)));

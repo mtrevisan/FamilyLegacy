@@ -25,6 +25,7 @@
 
 /** The importer of GEDCOM files (5.5.x and 7.0). */
 open module io.github.mtrevisan.importers.gedcom {
+	requires io.github.mtrevisan.calendars;
 	requires io.github.mtrevisan.familylegacy.domain;
 	requires org.apache.commons.lang3;
 	requires org.apache.commons.io;

@@ -36,9 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -347,7 +349,7 @@ public final class RecordAbsorber{
 	 * @param maxPerKind     the most pairs given for each kind (the most likely ones)
 	 * @return the pairs, the kinds in the order given and the most likely first inside each
 	 */
-	public List<DuplicatePair> duplicatePairs(final FLEFModel model, final java.util.Collection<String> kinds, final double minProbability,
+	public List<DuplicatePair> duplicatePairs(final FLEFModel model, final Collection<String> kinds, final double minProbability,
 			final int maxPerKind){
 		final List<DuplicatePair> result = new ArrayList<>();
 		final EntityMatcher matcher = new EntityMatcher(new ModelIndex(model.getRecords(), references), signature, false);
@@ -361,7 +363,7 @@ public final class RecordAbsorber{
 					blocks.computeIfAbsent(key, k -> new ArrayList<>())
 						.add(record);
 
-			final Set<String> seen = new java.util.HashSet<>();
+			final Set<String> seen = new HashSet<>();
 			final List<DuplicatePair> pairs = new ArrayList<>();
 			for(final List<FLEFRecord> block : blocks.values()){
 				if(block.size() > MAX_BLOCK_SIZE)

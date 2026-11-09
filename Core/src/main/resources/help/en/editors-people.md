@@ -12,11 +12,10 @@ Open it with **Individual > Edit Individual...** (or `F2`); **Individual > Add I
 
 - The **preferred image**: left-click to choose an image, right-click for more options such as *Edit Crop...*, which sets the part of the image shown in the boxes.
 - **Personal Names**: the list of the names of the person. Each opens the [personal name editor](#personal-name).
-- **Sex**: blank, *male*, *female* or *unknown*. It matters: the views use the sex of the parents to put the father and the mother in their places. See [Relationships](relationships.md#how-the-views-read-the-relationships).
 
 **Other tabs**
 
-- **Attributes**: the *Individual Attributes*.
+- **Attributes**: the *Individual Attributes*. The **sex** of the person is one of them: an attribute of type *sex* with the value *male*, *female* or *unknown* (see [the sex and the preferred assertion](#individual-attribute)). It matters: the views use the sex of the parents to put the father and the mother in their places. See [Relationships](relationships.md#how-the-views-read-the-relationships).
 - **Relationships**: *Relationships* (this person is the subject) and *Inverse Relationships* (this person is the target). See [Relationships](relationships.md).
 - **Participations**: the *Event Participations*. A birth date, for instance, is changed through the birth event: see [Editing people, groups and places](editing.md#changing-a-date-of-birth).
 - **Context**: *Context Impacts*. **Research**: *Conclusions*, *Identity Hypotheses* and *Research Questions*.
@@ -31,13 +30,22 @@ A characteristic or status of a person that is not an event: an occupation, a re
 
 | Field | Meaning |
 |---|---|
-| **Type** | Editable. One of: characteristic, residence, occupation, possession, military rank, caste, social class, ethnicity, citizenship, nationality, national ID, title, children count, marriages count, religion, language, literacy, education, apprenticeship. |
-| **Value** | The value of the attribute (for an occupation, the occupation). |
+| **Type** | Editable. One of: sex, characteristic, residence, occupation, possession, military rank, caste, social class, ethnicity, citizenship, nationality, national ID, title, children count, marriages count, religion, language, literacy, education, apprenticeship. |
+| **Value** | The value of the attribute (for an occupation, the occupation; for a sex, *male*, *female* or *unknown*: when the type is *sex* the box becomes a list of these three values). |
 | **Validity Range** | **Valid From** and **Valid To**. |
 | **Place** | Where it held (a place with its citations). |
 | **Confidence** | See [The record editors](editors.md#confidence). |
 
-On Save the type is required, and the attribute must belong to an individual.
+On Save the type is required, and the attribute must belong to an individual; for a *sex* the value must be *male*, *female* or *unknown*.
+
+**The sex and the preferred assertion.** A person can have several *sex* attributes, for instance one for each source that states it, and they may disagree. The application uses one of them, the **preferred** one, chosen in this order:
+
+1. the preferred assertion of the [conclusion](editors-research.md) that resolves them (at least two of them, with the preferred one among them): the strongest proof status (*proven*, then *supported*), and among equals the most recent;
+2. otherwise the only one, if there is only one;
+3. otherwise the one with the strictly highest **Confidence**;
+4. otherwise the sex is undetermined (shown as unknown).
+
+An assertion whose value is *unknown* says nothing, so a *male* and an *unknown* give *male*. Nothing is ever deleted: the other assertions stay in the file. Files written before the sex became an attribute are converted when they are opened: the sex of the person becomes a *sex* attribute, dated as the person, with the note *Migrated from the sex of the individual* in its audit.
 
 ## Group
 

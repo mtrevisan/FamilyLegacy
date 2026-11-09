@@ -39,6 +39,8 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportO
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -108,6 +110,16 @@ class ReportOperationsTest{
 		Assertions.assertFalse(new FullBibliographyOperation().isEnabled(new ToolContext(people, null, null, null)));
 		Assertions.assertTrue(new FullBibliographyOperation().isEnabled(new ToolContext(sources, null, null, null)));
 		Assertions.assertFalse(new FamilyBookOperation().isEnabled(new ToolContext(sources, null, null, null)));
+
+		//to verify: whatever there is a person or a source to look at; surnames: a person
+		Assertions.assertFalse(new ToVerifyOperation().isEnabled(new ToolContext(nothing, null, null, null)));
+		Assertions.assertTrue(new ToVerifyOperation().isEnabled(new ToolContext(people, null, null, null)));
+		Assertions.assertTrue(new ToVerifyOperation().isEnabled(new ToolContext(sources, null, null, null)));
+
+		//surnames: whatever there is a person
+		Assertions.assertFalse(new SurnamesOperation().isEnabled(new ToolContext(nothing, null, null, null)));
+		Assertions.assertTrue(new SurnamesOperation().isEnabled(new ToolContext(people, null, null, null)));
+		Assertions.assertFalse(new SurnamesOperation().isEnabled(new ToolContext(sources, null, null, null)));
 	}
 
 }

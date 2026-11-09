@@ -43,6 +43,7 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -248,7 +249,7 @@ class GroupRoleFilterTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The views need a display");
 		final FLEFModel model = model();
 
-		final List<Integer> bars = new java.util.ArrayList<>();
+		final List<Integer> bars = new ArrayList<>();
 		SwingUtilities.invokeAndWait(() -> {
 			final GroupTimelinePanel panel = new GroupTimelinePanel(model);
 			panel.showGroup("G1");
@@ -274,7 +275,7 @@ class GroupRoleFilterTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The views need a display");
 		final FLEFModel model = model();
 
-		final List<Integer> rows = new java.util.ArrayList<>();
+		final List<Integer> rows = new ArrayList<>();
 		SwingUtilities.invokeAndWait(() -> {
 			final IndividualCareerPanel panel = new IndividualCareerPanel(model);
 			panel.showIndividual("I1");

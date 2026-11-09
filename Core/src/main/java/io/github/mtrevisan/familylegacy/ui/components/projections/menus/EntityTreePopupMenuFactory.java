@@ -37,20 +37,20 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.AddIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectChildTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectIndividualTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.EditIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualCareerTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -112,7 +112,8 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				connectChildItem.setEnabled(hasData && hasIndividuals && panel.isEnableAddChildMenu());
 				relocateItem.setEnabled(hasData);
 				deleteItem.setEnabled(hasData);
-				unlinkItem.setEnabled(hasRelations);
+				//the same condition of the Individual menu: anything that refers to the individual, not only what the box shows
+				unlinkItem.setEnabled(hasData && (hasRelations || UnlinkIndividualRelationshipsTool.hasLinks(model, data.getId())));
 				careerItem.setEnabled(hasData);
 			}
 		});

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,11 +113,10 @@ public final class SourceRootSection implements SectionBuilder{
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceRepository()));
 		for(final FLEFRecord rc : repos){
-			final String rid = rc.extractReferencedId(RepositoryCitationReader.TAG_REPOSITORY, RepositoryReader.TYPE);
+			final String rid = RepositoryCitationReader.extractRepository(rc);
 			final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
-			final String name = (repo != null
-				? RepositoryReader.extractPrimaryName(repo)
-				: rid);
+			//a repository with no name is told by its id
+			final String name = StringUtils.defaultIfBlank((repo != null? RepositoryReader.extractPrimaryName(repo): null), rid);
 			final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 
 			final StringBuilder line = new StringBuilder("- ")

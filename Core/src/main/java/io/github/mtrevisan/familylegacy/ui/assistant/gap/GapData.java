@@ -64,22 +64,34 @@ public record GapData(LocalDate today, Map<String, Person> persons, List<Event> 
 	/**
 	 * @param id          the identifier of the event
 	 * @param type        the type of the event
-	 * @param sourceCount how many sources cite the event
+	 * @param sourceCount how many sources cite the event, the participation of its principals or the principals themselves
 	 * @param principals  the individuals the event is about
 	 */
 	public record Event(String id, String type, int sourceCount, List<String> principals){}
 
 	/**
-	 * @param childId  the child
-	 * @param parentId the parent
+	 * @param childId     the child
+	 * @param parentId    the parent
+	 * @param sourceCount how many sources cite the relationship (a record of the parentage, usually of the birth or the baptism)
 	 */
-	public record ParentLink(String childId, String parentId){}
+	public record ParentLink(String childId, String parentId, int sourceCount){
+
+		public ParentLink(final String childId, final String parentId){
+			this(childId, parentId, 0);
+		}
+	}
 
 	/**
-	 * @param firstId  a partner
-	 * @param secondId the other partner
+	 * @param firstId     a partner
+	 * @param secondId    the other partner
+	 * @param sourceCount how many sources cite the relationship (a record of the marriage, usually)
 	 */
-	public record Union(String firstId, String secondId){}
+	public record Union(String firstId, String secondId, int sourceCount){
+
+		public Union(final String firstId, final String secondId){
+			this(firstId, secondId, 0);
+		}
+	}
 
 	/**
 	 * @param id           the identifier of the question

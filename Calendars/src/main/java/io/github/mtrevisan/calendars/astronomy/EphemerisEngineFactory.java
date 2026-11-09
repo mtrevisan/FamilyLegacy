@@ -40,6 +40,8 @@ import java.util.stream.Stream;
 
 public final class EphemerisEngineFactory{
 
+	private static final System.Logger LOGGER = System.getLogger(EphemerisEngineFactory.class.getName());
+
 	private static final String PLUGINS_DIR = "plugins";
 	/** System property that overrides the location of the plugins' directory. */
 	private static final String PLUGINS_DIR_PROPERTY = "calendars.plugins.dir";
@@ -60,8 +62,12 @@ public final class EphemerisEngineFactory{
 
 	private static EphemerisEngine loadEngine(){
 		final Path pluginsPath = resolvePluginsDirectory();
-		if(pluginsPath == null)
+		if(pluginsPath == null){
+			LOGGER.log(System.Logger.Level.WARNING, "The plugins directory was not found (working directory: {0}), the Ephemeris plugin is not loaded",
+				Paths.get("").toAbsolutePath());
+
 			return loadFromClasspath();
+		}
 
 		try(final Stream<Path> stream = Files.list(pluginsPath)){
 			//the other plugins of the application (report formats, importers) live in the same directory: a jar that cannot be read as a
@@ -106,14 +112,21 @@ public final class EphemerisEngineFactory{
 					return engine;
 			}
 		}
-		catch(final Exception ignored){}
+		catch(final Exception e){
+			LOGGER.log(System.Logger.Level.WARNING, "The Ephemeris plugin in '" + pluginsPath.toAbsolutePath() + "' could not be loaded", e);
+		}
 
 		return loadFromClasspath();
 	}
 
 	private static boolean isReadableModule(final Path jar){
 		try{
-			return !ModuleFinder.of(jar).findAll().isEmpty();
+			//only the jars that provide the engine are resolved: the other plugins (report formats, importers) embed libraries that
+			//clash with each other (the same package exported by two modules), and resolving them together fails
+			final String service = EphemerisEngine.class.getName();
+			return ModuleFinder.of(jar).findAll().stream()
+				.anyMatch(reference -> reference.descriptor().provides().stream()
+					.anyMatch(provides -> provides.service().equals(service)));
 		}
 		catch(final FindException ignored){
 			return false;

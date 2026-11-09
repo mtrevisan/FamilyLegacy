@@ -43,6 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /** The filter by year of the group views, the axis of a view with open or undated bars, and the reuse of the model while a filter changes. */
@@ -212,7 +213,7 @@ class GroupViewFiltersTest{
 		final GroupViewFilters filters = new GroupViewFilters();
 		final int[] built = new int[1];
 		final List<TemporalProjectionModel> shown = new ArrayList<>();
-		final java.util.function.Supplier<TemporalProjectionModel> builder = () -> {
+		final Supplier<TemporalProjectionModel> builder = () -> {
 			built[0] ++;
 			return timeline();
 		};

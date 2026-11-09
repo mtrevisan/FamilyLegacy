@@ -135,6 +135,11 @@ public final class EventReader{
 	public static final String ENUM_TYPE_WILL = "will";
 	public static final String ENUM_TYPE_PROBATE = "probate";
 	public static final String ENUM_TYPE_GUARDIANSHIP = "guardianship";
+	/** Not in the protocol list (types of one's own), but frequent in the files that are imported: a story or a remembrance (that can come after the death), a baptism, a christening. */
+	public static final String CUSTOM_TYPE_ANECDOTE = "anecdote";
+	public static final String CUSTOM_TYPE_COMMEMORATION = "commemoration";
+	public static final String CUSTOM_TYPE_BAPTISM = "baptism";
+	public static final String CUSTOM_TYPE_CHRISTENING = "christening";
 	/**
 	 * Event types declared by the protocol, in a stable order.
 	 * <p>

@@ -155,7 +155,7 @@ public final class SourcesSection implements SectionBuilder{
 	}
 
 	private void appendRepository(final List<ReportSection> out, final FLEFRecord rc){
-		final String rid = rc.extractReferencedId(RepositoryCitationReader.TAG_REPOSITORY, RepositoryReader.TYPE);
+		final String rid = RepositoryCitationReader.extractRepository(rc);
 		final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
 
 		// Repository name (or raw ID when the reference cannot be resolved).

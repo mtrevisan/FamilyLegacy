@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
  * record IndividualAttributeRecord {
  *   individual: Xref&lt;IndividualRecord&gt;   // The individual to whom this attribute applies.
  *   type: enum {                         // The type of attribute being asserted.
+ *     sex,               // Biological sex as recorded in sources or inferred from evidence. Single-valued: see Preferred assertion. VALUE is male, female, or unknown.
  *     characteristic,    // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
  *     residence,         // Place where the individual is known to have lived, resided, or maintained a household.
  *     occupation,        // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
@@ -88,9 +89,13 @@ public final class IndividualAttributeReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_TYPE_SEX = "sex";
 	public static final String ENUM_TYPE_CHARACTERISTIC = "characteristic";
 	public static final String ENUM_TYPE_RESIDENCE = "residence";
 	public static final String ENUM_TYPE_OCCUPATION = "occupation";
+	/** The words that make an occupation that of a member of the clergy (a hint, matched case-insensitively inside the occupation). */
+	public static final String[] CLERGY_OCCUPATIONS = {"priest", "vicar", "curate", "rector", "chaplain", "prete", "parroco", "pievano",
+		"curato", "cappellano", "sacerdote", "vicario"};
 	public static final String ENUM_TYPE_TITLE = "title";
 	public static final String ENUM_TYPE_POSSESSION = "possession";
 	public static final String ENUM_TYPE_MILITARY_RANK = "military_rank";
@@ -108,7 +113,7 @@ public final class IndividualAttributeReader{
 	public static final String ENUM_TYPE_EDUCATION = "education";
 	public static final String ENUM_TYPE_APPRENTICESHIP = "apprenticeship";
 	public static final String[] TYPES = new String[]{
-		ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, ENUM_TYPE_POSSESSION, ENUM_TYPE_MILITARY_RANK, ENUM_TYPE_CASTE,
+		ENUM_TYPE_SEX, ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, ENUM_TYPE_POSSESSION, ENUM_TYPE_MILITARY_RANK, ENUM_TYPE_CASTE,
 		ENUM_TYPE_SOCIAL_CLASS, ENUM_TYPE_ETHNICITY, ENUM_TYPE_CITIZENSHIP, ENUM_TYPE_NATIONALITY, ENUM_TYPE_NATIONAL_ID, ENUM_TYPE_TITLE, ENUM_TYPE_CHILDREN_COUNT,
 		ENUM_TYPE_MARRIAGES_COUNT, ENUM_TYPE_RELIGION, ENUM_TYPE_LANGUAGE, ENUM_TYPE_LITERACY, ENUM_TYPE_EDUCATION, ENUM_TYPE_APPRENTICESHIP
 	};

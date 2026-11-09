@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.List;
 
 
 class ModelHistoryTest{
@@ -43,7 +44,7 @@ class ModelHistoryTest{
 	}
 
 
-	private static java.util.List<String> summarize(final ModelHistory.Entry entry){
+	private static List<String> summarize(final ModelHistory.Entry entry){
 		return entry.changes().stream()
 			.map(change -> change.id() + ":" + change.kind())
 			.toList();

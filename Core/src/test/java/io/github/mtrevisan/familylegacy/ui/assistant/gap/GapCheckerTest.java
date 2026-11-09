@@ -31,9 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -150,7 +150,7 @@ class GapCheckerTest{
 
 		Assertions.assertEquals(AssistantCategory.RESEARCH, finding.diagnostic().category());
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.diagnostic().severity());
-		Assertions.assertTrue(finding.diagnostic().title().startsWith("No death recorded: Person a (born 1900)"));
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("No death recorded: Person a [a] (born 1900)"));
 		Assertions.assertEquals(85., finding.diagnostic().rank());
 		Assertions.assertEquals(List.of("a"), finding.diagnostic().recordIds());
 		Assertions.assertTrue(finding.diagnostic().explanation().contains("certainly dead"), finding.diagnostic().explanation());
@@ -253,7 +253,7 @@ class GapCheckerTest{
 			.parent("c", "a").parent("c", "b")
 			.findings().getFirst();
 
-		Assertions.assertTrue(finding.diagnostic().title().startsWith("Children without a known marriage: Person a and Person b"));
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("Children without a known marriage: Person a [a] and Person b [b]"));
 		Assertions.assertEquals(List.of("a", "b", "c"), finding.diagnostic().recordIds());
 		Assertions.assertEquals(50., finding.diagnostic().rank());
 		Assertions.assertEquals("Were Person a and Person b married? When and where?", finding.draft().text());

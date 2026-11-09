@@ -43,15 +43,18 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -143,9 +146,9 @@ public final class AddCitationDialog extends JDialog{
 		form.add(locatorField, gbc);
 		gbc.gridwidth = 1;
 
-		stanceCombo.setRenderer(new javax.swing.DefaultListCellRenderer(){
+		stanceCombo.setRenderer(new DefaultListCellRenderer(){
 			@Override
-			public java.awt.Component getListCellRendererComponent(final javax.swing.JList<?> list, final Object value, final int index,
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 					final boolean selected, final boolean focus){
 				return super.getListCellRendererComponent(list, I18N.t("enum.source_citation.stance." + value), index, selected, focus);
 			}

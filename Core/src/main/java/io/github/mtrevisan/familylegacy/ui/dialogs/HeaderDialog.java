@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HeaderHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
+import io.github.mtrevisan.familylegacy.util.SoftwareInfo;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -78,7 +79,6 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
 	private static final String PROTOCOL_VERSION = "0.2.0";
-	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
 
 	private final BoundTextField protocolNameField;
 	private final BoundTextField protocolVersionField;
@@ -107,7 +107,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		protocolVersionField = new BoundTextField(HeaderReader.TAG_PROTOCOL_VERSION, PROTOCOL_VERSION);
 		sourceNameField = new BoundTextField(HeaderReader.TAG_SOURCE_NAME, sourceName);
 		sourceVersionField = new BoundTextField(HeaderReader.TAG_SOURCE_VERSION, sourceVersion);
-		sourceOrganizationField = new BoundTextField(HeaderReader.TAG_SOURCE_ORGANIZATION, SOURCE_ORGANIZATION);
+		sourceOrganizationField = new BoundTextField(HeaderReader.TAG_SOURCE_ORGANIZATION, SoftwareInfo.ORGANIZATION);
 		dateField = new BoundTextField(HeaderReader.TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(HeaderReader.TAG_COPYRIGHT, 3, 25);

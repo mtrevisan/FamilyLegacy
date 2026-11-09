@@ -42,6 +42,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import java.awt.Desktop;
 import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -93,6 +94,7 @@ public final class AppearanceMenu{
 	 */
 	public static JMenu create(final Window owner, final BooleanSupplier saveBeforeRestart, final Supplier<File> openFile){
 		final JMenu menu = new JMenu(I18N.t("menu.appearance"));
+		menu.setMnemonic(KeyEvent.VK_A);
 		menu.add(createLanguageMenu(owner, saveBeforeRestart, openFile));
 		menu.add(createFontMenu(owner));
 		menu.add(createMediaPathsMenu(owner));

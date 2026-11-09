@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -71,7 +72,7 @@ public final class MediaFiles{
 
 	/** The same, telling how far it got through the media (0 to 1): looking for a file on a network drive can take long. */
 	public static List<ConsistencyService.Issue> missing(final FLEFModel model, final String baseDirectory,
-			final java.util.function.DoubleConsumer progress){
+			final DoubleConsumer progress){
 		final List<ConsistencyService.Issue> issues = new ArrayList<>();
 		final List<FLEFRecord> records = model.getRecordsByType(MediaReader.TYPE);
 		int done = 0;
@@ -93,7 +94,7 @@ public final class MediaFiles{
 	}
 
 	/** @return	Where the file should be, {@code null} if it cannot be said (remote, malformed, or relative with no base directory). */
-	static Path localPath(final String location, final String baseDirectory){
+	public static Path localPath(final String location, final String baseDirectory){
 		try{
 			final Path path;
 			if(Strings.CI.startsWith(location, FILE_SCHEME + ":"))

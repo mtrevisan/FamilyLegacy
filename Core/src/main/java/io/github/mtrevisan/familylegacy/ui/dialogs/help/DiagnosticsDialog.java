@@ -44,10 +44,13 @@ import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
@@ -165,6 +168,9 @@ public final class DiagnosticsDialog extends JDialog{
 		ReportText.line(sb, "text.diagnostics.locale", Locale.getDefault());
 		ReportText.line(sb, "text.diagnostics.file_encoding", System.getProperty("file.encoding"));
 		ReportText.line(sb, "text.diagnostics.processors", Runtime.getRuntime().availableProcessors());
+		ReportText.line(sb, "text.diagnostics.uptime", formatDuration(ManagementFactory.getRuntimeMXBean().getUptime()));
+		ReportText.line(sb, "text.diagnostics.threads", ManagementFactory.getThreadMXBean().getThreadCount());
+		ReportText.line(sb, "text.diagnostics.jvm_arguments", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
 		ReportText.blank(sb);
 	}
 
@@ -182,10 +188,17 @@ public final class DiagnosticsDialog extends JDialog{
 	}
 
 	private static String formatBytes(final long bytes){
+		if(bytes < 1024l * 1024l)
+			return String.format(Locale.ROOT, "%.1f KB", bytes / 1024.);
 		final long mb = bytes / (1024L * 1024L);
 		if(mb >= 1024L)
-			return String.format("%.2f GB", mb / 1024.);
+			return String.format(Locale.ROOT, "%.2f GB", mb / 1024.);
 		return mb + " MB";
+	}
+
+	private static String formatDuration(final long millis){
+		final Duration duration = Duration.ofMillis(millis);
+		return String.format(Locale.ROOT, "%d:%02d:%02d", duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
 	}
 
 	private static void appendGarbageCollector(final StringBuilder sb){
@@ -234,8 +247,11 @@ public final class DiagnosticsDialog extends JDialog{
 		ReportText.section(sb, "text.diagnostics.section.disk");
 		if(modelFile != null){
 			ReportText.line(sb, "text.diagnostics.model_file", modelFile.getAbsolutePath());
-			final long freeSpace = modelFile.getParentFile().getFreeSpace();
-			ReportText.line(sb, "text.diagnostics.disk_free", formatBytes(freeSpace));
+			ReportText.line(sb, "text.diagnostics.model_file_size", formatBytes(modelFile.length()));
+			ReportText.line(sb, "text.diagnostics.model_file_modified",
+				LocalDateTime.ofInstant(Instant.ofEpochMilli(modelFile.lastModified()), ZoneId.systemDefault()).format(TIMESTAMP_FORMAT));
+			final File folder = modelFile.getAbsoluteFile().getParentFile();
+			ReportText.line(sb, "text.diagnostics.disk_free", formatBytes(folder != null? folder.getFreeSpace(): 0l));
 		}
 		else
 			ReportText.line(sb, "text.diagnostics.model_file", "(unsaved)");

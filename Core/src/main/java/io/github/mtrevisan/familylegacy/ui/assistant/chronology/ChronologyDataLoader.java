@@ -24,14 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -73,8 +74,9 @@ final class ChronologyDataLoader{
 
 		final List<ChronologyData.LifeEvent> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, ChronologyData.Person> persons = new LinkedHashMap<>();
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 		for(final FLEFRecord individual : filteredIndividuals.values())
-			persons.put(individual.getId(), loadPerson(individual, events));
+			persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
 
 		final List<ChronologyData.ParentLink> parents = new ArrayList<>();
 		final List<ChronologyData.Union> unions = new ArrayList<>();
@@ -110,7 +112,8 @@ final class ChronologyDataLoader{
 	}
 
 	/** The birth and the death of an individual are the events of that type the individual is the principal of. */
-	private static ChronologyData.Person loadPerson(final FLEFRecord individual, final List<ChronologyData.LifeEvent> events){
+	private static ChronologyData.Person loadPerson(final FLEFRecord individual, final List<ChronologyData.LifeEvent> events,
+			final SexType sex){
 		DateRange birth = null;
 		DateRange death = null;
 		String birthText = null;
@@ -131,8 +134,8 @@ final class ChronologyDataLoader{
 		}
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);
-		return new ChronologyData.Person(individual.getId(), (name != null && !name.isBlank()? name: individual.getId()),
-			sex(individual), birth, death, birthText, deathText);
+		return new ChronologyData.Person(individual.getId(), (name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
+			sex, birth, death, birthText, deathText);
 	}
 
 	private static void loadRelationship(final FLEFRecord relationship, final Set<String> individualIds,
@@ -156,15 +159,6 @@ final class ChronologyDataLoader{
 		}
 	}
 
-
-	private static SexType sex(final FLEFRecord individual){
-		try{
-			return IndividualReader.extractSex(individual);
-		}
-		catch(final IllegalArgumentException ignored){
-			return SexType.UNKNOWN;
-		}
-	}
 
 	/** @return the days of a date structure, or {@code null} if there is none or it cannot be read */
 	private static DateRange range(final FLEFRecord dateStructure){

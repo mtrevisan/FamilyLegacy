@@ -24,9 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
@@ -35,14 +43,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 
 
 /**
@@ -209,6 +209,8 @@ public final class GEDCOMMapper{
 	public static final Set<String> INDIVIDUAL_EVENT_TAGS = Set.of("BIRT", "CHR", "DEAT", "BURI", "CREM", TAG_ADOPTION, "BAPM",
 		"BARM", "BASM", "BLES", "CHRA", "CONF", "FCOM", "ORDN", "NATU", "EMIG", "IMMI", "CENS", "PROB", "WILL", "GRAD", "RETI",
 		TAG_GENERIC_EVENT, "BAPL", "CONL", "ENDL", "INIL", "SLGC");
+	/** The events of an individual that are about the individual itself: whoever it is told of is the principal of them, not a witness. */
+	public static final Set<String> PRINCIPAL_ONLY_EVENT_TAGS = Set.of("BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM");
 	public static final Set<String> FAMILY_EVENT_TAGS = Set.of("ANUL", "CENS", "DIV", "DIVF", "ENGA", "MARB", "MARC", "MARR",
 		"MARL", "MARS", TAG_GENERIC_EVENT, "SLGS");
 

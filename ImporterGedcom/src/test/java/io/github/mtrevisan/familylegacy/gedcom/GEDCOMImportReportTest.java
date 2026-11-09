@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
@@ -41,8 +42,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
@@ -389,8 +391,33 @@ class GEDCOMImportReportTest{
 
 		final FLEFRecord individual = result.model().getRecordById("I1");
 		assertNote(individual, "Sex", "Sex: X (neither male nor female)");
-		Assertions.assertEquals("unknown", FLEFRecordHelper.getChildValue(individual, IndividualReader.TAG_SEX));
+		//the sex is an attribute of the individual, and the sex X says nothing about it
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(individual, "sex").isEmpty());
+		final List<FLEFRecord> sexes = PreferredSex.assertions("I1", result.model());
+		Assertions.assertEquals(1, sexes.size());
+		Assertions.assertEquals("unknown", FLEFRecordHelper.getChildValue(sexes.getFirst(), IndividualAttributeReader.TAG_VALUE));
+		Assertions.assertEquals(SexType.UNKNOWN, PreferredSex.of(individual, result.model()));
 		Assertions.assertTrue(result.report().isEmpty(), result.report().issues().toString());
+	}
+
+	@Test
+	void sexIsAnAttributeThatKeepsItsCitation() throws IOException{
+		final Result result = convertModel("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 SEX F
+			2 SOUR @S1@
+			0 @S1@ SOUR
+			1 TITL Parish register
+			""");
+
+		final FLEFRecord individual = result.model().getRecordById("I1");
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(individual, "sex").isEmpty());
+		final List<FLEFRecord> sexes = PreferredSex.assertions("I1", result.model());
+		Assertions.assertEquals(1, sexes.size());
+		Assertions.assertEquals("female", FLEFRecordHelper.getChildValue(sexes.getFirst(), IndividualAttributeReader.TAG_VALUE));
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(sexes.getFirst(), IndividualAttributeReader.TAG_SOURCE).size());
+		Assertions.assertEquals(SexType.FEMALE, PreferredSex.of(individual, result.model()));
 	}
 
 	@Test
@@ -448,6 +475,129 @@ class GEDCOMImportReportTest{
 		final String text = noteText(result.model().getRecordById("S1"), "Events recorded");
 		Assertions.assertEquals("BIRT, CHR, FROM 1800 TO 1850, Treviso\nDEAT, FROM 1810 TO 1860, Padova\nMARR, 1830", text);
 		Assertions.assertTrue(result.report().isEmpty(), result.report().issues().toString());
+	}
+
+	@Test
+	void roleOfTheCitedEventIsTheRoleOfTheParticipantInAnEventThatIsNotOwn() throws IOException{
+		final Result result = convertModel("""
+			0 @S1@ SOUR
+			1 TITL Register
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 EVEN
+			2 TYPE Baptism of a relative
+			2 SOUR @S1@
+			3 EVEN CHR
+			4 ROLE WITN
+			""");
+
+		Assertions.assertEquals(EventParticipationReader.ENUM_ROLE_WITNESS, participationRole(result.model(), "baptism_of_a_relative"));
+		Assertions.assertTrue(result.report().isEmpty(), result.report().issues().toString());
+	}
+
+	@Test
+	void roleOfTheCitedEventOfTheOwnEventsIsAnErrorAndTheIndividualIsThePrincipal() throws IOException{
+		final Result result = convertModel("""
+			0 @S1@ SOUR
+			1 TITL Register
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 SOUR @S1@
+			3 EVEN BIRT
+			4 ROLE WITN
+			2 SOUR @S1@
+			3 EVEN BIRT
+			4 ROLE WITN
+			1 DEAT
+			2 SOUR @S1@
+			3 EVEN DEAT
+			4 ROLE SPOUSE
+			1 BAPM
+			2 SOUR @S1@
+			3 EVEN BAPM
+			4 ROLE WITN
+			2 SOUR @S1@
+			3 EVEN BAPM
+			4 ROLE CLERGY
+			""");
+
+		final FLEFModel model = result.model();
+		//the individual is the principal of its own birth, death and baptism, whatever the citations say
+		Assertions.assertEquals(List.of(EventParticipationReader.ENUM_ROLE_PRINCIPAL, EventParticipationReader.ENUM_ROLE_PRINCIPAL,
+				EventParticipationReader.ENUM_ROLE_PRINCIPAL),
+			List.of(participationRole(model, EventReader.ENUM_TYPE_BIRTH), participationRole(model, EventReader.ENUM_TYPE_DEATH),
+				participationRole(model, "baptism")));
+		//a role that does not agree with it is an error of the file, and each one is reported
+		assertReported(result.report(), ImportReasons.INCONSISTENT_ROLE, "ROLE WITN", "I1 BIRT.SOUR.EVEN.ROLE");
+		assertReported(result.report(), ImportReasons.INCONSISTENT_ROLE, "ROLE WITN", "I1 BAPM.SOUR.EVEN.ROLE");
+		//a kinship, and the roles after the first one, are reported as before
+		assertReported(result.report(), ImportReasons.SOURCE_DETAIL, "ROLE SPOUSE", "I1 DEAT.SOUR.EVEN.ROLE");
+		assertReported(result.report(), ImportReasons.SOURCE_DETAIL, "ROLE CLERGY", "I1 BAPM.SOUR.EVEN.ROLE");
+		Assertions.assertEquals(5, result.report().issues().size(), result.report().issues().toString());
+	}
+
+	@Test
+	void roleOfTheCitedEventOfAFamilyIsReported() throws IOException{
+		final Result result = convertModel("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			0 @I2@ INDI
+			1 NAME Luigi /Rossi/
+			0 @F1@ FAM
+			1 HUSB @I2@
+			1 WIFE @I1@
+			1 MARR
+			2 SOUR A register
+			3 EVEN MARR
+			4 ROLE WITN
+			""");
+
+		assertReported(result.report(), ImportReasons.SOURCE_DETAIL, "ROLE WITN", "G1 MARR.SOUR.EVEN.ROLE");
+	}
+
+	/** The role of the participation of the individual I1 in the event of the given type. */
+	private static String participationRole(final FLEFModel model, final String eventType){
+		final String eventId = model.getRecords().stream()
+			.filter(EventReader::isOfType)
+			.filter(event -> eventType.equals(FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE)))
+			.findFirst()
+			.orElseThrow()
+			.getId();
+		return model.getRecords().stream()
+			.filter(EventParticipationReader::isOfType)
+			.filter(participation -> eventId.equals(FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT)))
+			.filter(participation -> "I1".equals(FLEFRecordHelper.getChildValue(participation, "participant.individual")))
+			.map(participation -> FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE))
+			.findFirst()
+			.orElseThrow();
+	}
+
+	@Test
+	void dateOfACitationOfADatedSourceIsReported() throws IOException{
+		final Result result = convertModel("""
+			0 @S1@ SOUR
+			1 TITL Register
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 SOUR @S1@
+			3 DATA
+			4 DATE 18 AUG 1847
+			1 DEAT
+			2 SOUR @S1@
+			3 DATA
+			4 DATE 18 AUG 1847
+			1 BAPM
+			2 SOUR @S1@
+			3 DATA
+			4 DATE 20 AUG 1847
+			""");
+
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(result.model().getRecordById("S1"), "date"));
+		//only the date that differs from the one of the source is reported
+		assertReported(result.report(), ImportReasons.DATE_DETAIL, "DATE 20 AUG 1847", "I1 SOUR.DATA.DATE");
+		Assertions.assertEquals(1, result.report().issues().size(), result.report().issues().toString());
 	}
 
 	@Test

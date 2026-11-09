@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -126,8 +127,10 @@ public final class IndexSection implements SectionBuilder{
 
 	private List<FLEFRecord> relatedIndividuals(){
 		final Map<String, FLEFRecord> byId = new LinkedHashMap<>();
+		//the root of the report is not an individual in a report about a source, a place, ...
 		for(final FLEFRecord r : ctx.index.reachable(ctx.root))
-			byId.putIfAbsent(r.getId(), r);
+			if(IndividualReader.isOfType(r))
+				byId.putIfAbsent(r.getId(), r);
 		for(final FLEFRecord r : ctx.index.indirectRelations(ctx.root))
 			byId.putIfAbsent(r.getId(), r);
 

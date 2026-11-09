@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSel
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -309,6 +310,17 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final RecordTypeHandler<?> handler = findHandler(record);
 		return handler.getDisplayText(record, model);
+	}
+
+	@Override
+	protected String getRichDisplayText(final FLEFRecord record){
+		if(record != null && findHandler(record) instanceof PersonalNameHandler personalNameHandler){
+			//the nicknames (of the given or the family name) are in italic
+			final String html = personalNameHandler.getRichDisplayText(record);
+			if(html != null)
+				return html;
+		}
+		return super.getRichDisplayText(record);
 	}
 
 	@Override

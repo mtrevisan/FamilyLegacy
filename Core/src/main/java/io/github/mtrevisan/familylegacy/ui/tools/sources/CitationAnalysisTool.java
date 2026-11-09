@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,8 +68,8 @@ public final class CitationAnalysisTool implements ToolOperation{
 	}
 
 	/** What the analysis found: the sources and the documents nobody uses, the assertions with no citation, and the totals. */
-	record Analysis(List<FLEFRecord> unusedSources, List<FLEFRecord> unusedDocuments, List<FLEFRecord> uncited, int citedSourceCount,
-		int referencedDocumentCount){}
+	record Analysis(List<FLEFRecord> unusedSources, List<FLEFRecord> unusedDocuments, List<FLEFRecord> uncited, Map<String, Integer> assertionTotals,
+		int citedSourceCount, int referencedDocumentCount){}
 
 
 	@Override
@@ -93,12 +94,18 @@ public final class CitationAnalysisTool implements ToolOperation{
 				unusedDocuments.add(doc);
 
 		final List<FLEFRecord> uncited = new ArrayList<>();
+		//how many records each analysed type has, to tell what share of it is uncited
+		final Map<String, Integer> totals = new LinkedHashMap<>();
 		for(final String type : ASSERTION_TYPES)
-			for(final FLEFRecord record : PrivacyService.visible(model, model.getRecordsByType(type)))
+		{
+			final List<FLEFRecord> visible = PrivacyService.visible(model, model.getRecordsByType(type));
+			totals.put(type, visible.size());
+			for(final FLEFRecord record : visible)
 				if(!hasCitation(record))
 					uncited.add(record);
+		}
 
-		return new Analysis(unusedSources, unusedDocuments, uncited, sourceUsage.size(), docUsage.size());
+		return new Analysis(unusedSources, unusedDocuments, uncited, totals, sourceUsage.size(), docUsage.size());
 	}
 
 	/**

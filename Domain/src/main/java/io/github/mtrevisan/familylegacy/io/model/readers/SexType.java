@@ -42,4 +42,13 @@ public enum SexType{
 		return rawSex;
 	}
 
+	/** @return	The sex a raw value (male, female, unknown, ignoring case) stands for, {@link #UNKNOWN} if it is none of them or is {@code null}. */
+	public static SexType fromRaw(final String rawSex){
+		if(rawSex != null)
+			for(final SexType type : values())
+				if(type.rawSex.equalsIgnoreCase(rawSex.trim()))
+					return type;
+		return UNKNOWN;
+	}
+
 }

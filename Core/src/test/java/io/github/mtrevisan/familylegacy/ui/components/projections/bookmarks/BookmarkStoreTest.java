@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -126,7 +127,7 @@ class BookmarkStoreTest{
 		try(final var files = Files.list(file.getParent())){
 			Assertions.assertEquals(1, files.count());
 		}
-		Assertions.assertFalse(Files.readString(file, java.nio.charset.StandardCharsets.ISO_8859_1).contains("\n#=FamilyLegacy"));
+		Assertions.assertFalse(Files.readString(file, StandardCharsets.ISO_8859_1).contains("\n#=FamilyLegacy"));
 	}
 
 }

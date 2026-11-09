@@ -25,7 +25,8 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.KinshipResolver;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 
@@ -88,16 +88,16 @@ public final class RelationsSection implements SectionBuilder{
 		final boolean isRoot = Objects.equals(ind.getId(), ctx.root.getId());
 		final String kinTerm = (isRoot? null: ctx.kinship().shortTerm(ind.getId(), ctx.root.getId()));
 		final String suffix = (isRoot
-			? "  — *" + ctx.labels.sections().subject() + "*"
+			? " — *" + ctx.labels.sections().subject() + "*"
 			: (ReportFormatters.isUsefulKinshipTerm(kinTerm)
-				? "  — *" + ReportFormatters.escape(kinTerm) + "*": StringUtils.EMPTY));
+				? " — *" + ReportFormatters.escape(kinTerm) + "*": StringUtils.EMPTY));
 
 		out.add(new ReportSection.Heading(2,
 			counter + ". " + ReportFormatters.escape(ctx.displayText(ind)) + suffix));
 
 		final List<String> meta = new ArrayList<>();
-		final String sex = Optional.ofNullable(IndividualReader.extractRawSex(ind))
-			.orElse(ctx.labels.sections().sexUnknown());
+		final SexType preferredSex = PreferredSex.of(ind, ctx.model);
+		final String sex = (preferredSex != SexType.UNKNOWN? preferredSex.getRawSex(): ctx.labels.sections().sexUnknown());
 		meta.add("**" + ctx.labels.sections().sex() + ":** " + ReportFormatters.escape(sex));
 
 		final List<FLEFRecord> parents = ctx.index.parentsOf(ind);

@@ -26,10 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditStamp;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -58,7 +60,6 @@ import java.io.IOException;
  * <pre>
  * record IndividualRecord {
  *   name*: PersonalNameStructure
- *   sex?: enum { male, female, unknown }
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
  *   preferred_image?: struct {
@@ -71,8 +72,12 @@ import java.io.IOException;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): name, sex, preferred_image
+ * Tab 1 (Properties): name, preferred_image
  * Tab 2 (Attributes): IndividualAttributeRecord (individual = this individual)
+ * <p>
+ * The sex is not a field of the individual: it is edited as the {@code sex} IndividualAttributeRecords of the Attributes tab (see
+ * {@link PreferredSex}).
+ * <p>
  * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (target = this individual)
  * Tab 4 (Participations): EventParticipationRecord (participant[individual] = this individual)
  * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
@@ -86,7 +91,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel personalNamePanel;
-	private final BoundComboBox<String> sexCombo;
+	/** The sex given by whoever creates the individual (the tree: the father is male): saved as a sex attribute. */
+	private SexType presetSex;
 
 
 	public static IndividualRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -104,8 +110,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
 		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.individual.personal_name"), model, PersonalNameHandler.class);
-		sexCombo = new BoundComboBox<>(IndividualReader.TAG_SEX, GUIHelper.fillCombo(IndividualReader.SEXES, null));
-		sexCombo.setI18NPrefix("enum.individual.sex");
 
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
@@ -121,8 +125,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.PRIVACY, IndividualReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualReader.TAG_AUDIT, null)
 			.build();
-
-		components.bind(sexCombo);
 
 
 		// Set up the image carousel selection listener on the source list
@@ -141,11 +143,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		// names
 		GUIHelper.addComponent(panel, personalNamePanel);
-
-		// sex
-		final JPanel sexPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]10[]");
-		GUIHelper.addLabeledComponent(sexPanel, I18N.l("dialog.individual.sex"), sexCombo);
-		GUIHelper.addComponent(panel, sexPanel);
 
 		return panel;
 	}
@@ -252,12 +249,23 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 	public IndividualRecordDialog witSex(final SexType sex){
-		if(sex != null){
-			sexCombo.setText(sex.getRawSex());
-			sexCombo.setEnabled(false);
-		}
+		presetSex = sex;
 
 		return this;
+	}
+
+
+	/** The sex is edited in the Attributes tab, as the sex attributes of the individual (see {@link PreferredSex}). */
+	private void savePresetSex(){
+		if(presetSex == null || presetSex == SexType.UNKNOWN || !PreferredSex.assertions(record.getId(), model).isEmpty())
+			return;
+
+		model.addRecord(FLEFRecord.createMainRecord(IndividualAttributeReader.TYPE, IndividualAttributeReader.ID_PREFIX, model)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, record.getId()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, presetSex.getRawSex()))
+			.addChild(AuditStamp.now()));
+		presetSex = null;
 	}
 
 
@@ -277,6 +285,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		preferredImagePanel.save(record);
 		personalNamePanel.save(record);
+		savePresetSex();
 
 		components.save(record);
 //		try{

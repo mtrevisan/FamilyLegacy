@@ -135,7 +135,9 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition LIST_MOVE_UP = register(I18N.t("shortcut.category.list"), I18N.t("shortcut.list.move.up"), KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK), "Ctrl+Up", CTX_LIST);
 	public static final ShortcutDefinition LIST_MOVE_DOWN = register(I18N.t("shortcut.category.list"), I18N.t("shortcut.list.move.down"), KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK), "Ctrl+Down", CTX_LIST);
 
-	public static final ShortcutDefinition DIALOG_CLOSE = register(I18N.t("shortcut.category.dialog"), I18N.t("shortcut.dialog.close"), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Esc", CTX_DIALOG);
+	public static final ShortcutDefinition DIALOG_UNDO = register(I18N.t("shortcut.category.dialog"), I18N.t("shortcut.dialog.undo"), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK), (IS_MAC? "⌘Z": "Ctrl+Z"), CTX_DIALOG);
+	public static final ShortcutDefinition DIALOG_REDO = register(I18N.t("shortcut.category.dialog"), I18N.t("shortcut.dialog.redo"), KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"), CTX_DIALOG);
+	public static final ShortcutDefinition DIALOG_CLOSE =register(I18N.t("shortcut.category.dialog"), I18N.t("shortcut.dialog.close"), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Esc", CTX_DIALOG);
 
 
 	private ShortcutRegistry(){}

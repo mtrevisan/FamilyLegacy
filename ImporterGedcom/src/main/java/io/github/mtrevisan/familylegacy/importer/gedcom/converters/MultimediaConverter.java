@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import org.apache.commons.lang3.StringUtils;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -35,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +64,7 @@ public class MultimediaConverter{
 
 	/** The GEDCOM sources cited by the media, resolved once the sources are converted. */
 	private final List<String[]> mediaSources = new ArrayList<>();
+
 
 	/**
 	 * Constructor.
@@ -112,6 +113,15 @@ public class MultimediaConverter{
 		if(fileNodes.isEmpty())
 			GEDCOMRecordBuilder.registerEmbeddedFile(xref, objNode);
 
+		//the same file written twice is the same media: the first survives, completed with what the others say more
+		if(fileNodes.size() == 1){
+			final FLEFRecord existing = Deduplicator.mergeMedia(media);
+			if(existing != null){
+				Deduplicator.registerAlias(xref, existing.getId());
+				return;
+			}
+		}
+
 		multimediaMap.put(xref, media);
 		model.addRecord(media);
 	}
@@ -127,10 +137,11 @@ public class MultimediaConverter{
 			if(!SourceReader.isOfType(source))
 				continue;
 
+			final String mediaId = Deduplicator.resolveAlias(mediaSource[0]);
 			final boolean present = FLEFRecordHelper.findChildren(source, SourceReader.TAG_MEDIA).stream()
-				.anyMatch(reference -> mediaSource[0].equals(reference.getValue()));
+				.anyMatch(reference -> mediaId.equals(reference.getValue()));
 			if(!present)
-				source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, mediaSource[0]));
+				source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, mediaId));
 		}
 	}
 

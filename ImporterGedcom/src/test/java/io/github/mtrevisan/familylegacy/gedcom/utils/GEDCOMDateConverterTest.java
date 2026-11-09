@@ -31,6 +31,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 
 class GEDCOMDateConverterTest{
 
@@ -115,6 +117,83 @@ class GEDCOMDateConverterTest{
 	}
 
 	@Test
+	void qualifiedBounds(){
+		final FLEFRecord before = GEDCOMDateConverter.buildDateStructure("date", "BEF ABT 1450");
+		Assertions.assertEquals("1450", FLEFRecordHelper.getChildValue(before, "value.bounded.not_after.value.full_date"));
+		Assertions.assertEquals("stated", FLEFRecordHelper.getChildValue(before, "value.bounded.not_after.approximate.basis"));
+
+		final FLEFRecord between = GEDCOMDateConverter.buildDateStructure("date", "BET CAL 1950 AND 1 JUL 1954");
+		Assertions.assertEquals("calculated", FLEFRecordHelper.getChildValue(between, "value.bounded.not_before.approximate.basis"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(between, "value.bounded.not_after.approximate"));
+
+		final FLEFRecord period = GEDCOMDateConverter.buildDateStructure("date", "FROM 1960 TO ABT 1980");
+		Assertions.assertEquals("1980", FLEFRecordHelper.getChildValue(period, "value.spanning.to.value.full_date"));
+		Assertions.assertEquals("stated", FLEFRecordHelper.getChildValue(period, "value.spanning.to.approximate.basis"));
+	}
+
+	@Test
+	void uncertainDate(){
+		final FLEFRecord plain = GEDCOMDateConverter.buildDateStructure("date", "10 NOV 1984?");
+		Assertions.assertEquals("10 NOV 1984", FLEFRecordHelper.getChildValue(plain, "value.point.value.full_date"));
+		Assertions.assertEquals("unspecified", FLEFRecordHelper.getChildValue(plain, "value.point.approximate.basis"));
+
+		final FLEFRecord about = GEDCOMDateConverter.buildDateStructure("date", "ABT 1630?");
+		Assertions.assertEquals("1630", FLEFRecordHelper.getChildValue(about, "value.point.value.full_date"));
+		Assertions.assertEquals("stated", FLEFRecordHelper.getChildValue(about, "value.point.approximate.basis"));
+
+		final FLEFRecord after = GEDCOMDateConverter.buildDateStructure("date", "AFT 1918?");
+		Assertions.assertEquals("1918", FLEFRecordHelper.getChildValue(after, "value.bounded.not_before.value.full_date"));
+		Assertions.assertEquals("unspecified", FLEFRecordHelper.getChildValue(after, "value.bounded.not_before.approximate.basis"));
+	}
+
+	@Test
+	void alternatives(){
+		final List<FLEFRecord> readings = GEDCOMDateConverter.buildDateStructures("date", "10 MAY 1991? 5 OCT 1991?");
+		Assertions.assertEquals(2, readings.size());
+		Assertions.assertEquals("10 MAY 1991", FLEFRecordHelper.getChildValue(readings.get(0), "value.point.value.full_date"));
+		Assertions.assertEquals("5 OCT 1991", FLEFRecordHelper.getChildValue(readings.get(1), "value.point.value.full_date"));
+		Assertions.assertEquals("unspecified", FLEFRecordHelper.getChildValue(readings.get(1), "value.point.approximate.basis"));
+
+		final List<FLEFRecord> calculated = GEDCOMDateConverter.buildDateStructures("date", "CAL 1854? CAL 1858?");
+		Assertions.assertEquals(2, calculated.size());
+		Assertions.assertEquals("1858", FLEFRecordHelper.getChildValue(calculated.get(1), "value.point.value.full_date"));
+		Assertions.assertEquals("calculated", FLEFRecordHelper.getChildValue(calculated.get(1), "value.point.approximate.basis"));
+
+		final List<FLEFRecord> year = GEDCOMDateConverter.buildDateStructures("date", "CAL 1778/1779");
+		Assertions.assertEquals(2, year.size());
+		Assertions.assertEquals("1778", FLEFRecordHelper.getChildValue(year.get(0), "value.point.value.full_date"));
+		Assertions.assertEquals("1779", FLEFRecordHelper.getChildValue(year.get(1), "value.point.value.full_date"));
+		Assertions.assertEquals("calculated", FLEFRecordHelper.getChildValue(year.get(1), "value.point.approximate.basis"));
+
+		final List<FLEFRecord> between = GEDCOMDateConverter.buildDateStructures("date",
+			"BET 11 FEB 1874 AND 16 MAY 1896? 20 FEB 1874?");
+		Assertions.assertEquals(2, between.size());
+		Assertions.assertEquals("20 FEB 1874", FLEFRecordHelper.getChildValue(between.get(1), "value.bounded.not_after.value.full_date"));
+	}
+
+	@Test
+	void alternativeTexts(){
+		Assertions.assertEquals(List.of("5 OCT 1991?"), GEDCOMDateConverter.buildAlternativeTexts("10 MAY 1991? 5 OCT 1991?"));
+		Assertions.assertEquals(List.of("CAL 1858?"), GEDCOMDateConverter.buildAlternativeTexts("CAL 1854? CAL 1858?"));
+		Assertions.assertEquals(List.of("CAL 1779"), GEDCOMDateConverter.buildAlternativeTexts("CAL 1778/1779"));
+		Assertions.assertEquals(List.of("BET 11 FEB 1874 AND 20 FEB 1874?"),
+			GEDCOMDateConverter.buildAlternativeTexts("BET 11 FEB 1874 AND 16 MAY 1896? 20 FEB 1874?"));
+		Assertions.assertTrue(GEDCOMDateConverter.buildAlternativeTexts("ABT 1630?").isEmpty());
+	}
+
+	@Test
+	void season(){
+		final FLEFRecord date = GEDCOMDateConverter.buildDateStructure("date", "SPR 1935");
+
+		Assertions.assertEquals("SPR 1935",FLEFRecordHelper.getChildValue(date, "value.point.value.full_date"));
+	}
+
+	@Test
+	void dateWithoutYearIsNotNormalized(){
+		Assertions.assertNull(GEDCOMDateConverter.buildDateStructure("date", "1 APR"));
+	}
+
+	@Test
 	void interpretedAndPhrase(){
 		final FLEFRecord interpreted = GEDCOMDateConverter.buildDateStructure("date", "INT 1995 (from estimated age)");
 		Assertions.assertEquals("1995", FLEFRecordHelper.getChildValue(interpreted, "value.point.value.full_date"));
@@ -127,10 +206,8 @@ class GEDCOMDateConverterTest{
 	void validityOfAnObservedFact(){
 		final FLEFRecord[] validity = GEDCOMDateConverter.buildValidity("14 FEB 1953");
 
-		Assertions.assertEquals("14 FEB 1953", FLEFRecordHelper.getChildValue(validity[0],
-			"value.bounded.not_after.value.full_date"));
-		Assertions.assertEquals("14 FEB 1953", FLEFRecordHelper.getChildValue(validity[1],
-			"value.bounded.not_before.value.full_date"));
+		Assertions.assertEquals("14 FEB 1953", FLEFRecordHelper.getChildValue(validity[0], "value.point.value.full_date"));
+		Assertions.assertEquals("14 FEB 1953", FLEFRecordHelper.getChildValue(validity[1], "value.point.value.full_date"));
 	}
 
 	@Test

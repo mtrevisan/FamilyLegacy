@@ -28,20 +28,13 @@ import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.PendingFile;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
-import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
@@ -49,12 +42,18 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.ObjectUtils;
@@ -471,10 +470,10 @@ public final class GEDCOMRecordBuilder{
 	 * Attaches a SourceCitation built from a SOURCE_CITATION.
 	 * <p>
 	 * The source records must be already in the model; a citation of an unrecorded source (a source description) creates its
-	 * SourceRecord. Everything that GEDCOM records about the citation stays on the citation: the entry recording date and the
-	 * cited event go into the locator, the text and the multimedia into the extracts, the notes into the remarks of the
-	 * extract (or, when there is no extract, into the notes of the parent), the certainty assessment into the evidence
-	 * qualifiers.
+	 * SourceRecord. The entry recording date goes into the date of the source (kept as is if the source is already dated),
+	 * the text and the multimedia into the extracts, the notes into the remarks of the extract (or, when there is no extract, into
+	 * the notes of the parent), the certainty assessment into the evidence qualifiers. The cited event is not carried over: it is
+	 * the event the citation is attached to, and is used only to qualify the evidence.
 	 */
 	public static void attachSource(FLEFRecord parent, FLEFModel model,
 			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap){
@@ -510,15 +509,24 @@ public final class GEDCOMRecordBuilder{
 		final String page = GEDCOMHelper.findFirstValue(node, "PAGE");
 		if(page != null)
 			locator.add(page);
+		//the cited event (EVEN) is not carried over: it is the event the citation is attached to, and it is used only to qualify the evidence
 		final GEDCOMNode evenNode = GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_GENERIC_EVENT);
-		if(evenNode != null && StringUtils.isNotBlank(evenNode.getValue())){
-			final String role = GEDCOMHelper.findFirstValue(evenNode, GEDCOMMapper.TAG_ROLE);
-			locator.add("Event: " + evenNode.getValue().trim() + (role != null? " (role: " + role + ")": StringUtils.EMPTY));
-		}
+		final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(evenNode, GEDCOMMapper.TAG_ROLE);
+		//the role of the cited individual in the cited event has no place in a citation (for an event, it is handled with its participations)
+		if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()) && !EventReader.isOfType(parent))
+			discardCitedRole(roleNode, StringUtils.EMPTY);
 		final GEDCOMNode dataNode = GEDCOMHelper.findFirstChild(node, "DATA");
+		//the date the entry was recorded in the source is the date this source was created
 		final String entryDate = GEDCOMHelper.findFirstValue(dataNode, GEDCOMMapper.TAG_DATE);
-		if(entryDate != null)
-			locator.add("Date: " + entryDate);
+		//the locator is only the physical position in the source: a source already dated keeps its date
+		if(entryDate != null){
+			final FLEFRecord sourceDate = FLEFRecordHelper.findChild(source, SourceReader.TAG_DATE);
+			if(sourceDate == null)
+				attachDate(source, SourceReader.TAG_DATE, entryDate);
+			else if(!sourceDate.equals(GEDCOMDateConverter.buildDateStructure(SourceReader.TAG_DATE, entryDate)))
+				GEDCOMImportContext.discard(ImportReasons.DATE_DETAIL, GEDCOMHelper.findFirstChild(dataNode, GEDCOMMapper.TAG_DATE),
+					GEDCOMMapper.TAG_SOURCE + ".DATA");
+		}
 
 		// a citation of a recorded source has its texts in DATA, a source description directly
 		final List<GEDCOMNode> textNodes = new ArrayList<>(GEDCOMHelper.findChildren(node, "TEXT"));
@@ -570,6 +578,66 @@ public final class GEDCOMRecordBuilder{
 		citation.addChild(adjustEvidence(buildEvidence(node), node, parent, sourceId));
 
 		parent.addChild(citation);
+	}
+
+	private static void discardCitedRole(final GEDCOMNode roleNode, final String parentPath){
+		GEDCOMImportContext.discard(ImportReasons.SOURCE_DETAIL, roleNode, GEDCOMImportContext.pathOf(parentPath,
+			GEDCOMMapper.TAG_SOURCE + "." + GEDCOMMapper.TAG_GENERIC_EVENT));
+	}
+
+	/**
+	 * Returns the role of an individual in an event, as stated by the citations of the event (the {@code SOUR.EVEN.ROLE}).
+	 * <p>
+	 * Only the roles in the event (witness, officiant, sponsor, ...) are taken: a kinship or an unknown role, and the roles after the
+	 * first one, are reported as discarded.
+	 *
+	 * @param eventNode	The GEDCOM event of the individual.
+	 * @return	The role, {@code null} if the citations state none.
+	 */
+	public static String citedEventRole(final GEDCOMNode eventNode){
+		String role = null;
+		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_SOURCE)){
+			final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_GENERIC_EVENT),
+				GEDCOMMapper.TAG_ROLE);
+			if(roleNode == null || StringUtils.isBlank(roleNode.getValue()))
+				continue;
+
+			final String mapped = GEDCOMMapper.mapEventRole(roleNode.getValue());
+			if(mapped == null || (role != null && !role.equals(mapped)))
+				discardCitedRole(roleNode, eventNode.getTag());
+			else
+				role = mapped;
+		}
+		return role;
+	}
+
+	/**
+	 * Reports, as an inconsistency of the file, the role that a citation states for the individual in its own birth, baptism, death or
+	 * burial: the individual is the principal of it, so a role as a witness (or any other) cannot be the role of the participation, and
+	 * it is not kept.
+	 *
+	 * @param eventNode	The GEDCOM event of the individual.
+	 * @param role	The role that {@link #citedEventRole(GEDCOMNode)} read, as a FLEF role.
+	 */
+	public static void reportInconsistentCitedRole(final GEDCOMNode eventNode, final String role){
+		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_SOURCE)){
+			final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_GENERIC_EVENT),
+				GEDCOMMapper.TAG_ROLE);
+			//the roles that were not read as a role (a kinship, a second role) are already reported
+			if(roleNode != null && role.equals(GEDCOMMapper.mapEventRole(roleNode.getValue())))
+				GEDCOMImportContext.discard(ImportReasons.INCONSISTENT_ROLE, roleNode, GEDCOMImportContext.pathOf(eventNode.getTag(),
+					GEDCOMMapper.TAG_SOURCE + "." + GEDCOMMapper.TAG_GENERIC_EVENT));
+		}
+	}
+
+	/** Reports the roles stated by the citations of an event that cannot be assigned to a person (an event of a family). */
+	public static void reportCitedRoles(final GEDCOMNode eventNode){
+		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_SOURCE)){
+			final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_GENERIC_EVENT),
+				GEDCOMMapper.TAG_ROLE);
+			if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()))
+				discardCitedRole(roleNode, eventNode.getTag());
+		}
 	}
 
 	/** Registers the types of the events a source covers (the values of its DATA.EVEN), by the id of the source. */
@@ -757,7 +825,8 @@ public final class GEDCOMRecordBuilder{
 	 */
 	public static List<String> resolveMedia(final FLEFModel model, final GEDCOMNode node,
 			final Map<String, GEDCOMNode> noteRawMap){
-		final String objeId = GEDCOMHelper.pointer(node.getValue());
+		final String pointer = GEDCOMHelper.pointer(node.getValue());
+		final String objeId = (pointer != null? Deduplicator.resolveAlias(pointer): null);
 		if(objeId != null)
 			return (model.hasRecord(objeId)? List.of(objeId): List.of());
 
@@ -1342,11 +1411,16 @@ public final class GEDCOMRecordBuilder{
 		if(StringUtils.isBlank(date))
 			return;
 
-		final FLEFRecord dateStructure = GEDCOMDateConverter.buildDateStructure(tag, date);
-		if(dateStructure != null)
-			parent.addChild(dateStructure);
-		else
+		final List<FLEFRecord> dateStructures = GEDCOMDateConverter.buildDateStructures(tag, date);
+		if(dateStructures.isEmpty()){
 			parent.addChild(createNoteStruct("Date", date, null));
+			return;
+		}
+
+		//a structure has a single date: with alternatives, the first is the date and each other one is kept as a note
+		parent.addChild(dateStructures.get(0));
+		for(final String alternative : GEDCOMDateConverter.buildAlternativeTexts(date))
+			parent.addChild(createNoteStruct("Date (alternative)", alternative, null));
 	}
 
 	/**
@@ -1363,6 +1437,9 @@ public final class GEDCOMRecordBuilder{
 		if(validity != null){
 			parent.addChild(validity[0]);
 			parent.addChild(validity[1]);
+			//the validity keeps the first alternative: each other one is kept as a note
+			for(final String alternative : GEDCOMDateConverter.buildAlternativeTexts(date))
+				parent.addChild(createNoteStruct("Date (alternative)", alternative, null));
 		}
 		else
 			parent.addChild(createNoteStruct("Date", date, null));

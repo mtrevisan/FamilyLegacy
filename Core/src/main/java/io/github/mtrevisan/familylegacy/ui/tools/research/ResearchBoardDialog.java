@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchActivityRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
@@ -58,11 +59,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -75,6 +73,7 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
+import java.util.function.Predicate;
 
 
 /**
@@ -95,7 +94,7 @@ public final class ResearchBoardDialog extends JDialog{
 	private final ToolContext context;
 	private final JTree tree = new JTree(new DefaultTreeModel(new DefaultMutableTreeNode()));
 	private final JTextArea details = new JTextArea();
-	private final JTextField searchField = new JTextField(24);
+	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
@@ -125,24 +124,8 @@ public final class ResearchBoardDialog extends JDialog{
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
 		toolbar.add(new JLabel(I18N.l("label.filter")));
-		toolbar.add(searchField);
-		searchField.getDocument()
-			.addDocumentListener(new DocumentListener(){
-				@Override
-				public void insertUpdate(final DocumentEvent e){
-					reload();
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent e){
-					reload();
-				}
-
-				@Override
-				public void changedUpdate(final DocumentEvent e){
-					reload();
-				}
-			});
+		toolbar.add(searchBox);
+		searchBox.onChange(this::reload);
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
 		final JPopupMenu newMenu = new JPopupMenu();
@@ -246,12 +229,12 @@ public final class ResearchBoardDialog extends JDialog{
 		final String selectedId = (selected != null && selected.record() != null? selected.record().getId(): null);
 
 		final FLEFModel model = context.model();
-		final String needle = searchField.getText();
+		final Predicate<String> matcher = searchBox.predicate();
 
 		final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 		int questions = 0;
 		for(final ResearchTreeBuilder.Node node : ResearchTreeBuilder.build(model)){
-			final ResearchTreeBuilder.Node filtered = node.filter(needle);
+			final ResearchTreeBuilder.Node filtered = (searchBox.isBlank()? node: node.filter(matcher));
 			if(filtered == null)
 				continue;
 

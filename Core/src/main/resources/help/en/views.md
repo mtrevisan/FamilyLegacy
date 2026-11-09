@@ -19,7 +19,7 @@ The selected box has an orange-red border. Empty placeholder boxes (an unknown p
 
 **Keyboard.** The **arrow keys** move the selection to the nearest box in that direction, and **Enter** re-roots the view on the selected box. They work when the focus is not in a text field. `Ctrl+Left` and `Ctrl+Right` go back and forward in the history, and `F2` edits the selection.
 
-**Pedigree collapse.** A small red disc with a number and a cross (`2×`) on a box says that the same person appears that many times in the tree you see, because of a shared ancestor. The tooltip explains it. `Ctrl+P` opens a report of the pedigree collapse.
+**Pedigree collapse.** A small red disc with a number and a cross (`2×`) on a box says that the same person appears that many times in the tree you see, because of a shared ancestor. The tooltip explains it. In the Biological Tree, moving the mouse over one of those boxes outlines in red every other box of the same person, so you can see where the repetitions are. `Ctrl+P` opens a report of the pedigree collapse.
 
 ## Tree
 

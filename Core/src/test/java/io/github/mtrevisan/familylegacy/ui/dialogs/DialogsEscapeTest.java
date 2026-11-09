@@ -70,8 +70,15 @@ import org.junit.jupiter.api.Test;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.GraphicsEnvironment;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -108,7 +115,7 @@ class DialogsEscapeTest{
 		SourceCitationHandler.TYPE, PlaceCitationHandler.TYPE, RepositoryCitationHandler.TYPE, HeaderHandler.TYPE);
 
 
-	private static FLEFModel convert() throws IOException{
+	static FLEFModel convert() throws IOException{
 		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM));
 		return new GEDCOMToFLEFConverter().convert(roots);
 	}
@@ -122,6 +129,122 @@ class DialogsEscapeTest{
 		action.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));
 	}
 
+
+	/** The first component of the dialog that can take the keyboard focus, text fields first. */
+	static Component findFocusTarget(final Container container){
+		Component fallback = null;
+		for(final Component component : container.getComponents()){
+			if(component instanceof JTextComponent && component.isFocusable() && component.isEnabled() && component.isShowing())
+				return component;
+			if(fallback == null && component instanceof JComponent && component.isFocusable() && component.isEnabled()
+					&& component.isShowing() && !(component instanceof JPanel))
+				fallback = component;
+			if(component instanceof Container child){
+				final Component found = findFocusTarget(child);
+				if(found instanceof JTextComponent)
+					return found;
+				if(fallback == null)
+					fallback = found;
+			}
+		}
+		return fallback;
+	}
+
+	static void flushEventQueue() throws Exception{
+		SwingUtilities.invokeAndWait(() -> {});
+	}
+
+	/**
+	 * A real press of ESC: the dialog is shown, the key event is delivered to a component inside it (as the key press that follows the
+	 * focus does), and it goes through the key bindings of the component and of the window, as it does for the user.
+	 */
+	static void typeEscape(final JDialog dialog) throws Exception{
+		final Component target = findFocusTarget(dialog.getContentPane());
+		Assertions.assertNotNull(target, "no focusable component in " + dialog.getTitle());
+		final Component receiver = target;
+		target.requestFocusInWindow();
+		flushEventQueue();
+		//the focus is the dialog's own (it may take a moment to be granted)
+		final long deadline = System.currentTimeMillis() + 2_000L;
+		while(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != target && System.currentTimeMillis() < deadline){
+			Thread.sleep(20L);
+			flushEventQueue();
+		}
+		Assertions.assertSame(target, KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner(),
+			"the focus is not on the component in " + dialog.getTitle());
+
+		final long now = System.currentTimeMillis();
+		receiver.dispatchEvent(new KeyEvent(receiver, KeyEvent.KEY_PRESSED, now, 0, KeyEvent.VK_ESCAPE, KeyEvent.CHAR_UNDEFINED));
+		receiver.dispatchEvent(new KeyEvent(receiver, KeyEvent.KEY_RELEASED, now + 10, 0, KeyEvent.VK_ESCAPE, KeyEvent.CHAR_UNDEFINED));
+		flushEventQueue();
+	}
+
+	@Test
+	void aRealKeyPressOfEscClosesEveryRecordDialogOnTheFocusedComponentAndOnlyIt() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final List<String> failed = new ArrayList<>();
+		final List<String> notClosed = new ArrayList<>();
+
+		final JDialog parent = new JDialog((java.awt.Window)null, "parent");
+		parent.pack();
+		parent.setVisible(true);
+		try{
+			for(final String type : RECORD_TYPES){
+				final JDialog child;
+				try{
+					child = (JDialog)HandlerRegistry.getHandler(type).createNewDialog(parent, model).window();
+				}
+				catch(final RuntimeException | AssertionError e){
+					failed.add(type + ": " + e);
+					continue;
+				}
+				child.setModal(false);
+				child.setVisible(true);
+				flushEventQueue();
+
+				typeEscape(child);
+
+				if(child.isDisplayable())
+					notClosed.add(type);
+				Assertions.assertTrue(parent.isDisplayable(), "ESC in " + type + " closed the dialog below it");
+				child.dispose();
+			}
+		}
+		finally{
+			parent.dispose();
+		}
+
+		Assertions.assertTrue(failed.isEmpty(), "dialogs that could not be built: " + failed);
+		Assertions.assertTrue(notClosed.isEmpty(), "dialogs not closed by a real ESC press: " + notClosed);
+	}
+
+	@Test
+	void aRealKeyPressOfEscInAChainClosesOneDialogAtATime() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+
+		final JDialog first = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog second = (JDialog)HandlerRegistry.getHandler(IndividualHandler.TYPE).createNewDialog(first, model).window();
+		first.setModal(false);
+		second.setModal(false);
+		first.setVisible(true);
+		second.setVisible(true);
+		flushEventQueue();
+
+		try{
+			typeEscape(second);
+			Assertions.assertFalse(second.isDisplayable());
+			Assertions.assertTrue(first.isDisplayable());
+
+			typeEscape(first);
+			Assertions.assertFalse(first.isDisplayable());
+		}
+		finally{
+			second.dispose();
+			first.dispose();
+		}
+	}
 
 	@Test
 	void everyRecordDialogClosesWithEscAndOnlyItself() throws IOException{

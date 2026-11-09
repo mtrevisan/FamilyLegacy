@@ -31,7 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -107,7 +109,11 @@ public final class CoverageSection implements SectionBuilder{
 
 		switch(ctx.rootKind()){
 			case INDIVIDUAL -> {
-				out.add(coverageOf(ctx.root, kindLabel(IndividualReader.TYPE), IndividualReader.TAG_NAME, IndividualReader.TAG_SEX));
+				//the sex is not a field of the individual: it is expected as an assertion (an attribute), counted here as a field
+				final CoverageEntry individual = coverageOf(ctx.root, kindLabel(IndividualReader.TYPE), IndividualReader.TAG_NAME);
+				final boolean sexKnown = (PreferredSex.of(ctx.root, ctx.model) != SexType.UNKNOWN);
+				out.add(new CoverageEntry(ctx.root, individual.kind, individual.present + (sexKnown? 1: 0), individual.total + 1,
+					individual.hasSource, individual.hasEvidence));
 				for(final FLEFRecord e : ctx.index.eventsOf(ctx.root))
 					out.add(coverageOf(e, kindLabel(EventReader.TYPE), EventReader.TAG_TYPE, EventReader.TAG_DATE, EventReader.TAG_PLACE));
 				for(final FLEFRecord a : ctx.index.attributesOf(ctx.root))

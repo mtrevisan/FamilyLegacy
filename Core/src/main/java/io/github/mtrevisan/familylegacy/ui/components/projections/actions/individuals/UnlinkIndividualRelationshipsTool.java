@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.UnlinkDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 
 import java.util.List;
 
@@ -68,7 +69,16 @@ public final class UnlinkIndividualRelationshipsTool implements ToolOperation{
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedIndividual());
+		return (context != null && context.hasSelectedIndividual() && hasLinks(context.model(), context.selectedEntityId()));
+	}
+
+	/**
+	 * Whether anything refers to the individual (what the dialog lists): the menu bar and the popup menu share this, so that they
+	 * are enabled together.
+	 */
+	public static boolean hasLinks(final FLEFModel model, final String individualId){
+		return (model != null && individualId != null
+			&& !HandlerRegistry.getReferencingRecords(model, individualId).isEmpty());
 	}
 
 }

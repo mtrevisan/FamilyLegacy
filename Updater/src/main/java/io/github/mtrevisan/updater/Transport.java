@@ -26,6 +26,7 @@ package io.github.mtrevisan.updater;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -69,7 +70,7 @@ public interface Transport{
 			}
 			catch(final InterruptedException e){
 				Thread.currentThread().interrupt();
-				throw new java.io.InterruptedIOException("Interrupted while reading " + uri);
+				throw new InterruptedIOException("Interrupted while reading " + uri);
 			}
 		};
 	}

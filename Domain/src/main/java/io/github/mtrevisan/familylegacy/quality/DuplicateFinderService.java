@@ -36,10 +36,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -51,7 +53,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,6 +99,14 @@ public final class DuplicateFinderService{
 
 	/** Years of tolerance when comparing birth or death years. */
 	private static final int YEAR_TOLERANCE = 3;
+	/** Birth years further apart than this (both known) take points away. */
+	private static final int BIRTH_FAR_YEARS = 10;
+	private static final int BIRTH_VERY_FAR_YEARS = 25;
+	private static final int DEATH_FAR_YEARS = 10;
+	/** How far up the parents are followed to tell that one individual descends from another. */
+	private static final int MAX_ANCESTRY_DEPTH = 15;
+	/** Two children of the same parents, with the same given name, born this many years apart are two siblings (the first one died). */
+	private static final int NAMESAKE_YEARS = 2;
 
 	// Feature weights. They sum to more than 100 on purpose, because a
 	// strong match on one dimension should be able to overcome a weak
@@ -136,6 +145,15 @@ public final class DuplicateFinderService{
 	private static final int W_CHILDREN_NAMES = 8;
 	private static final int W_ATTRIBUTE_TEXTS = 3;
 	private static final int W_SOURCE_TITLES = 3;
+	/** What the comparison by name can add at the most: if the rest does not reach the threshold with it, the pair is dropped. */
+	private static final int MAX_BY_NAME = W_PARENTS_NAMES + W_SPOUSES_NAMES + W_CHILDREN_NAMES + W_PLACES_NAMES + W_ATTRIBUTE_TEXTS
+		+ W_SOURCE_TITLES + W_OCCUPATIONS;
+	// What contradicts takes points away (the weight of a disagreement, in the Fellegi-Sunter model of record linkage).
+	private static final int P_GIVEN_NAME_DISAGREES = 30;
+	private static final int P_BIRTH_FAR = 20;
+	private static final int P_BIRTH_VERY_FAR = 40;
+	private static final int P_DEATH_FAR = 15;
+	private static final int P_NAMESAKE_SIBLINGS = 25;
 
 
 	/** Tunable parameters of the search. */
@@ -233,6 +251,7 @@ public final class DuplicateFinderService{
 			? existingHypothesisPairs(model)
 			: Set.of());
 
+		final Frequencies frequencies = Frequencies.of(profiles.values());
 		final Map<String, Set<Profile>> blocks = buildBlocks(profiles.values(), options.requireSameSex);
 		final Set<String> seenPairs = new HashSet<>();
 		final List<Candidate> candidates = new ArrayList<>();
@@ -272,7 +291,7 @@ public final class DuplicateFinderService{
 						continue;
 					if(existingHypotheses.contains(pairKey))
 						continue;
-					final Candidate c = compare(a, b, options);
+					final Candidate c = compare(a, b, options, frequencies, profiles);
 					if(c != null)
 						candidates.add(c);
 				}
@@ -406,7 +425,7 @@ public final class DuplicateFinderService{
 				continue;
 			profiles.put(individual.getId(), buildProfile(individual,
 				relationshipsByEndpoint, participationsByIndividual,
-				attributesByIndividual, eventsById, childrenByParent, individualNames, placeNames, sourceTitles));
+				attributesByIndividual, eventsById, childrenByParent, individualNames, placeNames, sourceTitles, model));
 			built ++;
 			if(built % PROGRESS_INDIVIDUALS == 0){
 				progress.accept(0.1 + 0.9 * built / individuals.size());
@@ -426,9 +445,11 @@ public final class DuplicateFinderService{
 		final Map<String, Set<String>> childrenByParent,
 		final Map<String, Set<String>> individualNames,
 		final Map<String, Set<String>> placeNamesById,
-		final Map<String, String> sourceTitlesById){
+		final Map<String, String> sourceTitlesById, final FLEFModel model){
 		final String id = individual.getId();
-		final String sex = FLEFRecordHelper.getChildValue(individual, IndividualReader.TAG_SEX);
+		//only a determined sex tells two individuals apart: the sex that is not known is no sex
+		final SexType preferredSex = PreferredSex.ofAttributes(attributesByIndividual.get(id), model);
+		final String sex = (preferredSex != SexType.UNKNOWN? preferredSex.getRawSex(): null);
 		final NameTokens names = extractNames(individual);
 		final String displayName = (names.fullNameVariants.isEmpty()
 			? id
@@ -498,6 +519,10 @@ public final class DuplicateFinderService{
 		final Map<String, Set<String>> attributeTexts = new LinkedHashMap<>();
 		for(final FLEFRecord attr : attributesByIndividual.getOrDefault(id, List.of())){
 			final String type = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_TYPE);
+			//the sex is compared on its own (see the filter on the sex): it is not a fact like the others
+			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(type))
+				continue;
+
 			final String value = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_VALUE);
 			if(IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(type) && value != null){
 				final String occupation = TextSimilarity.normalize(value);
@@ -835,11 +860,24 @@ public final class DuplicateFinderService{
 	/**
 	 * Compares two profiles and returns a candidate when the score
 	 * exceeds the threshold, or {@code null} otherwise.
+	 * <p>
+	 * Besides what the two have in common, the comparison knows what two records of one person cannot be: a parent and a child, two
+	 * spouses, an ancestor and a descendant are never the same person; two children of the same parents with different given names are
+	 * siblings; and the facts that contradict (a given name that does not agree, birth or death years far apart, the same given name
+	 * given to two children of the same parents born years apart) take points away. The agreement of a name is worth less when the
+	 * name is common in the file (the frequency of the tokens, as the weight of a field in the Fellegi-Sunter model of record linkage).
+	 * What can be told from the identifiers is done first and the comparison by name, which costs the most, only if the pair can still
+	 * reach the threshold.
 	 */
-	private static Candidate compare(final Profile a, final Profile b, final Options options){
+	private static Candidate compare(final Profile a, final Profile b, final Options options, final Frequencies frequencies,
+			final Map<String, Profile> profiles){
 		// Hard filter: known and different sex.
 		if(options.requireSameSex && a.sex() != null && b.sex() != null
 			&& !a.sex().equalsIgnoreCase(b.sex()))
+			return null;
+		// Hard filter: a parent and a child, two spouses.
+		if(a.parentIds().contains(b.id()) || b.parentIds().contains(a.id()) || a.childIds().contains(b.id()) || b.childIds().contains(a.id())
+				|| a.spouseIds().contains(b.id()) || b.spouseIds().contains(a.id()))
 			return null;
 
 		final List<FeatureMatch> matches = new ArrayList<>();
@@ -847,74 +885,44 @@ public final class DuplicateFinderService{
 		int score = 0;
 
 		// Names.
-		final int nameScore = scoreNames(a, b, matches, differences);
-		score += nameScore;
+		final NameScore name = scoreNames(a, b, matches, differences, frequencies);
+		score += name.score();
 
-		// Parents.
-		if(!a.parentIds().isEmpty() && !b.parentIds().isEmpty()){
-			final int common = intersectionSize(a.parentIds(), b.parentIds());
-			if(common > 0){
-				final int c = (common == a.parentIds().size() && common == b.parentIds().size()
-					? W_PARENTS_ALL: W_PARENTS_SOME);
-				score += c;
-				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents"), c,
-					I18N.tf("text.duplicates.detail.parents", common, compact(a.parentIds()), compact(b.parentIds()))));
-			}
-			else{
-				//no parent in common: two imports of the same tree have parents with the same name, not the same record
-				final String[] pair = agreeingNames(a.parentNames(), b.parentNames(), NameKind.PERSON);
-				if(pair != null){
-					score += W_PARENTS_NAMES;
-					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents_names"), W_PARENTS_NAMES,
-						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
-				}
-				else
-					differences.add(I18N.t("text.duplicates.diff.parents"));
-			}
+		// Parents: the same records.
+		final boolean parentsKnown = (!a.parentIds().isEmpty() && !b.parentIds().isEmpty());
+		final int commonParents = (parentsKnown? intersectionSize(a.parentIds(), b.parentIds()): 0);
+		if(commonParents > 0){
+			// Hard filter: the same parents and a different given name are two siblings.
+			if(name.givenDisagrees())
+				return null;
+
+			final int c = (commonParents == a.parentIds().size() && commonParents == b.parentIds().size()
+				? W_PARENTS_ALL: W_PARENTS_SOME);
+			score += c;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents"), c,
+				I18N.tf("text.duplicates.detail.parents", commonParents, compact(a.parentIds()), compact(b.parentIds()))));
 		}
 
 		// Children.
-		if(!a.childIds().isEmpty() && !b.childIds().isEmpty()){
-			final int common = intersectionSize(a.childIds(), b.childIds());
-			if(common > 0){
-				score += W_CHILDREN_SOME;
-				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children"), W_CHILDREN_SOME,
-					I18N.tf("text.duplicates.detail.shared", common)));
-			}
-			else{
-				final String[] pair = agreeingNames(a.childNames(), b.childNames(), NameKind.PERSON);
-				if(pair != null){
-					score += W_CHILDREN_NAMES;
-					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children_names"), W_CHILDREN_NAMES,
-						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
-				}
-				else
-					differences.add(I18N.t("text.duplicates.diff.children"));
-			}
+		final boolean childrenKnown = (!a.childIds().isEmpty() && !b.childIds().isEmpty());
+		final int commonChildren = (childrenKnown? intersectionSize(a.childIds(), b.childIds()): 0);
+		if(commonChildren > 0){
+			score += W_CHILDREN_SOME;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children"), W_CHILDREN_SOME,
+				I18N.tf("text.duplicates.detail.shared", commonChildren)));
 		}
 
 		// Spouses.
-		if(!a.spouseIds().isEmpty() && !b.spouseIds().isEmpty()){
-			final int common = intersectionSize(a.spouseIds(), b.spouseIds());
-			if(common > 0){
-				score += W_SPOUSES_SOME;
-				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses"), W_SPOUSES_SOME,
-					I18N.tf("text.duplicates.detail.shared", common)));
-			}
-			else{
-				final String[] pair = agreeingNames(a.spouseNames(), b.spouseNames(), NameKind.PERSON);
-				if(pair != null){
-					score += W_SPOUSES_NAMES;
-					matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses_names"), W_SPOUSES_NAMES,
-						I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
-				}
-				else
-					differences.add(I18N.t("text.duplicates.diff.spouses"));
-			}
+		final boolean spousesKnown = (!a.spouseIds().isEmpty() && !b.spouseIds().isEmpty());
+		final int commonSpouses = (spousesKnown? intersectionSize(a.spouseIds(), b.spouseIds()): 0);
+		if(commonSpouses > 0){
+			score += W_SPOUSES_SOME;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses"), W_SPOUSES_SOME,
+				I18N.tf("text.duplicates.detail.shared", commonSpouses)));
 		}
 
-		// Siblings.
-		if(!a.siblingIds().isEmpty() && !b.siblingIds().isEmpty()){
+		// Siblings (not if the parents are the same: the siblings are the same fact as the parents, counted twice).
+		if(commonParents == 0 && !a.siblingIds().isEmpty() && !b.siblingIds().isEmpty()){
 			final int common = intersectionSize(a.siblingIds(), b.siblingIds());
 			if(common > 0){
 				score += W_SIBLINGS_SOME;
@@ -924,6 +932,7 @@ public final class DuplicateFinderService{
 		}
 
 		// Birth year.
+		int penalty = 0;
 		if(a.birthYear() != null && b.birthYear() != null){
 			final int diff = Math.abs(a.birthYear() - b.birthYear());
 			if(diff <= YEAR_TOLERANCE){
@@ -931,8 +940,22 @@ public final class DuplicateFinderService{
 				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.birth_year"), W_BIRTH_NEAR,
 					a.birthYear() + " / " + b.birthYear() + " (Δ " + diff + ")"));
 			}
+			else if(diff > BIRTH_VERY_FAR_YEARS){
+				penalty += P_BIRTH_VERY_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.birth_year", a.birthYear(), b.birthYear(), P_BIRTH_VERY_FAR));
+			}
+			else if(diff > BIRTH_FAR_YEARS){
+				penalty += P_BIRTH_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.birth_year", a.birthYear(), b.birthYear(), P_BIRTH_FAR));
+			}
 			else
 				differences.add(I18N.tf("text.duplicates.diff.birth_year", a.birthYear(), b.birthYear()));
+
+			//the same given name given to two children of the same parents, born years apart: the first one died, as it was done
+			if(commonParents > 0 && diff >= NAMESAKE_YEARS){
+				penalty += P_NAMESAKE_SIBLINGS;
+				differences.add(I18N.tf("text.duplicates.penalty.namesake_siblings", P_NAMESAKE_SIBLINGS));
+			}
 		}
 
 		// Death year.
@@ -943,6 +966,12 @@ public final class DuplicateFinderService{
 				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.death_year"), W_DEATH_NEAR,
 					a.deathYear() + " / " + b.deathYear() + " (Δ " + diff + ")"));
 			}
+			else if(diff > DEATH_FAR_YEARS){
+				penalty += P_DEATH_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.death_year", a.deathYear(), b.deathYear(), P_DEATH_FAR));
+			}
+			else
+				differences.add(I18N.tf("text.duplicates.diff.death_year", a.deathYear(), b.deathYear()));
 		}
 
 		// Events, attributes, sources, places.
@@ -950,13 +979,54 @@ public final class DuplicateFinderService{
 			I18N.t("text.duplicates.feature.events"), matches);
 		score += overlapBonus(a.attributeKeys(), b.attributeKeys(), W_ATTRIBUTE_OVERLAP,
 			I18N.t("text.duplicates.feature.attributes"), matches);
-		score += overlapBonus(a.sourceIds(), b.sourceIds(), W_SOURCE_OVERLAP,
+		final int sourcesInCommon = overlapBonus(a.sourceIds(), b.sourceIds(), W_SOURCE_OVERLAP,
 			I18N.t("text.duplicates.feature.sources"), matches);
+		score += sourcesInCommon;
 		final int placesInCommon = overlapBonus(a.placeIds(), b.placeIds(), W_PLACE_OVERLAP,
 			I18N.t("text.duplicates.feature.places"), matches);
 		score += placesInCommon;
 
-		// Second pass, by name: places and occupations that are the same words in different records.
+		if(name.givenDisagrees()){
+			penalty += P_GIVEN_NAME_DISAGREES;
+			differences.add(I18N.tf("text.duplicates.penalty.given_name", P_GIVEN_NAME_DISAGREES));
+		}
+
+		// What is left is the comparison by name, that costs the most: only if the pair can still reach the threshold.
+		if(score - penalty + MAX_BY_NAME < options.threshold)
+			return null;
+
+		// Second pass, by name: the facts that are the same words in different records (a tree that is in the file twice shares no record).
+		if(parentsKnown && commonParents == 0){
+			//no parent in common: two imports of the same tree have parents with the same name, not the same record
+			final String[] pair = agreeingNames(a.parentNames(), b.parentNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_PARENTS_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents_names"), W_PARENTS_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.parents"));
+		}
+		if(childrenKnown && commonChildren == 0){
+			final String[] pair = agreeingNames(a.childNames(), b.childNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_CHILDREN_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children_names"), W_CHILDREN_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.children"));
+		}
+		if(spousesKnown && commonSpouses == 0){
+			final String[] pair = agreeingNames(a.spouseNames(), b.spouseNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_SPOUSES_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses_names"), W_SPOUSES_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.spouses"));
+		}
 		if(placesInCommon == 0){
 			final String[] pair = agreeingNames(a.placeNames(), b.placeNames(), NameKind.PLACE);
 			if(pair != null){
@@ -971,7 +1041,7 @@ public final class DuplicateFinderService{
 			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.attribute_texts"), W_ATTRIBUTE_TEXTS,
 				I18N.tf("text.duplicates.detail.similar_attributes", attributeText[0], attributeText[1], attributeText[2])));
 		}
-		if(!matches.stream().anyMatch(match -> match.feature().equals(I18N.t("text.duplicates.feature.sources")))){
+		if(sourcesInCommon == 0){
 			final String[] title = agreeingNames(a.sourceTitles(), b.sourceTitles(), NameKind.TITLE);
 			if(title != null){
 				score += W_SOURCE_TITLES;
@@ -986,29 +1056,69 @@ public final class DuplicateFinderService{
 				I18N.tf("text.duplicates.detail.similar_names", occupations[0], occupations[1])));
 		}
 
+		score -= penalty;
 		if(score < options.threshold)
+			return null;
+
+		// Hard filter: an ancestor and a descendant (a grandfather and the grandson of the same name are two people).
+		if(descends(profiles, a, b.id()) || descends(profiles, b, a.id()))
 			return null;
 
 		return new Candidate(a, b, score, matches, differences);
 	}
 
-	private static int scoreNames(final Profile a, final Profile b,
-		final List<FeatureMatch> matches, final List<String> differences){
+	/** @return	Whether the ancestor is one of the ancestors of the descendant (the parents, their parents, ...). */
+	private static boolean descends(final Map<String, Profile> profiles, final Profile descendant, final String ancestorId){
+		Set<String> frontier = descendant.parentIds();
+		final Set<String> seen = new HashSet<>();
+		for(int depth = 0; depth < MAX_ANCESTRY_DEPTH && !frontier.isEmpty(); depth ++){
+			if(frontier.contains(ancestorId))
+				return true;
+
+			final Set<String> next = new HashSet<>();
+			for(final String id : frontier){
+				if(!seen.add(id))
+					continue;
+
+				final Profile parent = profiles.get(id);
+				if(parent != null)
+					next.addAll(parent.parentIds());
+			}
+			frontier = next;
+		}
+		return false;
+	}
+
+	/** The score of the names of two profiles, and whether their given names disagree (both have one, and no one agrees with the other). */
+	private record NameScore(int score, boolean givenDisagrees){}
+
+	private static NameScore scoreNames(final Profile a, final Profile b, final List<FeatureMatch> matches, final List<String> differences,
+			final Frequencies frequencies){
 		if(!a.fullNameVariants().isEmpty() && !b.fullNameVariants().isEmpty()){
 			final Set<String> intersection = new HashSet<>(a.fullNameVariants());
 			intersection.retainAll(b.fullNameVariants());
+			//a name that is a single word (a family name alone, written as a name of its own) is not a full name: it would make every
+			//individual of a family the same person as the others
+			if(!a.givenTokens().isEmpty() && !b.givenTokens().isEmpty())
+				intersection.removeIf(name -> name.indexOf(' ') < 0);
 			if(!intersection.isEmpty()){
-				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_FULL,
-					I18N.tf("text.duplicates.detail.exact", intersection.iterator().next())));
-				return W_NAME_FULL;
+				final String name = intersection.iterator().next();
+				final double factor = frequencies.factor(frequencies.full().get(name));
+				final int weight = scaled(W_NAME_FULL, factor);
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+					I18N.tf("text.duplicates.detail.exact", name) + rarity(factor)));
+				return new NameScore(weight, false);
 			}
 		}
-		final boolean givenShared = !Collections.disjoint(a.givenTokens(), b.givenTokens());
-		final boolean familyShared = !Collections.disjoint(a.familyTokens(), b.familyTokens());
-		if(givenShared && familyShared){
-			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_PARTIAL,
-				I18N.t("text.duplicates.detail.given_family")));
-			return W_NAME_PARTIAL;
+		final boolean bothGiven = (!a.givenTokens().isEmpty() && !b.givenTokens().isEmpty());
+		final String sharedGiven = firstCommon(a.givenTokens(), b.givenTokens());
+		final String sharedFamily = firstCommon(a.familyTokens(), b.familyTokens());
+		if(sharedGiven != null && sharedFamily != null){
+			final double factor = (frequencies.factor(frequencies.given().get(sharedGiven)) + frequencies.factor(frequencies.family().get(sharedFamily))) / 2.;
+			final int weight = scaled(W_NAME_PARTIAL, factor);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.t("text.duplicates.detail.given_family") + rarity(factor)));
+			return new NameScore(weight, false);
 		}
 
 		//what is not the same name may be the same name spelled in another way: the similarity of the letters decides, with no list of names
@@ -1017,27 +1127,95 @@ public final class DuplicateFinderService{
 		//an initial is a given name: a family name that is only an initial says nothing
 		if(family.level() == NameSimilarity.Level.INITIAL)
 			family = new NameSimilarity.Match(NameSimilarity.Level.NONE, null, null);
+		//the given names disagree when both have one and not even as an initial or a spelling variant
+		final boolean givenDisagrees = (bothGiven && sharedGiven == null && !given.agrees());
 		if(given.agrees() && family.agrees()){
 			final boolean initial = (given.level() == NameSimilarity.Level.INITIAL);
-			final int weight = (initial? W_NAME_INITIAL: W_NAME_SIMILAR);
+			final double factor = (frequencies.factor(frequencies.given().get(given.first())) + frequencies.factor(frequencies.family().get(family.first()))) / 2.;
+			final int weight = scaled((initial? W_NAME_INITIAL: W_NAME_SIMILAR), factor);
 			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
-				I18N.tf("text.duplicates.detail.similar_given_family", describe(given), describe(family))));
-			return weight;
+				I18N.tf("text.duplicates.detail.similar_given_family", describe(given), describe(family)) + rarity(factor)));
+			return new NameScore(weight, false);
 		}
-		if(givenShared || familyShared){
-			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_TOKEN,
-				I18N.t(givenShared? "text.duplicates.detail.given": "text.duplicates.detail.family")));
-			return W_NAME_TOKEN;
+		if(sharedGiven != null || sharedFamily != null){
+			final double factor = (sharedGiven != null
+				? frequencies.factor(frequencies.given().get(sharedGiven))
+				: frequencies.factor(frequencies.family().get(sharedFamily)));
+			final int weight = scaled(W_NAME_TOKEN, factor);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.t(sharedGiven != null? "text.duplicates.detail.given": "text.duplicates.detail.family") + rarity(factor)));
+			return new NameScore(weight, givenDisagrees);
 		}
 		final NameSimilarity.Match one = (family.level() == NameSimilarity.Level.SIMILAR? family
 			: (given.level() == NameSimilarity.Level.SIMILAR? given: null));
 		if(one != null){
 			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_TOKEN_SIMILAR,
 				I18N.tf("text.duplicates.detail.similar_token", describe(one))));
-			return W_NAME_TOKEN_SIMILAR;
+			return new NameScore(W_NAME_TOKEN_SIMILAR, givenDisagrees);
 		}
 		differences.add(I18N.t("text.duplicates.diff.no_name"));
-		return 0;
+		return new NameScore(0, givenDisagrees);
+	}
+
+	private static String firstCommon(final Set<String> first, final Set<String> second){
+		final Set<String> smaller = (first.size() <= second.size()? first: second);
+		final Set<String> larger = (first.size() <= second.size()? second: first);
+		for(final String token : smaller)
+			if(larger.contains(token))
+				return token;
+		return null;
+	}
+
+	private static int scaled(final int weight, final double factor){
+		return (int)Math.round(weight * factor);
+	}
+
+	/** @return	The factor of the rarity of a name, written after the detail of the match (nothing if it is the usual one). */
+	private static String rarity(final double factor){
+		return (Math.abs(factor - 1.) < 0.01? StringUtils.EMPTY: String.format(Locale.ROOT, " (×%.2f)", factor));
+	}
+
+	/**
+	 * How common the names are in the file: how many individuals have each given name, each family name and each full name. Two
+	 * individuals that share a name that a tenth of the file has are not as alike as two that share one that two have (the weight of an
+	 * agreement is higher for a value that is rarer, in the Fellegi-Sunter model of record linkage).
+	 */
+	private record Frequencies(int individuals, Map<String, Integer> given, Map<String, Integer> family, Map<String, Integer> full){
+
+		/** Below this size a file says nothing about how common a name is. */
+		private static final int MIN_INDIVIDUALS = 50;
+		private static final double FACTOR_MIN = 0.55;
+		private static final double FACTOR_RANGE = 0.7;
+
+
+		static Frequencies of(final Collection<Profile> profiles){
+			final Map<String, Integer> given = new HashMap<>();
+			final Map<String, Integer> family = new HashMap<>();
+			final Map<String, Integer> full = new HashMap<>();
+			for(final Profile profile : profiles){
+				for(final String token : profile.givenTokens())
+					given.merge(token, 1, Integer::sum);
+				for(final String token : profile.familyTokens())
+					family.merge(token, 1, Integer::sum);
+				for(final String name : profile.fullNameVariants())
+					full.merge(name, 1, Integer::sum);
+			}
+			return new Frequencies(profiles.size(), given, family, full);
+		}
+
+		/**
+		 * @param count	How many individuals have the name ({@code null}: not known).
+		 * @return	The factor of the weight of the agreement on it: from 0.55 for a name that every individual has to 1.25 for one that
+		 * 	only one has; 1 for a file that is too small to tell.
+		 */
+		double factor(final Integer count){
+			if(count == null || individuals < MIN_INDIVIDUALS)
+				return 1.;
+
+			final double rarity = Math.log((double)individuals / Math.max(1, count)) / Math.log(individuals);
+			return FACTOR_MIN + FACTOR_RANGE * Math.max(0., Math.min(1., rarity));
+		}
+
 	}
 
 	/** @return	The two names of a match, as they are shown ({@code giovanni / giovani}). */

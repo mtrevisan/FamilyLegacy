@@ -50,6 +50,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -83,7 +85,7 @@ public final class ToolDialogs{
 	 * @param model	The model of the table.
 	 * @param onOpen	What to do when a row is double-clicked, given the model index of the row; {@code null} for none.
 	 */
-	public static JTable createTable(final RowTableModel model, final java.util.function.IntConsumer onOpen){
+	public static JTable createTable(final RowTableModel model, final IntConsumer onOpen){
 		final JTable table = new JTable(model);
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -154,7 +156,7 @@ public final class ToolDialogs{
 	}
 
 	/** Creates the "Copy all" button, that puts the given text (computed when the button is pressed) in the clipboard. */
-	public static JButton createCopyButton(final java.util.function.Supplier<String> text){
+	public static JButton createCopyButton(final Supplier<String> text){
 		final JButton copy = new JButton(I18N.t("button.copy_all"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(text.get());

@@ -5,7 +5,7 @@ The Research Assistant reads the whole tree and points out what is wrong, doubtf
 ## Opening it
 
 - Press `Ctrl+Shift+A`, or choose **Tools > Research Assistant...**.
-- A palette opens with a search field (*Search actions and diagnostics*). Type to filter, choose an entry, and press `Esc` to close.
+- A palette opens with a search field (*Search actions and diagnostics*). Type to filter, choose an entry, and press `Esc` to close. The search works as the one of *Find record*: it matches word by word (the words can be in the title, the category or the explanation, and an entry with more of them ranks higher), and the check boxes under the field narrow it to **Whole word** or widen it to typos (**Fuzzy**). With none of them chosen, the first letters of the words also match (`hda` finds *Historical Date Assistant*). The palette opens at once when the indicator has already computed the findings of the current data; it computes them only if the data changed.
 - The **Assistant** indicator at the right end of the toolbar always shows the state of the tree: the number of errors, warnings and notes, or *no findings*. While the analysis runs it says *checking...*.
 
 The palette has two sections:
@@ -13,12 +13,14 @@ The palette has two sections:
 - **Actions**: the helpers you can start.
 - **Diagnostics**: the findings about your data, grouped by category: *Dates, Identity, Places, Sources, Relationships, Research, Conclusions, Context*.
 
+When you open the palette from the main window with an individual or a group selected, the findings **about that record come first**, and a check box under the search field (**Only about** *the record*) shows only them: it is the way to check the chronology, the relationships or the sources of one person. From an editor there is no such selection.
+
 A finding can be opened (*Open the Records...*, to visit the records involved one after the other) or **ignored** if you know it is not a problem. Ignored findings are remembered for the file, can be shown again, and can be restored.
 
 ## What it looks for
 
-- **Chronology**: a death before the birth, an event before the birth or after the death, a child born before its parent or after the death of a parent, a parent too young or too old, overlapping marriages, an implausible lifespan. The limits are conventions: a finding means "check this", not "this is wrong".
-- **Conflicts**: an individual with two values for something that can have only one, several events of the same kind with dates that cannot all be right, two biological mothers or fathers, someone who would be their own ancestor.
+- **Chronology**: a death before the birth, an event before the birth or after the death, a child born before its parent or after the death of a parent, a parent too young or too old, children of the same mother born less than nine months apart (twins excepted), a marriage at too young an age, overlapping marriages, an implausible lifespan. The limits are conventions: a finding means "check this", not "this is wrong".
+- **Conflicts**: an individual with two values for something that can have only one, several births, baptisms, deaths or burials with dates or places that cannot all be right (a town and its province agree), two biological mothers or fathers, someone who would be their own ancestor.
 - **Identity**: two individuals that may be the same person, and two groups, places, sources, repositories, media, cultural norms or historic events that may be the same record, when no hypothesis or conclusion covers the pair yet. The comparison looks at names, dates, relatives, places, occupations and sources, by the records they share and, when they share none (a tree imported twice), by what they are called. A pair is a possibility, not a probability: nothing is merged. On a finding, **Enter** creates an identity hypothesis draft (with the sources both cite already in it), **Ctrl+Enter** compares the two records side by side, **Ctrl+Shift+Enter** records them as different (the editor of the hypothesis first, then, when you have saved it, a conclusion *disproven* whose narrative lists, feature by feature, why they looked alike and what tells them apart: the pair is not proposed again), and **Ctrl+Alt+Enter** opens the records. How many pairs are proposed and from which similarity is in **Appearance > Identity Assistant...**, see [Preferences](preferences.md#identity-assistant).
 - **Gaps in the research**: completed activities without a result, people in a census without a recorded residence, and similar holes.
 - **Context**: events that a historic event or a cultural norm of your model may have influenced, and clusters of deaths in a short time that nothing explains. They are possibilities, never statements: nothing is linked unless you create the impact.

@@ -783,14 +783,12 @@ public class RecordDiffDialog extends JDialog{
 			final FLEFRecord before = FLEFRecord.createChildWithTag(IndividualReader.TYPE);
 			before.setId("I1");
 			before.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NAME, "John Doe"));
-			before.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-01"));
 			before.addChild(FLEFRecord.createChildWithTagAndValue("ill", "2010-01-01"));
 
 			final FLEFRecord after = FLEFRecord.createChildWithTag(IndividualReader.TYPE);
 			after.setId("I1");
 			after.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NAME, "John Doe"));
-			after.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("birth", "2000-01-02"));
 			after.addChild(FLEFRecord.createChildWithTagAndValue("death", "2024-12-31"));
 

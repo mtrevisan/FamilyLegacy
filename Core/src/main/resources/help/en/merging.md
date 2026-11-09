@@ -27,15 +27,21 @@ Two entries for the same person are common, especially after an [import](import.
 | Parents (biological links) | 20 if the parents are the same; 12 if some are shared. |
 | Children | 12 if some are shared. |
 | Spouses | 10 if some are shared. |
-| Siblings | 8 if some are shared. |
+| Siblings | 8 if some are shared (not if the parents are the same record: they would be counted twice). |
 | Birth year | 15 if within 3 years. |
 | Death year | 10 if within 3 years. |
 | Shared events, attributes, sources, places | 5 for each kind that has something in common. |
 | Parents, spouses, children, places, occupations, other attributes and source titles **by name** | Only when the two individuals have no record in common of that kind (a tree that is in the file twice shares none, only records with the same name). Parents: 12 if a parent has the same name, or a spelling variant of it; spouses: 8; children: 8; places of the events: 4; occupations: 4; other attributes of the same type (residence, religion...): 3; titles of the sources: 3 (a title agrees only if it is equal or a spelling variant, never because it is part of another). A name with a single word does not agree with a longer one (*Giovanni* is not *Giovanni Rossi*), a place with more words is another place (*San Martino* is not *San Martino di Lupari*), and an occupation agrees if its words are among the words of the other (*farmer*, *farmer day laborer*). |
 
-Each difference (different parents, different children, different spouses, different birth year) is listed but does not take points away.
+**What cannot be a duplicate.** Some pairs are never proposed, whatever their score, because two records of one person cannot be: a parent and a child, two spouses, a person and one of their ancestors (a grandfather and the grandson of the same name are two people), and two children of the same parents with different given names (they are siblings, twins included; a given name that is only a spelling variant, *Catarina* and *Katarina*, or an initial, still counts as the same).
 
-**What you can do here.** **Compare records...** (or a double-click on a row) shows the two records side by side. That is all: the dialog changes nothing, and it has no Merge button. To merge, close it and use **Merge Individuals...**.
+**What takes points away.** What contradicts costs points, so that a pair that looks alike by name and place but is not the same person falls below the threshold. A given name that does not agree (the family name only is shared): -30. Birth years more than 10 years apart (both known): -20, more than 25: -40. Death years more than 10 years apart: -15. The same given name, with the same parents, in children born 2 or more years apart: -25 (the first one died, and the name was given again). The differences that cost points say so in the *Differences* column, with the points.
+
+**Common names count less.** The points of a name that matches are multiplied by a factor from 0.55 to 1.25 that depends on how many individuals of the file have it (in the *Details* pane it is written after the feature, for example `(×0.70)`): two *Giovanni Rossi* in a file with a hundred of them are not as alike as two *Ermenegildo Quaglia*. A file of fewer than 50 individuals says nothing about how common a name is, and the factor is 1. A name that is a single word (a family name written as a name of its own) is not a full name.
+
+The differences that cost nothing (different parents, children or spouses, birth or death years 4 to 10 years apart) are listed in the *Differences* column.
+
+**What you can do here.** **Compare records...** (or a double-click on a row) shows the two records side by side, as text: the names, the notes and the citations of the individual (birth, death, places, occupations, sex and relatives are other records, and are not in it). **Compare facts...** shows what each individual *has*, one under the other: the names, the sex, when and where each was born, baptised, died and buried, the parents, spouses and children (compared by name, not by identifier: two records of one person can have parents that are two records too), the occupations, the residences, the other attributes and the sources that cite them. A fact that two or more individuals say differently is amber (a different date, a different father), one that only some have is grey (a place on one side only); a fact no one has is not shown, and a check box hides the ones that are the same. Select more than one row (Ctrl or Shift and click) to compare the individuals of all of them at once, up to six; with one row it is the two of the pair. Neither dialog changes anything, and neither has a Merge button. To merge, close it and use **Merge Individuals...**.
 
 ## Merge Individuals
 

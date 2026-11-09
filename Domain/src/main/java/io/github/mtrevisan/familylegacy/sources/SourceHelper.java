@@ -43,7 +43,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -194,30 +193,32 @@ public final class SourceHelper{
 	}
 
 	/**
-	 * Counts how many times a document is referenced by a source or by
-	 * an extract.
+	 * Counts how many times a document is referenced. Every reference to a media record is a {@code media} field, wherever it is: in a
+	 * source, in the extract of a citation, in the preferred image of an individual or a group, in a conclusion, an identity
+	 * hypothesis, a research question... so the whole model is read, not only the sources and their citations (which used to leave
+	 * the documents of the other places looking unused). A hidden record counts too: that it is not shown does not make the document
+	 * unused.
 	 */
 	public static Map<String, Integer> countDocumentReferences(final FLEFModel model){
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-
-		// Documents referenced directly by a source.
-		for(final FLEFRecord source : listAllSources(model))
-			for(final FLEFRecord child : source.getChildren())
-				if(MediaReader.isOfType(child)){
-					final String docId = child.getTheOnlyChild() != null
-						? child.getTheOnlyChild().getValue(): null;
-					if(docId != null)
-						counts.merge(docId, 1, Integer::sum);
-				}
-
-		// Documents referenced by an extract inside a citation.
-		for(final String type : allSourceCitingTypes()){
-			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
-			for(final FLEFRecord record : records)
-				countDocumentsInCitations(record, counts);
-		}
-
+		for(final FLEFRecord record : model.getRecords())
+			if(!MediaReader.isOfType(record))
+				countMediaReferences(record, counts);
 		return counts;
+	}
+
+	private static void countMediaReferences(final FLEFRecord node, final Map<String, Integer> counts){
+		for(final FLEFRecord child : node.getChildren()){
+			if(MediaReader.isOfType(child)){
+				//the reference is the value of the field, or (if the field is a typed union) of its only child
+				String docId = child.getValue();
+				if(StringUtils.isBlank(docId) && child.getChildren().size() == 1)
+					docId = child.getChildren().getFirst().getValue();
+				if(StringUtils.isNotBlank(docId))
+					counts.merge(docId.strip(), 1, Integer::sum);
+			}
+			countMediaReferences(child, counts);
+		}
 	}
 
 	private static void incrementCitations(final FLEFRecord record,
@@ -229,28 +230,6 @@ public final class SourceHelper{
 			final String sourceId = extractReferencedId(source);
 			if(sourceId != null)
 				counts.merge(sourceId, 1, Integer::sum);
-		}
-	}
-
-	private static void countDocumentsInCitations(final FLEFRecord record,
-		final Map<String, Integer> counts){
-		for(final FLEFRecord source : record.getChildren()){
-			if(!SourceReader.isOfType(source))
-				continue;
-
-			for(final FLEFRecord extract : source.getChildren()){
-				if(!SourceCitationReader.TAG_EXTRACT.equalsIgnoreCase(extract.getTag()))
-					continue;
-
-				for(final FLEFRecord part : extract.getChildren()){
-					if(!SourceCitationReader.TAG_MEDIA_PART.equalsIgnoreCase(part.getTag()))
-						continue;
-
-					final String docId = FLEFRecordHelper.getChildValue(part, SourceCitationReader.TAG_MEDIA);
-					if(docId != null)
-						counts.merge(docId, 1, Integer::sum);
-				}
-			}
 		}
 	}
 

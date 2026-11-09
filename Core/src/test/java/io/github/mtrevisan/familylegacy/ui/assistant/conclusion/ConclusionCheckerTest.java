@@ -31,9 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -53,7 +53,7 @@ class ConclusionCheckerTest{
 	private static ConclusionData.PrincipalEvent event(final String id, final String personId, final String type,
 			final DateRange date, final int sources, final String confidence){
 		return new ConclusionData.PrincipalEvent(id, personId, type, date, "date of " + id, Set.of(id, "part-" + id), sources,
-			confidence);
+			confidence, null);
 	}
 
 	/** A data set built step by step. */
@@ -65,6 +65,7 @@ class ConclusionCheckerTest{
 		private final List<ConclusionData.Attribute> attributes = new ArrayList<>();
 		private final List<ConclusionData.Hypothesis> hypotheses = new ArrayList<>();
 		private final List<ConclusionData.Conclusion> conclusions = new ArrayList<>();
+		private final Map<String, Set<String>> placeAncestors = new LinkedHashMap<>();
 
 		Builder person(final String id, final SexType sex){
 			persons.put(id, new ConclusionData.Person(id, "Person " + id, sex));
@@ -97,9 +98,115 @@ class ConclusionCheckerTest{
 		}
 
 		List<Diagnostic> check(){
-			return ConclusionChecker.check(new ConclusionData(persons, events, parents, attributes, hypotheses, conclusions));
+			return ConclusionChecker.check(new ConclusionData(persons, events, parents, attributes, hypotheses, conclusions, placeAncestors));
 		}
 
+	}
+
+	private static ConclusionData.PrincipalEvent eventAt(final String id, final String personId, final String type, final DateRange date,
+			final String placeId){
+		return new ConclusionData.PrincipalEvent(id, personId, type, date, "date of " + id, Set.of(id, "part-" + id), 1, null, placeId);
+	}
+
+	@Test
+	void twoBurialsInUnrelatedPlacesConflictEvenWithTheSameDate(){
+		final Diagnostic finding = only(new Builder()
+			.person("a", SexType.MALE)
+			.event(eventAt("u1", "a", EventReader.ENUM_TYPE_BURIAL, day("1 June 1800"), "P1"))
+			.event(eventAt("u2", "a", EventReader.ENUM_TYPE_BURIAL, day("1 June 1800"), "P2"))
+			.check());
+
+		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.severity());
+		Assertions.assertTrue(finding.explanation().contains("@ P1"));
+	}
+
+	@Test
+	void aPlaceAndTheOneThatContainsItAgree(){
+		final Builder builder = new Builder()
+			.person("a", SexType.MALE)
+			.event(eventAt("d1", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1800"), "Town"))
+			.event(eventAt("d2", "a", EventReader.ENUM_TYPE_DEATH, day("1 June 1800"), "Province"));
+		builder.placeAncestors.put("Town", Set.of("Province"));
+
+		final Diagnostic finding = only(builder.check());
+
+		//two deaths that agree: information, not a conflict
+		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
+	}
+
+	@Test
+	void twoBaptismsOnDifferentDaysConflict(){
+		Assertions.assertEquals(Diagnostic.Severity.WARNING, only(new Builder()
+			.person("a", SexType.MALE)
+			.event(eventAt("p1", "a", "baptism", day("1 June 1800"), null))
+			.event(eventAt("p2", "a", "baptism", day("3 June 1800"), null))
+			.check()).severity());
+	}
+
+	private static ConclusionData.PrincipalEvent weighted(final String id, final int sources, final int weight){
+		return new ConclusionData.PrincipalEvent(id, "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), "date of " + id,
+			Set.of(id), sources, null, null, weight);
+	}
+
+	@Test
+	void theEvidenceQualifiersDecideBetweenAsManySources(){
+		//one source each, but the second is original, primary and direct: it weighs 4 against 1
+		final Diagnostic finding = only(new Builder()
+			.person("a", SexType.MALE)
+			.event(weighted("b1", 1, 1))
+			.event(new ConclusionData.PrincipalEvent("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), "date of b2", Set.of("b2"), 1,
+				null, null, 4))
+			.check());
+
+		Assertions.assertTrue(finding.explanation().contains("Candidate for the preferred assertion: b2"), finding.explanation());
+		Assertions.assertTrue(finding.explanation().contains("evidence weight 4"), finding.explanation());
+	}
+
+	@Test
+	void theSameWeightAndConfidenceGiveNoCandidate(){
+		final Diagnostic finding = only(new Builder()
+			.person("a", SexType.MALE)
+			.event(weighted("b1", 2, 3))
+			.event(new ConclusionData.PrincipalEvent("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), "date of b2", Set.of("b2"), 1,
+				null, null, 3))
+			.check());
+
+		Assertions.assertTrue(finding.explanation().contains("No assertion is better supported"), finding.explanation());
+	}
+
+	@Test
+	void theConfidenceOfTheResearcherComesBeforeTheWeight(){
+		final Diagnostic finding = only(new Builder()
+			.person("a", SexType.MALE)
+			.event(new ConclusionData.PrincipalEvent("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), "date of b1", Set.of("b1"), 1,
+				ConfidenceReader.ENUM_HIGH, null, 1))
+			.event(new ConclusionData.PrincipalEvent("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1801"), "date of b2", Set.of("b2"), 5,
+				ConfidenceReader.ENUM_LOW, null, 9))
+			.check());
+
+		Assertions.assertTrue(finding.explanation().contains("Candidate for the preferred assertion: b1"), finding.explanation());
+	}
+
+	@Test
+	void conflictingAttributesAndRelationshipsHaveACandidateToo(){
+		final Builder builder = new Builder()
+			.person("a", SexType.MALE)
+			.person("p", SexType.FEMALE);
+		builder.attributes.add(new ConclusionData.Attribute("n1", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "AAA",
+			new ConclusionData.Backing(null, 1, 1)));
+		builder.attributes.add(new ConclusionData.Attribute("n2", "a", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID, "BBB",
+			new ConclusionData.Backing(null, 1, 3)));
+		builder.parents.add(new ConclusionData.ParentLink("r1", "a", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD,
+			new ConclusionData.Backing(null, 1, 1)));
+		builder.parents.add(new ConclusionData.ParentLink("r2", "a", "p", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD,
+			new ConclusionData.Backing(null, 1, 2)));
+
+		final List<String> explanations = builder.check().stream()
+			.map(Diagnostic::explanation)
+			.toList();
+
+		Assertions.assertTrue(explanations.stream().anyMatch(e -> e.contains("Candidate for the preferred assertion: n2")), explanations.toString());
+		Assertions.assertTrue(explanations.stream().anyMatch(e -> e.contains("Candidate for the preferred assertion: r2")), explanations.toString());
 	}
 
 	/** Two births of the same person, one year apart. */
@@ -143,7 +250,7 @@ class ConclusionCheckerTest{
 			.person("a", SexType.MALE)
 			.event(event("b1", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1800"), 1, null))
 			.event(new ConclusionData.PrincipalEvent("b2", "a", EventReader.ENUM_TYPE_BIRTH, day("1 June 1805"), "1 JUN 1805", Set.of("b2", "part-b2"), 1,
-				null))
+				null, null))
 			.check()).key());
 	}
 
@@ -374,6 +481,24 @@ class ConclusionCheckerTest{
 	}
 
 	@Test
+	void conflictingSexAssertions(){
+		final Diagnostic finding = only(new Builder()
+			.person("a", SexType.UNKNOWN)
+			.attribute("s1", "a", IndividualAttributeReader.ENUM_TYPE_SEX, "male")
+			.attribute("s2", "a", IndividualAttributeReader.ENUM_TYPE_SEX, "female")
+			.check());
+
+		Assertions.assertTrue(finding.title().startsWith("Conflicting sex: Person a"));
+		//an unknown sex says nothing, so it does not contradict a known one; the same sex stated twice is not a conflict
+		Assertions.assertTrue(new Builder()
+			.person("a", SexType.MALE)
+			.attribute("s1", "a", IndividualAttributeReader.ENUM_TYPE_SEX, "male")
+			.attribute("s2", "a", IndividualAttributeReader.ENUM_TYPE_SEX, "unknown")
+			.attribute("s3", "a", IndividualAttributeReader.ENUM_TYPE_SEX, "Male")
+			.check().isEmpty());
+	}
+
+	@Test
 	void unresolvedIdentityHypothesis(){
 		final Diagnostic finding = only(new Builder()
 			.person("a", SexType.MALE).person("b", SexType.MALE)
@@ -394,7 +519,7 @@ class ConclusionCheckerTest{
 
 	private static ConclusionData data(final Builder builder){
 		return new ConclusionData(builder.persons, builder.events, builder.parents, builder.attributes, builder.hypotheses,
-			builder.conclusions);
+			builder.conclusions, Map.of());
 	}
 
 	@Test

@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 
 /**
@@ -102,8 +103,8 @@ public final class RecordDialogs{
 	}
 
 	/** @return the types of record that have an editor */
-	public static java.util.Set<String> registeredTypes(){
-		return java.util.Set.copyOf(factories().keySet());
+	public static Set<String> registeredTypes(){
+		return Set.copyOf(factories().keySet());
 	}
 
 	private static Factory factory(final String type){

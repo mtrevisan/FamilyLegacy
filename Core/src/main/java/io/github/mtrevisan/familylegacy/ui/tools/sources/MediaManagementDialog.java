@@ -29,13 +29,17 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
+import io.github.mtrevisan.familylegacy.quality.MediaFiles;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -46,29 +50,26 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.net.URI;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -91,7 +92,7 @@ public final class MediaManagementDialog extends JDialog{
 	private final ToolContext context;
 	private final DocumentTableModel tableModel = new DocumentTableModel();
 	private final JTable table = new JTable(tableModel);
-	private final JTextField searchField = new JTextField(24);
+	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JLabel previewLabel = new JLabel(I18N.t("label.select_document"), JLabel.CENTER);
 
@@ -122,24 +123,8 @@ public final class MediaManagementDialog extends JDialog{
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
 		toolbar.add(new JLabel(I18N.l("label.search")));
-		toolbar.add(searchField);
-		final Document document = searchField.getDocument();
-		document.addDocumentListener(new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void changedUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-		});
+		toolbar.add(searchBox);
+		searchBox.onChange(this::applyFilter);
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
 		newButton.addActionListener(e -> openEditor(null));
@@ -216,30 +201,23 @@ public final class MediaManagementDialog extends JDialog{
 	}
 
 	private void applyFilter(){
-		final String text = searchField.getText();
-		@SuppressWarnings("unchecked")
+				@SuppressWarnings("unchecked")
 		final TableRowSorter<DocumentTableModel> sorter =
 			(TableRowSorter<DocumentTableModel>)table.getRowSorter();
-		if(StringUtils.isEmpty(text))
+		if(searchBox.isBlank())
 			sorter.setRowFilter(null);
 		else{
-			final String needle = text.trim()
-				.toLowerCase(Locale.ROOT);
+			final String query = searchBox.query();
+			final Set<SearchMode> modes = searchBox.modes();
 			sorter.setRowFilter(new RowFilter<>(){
 				@Override
 				public boolean include(final Entry<? extends DocumentTableModel, ? extends Integer> entry){
 					final SourceHelper.DocumentRow row = tableModel.getRow(entry.getIdentifier());
-					return contains(row.uri(), needle)
-						|| contains(row.description(), needle)
-						|| contains(row.mapping(), needle);
+					return SearchBox.matches(query, modes, row.uri(), row.description(), row.mapping());
 				}
 			});
 		}
 		updateStatus(table.getRowCount());
-	}
-
-	private static boolean contains(final String haystack, final String needle){
-		return haystack != null && haystack.toLowerCase(Locale.ROOT).contains(needle);
 	}
 
 	private FLEFRecord selectedDocument(){
@@ -276,27 +254,32 @@ public final class MediaManagementDialog extends JDialog{
 	}
 
 	/**
-	 * Tries to load an image from the given URI. Only local files are
-	 * loaded: remote URIs are ignored to keep the dialog responsive.
-	 * Returns {@code null} when the URI is missing, remote, or the file
-	 * cannot be read as an image.
+	 * Tries to load an image from the given location. Only local files are loaded: remote locations are ignored to keep the dialog
+	 * responsive. The location is resolved as the validation does (a {@code file:} URI, an absolute path, or a path relative to the
+	 * base directory), so a Windows path or one with spaces is found too.
+	 * Returns {@code null} when the location is missing, remote, or the file cannot be read as an image.
 	 */
 	private static ImageIcon tryLoadImage(final String uri){
-		if(StringUtils.isEmpty(uri))
+		if(StringUtils.isBlank(uri))
 			return null;
+
+		final Path path = MediaFiles.localPath(uri.strip(), MediaPathDisplay.baseDirectory());
+		if(path == null || !Files.isReadable(path))
+			return null;
+
 		try{
-			final URI parsed = URI.create(uri);
-			Path path = null;
-			if("file".equalsIgnoreCase(parsed.getScheme()))
-				path = Path.of(parsed);
-			else if(parsed.getScheme() == null)
-				path = Path.of(uri);
-			if(path == null || !Files.isReadable(path))
-				return null;
+			final BufferedImage image = ImageIO.read(path.toFile());
+			if(image != null)
+				return new ImageIcon(image);
+		}
+		catch(final IOException | RuntimeException ignored){
+			//fall back to the toolkit below
+		}
+		try{
 			final ImageIcon raw = new ImageIcon(path.toString());
 			return (raw.getIconWidth() > 0? raw: null);
 		}
-		catch(final Exception ignored){
+		catch(final RuntimeException ignored){
 			return null;
 		}
 	}

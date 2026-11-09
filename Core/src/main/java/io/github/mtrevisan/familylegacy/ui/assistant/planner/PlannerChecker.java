@@ -25,7 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
@@ -44,10 +48,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 
 
 /**
@@ -219,7 +219,9 @@ final class PlannerChecker{
 		final List<GapData.Event> births = eventsOf(person, data, EventReader.ENUM_TYPE_BIRTH);
 		if(births.isEmpty() && !person.hasBirth())
 			candidates.add(new Candidate(Step.BIRTH_MISSING, person, 80 + bonus, year, ""));
-		else if(births.stream().allMatch(event -> event.sourceCount() == 0))
+		//a source that cites the parentage (usually the birth or baptism record) is a source of the birth too
+		else if(births.stream().allMatch(event -> event.sourceCount() == 0) && data.parents().stream()
+				.noneMatch(link -> link.childId().equals(person.id()) && link.sourceCount() > 0))
 			candidates.add(new Candidate(Step.BIRTH_UNSOURCED, person, 65 + bonus, year, ""));
 
 		final boolean parentsKnown = data.parents().stream().anyMatch(link -> link.childId().equals(person.id()));
@@ -231,7 +233,9 @@ final class PlannerChecker{
 			if(birthYear != null)
 				candidates.add(new Candidate(Step.BAPTISMS, person, 55 + bonus, year, ""));
 		}
-		else if(married && (marriages.isEmpty() || marriages.stream().allMatch(event -> event.sourceCount() == 0)))
+		//the same for a source that cites the marriage relationship
+		else if(married && (marriages.isEmpty() || marriages.stream().allMatch(event -> event.sourceCount() == 0)) && data.unions().stream()
+				.noneMatch(union -> (union.firstId().equals(person.id()) || union.secondId().equals(person.id())) && union.sourceCount() > 0))
 			candidates.add(new Candidate(Step.MARRIAGE, person, 60 + bonus, year, ""));
 
 		final List<GapData.Event> deaths = eventsOf(person, data, EventReader.ENUM_TYPE_DEATH);

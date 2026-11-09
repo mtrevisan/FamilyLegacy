@@ -25,7 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.places.PlaceNameResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.search.AttachedTextExtractor;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
@@ -196,6 +198,8 @@ public class SearchService{
 		// text match, so that the behaviour of the search is unchanged.
 		final Set<SearchMode> modes = criteria.modes();
 		final boolean inNotes = modes.contains(SearchMode.NOTES_AND_CITATIONS);
+		//a place is also found by the name of the places that contain it ("Treviso Veneto" finds Treviso, part of Veneto)
+		final PlaceNameResolver placeNames = (PlaceReader.TYPE.equals(handler.getType())? new PlaceNameResolver(model): null);
 		final List<ScoredRecord> scored = new ArrayList<>();
 		final int totalRecords = records.size();
 		for(int i = 0; i < totalRecords; i ++){
@@ -206,7 +210,11 @@ public class SearchService{
 			if(structuralFilter.test(record)){
 				final String displayText = handler.getDisplayText(record, model);
 				//with the notes included, the text of the notes is matched together with the display text
-				final String target = (inNotes? displayText + '\n' + AttachedTextExtractor.extract(record): displayText);
+				String target = displayText;
+				if(placeNames != null)
+					target += '\n' + String.join("\n", placeNames.containerNames(record.getId()));
+				if(inNotes)
+					target += '\n' + AttachedTextExtractor.extract(record);
 				final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
 				if(match.passes())
 					scored.add(new ScoredRecord(record, displayText, match));

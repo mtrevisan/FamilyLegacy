@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
@@ -56,11 +57,8 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -74,6 +72,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 
 /**
@@ -90,7 +89,7 @@ public final class ContextBoardDialog extends JDialog{
 	private final ToolContext context;
 	private final JTree tree = new JTree(new DefaultTreeModel(new DefaultMutableTreeNode()));
 	private final JTextArea details = new JTextArea();
-	private final JTextField searchField = new JTextField(24);
+	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 
@@ -120,24 +119,8 @@ public final class ContextBoardDialog extends JDialog{
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
 		toolbar.add(new JLabel(I18N.l("label.filter")));
-		toolbar.add(searchField);
-		searchField.getDocument()
-			.addDocumentListener(new DocumentListener(){
-				@Override
-				public void insertUpdate(final DocumentEvent e){
-					reload();
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent e){
-					reload();
-				}
-
-				@Override
-				public void changedUpdate(final DocumentEvent e){
-					reload();
-				}
-			});
+		toolbar.add(searchBox);
+		searchBox.onChange(this::reload);
 
 		final JButton newButton = new JButton(I18N.t("button.new"));
 		final JPopupMenu newMenu = new JPopupMenu();
@@ -228,12 +211,12 @@ public final class ContextBoardDialog extends JDialog{
 		final String selectedId = (selected != null && selected.record() != null? selected.record().getId(): null);
 
 		final FLEFModel model = context.model();
-		final String needle = searchField.getText();
+		final Predicate<String> matcher = searchBox.predicate();
 
 		final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 		int contexts = 0;
 		for(final ContextTreeBuilder.Node node : ContextTreeBuilder.build(model)){
-			final ContextTreeBuilder.Node filtered = node.filter(needle);
+			final ContextTreeBuilder.Node filtered = (searchBox.isBlank()? node: node.filter(matcher));
 			if(filtered == null)
 				continue;
 
@@ -379,7 +362,7 @@ public final class ContextBoardDialog extends JDialog{
 
 	private String describe(final ContextTreeBuilder.Node node){
 		if(node == null)
-			return (tree.getRowCount() == 0 && searchField.getText().isBlank()? I18N.t("text.context.empty"): StringUtils.EMPTY);
+			return (tree.getRowCount() == 0 && searchBox.isBlank()? I18N.t("text.context.empty"): StringUtils.EMPTY);
 		final FLEFRecord record = node.record();
 		if(record == null)
 			return switch(node.kind()){

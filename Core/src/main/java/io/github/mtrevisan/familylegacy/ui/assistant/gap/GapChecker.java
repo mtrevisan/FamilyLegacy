@@ -25,6 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
@@ -37,11 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 
 
 /**
@@ -138,7 +138,7 @@ final class GapChecker{
 				List.of(person.id()), usefulness,
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.death.title", person.name()),
 					I18N.tf("gap.draft.death.question", person.name()), List.of(person.id()), null),
-				person.name(), String.valueOf(person.birthYear()), age));
+				person.name() + " [" + person.id() + "]", String.valueOf(person.birthYear()), age));
 		}
 		addOrAggregate("many_no_death", group, findings, "gap.draft.many_deaths.task");
 	}
@@ -155,7 +155,7 @@ final class GapChecker{
 			group.add(finding(Diagnostic.Severity.INFORMATION, "no_birth", List.of(person.id()), usefulness,
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.birth.title", person.name()),
 					I18N.tf("gap.draft.birth.question", person.name()), List.of(person.id()), null),
-				person.name(), sons, person.eventCount()));
+				person.name() + " [" + person.id() + "]", sons, person.eventCount()));
 		}
 		addOrAggregate("many_no_birth", group, findings, "gap.draft.many_births.task");
 	}
@@ -204,7 +204,7 @@ final class GapChecker{
 				Math.min(70, 45 + 5 * entry.getValue().size()),
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.marriage.title", first, second),
 					I18N.tf("gap.draft.marriage.question", first, second), couple, null),
-				first, second, entry.getValue().size()));
+				first + " [" + couple.get(0) + "]", second + " [" + couple.get(1) + "]", entry.getValue().size()));
 		}
 		addOrAggregate("many_children_without_marriage", group, findings, "gap.draft.many_marriages.task");
 	}

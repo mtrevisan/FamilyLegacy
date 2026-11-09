@@ -139,6 +139,38 @@ public final class SourceCitationReader{
 	}
 
 	/**
+	 * How much the citations of an assertion weigh as support, counting the evidence qualifiers: each citation that supports it counts
+	 * one, plus one for an original source (not a derived one), one for primary information and one for direct evidence; a citation that
+	 * contradicts it, or whose evidence is negative (it supports the absence of the assertion), counts minus one. It is a rule of thumb to
+	 * suggest which of several assertions is better supported, never a judgement of the sources.
+	 *
+	 * @param assertion	The record that carries the citations (an event, an attribute, a relationship).
+	 * @return	The weight, {@code 0} if the record has no citation.
+	 */
+	public static int supportWeight(final FLEFRecord assertion){
+		int weight = 0;
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(assertion, TAG_SOURCE)){
+			final FLEFRecord evidence = FLEFRecordHelper.findChild(citation, TAG_EVIDENCE);
+			if(isContradicting(citation) || EvidenceQualifiersReader.isNegative(evidence)){
+				weight --;
+				continue;
+			}
+
+			weight ++;
+			if(evidence == null)
+				continue;
+
+			if(EvidenceQualifiersReader.ENUM_SOURCE_TYPE_ORIGINAL.equals(EvidenceQualifiersReader.extractSourceType(evidence)))
+				weight ++;
+			if(EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY.equals(EvidenceQualifiersReader.extractInformationType(evidence)))
+				weight ++;
+			if(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT.equals(EvidenceQualifiersReader.extractEvidenceType(evidence)))
+				weight ++;
+		}
+		return weight;
+	}
+
+	/**
 	 * Whether the record is cited by at least one source that supports it (a contradicting citation is not a backing).
 	 */
 	public static boolean hasSupportingCitation(final FLEFRecord record){

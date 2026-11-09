@@ -32,7 +32,6 @@ import org.apache.commons.lang3.Strings;
 
 import java.awt.Rectangle;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringJoiner;
 
 
@@ -44,10 +43,7 @@ import java.util.StringJoiner;
  * // A representation of a historical individual together with the facts, events, relationships, and evidence believed to apply to that individual.
  * record IndividualRecord {
  *   name*: PersonalNameStructure   // names associated with this individual (birth name, married name, alias, etc.)
- *   sex?: enum {                   // Biological sex as recorded in sources or inferred from evidence. This represents a genealogical conclusion and may be revised as additional evidence becomes available.
- *     male, female, unknown
- *   }
- *   source*: SourceCitation        // source citations supporting facts about this individual
+ *   source*: SourceCitation        // the evidence that this individual existed; facts about the individual (its sex included, as a SEX IndividualAttributeRecord) are cited on their own records
  *   note*: NoteStructure           // free-text notes about this individual
  *   preferred_image?: struct {
  *     media: Xref&lt;MediaRecord&gt;
@@ -64,7 +60,6 @@ public final class IndividualReader{
 	public static final String ID_PREFIX = "I";
 
 	public static final String TAG_NAME = "name";
-	public static final String TAG_SEX = "sex";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PREFERRED_IMAGE = "preferred_image";
@@ -73,6 +68,7 @@ public final class IndividualReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	/** The values of a SEX individual attribute (see {@link IndividualAttributeReader#ENUM_TYPE_SEX} and {@link PreferredSex}). */
 	public static final String ENUM_SEX_MALE = "male";
 	public static final String ENUM_SEX_FEMALE = "female";
 	public static final String ENUM_SEX_UNKNOWN = "unknown";
@@ -91,17 +87,6 @@ public final class IndividualReader{
 	}
 
 
-
-	public static String extractRawSex(final FLEFRecord record){
-		return FLEFRecordHelper.getChildValue(record, TAG_SEX);
-	}
-
-	public static SexType extractSex(final FLEFRecord individual){
-		final String targetRawSex = extractRawSex(individual);
-		return (targetRawSex != null
-			? Enum.valueOf(SexType.class, targetRawSex.toUpperCase(Locale.ROOT))
-			: SexType.UNKNOWN);
-	}
 
 	public static boolean isSexMale(final String sex){
 		return Strings.CI.equals(sex, ENUM_SEX_MALE);

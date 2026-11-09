@@ -24,22 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.calendars.CalendarType;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gramps.GrampsFileImporter;
@@ -49,6 +34,23 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
@@ -65,7 +67,9 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
 
@@ -218,10 +222,25 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
+	void theGenderIsASexAttributeOfTheIndividual() throws IOException{
+		final FLEFModel model = convert();
+
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(record(model, "I0001"), "sex").isEmpty());
+		Assertions.assertEquals(SexType.MALE, PreferredSex.of(record(model, "I0001"), model));
+		Assertions.assertEquals(SexType.FEMALE, PreferredSex.of(record(model, "I0002"), model));
+		//a gender that is unknown is kept, but it says nothing
+		Assertions.assertEquals(1, PreferredSex.assertions("I0003", model).size());
+		Assertions.assertEquals(SexType.UNKNOWN, PreferredSex.of(record(model, "I0003"), model));
+	}
+
+	@Test
 	void anOccupationIsAnAttributeWhoseValidityIsTheRange() throws IOException{
 		final FLEFModel model = convert();
 
-		final FLEFRecord occupation = model.getRecordsByType("individual_attribute").getFirst();
+		final FLEFRecord occupation = model.getRecordsByType("individual_attribute").stream()
+			.filter(attribute -> "occupation".equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE)))
+			.findFirst()
+			.orElseThrow();
 		Assertions.assertEquals("occupation", FLEFRecordHelper.getChildValue(occupation, IndividualAttributeReader.TAG_TYPE));
 		Assertions.assertEquals("Farmer & miller", FLEFRecordHelper.getChildValue(occupation, "value"));
 		Assertions.assertEquals("31 DEC 1880",
@@ -479,7 +498,7 @@ class GrampsXMLToFLEFConverterTest{
 			+ "<placeobj handle=\"_2\" id=\"P2\" change=\"1\" type=\"City\"><pname value=\"Treviso\"/><placeref hlink=\"_3\"/></placeobj>"
 			+ "<placeobj handle=\"_3\" id=\"P3\" change=\"1\" type=\"Country\"><pname value=\"Italy\"/></placeobj></places>");
 
-		final java.util.Map<String, String> types = new java.util.HashMap<>();
+		final Map<String, String> types = new HashMap<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(PlaceRelationshipReader.TYPE))
 			types.put(FLEFRecordHelper.getChildValue(relationship, "subject.place"), FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_TYPE));
 		Assertions.assertEquals(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF, types.get("P1"));

@@ -51,6 +51,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -148,7 +149,7 @@ public final class GroupNetworkPanel extends JPanel{
 	private static JButton zoomButton(final String text, final String tooltip, final Runnable action){
 		final JButton button = new JButton(text);
 		button.setToolTipText(tooltip);
-		button.setMargin(new java.awt.Insets(0, 6, 0, 6));
+		button.setMargin(new Insets(0, 6, 0, 6));
 		button.addActionListener(e -> action.run());
 		return button;
 	}

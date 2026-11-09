@@ -62,6 +62,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -238,7 +239,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	 * @param targets	The records the question is about (they must already be in the model).
 	 * @return	This dialog.
 	 */
-	public ResearchQuestionRecordDialog withDraft(final String title, final String question, final java.util.List<FLEFRecord> targets){
+	public ResearchQuestionRecordDialog withDraft(final String title, final String question, final List<FLEFRecord> targets){
 		if(titleField.isEmpty() && title != null && !title.isBlank())
 			titleField.setText(title);
 		if(questionArea.isEmpty() && question != null && !question.isBlank())

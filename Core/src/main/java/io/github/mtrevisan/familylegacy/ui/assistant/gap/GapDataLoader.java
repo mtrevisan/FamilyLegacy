@@ -35,10 +35,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
@@ -81,6 +81,7 @@ public final class GapDataLoader{
 
 		final Map<String, List<String>> principals = new HashMap<>();
 		final Map<String, Set<String>> eventsOfPerson = new HashMap<>();
+		final Map<String, Integer> participationSources = new HashMap<>();
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final String personId = armValue(FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT));
@@ -92,6 +93,8 @@ public final class GapDataLoader{
 
 			principals.computeIfAbsent(eventId, k -> new ArrayList<>())
 				.add(personId);
+			participationSources.merge(eventId, FLEFRecordHelper.findChildren(eventParticipation, EventParticipationReader.TAG_SOURCE).size(),
+				Integer::sum);
 			eventsOfPerson.computeIfAbsent(personId, k -> new HashSet<>())
 				.add(eventId);
 		}
@@ -107,8 +110,12 @@ public final class GapDataLoader{
 				continue;
 
 			final String type = EventReader.extractType(event);
-			events.add(new GapData.Event(entry.getKey(), type, FLEFRecordHelper.findChildren(event, EventReader.TAG_SOURCE).size(),
-				entry.getValue()));
+			//a source may cite the event, the participation of its principals or the principals themselves: any of them backs the event
+			int sources = FLEFRecordHelper.findChildren(event, EventReader.TAG_SOURCE).size()
+				+ participationSources.getOrDefault(entry.getKey(), 0);
+			for(final String personId : entry.getValue())
+				sources += FLEFRecordHelper.findChildren(filteredIndividuals.get(personId), IndividualReader.TAG_SOURCE).size();
+			events.add(new GapData.Event(entry.getKey(), type, sources, entry.getValue()));
 			for(final String personId : entry.getValue())
 				if(EventReader.ENUM_TYPE_BIRTH.equals(type)){
 					withBirth.add(personId);
@@ -149,9 +156,9 @@ public final class GapDataLoader{
 
 			//the subject of a relationship of descent is the child, the target the parent
 			if(RelationshipReader.isTypeChild(type))
-				parents.add(new GapData.ParentLink(subject, target));
+				parents.add(new GapData.ParentLink(subject, target, FLEFRecordHelper.findChildren(relationship, RelationshipReader.TAG_SOURCE).size()));
 			else if(RelationshipReader.isTypePartner(type))
-				unions.add(new GapData.Union(subject, target));
+				unions.add(new GapData.Union(subject, target, FLEFRecordHelper.findChildren(relationship, RelationshipReader.TAG_SOURCE).size()));
 		}
 
 		return loadResearch(model, today, persons, events, parents, unions);

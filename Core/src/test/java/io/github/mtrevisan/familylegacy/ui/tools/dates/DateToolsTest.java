@@ -48,6 +48,7 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 
 /** The Calendar Converter and the Date Calculator: the conversions, the calculations and where they are in the menus. */
@@ -182,7 +183,7 @@ class DateToolsTest{
 		final List<String> dateTools = DateToolRegistry.tools().stream()
 			.map(ToolOperation::getName)
 			.toList();
-		final List<String> eventTools = java.util.stream.Stream.of(EventToolRegistry.primaryTools(), EventToolRegistry.referenceTools(),
+		final List<String> eventTools = Stream.of(EventToolRegistry.primaryTools(), EventToolRegistry.referenceTools(),
 				EventToolRegistry.analysisTools())
 			.flatMap(List::stream)
 			.map(ToolOperation::getName)

@@ -63,8 +63,7 @@ class RecordDiffLinksTest{
 		for(final String id : List.of("I1", "I2"))
 			model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE)
 				.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1")))
-				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "M")));
+					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1"))));
 		return model;
 	}
 
@@ -137,7 +136,7 @@ class RecordDiffLinksTest{
 
 			//a click elsewhere in the text opens nothing
 			opened.set(null);
-			SwingUtilities.invokeAndWait(() -> click(left, text.indexOf("sex")));
+			SwingUtilities.invokeAndWait(() -> click(left, text.indexOf("source")));
 			Thread.sleep(400);
 			Assertions.assertNull(opened.get());
 		}

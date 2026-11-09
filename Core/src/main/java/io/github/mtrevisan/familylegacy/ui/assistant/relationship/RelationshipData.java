@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -39,9 +40,16 @@ import java.util.Map;
  * @param groups        the names of the groups, by identifier
  * @param relationships the relationships between individuals and groups
  * @param events        the events the individuals took part in
+ * @param clergy        the individuals whose occupation is that of a member of the clergy
+ * @param ecclesiasticalPlaces the places of the church: parishes, dioceses and what is part of them by an ecclesiastical relationship
  */
 record RelationshipData(Map<String, Person> persons, Map<String, String> groups, List<Relationship> relationships,
-		List<Event> events){
+		List<Event> events, Set<String> clergy, Set<String> ecclesiasticalPlaces){
+
+	RelationshipData(final Map<String, Person> persons, final Map<String, String> groups, final List<Relationship> relationships,
+			final List<Event> events){
+		this(persons, groups, relationships, events, Set.of(), Set.of());
+	}
 
 	/** What a relationship links. */
 	enum Kind{
@@ -79,8 +87,14 @@ record RelationshipData(Map<String, Person> persons, Map<String, String> groups,
 	 * @param date         the days of the event ({@code null} if not dated)
 	 * @param dateText     the date, as written
 	 * @param participants the individuals that took part in it
+	 * @param placeId      the place of the event, or {@code null}
 	 */
-	record Event(String id, String type, DateRange date, String dateText, List<Participant> participants){}
+	record Event(String id, String type, DateRange date, String dateText, List<Participant> participants, String placeId){
+
+		Event(final String id, final String type, final DateRange date, final String dateText, final List<Participant> participants){
+			this(id, type, date, dateText, participants, null);
+		}
+	}
 
 	/**
 	 * @param personId  the individual

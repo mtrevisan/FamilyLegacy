@@ -36,6 +36,7 @@ import java.time.chrono.ThaiBuddhistDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 
 /**
@@ -155,7 +156,7 @@ final class CalendarConversions{
 		}
 	}
 
-	private static long fromChrono(final Calendar calendar, final java.util.function.Supplier<LocalDate> date){
+	private static long fromChrono(final Calendar calendar, final Supplier<LocalDate> date){
 		final LocalDate iso;
 		try{
 			iso = date.get();

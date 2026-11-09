@@ -29,6 +29,7 @@ A little pattern language.
 ```
 require one_of(field_a, field_b) // at least one of the two present
 require if basis == conventional: cultural_norm // mandatory conditional
+require if type == sex: value in (male, female, unknown) // when the condition holds, the value is one of the listed ones
 ```
 
 **Types**: scalars (`Text`, `Int`, `Date`, `Duration`, `Uri`), references (`Xref<Type>`), open enums (`enum { A, B, C, ... }` — the final three dots indicate "custom values permitted", just like today you write `<EVENT_TYPE>` next to a closed list).

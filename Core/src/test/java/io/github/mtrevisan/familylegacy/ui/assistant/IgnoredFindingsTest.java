@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 class IgnoredFindingsTest{
@@ -88,7 +89,7 @@ class IgnoredFindingsTest{
 	@Test
 	void theListenersAreTold(){
 		final IgnoredFindings ignored = new IgnoredFindings(new Memory());
-		final java.util.concurrent.atomic.AtomicInteger told = new java.util.concurrent.atomic.AtomicInteger();
+		final AtomicInteger told = new AtomicInteger();
 		ignored.addListener(told::incrementAndGet);
 		final Diagnostic finding = finding("Told", "kind|I1|x");
 

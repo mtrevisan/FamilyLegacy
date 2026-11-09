@@ -73,7 +73,8 @@ public final class GroupNarrator{
 		final List<FLEFRecord> events = idx.eventsOfGroup(group);
 		final List<FLEFRecord> attrs = idx.attributesOfGroup(group);
 
-		final String displayName = GroupReader.extractPrimaryName(group);
+		//a group with no name is told by its id
+		final String displayName = StringUtils.defaultIfBlank(GroupReader.extractPrimaryName(group), group.getId());
 		final List<String> sentences = new ArrayList<>();
 
 		// 1. Check explicit founding or union events (marriages/civil rites)

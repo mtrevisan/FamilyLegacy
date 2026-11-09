@@ -351,7 +351,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 			if(value != null){
 				@SuppressWarnings("unchecked")
 				final T item = (T)value;
-				label.setText(getDisplayText(item));
+				label.setText(getRichDisplayText(item));
 				label.setIcon(getItemIcon(item));
 			}
 			else{

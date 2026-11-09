@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -132,7 +133,7 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private static Set<String> words(final String... words){
-		final Set<String> set = new java.util.HashSet<>();
+		final Set<String> set = new HashSet<>();
 		for(final String word : words)
 			set.add(TextNormalizer.normalize(word));
 		return set;

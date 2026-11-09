@@ -119,7 +119,7 @@ public final class JulianDate{
 	 */
 	public static double of(final int year, final int month, final int day){
 		final int z = year + (month - 14) / 12;
-		int jd =  (int)(365.25 * (z + 4716)) + F[month - 1] + day;
+		int jd = (int)(365.25 * (z + 4716)) + F[month - 1] + day;
 		if(jd > JULIAN_CALENDAR_END){
 			//number of full centuries
 			final int aa = z / 100;

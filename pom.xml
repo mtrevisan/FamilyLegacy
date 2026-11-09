@@ -107,7 +107,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.14.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.15.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -270,6 +270,7 @@
 				<filtering>true</filtering>
 				<includes>
 					<include>version.properties</include>
+					<include>software.properties</include>
 				</includes>
 			</resource>
 			<resource>
@@ -277,6 +278,7 @@
 				<filtering>false</filtering>
 				<excludes>
 					<exclude>version.properties</exclude>
+					<exclude>software.properties</exclude>
 				</excludes>
 			</resource>
 		</resources>

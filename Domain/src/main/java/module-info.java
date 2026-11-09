@@ -37,6 +37,7 @@ open module io.github.mtrevisan.familylegacy.domain {
 	requires com.ibm.icu;
 
 	exports io.github.mtrevisan.familylegacy.chronomap;
+	exports io.github.mtrevisan.familylegacy.comparison;
 	exports io.github.mtrevisan.familylegacy.consanguinity;
 	exports io.github.mtrevisan.familylegacy.dossier;
 	exports io.github.mtrevisan.familylegacy.ego;

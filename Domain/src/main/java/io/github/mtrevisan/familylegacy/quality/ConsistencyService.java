@@ -33,7 +33,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -76,8 +78,8 @@ import java.util.Set;
  *       (a spouse that is a group, a membership between two individuals);</li>
  *   <li><b>Circular hierarchy</b>: groups that are part of each other, places that are part of each other (error), places that
  *       succeed each other in a circle (warning, since the dates may explain it); each circle once;</li>
- *   <li><b>Relationship written twice</b> (warning): the same type between the same two records (a couple written from both sides is
- *       one relationship);</li>
+ *   <li><b>Relationship written twice</b> (warning): the same type and role between the same two records (a couple written from both sides is
+ *       one relationship; two associates with different roles, a guardian and a ward, are two);</li>
  *   <li><b>Event without participants</b> (warning), and a birth, baptism, death, burial or cremation whose participants all have a
  *       role and none is the principal, the one the event is about (warning). A participant with no role says nothing: the role is
  *       optional, so then it cannot be said;</li>
@@ -98,6 +100,9 @@ public final class ConsistencyService{
 	private static final Set<String> PLACE_SUCCESSION = Set.of(PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF, PlaceRelationshipReader.ENUM_TYPE_MERGED_FROM, PlaceRelationshipReader.ENUM_TYPE_SPLIT_FROM,
 		PlaceRelationshipReader.ENUM_TYPE_RECEIVED_TERRITORY_FROM);
 	/** The types that can link an individual to an individual: the ones the editor offers. */
+	/** The relationships that are a marriage (an engagement or a cohabitation is not). */
+	private static final Set<String> MARRIAGE_TYPES = Set.of(RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE,
+		RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE, RelationshipReader.ENUM_TYPE_CUSTOMARY_SPOUSE);
 	private static final Set<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = Set.of(RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_TYPES);
 	/** The events of the life of a person: they are about one of the participants, the principal. */
 	private static final Set<String> PRINCIPAL_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
@@ -155,10 +160,12 @@ public final class ConsistencyService{
 
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipReader.TYPE);
 		final Map<String, List<String>> parentsOf = new HashMap<>();
+		final Set<String> marriedPairs = new HashSet<>();
 		for(final FLEFRecord relationship : relationships){
 			checkSelfReference(relationship, RelationshipReader.TAG_SUBJECT, RelationshipReader.TAG_TARGET,
 				"text.consistency.issue.self_relationship", issues);
 			collectParentEdge(relationship, parentsOf);
+			collectMarriedPair(relationship, marriedPairs);
 		}
 		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipReader.TYPE);
 		for(final FLEFRecord relationship : placeRelationships)
@@ -168,6 +175,7 @@ public final class ConsistencyService{
 		checkParentsOfTheSameSex(model, parentsOf, issues);
 		checkCircularParentage(model, parentsOf, issues);
 		checkSiblingsThatAreParents(model, parentsOf, issues);
+		checkParentsMarriedToTheirChildren(model, parentsOf, marriedPairs, issues);
 		checkRelationshipKinds(model, relationships, issues);
 		checkHierarchies(model, relationships, placeRelationships, issues);
 		checkDuplicateRelationships(model, relationships, placeRelationships, issues);
@@ -210,6 +218,40 @@ public final class ConsistencyService{
 				.add(parentId);
 	}
 
+	/** Remembers the two individuals of a relationship of marriage, whichever is the subject. */
+	private static void collectMarriedPair(final FLEFRecord relationship, final Set<String> marriedPairs){
+		if(!MARRIAGE_TYPES.contains(RelationshipReader.extractType(relationship)))
+			return;
+
+		final String first = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+		final String second = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+		if(first != null && second != null && !first.equals(second))
+			marriedPairs.add(pairKey(first, second));
+	}
+
+	private static String pairKey(final String first, final String second){
+		return (first.compareTo(second) <= 0? first + "|" + second: second + "|" + first);
+	}
+
+	/**
+	 * A biological child and the biological parent cannot also be spouses: either the parentage or the marriage is wrong (a step-parent,
+	 * an adoptive parent or a relationship of another kind are not biological, so they are not checked here).
+	 */
+	private static void checkParentsMarriedToTheirChildren(final FLEFModel model, final Map<String, List<String>> parentsOf,
+			final Set<String> marriedPairs, final List<Issue> issues){
+		final List<String> children = new ArrayList<>(parentsOf.keySet());
+		Collections.sort(children);
+		for(final String childId : children)
+			for(final String parentId : new LinkedHashSet<>(parentsOf.get(childId)))
+				if(marriedPairs.contains(pairKey(childId, parentId))){
+					final FLEFRecord child = model.getRecordById(childId);
+					final FLEFRecord parent = model.getRecordById(parentId);
+					issues.add(issue(Severity.ERROR, childId, "text.consistency.issue.child_married_to_parent",
+						(child != null? RecordDisplay.describe(child, model): childId) + " (" + childId + ")",
+						(parent != null? RecordDisplay.describe(parent, model): parentId) + " (" + parentId + ")"));
+				}
+	}
+
 	/** An individual has two biological parents at most: more are reported once, with the parents named (the same one twice counts once). */
 	private static void checkBiologicalParents(final FLEFModel model, final Map<String, List<String>> parentsOf, final List<Issue> issues){
 		final List<String> children = new ArrayList<>(parentsOf.keySet());
@@ -237,6 +279,7 @@ public final class ConsistencyService{
 	private static void checkParentsOfTheSameSex(final FLEFModel model, final Map<String, List<String>> parentsOf, final List<Issue> issues){
 		final List<String> children = new ArrayList<>(parentsOf.keySet());
 		Collections.sort(children);
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 		for(final String childId : children){
 			final List<String> parents = new ArrayList<>(new LinkedHashSet<>(parentsOf.get(childId)));
 			if(parents.size() != MAX_BIOLOGICAL_PARENTS)
@@ -247,10 +290,10 @@ public final class ConsistencyService{
 			if(first == null || second == null)
 				continue;
 
-			final String firstSex = IndividualReader.extractRawSex(first);
-			final String secondSex = IndividualReader.extractRawSex(second);
-			final boolean mothers = (IndividualReader.isSexFemale(firstSex) && IndividualReader.isSexFemale(secondSex));
-			final boolean fathers = (IndividualReader.isSexMale(firstSex) && IndividualReader.isSexMale(secondSex));
+			final SexType firstSex = PreferredSex.of(first, sexes, model);
+			final SexType secondSex = PreferredSex.of(second, sexes, model);
+			final boolean mothers = (firstSex == SexType.FEMALE && secondSex == SexType.FEMALE);
+			final boolean fathers = (firstSex == SexType.MALE && secondSex == SexType.MALE);
 			if(!mothers && !fathers)
 				continue;
 
@@ -311,6 +354,16 @@ public final class ConsistencyService{
 			final FLEFRecord preferredNode = FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED);
 			final FLEFRecord preferredTarget = (preferredNode != null? preferredNode.getTheOnlyChild(): null);
 			final String preferred = (preferredTarget != null? preferredTarget.getValue(): null);
+
+			//a conclusion about records that are gone says nothing
+			final Set<String> missing = new LinkedHashSet<>();
+			for(final String target : resolved)
+				if(model.getRecordById(target) == null)
+					missing.add(target);
+			if(preferred != null && model.getRecordById(preferred) == null)
+				missing.add(preferred);
+			for(final String target : missing)
+				issues.add(issue(Severity.ERROR, conclusion.getId(), "text.consistency.issue.resolves_missing", target));
 
 			if(preferred != null && !resolved.contains(preferred))
 				issues.add(issue(Severity.ERROR, conclusion.getId(), "text.consistency.issue.preferred", preferred));
@@ -417,7 +470,9 @@ public final class ConsistencyService{
 			final boolean symmetric = (RelationshipReader.isTypePartner(type) || RelationshipReader.isTypeAssociate(type));
 			final String first = (symmetric && subject.compareTo(target) > 0? target: subject);
 			final String second = (first == subject? target: subject);
-			byKey.computeIfAbsent("r|" + type + "|" + first + "|" + second, k -> new ArrayList<>())
+			//the role tells what each one is to the other: "guardian" and "ward", "birth witness" and "birth", are two things, not one written twice
+			final String role = StringUtils.lowerCase(StringUtils.trimToEmpty(RelationshipReader.extractRole(relationship)));
+			byKey.computeIfAbsent("r|" + type + "|" + first + "|" + second + "|" + role, k -> new ArrayList<>())
 				.add(relationship.getId());
 		}
 		for(final FLEFRecord relationship : placeRelationships){

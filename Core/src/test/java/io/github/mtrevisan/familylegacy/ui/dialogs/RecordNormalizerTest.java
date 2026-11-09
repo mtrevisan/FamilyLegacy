@@ -57,14 +57,14 @@ class RecordNormalizerTest{
 
 	@Test
 	void childrenFollowTheOrderOfTheGrammar(){
-		//the grammar declares: name, sex, source, note, preferred_image, privacy, audit
+		//the grammar declares: name, source, note, preferred_image, privacy, audit
 		final FLEFRecord record = FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT))
 			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "n"))
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE))
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_PRIVACY))
 			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME));
 
-		Assertions.assertEquals(List.of("name", "sex", "note", "audit"), tags(RecordNormalizer.normalize(record, grammar)));
+		Assertions.assertEquals(List.of("name", "note", "privacy", "audit"), tags(RecordNormalizer.normalize(record, grammar)));
 	}
 
 	@Test
@@ -73,12 +73,12 @@ class RecordNormalizerTest{
 			.addChild(FLEFRecord.createChildWithTagAndValue("zzz", "1"))
 			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "b"))
 			.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_NOTE, "a"))
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
+			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_PRIVACY));
 
 		final FLEFRecord normalized = RecordNormalizer.normalize(record, grammar);
 
-		Assertions.assertEquals(List.of("sex", "note", "note", "zzz"), tags(normalized));
-		Assertions.assertEquals("a", normalized.getChildren().get(1).getValue());
+		Assertions.assertEquals(List.of("note", "note", "privacy", "zzz"), tags(normalized));
+		Assertions.assertEquals("a", normalized.getChildren().get(0).getValue());
 	}
 
 	@Test

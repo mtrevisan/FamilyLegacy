@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,17 +45,17 @@ class RecordChangeSummaryTest{
 
 	@Test
 	void nothingChanged(){
-		Assertions.assertTrue(RecordChangeSummary.describe(record(IndividualReader.TAG_SEX, "male"), record(IndividualReader.TAG_SEX, "male")).isEmpty());
+		Assertions.assertTrue(RecordChangeSummary.describe(record("title", "male"), record("title", "male")).isEmpty());
 	}
 
 	@Test
 	void addedChangedAndRemoved(){
-		final FLEFRecord before = record(IndividualReader.TAG_SEX, "male", NoteReader.TAG_NOTE, "old");
-		final FLEFRecord after = record(IndividualReader.TAG_SEX, "female", "occupation", "smith");
+		final FLEFRecord before = record("title", "male", NoteReader.TAG_NOTE, "old");
+		final FLEFRecord after = record("title", "female", "occupation", "smith");
 
 		final List<String> changes = RecordChangeSummary.describe(before, after);
 
-		Assertions.assertEquals(List.of("~ sex: male → female", "- note: old", "+ occupation: smith"), changes);
+		Assertions.assertEquals(List.of("~ title: male → female", "- note: old", "+ occupation: smith"), changes);
 	}
 
 	@Test
@@ -80,8 +80,8 @@ class RecordChangeSummaryTest{
 
 	@Test
 	void theAuditIsIgnored(){
-		final FLEFRecord before = record(IndividualReader.TAG_SEX, "male");
-		final FLEFRecord after = record(IndividualReader.TAG_SEX, "male");
+		final FLEFRecord before = record("title", "male");
+		final FLEFRecord after = record("title", "male");
 		after.addChild(FLEFRecord.createChildWithTag("audit")
 			.addChild(FLEFRecord.createChildWithTagAndValue("comment", "x")));
 

@@ -38,11 +38,14 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import java.awt.Window;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 
 /**
@@ -112,6 +115,14 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		components.bind(typeCombo);
 		components.bind(remarkArea);
 
+		//an address, a telephone number, a web address ... tells its own type: set it when the field is left, if the user has not chosen one
+		valueField.addFocusListener(new FocusAdapter(){
+			@Override
+			public void focusLost(final FocusEvent e){
+				inferType();
+			}
+		});
+
 
 		finalizeDialog(parent);
 	}
@@ -165,8 +176,18 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		return true;
 	}
 
+	private void inferType(){
+		if(StringUtils.isNotBlank(typeCombo.getText()))
+			return;
+
+		final String type = ContactReader.inferType(valueField.getText());
+		if(type != null)
+			typeCombo.setText(type);
+	}
+
 	@Override
 	protected void saveData(){
+		inferType();
 		components.save(record);
 
 		namePanel.save(record);

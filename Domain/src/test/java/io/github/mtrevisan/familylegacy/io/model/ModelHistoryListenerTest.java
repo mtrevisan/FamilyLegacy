@@ -37,7 +37,7 @@ class ModelHistoryListenerTest{
 
 	private static FLEFRecord individual(final String id){
 		final FLEFRecord record = FLEFRecord.createMainRecord(id, IndividualReader.TYPE);
-		record.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "male"));
+		record.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NOTE, "x"));
 		return record;
 	}
 

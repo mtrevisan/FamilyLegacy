@@ -200,6 +200,9 @@ public class FLEFParser{
 			skipIgnored();
 		}
 
+		//the files written before the sex became an individual attribute
+		SexMigration.migrate(root);
+
 		return root;
 	}
 

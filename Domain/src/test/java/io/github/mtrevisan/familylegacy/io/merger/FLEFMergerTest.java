@@ -32,9 +32,11 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -426,9 +428,12 @@ class FLEFMergerTest{
 		final MergeReport report = merger().deduplicate(model);
 		final FLEFRecord survivor = report.mergedModel().getRecordsByType(IndividualReader.TYPE).getFirst();
 
-		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, IndividualReader.TAG_SEX).size());
+		//the sex is not a field of the individual: it is an attribute, an assertion each of the two (the unknown one says nothing)
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(survivor, "sex").isEmpty());
+		Assertions.assertEquals(2, PreferredSex.assertions(survivor.getId(), report.mergedModel()).size());
 		// a known sex wins over an unknown one
-		Assertions.assertEquals("male", FLEFRecordHelper.getChildValue(survivor, IndividualReader.TAG_SEX));
+		Assertions.assertEquals(SexType.MALE, PreferredSex.of(survivor, report.mergedModel()));
+		Assertions.assertTrue(report.warnings().isEmpty());
 		Assertions.assertEquals("confidential", FLEFRecordHelper.getChildValue(survivor, "privacy.level"));
 		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, IndividualReader.TAG_NAME).size());
 		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(survivor, "audit").size());
@@ -504,7 +509,8 @@ class FLEFMergerTest{
 		Assertions.assertNull(model.getRecordById("IH1"));
 		// the participation of I2 became identical to that of I1
 		Assertions.assertEquals(1, model.getRecordsByType(EventParticipationReader.TYPE).size());
-		Assertions.assertEquals(List.of("EP2"), result.collapsedIds());
+		//and so did the sex assertion of I2, that was the same as the one of I1
+		Assertions.assertEquals(List.of("IA2", "EP2"), result.collapsedIds());
 		Assertions.assertEquals(List.of("IH1"), result.deletedIds());
 		Assertions.assertEquals("Merged record I2: same baptism record",
 			FLEFRecordHelper.getChildValue(model.getRecordById("I1"), "audit.update.comment"));

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
@@ -117,7 +118,7 @@ public final class IndividualSummary{
 			return;
 		}
 
-		sex = IndividualReader.extractSex(individual);
+		sex = PreferredSex.of(individual, model);
 
 		final List<String> names = IndividualReader.extractFullNames(individual);
 		if(!names.isEmpty()){
@@ -144,10 +145,10 @@ public final class IndividualSummary{
 				if(RelationshipReader.isTypeBiologicalChild(type)){
 					if(subjectId.equals(id)){
 						final FLEFRecord object = model.getRecordById(objectId);
-						final String targetSex = IndividualReader.extractRawSex(object);
-						if(IndividualReader.isSexMale(targetSex))
+						final SexType targetSex = PreferredSex.of(object, model);
+						if(targetSex == SexType.MALE)
 							hasFather = true;
-						else if(IndividualReader.isSexFemale(targetSex))
+						else if(targetSex == SexType.FEMALE)
 							hasMother = true;
 						else
 							hasParents = true;
@@ -158,7 +159,7 @@ public final class IndividualSummary{
 				}
 				else if(subjectId.equals(id) && RelationshipReader.isTypeChild(type)){
 					final FLEFRecord target = model.getRecordById(objectId);
-					final SexType targetSex = IndividualReader.extractSex(target);
+					final SexType targetSex = PreferredSex.of(target, model);
 					if(targetSex == SexType.MALE)
 						hasFather = true;
 					else if(targetSex == SexType.FEMALE)

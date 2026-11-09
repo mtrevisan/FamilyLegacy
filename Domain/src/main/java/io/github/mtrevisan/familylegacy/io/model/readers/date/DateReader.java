@@ -110,6 +110,7 @@ import java.util.Arrays;
  */
 public final class DateReader{
 
+	public static final String TAG_DATE = "date";
 	public static final String TAG_VALUE = "value";
 	public static final String TAG_ORIGINAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";

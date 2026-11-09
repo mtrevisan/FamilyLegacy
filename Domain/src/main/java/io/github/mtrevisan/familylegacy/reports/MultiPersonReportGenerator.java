@@ -99,9 +99,7 @@ public final class MultiPersonReportGenerator{
 
 		sections.addAll(new HeaderSection(first).build());
 		sections.add(new ReportSection.Heading(1, title));
-		sections.add(new ReportSection.Paragraph(String.format(
-			first.labels.sections().multiPersonCover(),
-			first.formatInt(persons.size()))));
+		sections.add(new ReportSection.Paragraph(first.labels.sections().multiPersonCover(persons.size())));
 
 		for(final SectionBuilder b : opening)
 			sections.addAll(b.build());

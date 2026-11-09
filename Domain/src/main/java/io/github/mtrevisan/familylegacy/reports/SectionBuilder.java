@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.reports.ReportSection;
+
 import java.util.List;
 
 

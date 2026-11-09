@@ -211,7 +211,7 @@ public final class ResourceReader{
 	 * Parses scientific notations (Mantissa text segment combined with an Exponent segment)
 	 * without performing string concatenations or using Double.parseDouble.
 	 */
-	private static double parseScientificDoubleFast(final String s,  final int mStart, final int mEnd, final int eStart,
+	private static double parseScientificDoubleFast(final String s, final int mStart, final int mEnd, final int eStart,
 			final int eEnd){
 		long mantissa = 0;
 		boolean mNegative = false;

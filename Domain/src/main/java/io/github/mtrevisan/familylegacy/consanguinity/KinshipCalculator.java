@@ -26,7 +26,9 @@ package io.github.mtrevisan.familylegacy.consanguinity;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import org.apache.commons.lang3.StringUtils;
@@ -551,8 +553,8 @@ public final class KinshipCalculator{
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		final String raw = IndividualReader.extractRawSex(record);
-		return (raw != null? raw: StringUtils.EMPTY);
+		final SexType sex = PreferredSex.of(record, model);
+		return (sex != SexType.UNKNOWN? sex.getRawSex(): StringUtils.EMPTY);
 	}
 
 

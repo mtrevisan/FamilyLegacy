@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
@@ -37,7 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 import java.awt.Rectangle;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 
@@ -52,6 +58,10 @@ public final class IndividualImage{
 
 	private static final int IMAGE_CACHE_SIZE = 300;
 	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>(IMAGE_CACHE_SIZE);
+
+	/** Image keys whose file was not found, with the time of the check (the failures are not cached by the loader). */
+	private static final Map<String, Long> MISSING_IMAGES = new ConcurrentHashMap<>();
+	private static final long MISSING_IMAGE_RETRY_NANOS = TimeUnit.MINUTES.toNanos(5);
 
 	private static final String DOT = ".";
 	private static final String TAG_PIPE = "|";
@@ -101,16 +111,29 @@ public final class IndividualImage{
 		preferredImageUri = IndividualReader.extractPreferredImageUri(record, model);
 		preferredImageCropRect = IndividualReader.extractPreferredImageCrop(record);
 
-		final String rawSex = IndividualReader.extractRawSex(record);
+		//the preferred sex (the assertion a conclusion selects, or the only or the most confident one)
+		final SexType sex = PreferredSex.of(record, model);
 		// Set the default image immediately
-		imagePrimary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.PRIMARY);
-		imageSecondary = PlaceholderImages.placeholderFor(rawSex, BoxPanelType.SECONDARY);
+		imagePrimary = PlaceholderImages.placeholder(sex, BoxPanelType.PRIMARY);
+		imageSecondary = PlaceholderImages.placeholder(sex, BoxPanelType.SECONDARY);
 		preferredImageKey = composePreferredImageKey(preferredImageUri, preferredImageCropRect);
 	}
 
 	public void loadPreferredImageAsync(final BiConsumer<String, ImageIcon[]> imageConsumer){
 		if(StringUtils.isEmpty(preferredImageUri))
 			return;
+
+		//a file found missing is not looked for again at every repaint of every view (and not logged again) until the delay elapses
+		final Long missingSince = MISSING_IMAGES.get(preferredImageKey);
+		if(missingSince != null){
+			if(System.nanoTime() - missingSince < MISSING_IMAGE_RETRY_NANOS){
+				final String key = preferredImageKey;
+				SwingUtilities.invokeLater(() -> imageConsumer.accept(key, null));
+
+				return;
+			}
+			MISSING_IMAGES.remove(preferredImageKey);
+		}
 
 		IMAGE_LOADER.load(
 			preferredImageKey,
@@ -123,6 +146,7 @@ public final class IndividualImage{
 				}
 				else{
 					LOGGER.error("Non-existent individual image for {}", preferredImageUri);
+					MISSING_IMAGES.put(preferredImageKey, System.nanoTime());
 
 					return null;
 				}

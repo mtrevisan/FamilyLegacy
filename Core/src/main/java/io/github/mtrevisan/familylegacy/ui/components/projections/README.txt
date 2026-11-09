@@ -11,29 +11,7 @@ farlo ("Utile", "Bassa priorità").
 ## TODO aperti, per priorità
 
 Elenco di tutti e soli i TODO ancora aperti di questo file (i DONE e le scelte "non TODO" sono nelle sezioni sotto). Priorità: ALTA,
-MEDIA, BASSA. Dove il testo originale la dichiarava ("Utile", "alta priorità", "Bassa priorità") è stata mantenuta; per gli altri è una
-stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
-
-### Menu da verificarne la completezza
-- Research
-- TOBEVERIFIED Help | Keyboard Shortcuts, Help | Diagnostics
-- i sottomenu Undo e Redo del menu Edit devono essere attivi solo se c'è qualcosa da fare undo e redo
-- quando faccio edit individual e viene mostrata la lista dei personal name, i nickname (di nome o di famiglia) devono apparire in italico
-- quando si fa l'import da gedcom, ad esempio di education, la data viene riportata in flef come valid from before `date` e valid to after `date`, con la stessa `date`: non dovrebbe essere un punto nel tempo quindi valid from `date` e valid to `date`?
-- quando si creano i source citation, in locator ci deve finire solo il luogo in cui è locata la citazione, non altro tipo "Event: MARR (witness), Date: 12 SEP 1954"
-- quando faccio delete di un individuo mi appare una dialog di scelta di un file flef: perché? a cosa serve?
-- unlink relationships da menu è abilitato, ma quando lo faccio sull'individuo viene mostrato disabilitato; se elimino tutti i link l'individuo deve apparire come isolato nell'albero, invece lo vedo ancora connesso
-- nel Manage Places ho la lista dei luoghi, ma non riesco a sapere a cosa sono collegati
-- se un source ha una nota con una data solamente, quella data è il date del source; se contiene "place : year", allora uno è il place e l'altro è il date
-- nel menu le lettere di scelta rapida si sovrappongono, scegliere cosa mantenere o cosa no, o se ha senso averli
-- nei contatti, se value è una mail/numero di telefono/indirizzo/etc, il corrispondente type deve essere valorizzato adeguatamente
-- nel manage media, selezionando un media, la preview non appare
-- nel citation analysis, controlla gli unused documents, perché non mi risulta siano non usati
-
-### ALTA
-- Rete di parentela, ascendenza proiettata con duplicati collegati ("stesso individuo"): lo stesso antenato che compare più volte è
-  marcato e collegato; `PedigreeCollapseDetector` dice già chi è duplicato. Partire dalla versione economica: evidenziare tutte le
-  occorrenze al passaggio del mouse o al clic.
+MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
@@ -48,73 +26,85 @@ stima (marcata con "~"). I TODO specifici delle viste temporale e social stanno 
 - Export CSV di sottoinsiemi (`ExportExcelTool` commentato; fare solo CSV).
 
 ### BASSA
-- Rete di parentela, heatmap dell'endogamia: ascendenza a griglia (generazione x posizione) colorata per F o per numero di occorrenze
-  dell'antenato; solo per un individuo e N generazioni, calcolo fuori EDT. Valore basso, il costo pesa sui file grandi.
-- Rete di parentela, grafo DAG unificato con archi di unione: serve un layout per DAG con nodi di unione (il Sugiyama lo fa in parte);
-  da fare solo come filtro sull'intorno di un individuo, mai sull'intero file, e solo se le altre viste non bastano.
+Mantenuti, ma da fare solo se emerge un bisogno concreto (revisione del 2026-11-09):
 - Consanguineità: rapporto di tutto il file e assistente lenti nel caso estremo (140 s, fuori EDT): sostituire gli insiemi di antenati di
-  `ConsanguinityCalculator.ancestorsOf` con insiemi di bit su indici interi (serve solo con file chiusi su se stessi).
-- ~ Consanguineità: soglie (1/256, 1/64, 1/16) non configurabili; nessuna distinzione fra parentela per sangue e per adozione/affido
-  (esclusi); un genitore ignoto vale "non imparentato" (i valori sono limiti inferiori).
-- Viste sulle fonti: source tree, galleria documenti con crop, citation network.
-- Matrice comparativa degli attributi.
-- Contesto: impact network (vista per bersaglio).
-- Research Board: timeline delle attività.
+  `ConsanguinityCalculator.ancestorsOf` (oggi `Set<String>`) con insiemi di bit su indici interi. Serve solo con file chiusi su se
+  stessi, che un file reale non raggiunge: farlo solo se qualcuno incontra davvero i 140 s.
+- Consanguineità: nessuna distinzione fra parentela per sangue e per adozione/affido (esclusi). Prima verificare che il modello
+  registri il tipo del legame genitore-figlio; se c'è già, il filtro costa poco.
+- Viste sulle fonti: solo il source tree, e solo se ci sono molte fonti annidate (`Citation relationships SHOULD NOT form cycles`).
 - Dossier: filtri (solo tipo di evento e intervallo; il resto è già nelle sezioni).
-- ~ Ricerca nei nomi di luoghi annidati.
-- ~ Viste temporale e social (nascoste): riusare i filtri per tipo di relazione di `SocialFilters`; strip e timeline globale non
-  compaiono sotto le due viste.
-- Name usage classifications, if future experience shows a need to distinguish structured usage categories beyond the existing name types.
-- Coverage information on sources, since archival coverage (e.g. a parish register covering baptisms from 1780 to 1820) is genealogically significant and currently resides only in notes.
+- Report: lacune per generazione; Calendario degli anniversari.
 
-### Assistente di ricerca (`ui/assistant`): "Still to do" di ogni assistente (tutti ~BASSA salvo dove indicato)
-- Framework: ~MEDIA il record selezionato nel contesto (le viste non lo espongono ancora; serve anche a "Check Chronology" per un
-  individuo); un filtro visibile per categoria; mostrare il record nella sua vista (oggi si aprono solo gli editor).
-- Date (Historical Date Assistant): interprete del linguaggio naturale (calende/none/idi romane, "more veneto", "un'ora dopo il
-  tramonto"), età con nascita nota per stimare la morte, anni di regno.
-- Research Gap: "luogo noto ma manca l'atto di nascita"; storia delle residenze incompleta tra due censimenti; muri di mattoni (spetta
-  al Planner); pesi non calibrati né configurabili e senza importanza dell'individuo/periodo/archivi; età per morte mancante (110/90) è
-  una convenzione, chi non ha anno di nascita non è mai segnalato; fonti cercate solo sull'evento (non su partecipazione o
-  individuo), battesimi e sepolture non sono eventi vitali; bozze in inglese, senza suggerimento di dove cercare, scadenza o
-  collegamento ai compiti; soglie di aggregazione (25, 200) non configurabili.
-- Source Citation: metadati dei media (EXIF, proprietà PDF, ISBN); repository citation intere (repository + locator) dal riferimento;
-  locator per tipo di fonte (media_type); apprendere le abbreviazioni dell'utente; bozza dell'intera SourceCitation (extract, stance).
-- Relationship (Assistant), per priorità:
-  - MEDIA, più evidenza per il tipo: se l'evidenza non decide resta un finding generico. Soluzioni, una alla volta e solo come
-    indizi dell'assistente (mai regole della validazione): officiante e luogo del matrimonio (il più affidabile, si parte da qui),
-    qualificatori delle fonti, età dei genitori (con i limiti di Chronology), cognome del padre (debole, solo corrispondenza esatta,
-    niente tabelle di nomi); matrimoni consuetudinari, affido e tutela non sono deducibili: solo una domanda al ricercatore.
-- Chronology (Assistant): restano solo le convenzioni, come avvisi dell'assistente e mai della validazione: figli della stessa
-  madre a meno di ~9 mesi (gemelli esclusi), età al matrimonio troppo bassa, coniuge più vecchio della durata della vita; eventi e
-  attributi sovrapposti incompatibili (non dimostrabili: solo un avviso); date non leggibili come finding dell'assistente (la
-  validazione le segnala già); "Check Chronology" per un individuo selezionato; limiti di età e gestazione configurabili; niente
-  cache; messaggi solo in inglese. Già fatti nella validazione: `valid_to` prima di `valid_from` e il parto dopo la morte.
-- Place: suggerimenti `successor_of` da nomi e date; date di validità delle relazioni (`valid_from` dopo `valid_to`, relazioni fuori
-  dalla vita del luogo); luoghi senza fonte; luoghi senza coordinate o tipo (tipo dal nome: "Diocesi di", "Parrocchia di"); uso dei
-  luoghi da record diversi dagli eventi; gerarchia dai nomi in più parti; genitore suggerito dai luoghi vicini.
-- Conclusion: bozza costruita dal modello all'apertura della palette (un record cambiato o cancellato dopo è saltato, uno ora risolto
-  non è rilevato), narrativa solo in inglese; l'editor non è un wizard, la bozza per un'ipotesi di identità risolve un solo bersaglio;
-  il candidato preferito dovrebbe pesare i qualificatori di evidenza (e valere oltre nascite e morti); altre asserzioni a valore unico
-  (luogo di nascita/morte, sepoltura, battesimo, sesso, tipo di relazione); attributi che cambiano nel tempo (residenza, occupazione,
-  cittadinanza, religione) con `valid_from`/`valid_to` e `children_count`/`marriages_count` contro l'albero; relazioni (coppia
-  figlio-genitore che è anche coppia di coniugi, matrimoni civile e religioso con date diverse, filiazione da coppie diverse in fonti
-  diverse); ipotesi di identità: conclusione obsoleta (date di audit) e candidato non individuo; coerenza delle conclusioni (`preferred`
-  fuori da RESOLVES, `proven` con una sola fonte, RESOLVES verso record inesistenti); modello letto intero a ogni apertura.
-- Context: data e luogo della bozza di evento storico; migrazioni (individuo in due luoghi lontani) ed eventi storici del luogo di
-  origine; convenzioni di nome contro i nomi dell'albero (patronimici); regole di età delle norme contro le età dei coniugi; eventi
-  dell'individuo diversi da quelli dell'albero (attributi e residenze); catalogo importabile di eventi storici e norme; norme che si
-  applicano a una conclusione o relazione; pesi non calibrati.
-- Research Planner: luoghi e periodi (quale parrocchia, quale archivio, quali registri per gli anni: servono repository e luoghi
-  dell'individuo); fonti già nell'albero (le citazioni dell'individuo oltre gli eventi); conclusioni della domanda; scadenza; ordine dei
-  passi come piano con dipendenze; domande su luoghi e famiglie; pesi non calibrati né configurabili.
-- Indicatore e ricalcolo (limiti noti, non lavori pianificati): nessuna opzione per spegnere la riapertura della palette, niente
-  ignora "tutti di questo tipo / di questo individuo", i risultati ignorati sono per percorso del file e per utente; non testati: il
-  clic reale che apre la palette, l'aspetto del pulsante, il riapertura con avviso, l'adattatore di `AppPreferences` e i tasti
-  Ctrl+D / Ctrl+I.
+SCARTATI (revisione del 2026-11-09; non sono più TODO, il motivo è scritto per non riproporli):
+- Heatmap dell'endogamia: grafico da pubblicazione scientifica, non risponde a una domanda del genealogista; F per individuo c'è già
+  (anelli di consanguineità, kinship); il costo pesa sui file grandi.
+- Grafo DAG unificato con archi di unione: layout costoso (nodi di unione), il Sugiyama e il pedigree collapse coprono il caso.
+- Soglie di consanguineità configurabili (1/256, 1/64, 1/16): sono soglie standard (cugini di terzo grado, di primo grado); renderle
+  configurabili aggiunge confronti non omogenei fra file.
+- Galleria documenti con crop e citation network: già serviti da Provenance, dai report e dal Research Board; la galleria ha il costo
+  maggiore (selezione di regioni sull'immagine).
+- Contesto, impact network (vista per bersaglio): vista di lusso, la Context Board mostra già gli impatti di ciascun contesto.
+- Research Board, timeline delle attività: ha senso solo se le attività hanno date coerenti; vista di lusso.
+- Viste temporale e social (nascoste), filtri per tipo di relazione di `SocialFilters` e strip/timeline globale: lavoro speso su viste
+  che nessuno vede. Prima si decide se le due viste restano o spariscono; i filtri dell'ego network (MEDIA, sopra) sono un'altra cosa.
 
-### Test non verificati
-- ESC sui dialog degli strumenti uno a uno (servono argomenti: è testato solo l'helper, e la scansione verifica che lo usino) e la
-  pressione reale del tasto su un focus reale.
+### Assistente di ricerca (`ui/assistant`): "Still to do" di ogni assistente (revisione del 2026-11-09)
+Criterio: si tiene ciò che toglie falsi positivi, aggiunge un controllo che un genealogista userebbe davvero o costa poco; si scarta ciò
+che richiede tabelle da mantenere, dati storici che non abbiamo, o aggiunge rumore. Il dettaglio per assistente è in
+`ui/assistant/README.txt`; i punti scartati sono elencati sotto, con il motivo.
+
+BASSA
+- Date: interprete del linguaggio naturale per le calende, none e idi romane (il resto, "more veneto" compreso, è già nei convertitori);
+  anni di regno (servono tabelle da fonte autorevole, vedi la regola sui calendari).
+- Research Gap: "luogo noto ma manca l'atto di nascita".
+- Source Citation: citazioni di repository intere (repository + locator) ricavate dal riferimento.
+- Place: validità delle relazioni (`valid_from` dopo `valid_to`; è dimostrabile: meglio nella validazione); luoghi senza fonte; tipo del
+  luogo dal nome ("Diocesi di", "Parrocchia di").
+- Context: data e luogo della bozza di evento storico.
+- Research Planner: luoghi e periodi (quale parrocchia, quale archivio; servono repository e luoghi dell'individuo, è il passo che
+  darebbe più valore ma dipende dai dati); conclusioni della domanda.
+
+LIMITI NOTI, non lavori pianificati
+- Convenzioni dichiarate: età 110/90 per la morte mancante (chi non ha anno di nascita non è mai segnalato: senza dati non c'è
+  nulla da dire), soglie 25 e 200 dell'aggregazione, pesi di utilità non calibrati (senza ricerche reali su cui tararli).
+- Bozza della conclusione costruita all'apertura della palette (un record cambiato dopo è saltato) e modello letto intero a ogni
+  apertura; la bozza di un'ipotesi di identità risolve un solo bersaglio; l'editor non è un wizard.
+- Indicatore e ricalcolo: nessuna opzione per spegnere la riapertura della palette; i risultati ignorati sono per percorso del file e
+  per utente; non testati: il clic reale che apre la palette, l'aspetto del pulsante, la riapertura con avviso, l'adattatore di
+  `AppPreferences` e i tasti Ctrl+D / Ctrl+I.
+
+SCARTATI (revisione del 2026-11-09; il motivo è scritto per non riproporli)
+- Framework: filtro visibile per categoria (scrivere il nome della categoria nella ricerca già filtra); mostrare il record nella sua
+  vista (gli editor bastano, e le viste non hanno un'API di selezione).
+- Date: età con nascita nota per stimare la morte (è aritmetica che l'utente fa da solo; l'età alla morte che stima la nascita c'è già).
+- Research Gap: storia delle residenze incompleta tra due censimenti (convenzione senza base, solo rumore); muri di mattoni (spetta al
+  Planner, già fatto); battesimi e sepolture come eventi vitali (sono sostituti, non eventi); pesi configurabili e importanza
+  dell'individuo, del periodo, degli archivi (non c'è dato per tararli); bozze con suggerimento di dove cercare, scadenza e
+  collegamento ai compiti (è il lavoro del Planner); soglie di aggregazione configurabili.
+- Source Citation: metadati dei media (EXIF, PDF, ISBN: librerie e manutenzione per poco valore); locator per tipo di fonte (tabella da
+  mantenere); apprendere le abbreviazioni dell'utente (stato nascosto, comportamento imprevedibile); bozza dell'intera SourceCitation
+  (extract e stance sono giudizio del ricercatore).
+- Relationship: indizi dai qualificatori delle fonti, dall'età dei genitori e dal cognome del padre (deboli o già coperti da Chronology;
+  il cognome richiede tabelle di nomi); matrimoni consuetudinari, affido e tutela (non deducibili da nulla nel file).
+- Chronology: coniuge più vecchio della durata della vita (caso raro); eventi e attributi sovrapposti incompatibili (non dimostrabili,
+  solo rumore); date non leggibili come finding (la validazione le segnala già); limiti di età e gestazione configurabili; cache;
+  messaggi tradotti (vedi sotto).
+- Place: suggerimenti `successor_of` da nomi e date (servono dati storici sulle giurisdizioni); luoghi senza coordinate (rumore: pochi
+  luoghi storici le hanno); uso dei luoghi da record diversi dagli eventi; gerarchia dai nomi in più parti; genitore suggerito dai
+  luoghi vicini (indovinare con le coordinate è fragile).
+- Conclusion: attributi che cambiano nel tempo (residenza, occupazione, cittadinanza, religione) e `children_count`/`marriages_count`
+  contro l'albero (distinguere un cambiamento da un conflitto non si decide da qui); matrimoni civile e religioso con date diverse e
+  filiazione da coppie diverse in fonti diverse (casi legittimi); ipotesi di identità con conclusione obsoleta (le date di audit non sono
+  un segnale affidabile) e candidato non individuo (già impedito dall'editor); `proven` con una sola fonte (può essere legittimo).
+- Context: migrazioni e eventi storici del luogo di origine; convenzioni di nome contro i nomi dell'albero (patronimici: tabelle);
+  regole di età delle norme contro le età dei coniugi; eventi dell'individuo diversi da quelli dell'albero; catalogo importabile di
+  eventi storici e norme (dati da curare e licenze); norme che si applicano a una conclusione o relazione; pesi non calibrati.
+- Research Planner: scadenza; ordine dei passi come piano con dipendenze (un piano da gestire, non un suggerimento); domande su luoghi e
+  famiglie; pesi configurabili.
+- Indicatore: "ignora tutti di questo tipo / di questo individuo" (nasconde problemi veri).
+- Messaggi e bozze solo in inglese (Gap, Chronology, Conclusion, Identity): è una scelta di tutta l'applicazione finché il bundle della
+  UI non ha file per lingua; non è un TODO dei singoli assistenti.
 
 
 ## Viste oggi raggiungibili
@@ -129,8 +119,8 @@ pedigree collapse (albero).
 
 DONE `TemporalProjectionPanel` (punto 1) e `SocialNetworkPanel` (punto 2) sono collegati allo switcher: enum,
 segnalibri, `TemporalAndSocialProjectionTest`; l'accesso dall'interfaccia (toolbar, menu, scorciatoie, aiuto) è tolto per ora. Vedi `temporal/README.txt` e
-`social/README.txt`. Restano TODO: i filtri per tipo di relazione dell'ego network si possono riusare da `SocialFilters`; la
-strip e la timeline globale non compaiono sotto le due nuove viste (hanno la loro asse).
+`social/README.txt`. Scartato (viste nascoste, vedi "SCARTATI" in cima): riusare i filtri di `SocialFilters` nelle due viste e la
+strip e la timeline globale sotto di esse (hanno la loro asse). Resta il TODO MEDIA dei filtri dell'ego network.
 
 
 ## Punto 4 - Viste di gruppo (Group / Community View)
@@ -300,8 +290,9 @@ TODO
   estremo: `ConsanguinityCalculator.ancestorsOf` tiene per ogni individuo l'insieme (con mappa) di tutti gli antenati, che con molto
   collasso è la memoria e il tempo; insiemi di bit su indici interi lo renderebbero molto più leggero. Non fatto: serve solo con file
   chiusi su se stessi.
-- TODO Le soglie (1/256, 1/64, 1/16 per l'avviso) non sono configurabili. Nessuna distinzione fra parentela per sangue e per
-  adozione/affido (esclusi), e un genitore ignoto vale "non imparentato": i valori sono limiti inferiori.
+- Le soglie (1/256, 1/64, 1/16 per l'avviso) restano fisse: SCARTATO (sono soglie standard). TODO (solo se serve) nessuna distinzione
+  fra parentela per sangue e per adozione/affido (esclusi). Un genitore ignoto vale "non imparentato" e i valori sono limiti inferiori:
+  DONE, lo dicono già il report, gli anelli, l'assistente e l'aiuto.
 - Rete di parentela (il pedigree collapse e il Sugiyama coprono già gran parte del bisogno), in quattro punti:
   1. DONE Anelli di consanguineità: menu Individuo > "Consanguinity Loops…" (`ConsanguinityLoopsTool`,
      `ConsanguinityLoopsDialog`, package `actions.individuals`) e menu contestuali dell'individuo (albero, ego network). Per un
@@ -315,8 +306,8 @@ TODO
      `ConsanguinityLoopsTest`, `ConsanguinityLoopsDialogTest`. Non fatto (era nella proposta): l'evidenziazione degli anelli sul
      Sugiyama, che non ha un layout né un punto di aggancio per evidenziare una selezione di antenati.
   2. MEDIA Ascendenza con duplicati collegati (vedi la lista in cima).
-  3. BASSA Heatmap dell'endogamia.
-  4. BASSA Grafo DAG unificato con archi di unione.
+  3. SCARTATO Heatmap dell'endogamia (vedi "SCARTATI" in cima).
+  4. SCARTATO Grafo DAG unificato con archi di unione (vedi "SCARTATI" in cima).
 - DONE Segnalazione delle unioni consanguinee nell'ego network: l'arco verso un partner imparentato con l'ego porta un badge
   "C" ambra (`EgoNetworkRenderer`), il tooltip del partner dà parentela, R e grado (`EgoNetworkLayoutBuilder`). Il rapporto
   `ConsanguineousUnionDetector.detect` è calcolato da `EgoNetworkService` alla prima apertura di un ego con partner e tenuto
@@ -346,8 +337,15 @@ Stato rispetto alle idee originali:
 - Eventi: DONE timeline globale (`GlobalEventTimelinePanel`, `TimelineViewDialog`), life map per individuo
   (`MultiLifespanStripPanel`).
 - Attributi: PARZIALE bande di validità nella strip; TODO carriera (Gantt: coperta dalla Vista C dei gruppi e dal
-  `TemporalProjectionPanel` una volta collegato), TODO matrice comparativa (bassa priorità).
-- Fonti: TODO source tree, galleria documenti con crop, citation network (esistono gli editor, `CitationAnalysisTool` e le
+  `TemporalProjectionPanel` una volta collegato), TODO matrice comparativa (solo se emerge un bisogno: vedi BASSA in cima).
+- Fonti: la copertura archivistica (es. un registro con i battesimi 1780-1820) sta nelle note, scelta del 2026-11-09: nessun campo
+  `coverage` / `coverage_scope` nel protocollo FLEF. Dove scriverla: `SourceRecord.note`, `RepositoryRecord.note`,
+  `RepositoryCitation.remark` ("Baptisms 1780-1820; volumes for 1794-1796 lost.", "Entries 1-56 missing."). Perché: la realtà
+  archivistica non è un intervallo (anni mancanti dentro il periodo, un volume perso, solo una frazione, pagine che partono dalla
+  voce 57, registri non indicizzati), e un modello strutturato (luogo, da, a, mancanti, inclusi, esclusi) diventa subito complicato e
+  resta incompleto. Da riconsiderare solo se emerge un caso ricorrente che le note non esprimono e che trarrebbe vantaggio
+  dall'elaborazione automatica (ricerca, filtri, analisi di completezza, Research Gap). TODO source tree (solo se serve);
+  SCARTATI galleria documenti con crop e citation network (esistono gli editor, `CitationAnalysisTool` e le
   gestioni di fonti/repository/media). Bassa priorità.
   DONE provenance delle citazioni: menu Fonte > "Provenance…" (`ProvenanceTool`, `ProvenanceDialog`, package `actions.provenance`: sta in `components` e non in `tools.sources` perché i menu
   contestuali lo usano, e `tools` -> `components` -> `tools` sarebbe un ciclo) e menu contestuali
@@ -373,7 +371,7 @@ Stato rispetto alle idee originali:
 - Contesto: DONE vista ad albero (`ContextBoardDialog`); DONE timeline contestuale: le viste di gruppo (Group timeline e Group career)
   disegnano dietro le righe gli eventi storici e le norme culturali che si sovrappongono all'asse (`GroupTimelineBuilder.contextBands`),
   con il nome sulla banda, un tooltip (doppio clic apre l'editor) e la casella "Context" per nasconderle; non allargano l'asse.
-  Senza filtro per luogo: una banda con luogo appare per chiunque. TODO impact network (bassa priorità).
+  Senza filtro per luogo: una banda con luogo appare per chiunque. Impact network: SCARTATO.
 - Meta-informazioni: DONE icone di privacy (`PrivacyBadge`); DONE tooltip di audit (creazione e ultima modifica) sul nome di
   individui e gruppi. Scelta (non TODO): l'evidenza (`EvidenceQualifiers`) non è nei tooltip dei box (andrebbe messa per ogni evento e
   diventerebbe illeggibile); si vede nel dossier (badge testuale `orig/prim/dir`) e in Provenance.
@@ -387,14 +385,14 @@ Stato rispetto alle idee originali:
    conclusioni accanto, filtro testuale, dettaglio del record e apertura dell'editor (doppio click); l'albero è costruito da
    `ResearchTreeBuilder` (testato). I record senza domanda stanno sotto "(no question)". DONE "New > Activity / Task / Conclusion of the
    selected question" apre il nuovo record con la domanda già collegata (come "Impact of the selected context" nella Context
-   Board; `withQuestion` nei tre dialog). TODO Bassa priorità: timeline delle attività.
+   Board; `withQuestion` nei tre dialog). Timeline delle attività: SCARTATO.
 3. DONE Vista "Place" (`PlaceHierarchyPanel`, `PlaceRelationshipRecordDialog`).
 4. DONE Vista "Context": `ContextBoardDialog` (menu Eventi > "Context Board") mostra eventi storici e norme culturali con
    gli impatti di ciascuno (`ContextImpactRecord`, con bersaglio e tipo d'impatto), filtro testuale, dettaglio del record e
    apertura dell'editor (`HistoricEventRecordDialog`, `CulturalNormRecordDialog`, `ContextImpactRecordDialog`) con doppio
    click; "New > Impact of the selected context" apre un nuovo impatto con il contesto già compilato. L'albero è costruito da
-   `ContextTreeBuilder` (testato); gli impatti senza contesto esistente stanno sotto "(no context)". Non c'è ancora una
-   timeline contestuale né una vista per bersaglio (impact network).
+   `ContextTreeBuilder` (testato); gli impatti senza contesto esistente stanno sotto "(no context)". La timeline contestuale c'è
+   (bande nelle viste di gruppo); la vista per bersaglio (impact network) è SCARTATA.
 5. DONE Editor di `IdentityHypothesis`: confronto affiancato dei due candidati (`RecordDiffDialog`) e gestione delle
    conclusioni nel tab Research: "Create New" sulla lista delle conclusioni (a ipotesi già salvata) apre una conclusione con
    l'ipotesi già in `resolves`, issue `identity` e le domande di ricerca che hanno l'ipotesi come target già collegate.
@@ -438,7 +436,8 @@ Stato rispetto alle idee originali:
    `extract`). Stesso matcher, quindi sottostringa / parola intera / fuzzy e il ranking per numero di token valgono anche qui.
    Si trova il record che possiede la nota o la citazione (non la nota): quelle di un altro record (gli eventi di un individuo) si
    trovano come record di quell'altro. Il risultato non dice dove c'è il testo (si apre l'editor e si guarda). Spenta di default.
-   TODO Non cerca nei nomi di luoghi annidati (solo il testo che le strategie già confrontano).
+   DONE I luoghi si cercano anche dai nomi dei luoghi che li contengono (vedi "DONE nella revisione" in cima); gli altri record che
+   puntano a un luogo non ancora (solo il testo che le strategie già confrontano; gli eventi sì, dal nome completo).
 2. DONE Cronologia di navigazione (`NavigationHistory`, Ctrl+Left / Ctrl+Right, "Cancella cronologia").
 3. DONE Segnalibri / viste salvate (`bookmarks`, menu Segnalibri).
 4. DONE Undo/redo applicativo: oggi Ctrl+Z / Ctrl+Y agiscono solo dentro ai dialog dei record (`UndoController` in
@@ -496,6 +495,47 @@ Stato rispetto alle idee originali:
    `FileToolRegistry` e le classi non esistono); esiste solo l'import (GEDCOM, Gramps XML) e l'export FLEF. Va dichiarato cosa
    si perde (conclusioni, ricerca, contesto, privacy) e applicato `PrivacyExporter`.
 4. TODO Bassa priorità: export CSV di sottoinsiemi (`ExportExcelTool` è commentato; fare solo CSV).
+
+
+## Report utili al genealogista (da aggiungere; revisione del 2026-11-09)
+
+Esistono `ReportType`: ANCESTOR, DESCENDANT, GROUP, INDIVIDUAL, RELATIONSHIP, PLACE, SOURCE, RESEARCH_QUESTION, BIBLIOGRAPHY,
+RESEARCH_PROGRESS, FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES (più il report delle unioni consanguinee, a parte, in Strumenti). Mancano, in
+ordine di valore (si aggiungono come un nuovo `ReportType` con `ReportGenerator`, opzioni in `ReportOption`/`ReportOptionState`, voce
+nel menu dei report, aiuto `reports.md` e test in `ReportOperationsTest`/`ReportGenerationTest`; i renderer PDF, DOCX, HTML, Markdown, testo,
+EPUB e sito statico restano quelli):
+1. DONE "To Verify" (`ReportType.TO_VERIFY`, globale come la Full Bibliography; menu Report > "To Verify...", abilitato con un individuo o
+   una fonte; `ToVerifyFinder`, `ToVerifyGenerator`, `ToVerifyOperation`, aiuto in `reports.md`; `ToVerifyReportTest`, e il caso nei test
+   dei report di Core). Il documento apre con quante cose ci sono e una tabella dei tipi di rilievo, poi una tabella di record per tipo:
+   problemi del file (i controlli strutturali di Validate File, `FileValidation.structure`: non la grammatica, che è una validazione
+   del formato), citazioni che contraddicono (`stance`), media non trovati, individui senza data di nascita, eventi vitali (nascita, morte,
+   sepoltura, cremazione, matrimonio) senza data / senza luogo / senza fonte che li sostenga, fonti che nessun record cita, compiti di
+   ricerca aperti o in corso. Solo quello che è scritto nei record: una nascita non registrata è da cercare, non un errore. Solo l'opzione
+   Header; la privacy è quella del report. Non fatto: i rilievi dell'assistente di ricerca (Research Gap, Chronology, Source Citation,
+   Identity) stanno in `Core/ui/assistant`, il report è in Domain e non può dipendere da lì: il report lo dice in una riga. Per includerli
+   serve spostare nel Domain i provider (o un'interfaccia che il Core implementa e passa al report, come `ReportRenderer`); i messaggi dei
+   problemi del file sono nella lingua dell'applicazione (`I18N`), non in quella del report; matrimoni senza coniugi, individui senza
+   genitori e altre lacune relazionali non sono ancora cercati (si aggiungono come un `Kind` di `ToVerifyFinder` e una chiave
+   `TO_VERIFY_<KIND>` nei messaggi dei report; le lingue diverse da inglese e italiano ricadono sull'inglese).
+2. MEDIA Calendario degli anniversari: nascite, matrimoni e morti ordinati per mese e giorno, con l'anno e l'età. Globale, o per
+   gruppo. Facile (gli eventi e le date normalizzate ci sono) e molto condiviso con i parenti; privacy applicata (i viventi presunti
+   sono `restricted`: sono esclusi).
+3. DONE "Surnames by Place" (`ReportType.SURNAMES`, globale; menu Report > "Surnames by Place...", abilitato con un individuo;
+   `SurnameDistribution`, `SurnamesGenerator`, `SurnamesOperation`, aiuto in `reports.md`; `SurnamesReportTest`, e i casi nei test dei report
+   di Core). Per ogni luogo (nome completo "Borgo, Treviso, Veneto", in ordine alfabetico, gli individui senza luogo per ultimi) una tabella
+   di cognomi: quanti individui, primo e ultimo anno di nascita, quanti senza data. Luogo e anno sono quelli della nascita; se la nascita
+   non li ha, quelli del battesimo o della cristianizzazione (ognuno dei due cercato da solo). Il cognome è il cognome del primo nome
+   dell'individuo, con il prefisso ("de Marco"); le maiuscole non contano, le grafie diverse (Masutti, Mazutti) restano separate. Solo
+   l'opzione Header; privacy del report. Non fatto: raggruppare per un livello della gerarchia dei luoghi (per provincia o per regione:
+   oggi il gruppo è il luogo dell'evento, anche se è una frazione); il periodo per secolo; i cognomi di tutti i nomi dell'individuo (il
+   cognome da nubile di una donna sposata è un altro nome); un confronto fra grafie simili (`NameSimilarity` c'è già); i tipi `baptism` e
+   `christening` sono costanti di `EventReader` (`CUSTOM_TYPE_*`), non dell'elenco del protocollo.
+4. BASSA Lacune per generazione: antenati noti contro possibili (2^n) per ogni generazione, con il collasso del pedigree
+   (`PedigreeCollapseDetector`). Dà un'idea dello stato della ricerca; in parte è nel Research Progress.
+5. BASSA Numerazione Sosa-Stradonitz (ahnentafel) nel report degli antenati: da verificare se `AncestorReportGenerator` numera
+   gli antenati (il `Layerer` del Sugiyama calcola già i numeri, il report no).
+Da non fare: un report per ogni vista (la vista si esporta come immagine, vedi "Export immagine"); report sul solo coefficiente F
+di un individuo (c'è già il dialogo degli anelli).
 
 
 ## Priorità

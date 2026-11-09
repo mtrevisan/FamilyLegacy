@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -39,7 +40,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
@@ -140,7 +140,7 @@ class GEDCOMLossyConversionsTest{
 	//---- 2. CHAN ----
 
 	@Test
-	void changeIsAnUpdateAndTheCreationFallback() throws IOException{
+	void changeWithoutCreationIsTheCreationAndNotAnUpdate() throws IOException{
 		final FLEFModel model = convert("""
 			0 @I1@ INDI
 			1 NAME Anna /Rossi/
@@ -152,10 +152,41 @@ class GEDCOMLossyConversionsTest{
 
 		final FLEFRecord audit = FLEFRecordHelper.findChild(model.getRecordById("I1"), AuditReader.TAG_AUDIT);
 		Assertions.assertEquals("2020-03-05T10:00:00Z", FLEFRecordHelper.getChildValue(audit, AuditReader.TAG_CREATION_DATE));
-		Assertions.assertEquals("2020-03-05T10:00:00Z", FLEFRecordHelper.getChildValue(audit, FLEFRecordHelper.composePath(
-			AuditReader.TAG_UPDATE, AuditReader.TAG_DATE)));
-		Assertions.assertEquals("Edited", FLEFRecordHelper.getChildValue(audit, FLEFRecordHelper.composePath(AuditReader.TAG_UPDATE,
+		//a creation is not an update: with no CREA the date of the change is the creation, and there is no update
+		Assertions.assertNull(FLEFRecordHelper.findChild(audit, AuditReader.TAG_UPDATE));
+		Assertions.assertEquals("Edited", FLEFRecordHelper.getChildValue(audit, FLEFRecordHelper.composePath(AuditReader.TAG_CREATION,
 			AuditReader.TAG_COMMENT)));
+	}
+
+
+	@Test
+	void anElementWithoutADateIsAsOldAsItsRecordOrAsTheFile() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			1 CHAN
+			2 DATE 5 MAR 2020
+			3 TIME 10:00:00
+			0 @I2@ INDI
+			1 NAME Luigi /Rossi/
+			1 DEAT
+			2 DATE 1950
+			""", """
+			1 DATE 1 JAN 2021
+			2 TIME 08:30:00
+			""");
+
+		//the birth has no change of its own: it takes the one of its individual
+		Assertions.assertEquals("2020-03-05T10:00:00Z", creationOfEvent(model, EventReader.ENUM_TYPE_BIRTH));
+		//the individual has none, neither: the one of the file
+		Assertions.assertEquals("2021-01-01T08:30:00Z", creationOfEvent(model, EventReader.ENUM_TYPE_DEATH));
+	}
+
+	private static String creationOfEvent(final FLEFModel model, final String type){
+		return FLEFRecordHelper.getChildValue(eventOfType(model, type), FLEFRecordHelper.composePath(AuditReader.TAG_AUDIT,
+			AuditReader.TAG_CREATION, AuditReader.TAG_DATE));
 	}
 
 
@@ -491,6 +522,49 @@ class GEDCOMLossyConversionsTest{
 		//the notes are contiguous
 		final int first = tags.indexOf(NoteReader.TAG_NOTE);
 		Assertions.assertEquals(first + 3, tags.lastIndexOf(NoteReader.TAG_NOTE));
+	}
+
+
+	//---- 13. A note of a source that is a date, or a place and a date ----
+
+	@Test
+	void sourceNoteThatIsOnlyADateIsTheDateOfTheSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE 1954
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1954", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWithPlaceAndYearGivesThePlaceAndTheDate() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE Padova : 1954
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1954", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteThatIsAnythingElseStaysANote() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE Kept in the sacristy
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, "date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
 	}
 
 }

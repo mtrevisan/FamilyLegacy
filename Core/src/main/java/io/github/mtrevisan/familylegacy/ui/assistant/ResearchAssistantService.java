@@ -25,7 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.search.SearchMatcher;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +40,12 @@ import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
@@ -73,10 +78,16 @@ public final class ResearchAssistantService{
 	private final List<DiagnosticProvider> diagnosticProviders = new CopyOnWriteArrayList<>();
 
 	private final IgnoredFindings ignoredFindings;
+	/** The last computation made on a copy of the model (see {@link #diagnose(AssistantContext, DoubleConsumer)}); guarded by this. */
+	private Computation computation;
+
+	/** The base of the score of a text that matches by words: far above the ones of the abbreviations, that come after. */
+	private static final int WORD_MATCH = 100_000;
 
 	private Supplier<FLEFModel> modelSupplier = () -> null;
 	private Supplier<FLEFModel> snapshotSupplier;
 	private Supplier<String> scopeSupplier = () -> null;
+	private Supplier<String> selectionSupplier = () -> null;
 	private boolean installed;
 
 
@@ -122,12 +133,23 @@ public final class ResearchAssistantService{
 	 * @param context where the user is
 	 */
 	public List<RankedAction> search(final String query, final AssistantContext context){
+		return search(query, EnumSet.noneOf(SearchMode.class), context);
+	}
+
+	/**
+	 * The same, matching as the record selection dialog does: word by word, and narrowed to whole words or widened to typos by the
+	 * modes. A query that is not a word of the text can still be an abbreviation of it (hda: Historical Date Assistant) when no mode is
+	 * chosen, ranked after the words.
+	 *
+	 * @param modes the modes of the search
+	 */
+	public List<RankedAction> search(final String query, final Set<SearchMode> modes, final AssistantContext context){
 		final List<RankedAction> result = new ArrayList<>();
 		for(final AssistantAction action : actions){
 			if(!action.isApplicable(context))
 				continue;
 
-			final int score = score(query, action.title(), action.category(), action.description());
+			final int score = score(query, modes, action.title(), action.category(), action.description());
 			if(score != FuzzyMatcher.NO_MATCH)
 				result.add(new RankedAction(action, score));
 		}
@@ -168,6 +190,67 @@ public final class ResearchAssistantService{
 	 * @return the findings, the most serious first
 	 */
 	public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+		//what is computed on a copy of the model that nobody changes is true as long as the copy is the same one: the indicator of the
+		//window and the palette ask for the findings of the same copy (the history gives the same one until the model changes), so the
+		//palette does not compute them again, and if the indicator is still computing it waits for it instead of starting over
+		if(!context.isReadingCopy())
+			return compute(context, progress);
+
+		final Computation mine;
+		final boolean owner;
+		synchronized(this){
+			owner = (computation == null || computation.model != context.model());
+			if(owner)
+				computation = new Computation(context.model());
+			mine = computation;
+		}
+		mine.listeners.add(progress);
+		if(!owner){
+			progress.accept(mine.progress);
+			try{
+				return mine.future.join();
+			}
+			catch(final CompletionException ce){
+				//the one that was computing failed: this one computes for itself
+				return compute(context, progress);
+			}
+		}
+
+		try{
+			final List<Diagnostic> result = List.copyOf(compute(context, fraction -> {
+				mine.progress = fraction;
+				for(final DoubleConsumer listener : mine.listeners)
+					listener.accept(fraction);
+			}));
+			mine.future.complete(result);
+			return result;
+		}
+		catch(final RuntimeException | Error e){
+			synchronized(this){
+				if(computation == mine)
+					computation = null;
+			}
+			mine.future.completeExceptionally(e);
+			throw e;
+		}
+	}
+
+	/** The findings being computed (or just computed) on a copy of the model, for whoever asks for the same copy. */
+	private static final class Computation{
+
+		private final FLEFModel model;
+		private final CompletableFuture<List<Diagnostic>> future = new CompletableFuture<>();
+		private final List<DoubleConsumer> listeners = new CopyOnWriteArrayList<>();
+		private volatile double progress;
+
+
+		private Computation(final FLEFModel model){
+			this.model = model;
+		}
+
+	}
+
+	private List<Diagnostic> compute(final AssistantContext context, final DoubleConsumer progress){
 		final List<Diagnostic> result = new ArrayList<>();
 		final int count = diagnosticProviders.size();
 		int done = 0;
@@ -192,8 +275,33 @@ public final class ResearchAssistantService{
 
 	/** @return the diagnostics that match a query (all of them if the query is empty) */
 	public static List<Diagnostic> filter(final String query, final List<Diagnostic> diagnostics){
+		return filter(query, EnumSet.noneOf(SearchMode.class), diagnostics);
+	}
+
+	/**
+	 * @param findings   the findings
+	 * @param recordId   the record the user selected
+	 * @param onlyAbout  whether to keep only the findings that are about the record
+	 * @return	The findings about the record first, in their order, then (unless only those are wanted) the others in theirs.
+	 */
+	public static List<Diagnostic> aboutRecord(final List<Diagnostic> findings, final String recordId, final boolean onlyAbout){
+		final List<Diagnostic> about = findings.stream()
+			.filter(d -> d.recordIds().contains(recordId))
+			.toList();
+		if(onlyAbout)
+			return about;
+
+		final List<Diagnostic> ordered = new java.util.ArrayList<>(about);
+		findings.stream()
+			.filter(d -> !d.recordIds().contains(recordId))
+			.forEach(ordered::add);
+		return ordered;
+	}
+
+	/** The same, with the modes of the search (see {@link #search(String, Set, AssistantContext)}). */
+	public static List<Diagnostic> filter(final String query, final Set<SearchMode> modes, final List<Diagnostic> diagnostics){
 		return diagnostics.stream()
-			.filter(d -> score(query, d.title(), d.category(), d.explanation()) != FuzzyMatcher.NO_MATCH)
+			.filter(d -> score(query, modes, d.title(), d.category(), d.explanation()) != FuzzyMatcher.NO_MATCH)
 			.toList();
 	}
 
@@ -217,11 +325,23 @@ public final class ResearchAssistantService{
 	 * @param snapshotSupplier gives a copy of the model as it is now that nobody changes (called on the event dispatch thread, see
 	 *                         {@link AssistantContext#forReading()}), or {@code null} to compute the findings on the model itself
 	 */
-	public synchronized void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
+	public void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
 			final Supplier<String> scopeSupplier){
+		install(modelSupplier, snapshotSupplier, scopeSupplier, null);
+	}
+
+	/**
+	 * As {@link #install(Supplier, Supplier, Supplier)}, with what tells which record the user has selected in the main window.
+	 *
+	 * @param selectionSupplier gives the identifier of the selected record (called on the event dispatch thread), or {@code null} if
+	 *                          nothing is selected
+	 */
+	public synchronized void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
+			final Supplier<String> scopeSupplier, final Supplier<String> selectionSupplier){
 		this.modelSupplier = modelSupplier;
 		this.snapshotSupplier = snapshotSupplier;
 		this.scopeSupplier = scopeSupplier;
+		this.selectionSupplier = (selectionSupplier != null? selectionSupplier: () -> null);
 		if(installed)
 			return;
 
@@ -243,7 +363,10 @@ public final class ResearchAssistantService{
 		final Window window = (focusManager.getActiveWindow() != null
 			? focusManager.getActiveWindow()
 			: (focusOwner != null? SwingUtilities.getWindowAncestor(focusOwner): null));
-		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier));
+		//only a window of the main window has a selection: from an editor the selection is not what the user is working on
+		final boolean inEditor = (window instanceof java.awt.Dialog);
+		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier,
+			(inEditor? null: selectionSupplier.get())));
 	}
 
 	public void open(final AssistantContext context){
@@ -326,15 +449,45 @@ public final class ResearchAssistantService{
 	}
 
 
-	private static int score(final String query, final String title, final AssistantCategory category, final String description){
-		final int titleScore = FuzzyMatcher.score(query, title);
-		final int categoryScore = FuzzyMatcher.score(query, category.title());
-		final int descriptionScore = FuzzyMatcher.score(query, description);
-		if(titleScore == FuzzyMatcher.NO_MATCH && categoryScore == FuzzyMatcher.NO_MATCH
-				&& descriptionScore == FuzzyMatcher.NO_MATCH)
+	private static int score(final String query, final Set<SearchMode> modes, final String title, final AssistantCategory category,
+			final String description){
+		//the words of the query can be spread over the title, the category and the description
+		final int words = best(wordScore(query, modes, title), wordScore(query, modes, category.title()),
+			wordScore(query, modes, description), wordScore(query, modes, title + StringUtils.SPACE + category.title() + StringUtils.SPACE
+				+ description));
+		if(words != FuzzyMatcher.NO_MATCH || !modes.isEmpty())
+			return words;
+
+		//not a word of the text: the characters in order, as a command palette does (hda -> Historical Date Assistant); not with the
+		//modes, that ask for a stricter or a more tolerant match of the words
+		return best(FuzzyMatcher.score(query, title), FuzzyMatcher.score(query, category.title()), FuzzyMatcher.score(query, description),
+			FuzzyMatcher.NO_MATCH);
+	}
+
+	/** The best of the scores of the title, the category, the description and the whole text; the title counts the double, the description the half. */
+	private static int best(final int title, final int category, final int description, final int all){
+		int best = FuzzyMatcher.NO_MATCH;
+		if(title != FuzzyMatcher.NO_MATCH)
+			best = Math.max(best, 2 * title);
+		if(category != FuzzyMatcher.NO_MATCH)
+			best = Math.max(best, category);
+		if(description != FuzzyMatcher.NO_MATCH)
+			best = Math.max(best, Math.max(1, description / 2));
+		if(all != FuzzyMatcher.NO_MATCH)
+			best = Math.max(best, all);
+		return best;
+	}
+
+	/**
+	 * How well the words of the query match a text, as the record selection dialog does ({@link SearchMatcher}): the more words matched,
+	 * the better, then the quality of the match; {@link FuzzyMatcher#NO_MATCH} if none does. A blank query matches with {@code 1}.
+	 */
+	private static int wordScore(final String query, final Set<SearchMode> modes, final String text){
+		final SearchMatcher.MatchScore match = SearchMatcher.score(query, text, modes);
+		if(!match.passes())
 			return FuzzyMatcher.NO_MATCH;
 
-		return Math.max(2 * titleScore, Math.max(categoryScore, descriptionScore / 2));
+		return 1 + WORD_MATCH * match.matchedTokens() + (int)Math.round(match.score() * 100.);
 	}
 
 }

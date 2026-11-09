@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
-
 import java.util.Objects;
 
 

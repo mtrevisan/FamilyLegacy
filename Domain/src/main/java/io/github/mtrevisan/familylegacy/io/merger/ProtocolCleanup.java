@@ -24,7 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.io.merger;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionResolution;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,12 +42,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 
 /**
@@ -151,7 +153,7 @@ final class ProtocolCleanup{
 	}
 
 	/**
-	 * BIRTH and DEATH are single-valued, and an individual has at most two biological parents: when a merge brings together more
+	 * BIRTH, DEATH and SEX are single-valued, and an individual has at most two biological parents: when a merge brings together more
 	 * than that, and no ConclusionRecord resolves them, the researcher has to.
 	 */
 	private void warnCompetingAssertions(){
@@ -183,6 +185,21 @@ final class ProtocolCleanup{
 						+ String.join(", ", events.stream().map(FLEFRecord::getId).toList())
 						+ "): competing assertions to resolve with a ConclusionRecord");
 			}
+
+			//the sex is single-valued too: two different ones (an unknown sex says nothing) are competing assertions
+			final Set<String> sexAssertions = new LinkedHashSet<>();
+			final Set<String> sexValues = new LinkedHashSet<>();
+			for(final FLEFRecord attribute : session.records(ModelIndex.KIND_INDIVIDUAL_ATTRIBUTE))
+				if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(ModelIndex.value(attribute, IndividualAttributeReader.TAG_TYPE))
+						&& individualId.equals(ModelIndex.value(attribute, IndividualAttributeReader.TAG_INDIVIDUAL))){
+					sexAssertions.add(attribute.getId());
+					final SexType sex = SexType.fromRaw(ModelIndex.value(attribute, IndividualAttributeReader.TAG_VALUE));
+					if(sex != SexType.UNKNOWN)
+						sexValues.add(sex.getRawSex());
+				}
+			if(sexValues.size() > 1 && !isResolved(sexAssertions))
+				session.warn("Individual " + individualId + " has " + sexAssertions.size() + " sex assertions ("
+					+ String.join(", ", sexAssertions) + "): competing assertions to resolve with a ConclusionRecord");
 
 			final Set<String> parents = new LinkedHashSet<>();
 			final Set<String> relationships = new LinkedHashSet<>();

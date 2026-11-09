@@ -44,6 +44,8 @@ public final class ImportReasons{
 	public static final String DATE_DETAIL = "import.discard.date_detail";
 	/** Source or citation data with no FLEF field. */
 	public static final String SOURCE_DETAIL = "import.discard.source_detail";
+	/** A role stated by a citation that contradicts the event it is in (a witness of one's own birth): an error of the file. */
+	public static final String INCONSISTENT_ROLE = "import.discard.inconsistent_role";
 	/** Data that the importer does not know. */
 	public static final String UNMAPPED_TAG = "import.discard.unmapped_tag";
 	/** Other information that could not be imported. */

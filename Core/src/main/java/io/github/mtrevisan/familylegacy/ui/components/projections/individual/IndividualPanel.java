@@ -64,6 +64,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 /**
@@ -136,6 +137,10 @@ public class IndividualPanel extends JPanel{
 	private boolean suppressCollapseBadge;
 	/** Red badge displayed on panels whose individual appears multiple times. */
 	private final CollapseBadge collapseBadge = new CollapseBadge();
+	/** {@code true} while another box of the same individual is under the mouse (pedigree collapse). */
+	private boolean duplicateHighlighted;
+	/** Told when the mouse enters or leaves this box; used to highlight the other boxes of the same individual. */
+	private Consumer<Boolean> duplicateHoverListener;
 
 	// Strategy pattern for popup menu generation
 	private EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupMenuFactory;
@@ -265,6 +270,10 @@ public class IndividualPanel extends JPanel{
 				borderColor = BORDER_COLOR_SELECTED;
 				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
 			}
+			else if(duplicateHighlighted){
+				borderColor = PEDIGREE_CIRCLE_INNER_COLOR;
+				borderStroke = new BasicStroke(BORDER_THICKNESS_SELECTED);
+			}
 			else if(hovered){
 				borderColor = BORDER_COLOR;
 				borderStroke = new BasicStroke(BORDER_THICKNESS_HOVERED);
@@ -382,6 +391,24 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
+	/** Registers who is told when the mouse enters ({@code true}) or leaves ({@code false}) this box. */
+	public IndividualPanel withDuplicateHoverListener(final Consumer<Boolean> listener){
+		duplicateHoverListener = listener;
+
+		return this;
+	}
+
+	/** Draws (or not) the border that says "another box of the same individual is under the mouse". */
+	public IndividualPanel withDuplicateHighlighted(final boolean highlighted){
+		if(duplicateHighlighted != highlighted){
+			duplicateHighlighted = highlighted;
+
+			repaint();
+		}
+
+		return this;
+	}
+
 	/**
 	 * Marks this panel as selected or not. A selected panel is drawn with a
 	 * thicker, reddish border, so that the user can identify the current
@@ -492,6 +519,8 @@ public class IndividualPanel extends JPanel{
 			.onHoverChanged(h -> {
 				if(hovered != h){
 					hovered = h;
+					if(duplicateHoverListener != null)
+						duplicateHoverListener.accept(h);
 
 					repaint();
 				}

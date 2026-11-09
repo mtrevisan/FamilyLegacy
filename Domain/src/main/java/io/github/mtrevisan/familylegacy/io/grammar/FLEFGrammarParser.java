@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.grammar;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.AtLeastOneConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ComparisonConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalRequireConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalValueInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.CountConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.EqualTypeConstraint;
@@ -657,6 +658,20 @@ public final class FLEFGrammarParser{
 
 			final String conditionValue = next();
 			expect(TAG_COLON);
+
+			//require if conditionField == conditionValue: field in (value, ...)
+			final int start = position;
+			final String field = parseFieldReference();
+			if(peekIs(TAG_IN)){
+				next();
+
+				expect(TAG_OPEN_PARENTHESIS);
+				final List<String> allowedValues = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+				expect(TAG_CLOSE_PARENTHESIS);
+				return new ConditionalValueInConstraint(conditionField, conditionValue, field, allowedValues);
+			}
+			position = start;
+
 			final List<String> requiredFields = parseCommaSeparatedFieldRefs();
 			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
 		}

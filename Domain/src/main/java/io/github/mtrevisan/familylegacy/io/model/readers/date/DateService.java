@@ -46,9 +46,13 @@ public class DateService{
 	 * - BOUNDED (with NOT_BEFORE/NOT_AFTER, each containing a date)
 	 * - SPANNING (with FROM/TO, each containing a date)
 	 */
-	public static String getDateDisplayText(final FLEFRecord valueRecord){
-		if(valueRecord == null)
+	public static String getDateDisplayText(final FLEFRecord record){
+		if(record == null)
 			return StringUtils.EMPTY;
+
+		final FLEFRecord valueRecord = resolveValue(record);
+		if(valueRecord == null)
+			return null;
 
 		// Check for POINT
 		final FLEFRecord point = FLEFRecordHelper.findChild(valueRecord, DateReader.TAG_POINT);
@@ -66,6 +70,30 @@ public class DateService{
 			return getSpanningDisplayText(spanning);
 
 		return null;
+	}
+
+	/**
+	 * Finds the value of a date (the record that holds the {@code point}, {@code bounded} or {@code spanning}) starting from the value
+	 * itself, from a date structure (that holds the {@code value}), or from a record that has a {@code date} (an event, a source, ...).
+	 *
+	 * @return	The value, {@code null} if the record has no date.
+	 */
+	private static FLEFRecord resolveValue(final FLEFRecord record){
+		if(isDateValue(record))
+			return record;
+
+		final FLEFRecord value = FLEFRecordHelper.findChild(record, DateReader.TAG_VALUE);
+		if(value != null && isDateValue(value))
+			return value;
+
+		final FLEFRecord date = FLEFRecordHelper.findChild(record, DateReader.TAG_DATE);
+		return (date != null? FLEFRecordHelper.findChild(date, DateReader.TAG_VALUE): null);
+	}
+
+	private static boolean isDateValue(final FLEFRecord record){
+		return (FLEFRecordHelper.findChild(record, DateReader.TAG_POINT) != null
+			|| FLEFRecordHelper.findChild(record, DateReader.TAG_BOUNDED) != null
+			|| FLEFRecordHelper.findChild(record, DateReader.TAG_SPANNING) != null);
 	}
 
 	/**
@@ -178,7 +206,11 @@ public class DateService{
 	}
 
 
-	public static String getYearDisplayText(final FLEFRecord valueRecord){
+	public static String getYearDisplayText(final FLEFRecord record){
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final FLEFRecord valueRecord = resolveValue(record);
 		if(valueRecord == null)
 			return StringUtils.EMPTY;
 

@@ -54,6 +54,9 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -340,10 +343,10 @@ class GroupViewZoomTest{
 			return;
 
 		try{
-			ImageIO.write(image, "png", new java.io.File(dir, name + ".png"));
+			ImageIO.write(image, "png", new File(dir, name + ".png"));
 		}
-		catch(final java.io.IOException e){
-			throw new java.io.UncheckedIOException(e);
+		catch(final IOException e){
+			throw new UncheckedIOException(e);
 		}
 	}
 

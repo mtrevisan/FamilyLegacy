@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.DateInfo;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMDateParser;
@@ -41,6 +42,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -69,6 +73,12 @@ public final class GEDCOMDateConverter{
 	private static final Pattern COMMON_ERA_PATTERN = Pattern.compile("\\s*\\b(?:C\\.?\\s?E|A\\.?\\s?D)\\.?$");
 	private static final Pattern MONTH_DATE_PATTERN = Pattern.compile("^(?:(?:(\\d{1,2})\\s+)?([A-Z]{3,4})\\s+)?(\\d{1,4})$");
 
+	/** The alternatives of a date, each one marked by a question mark. */
+	private static final Pattern ALTERNATIVE_SEPARATOR_PATTERN = Pattern.compile("(?<=\\?)\\s+");
+	/** A year that can be either of two (not a double dating, whose second year has two digits). */
+	private static final Pattern YEAR_ALTERNATIVE_PATTERN = Pattern.compile("^(.*?)(\\d{4})/(\\d{4})$");
+	/** A qualifier of a single date, e.g. the one of a bound of a range. */
+	private static final Pattern QUALIFIER_PATTERN = Pattern.compile("^(ABT|CAL|EST)\\s+(.+)$", Pattern.CASE_INSENSITIVE);
 	/** A GEDCOM age: {@code [<|>] [Ny] [Nm] [Nw] [Nd]}. */
 	private static final Pattern AGE_PATTERN = Pattern.compile("^([<>])?\\s*(?:(\\d{1,3})\\s*Y)?\\s*(?:(\\d{1,4})\\s*M)?\\s*(?:(\\d{1,4})\\s*W)?\\s*(?:(\\d{1,5})\\s*D)?$");
 
@@ -103,26 +113,44 @@ public final class GEDCOMDateConverter{
 	 * @return	The structure, or {@code null} if the date cannot be normalized.
 	 */
 	public static FLEFRecord buildDateStructure(final String tag, final String gedcomDate){
+		final List<FLEFRecord> structures = buildDateStructures(tag, gedcomDate);
+		return (structures.isEmpty()? null: structures.get(0));
+	}
+
+	/**
+	 * Builds the {@code DateStructure}s of a GEDCOM date.
+	 * <p>
+	 * A date may be a list of alternatives, each one marked by a question mark ({@code 10 MAY 1991? 5 OCT 1991?}), or a calculated
+	 * year that can be either of two ({@code CAL 1778/1779}): each alternative (for a range, each combination of the alternatives
+	 * of its bounds) gives its own structure. A date marked by a question mark is approximate, with an unspecified basis unless
+	 * qualified ({@code ABT}, {@code CAL}, {@code EST}).
+	 *
+	 * @param tag	The tag of the structures (e.g. {@code date}).
+	 * @param gedcomDate	The GEDCOM date.
+	 * @return	The structures, empty if the date cannot be normalized.
+	 */
+	public static List<FLEFRecord> buildDateStructures(final String tag, final String gedcomDate){
 		final DateInfo dateInfo = GEDCOMDateParser.parse(gedcomDate);
 		if(dateInfo == null || dateInfo.isPhraseOnly())
-			return null;
+			return List.of();
 
-		final FLEFRecord value = buildDateValue(dateInfo);
-		if(value == null)
-			return null;
-
-		final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
-			.addChild(value);
-		if(StringUtils.isNotBlank(dateInfo.getPhrase()))
-			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
-		return dateStructure;
+		final List<FLEFRecord> values = buildDateValues(dateInfo);
+		final List<FLEFRecord> structures = new ArrayList<>(values.size());
+		for(final FLEFRecord value : values){
+			final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
+				.addChild(value);
+			if(StringUtils.isNotBlank(dateInfo.getPhrase()))
+				dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
+			structures.add(dateStructure);
+		}
+		return structures;
 	}
 
 	/**
 	 * Builds the {@code valid_from} and {@code valid_to} structures of a fact observed at a GEDCOM date.
 	 * <p>
-	 * A period ({@code FROM x TO y}) gives the bounds of validity directly; any other date only states that the fact was true
-	 * at that date, so it started no later than it and ended no earlier than it.
+	 * A period ({@code FROM x TO y}) gives the bounds of validity directly; a single date is a point in time, so the fact is valid
+	 * from that date and to that date; the bounds of a {@code BET x AND y} date are the ones of the interval.
 	 *
 	 * @param gedcomDate	The GEDCOM date.
 	 * @return	The {@code valid_from} and {@code valid_to} structures (either may be {@code null}), or {@code null} if the
@@ -138,26 +166,27 @@ public final class GEDCOMDateConverter{
 		final FLEFRecord validTo;
 		switch(dateInfo.getType()){
 			case SPANNING -> {
-				validFrom = buildPointValidity(DateReader.TAG_VALID_FROM, dateInfo.getFrom(), dateInfo);
-				validTo = buildPointValidity(DateReader.TAG_VALID_TO, dateInfo.getTo(), dateInfo);
+				validFrom = buildPointValidity(DateReader.TAG_VALID_FROM, first(dateInfo.getFrom()), dateInfo);
+				validTo = buildPointValidity(DateReader.TAG_VALID_TO, first(dateInfo.getTo()), dateInfo);
 				if(dateInfo.getFrom() != null && validFrom == null || dateInfo.getTo() != null && validTo == null)
 					return null;
 			}
 			case BOUNDED -> {
 				// the fact was true at some date in [notBefore, notAfter]
-				validFrom = buildBoundedValidity(DateReader.TAG_VALID_FROM, DateReader.TAG_NOT_AFTER, dateInfo.getNotAfter(), dateInfo);
-				validTo = buildBoundedValidity(DateReader.TAG_VALID_TO, DateReader.TAG_NOT_BEFORE, dateInfo.getNotBefore(), dateInfo);
+				validFrom = buildBoundedValidity(DateReader.TAG_VALID_FROM, DateReader.TAG_NOT_AFTER, first(dateInfo.getNotAfter()), dateInfo);
+				validTo = buildBoundedValidity(DateReader.TAG_VALID_TO, DateReader.TAG_NOT_BEFORE, first(dateInfo.getNotBefore()), dateInfo);
 				if(dateInfo.getNotAfter() != null && validFrom == null || dateInfo.getNotBefore() != null && validTo == null)
 					return null;
 			}
 			default -> {
-				final FLEFRecord notAfter = buildSingleDate(DateReader.TAG_NOT_AFTER, dateInfo.getValue(), basis);
-				final FLEFRecord notBefore = buildSingleDate(DateReader.TAG_NOT_BEFORE, dateInfo.getValue(), basis);
-				if(notAfter == null)
+				//a single date is a point in time: the fact is valid from it and to it
+				final FLEFRecord from = buildSingleDate(DateReader.TAG_POINT, first(dateInfo.getValue()), basis);
+				final FLEFRecord to = buildSingleDate(DateReader.TAG_POINT, first(dateInfo.getValue()), basis);
+				if(from == null)
 					return null;
 
-				validFrom = wrapDateValue(DateReader.TAG_VALID_FROM, DateReader.TAG_BOUNDED, notAfter, dateInfo);
-				validTo = wrapDateValue(DateReader.TAG_VALID_TO, DateReader.TAG_BOUNDED, notBefore, dateInfo);
+				validFrom = wrapDateValue(DateReader.TAG_VALID_FROM, null, from, dateInfo);
+				validTo = wrapDateValue(DateReader.TAG_VALID_TO, null, to, dateInfo);
 			}
 		}
 		return new FLEFRecord[]{validFrom, validTo};
@@ -184,15 +213,98 @@ public final class GEDCOMDateConverter{
 		return dateStructure;
 	}
 
-	private static FLEFRecord buildDateValue(final DateInfo dateInfo){
-		final FLEFRecord content;
+	/**
+	 * Lists, as GEDCOM dates, the alternatives of a date after the first one (the one {@link #buildDateStructure} gives).
+	 *
+	 * @param gedcomDate	The GEDCOM date.
+	 * @return	The other alternatives (e.g. {@code 5 OCT 1991?} for {@code 10 MAY 1991? 5 OCT 1991?}), empty if there are none.
+	 */
+	public static List<String> buildAlternativeTexts(final String gedcomDate){
+		final DateInfo dateInfo = GEDCOMDateParser.parse(gedcomDate);
+		if(dateInfo == null || dateInfo.isPhraseOnly())
+			return List.of();
+
+		final List<String> texts = new ArrayList<>();
+		final String qualifier = dateInfo.getQualifier();
 		switch(dateInfo.getType()){
-			case POINT -> content = buildSingleDate(DateReader.TAG_POINT, dateInfo.getValue(), mapBasis(dateInfo));
-			case BOUNDED -> content = buildRange(DateReader.TAG_BOUNDED, DateReader.TAG_NOT_BEFORE, dateInfo.getNotBefore(),
-				DateReader.TAG_NOT_AFTER, dateInfo.getNotAfter());
-			default -> content = buildRange(DateReader.TAG_SPANNING, DateReader.TAG_FROM, dateInfo.getFrom(), DateReader.TAG_TO, dateInfo.getTo());
+			case POINT -> {
+				for(final String alternative : alternatives(dateInfo.getValue()))
+					texts.add(qualifier == null || QUALIFIER_PATTERN.matcher(alternative).matches()? alternative: qualifier + " " + alternative);
+			}
+			case BOUNDED -> {
+				for(final String start : alternatives(dateInfo.getNotBefore()))
+					for(final String end : alternatives(dateInfo.getNotAfter()))
+						texts.add(start == null? "BEF " + end: (end == null? "AFT " + start: "BET " + start + " AND " + end));
+			}
+			default -> {
+				for(final String start : alternatives(dateInfo.getFrom()))
+					for(final String end : alternatives(dateInfo.getTo()))
+						texts.add((start != null? "FROM " + start + (end != null? " ": StringUtils.EMPTY): StringUtils.EMPTY)
+							+ (end != null? "TO " + end: StringUtils.EMPTY));
+			}
 		}
-		return (content != null? FLEFRecord.createChildWithTag(DateReader.TAG_VALUE).addChild(content): null);
+		return texts.subList(1, texts.size());
+	}
+
+	/** Builds the {@code DateValue}s of a date, one for each alternative; empty if any alternative cannot be normalized. */
+	private static List<FLEFRecord> buildDateValues(final DateInfo dateInfo){
+		final List<FLEFRecord> contents = new ArrayList<>();
+		switch(dateInfo.getType()){
+			case POINT -> {
+				final String basis = mapBasis(dateInfo);
+				for(final String alternative : alternatives(dateInfo.getValue()))
+					contents.add(buildSingleDate(DateReader.TAG_POINT, alternative, basis));
+			}
+			case BOUNDED -> {
+				for(final String start : alternatives(dateInfo.getNotBefore()))
+					for(final String end : alternatives(dateInfo.getNotAfter()))
+						contents.add(buildRange(DateReader.TAG_BOUNDED, DateReader.TAG_NOT_BEFORE, start, DateReader.TAG_NOT_AFTER, end));
+			}
+			default -> {
+				for(final String start : alternatives(dateInfo.getFrom()))
+					for(final String end : alternatives(dateInfo.getTo()))
+						contents.add(buildRange(DateReader.TAG_SPANNING, DateReader.TAG_FROM, start, DateReader.TAG_TO, end));
+			}
+		}
+
+		final List<FLEFRecord> values = new ArrayList<>(contents.size());
+		for(final FLEFRecord content : contents){
+			if(content == null)
+				return List.of();
+
+			values.add(FLEFRecord.createChildWithTag(DateReader.TAG_VALUE).addChild(content));
+		}
+		return values;
+	}
+
+	/** The first alternative of a date (the validity of a fact keeps only that one). */
+	private static String first(final String date){
+		return alternatives(date).get(0);
+	}
+
+	/**
+	 * Splits a date in its alternatives: dates each marked by a question mark ({@code 1854? CAL 1858?}), and a calculated year that
+	 * can be either of two ({@code CAL 1778/1779}). A date without alternatives is returned as is; {@code null} gives a single
+	 * {@code null}.
+	 */
+	private static List<String> alternatives(final String date){
+		if(date == null)
+			return Collections.singletonList(null);
+
+		final List<String> result = new ArrayList<>();
+		for(final String part : ALTERNATIVE_SEPARATOR_PATTERN.split(date.trim())){
+			final boolean uncertain = part.endsWith("?");
+			final String core = (uncertain? StringUtils.removeEnd(part, "?").trim(): part);
+			final Matcher m = YEAR_ALTERNATIVE_PATTERN.matcher(core);
+			if(m.matches()){
+				final String suffix = (uncertain? "?": StringUtils.EMPTY);
+				result.add(m.group(1) + m.group(2) + suffix);
+				result.add(m.group(1) + m.group(3) + suffix);
+			}
+			else
+				result.add(part);
+		}
+		return result;
 	}
 
 	private static FLEFRecord buildRange(final String kind, final String startTag, final String start, final String endTag,
@@ -222,7 +334,24 @@ public final class GEDCOMDateConverter{
 	 * @return	The structure, or {@code null} if the date cannot be normalized.
 	 */
 	private static FLEFRecord buildSingleDate(final String tag, final String gedcomDate, final String approximateBasis){
-		return buildSingleDate(tag, resolve(gedcomDate), approximateBasis);
+		if(StringUtils.isBlank(gedcomDate))
+			return null;
+
+		String date = gedcomDate.trim();
+		//a question mark makes the date approximate
+		final boolean uncertain = date.endsWith("?");
+		if(uncertain)
+			date = StringUtils.removeEnd(date, "?").trim();
+		//a qualifier of the date itself (e.g. the bound of `BEF ABT 1450`) prevails on the one of the whole date
+		String basis = approximateBasis;
+		final Matcher qualifierMatcher = QUALIFIER_PATTERN.matcher(date);
+		if(qualifierMatcher.matches()){
+			basis = mapBasis(qualifierMatcher.group(1).toUpperCase(Locale.ROOT));
+			date = qualifierMatcher.group(2).trim();
+		}
+		if(basis == null && uncertain)
+			basis = DateReader.ENUM_BASIS_UNSPECIFIED;
+		return buildSingleDate(tag, resolve(date), basis);
 	}
 
 	private static FLEFRecord buildSingleDate(final String tag, final SingleDate singleDate, final String approximateBasis){
@@ -380,21 +509,37 @@ public final class GEDCOMDateConverter{
 			? eraMatcher.replaceFirst(" BCE")
 			: COMMON_ERA_PATTERN.matcher(date).replaceFirst(StringUtils.EMPTY));
 		final Matcher gm = GREGORIAN_DATE_PATTERN.matcher(date);
-		if(!gm.matches())
+		if(!gm.matches()){
+			//a season (e.g. "SPR 1935") is not a GEDCOM month, but the calendar parser reads it
+			if(m.matches() && m.group(1) == null && m.group(2) != null && isReadByCalendarParser(date))
+				return new SingleDate(date, (calendar != null? calendar: (Integer.parseInt(m.group(3)) < 1582
+					? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN)));
 			return null;
+		}
 
 		if(calendar == null)
 			calendar = (gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN);
 		return new SingleDate(date, calendar);
 	}
 
-	private static String mapBasis(final DateInfo dateInfo){
-		if(!dateInfo.isApproximate())
-			return null;
+	private static boolean isReadByCalendarParser(final String date){
+		try{
+			GregorianCalendarParser.parse(date);
+			return true;
+		}
+		catch(final IllegalArgumentException ignored){
+			return false;
+		}
+	}
 
+	private static String mapBasis(final DateInfo dateInfo){
+		return (dateInfo.isApproximate()? mapBasis(dateInfo.getQualifier()): null);
+	}
+
+	private static String mapBasis(final String qualifier){
 		//EST is "estimated based on an algorithm using some other event date": `conventional` would require the cultural norm
 		//that justifies it
-		return switch(dateInfo.getQualifier()){
+		return switch(qualifier){
 			case "ABT" -> DateReader.ENUM_BASIS_STATED;
 			case "CAL" -> DateReader.ENUM_BASIS_CALCULATED;
 			case null, default -> DateReader.ENUM_BASIS_UNSPECIFIED;

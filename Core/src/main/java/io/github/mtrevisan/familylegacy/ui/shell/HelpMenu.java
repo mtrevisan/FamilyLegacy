@@ -38,6 +38,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 import java.awt.Desktop;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -89,7 +90,7 @@ final class HelpMenu{
 
 		final JMenuItem diagnostics = new JMenuItem(I18N.t("menu.help.diagnostics"), KeyEvent.VK_I);
 		diagnostics.addActionListener(e -> {
-			final java.io.File file = frame.fileController().currentFile();
+			final File file = frame.fileController().currentFile();
 			DiagnosticsDialog.show(frame, frame.model(), file);
 		});
 		menu.add(diagnostics);

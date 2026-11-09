@@ -43,7 +43,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -56,7 +58,10 @@ public final class KeyboardShortcutsDialog extends JDialog{
 
 		GUIHelper.installEscapeToClose(this);
 
+		//the same keys can be registered by several actions of the same menu (e.g. the jump-to item changes its label): list them once
+		final Set<String> seen = new HashSet<>();
 		final List<ShortcutRegistry.ShortcutDefinition> shortcuts = ShortcutRegistry.getAllShortcuts().stream()
+			.filter(s -> seen.add(s.category() + '|' + s.displayKeys() + '|' + s.context()))
 			.sorted(Comparator.comparing(ShortcutRegistry.ShortcutDefinition::category)
 				.thenComparing(ShortcutRegistry.ShortcutDefinition::action))
 			.toList();
@@ -70,7 +75,8 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		final Object[][] rows = new Object[shortcuts.size()][];
 		for(int i = 0; i < shortcuts.size(); i ++){
 			final ShortcutRegistry.ShortcutDefinition s = shortcuts.get(i);
-			rows[i] = new Object[]{s.category(), s.action(), s.displayKeys(), s.context()};
+			rows[i] = new Object[]{s.category(), s.action(), s.displayKeys(),
+				(s.context() != null? s.context(): I18N.t("shortcut.context.global"))};
 		}
 
 		final DefaultTableModel model = new DefaultTableModel(rows, columns){

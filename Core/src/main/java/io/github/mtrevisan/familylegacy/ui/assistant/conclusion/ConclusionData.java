@@ -42,9 +42,10 @@ import java.util.Set;
  * @param attributes  the attributes that have a single value
  * @param hypotheses  the identity hypotheses between individuals
  * @param conclusions the evaluations of the researcher
+ * @param placeAncestors the places that contain each place (territorial relationships, at any depth)
  */
 record ConclusionData(Map<String, Person> persons, List<PrincipalEvent> events, List<ParentLink> parents,
-		List<Attribute> attributes, List<Hypothesis> hypotheses, List<Conclusion> conclusions){
+		List<Attribute> attributes, List<Hypothesis> hypotheses, List<Conclusion> conclusions, Map<String, Set<String>> placeAncestors){
 
 	/**
 	 * @param id   the identifier of the individual
@@ -58,15 +59,26 @@ record ConclusionData(Map<String, Person> persons, List<PrincipalEvent> events, 
 	 *
 	 * @param eventId       the identifier of the event
 	 * @param personId      the individual the event is about
-	 * @param type          {@code birth} or {@code death}
+	 * @param type          {@code birth}, {@code baptism}, {@code death} or {@code burial}
 	 * @param date          the days of the event ({@code null} if not dated)
 	 * @param dateText      the date, as written
 	 * @param recordIds     the event and the participations of the individual in it: a conclusion can point to any of them
 	 * @param sourceCount   the sources that cite the event
 	 * @param confidence    the confidence of the assertion ({@code low}, {@code medium}, {@code high}), or {@code null}
+	 * @param placeId       the place of the event, or {@code null}
 	 */
 	record PrincipalEvent(String eventId, String personId, String type, DateRange date, String dateText, Set<String> recordIds,
-			int sourceCount, String confidence){}
+			int sourceCount, String confidence, String placeId, int evidenceWeight){
+
+		PrincipalEvent(final String eventId, final String personId, final String type, final DateRange date, final String dateText,
+				final Set<String> recordIds, final int sourceCount, final String confidence, final String placeId){
+			this(eventId, personId, type, date, dateText, recordIds, sourceCount, confidence, placeId, sourceCount);
+		}
+
+		Backing backing(){
+			return new Backing(confidence, sourceCount, evidenceWeight);
+		}
+	}
 
 	/**
 	 * @param relationshipId the identifier of the relationship
@@ -74,7 +86,12 @@ record ConclusionData(Map<String, Person> persons, List<PrincipalEvent> events, 
 	 * @param parentId       the parent
 	 * @param type           the type of the relationship ({@code biological_child}, {@code adoptive_child}, ...)
 	 */
-	record ParentLink(String relationshipId, String childId, String parentId, String type){}
+	record ParentLink(String relationshipId, String childId, String parentId, String type, Backing backing){
+
+		ParentLink(final String relationshipId, final String childId, final String parentId, final String type){
+			this(relationshipId, childId, parentId, type, Backing.NONE);
+		}
+	}
 
 	/**
 	 * @param id       the identifier of the attribute record
@@ -82,7 +99,24 @@ record ConclusionData(Map<String, Person> persons, List<PrincipalEvent> events, 
 	 * @param type     the type of the attribute
 	 * @param value    the value
 	 */
-	record Attribute(String id, String personId, String type, String value){}
+	record Attribute(String id, String personId, String type, String value, Backing backing){
+
+		Attribute(final String id, final String personId, final String type, final String value){
+			this(id, personId, type, value, Backing.NONE);
+		}
+	}
+
+	/**
+	 * How well an assertion is backed, to suggest which of several is the best supported.
+	 *
+	 * @param confidence  the confidence of the assertion ({@code low}, {@code medium}, {@code high}), or {@code null}
+	 * @param sourceCount the sources that cite it
+	 * @param weight      what the sources weigh, with their evidence qualifiers (see {@code SourceCitationReader.supportWeight})
+	 */
+	record Backing(String confidence, int sourceCount, int weight){
+
+		static final Backing NONE = new Backing(null, 0, 0);
+	}
 
 	/**
 	 * @param id       the identifier of the hypothesis

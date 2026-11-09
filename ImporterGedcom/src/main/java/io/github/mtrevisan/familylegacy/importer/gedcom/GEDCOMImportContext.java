@@ -29,6 +29,9 @@ import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.PendingFile;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * Holds the {@link ImportReport} of the conversion in progress, and the id of the GEDCOM record being converted.
@@ -44,6 +47,9 @@ public final class GEDCOMImportContext{
 
 	private static ImportReport report = new ImportReport();
 	private static String record = StringUtils.EMPTY;
+	/** The date and time of creation (or, lacking it, of the last change) of the records, by id, and of the file, for the records that have none. */
+	private static final Map<String, String> RECORD_DATES = new HashMap<>();
+	private static String fileDate;
 
 
 	private GEDCOMImportContext(){}
@@ -53,12 +59,32 @@ public final class GEDCOMImportContext{
 	public static synchronized void begin(final ImportReport importReport){
 		report = (importReport != null? importReport: new ImportReport());
 		record = StringUtils.EMPTY;
+		RECORD_DATES.clear();
+		fileDate = null;
+	}
+
+	/** Registers the date and time of a record, the date of the elements of the record that have none. */
+	public static synchronized void registerRecordDate(final String recordId, final String dateTime){
+		if(recordId != null && dateTime != null)
+			RECORD_DATES.put(recordId, dateTime);
+	}
+
+	/** Registers the date and time of the file, the date of the elements that belong to a record with no date. */
+	public static synchronized void registerFileDate(final String dateTime){
+		fileDate = dateTime;
+	}
+
+	/** @return	The date and time that an element without one inherits: the one of its record, or else the one of the file, {@code null} if unknown. */
+	public static synchronized String inheritedDateTime(){
+		return RECORD_DATES.getOrDefault(record, fileDate);
 	}
 
 	/** Ends the conversion: later discards go to a throw-away report. */
 	public static synchronized void end(){
 		report = new ImportReport();
 		record = StringUtils.EMPTY;
+		RECORD_DATES.clear();
+		fileDate = null;
 	}
 
 	/** Sets the id of the record being converted, the start of the {@code where} of the discards. */

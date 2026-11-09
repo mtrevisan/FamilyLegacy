@@ -57,6 +57,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -135,7 +136,7 @@ public final class PlaceCoordinateResolver{
 
 	private final FLEFModel model;
 	/** Written by the geocoding thread while the UI thread reads it to show the places as they are resolved. */
-	private final Map<String, Resolved> cache = new java.util.concurrent.ConcurrentHashMap<>();
+	private final Map<String, Resolved> cache = new ConcurrentHashMap<>();
 	/** The place that contains each place (the street is in the town, the town in the province, ...). */
 	private final Map<String, String> containerOf = new HashMap<>();
 	private final Properties diskCache = new Properties();

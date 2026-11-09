@@ -29,15 +29,17 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -48,9 +50,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -219,6 +221,42 @@ class FileValidationTest{
 			found.getFirst().message());
 	}
 
+	private static List<ConsistencyService.Issue> childrenMarriedToParents(final FLEFModel model){
+		return issues(model, ConsistencyService.Severity.ERROR).stream()
+			.filter(issue -> "child_married_to_parent".equals(issue.kind()))
+			.toList();
+	}
+
+	@Test
+	void aBiologicalChildMarriedToTheirParentIsAnError(){
+		final FLEFModel model = peopleOf("P", "C");
+		model.addRecord(biologicalChild("R1", "C", "P"));
+		//the marriage is written with the parent as the subject: the order does not matter
+		model.addRecord(relationship("R2", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "P",
+			RelationshipReader.TAG_INDIVIDUAL, "C"));
+
+		final List<ConsistencyService.Issue> found = childrenMarriedToParents(model);
+
+		Assertions.assertEquals(1, found.size(), found.toString());
+		Assertions.assertEquals("C", found.getFirst().recordId());
+	}
+
+	@Test
+	void anAdoptiveChildOrAnEngagementIsNotReported(){
+		final FLEFModel model = peopleOf("P", "C", "D");
+		model.addRecord(biologicalChild("R1", "C", "P"));
+		//an engagement is not a marriage
+		model.addRecord(relationship("R2", RelationshipReader.ENUM_TYPE_ENGAGED_PARTNER, RelationshipReader.TAG_INDIVIDUAL, "C",
+			RelationshipReader.TAG_INDIVIDUAL, "P"));
+		//D is not a biological child of P (a step-parent can marry the other parent, and the marriage of an adoptive link is another matter)
+		model.addRecord(relationship("R3", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD, RelationshipReader.TAG_INDIVIDUAL, "D",
+			RelationshipReader.TAG_INDIVIDUAL, "P"));
+		model.addRecord(relationship("R4", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, RelationshipReader.TAG_INDIVIDUAL, "D",
+			RelationshipReader.TAG_INDIVIDUAL, "P"));
+
+		Assertions.assertTrue(childrenMarriedToParents(model).isEmpty());
+	}
+
 	@Test
 	void aGrandparentOrAnUncleIsNotASiblingThatIsAParent(){
 		final FLEFModel model = peopleOf("G", "P", "C", "U");
@@ -287,13 +325,17 @@ class FileValidationTest{
 	void aMissingOrUnknownSexIsNotChecked() throws IOException{
 		//Sconosciuto (I7) has no sex recorded here: with a male (I1) as the other parent nothing can be said
 		final FLEFModel missing = model();
-		FLEFRecordHelper.removeChild(missing.getRecordById("I7"), IndividualReader.TAG_SEX);
+		for(final FLEFRecord sex : PreferredSex.assertions("I7", missing))
+			missing.removeRecord(sex.getId());
 		missing.addRecord(biologicalChild("RA", "I6", "I1"));
 		missing.addRecord(biologicalChild("RB", "I6", "I7"));
 		//a parent whose sex is unknown
 		final FLEFModel unknown = model();
-		unknown.addRecord(FLEFRecord.createMainRecord("I8", IndividualReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_UNKNOWN)));
+		unknown.addRecord(FLEFRecord.createMainRecord("I8", IndividualReader.TYPE));
+		unknown.addRecord(FLEFRecord.createMainRecord("IA8", IndividualAttributeReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, "I8"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, IndividualReader.ENUM_SEX_UNKNOWN)));
 		unknown.addRecord(biologicalChild("RA", "I6", "I1"));
 		unknown.addRecord(biologicalChild("RB", "I6", "I8"));
 
@@ -448,6 +490,18 @@ class FileValidationTest{
 	}
 
 	@Test
+	void aConclusionCannotRefertoRecordsThatDoNotExist() throws IOException{
+		final FLEFModel model = model();
+		model.addRecord(conclusion("CC1", ConclusionReader.ENUM_PROOF_STATUS_PROVEN, List.of("I1", "NOPE"), "I1"));
+
+		final List<ConsistencyService.Issue> found = issuesContaining(model, "does not exist");
+
+		Assertions.assertEquals(1, found.size(), found.toString());
+		Assertions.assertTrue(found.getFirst().message().contains("NOPE"));
+		Assertions.assertEquals(ConsistencyService.Severity.ERROR, found.getFirst().severity());
+	}
+
+	@Test
 	void aConclusionThatDisprovesNormallyResolvesTwoRecordsAndPrefersNone() throws IOException{
 		final FLEFModel model = model();
 		model.addRecord(conclusion("CC1", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, List.of("I1"), null));
@@ -539,6 +593,27 @@ class FileValidationTest{
 		Assertions.assertEquals("X1", found.getFirst().recordId());
 		Assertions.assertTrue(found.getFirst().message().contains("X1, X2"), found.getFirst().message());
 		Assertions.assertEquals(ConsistencyService.Severity.WARNING, found.getFirst().severity());
+	}
+
+	@Test
+	void twoAssociatesWithDifferentRolesAreTwoRelationshipsAndTheSameRoleIsOne() throws IOException{
+		final FLEFModel model = model();
+		//a guardian and a ward: what each is to the other, not one relationship written twice
+		model.addRecord(relationship("X1", RelationshipReader.ENUM_TYPE_ASSOCIATE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I2")
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_ROLE, "Guardian")));
+		model.addRecord(relationship("X2", RelationshipReader.ENUM_TYPE_ASSOCIATE, RelationshipReader.TAG_INDIVIDUAL, "I2", RelationshipReader.TAG_INDIVIDUAL, "I1")
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_ROLE, "Ward")));
+		Assertions.assertTrue(issuesContaining(model, "is written").isEmpty());
+
+		//friends, written from both sides, with the role in different capitals: one
+		model.addRecord(relationship("X3", RelationshipReader.ENUM_TYPE_ASSOCIATE, RelationshipReader.TAG_INDIVIDUAL, "I1", RelationshipReader.TAG_INDIVIDUAL, "I3")
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_ROLE, "Friend")));
+		model.addRecord(relationship("X4", RelationshipReader.ENUM_TYPE_ASSOCIATE, RelationshipReader.TAG_INDIVIDUAL, "I3", RelationshipReader.TAG_INDIVIDUAL, "I1")
+			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_ROLE, "friend")));
+		final List<ConsistencyService.Issue> found = issuesContaining(model, "is written");
+
+		Assertions.assertEquals(1, found.size(), found.toString());
+		Assertions.assertTrue(found.getFirst().message().contains("X3, X4"), found.getFirst().message());
 	}
 
 	private static FLEFRecord date(final String tag, final String isoDate){

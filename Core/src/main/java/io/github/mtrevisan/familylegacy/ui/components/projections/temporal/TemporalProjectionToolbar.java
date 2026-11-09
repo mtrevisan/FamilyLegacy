@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;

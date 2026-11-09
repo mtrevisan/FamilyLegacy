@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.grammar;
 
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalRequireConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalValueInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint;
@@ -179,6 +180,14 @@ public final class FLEFGrammarValidator{
 			for(final String f : fields)
 				if(!fieldNames.contains(f))
 					errors.add(context + ": " + cond + " requires unknown field '" + f + "'");
+		}
+		else if(constraint instanceof ConditionalValueInConstraint condIn){
+			if(!fieldNames.contains(condIn.getConditionField()))
+				errors.add(context + ": " + condIn + " has unknown condition field '" + condIn.getConditionField() + "'");
+			if(!fieldNames.contains(condIn.getField()))
+				errors.add(context + ": " + condIn + " references unknown field '" + condIn.getField() + "'");
+			if(condIn.getAllowedValues().isEmpty())
+				errors.add(context + ": " + condIn + " lists no values");
 		}
 		else if(constraint instanceof OnlyIfInConstraint onlyIf){
 			if(!fieldNames.contains(onlyIf.getField()))

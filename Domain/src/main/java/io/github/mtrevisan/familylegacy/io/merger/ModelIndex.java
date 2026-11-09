@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
@@ -426,12 +427,29 @@ final class ModelIndex{
 	}
 
 	/**
-	 * The attributes of an individual, as {@code type|value}.
+	 * The sexes asserted for an individual by its {@code sex} attributes (male, female: an unknown sex says nothing).
+	 */
+	Set<String> sexes(final String individualId){
+		final Set<String> sexes = new LinkedHashSet<>();
+		for(final FLEFRecord attribute : attributesOf.getOrDefault(individualId, List.of()))
+			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(value(attribute, TAG_TYPE))){
+				final SexType sex = SexType.fromRaw(value(attribute, TAG_VALUE));
+				if(sex != SexType.UNKNOWN)
+					sexes.add(sex.getRawSex());
+			}
+		return sexes;
+	}
+
+	/**
+	 * The attributes of an individual, as {@code type|value} (the sex is not one of them: see {@link #sexes(String)}).
 	 */
 	Set<String> attributeKeys(final String individualId){
 		final Set<String> keys = new LinkedHashSet<>();
 		for(final FLEFRecord attribute : attributesOf.getOrDefault(individualId, List.of())){
 			final String type = value(attribute, TAG_TYPE);
+			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(type))
+				continue;
+
 			final String attributeValue = TextSimilarity.normalize(value(attribute, TAG_VALUE));
 			final FLEFRecord place = FieldMerger.first(attribute, TAG_PLACE);
 			final String placeId = (place != null? value(place, TAG_PLACE): null);

@@ -25,10 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditStamp;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.AuditStamp;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -149,10 +151,10 @@ public final class IndividualHelper{
 				continue;
 
 			final FLEFRecord parentRecord = model.getRecordById(parent);
-			final String rawSex = IndividualReader.extractRawSex(parentRecord);
-			if(IndividualReader.isSexMale(rawSex))
+			final SexType sex = PreferredSex.of(parentRecord, model);
+			if(sex == SexType.MALE)
 				fathers.add(parent);
-			else if(IndividualReader.isSexFemale(rawSex))
+			else if(sex == SexType.FEMALE)
 				mothers.add(parent);
 			else
 				fathers.add(parent);
@@ -317,7 +319,7 @@ public final class IndividualHelper{
 				eventCount ++;
 		}
 
-		final String rawSex = IndividualReader.extractRawSex(individual);
+		final String rawSex = PreferredSex.rawOf(individual, model);
 		final String displayName = IndividualReader.extractPrimaryFullname(individual);
 		return new MergePreview(individualId, displayName, rawSex, parents.size(), children.size(),
 			spouses.size(), eventCount);

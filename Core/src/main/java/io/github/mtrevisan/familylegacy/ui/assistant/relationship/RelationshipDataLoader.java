@@ -27,26 +27,34 @@ package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +66,11 @@ import java.util.Set;
  */
 final class RelationshipDataLoader{
 
+
+
+	private static final String PLACE_OF = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
+	private static final Set<String> ECCLESIASTICAL_TYPES = Set.of(PlaceReader.ENUM_TYPE_PARISH, PlaceReader.ENUM_TYPE_DIOCESE,
+		PlaceReader.ENUM_TYPE_ARCHDIOCESE);
 
 
 	private RelationshipDataLoader(){}
@@ -77,10 +90,12 @@ final class RelationshipDataLoader{
 
 		final List<RelationshipData.Event> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, RelationshipData.Person> persons = new LinkedHashMap<>();
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 		for(final FLEFRecord individual : filteredIndividuals.values())
-			persons.put(individual.getId(), loadPerson(individual, events));
+			persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
 
-		return new RelationshipData(persons, filteredGroups, loadRelationships(model, persons.keySet(), filteredGroups.keySet()), events);
+		return new RelationshipData(persons, filteredGroups, loadRelationships(model, persons.keySet(), filteredGroups.keySet()), events,
+			clergy(model, persons.keySet()), ecclesiasticalPlaces(model));
 	}
 
 
@@ -107,12 +122,50 @@ final class RelationshipDataLoader{
 			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
 			final FLEFRecord date = (dates.isEmpty()? null: dates.getFirst());
 			events.add(new RelationshipData.Event(entry.getKey(), EventReader.extractType(event), range(date), text(date),
-				entry.getValue()));
+				entry.getValue(), FLEFRecordHelper.getChildValue(event, PLACE_OF)));
 		}
 		return events;
 	}
 
-	private static RelationshipData.Person loadPerson(final FLEFRecord individual, final List<RelationshipData.Event> events){
+	/** The individuals whose occupation says they are of the clergy. */
+	private static Set<String> clergy(final FLEFModel model, final Set<String> individualIds){
+		final Set<String> clergy = new LinkedHashSet<>();
+		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeHandler.TYPE);
+		for(final FLEFRecord attribute : attributes){
+			final String personId = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_INDIVIDUAL);
+			final String value = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_VALUE);
+			if(personId != null && value != null && individualIds.contains(personId)
+					&& IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE))
+					&& StringUtils.containsAnyIgnoreCase(value, IndividualAttributeReader.CLERGY_OCCUPATIONS))
+				clergy.add(personId);
+		}
+		return clergy;
+	}
+
+	/** The places of the church: parishes and dioceses, and the places that are part of another by an ecclesiastical relationship. */
+	private static Set<String> ecclesiasticalPlaces(final FLEFModel model){
+		final Set<String> places = new LinkedHashSet<>();
+		final List<FLEFRecord> records = model.getRecordsByType(PlaceHandler.TYPE);
+		for(final FLEFRecord place : records)
+			if(place.getId() != null){
+				//a place without a type is not ecclesiastical (and an immutable set does not accept null)
+				final String type = FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE);
+				if(type != null && ECCLESIASTICAL_TYPES.contains(type))
+					places.add(place.getId());
+			}
+		final List<FLEFRecord> placeRelationships = model.getRecordsByType(PlaceRelationshipHandler.TYPE);
+		for(final FLEFRecord placeRelationship : placeRelationships)
+			if(PlaceRelationshipReader.ENUM_TYPE_ECCLESIASTICAL_PART_OF.equals(PlaceRelationshipReader.extractType(placeRelationship))){
+				final String subject = FLEFRecordHelper.getChildValue(placeRelationship,
+					FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT, PlaceHandler.TYPE));
+				if(subject != null)
+					places.add(subject);
+			}
+		return places;
+	}
+
+	private static RelationshipData.Person loadPerson(final FLEFRecord individual, final List<RelationshipData.Event> events,
+			final SexType sex){
 		//with several births the days they cover are used: a finding must hold for all of them
 		DateRange birth = null;
 		for(final RelationshipData.Event event : events)
@@ -121,8 +174,8 @@ final class RelationshipDataLoader{
 				birth = (birth != null? birth.hull(event.date()): event.date());
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);
-		return new RelationshipData.Person(individual.getId(), (name != null && !name.isBlank()? name: individual.getId()),
-			sex(individual), birth);
+		return new RelationshipData.Person(individual.getId(), (name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
+			sex, birth);
 	}
 
 	private static List<RelationshipData.Relationship> loadRelationships(final FLEFModel model, final Set<String> individualIds,
@@ -174,15 +227,6 @@ final class RelationshipDataLoader{
 	/** @return the value of the alternative a "oneof" holds (an Xref), or {@code null} */
 	private static String armValue(final FLEFRecord union){
 		return (union == null || union.getChildren().isEmpty()? null: union.getChildren().getFirst().getValue());
-	}
-
-	private static SexType sex(final FLEFRecord individual){
-		try{
-			return IndividualReader.extractSex(individual);
-		}
-		catch(final IllegalArgumentException ignored){
-			return SexType.UNKNOWN;
-		}
 	}
 
 	private static DateRange range(final FLEFRecord dateStructure){

@@ -27,11 +27,11 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 

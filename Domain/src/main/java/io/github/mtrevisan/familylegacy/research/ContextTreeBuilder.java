@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 
 /**
@@ -138,6 +139,25 @@ public final class ContextTreeBuilder{
 
 			return filterLowerCase(needle.trim()
 				.toLowerCase(Locale.ROOT));
+		}
+
+		/**
+		 * Keeps the nodes whose label the matcher accepts and the ones that have such a node below them (a matching node keeps its whole
+		 * subtree).
+		 *
+		 * @return	The pruned copy, or {@code null} if nothing in the subtree matches.
+		 */
+		public Node filter(final Predicate<String> matcher){
+			if(matcher.test(label))
+				return this;
+
+			final Node copy = new Node(kind, record, label);
+			for(final Node child : children){
+				final Node filtered = child.filter(matcher);
+				if(filtered != null)
+					copy.children.add(filtered);
+			}
+			return (!copy.children.isEmpty()? copy: null);
 		}
 
 		private Node filterLowerCase(final String needle){

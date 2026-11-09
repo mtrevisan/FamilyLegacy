@@ -52,18 +52,23 @@ import javax.swing.SwingWorker;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultFormatter;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -160,9 +165,9 @@ public class PageInputDialog extends JDialog{
 
 		// Intercept Enter key and focus loss to force clamping
 		textField.addActionListener(e -> commitAndClampSpinner());
-		textField.addFocusListener(new java.awt.event.FocusAdapter(){
+		textField.addFocusListener(new FocusAdapter(){
 			@Override
-			public void focusLost(final java.awt.event.FocusEvent e){
+			public void focusLost(final FocusEvent e){
 				commitAndClampSpinner();
 			}
 		});
@@ -173,7 +178,7 @@ public class PageInputDialog extends JDialog{
 		final ActionMap actionMap = textField.getActionMap();
 		actionMap.put(ACTION_COMMIT_AND_CLAMP, new AbstractAction(){
 			@Override
-			public void actionPerformed(final java.awt.event.ActionEvent e){
+			public void actionPerformed(final ActionEvent e){
 				commitAndClampSpinner();
 			}
 		});
@@ -439,7 +444,7 @@ public class PageInputDialog extends JDialog{
 
 					final BufferedImage bimage = new BufferedImage(renderedImg.getWidth(null),
 						renderedImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
-					final java.awt.Graphics2D g = bimage.createGraphics();
+					final Graphics2D g = bimage.createGraphics();
 					g.drawImage(renderedImg, 0, 0, null);
 					g.dispose();
 					return bimage;
@@ -447,7 +452,7 @@ public class PageInputDialog extends JDialog{
 			}
 			catch(final IOException e){
 				// Log only if it's not a normal interruption/closed channel due to fast navigation
-				if(!(e instanceof java.nio.channels.ClosedChannelException))
+				if(!(e instanceof ClosedChannelException))
 					LOGGER.error("Error reading PDF: {}", e.getMessage());
 			}
 			return null;

@@ -44,9 +44,11 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameAnatomyService;
 import io.github.mtrevisan.familylegacy.io.model.readers.NamePart;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -189,9 +191,9 @@ public final class IndividualDossierService{
 			entries.add(DossierEntry.of(I18N.t("text.dossier.photo"), uri, individual));
 
 		// Sex.
-		final String sex = IndividualReader.extractRawSex(individual);
-		if(StringUtils.isNotEmpty(sex))
-			entries.add(DossierEntry.of(I18N.t("text.dossier.sex"), sex, individual));
+		final SexType sex = PreferredSex.of(individual, model);
+		if(sex != SexType.UNKNOWN)
+			entries.add(DossierEntry.of(I18N.t("text.dossier.sex"), sex.getRawSex(), individual));
 
 		// Vital dates.
 		if(data != null && !data.isEmpty()){

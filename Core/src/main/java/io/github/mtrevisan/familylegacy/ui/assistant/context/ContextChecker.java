@@ -26,23 +26,24 @@ package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 
 
 /**
@@ -241,7 +242,7 @@ final class ContextChecker{
 
 	/** Deaths that follow one another in a place within a short time, and that no historic event of the model explains. */
 	private static List<ContextFinding> clusters(final ContextData data){
-		final Map<String, List<ContextData.Event>> byPlace = new java.util.HashMap<>();
+		final Map<String, List<ContextData.Event>> byPlace = new HashMap<>();
 		for(final ContextData.Event event : data.events())
 			if(DEATH_EVENTS.contains(event.type()) && event.placeId() != null && event.range() != null
 					&& event.range().min() != Long.MIN_VALUE && event.range().max() != Long.MAX_VALUE

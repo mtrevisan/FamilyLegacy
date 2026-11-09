@@ -46,10 +46,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
@@ -57,6 +59,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.util.SoftwareInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 import org.w3c.dom.Document;
@@ -69,10 +72,10 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,8 +89,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
-import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 
 
 /**
@@ -734,6 +735,8 @@ public final class GrampsXMLToFLEFConverter{
 
 			dataEntries(citation);
 			final String sourceId = id(source);
+			//the date of the citation is not where it is located: it goes with the remarks
+			final List<String> remarks = new ArrayList<>();
 			final List<String> locator = new ArrayList<>();
 			final String page = GrampsXML.childText(citation, "page");
 			if(page != null)
@@ -741,7 +744,7 @@ public final class GrampsXMLToFLEFConverter{
 			newYear(dateOf(citation), citation);
 			final String date = GrampsDates.text(dateOf(citation));
 			if(date != null)
-				locator.add("Date: " + date);
+				remarks.add("Date: " + date);
 
 			final List<FLEFRecord> extracts = new ArrayList<>();
 			for(final Element objectReference : GrampsXML.children(citation, GRAMPS_OBJREF)){
@@ -756,7 +759,6 @@ public final class GrampsXMLToFLEFConverter{
 						.addChild(child(SourceCitationReader.TAG_MEDIA, id(object)))));
 			}
 
-			final List<String> remarks = new ArrayList<>();
 			for(final Element noteReference : GrampsXML.children(citation, GRAMPS_NOTEREF)){
 				final Element note = target(noteReference, GRAMPS_NOTE);
 				final String text = (note != null? GrampsXML.childText(note, GRAMPS_TEXT): null);
@@ -986,9 +988,11 @@ public final class GrampsXMLToFLEFConverter{
 			.addChild(FLEFRecord.createChildWithTag(HeaderReader.TAG_PROTOCOL)
 				.addChild(child(HeaderReader.TAG_NAME, PROTOCOL_NAME))
 				.addChild(child(HeaderReader.TAG_VERSION, PROTOCOL_VERSION)))
+			//the software that writes this file is this one, whatever wrote the Gramps file
 			.addChild(FLEFRecord.createChildWithTag(HeaderReader.TAG_SOURCE)
-				.addChild(child(HeaderReader.TAG_NAME, "Gramps"))
-				.addChild(child(HeaderReader.TAG_VERSION, GrampsXML.attribute(created, "version"))));
+				.addChild(child(HeaderReader.TAG_NAME, SoftwareInfo.NAME))
+				.addChild(child(HeaderReader.TAG_VERSION, SoftwareInfo.version()))
+				.addChild(child(HeaderReader.TAG_SOURCE_ORGANIZATION, SoftwareInfo.ORGANIZATION)));
 
 		final String date = GrampsXML.attribute(created, "date");
 		header.addChild(child(HeaderReader.TAG_DATE, (date != null && date.length() == 10? date + "T00:00:00Z": now)));
@@ -1406,9 +1410,9 @@ public final class GrampsXMLToFLEFConverter{
 
 		final String gender = StringUtils.defaultString(GrampsXML.childText(element, "gender")).toUpperCase(Locale.ROOT);
 		switch(gender){
-			case "M" -> individual.addChild(child(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_MALE));
-			case "F" -> individual.addChild(child(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_FEMALE));
-			case "U" -> individual.addChild(child(IndividualReader.TAG_SEX, IndividualReader.ENUM_SEX_UNKNOWN));
+			case "M" -> sex(element, individual, IndividualReader.ENUM_SEX_MALE);
+			case "F" -> sex(element, individual, IndividualReader.ENUM_SEX_FEMALE);
+			case "U" -> sex(element, individual, IndividualReader.ENUM_SEX_UNKNOWN);
 			default -> {}
 		}
 
@@ -1490,6 +1494,15 @@ public final class GrampsXMLToFLEFConverter{
 			name.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART)
 				.addChild(child(NameReader.TAG_PART_TYPE, type))
 				.addChild(child(NameReader.TAG_PART_VALUE, value)));
+	}
+
+	/** The gender of a person is the sex assertion of the file: an attribute of the individual. */
+	private void sex(final Element person, final FLEFRecord individual, final String value){
+		model.addRecord(FLEFRecord.createMainRecord(nextId(IndividualAttributeReader.ID_PREFIX), IndividualAttributeReader.TYPE)
+			.addChild(child(IndividualAttributeReader.TAG_INDIVIDUAL, individual.getId()))
+			.addChild(child(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
+			.addChild(child(IndividualAttributeReader.TAG_VALUE, value))
+			.addChild(audit(isoOf(person))));
 	}
 
 	private void personAttribute(final Element person, final Element attribute){

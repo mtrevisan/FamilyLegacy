@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
@@ -34,8 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialo
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
 import java.util.List;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 
 
 /**

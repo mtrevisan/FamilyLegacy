@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -44,8 +45,16 @@ import java.util.function.Supplier;
  *                   {@code null} if it was never saved
  * @param snapshots  gives a copy of the model that nobody changes (see {@link #forReading()}), or {@code null} if the model is read as
  *                   it is
+ * @param selectedRecordId the identifier of the record selected in the view of the main window (the individual or the group the user
+ *                   is looking at), or {@code null} if nothing is selected or the assistant is opened from an editor
  */
-public record AssistantContext(Window window, Component focusOwner, FLEFModel model, String scope, Supplier<FLEFModel> snapshots){
+public record AssistantContext(Window window, Component focusOwner, FLEFModel model, String scope, Supplier<FLEFModel> snapshots,
+		String selectedRecordId){
+
+	/** Marks the context of a copy of the model that nobody changes (see {@link #forReading()}): it is not asked for another copy. */
+	private static final Supplier<FLEFModel> COPY_TAKEN = () -> {
+		throw new IllegalStateException("The model of this context is already a copy");
+	};
 
 	/** A context of a file that was never saved. */
 	public AssistantContext(final Window window, final Component focusOwner, final FLEFModel model){
@@ -55,6 +64,19 @@ public record AssistantContext(Window window, Component focusOwner, FLEFModel mo
 	/** A context whose model is read as it is (it is not copied: use it where nobody edits the model meanwhile). */
 	public AssistantContext(final Window window, final Component focusOwner, final FLEFModel model, final String scope){
 		this(window, focusOwner, model, scope, null);
+	}
+
+	/** A context with no record selected. */
+	public AssistantContext(final Window window, final Component focusOwner, final FLEFModel model, final String scope,
+			final Supplier<FLEFModel> snapshots){
+		this(window, focusOwner, model, scope, snapshots, null);
+	}
+
+	/**
+	 * @return	The selected record, if there is one and the model has it (a record deleted since is not selected any more).
+	 */
+	public Optional<FLEFRecord> selectedRecord(){
+		return (selectedRecordId != null && model != null? Optional.ofNullable(model.getRecordById(selectedRecordId)): Optional.empty());
 	}
 
 	/**
@@ -70,7 +92,17 @@ public record AssistantContext(Window window, Component focusOwner, FLEFModel mo
 	 * @return	This context if the model is read as it is.
 	 */
 	public AssistantContext forReading(){
-		return (snapshots == null || model == null? this: new AssistantContext(window, focusOwner, snapshots.get(), scope, null));
+		return (snapshots == null || model == null || snapshots == COPY_TAKEN
+			? this
+			: new AssistantContext(window, focusOwner, snapshots.get(), scope, COPY_TAKEN, selectedRecordId));
+	}
+
+	/**
+	 * @return	Whether the model is a copy that nobody changes, taken by {@link #forReading()}: what is computed on it stays true for as long as
+	 * 	the copy is the one given (the history gives the same copy until the model changes), so it can be kept and shared.
+	 */
+	public boolean isReadingCopy(){
+		return (snapshots == COPY_TAKEN);
 	}
 
 	/**

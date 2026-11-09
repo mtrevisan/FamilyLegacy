@@ -46,9 +46,9 @@ class CompareRecordsActionTest{
 	private static FLEFModel model(){
 		final FLEFModel model = new FLEFModel();
 		model.addRecord(FLEFRecord.createMainRecord("I1", IndividualReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "M")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NOTE, "first")));
 		model.addRecord(FLEFRecord.createMainRecord("I2", IndividualReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_SEX, "F")));
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualReader.TAG_NOTE, "second")));
 		return model;
 	}
 

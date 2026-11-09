@@ -148,6 +148,18 @@ public class SearchHelper{
 		return matched;
 	}
 
+	/** @return whether at least one of the names admits the query (a blank query always does) */
+	public static boolean matchesAnyName(final List<String> names, final String query, final Set<SearchMode> modes,
+			final double fuzzyThreshold){
+		if(StringUtils.isEmpty(query))
+			return true;
+
+		for(final String candidate : names)
+			if(TextSearchHelper.matchesText(candidate, query, modes, fuzzyThreshold))
+				return true;
+		return false;
+	}
+
 	public static boolean matchesDate(final FLEFRecord event, final String date, final String calendar){
 		if(StringUtils.isEmpty(date))
 			return true;

@@ -49,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
@@ -84,7 +85,7 @@ public final class ChronomapIndex{
 
 	/** Not final: rebuilt after a background geocoding pass. */
 	private Map<String, List<GeoAnchor>> anchorsByOwner;
-	private final List<Runnable> rebuildListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+	private final List<Runnable> rebuildListeners = new CopyOnWriteArrayList<>();
 
 	/**
 	 * Earliest birth event per owner, or absent. Populated at build time

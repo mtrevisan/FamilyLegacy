@@ -907,8 +907,62 @@ public final class SectionLabelProvider{
 		return labels.getString("FULL_BIBLIOGRAPHY_TITLE");
 	}
 
-	public String multiPersonCover(){
-		return labels.getString("MULTI_PERSON_COVER");
+	public String toVerifyTitle(){
+		return labels.getString("TO_VERIFY_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: the number of findings, the number of groups). */
+	public String toVerifyIntro(){
+		return labels.getString("TO_VERIFY_INTRO");
+	}
+
+	public String toVerifyNothing(){
+		return labels.getString("TO_VERIFY_NOTHING");
+	}
+
+	public String toVerifyNotIncluded(){
+		return labels.getString("TO_VERIFY_NOT_INCLUDED");
+	}
+
+	/** @param columnKey	{@code GROUP}, {@code COUNT}, {@code RECORD} or {@code DETAIL}. */
+	public String toVerifyColumn(final String columnKey){
+		return labels.getString("TO_VERIFY_COLUMN_" + columnKey);
+	}
+
+	public String surnamesTitle(){
+		return labels.getString("SURNAMES_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: individuals, surnames, places). */
+	public String surnamesIntro(){
+		return labels.getString("SURNAMES_INTRO");
+	}
+
+	public String surnamesNote(){
+		return labels.getString("SURNAMES_NOTE");
+	}
+
+	public String surnamesNoPlace(){
+		return labels.getString("SURNAMES_NO_PLACE");
+	}
+
+	public String surnamesEmpty(){
+		return labels.getString("SURNAMES_EMPTY");
+	}
+
+	/** @param columnKey	{@code SURNAME}, {@code COUNT}, {@code PERIOD} or {@code UNDATED}. */
+	public String surnamesColumn(final String columnKey){
+		return labels.getString("SURNAMES_COLUMN_" + columnKey);
+	}
+
+	/** @param kindKey	The key of a kind of finding (see {@code ToVerifyFinder.Kind#key()}). */
+	public String toVerifyKind(final String kindKey){
+		return labels.getString("TO_VERIFY_" + kindKey);
+	}
+
+	/** @param count	How many individuals the report covers (the message is plural-aware: it is not a {@link String#format} pattern). */
+	public String multiPersonCover(final int count){
+		return labels.pluralKey("MULTI_PERSON_COVER", count);
 	}
 
 	public String columnIndividual(){

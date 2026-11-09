@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.actions;
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.Side;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
@@ -69,10 +70,9 @@ public class PopupMenuHelper{
 			if(clipped == null)
 				return false;
 
-			final String clippedSex = IndividualReader.extractRawSex(clipped);
+			final String clippedSex = PreferredSex.rawOf(clipped, model);
 			final String otherSex = otherData.getSex()
-				.name()
-				.toLowerCase();
+				.getRawSex();
 			final String requiredSex = IndividualReader.getOppositeSex(otherSex);
 			return requiredSex.equals(clippedSex);
 		}

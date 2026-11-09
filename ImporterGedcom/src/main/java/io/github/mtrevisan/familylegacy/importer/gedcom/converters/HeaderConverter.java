@@ -29,11 +29,11 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import org.apache.commons.lang3.ObjectUtils;
+import io.github.mtrevisan.familylegacy.util.SoftwareInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
@@ -87,17 +87,11 @@ public class HeaderConverter{
 			.addChild(FLEFRecord.createChildWithTagAndValue(HeaderReader.TAG_VERSION, PROTOCOL_VERSION));
 		header.addChild(protocol);
 
-		// ---- Source (from GEDCOM SOUR: the value is the system id, used when there is no name) ----
-		GEDCOMNode sourNode = GEDCOMHelper.findFirstChild(headNode, GEDCOMMapper.TAG_SOURCE);
-		if(sourNode != null){
-			FLEFRecord source = FLEFRecord.createChildWithTag(HeaderReader.TAG_SOURCE);
-			final String name = ObjectUtils.firstNonNull(GEDCOMHelper.findFirstValue(sourNode, GEDCOMMapper.TAG_NAME), sourNode.getValue());
-			if(name != null)
-				source.addChild(FLEFRecord.createChildWithTagAndValue(HeaderReader.TAG_NAME, name.trim()));
-			GEDCOMRecordBuilder.transferValue(source, HeaderReader.TAG_VERSION, GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_VERSION));
-			GEDCOMRecordBuilder.transferValue(source, HeaderReader.TAG_SOURCE_ORGANIZATION, GEDCOMHelper.findFirstChild(sourNode, "CORP"));
-			header.addChild(source);
-		}
+		// ---- Source: the software that writes this file is this one, whatever wrote the GEDCOM ----
+		header.addChild(FLEFRecord.createChildWithTag(HeaderReader.TAG_SOURCE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(HeaderReader.TAG_NAME, SoftwareInfo.NAME))
+			.addChild(FLEFRecord.createChildWithTagAndValue(HeaderReader.TAG_VERSION, SoftwareInfo.version()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(HeaderReader.TAG_SOURCE_ORGANIZATION, SoftwareInfo.ORGANIZATION)));
 
 		// ---- Date (transmission date) ----
 		String iso = GEDCOMDateConverter.toDateTime(GEDCOMHelper.findFirstChild(headNode, GEDCOMMapper.TAG_DATE));

@@ -32,19 +32,19 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.AddChildTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectChildTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.EditIndividualTool;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualCareerTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
