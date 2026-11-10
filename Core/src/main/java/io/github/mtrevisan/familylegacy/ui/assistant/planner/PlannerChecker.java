@@ -67,10 +67,6 @@ final class PlannerChecker{
 
 	/** The most steps proposed for one question. */
 	static final int MAX_STEPS_PER_QUESTION = 3;
-	/** The most steps proposed in all: the other ones are summed up in one finding. */
-	static final int MAX_STEPS = 25;
-	/** The most brick walls proposed: the other ones are summed up in one finding. */
-	static final int MAX_BRICK_WALLS = 10;
 
 	static final int HIGH_USEFULNESS = 70;
 	static final int MEDIUM_USEFULNESS = 45;
@@ -170,7 +166,7 @@ final class PlannerChecker{
 				.limit(MAX_STEPS_PER_QUESTION)
 				.forEach(candidate -> findings.add(step(question, candidate)));
 		}
-		return capped(findings);
+		return findings;
 	}
 
 	private static boolean isOpen(final GapData.Question question){
@@ -268,10 +264,10 @@ final class PlannerChecker{
 
 	private static PlannerFinding step(final GapData.Question question, final Candidate candidate){
 		final Step step = candidate.step();
-		final String name = candidate.person().name();
+		final String name = candidate.person().name() + " [" + candidate.person().id() + "]";
 		final String task = I18N.tf("planner.step." + step.key + ".task", name, candidate.year());
 		final String why = I18N.tf("planner.step." + step.key + ".why", name, candidate.year(), candidate.count());
-		final String title = (question.title() != null && !question.title().isBlank()? question.title(): question.id());
+		final String title = (question.title() != null && !question.title().isBlank()? question.title() + " [" + question.id() + "]": question.id());
 		final String level = level(candidate.usefulness());
 
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
@@ -312,9 +308,9 @@ final class PlannerChecker{
 			final String year = (person.birthYear() != null? String.valueOf(person.birthYear()): StringUtils.EMPTY);
 			final String level = level(usefulness);
 			final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
-				I18N.tf("planner.brick_wall.title", person.name()),
+				I18N.tf("planner.brick_wall.title", person.name() + " [" + person.id() + "]"),
 				I18N.tf((person.birthYear() != null? "planner.brick_wall.explanation.year": "planner.brick_wall.explanation"),
-					person.name(), String.valueOf(descendants), year) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
+					person.name() + " [" + person.id() + "]", String.valueOf(descendants), year) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
 					String.valueOf(usefulness)),
 				List.of(person.id()), null, DiagnosticKeys.of("planner.brick_wall", List.of(person.id()), descendants))
 				.withRank(usefulness);
@@ -323,7 +319,7 @@ final class PlannerChecker{
 				I18N.tf((person.birthYear() != null? "planner.brick_wall.draft.question.year": "planner.brick_wall.draft.question"),
 					person.name(), year), List.of(person.id()), null)));
 		}
-		return capped(findings, MAX_BRICK_WALLS, "planner.brick_wall");
+		return findings;
 	}
 
 	/** @return how many individuals descend from an individual, through the links of descent */
@@ -338,25 +334,5 @@ final class PlannerChecker{
 		return seen.size();
 	}
 
-
-	private static List<PlannerFinding> capped(final List<PlannerFinding> findings){
-		return capped(findings, MAX_STEPS, "planner.next_step");
-	}
-
-	/** Keeps the findings with the highest rank, up to {@code max}, and sums up the other ones in a single finding. */
-	private static List<PlannerFinding> capped(final List<PlannerFinding> findings, final int max, final String kind){
-		if(findings.size() <= max)
-			return findings;
-
-		final List<PlannerFinding> sorted = new ArrayList<>(findings);
-		sorted.sort(Comparator.comparingDouble((PlannerFinding f) -> f.diagnostic().rank()).reversed());
-		final List<PlannerFinding> result = new ArrayList<>(sorted.subList(0, max));
-		final int more = sorted.size() - max;
-		result.add(new PlannerFinding(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
-			I18N.tf(kind + ".more.title", String.valueOf(more)), I18N.tf(kind + ".more.explanation", String.valueOf(more),
-			String.valueOf(max)), List.of(), null, DiagnosticKeys.of(kind + ".more", List.of(), more))
-			.withRank(sorted.get(max).diagnostic().rank()), null));
-		return result;
-	}
 
 }

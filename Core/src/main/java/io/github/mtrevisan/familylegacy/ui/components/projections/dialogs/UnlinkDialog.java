@@ -43,6 +43,7 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -51,9 +52,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -152,15 +155,15 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 			final int[] yPoints = {y + 2, y + 10, y + 6};
 
 			if(state == State.FULL){
-				g2d.setColor(java.awt.Color.BLACK);
+				g2d.setColor(Color.BLACK);
 				g2d.fillPolygon(xPoints, yPoints, 3);
 			}
 			else if(state == State.PARTIAL){
-				g2d.setColor(java.awt.Color.GRAY);
+				g2d.setColor(Color.GRAY);
 				g2d.fillPolygon(xPoints, yPoints, 3);
 			}
 			else{
-				g2d.setColor(java.awt.Color.BLACK);
+				g2d.setColor(Color.BLACK);
 				g2d.drawPolygon(xPoints, yPoints, 3);
 			}
 			g2d.dispose();
@@ -291,7 +294,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 			add(tabbedPane, BorderLayout.CENTER);
 
 		final JPanel buttonPanel = new JPanel(new MigLayout("ins 5 10 5 10, fillx", "[left][grow,right]", "[]"));
-		final javax.swing.JButton selectAllButton = new javax.swing.JButton(I18N.t("button.select_all", "Select all"));
+		final JButton selectAllButton = new JButton(I18N.t("button.select_all", "Select all"));
 		selectAllButton.addActionListener(e -> {
 			final boolean select = checkboxes.stream().anyMatch(rc -> !rc.checkbox.isSelected());
 			for(final RelationshipCheckbox rc : checkboxes)
@@ -311,7 +314,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 
 				dispose();
 			},
-			I18N.t("button.cancel"), this::dispose);
+			this::dispose);
 		buttonPanel.add(confirmCancelPanel, "alignx right");
 
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -604,9 +607,9 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		}
 
 		final ArrowIcon arrowIcon = new ArrowIcon();
-		final javax.swing.JButton headerButton = new javax.swing.JButton(title + " (" + groupRecords.size() + ")", arrowIcon);
-		headerButton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-		headerButton.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+		final JButton headerButton = new JButton(title + " (" + groupRecords.size() + ")", arrowIcon);
+		headerButton.setHorizontalTextPosition(SwingConstants.RIGHT);
+		headerButton.setHorizontalAlignment(SwingConstants.LEFT);
 		headerButton.setFocusPainted(false);
 		headerButton.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 

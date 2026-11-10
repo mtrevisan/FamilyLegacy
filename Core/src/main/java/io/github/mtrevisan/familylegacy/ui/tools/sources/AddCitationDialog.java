@@ -178,9 +178,6 @@ public final class AddCitationDialog extends JDialog{
 		ok.addActionListener(e -> onContinue());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton(I18N.t("button.cancel"));
-		cancel.addActionListener(e -> dispose());
-		buttons.add(cancel);
 
 		return buttons;
 	}

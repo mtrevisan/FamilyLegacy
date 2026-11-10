@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
 import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
@@ -51,7 +53,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingConstants;
@@ -59,14 +60,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
-import javax.swing.text.Document;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -83,8 +81,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
 
 
 /**
@@ -140,7 +138,7 @@ public final class AgoraPanel extends JPanel{
 
 	private final JLabel dateLabel = new JLabel();
 	private final JLabel countLabel = new JLabel();
-	private final JTextField searchField = new JTextField(20);
+	private final SearchBox searchBox = new SearchBox(20, false);
 	private final AgoraTableModel tableModel = new AgoraTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final TableRowSorter<AgoraTableModel> sorter = new TableRowSorter<>(tableModel);
@@ -331,9 +329,9 @@ public final class AgoraPanel extends JPanel{
 		header.add(countLabel, "wrap");
 
 		header.add(new JLabel(I18N.l("label.filter")), "right");
-		header.add(searchField, "growx");
+		header.add(searchBox, "growx");
 		final JButton clear = new JButton(I18N.t("button.clear"));
-		clear.addActionListener(e -> searchField.setText(StringUtils.EMPTY));
+		clear.addActionListener(e -> searchBox.field().setText(StringUtils.EMPTY));
 		header.add(clear);
 
 		add(header, BorderLayout.NORTH);
@@ -485,23 +483,7 @@ public final class AgoraPanel extends JPanel{
 		 *                          Filter wiring
 		 * ================================================================== */
 
-		final Document document = searchField.getDocument();
-		document.addDocumentListener(new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-
-			@Override
-			public void changedUpdate(final DocumentEvent e){
-				applyFilter();
-			}
-		});
+		searchBox.onChange(this::applyFilter);
 	}
 
 	private void configureTimeline(){
@@ -513,11 +495,22 @@ public final class AgoraPanel extends JPanel{
 	}
 
 	private void applyFilter(){
-		final String text = searchField.getText();
-		if(StringUtils.isEmpty(text))
+		final String query = searchBox.query();
+		if(query.isEmpty()){
 			sorter.setRowFilter(null);
-		else
-			sorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(text.trim())));
+			return;
+		}
+
+		final Set<SearchMode> modes = searchBox.modes();
+		sorter.setRowFilter(new RowFilter<>(){
+			@Override
+			public boolean include(final Entry<? extends AgoraTableModel, ? extends Integer> entry){
+				final String[] fields = new String[entry.getValueCount()];
+				for(int i = 0; i < fields.length; i ++)
+					fields[i] = String.valueOf(entry.getValue(i));
+				return SearchBox.matches(query, modes, fields);
+			}
+		});
 	}
 
 	private void refresh(){
@@ -758,7 +751,7 @@ public final class AgoraPanel extends JPanel{
 	 *                          Standalone demo
 	 * ====================================================================== */
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

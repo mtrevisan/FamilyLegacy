@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Container;
@@ -107,7 +108,7 @@ class ReportOptionsPanelStatesTest{
 
 	private static boolean containsLabel(final Container container, final String text){
 		for(final Component child : container.getComponents()){
-			if(child instanceof final javax.swing.JLabel label && text.equals(label.getText()))
+			if(child instanceof final JLabel label && text.equals(label.getText()))
 				return true;
 			if(child instanceof final Container nested && containsLabel(nested, text))
 				return true;

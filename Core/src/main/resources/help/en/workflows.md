@@ -6,7 +6,7 @@ Each example puts together commands that are explained one by one in the other p
 
 1. **Make a copy** of what you have open, with **File > Backup...** (the import replaces the open document).
 2. **File > Import**, choose GEDCOM or Gramps XML, confirm, answer the question about the open document, and choose where to save the new `.flef`. The new file opens. See [Importing from GEDCOM and Gramps](import.md).
-3. **Tools > Validate File...** and fix what it lists, pressing **Re-run** until it says the file is valid. See [When something goes wrong](troubleshooting.md).
+3. **Tools > Validate File...** and fix what it lists, validating again (the report refreshes when you save a record opened from it) until it says the file is valid. See [When something goes wrong](troubleshooting.md).
 4. Look for what the conversion could not express. It leaves **notes** on the records: *Date* (a date that was not understood), *TO BE REVISED* on a spouse relationship that came from a GEDCOM family (decide whether it is civil or religious, and replace the generic type), *Additional file* (a media object with more than one file).
 5. Check the **media**: the paths are exactly as in the original file. Open **Source > Manage Media...** and see whether the files exist. If they are all under one folder, set **Appearance > Media paths** to *Relative to the base directory*. See [Preferences](preferences.md#media-paths).
 6. Look for **duplicates**: see example 4.

@@ -53,4 +53,19 @@ public final class DiagnosticActions{
 		return actions;
 	}
 
+	/**
+	 * The action that has a key: the one whose {@link DiagnosticAction#keySlot() slot} it is, or, for Enter only, the first one if
+	 * none has that slot (Enter always does what the finding proposes first).
+	 *
+	 * @param actions the actions of a finding
+	 * @param slot    {@code 0} for Enter, {@code 1} for Ctrl+Enter, {@code 2} for Ctrl+Shift+Enter, {@code 3} for Ctrl+Alt+Enter
+	 * @return the action, or {@code null} if the key has none
+	 */
+	public static DiagnosticAction forSlot(final List<DiagnosticAction> actions, final int slot){
+		for(final DiagnosticAction action : actions)
+			if(action.keySlot() == slot)
+				return action;
+		return (slot == 0 && !actions.isEmpty()? actions.getFirst(): null);
+	}
+
 }

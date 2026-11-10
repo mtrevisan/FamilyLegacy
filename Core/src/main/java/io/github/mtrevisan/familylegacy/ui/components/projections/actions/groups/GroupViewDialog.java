@@ -34,14 +34,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline.
 import io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline.IndividualCareerPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.grouptimeline.JurisdictionTimelinePanel;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 
 
 /**
@@ -56,8 +52,9 @@ public final class GroupViewDialog extends JDialog{
 		super(context.owner(), title, ModalityType.APPLICATION_MODAL);
 
 		setLayout(new BorderLayout(6, 6));
+		//the view takes the focus, so ESC reaches the window
+		content.setFocusable(true);
 		add(content, BorderLayout.CENTER);
-		add(createFooter(), BorderLayout.SOUTH);
 
 		setPreferredSize(new Dimension(1100, 560));
 
@@ -119,14 +116,5 @@ public final class GroupViewDialog extends JDialog{
 		return (record != null? I18N.tf("dialog.group_view.title", I18N.t(key), RecordDisplay.describe(record, context.model())): I18N.t(key));
 	}
 
-
-	private JPanel createFooter(){
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
-		return footer;
-	}
 
 }

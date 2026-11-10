@@ -70,7 +70,7 @@ You can avoid the question by writing the language yourself at the end of the da
 
 The **Calendar** box lists the calendars the application knows (it is editable, but a name that is not in the list is stored as text and not checked). Among them:
 
-- **Gregorian** and **Julian** are the calendars of the whole proleptic range: type the date as written in the source and choose the calendar of the source. Dates between 5 and 14 October 1582 do not exist in the reformed calendar and are rejected.
+- **Gregorian** and **Julian** are the calendars of the whole proleptic range: type the date as written in the source and choose the calendar of the source. Both are proleptic and continuous: the Gregorian calendar is also used before its reform, so 5 to 14 October 1582 are accepted as Gregorian days (they are the days the Julian calendar skipped), and the Julian calendar goes on after 1582. The two calendars differ by the days of the reform (4 October 1582 Julian is followed by 15 October 1582 Gregorian), so choose the one the source used.
 - **Year-start styles** (the year number changes on a day that is not 1 January): you choose the style and type an ordinary date whose year is *numbered in that style*, and the application converts it.
   - *Florentine*: the year begins on 25 March, after 1 January. `10 gennaio 1600` is 10 January 1601 in the modern count.
   - *Pisan*: the year begins on 25 March, before 1 January. `26 marzo 1601` is 26 March 1600.
@@ -83,9 +83,62 @@ The **Calendar** box lists the calendars the application knows (it is editable, 
 - **Quaker**: numbered days and months, for example `4th day 11th month 1702/3`, `4 da 11 mo 1702`, `the fourth of the eleventh month 1702`.
 - **English regnal years** and **pontifical years**: the year of a ruler, for example `5 March 3 George II` or `the third year of the reign of George II`; for popes, `anno III del pontificato di Pio V` or `pontificatus domini Pii papae quinti anno tertio, die 5 martii`. When the ruler or the day is ambiguous, add the year of the Incarnation (`15 June 1753, 26 George II`).
 - **Liturgical** calendars: dates relative to a feast, followed by the year: `Pasqua 1500`, `Easter 2024`, `Michaelmas 1700`, `terza domenica dopo Pentecoste 1700`, `3 days after Easter 1400`. A feast that is not known, or a missing year, is rejected.
-- Others: Hebrew (`15 Nisan 5785`), Islamic (`1 ramadan 1445`), Persian, Chinese, French Republican (`1 Vendémiaire 1`), and many more.
+- **Reformed Julian**: the Julian calendar with the reformed leap-year rule, written like the Gregorian one (`1 March 2800`).
+- The other calendars are in the table below.
 
-For the calendars other than the Gregorian family, the examples above are the forms known to work. If you are not sure how to write a date, the [Historical Date Assistant](assistant.md#the-historical-date-assistant) converts between calendars and shows what it understood.
+### The other calendars
+
+Choose the calendar and type the date as in the second column; the third column is the Gregorian date the application gets from it (the examples were checked against the application). Month names are written in Latin letters unless the example shows another script; accents are optional where the examples show none.
+
+| Calendar | You type | Gregorian date |
+|---|---|---|
+| Hebrew | `15 Nisan 5785` | 13 April 2025 |
+| Islamic | `1 ramadan 1445` | 11 March 2024 |
+| Persian | `1 Farvardin 1403` | 20 March 2024 |
+| French Republican | `18 Brumaire 8` | 9 November 1799 |
+| Coptic | `1 Thout 1741` | 11 September 2024 |
+| Ethiopian | `1 Meskerem 2017` | 11 September 2024 |
+| Armenian | `1 Navasard 1` | 13 July 552 |
+| Egyptian (Nabonassar) | `1 Thoth 425` | 7 November 323 BC |
+| Seleucid | `1 Nisan 1000`, `1 Tishrin Qdim 1000` | 4 April 689, 4 October 688 |
+| Byzantine (years from the creation of the world; September year) | `29 May 6961`, `1 Σεπτέμβριος 6961` | 7 June 1453, 10 September 1452 |
+| Rumi (Ottoman) | `1 mart 1333`, `15 subat 1332` | 1 March 1917, 28 February 1917 |
+| Bahá'í | `1 Bahá 171`, `1 Ayyám-i-Há 182` | 21 March 2014, 25 February 2026 |
+| Berber | `1 Yennayer 2976` | 14 January 2026 |
+| Parsi (Zoroastrian) | `1 Fravardin 1370 Bastani`, `1 Aspandarmad 1394 Fasli`, `1 Fravardin 1 Kadmi` | 21 March 2000, 14 February 2025, 19 June 632 |
+| Buddhist (Thai month names) | `1 มกราคม 2567` | 1 January 2024 |
+| Indian national (Saka) | `1 Chaitra 1946`, `1 Pausa 1946` | 21 March 2024, 22 December 2024 |
+| Bengali (West Bengal) | `1 Boishakh 1430` | 15 April 2023 |
+| Bengali (Bangladesh, fixed calendar) | `1 Boishakh 1431`, `29 Falgun 1431` | 14 April 2024, 14 March 2025 |
+| Tamil | `1 Chithirai 1946` | 14 April 2024 |
+| Malayalam | `1 Chingam 1200` | 17 August 2024 |
+| Nepali (Bikram Sambat) | `1 Baisakh 2080` | 14 April 2023 |
+| Vikram Samvat (by tithi) | `VS 2081 Kartika Shukla 1`, `VS 2080 Adhika Shravana Shukla 1` | 2 November 2024, 18 July 2023 |
+| Japanese (era years) | `Heisei 1 1 8`, `H1.1.8`, `平成元年1月8日`, `Ansei 7 3 3` | 8 January 1989 (the first three), 24 March 1860 |
+| Minguo (Republic of China) | `民國50年3月1日`, `50.3.1`, `民前1年` | 1 March 1961 (the first two), 1 January 1911 |
+| Dangi (Korean) | `Dangi 4294`, `단기 4290년 3월 1일` | 1 January 1961, 1 March 1957 |
+| Juche | `Juche 113 2 15`, `주체112(2023)년 4월 15일` | 15 February 2024, 15 April 2023 |
+| Chinese lunisolar | `2023年 癸卯年 五月 初五` | 22 June 2023 |
+| Korean lunisolar | `음력 2024년 1월 1일`, `lunar 2023 1 1` | 10 February 2024, 22 January 2023 |
+| Vietnamese lunisolar | `ngày 1 tháng Giêng năm 2024`, `mùng 1 tháng Giêng năm 1985`, `15/8/2023` | 10 February 2024, 21 January 1985, 29 September 2023 |
+| Mayan (Long Count) | `13.0.0.0.0` | 21 December 2012 |
+| Mayan (solar station of a year) | `Likin 2024`, `Xaman 2024`, `Chikin 2024`, `Nohol 2024` | 20 March 2024, 20 June 2024, 22 September 2024, 21 December 2024 |
+| Soviet eternal calendar | `7 ноябрь 1929` | 7 November 1929 |
+
+Notes on the table:
+
+- **Japanese**: from 1 January 1873 (Meiji 6) the months and days are Gregorian; before, they are the lunisolar ones, leap months included (`天保十四年閏九月十日`). An era year beyond the end of the era (`Meiji 46`) is rejected. The first year of an era can be written `元年` or `gannen`.
+- **Minguo, Dangi, Juche** count the year from an era; the months and days are Gregorian.
+- **Chinese, Korean and Vietnamese** lunisolar dates are computed astronomically, each at the time of its own country, so the new year can fall on different days (Korean 1997: 8 February, Chinese: 7 February). The leap month is marked `閏`/`闰`, `윤` or `nhuận`. For the Korean and Vietnamese ones the year is the Gregorian year in which it mostly falls.
+- **Nepali** works only for the years 1970 to 2100. **Vikram Samvat** counts the days of a fortnight from 1 to 15 (`Shukla` the bright half, `Krishna` the dark one), and a leap month is marked `Adhika` before the month name, only in a year that has one (`Adhika Shravana` in 2080, `Adhika Jyeshtha` in 2083; elsewhere the date is rejected).
+- **Parsi**: after the year you can name the reckoning (*Kadmi*, *Fasli*, *Bastani*); without it the Shahenshahi one is used.
+- **Mayan**: the Long Count has five numbers separated by dots. A station is the equinox or solstice of a Gregorian year: *Likin* (also `Lik'in`, `Lakin`, `Chac`) the March equinox, *Xaman* (also `Yax`, `Sac`) the June solstice, *Chikin* (also `Chik'in`, `Ek`) the September equinox, *Nohol* (also `Kan`) the December solstice. Like the seasons of the Gregorian calendar, the stations need the **Ephemeris plugin**. The station of a year is the one that falls in that Gregorian year, so `Nohol 2024` is the December solstice of 2024, as the *winter 2024* of the Gregorian calendar.
+- **Bangladesh** has its own fixed Bengali calendar (the year starts on 14 April, and the year number is the Gregorian one minus 593); the Bengali digits and month names (`১ বৈশাখ ১৪৩১`) are read.
+- **Soviet eternal calendar** was in force from 1929 to 1940, with the days and leap years of the Gregorian calendar, so the date is the Gregorian one written with Russian month names. The month is written in the nominative (`январь`, not `января`: the second is rejected), a season (`лето 1930`) needs the Ephemeris plugin, and a year outside 1929-1940 is not rejected.
+- **Buddhist** accepts the Thai month names, not the English ones.
+- A day that does not exist in the month of that calendar (`30 Falgun 1431` in the Bangladesh variant, which has 29 days) is rejected with a message that says so.
+
+For the calendars other than the Gregorian family, the examples above and in the table are the forms known to work. If you are not sure how to write a date, the [Historical Date Assistant](assistant.md#the-historical-date-assistant) converts between calendars and shows what it understood.
 
 ## What the application tells you
 

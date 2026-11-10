@@ -203,4 +203,17 @@ class OpenRecordsActionTest{
 		Assertions.assertEquals(records.size(), model.getRecordsByType(IndividualReader.TYPE).size());
 	}
 
+
+	@Test
+	void theIdentifierOfARecordIsWrittenOnceWhateverItsTextSays() throws IOException{
+		final FLEFModel model = convert();
+
+		for(final FLEFRecord record : model.getRecords()){
+			final String description = OpenRecordsAction.describe(model, record);
+			final String tag = "[" + record.getId() + "]";
+			Assertions.assertEquals(description.indexOf(tag), description.lastIndexOf(tag), description);
+			Assertions.assertTrue(description.contains(tag), description);
+		}
+	}
+
 }

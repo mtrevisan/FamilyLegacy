@@ -60,6 +60,11 @@ final class OpenRecordsAction implements DiagnosticAction{
 	}
 
 	@Override
+	public int keySlot(){
+		return 3;
+	}
+
+	@Override
 	public void execute(final AssistantContext context){
 		final FLEFModel model = context.model();
 		if(model == null)
@@ -100,10 +105,12 @@ final class OpenRecordsAction implements DiagnosticAction{
 			//a record with an unexpected shape is still listed, by its identifier
 		}
 		final String type = (handler != null? handler.getLabel(): record.getTag());
-		return type + ": " + (text != null && !text.isBlank()? text + StringUtils.SPACE: StringUtils.EMPTY) + "[" + record.getId() + "]";
+		//the text of some records already ends with the identifier: it is not written twice
+		final String tag = "[" + record.getId() + "]";
+		return type + ": " + (text != null && !text.isBlank()? (text.contains(tag)? text: text + StringUtils.SPACE + tag): tag);
 	}
 
-	private static void open(final Window owner, final FLEFModel model, final FLEFRecord record){
+	static void open(final Window owner, final FLEFModel model, final FLEFRecord record){
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		if(handler != null)
 			handler.createEditDialog(owner, model, record).setVisible(true);

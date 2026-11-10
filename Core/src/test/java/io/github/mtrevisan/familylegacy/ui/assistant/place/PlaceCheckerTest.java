@@ -221,20 +221,45 @@ class PlaceCheckerTest{
 	}
 
 	@Test
-	void manyPlacesAreSummedUp(){
+	void everyPlaceWithNoParentIsListed(){
 		final List<PlaceData.Place> places = new ArrayList<>();
 		for(int i = 0; i < 30; i ++)
 			places.add(used("P" + i, "Place " + i, PlaceReader.ENUM_TYPE_TOWN, i + 1));
 
 		final List<PlaceFinding> found = ofKind(findings(places, List.of()), "place.no_parent");
 
-		Assertions.assertEquals(PlaceChecker.MAX_PER_KIND, found.size());
-		Assertions.assertTrue(found.stream().noneMatch(f -> f.diagnostic().recordIds().contains("P0")));
-		final List<PlaceFinding> more = ofKind(findings(places, List.of()), "place.no_parent.more");
-		Assertions.assertEquals(1, more.size());
-		Assertions.assertTrue(more.getFirst().diagnostic().recordIds().isEmpty());
+		//none is left out, and none is summed up in a finding that cannot be opened
+		Assertions.assertEquals(30, found.size());
+		Assertions.assertTrue(found.stream().anyMatch(f -> f.diagnostic().recordIds().contains("P0")));
+		Assertions.assertTrue(found.stream().noneMatch(f -> f.diagnostic().recordIds().isEmpty()));
+		Assertions.assertTrue(ofKind(findings(places, List.of()), "place.no_parent.more").isEmpty());
 	}
 
+
+	@Test
+	void aUsedPlaceWithNoSourceIsReported(){
+		final PlaceData.Place unsourced = used("P1", "Treviso", PlaceReader.ENUM_TYPE_CITY, 4);
+		final PlaceData.Place sourced = new PlaceData.Place("P2", List.of("Venezia"), PlaceReader.ENUM_TYPE_CITY, null, null, 7, 1);
+		//no event happens there: not reported, an imported tree is full of them
+		final PlaceData.Place unused = used("P3", "Padova", PlaceReader.ENUM_TYPE_CITY, 0);
+
+		final List<PlaceFinding> found = ofKind(findings(List.of(unsourced, sourced, unused), List.of()), "place.no_source");
+
+		Assertions.assertEquals(1, found.size());
+		Assertions.assertEquals(List.of("P1"), found.getFirst().diagnostic().recordIds());
+		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, found.getFirst().diagnostic().severity());
+		Assertions.assertEquals(4., found.getFirst().diagnostic().rank());
+	}
+
+	@Test
+	void everyPlaceWithNoSourceIsListed(){
+		final List<PlaceData.Place> places = new ArrayList<>();
+		for(int i = 0; i < 30; i ++)
+			places.add(used("P" + i, "Place " + i, PlaceReader.ENUM_TYPE_TOWN, i + 1));
+
+		Assertions.assertEquals(30, ofKind(findings(places, List.of()), "place.no_source").size());
+		Assertions.assertTrue(ofKind(findings(places, List.of()), "place.no_source.more").isEmpty());
+	}
 
 	@Test
 	void aParishBelongsToADiocese(){

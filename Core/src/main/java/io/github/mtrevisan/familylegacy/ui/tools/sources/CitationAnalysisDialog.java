@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -142,14 +143,11 @@ final class CitationAnalysisDialog extends JDialog{
 		exportCsv.addActionListener(e -> exportToCsv());
 		final JButton copy = new JButton(I18N.t("button.copy_all"));
 		copy.addActionListener(e -> copyToClipboard());
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(openRecord);
 		buttons.add(exportCsv);
 		buttons.add(copy);
-		buttons.add(close);
 
 		final JPanel footer = new JPanel(new BorderLayout(8, 0));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));
@@ -547,8 +545,8 @@ final class CitationAnalysisDialog extends JDialog{
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JOptionPane.showMessageDialog(this, I18N.tf("message.csv.exported", rows.size() - 1, target.getAbsolutePath()),
-			I18N.t("dialog.citation_analysis.export.title"), JOptionPane.INFORMATION_MESSAGE);
+		SavedFileNotice.show(this, I18N.t("dialog.citation_analysis.export.title"),
+			I18N.tf("message.csv.exported", rows.size() - 1, target.getAbsolutePath()), target);
 	}
 
 

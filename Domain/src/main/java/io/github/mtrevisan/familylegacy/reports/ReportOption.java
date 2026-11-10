@@ -51,6 +51,7 @@ public enum ReportOption{
 	CULTURAL_NORMS(ReportConfig::culturalNorms),
 	HISTORIC_EVENTS(ReportConfig::historicEvents),
 	REPOSITORIES(ReportConfig::repositories),
+	INCLUDE_ORIGINAL_SOURCES(ReportConfig::includeOriginalSources),
 	GROUPS(ReportConfig::groups),
 	GROUP_MEMBERS(ReportConfig::groupMembers),
 	GROUP_SUBGROUPS(ReportConfig::groupSubgroups),

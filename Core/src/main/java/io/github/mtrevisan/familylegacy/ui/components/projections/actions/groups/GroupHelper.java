@@ -150,7 +150,7 @@ public final class GroupHelper{
 				continue;
 			final Set<String> sources = new LinkedHashSet<>();
 			collectSources(group, sources);
-			final String displayName = GroupReader.extractPrimaryName(group);
+			final String displayName = GroupReader.displayName(group);
 			profiles.put(id, new GroupProfile(
 				id,
 				displayName,

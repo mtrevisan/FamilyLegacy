@@ -48,9 +48,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.util.List;
 
 
@@ -296,11 +295,14 @@ class GEDCOMToFLEFConverterTest{
 
 
 	@Test
-	void validAgainstTheSchema() throws IOException, URISyntaxException{
+	void validAgainstTheSchema() throws IOException{
 		final FLEFModel model = convert();
 
-		final Path grammarPath = Path.of(Thread.currentThread().getContextClassLoader().getResource("gedg/flef_0.2.0.gedg").toURI());
-		final FLEFGrammar grammar = FLEFGrammarParser.parse(grammarPath);
+		//the grammar is in a jar (Domain): it is read as a stream, a path into a jar cannot be built without opening its file system
+		final FLEFGrammar grammar;
+		try(final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("gedg/flef_0.2.0.gedg")){
+			grammar = FLEFGrammarParser.parse(stream);
+		}
 		final FLEFValidator validator = new FLEFValidator(grammar);
 		Assertions.assertEquals(List.of(), validator.validateSchema(model));
 		Assertions.assertEquals(List.of(), validator.validateIntegrity(model));
@@ -716,6 +718,96 @@ class GEDCOMToFLEFConverterTest{
 		final int records = convert().getRecordCount();
 
 		Assertions.assertEquals(records, convert().getRecordCount());
+	}
+
+
+	/** Two couples; the sources of the first are titled by their kind, cited by both spouses (the way some programs write them). */
+	private static final String GEDCOM_MARRIAGE_KINDS = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @S1@ SOUR
+		1 TITL marriage Rossi Mario + Bianchi Anna 18500112 religious
+		0 @S2@ SOUR
+		1 TITL marriage Verdi Luigi + Neri Maria 19100203 civil
+		0 @S3@ SOUR
+		1 TITL marriage Gialli Paolo + Blu Rosa 19200304 religious
+		0 @I1@ INDI
+		1 NAME Mario /Rossi/
+		1 SOUR @S1@
+		2 EVEN MARR
+		0 @I2@ INDI
+		1 NAME Anna /Bianchi/
+		1 SOUR @S1@
+		2 EVEN MARR
+		0 @I3@ INDI
+		1 NAME Luigi /Verdi/
+		1 SOUR @S2@
+		2 EVEN MARR
+		0 @I4@ INDI
+		1 NAME Maria /Neri/
+		1 SOUR @S2@
+		2 EVEN MARR
+		0 @I5@ INDI
+		1 NAME Paolo /Gialli/
+		1 SOUR @S3@
+		2 EVEN MARR
+		0 @I6@ INDI
+		1 NAME Rosa /Blu/
+		0 @I7@ INDI
+		1 NAME Carlo /Verdi/
+		0 @I8@ INDI
+		1 NAME Elena /Rosa/
+		0 @F1@ FAM
+		1 HUSB @I1@
+		1 WIFE @I2@
+		1 MARR Y
+		0 @F2@ FAM
+		1 HUSB @I3@
+		1 WIFE @I4@
+		1 MARR Y
+		0 @F3@ FAM
+		1 HUSB @I5@
+		1 WIFE @I6@
+		1 MARR Y
+		0 @F4@ FAM
+		1 HUSB @I7@
+		1 WIFE @I8@
+		1 MARR Y
+		2 TYPE Family
+		0 @F5@ FAM
+		1 HUSB @I1@
+		1 WIFE @I8@
+		1 MARR Y
+		2 NOTE Matrimonio religioso celebrato nella pieve
+		0 TRLR
+		""";
+
+	@Test
+	void theKindOfAMarriageComesFromWhatTheFileSaysExplicitly() throws IOException{
+		final FLEFModel model = convert(GEDCOM_MARRIAGE_KINDS);
+
+		//a source of the marriage cited by both spouses, titled by its kind
+		Assertions.assertEquals(1, relationships(model, "religious_spouse").stream()
+			.filter(r -> "I1".equals(FLEFRecordHelper.getChildValue(r, "subject.individual"))
+				&& "I2".equals(FLEFRecordHelper.getChildValue(r, "target.individual"))).count());
+		Assertions.assertEquals(1, relationships(model, "civil_spouse").size());
+		//a source cited by one spouse only is not enough
+		Assertions.assertTrue(relationships(model, "religious_spouse").stream()
+			.noneMatch(r -> "I5".equals(FLEFRecordHelper.getChildValue(r, "subject.individual"))));
+		//a note that says it
+		Assertions.assertTrue(relationships(model, "religious_spouse").stream()
+			.anyMatch(r -> "I8".equals(FLEFRecordHelper.getChildValue(r, "target.individual"))));
+	}
+
+	@Test
+	void aMarriageWhoseKindIsNotKnownIsGenericWithoutANoteToRevise() throws IOException{
+		final FLEFModel model = convert(GEDCOM_MARRIAGE_KINDS);
+
+		final List<FLEFRecord> generic = relationships(model, "spouse");
+		Assertions.assertEquals(2, generic.size());
+		//the type the file gave to the marriage is kept as a note, nothing says "to be revised"
+		Assertions.assertTrue(generic.stream().noneMatch(r -> String.valueOf(FLEFRecordHelper.getChildValue(r, "note.text")).contains("TO BE REVISED")));
+		Assertions.assertTrue(generic.stream().anyMatch(r -> "Type of the marriage in the file: Family".equals(FLEFRecordHelper.getChildValue(r, "note.text"))));
 	}
 
 }

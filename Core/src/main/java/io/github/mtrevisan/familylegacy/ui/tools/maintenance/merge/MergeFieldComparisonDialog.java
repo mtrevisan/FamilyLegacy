@@ -769,9 +769,6 @@ public final class MergeFieldComparisonDialog extends JDialog{
 		ok.addActionListener(e -> onOk());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton(I18N.t("button.cancel"));
-		cancel.addActionListener(e -> dispose());
-		buttons.add(cancel);
 
 		return buttons;
 	}

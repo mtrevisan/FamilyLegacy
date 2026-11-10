@@ -643,7 +643,7 @@ public final class DeltaT{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		final double[] testYears = {
 			-720., -500., 0., 500., 1000., 1500., 1600., 1700., 1800.,
 			1850., 1900., 1920., 1940., 1950., 1960., 1970.,

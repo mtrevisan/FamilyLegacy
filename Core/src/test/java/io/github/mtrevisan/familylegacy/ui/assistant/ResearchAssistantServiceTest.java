@@ -109,7 +109,7 @@ class ResearchAssistantServiceTest{
 
 		Assertions.assertEquals("dates.assistant", inEditorIds.getFirst());
 		Assertions.assertTrue(inEditorIds.containsAll(List.of("dates.conversion", "dates.liturgical", "dates.sun", "dates.relative",
-			"dates.event", "dates.age")));
+			"dates.event", "dates.age", "dates.roman")));
 		Assertions.assertTrue(ids(service.search("", elsewhere)).isEmpty());
 		Assertions.assertTrue(ids(service.search("", new AssistantContext(null, null, null))).isEmpty());
 	}
@@ -212,6 +212,22 @@ class ResearchAssistantServiceTest{
 
 		//the most serious first, whatever the rank; within a severity the higher rank first, then by title
 		Assertions.assertEquals(List.of("Omega", "Zeta", "Beta", "Gamma", "Alpha"), findings.stream().map(Diagnostic::title).toList());
+	}
+
+	@Test
+	void theFindingsOfTheSameKindAreListedTogetherNotByTitle(){
+		final ResearchAssistantService service = new ResearchAssistantService();
+		service.register(contributor(List.of(), List.of(context -> List.of(
+			keyed("kind.x", "Beta"), keyed("kind.y", "Alpha"), keyed("kind.x", "Delta"), keyed("kind.y", "Gamma")))));
+
+		final List<Diagnostic> findings = service.diagnose(new AssistantContext(null, null, null));
+
+		Assertions.assertEquals(List.of("Beta", "Delta", "Alpha", "Gamma"), findings.stream().map(Diagnostic::title).toList());
+		Assertions.assertEquals(List.of("kind.x", "kind.x", "kind.y", "kind.y"), findings.stream().map(Diagnostic::kind).toList());
+	}
+
+	private static Diagnostic keyed(final String kind, final String title){
+		return new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.IDENTITY, title, "why", List.of(), null, kind + "|" + title);
 	}
 
 	private static Diagnostic ranked(final Diagnostic.Severity severity, final String title, final double rank){

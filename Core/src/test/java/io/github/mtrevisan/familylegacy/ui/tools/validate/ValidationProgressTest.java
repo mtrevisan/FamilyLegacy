@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
@@ -148,19 +147,6 @@ class ValidationProgressTest{
 		}
 	}
 
-	private static JButton button(final Container container, final String text){
-		for(final Component child : container.getComponents()){
-			if(child instanceof JButton button && text.equals(button.getText()))
-				return button;
-			if(child instanceof Container nested){
-				final JButton found = button(nested, text);
-				if(found != null)
-					return found;
-			}
-		}
-		return null;
-	}
-
 	@Test
 	void theReportOpensAtOnceWithTheBarAndShowsWhatTheValidationFindsWhenItIsDone() throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialog needs a display");
@@ -189,18 +175,16 @@ class ValidationProgressTest{
 		SwingUtilities.invokeAndWait(() -> {});
 
 		final List<String> during = new ArrayList<>();
-		final boolean[] state = new boolean[2];
+		final boolean[] state = new boolean[1];
 		SwingUtilities.invokeAndWait(() -> {
 			labels(dialog, during);
 			state[0] = bar.isVisible();
-			state[1] = button(dialog, "Re-run").isEnabled();
 		});
 
-		//it is validating: the bar is there, at half, the status says so, and the report cannot be run again meanwhile
+		//it is validating: the bar is there, at half, and the status says so
 		Assertions.assertTrue(state[0], "the bar is visible while it validates");
 		Assertions.assertEquals(50, bar.getValue());
 		Assertions.assertTrue(during.contains("Validating\u2026"), during.toString());
-		Assertions.assertFalse(state[1], "Re-run is disabled while it validates");
 
 		release.countDown();
 		final long deadline = System.currentTimeMillis() + 30_000L;
@@ -211,12 +195,10 @@ class ValidationProgressTest{
 		SwingUtilities.invokeAndWait(() -> {
 			labels(dialog, after);
 			state[0] = bar.isVisible();
-			state[1] = button(dialog, "Re-run").isEnabled();
 			dialog.dispose();
 		});
 
 		Assertions.assertFalse(state[0], "the bar goes away when it is done");
-		Assertions.assertTrue(state[1], "Re-run is enabled again");
 		Assertions.assertTrue(after.stream().anyMatch(text -> text.contains("1 issue found")), after.toString());
 	}
 

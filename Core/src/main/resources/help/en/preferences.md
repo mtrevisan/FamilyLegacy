@@ -1,6 +1,6 @@
 # Preferences
 
-Your preferences are in the **Appearance** menu and in some entries of the **View** menu. They are kept between sessions in a plain text file, `preferences.properties`, in the folder `.familylegacy` of your home directory. **Appearance > Open preferences file...** opens it.
+Your preferences are in the **Appearance** and **Settings** menus and in some entries of the **View** menu. They are kept between sessions in a plain text file, `preferences.properties`, in the folder `.familylegacy` of your home directory. **Settings > Open preferences folder...** opens it.
 
 None of these preferences is stored in the genealogy: they change how the data is *shown*, never the data.
 
@@ -12,10 +12,10 @@ None of these preferences is stored in the genealogy: they change how the data i
 
 **Appearance > Font...** opens a dialog to choose the font of the whole interface.
 
-- Type in the filter field to narrow the list of installed fonts; each font is drawn in its own face.
+- Type in the search box to narrow the list of installed fonts (word by word, with the *whole words* and *fuzzy* options as in the record selection); each font is drawn in its own face.
 - Set the **size** next to the filter.
 - The preview at the bottom shows a sample sentence in the chosen font and size.
-- **Select** applies and saves the choice; **Cancel** (`Esc`) leaves things as they are; **Default** goes back to the font of the look-and-feel.
+- **Select** applies and saves the choice; `Esc` closes the dialog and leaves things as they are; **Default** goes back to the font of the look-and-feel.
 
 ## Media paths
 
@@ -40,7 +40,7 @@ Details:
 
 ## Identity Assistant
 
-**Appearance > Identity Assistant...** sets what the [Identity Assistant](assistant.md) proposes. It changes only which possible duplicates are shown, never the data; the values are conventions that are not calibrated on real data, which is why you can change them.
+**Settings > Identity Assistant...** sets what the [Identity Assistant](assistant.md) proposes. It changes only which possible duplicates are shown, never the data; the values are conventions that are not calibrated on real data, which is why you can change them. The values are saved when you close the dialog (with OK or Esc). 
 
 | Setting | Default | Meaning |
 |---|---|---|

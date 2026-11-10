@@ -183,14 +183,11 @@ public final class SocialCategorySelectionDialog extends JDialog{
 		final JButton okBtn = new JButton(I18N.t("button.ok"));
 		okBtn.addActionListener(e -> onConfirm());
 
-		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
-		cancelBtn.addActionListener(e -> onCancel());
 
 		panel.add(selectAllBtn);
 		panel.add(selectNoneBtn);
 		panel.add(new JLabel(StringUtils.EMPTY), "growx");
 		panel.add(okBtn);
-		panel.add(cancelBtn);
 
 		getRootPane().setDefaultButton(okBtn);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -215,12 +212,6 @@ public final class SocialCategorySelectionDialog extends JDialog{
 				.isSelected())
 				picked.add(entry.getKey());
 		result = picked;
-
-		dispose();
-	}
-
-	private void onCancel(){
-		result = null;
 
 		dispose();
 	}

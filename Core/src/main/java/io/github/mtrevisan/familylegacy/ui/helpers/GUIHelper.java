@@ -451,18 +451,19 @@ public final class GUIHelper{
 	}
 
 
+	/**
+	 * The buttons of a dialog that asks to confirm: the one that confirms, and nothing to cancel with. A dialog is cancelled with ESC
+	 * (or with the close button of its window): both run {@code cancel}, and the dialog never closes in any other way.
+	 */
 	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
-		return createButtonPanel(dialog, I18N.t("button.save"), save, I18N.t("button.cancel"), cancel);
+		return createButtonPanel(dialog, I18N.t("button.save"), save, cancel);
 	}
 
-	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save,
-			final String cancelLabel, final Runnable cancel){
+	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save, final Runnable cancel){
 		final JButton saveButton = new JButton(saveLabel);
-		final JButton cancelButton = new JButton(cancelLabel);
 
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
 
 		saveButton.addActionListener(e -> save.run());
 
@@ -475,7 +476,6 @@ public final class GUIHelper{
 				cancel.run();
 			}
 		};
-		cancelButton.addActionListener(escapeAction);
 		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		inputMap.put(ESCAPE_STROKE, "escape");
 		final ActionMap actionMap = rootPane.getActionMap();
@@ -488,35 +488,6 @@ public final class GUIHelper{
 				cancel.run();
 			}
 		});
-
-		return buttonPanel;
-	}
-
-	public static JPanel createNewSelectCancelButtonPanel(final JRootPane rootPane, final Runnable createNew,
-			final Runnable select, final Runnable cancel){
-		final JButton createNewButton = new JButton(I18N.t("button.create_new"));
-		final JButton selectButton = new JButton(I18N.t("button.select"));
-		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
-
-		final JPanel buttonPanel = new JPanel(new MigLayout("ins 0,fillx", "[left][grow,fill][right]", "[]"));
-		buttonPanel.add(createNewButton, "cell 0 0,left");
-		buttonPanel.add(selectButton, "cell 2 0,split 2,right");
-		buttonPanel.add(cancelButton, "cell 2 0,right");
-
-		createNewButton.addActionListener(e -> createNew.run());
-		selectButton.addActionListener(e -> select.run());
-
-		final Action escapeAction = new AbstractAction(){
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				cancel.run();
-			}
-		};
-		cancelButton.addActionListener(escapeAction);
-		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-		inputMap.put(ESCAPE_STROKE, "escape");
-		final ActionMap actionMap = rootPane.getActionMap();
-		actionMap.put("escape", escapeAction);
 
 		return buttonPanel;
 	}

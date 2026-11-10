@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.2.0
-// PROTOCOL_DATE = 2026-10-26
+// PROTOCOL_DATE = 2026-11-10
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -14,6 +14,7 @@
 // - ID values of each record MUST be unique within a file.
 // - IDs are local to a file and are not stable across merges; they MUST NOT be used as persistent external keys.
 // - Circular citation chains SHOULD be avoided.
+// - DERIVED_FROM chains of SourceRecord MUST be acyclic.
 // - Place relationship cycles SHOULD be prevented.
 // - Identity hypotheses SHOULD be unique per unordered pair.
 // - PARENT_ACTIVITY chains of ResearchActivityRecord MUST be acyclic.
@@ -948,7 +949,7 @@ ImpactTarget = oneof {
 // primary record
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
-// Citation relationships SHOULD NOT form cycles.
+// DERIVED_FROM relationships MUST NOT form cycles: a source cannot be derived from itself, directly or through other sources.
 record SourceRecord {
   title+: NameStructure             // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
   author*: Agent                    // the persons, groups, or entities who created the record (author, compiler, transcriber, notary, clerk, ...). For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
@@ -960,6 +961,7 @@ record SourceRecord {
   } | Text
   repository*: RepositoryCitation
   media*: Xref<MediaRecord>        // the media (scans, photographs, recordings, ...) of this source
+  derived_from*: SourceCitation     // the sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation or a database taken from a register, a book or other sources. The locator of the citation says where in the original the content comes from (page, entry, folio) and the extract the passage; the stance is `contradicts` when this source disagrees with its original (e.g., a mistaken transcription). An original source has none. Sources derived from the same original are not independent evidence of what it says. This is about where the content comes from: a source that only mentions other works (a bibliography, a note that refers to a source) does not derive from them
   note*: NoteStructure              // may contain information to identify a book (ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
   privacy?: PrivacyStructure
   audit: AuditStructure

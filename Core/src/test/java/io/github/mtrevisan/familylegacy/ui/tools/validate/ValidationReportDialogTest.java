@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-/** The report shows what was found, by the name of the record, without validating again; "Re-run" validates in the background. */
+/** The report shows what was found, by the name of the record, without validating again. */
 class ValidationReportDialogTest{
 
 	private static final String FLEF = """
@@ -125,54 +125,6 @@ class ValidationReportDialogTest{
 		Assertions.assertTrue(summary.contains(I18N.tf("text.validate.issues", 2)), summary.toString());
 		Assertions.assertTrue(cells.get(0).contains("Anna"), cells.toString());
 		Assertions.assertEquals("—", cells.get(1));
-	}
-
-	@Test
-	void reRunValidatesInTheBackgroundOnACopyOfTheModel() throws Exception{
-		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
-		final FLEFModel model = new FLEFParser().parse(FLEF);
-		final FLEFModel copy = new FLEFParser().parse(FLEF);
-		final List<FLEFModel> validated = new ArrayList<>();
-		final List<Thread> threads = new ArrayList<>();
-		final ValidationReportDialog[] dialog = new ValidationReportDialog[1];
-		final List<AbstractButton> buttons = new ArrayList<>();
-		final List<JLabel> labels = new ArrayList<>();
-
-		SwingUtilities.invokeAndWait(() -> {
-			dialog[0] = new ValidationReportDialog(null, model, List.of(new FLEFValidator.ValidationError("x", "I1")), () -> copy, view -> {
-				validated.add(view);
-				threads.add(Thread.currentThread());
-				return List.of();
-			});
-			collect(dialog[0], labels, new ArrayList<>(), buttons);
-			buttons.stream()
-				.filter(button -> I18N.t("button.rerun").equals(button.getText()))
-				.findFirst()
-				.orElseThrow()
-				.doClick();
-		});
-
-		final long deadline = System.currentTimeMillis() + 20_000;
-		while(validated.isEmpty() && System.currentTimeMillis() < deadline)
-			Thread.sleep(50);
-		final String[] text = new String[1];
-		//the label changes when the worker is done, which is after the validation was called: wait for it, do not assume
-		do{
-			SwingUtilities.invokeAndWait(() -> text[0] = labels.stream()
-				.map(JLabel::getText)
-				.filter(label -> label != null && label.contains("valid"))
-				.findFirst()
-				.orElse(""));
-			if(text[0].isEmpty())
-				Thread.sleep(50);
-		}while(text[0].isEmpty() && System.currentTimeMillis() < deadline);
-		SwingUtilities.invokeAndWait(() -> dialog[0].dispose());
-
-		Assertions.assertEquals(1, validated.size());
-		Assertions.assertSame(copy, validated.getFirst(), "it is the copy that is read, not the model of the user");
-		Assertions.assertNotEquals(Thread.currentThread(), threads.getFirst());
-		Assertions.assertFalse(SwingUtilities.isEventDispatchThread());
-		Assertions.assertEquals(I18N.t("text.validate.valid"), text[0]);
 	}
 
 }

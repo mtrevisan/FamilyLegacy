@@ -40,19 +40,13 @@ import java.util.function.Function;
  * Turns the consanguinity report into the findings of the Research Assistant. It reports and explains: nothing is changed.
  * <p>
  * A couple whose partners are first cousins or closer (kinship of 1/16 or more) is a warning, the others (down to third cousins) are
- * information; the closest relatives come first. The most that are listed one by one is {@link #MAX_UNIONS}, the others are one
- * finding, so that a village where everybody is a third cousin of everybody does not fill the palette. The inbred individuals are one
- * finding, with the most inbred listed.
+ * information; the closest relatives come first. All of them are listed one by one,
+ * with their findings grouped by kind in the palette. The inbred individuals are one finding for each,
+ * the most inbred first.
  * </p>
  */
 final class ConsanguinityChecker{
 
-	/** The couples listed one by one. */
-	static final int MAX_UNIONS = 25;
-	/** The records that a finding about many lists at most. */
-	private static final int MAX_LISTED = 200;
-	/** The individuals named in the explanation of the finding about the inbred ones. */
-	private static final int MAX_NAMED = 10;
 	/** The kinship coefficient from which a couple is a warning: first cousins (a convention). */
 	static final double WARNING_KINSHIP = 1. / 16.;
 
@@ -64,13 +58,11 @@ final class ConsanguinityChecker{
 		final List<Diagnostic> findings = new ArrayList<>();
 
 		final List<ConsanguinityReport.ConsanguineousUnion> unions = report.unions();
-		for(final ConsanguinityReport.ConsanguineousUnion union : unions.subList(0, Math.min(MAX_UNIONS, unions.size())))
+		for(final ConsanguinityReport.ConsanguineousUnion union : unions)
 			findings.add(union(union, names));
-		if(unions.size() > MAX_UNIONS)
-			findings.add(otherUnions(unions.subList(MAX_UNIONS, unions.size())));
 
-		if(!report.inbredIndividuals().isEmpty())
-			findings.add(inbred(report));
+		for(final ConsanguinityReport.InbredIndividual individual : report.inbredIndividuals())
+			findings.add(inbred(individual));
 		return findings;
 	}
 
@@ -85,12 +77,13 @@ final class ConsanguinityChecker{
 		final String relatedAs = (union.term().isEmpty()? I18N.t("consanguinity.union.related"): union.term());
 		final String ancestors = (union.commonAncestors().isEmpty()
 			? ""
-			: ConsanguinityReportText.ancestors(union.commonAncestors(), names));
+			: ConsanguinityReportText.ancestors(union.commonAncestors(), id -> names.apply(id) + " [" + id + "]"));
 		final String coefficient = ConsanguinityReportText.decimal(union.relationship());
 		final String inbreeding = ConsanguinityReportText.percent(union.kinship());
 
 		final Diagnostic.Severity severity = (union.kinship() >= WARNING_KINSHIP? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION);
-		final Object[] arguments = {union.firstName(), union.secondName(), relatedAs, ancestors, coefficient, inbreeding, children};
+		final Object[] arguments = {union.firstName() + " [" + union.firstId() + "]", union.secondName() + " [" + union.secondId() + "]",
+			relatedAs, ancestors, coefficient, inbreeding, children};
 		return new Diagnostic(severity, AssistantCategory.RELATIONSHIPS,
 			I18N.tf("consanguinity.union.title", arguments), I18N.tf("consanguinity.union.explanation", arguments),
 			recordIds, null,
@@ -98,45 +91,16 @@ final class ConsanguinityChecker{
 			.withRank(union.kinship());
 	}
 
-	private static Diagnostic otherUnions(final List<ConsanguinityReport.ConsanguineousUnion> others){
-		final List<String> recordIds = new ArrayList<>();
-		for(final ConsanguinityReport.ConsanguineousUnion union : others){
-			if(recordIds.size() >= MAX_LISTED)
-				break;
-
-			recordIds.add(union.firstId());
-			recordIds.add(union.secondId());
-		}
-		final Object[] arguments = {String.valueOf(others.size()), String.valueOf(MAX_UNIONS),
-			ConsanguinityReportText.decimal(others.getFirst().relationship())};
+	/** An individual whose parents are related: one finding for each of them. */
+	private static Diagnostic inbred(final ConsanguinityReport.InbredIndividual individual){
+		final List<String> recordIds = new ArrayList<>(List.of(individual.id()));
+		recordIds.addAll(individual.parentIds());
+		final String name = individual.name() + " [" + individual.id() + "]";
+		final String inbreeding = ConsanguinityReportText.percent(individual.inbreeding());
 		return new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RELATIONSHIPS,
-			I18N.tf("consanguinity.other_unions.title", arguments), I18N.tf("consanguinity.other_unions.explanation", arguments),
-			recordIds, null, DiagnosticKeys.of("consanguinity.other_unions", List.of(), others.size()))
-			.withRank(others.getFirst().kinship());
-	}
-
-	private static Diagnostic inbred(final ConsanguinityReport report){
-		final List<ConsanguinityReport.InbredIndividual> individuals = report.inbredIndividuals();
-		final StringBuilder named = new StringBuilder();
-		final List<String> recordIds = new ArrayList<>();
-		for(int i = 0; i < individuals.size() && recordIds.size() < MAX_LISTED; i ++){
-			final ConsanguinityReport.InbredIndividual individual = individuals.get(i);
-			recordIds.add(individual.id());
-			if(i < MAX_NAMED){
-				if(i > 0)
-					named.append("; ");
-				named.append(individual.name())
-					.append(" (")
-					.append(ConsanguinityReportText.percent(individual.inbreeding()))
-					.append(')');
-			}
-		}
-		final Object[] arguments = {String.valueOf(individuals.size()), ConsanguinityReportText.percent(report.minimumInbreeding()),
-			named.toString()};
-		return new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RELATIONSHIPS,
-			I18N.tf("consanguinity.inbred.title", arguments), I18N.tf("consanguinity.inbred.explanation", arguments),
-			recordIds, null, DiagnosticKeys.of("consanguinity.inbred", List.of(), individuals.size()))
-			.withRank(individuals.getFirst().inbreeding());
+			I18N.tf("consanguinity.inbred.title", name, inbreeding), I18N.tf("consanguinity.inbred.explanation", name, inbreeding),
+			recordIds, null, DiagnosticKeys.of("consanguinity.inbred", recordIds, inbreeding))
+			.withRank(individual.inbreeding());
 	}
 
 }

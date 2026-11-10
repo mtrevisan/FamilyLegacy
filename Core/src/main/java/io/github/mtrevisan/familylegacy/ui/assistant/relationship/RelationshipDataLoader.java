@@ -34,6 +34,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
@@ -95,7 +97,7 @@ final class RelationshipDataLoader{
 			persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
 
 		return new RelationshipData(persons, filteredGroups, loadRelationships(model, persons.keySet(), filteredGroups.keySet()), events,
-			clergy(model, persons.keySet()), ecclesiasticalPlaces(model));
+			clergy(model, persons.keySet()), ecclesiasticalPlaces(model), countries(model));
 	}
 
 
@@ -122,9 +124,57 @@ final class RelationshipDataLoader{
 			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
 			final FLEFRecord date = (dates.isEmpty()? null: dates.getFirst());
 			events.add(new RelationshipData.Event(entry.getKey(), EventReader.extractType(event), range(date), text(date),
-				entry.getValue(), FLEFRecordHelper.getChildValue(event, PLACE_OF)));
+				entry.getValue(), FLEFRecordHelper.getChildValue(event, PLACE_OF), sourceTitles(model, event)));
 		}
 		return events;
+	}
+
+	/** @return the {@code value} of the first structure of a record with that tag (a record can have several titles or names), or {@code null} */
+	private static String firstValue(final FLEFRecord record, final String structure){
+		final List<FLEFRecord> structures = FLEFRecordHelper.extractStructures(record, structure);
+		return (structures.isEmpty()? null: FLEFRecordHelper.getChildValue(structures.getFirst(), "value"));
+	}
+
+	/** @return the titles of the sources that cite a record (an event) */
+	private static List<String> sourceTitles(final FLEFModel model, final FLEFRecord record){
+		final List<String> titles = new ArrayList<>();
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_SOURCE)){
+			final FLEFRecord source = model.getRecordById(FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
+			final String title = (source != null? firstValue(source, SourceReader.TAG_TITLE): null);
+			if(StringUtils.isNotBlank(title))
+				titles.add(title.trim());
+		}
+		return titles;
+	}
+
+	/**
+	 * @return the name of the largest place each place is part of (the country, if the places are described that far), in lower case,
+	 * following the administrative relationships; a place that is part of no place is its own
+	 */
+	private static Map<String, String> countries(final FLEFModel model){
+		final Map<String, String> names = new LinkedHashMap<>();
+		for(final FLEFRecord place : model.getRecordsByType(PlaceHandler.TYPE))
+			if(place.getId() != null)
+				names.put(place.getId(), StringUtils.lowerCase(StringUtils.trimToEmpty(firstValue(place, "name"))));
+
+		final Map<String, String> parentOf = new LinkedHashMap<>();
+		for(final FLEFRecord relationship : model.getRecordsByType(PlaceRelationshipHandler.TYPE))
+			if(PlaceRelationshipReader.ENUM_TYPE_ADMINISTRATIVE_PART_OF.equals(PlaceRelationshipReader.extractType(relationship))){
+				final String child = FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_SUBJECT_PLACE);
+				final String parent = FLEFRecordHelper.getChildValue(relationship, PlaceRelationshipReader.TAG_TARGET_PLACE);
+				if(child != null && parent != null && !child.equals(parent))
+					parentOf.putIfAbsent(child, parent);
+			}
+
+		final Map<String, String> countries = new LinkedHashMap<>();
+		for(final String id : names.keySet()){
+			String current = id;
+			//the steps are limited, so that a circle of places (reported by the place checks) does not loop
+			for(int step = 0; step < 20 && parentOf.containsKey(current); step ++)
+				current = parentOf.get(current);
+			countries.put(id, names.getOrDefault(current, ""));
+		}
+		return countries;
 	}
 
 	/** The individuals whose occupation says they are of the clergy. */
@@ -172,10 +222,15 @@ final class RelationshipDataLoader{
 			if(EventReader.ENUM_TYPE_BIRTH.equals(event.type()) && event.date() != null
 					&& event.participants().stream().anyMatch(p -> p.principal() && p.personId().equals(individual.getId())))
 				birth = (birth != null? birth.hull(event.date()): event.date());
+		DateRange death = null;
+		for(final RelationshipData.Event event : events)
+			if(EventReader.ENUM_TYPE_DEATH.equals(event.type()) && event.date() != null
+					&& event.participants().stream().anyMatch(p -> p.principal() && p.personId().equals(individual.getId())))
+				death = (death != null? death.hull(event.date()): event.date());
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);
 		return new RelationshipData.Person(individual.getId(), (name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
-			sex, birth);
+			sex, birth, death);
 	}
 
 	private static List<RelationshipData.Relationship> loadRelationships(final FLEFModel model, final Set<String> individualIds,

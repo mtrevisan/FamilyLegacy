@@ -28,7 +28,9 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
@@ -37,12 +39,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 
@@ -58,13 +64,12 @@ final class EvidenceQualifiersDialog extends JDialog{
 
 	EvidenceQualifiersDialog(final Window owner, final FLEFModel recordModel, final Map<String, Integer> sourceTypes,
 			final Map<String, Integer> informationTypes, final Map<String, Integer> evidenceTypes, final int withQualifiers,
-			final List<FLEFRecord> missing){
+			final int withoutQualifiers, final List<FLEFRecord> missing){
 		super(owner, I18N.t("dialog.evidence_qualifiers.title"), ModalityType.APPLICATION_MODAL);
 
 		ToolDialogs.installEscapeToClose(this);
 
 		this.recordModel = recordModel;
-		final int withoutQualifiers = missing.size();
 
 		final JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab(I18N.t("tab.title.overview"), createOverviewTab(withQualifiers, withoutQualifiers));
@@ -85,7 +90,7 @@ final class EvidenceQualifiersDialog extends JDialog{
 						.append(models.get(i).toText())
 						.append('\n');
 				return sb.toString();
-			}), ToolDialogs.createCloseButton(this)), BorderLayout.SOUTH);
+			})), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);
@@ -111,25 +116,41 @@ final class EvidenceQualifiersDialog extends JDialog{
 		return panel;
 	}
 
-	/** The records that have no qualifiers, by name: they are what is left to assess; a double-click opens one. */
+	/**
+	 * The records that have no qualifiers, by name: they are what is left to assess; a double-click opens one. The list can be long, so
+	 * it can be narrowed by typing a part of the type or of the name.
+	 */
 	private JPanel createMissingTab(final List<FLEFRecord> missing){
 		final List<Object[]> rows = new ArrayList<>();
 		for(final FLEFRecord record : missing)
-			rows.add(new Object[]{I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(java.util.Locale.ROOT), record.getTag()),
-				RecordDisplay.describe(record, recordModel), record.getId()});
-		final RowTableModel model = new RowTableModel(new String[]{I18N.t("column.type"), I18N.t("column.record"), I18N.t("column.id")}, rows);
+			rows.add(new Object[]{I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(Locale.ROOT), record.getTag()),
+				RecordDisplay.describe(record, recordModel)});
+		final RowTableModel model = new RowTableModel(new String[]{I18N.t("column.type"), I18N.t("column.record")}, rows);
 		models.add(model);
 
 		if(rows.isEmpty())
 			return ToolDialogs.createHeaderPanel(I18N.t("text.evidence_qualifiers.verdict.ok"), null);
 
-		final JTable table = ToolDialogs.createTable(model, row -> ToolDialogs.openRecordEditor(this, recordModel,
-			recordModel.getRecordById((String)model.rowAt(row)[2])));
+		final JTable table = ToolDialogs.createTable(model, row -> ToolDialogs.openRecordEditor(this, recordModel, missing.get(row)));
 		table.getColumnModel().getColumn(0).setPreferredWidth(160);
-		table.getColumnModel().getColumn(1).setPreferredWidth(360);
-		table.getColumnModel().getColumn(2).setPreferredWidth(100);
+		table.getColumnModel().getColumn(1).setPreferredWidth(460);
 
-		final JPanel panel = new JPanel(new BorderLayout());
+		final SearchBox searchBox = new SearchBox(24, false);
+		searchBox.onChange(() -> {
+			final String query = searchBox.query();
+			final Set<SearchMode> modes = searchBox.modes();
+			@SuppressWarnings("unchecked")
+			final TableRowSorter<RowTableModel> sorter = (TableRowSorter<RowTableModel>)table.getRowSorter();
+			sorter.setRowFilter(query.isEmpty()? null: new RowFilter<>(){
+				@Override
+				public boolean include(final Entry<? extends RowTableModel, ? extends Integer> entry){
+					return SearchBox.matches(query, modes, String.valueOf(entry.getValue(0)), String.valueOf(entry.getValue(1)));
+				}
+			});
+		});
+
+		final JPanel panel = new JPanel(new BorderLayout(0, 4));
+		panel.add(searchBox, BorderLayout.NORTH);
 		panel.add(new JScrollPane(table), BorderLayout.CENTER);
 		return panel;
 	}

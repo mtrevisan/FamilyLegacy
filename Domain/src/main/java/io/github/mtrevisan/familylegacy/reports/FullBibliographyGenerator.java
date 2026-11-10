@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
@@ -112,7 +111,7 @@ public final class FullBibliographyGenerator{
 		for(final FLEFRecord source : sources)
 			rows.add(List.of(
 				ReportFormatters.escape(SourceReader.displayText(source)),
-				ReportFormatters.escape(ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(source, SourceReader.TAG_AUTHOR))),
+				ReportFormatters.escape(ReportFormatters.orEmpty(ReportFormatters.firstValue(source, SourceReader.TAG_AUTHOR))),
 				ReportFormatters.escape(ReportFormatters.orEmpty(DateService.getDateDisplayText(source))),
 				ctx.formatInt(index.citationsOfSource(source).size())));
 		return new ReportSection.Table(List.of(ctx.labels.sections().title(), ctx.labels.sections().sourceAuthor(),

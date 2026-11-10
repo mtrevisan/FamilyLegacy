@@ -327,7 +327,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

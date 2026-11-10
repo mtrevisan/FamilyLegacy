@@ -72,7 +72,6 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	private final JButton fromBtn = new JButton(I18N.t("button.pick"));
 	private final JButton toBtn = new JButton(I18N.t("button.pick"));
 	private final JButton okBtn = new JButton(I18N.t("button.find_path"));
-	private final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 
 
 	public SocialNetworkPathFinderDialog(final Window owner, final FLEFModel model, final FLEFRecord initialFromEntity,
@@ -134,7 +133,6 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 
 		final JPanel buttons = new JPanel(new MigLayout("ins 0", "[][]", "[]"));
 		buttons.add(okBtn);
-		buttons.add(cancelBtn);
 		content.add(buttons, "span 2, align right");
 
 		setLayout(new BorderLayout());
@@ -153,7 +151,6 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 
 			dispose();
 		});
-		cancelBtn.addActionListener(e -> dispose());
 
 		getRootPane().setDefaultButton(okBtn);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);

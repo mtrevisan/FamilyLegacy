@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
 import io.github.mtrevisan.reports.ReportDocument;
@@ -63,7 +64,6 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -218,15 +218,12 @@ public final class ReportDialog extends JDialog{
 		// Bottom button panel
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
 		final JButton restoreBtn = new JButton(I18N.t("button.report.restore_defaults"));
-		final JButton cancelBtn = new JButton(I18N.t("button.cancel"));
 		final JButton generateBtn = new JButton(I18N.t("button.generate"));
 
 		restoreBtn.addActionListener(e -> restoreDefaults());
-		cancelBtn.addActionListener(e -> dispose());
 		generateBtn.addActionListener(e -> onGenerate());
 
 		buttons.add(restoreBtn);
-		buttons.add(cancelBtn);
 		buttons.add(generateBtn);
 
 		add(scrollPane, BorderLayout.CENTER);
@@ -542,17 +539,10 @@ public final class ReportDialog extends JDialog{
 			dialogOptions,
 			dialogOptions[0]);
 
-		if(choice == 1 && Desktop.isDesktopSupported()){
-			try{
-				Desktop.getDesktop()
-					.open(dir.toFile());
-			}
-			catch(final Exception ex){
-				JOptionPane.showMessageDialog(this,
-					I18N.l("dialog.report.open_directory.error") + StringUtils.LF + ex.getMessage(),
-					I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-			}
-		}
+		//the directory is opened with the first file of the report selected, if the system can do it
+		if(choice == 1 && !SavedFileNotice.reveal((files.isEmpty()? dir: files.getFirst()).toFile()))
+			JOptionPane.showMessageDialog(this, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + dir,
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 	}
 
 }

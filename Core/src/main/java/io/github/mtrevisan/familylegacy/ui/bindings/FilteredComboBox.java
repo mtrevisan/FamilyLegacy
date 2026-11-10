@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.search.SearchMatcher;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.util.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,6 +47,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.List;
 
 
@@ -62,6 +66,9 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 
 	private static final String NON_BREAKING_SPACE = "\u00A0";
 
+
+	/** The typed text is matched word by word, as in every search field (the combo has no check boxes for the whole word and the typos). */
+	private static final Set<SearchMode> NO_MODES = EnumSet.noneOf(SearchMode.class);
 
 	private record FilterItem<E>(E item, String displayLower){}
 
@@ -195,7 +202,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		}
 		else{
 			for(final FilterItem<E> wrapper : filterCache)
-				if(wrapper.displayLower().contains(searchText))
+				if(SearchMatcher.score(searchText, wrapper.displayLower(), NO_MODES).passes())
 					matches.add(wrapper.item());
 		}
 
@@ -220,7 +227,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -49,6 +49,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -102,7 +104,7 @@ public class FamilyConverter{
 	private final AgeBirthConverter ageBirthConverter;
 
 	private final List<FamilyLink> familyLinks = new ArrayList<>();
-	private static final java.util.regex.Pattern YEAR_PATTERN = java.util.regex.Pattern.compile("\\d{4}");
+	private static final Pattern YEAR_PATTERN = Pattern.compile("\\d{4}");
 
 	private static class FamilyLink{
 		String familyId;
@@ -385,7 +387,7 @@ public class FamilyConverter{
 		if(date == null)
 			return null;
 
-		final java.util.regex.Matcher matcher = YEAR_PATTERN.matcher(date);
+		final Matcher matcher = YEAR_PATTERN.matcher(date);
 		return (matcher.find()? matcher.group(): null);
 	}
 	/**
@@ -454,6 +456,10 @@ public class FamilyConverter{
 	private void createSpouseRelationship(final FamilyLink link){
 		final GEDCOMNode marriageNode = GEDCOMHelper.findFirstChild(link.famNode, "MARR");
 		final String marriageType = GEDCOMHelper.findFirstValue(marriageNode, GEDCOMMapper.TAG_TYPE);
+		//without a MARR.TYPE, what the file says explicitly (a note, the title of the source the spouses both cite) tells the kind
+		final boolean typed = ("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType));
+		final String kind = (typed? marriageType.toLowerCase(Locale.ROOT)
+			: MarriageTypeInference.infer(link.famNode, recordsById.get(link.husbandId), recordsById.get(link.wifeId), recordsById));
 		GEDCOMNode endNode = GEDCOMHelper.findFirstChild(link.famNode, "DIV");
 		if(endNode == null)
 			endNode = GEDCOMHelper.findFirstChild(link.famNode, "ANUL");
@@ -466,15 +472,16 @@ public class FamilyConverter{
 				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, link.wifeId))
 			);
 		FLEFRecord note = null;
-		if(("civil".equalsIgnoreCase(marriageType) || "religious".equalsIgnoreCase(marriageType)))
-			relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, marriageType.toLowerCase(Locale.ROOT) + "_spouse"));
+		if(kind != null)
+			relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, kind + "_spouse"));
 		else{
+			//the kind is not known: the generic type says so (the Research Assistant asks which it is), and the type the file gave to the
+			//marriage, if any, is kept as a note, not lost
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_SPOUSE));
-			note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE)
-				.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT,
-					(StringUtils.isNotEmpty(marriageType)? marriageType + " -- ": StringUtils.EMPTY)
-						+ "TO BE REVISED: is it civil or religious or else?"))
-				.addChild(AuditBuilder.build(null));
+			if(StringUtils.isNotEmpty(marriageType))
+				note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE)
+					.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, "Type of the marriage in the file: " + marriageType))
+					.addChild(AuditBuilder.build(null));
 		}
 
 		// The relationship lasts from the marriage to the divorce (or annulment)

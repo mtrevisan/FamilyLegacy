@@ -648,7 +648,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 
-	public static void main(String[] args) throws IOException{
+	public static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -25,8 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.Strings;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -36,16 +37,14 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
+import java.util.Set;
 
 
 /**
@@ -59,7 +58,7 @@ final class FontChooserDialog extends JDialog{
 
 	private final DefaultListModel<String> model = new DefaultListModel<>();
 	private final JList<String> list = new JList<>(model);
-	private final JTextField filter = new JTextField();
+	private final SearchBox filter = new SearchBox(24, false);
 	private final JSpinner size;
 	private final JLabel preview = new JLabel(SAMPLE);
 	private final String[] families;
@@ -85,22 +84,7 @@ final class FontChooserDialog extends JDialog{
 		});
 		list.addListSelectionListener(e -> updatePreview());
 		size.addChangeListener(e -> updatePreview());
-		filter.getDocument().addDocumentListener(new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent e){
-				refill(null);
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent e){
-				refill(null);
-			}
-
-			@Override
-			public void changedUpdate(final DocumentEvent e){
-				refill(null);
-			}
-		});
+		filter.onChange(() -> refill(null));
 
 		refill(current != null? current.getFamily(): null);
 
@@ -120,7 +104,7 @@ final class FontChooserDialog extends JDialog{
 		center.add(previewPane, BorderLayout.SOUTH);
 
 		final JPanel buttons = GUIHelper.createButtonPanel(this, I18N.t("button.select"), this::accept,
-			I18N.t("button.cancel"), this::dispose);
+			this::dispose);
 		final JButton defaultButton = new JButton(I18N.t("checkbox.default"));
 		defaultButton.addActionListener(e -> {
 			AppearanceManager.applyFont(null);
@@ -138,17 +122,18 @@ final class FontChooserDialog extends JDialog{
 	/** Shows the dialog; the chosen font is applied and persisted, if any. */
 	static void show(final Window owner){
 		final FontChooserDialog dialog = new FontChooserDialog(owner, AppearanceManager.savedFont());
-		dialog.filter.requestFocusInWindow();
+		dialog.filter.field().requestFocusInWindow();
 		dialog.setVisible(true);
 	}
 
 
 	private void refill(final String toSelect){
-		final String text = filter.getText().trim();
+		final String text = filter.query();
+		final Set<SearchMode> modes = filter.modes();
 		final String keep = (toSelect != null? toSelect: list.getSelectedValue());
 		model.clear();
 		for(final String family : families)
-			if(text.isEmpty() || Strings.CI.contains(family, text))
+			if(SearchBox.matches(text, modes, family))
 				model.addElement(family);
 		if(keep != null && model.contains(keep)){
 			list.setSelectedValue(keep, true);

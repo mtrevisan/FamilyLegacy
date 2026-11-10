@@ -65,6 +65,7 @@ class ReportOptionsPanelTest{
 			!defaults.groupAttributes(),
 			!defaults.historicEvents(),
 			!defaults.repositories(),
+			!defaults.includeOriginalSources(),
 			!defaults.eventFullParticipants(),
 			!defaults.coverageReport(),
 			!defaults.timeline(),

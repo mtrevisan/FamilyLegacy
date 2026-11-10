@@ -167,7 +167,7 @@ class ResearchManagementTest{
 		Assertions.assertEquals(List.of("Manage Research Questions", "Manage Research Activities", "Manage Research Tasks",
 			"Manage Conclusions", "Manage Identity Hypotheses"), titles);
 		Assertions.assertFalse(texts.contains(I18N.t("button.select")), texts.toString());
-		Assertions.assertTrue(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
 	}
 
 	@SuppressWarnings("unused")

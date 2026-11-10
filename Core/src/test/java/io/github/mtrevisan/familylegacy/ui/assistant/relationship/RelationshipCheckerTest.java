@@ -38,8 +38,10 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 class RelationshipCheckerTest{
@@ -59,6 +61,12 @@ class RelationshipCheckerTest{
 
 		Builder person(final String id, final String birth){
 			persons.put(id, new RelationshipData.Person(id, "Person " + id, SexType.UNKNOWN, (birth != null? day(birth): null)));
+			return this;
+		}
+
+		Builder person(final String id, final String birth, final String death){
+			persons.put(id, new RelationshipData.Person(id, "Person " + id, SexType.UNKNOWN, (birth != null? day(birth): null),
+				(death != null? day(death): null)));
 			return this;
 		}
 
@@ -95,8 +103,8 @@ class RelationshipCheckerTest{
 			return this;
 		}
 
-		private final java.util.Set<String> clergy = new java.util.LinkedHashSet<>();
-		private final java.util.Set<String> churches = new java.util.LinkedHashSet<>();
+		private final Set<String> clergy = new LinkedHashSet<>();
+		private final Set<String> churches = new LinkedHashSet<>();
 
 		Builder clergy(final String personId){
 			clergy.add(personId);
@@ -105,6 +113,23 @@ class RelationshipCheckerTest{
 
 		Builder church(final String placeId){
 			churches.add(placeId);
+			return this;
+		}
+
+		private final Map<String, String> countries = new LinkedHashMap<>();
+
+		Builder country(final String placeId, final String country){
+			countries.put(placeId, country);
+			return this;
+		}
+
+		/** A marriage at a place, on a day, with the titles of the sources that cite it. */
+		Builder marriageAt(final String id, final String placeId, final String day, final List<String> sourceTitles, final String... people){
+			final List<RelationshipData.Participant> participants = new ArrayList<>();
+			for(final String person : people)
+				participants.add(new RelationshipData.Participant(person, true));
+			events.add(new RelationshipData.Event(id, EventReader.ENUM_TYPE_MARRIAGE, (day != null? day(day): null), "date of " + id,
+				participants, placeId, sourceTitles));
 			return this;
 		}
 
@@ -122,7 +147,7 @@ class RelationshipCheckerTest{
 		}
 
 		private RelationshipData data(){
-			return new RelationshipData(persons, groups, relationships, events, clergy, churches);
+			return new RelationshipData(persons, groups, relationships, events, clergy, churches, countries);
 		}
 
 	}
@@ -409,13 +434,13 @@ class RelationshipCheckerTest{
 			.event("E2", EventReader.ENUM_TYPE_MARRIAGE_LICENSE, "p", "q")
 			.check();
 
-		//the generic type stays in the finding about all of them
+		//the generic type stays in the finding about the marriage
 		Assertions.assertEquals(1, findings.size(), titles(findings).toString());
 		Assertions.assertTrue(findings.getFirst().title().contains("generic type spouse"));
 	}
 
 	@Test
-	void theGenericTypesAreOneFindingNotOneEach(){
+	void theGenericTypesAreAFindingForEachRelationship(){
 		final Builder builder = new Builder();
 		for(int i = 0; i < 40; i ++)
 			builder.person("a" + i, null).person("b" + i, null).relationship("a" + i, "b" + i, RelationshipReader.ENUM_TYPE_SPOUSE);
@@ -428,22 +453,21 @@ class RelationshipCheckerTest{
 			.filter(f -> !f.title().startsWith("Partner of a parent"))
 			.toList();
 
-		Assertions.assertEquals(2, findings.size(), titles(findings).toString());
-		Assertions.assertEquals("40 marriage(s) with the generic type spouse", findings.get(0).title());
-		Assertions.assertEquals("3 child relationship(s) with the generic type", findings.get(1).title());
-		Assertions.assertEquals(40, findings.get(0).recordIds().size());
+		//40 marriages and 3 children: one finding for each, none summed up
+		Assertions.assertEquals(43, findings.size(), titles(findings).toString());
+		Assertions.assertEquals(40, findings.stream().filter(f -> f.title().startsWith("Marriage with the generic type spouse")).count());
+		Assertions.assertEquals(3, findings.stream().filter(f -> f.title().startsWith("Child relationship with the generic type")).count());
+		Assertions.assertTrue(findings.stream().allMatch(f -> f.recordIds().size() == 3), findings.toString());
+		Assertions.assertEquals(findings.size(), findings.stream().map(Diagnostic::key).distinct().count());
 	}
 
 	@Test
-	void theListOfTheGenericTypesIsCapped(){
+	void everyRelationshipOfAGenericTypeIsListed(){
 		final Builder builder = new Builder();
-		for(int i = 0; i < RelationshipChecker.MAX_LISTED + 50; i ++)
+		for(int i = 0; i < 250; i ++)
 			builder.person("a" + i, null).person("b" + i, null).relationship("a" + i, "b" + i, RelationshipReader.ENUM_TYPE_SPOUSE);
 
-		final Diagnostic finding = only(builder.check());
-
-		Assertions.assertEquals(RelationshipChecker.MAX_LISTED, finding.recordIds().size());
-		Assertions.assertTrue(finding.title().startsWith((RelationshipChecker.MAX_LISTED + 50) + ""));
+		Assertions.assertEquals(250, builder.check().size());
 	}
 
 	@Test
@@ -800,6 +824,160 @@ class RelationshipCheckerTest{
 		Assertions.assertTrue(findings.size() >= 6, titles(findings).toString());
 		Assertions.assertTrue(findings.stream().allMatch(Diagnostic::isIgnorable));
 		Assertions.assertEquals(findings.size(), findings.stream().map(Diagnostic::key).distinct().count());
+	}
+
+
+	@Test
+	void aTypeThatDoesNotFitTheParticipantsIsAnError(){
+		final Diagnostic finding = only(family().relationship("c", "g", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE).check());
+
+		Assertions.assertEquals(Diagnostic.Severity.ERROR, finding.severity());
+		Assertions.assertTrue(finding.key().startsWith("relationship.invalid_for_participants|"));
+	}
+
+	@Test
+	void aBiologicalChildMarriedToTheParentIsAnError(){
+		final Diagnostic finding = only(family()
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "c", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1890", null, false)
+			.check());
+
+		Assertions.assertEquals(Diagnostic.Severity.ERROR, finding.severity());
+		Assertions.assertTrue(finding.key().startsWith("relationship.child_married_to_parent|"));
+		Assertions.assertTrue(finding.recordIds().containsAll(List.of("c", "p", "R1", "R2")));
+	}
+
+	@Test
+	void anAdoptiveParentMarriedToTheChildIsNotReported(){
+		Assertions.assertTrue(family()
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)
+			.relationship("p", "c", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1890", null, false)
+			.check().stream().noneMatch(finding -> finding.key().startsWith("relationship.child_married_to_parent")));
+	}
+
+	@Test
+	void aSiblingThatIsAlsoAParentIsAnError(){
+		//c is a biological child of p and q, and p is a biological child of q
+		final Diagnostic finding = only(family()
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("c", "q", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.check());
+
+		Assertions.assertEquals(Diagnostic.Severity.ERROR, finding.severity());
+		Assertions.assertTrue(finding.key().startsWith("relationship.sibling_and_parent|"));
+	}
+
+	@Test
+	void aParentWithAnotherParentOfItsOwnIsNotASibling(){
+		Assertions.assertTrue(family()
+			.person("r", "1 June 1815")
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("c", "q", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "r", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.check().isEmpty());
+	}
+
+
+	@Test
+	void aPartnerOfAParentIsNotAskedAboutIfTheChildHasTwoBiologicalParents(){
+		Assertions.assertTrue(family()
+			.person("r", "1 June 1842")
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("c", "r", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1865", null, false)
+			.check().isEmpty());
+	}
+
+	@Test
+	void aPartnerOfAParentWhoDiedBeforeTheBirthOfTheChildIsNotAskedAbout(){
+		//q died in 1860, the child was born in 1870: q is neither another parent nor a step-parent
+		Assertions.assertTrue(new Builder()
+			.person("c", "1 June 1870").person("p", "1 June 1840").person("q", "1 June 1835", "1 June 1860")
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1855", null, false)
+			.check().isEmpty());
+	}
+
+	@Test
+	void aPartnerOfAParentWhoDiedAfterTheBirthOfTheChildIsStillAskedAbout(){
+		Assertions.assertEquals(1, new Builder()
+			.person("c", "1 June 1870").person("p", "1 June 1840").person("q", "1 June 1835", "1 June 1880")
+			.relationship("c", "p", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1865", null, false)
+			.check().size());
+	}
+
+
+	@Test
+	void theTitleOfASourceOfTheMarriageSaysItsKind(){
+		final Diagnostic religious = only(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.marriageAt("E1", null, null, List.of("marriage Rossi Mario + Bianchi Anna 18500112 religious"), "p", "q")
+			.check());
+
+		Assertions.assertTrue(religious.key().startsWith("relationship.suggest_spouse|"), religious.key());
+		Assertions.assertTrue(religious.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE), religious.explanation());
+		Assertions.assertTrue(religious.explanation().contains("marriage Rossi Mario + Bianchi Anna 18500112 religious"));
+
+		final Diagnostic civil = only(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
+			.marriageAt("E1", null, null, List.of("marriage Verdi Luigi + Neri Maria 19100203 civil"), "p", "q")
+			.check());
+		Assertions.assertTrue(civil.explanation().contains(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE), civil.explanation());
+	}
+
+	@Test
+	void aMarriageInItalyBeforeTheKingdomIsAWeakHintForReligious(){
+		final Diagnostic finding = only(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE, null, "1 June 1850", null, false)
+			.country("P1", "italia")
+			.marriageAt("E1", "P1", "1 June 1850", List.of(), "p", "q")
+			.check());
+
+		Assertions.assertTrue(finding.key().startsWith("relationship.suggest_spouse|"), finding.key());
+		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE), finding.explanation());
+		Assertions.assertTrue(finding.explanation().contains("weak hint"), finding.explanation());
+	}
+
+	@Test
+	void theWeakHintIsNotGivenOutsideItalyDuringTheNapoleonicCodeOrAfterTheKingdom(){
+		//another country
+		Assertions.assertTrue(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE, null, "1 June 1850", null, false)
+			.country("P1", "france").marriageAt("E1", "P1", "1 June 1850", List.of(), "p", "q")
+			.check().stream().noneMatch(f -> f.key().startsWith("relationship.suggest_spouse|")));
+		//the years of the Napoleonic code, when the civil marriage existed
+		Assertions.assertTrue(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE, null, "1 June 1810", null, false)
+			.country("P1", "italia").marriageAt("E1", "P1", "1 June 1810", List.of(), "p", "q")
+			.check().stream().noneMatch(f -> f.key().startsWith("relationship.suggest_spouse|")));
+		//after the Kingdom of Italy
+		Assertions.assertTrue(family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE, null, "1 June 1900", null, false)
+			.country("P1", "italia").marriageAt("E1", "P1", "1 June 1900", List.of(), "p", "q")
+			.check().stream().noneMatch(f -> f.key().startsWith("relationship.suggest_spouse|")));
+	}
+
+
+	@Test
+	void theTextsGiveTheIdentifierOfTheRelationship(){
+		final Diagnostic finding = only(family().relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE).check());
+
+		//the identifier of the generic marriage is in the text, whatever else the finding says
+		Assertions.assertTrue(finding.explanation().contains("[R1]"), finding.explanation());
+	}
+
+	@Test
+	void ofSeveralRelationshipsTheTextGivesEveryIdentifier(){
+		final Diagnostic duplicate = family()
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1865", null, false)
+			.relationship("p", "q", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1865", null, false)
+			.relationship("q", "p", RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, null, "1 June 1865", null, false)
+			.check().stream().filter(f -> f.key().startsWith("relationship.duplicate_relationship|")).findFirst().orElseThrow();
+
+		//none is left out, none is chosen over the others
+		Assertions.assertTrue(duplicate.explanation().contains("[R1, R2, R3]"), duplicate.explanation());
 	}
 
 }

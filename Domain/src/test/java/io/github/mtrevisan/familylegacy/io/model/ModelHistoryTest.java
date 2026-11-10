@@ -221,10 +221,10 @@ class ModelHistoryTest{
 		model.getRecords().removeIf(record -> "P2".equals(record.getId()));
 		history.checkpoint();
 
-		java.util.List<ModelHistory.Entry> entries = history.recentChanges();
+		List<ModelHistory.Entry> entries = history.recentChanges();
 		Assertions.assertEquals(2, entries.size());
-		Assertions.assertEquals(java.util.List.of("P2:REMOVED"), summarize(entries.get(0)));
-		Assertions.assertEquals(java.util.List.of("P1:MODIFIED", "P2:ADDED"), summarize(entries.get(1)));
+		Assertions.assertEquals(List.of("P2:REMOVED"), summarize(entries.get(0)));
+		Assertions.assertEquals(List.of("P1:MODIFIED", "P2:ADDED"), summarize(entries.get(1)));
 		//the record of a removed change is still readable
 		Assertions.assertEquals("P2", entries.get(0).changes().getFirst().record().getId());
 		Assertions.assertNotNull(entries.get(0).changes().getFirst().before());

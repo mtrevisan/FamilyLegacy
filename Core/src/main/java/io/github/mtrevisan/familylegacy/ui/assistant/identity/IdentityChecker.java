@@ -92,8 +92,8 @@ final class IdentityChecker{
 	private static IdentityFinding finding(final DuplicateFinderService.Candidate candidate, final IdentitySettings settings){
 		final String leftId = candidate.left().id();
 		final String rightId = candidate.right().id();
-		final String left = candidate.left().displayName();
-		final String right = candidate.right().displayName();
+		final String left = candidate.left().displayName() + " [" + leftId + "]";
+		final String right = candidate.right().displayName() + " [" + rightId + "]";
 		final int score = candidate.score();
 		final String confidence = settings.confidence(score);
 

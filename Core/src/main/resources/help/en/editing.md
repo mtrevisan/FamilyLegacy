@@ -7,7 +7,7 @@
 
 An editor is a dialog with several tabs. The *Properties* tab holds the fields of the record itself; the other tabs list the records connected to it. For an individual they are: attributes, relationships, participations (the events the person took part in), context, research, sources, notes, privacy and audit.
 
-Fields marked with an asterisk are required. **Save** checks the fields that are really required and tells you which one is missing, **Cancel** or `Esc` discards the changes. What every field means is explained in [The record editors](editors.md) and the pages that follow it.
+Fields marked with an asterisk are required. **Save** checks the fields that are really required and tells you which one is missing, and `Esc` closes the editor and discards the changes. What every field means is explained in [The record editors](editors.md) and the pages that follow it.
 
 ## Adding people
 

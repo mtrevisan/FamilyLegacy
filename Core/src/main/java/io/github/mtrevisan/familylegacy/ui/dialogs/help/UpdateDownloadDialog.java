@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
-import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -37,7 +35,6 @@ import javax.swing.JProgressBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -47,7 +44,7 @@ import java.util.Locale;
 
 
 /**
- * Shows the download of an update, that can be canceled (with the button, ESC or the close button of the window).
+ * Shows the download of an update, that can be canceled (with ESC or the close button of the window).
  * <p>
  * The dialog is modal: {@link #setVisible(boolean) setVisible(true)} returns when {@link #close()} is called. Every method is safe to
  * call from any thread.
@@ -61,6 +58,8 @@ public final class UpdateDownloadDialog extends JDialog{
 	private final JProgressBar bar = new JProgressBar(0, 100);
 	private final JLabel message = new JLabel();
 	private final Runnable onCancel;
+	/** Whether the user has asked to cancel (once only). */
+	private boolean cancelled;
 
 
 	/**
@@ -78,14 +77,10 @@ public final class UpdateDownloadDialog extends JDialog{
 		bar.setIndeterminate(true);
 		bar.setStringPainted(true);
 
-		final JButton cancelButton = new JButton(I18N.t("button.cancel"));
-		cancelButton.addActionListener(e -> cancel(cancelButton));
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-		buttons.add(cancelButton);
 
 		final JPanel south = new JPanel(new BorderLayout(0, 10));
 		south.add(bar, BorderLayout.NORTH);
-		south.add(buttons, BorderLayout.SOUTH);
+
 
 		final JPanel content = new JPanel(new BorderLayout(0, 10));
 		content.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
@@ -97,14 +92,14 @@ public final class UpdateDownloadDialog extends JDialog{
 		addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(final WindowEvent e){
-				cancel(cancelButton);
+				cancel();
 			}
 		});
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(ESCAPE, "escape");
 		getRootPane().getActionMap().put("escape", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				cancel(cancelButton);
+				cancel();
 			}
 		});
 
@@ -114,11 +109,11 @@ public final class UpdateDownloadDialog extends JDialog{
 		setLocationRelativeTo(owner);
 	}
 
-	private void cancel(final JButton cancelButton){
-		if(!cancelButton.isEnabled())
+	private void cancel(){
+		if(cancelled)
 			return;
 
-		cancelButton.setEnabled(false);
+		cancelled = true;
 		onCancel.run();
 	}
 

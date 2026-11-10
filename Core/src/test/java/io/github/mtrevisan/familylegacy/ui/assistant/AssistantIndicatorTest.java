@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssist
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JButton;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayDeque;
@@ -277,7 +278,7 @@ class AssistantIndicatorTest{
 		Assertions.assertNotNull(indicator.component());
 		//the shortcut is in the tooltip, to be learned
 		Assertions.assertTrue(indicator.tooltip().contains("Ctrl+Shift+A"), indicator.tooltip());
-		final List<Object> listeners = new ArrayList<>(List.of(((javax.swing.JButton)indicator.component()).getActionListeners()));
+		final List<Object> listeners = new ArrayList<>(List.of(((JButton)indicator.component()).getActionListeners()));
 		Assertions.assertEquals(1, listeners.size());
 	}
 }

@@ -401,13 +401,11 @@ public class RecordSelectionDialog extends JDialog{
 		final JButton editButton = new JButton(I18N.t("button.edit"));
 		final JButton unlinkButton = new JButton(I18N.t("button.unlink"));
 		final JButton deleteButton = new JButton(I18N.t("button.delete"));
-		final JButton cancelButton = new JButton(I18N.t(manageMode? "button.close": "button.cancel"));
 
 		selectButton.addActionListener(e -> selectResult());
 		editButton.addActionListener(e -> editRecord());
 		unlinkButton.addActionListener(e -> unlinkRecord());
 		deleteButton.addActionListener(e -> deleteRecord());
-		cancelButton.addActionListener(e -> dispose());
 
 		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow 1,sg 1][grow 1,sg 1]", "[]"));
 
@@ -423,11 +421,10 @@ public class RecordSelectionDialog extends JDialog{
 		leftPanel.add(deleteButton);
 		bottomPanel.add(leftPanel, "left");
 
-		// Right column (Select and Cancel buttons pushed to the right edge)
+		// Right column (the Select button pushed to the right edge)
 		final JPanel rightPanel = new JPanel(new MigLayout("ins 0", "[]10[]"));
 		if(!manageMode)
 			rightPanel.add(selectButton);
-		rightPanel.add(cancelButton);
 		bottomPanel.add(rightPanel, "right");
 
 		add(bottomPanel, "growx");

@@ -189,7 +189,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			"Confirm", this::onOk,
-			"Cancel", this::onCancel);
+			this::onCancel);
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		getRootPane().setDefaultButton((JButton)buttonPanel.getComponent(0));

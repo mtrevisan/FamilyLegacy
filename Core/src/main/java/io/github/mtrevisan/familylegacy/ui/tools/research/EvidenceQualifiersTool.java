@@ -26,22 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -86,39 +76,37 @@ public final class EvidenceQualifiersTool implements ToolOperation{
 		final Map<String, Integer> informationTypes = new LinkedHashMap<>();
 		final Map<String, Integer> evidenceTypes = new LinkedHashMap<>();
 		int withQualifiers = 0;
+		int withoutQualifiers = 0;
 		final List<FLEFRecord> missing = new ArrayList<>();
 
-		for(final String type : SCANNED_TYPES){
-			final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(type));
-			for(final FLEFRecord record : records){
-				final FLEFRecord qualifiers = FLEFRecordHelper.findChild(record, EvidenceQualifiersReader.TAG_EVIDENCE);
-				if(qualifiers == null){
-					missing.add(record);
-					continue;
+		//the qualifiers belong to the citations (the source children of the records), not to the records themselves
+		for(final String type : SourceHelper.allSourceCitingTypes()){
+			for(final FLEFRecord record : PrivacyService.visible(model, model.getRecordsByType(type))){
+				boolean unassessed = false;
+				for(final FLEFRecord citation : record.getChildren()){
+					if(!SourceReader.isOfType(citation))
+						continue;
+
+					final FLEFRecord qualifiers = FLEFRecordHelper.findChild(citation, EvidenceQualifiersReader.TAG_EVIDENCE);
+					if(qualifiers == null){
+						withoutQualifiers ++;
+						unassessed = true;
+						continue;
+					}
+					withQualifiers ++;
+					merge(sourceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_SOURCE_TYPE));
+					merge(informationTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_INFORMATION_TYPE));
+					merge(evidenceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE));
 				}
-				withQualifiers ++;
-				merge(sourceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_SOURCE_TYPE));
-				merge(informationTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_INFORMATION_TYPE));
-				merge(evidenceTypes, ResearchHelper.firstTextValue(qualifiers, EvidenceQualifiersReader.TAG_EVIDENCE_TYPE));
+				if(unassessed)
+					missing.add(record);
 			}
 		}
 
-		new EvidenceQualifiersDialog(context.owner(), model, sourceTypes, informationTypes, evidenceTypes, withQualifiers, missing)
+		new EvidenceQualifiersDialog(context.owner(), model, sourceTypes, informationTypes, evidenceTypes, withQualifiers, withoutQualifiers, missing)
 			.setVisible(true);
 	}
 
-
-	/**
-	 * Record types that can carry an {@code evidence} block. The list is
-	 * limited to the types where evidence qualifiers are meaningful in
-	 * practice.
-	 */
-	private static final String[] SCANNED_TYPES = {
-		EventReader.TYPE, IndividualAttributeReader.TYPE, GroupAttributeReader.TYPE, RelationshipReader.TYPE,
-		PlaceReader.TYPE, PlaceRelationshipReader.TYPE, EventParticipationReader.TYPE, SourceReader.TYPE,
-		CulturalNormReader.TYPE, HistoricEventReader.TYPE, ContextImpactReader.TYPE,
-		IdentityHypothesisReader.TYPE
-	};
 
 	private static void merge(final Map<String, Integer> map, final String value){
 		final String key = (value != null && !value.isBlank()? value: I18N.t("text.evidence_qualifiers.not_set"));

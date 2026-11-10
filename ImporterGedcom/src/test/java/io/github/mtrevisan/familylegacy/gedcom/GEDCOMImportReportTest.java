@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -740,6 +741,30 @@ class GEDCOMImportReportTest{
 		Assertions.assertTrue(second.isEmpty());
 		for(final ImportIssue issue : first.issues())
 			Assertions.assertTrue(REASONS.contains(issue.reasonKey()));
+	}
+
+
+	@Test
+	void aChildAssociationContradictedByTheOtherSideIsAnErrorOfTheFile() throws IOException{
+		//I2 says that I1 is her child, I1 says that I2 is her midwife: I2 delivered I1, she is not the mother
+		final Result result = convertModel("""
+			0 @I1@ INDI
+			1 NAME Baby /One/
+			1 ASSO @I2@
+			2 TYPE INDI
+			2 RELA midwife
+			0 @I2@ INDI
+			1 NAME Midwife /Two/
+			1 ASSO @I1@
+			2 TYPE INDI
+			2 RELA child
+			""");
+
+		final List<FLEFRecord> relationships = result.model().getRecordsByType(RelationshipReader.TYPE);
+		Assertions.assertEquals(1, relationships.size());
+		Assertions.assertEquals(RelationshipReader.ENUM_TYPE_ASSOCIATE, RelationshipReader.extractType(relationships.getFirst()));
+		Assertions.assertEquals("midwife", FLEFRecordHelper.getChildValue(relationships.getFirst(), RelationshipReader.TAG_ROLE));
+		assertReported(result.report(), ImportReasons.INCONSISTENT_ASSOCIATION, "ASSO @I1@", "I2 ASSO");
 	}
 
 }

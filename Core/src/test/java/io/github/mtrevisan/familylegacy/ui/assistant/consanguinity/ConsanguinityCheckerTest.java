@@ -98,21 +98,20 @@ class ConsanguinityCheckerTest{
 	}
 
 	@Test
-	void aVillageOfRelativesDoesNotFillThePalette(){
+	void aVillageOfRelativesIsListedOneByOne(){
 		final List<ConsanguinityReport.ConsanguineousUnion> unions = new ArrayList<>();
 		for(int i = 0; i < 40; i ++)
 			unions.add(union("A" + i, "B" + i, 1. / 256., 0));
 
 		final List<Diagnostic> findings = ConsanguinityChecker.findings(report(unions, List.of()), id -> id);
-
-		Assertions.assertEquals(ConsanguinityChecker.MAX_UNIONS + 1, findings.size());
-		final Diagnostic others = findings.getLast();
-		Assertions.assertTrue(others.title().contains("15"), others.title());
-		Assertions.assertEquals(30, others.recordIds().size());
+		//none is summed up: every couple can be looked at
+		Assertions.assertEquals(40, findings.size());
+		Assertions.assertTrue(findings.stream().noneMatch(finding -> finding.recordIds().isEmpty()));
+		Assertions.assertTrue(findings.getLast().recordIds().containsAll(List.of("A39", "B39")));
 	}
 
 	@Test
-	void theInbredIndividualsAreOneFindingWithTheMostInbredNamed(){
+	void theInbredIndividualsAreAFindingEach(){
 		final List<ConsanguinityReport.InbredIndividual> inbred = List.of(
 			new ConsanguinityReport.InbredIndividual("Z1", "Zeno", 0.25, List.of("X", "Y"),
 				List.of(new ConsanguinityCalculator.CommonAncestor("G1", 1, 1))),
@@ -121,12 +120,14 @@ class ConsanguinityCheckerTest{
 
 		final List<Diagnostic> findings = ConsanguinityChecker.findings(report(List.of(), inbred), id -> id);
 
-		Assertions.assertEquals(1, findings.size());
+		Assertions.assertEquals(2, findings.size());
 		final Diagnostic finding = findings.getFirst();
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
-		Assertions.assertTrue(finding.title().contains("2"), finding.title());
-		Assertions.assertTrue(finding.explanation().contains("Zeno (25.00%)"), finding.explanation());
-		Assertions.assertEquals(List.of("Z1", "Z2"), finding.recordIds());
+		Assertions.assertTrue(finding.title().contains("Zeno"), finding.title());
+		Assertions.assertTrue(finding.explanation().contains("25.00%"), finding.explanation());
+		//the individual and the parents
+		Assertions.assertEquals(List.of("Z1", "X", "Y"), finding.recordIds());
+		Assertions.assertTrue(findings.get(1).title().contains("Zita"), findings.get(1).title());
 	}
 
 	@Test

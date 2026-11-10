@@ -90,8 +90,7 @@ final class ConsanguinityLoopsDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(content, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(I18N.t("text.loops.note"), openAncestor, ToolDialogs.createCopyButton(tableModel::toText),
-			ToolDialogs.createCloseButton(this)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter(I18N.t("text.loops.note"), openAncestor, ToolDialogs.createCopyButton(tableModel::toText)), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);

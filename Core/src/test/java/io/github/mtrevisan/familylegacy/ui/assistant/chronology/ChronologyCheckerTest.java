@@ -484,4 +484,16 @@ class ChronologyCheckerTest{
 		Assertions.assertNull(DateRange.of(null));
 	}
 
+
+	@Test
+	void aCommemorationOrAnAnecdoteAfterTheDeathIsNotReported(){
+		final List<Diagnostic> findings = new Builder()
+			.person(person("a", SexType.MALE, day("1 June 1800"), day("1 June 1860")))
+			.event("e1", "a", "commemoration", day("1 June 1900"))
+			.event("e2", "a", "anecdote", day("1 June 1901"))
+			.check();
+
+		Assertions.assertTrue(findings.isEmpty(), titles(findings).toString());
+	}
+
 }

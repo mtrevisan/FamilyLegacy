@@ -248,7 +248,7 @@ public final class StatisticsCalculator{
 			counts[0] ++;
 			boolean cited = false;
 			for(final FLEFRecord child : record.getChildren())
-				if(SourceReader.isOfType(child)){
+				if(SourceReader.isOfType(child) || SourceReader.TAG_DERIVED_FROM.equalsIgnoreCase(child.getTag())){
 					cited = true;
 					final String sid = extractSourceId(child);
 					if(sid != null)

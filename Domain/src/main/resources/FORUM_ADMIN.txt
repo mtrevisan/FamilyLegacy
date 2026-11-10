@@ -1,0 +1,75 @@
+# Richiesta di autorizzazione a pubblicare un messaggio sul forum
+
+Buongiorno,
+
+sono lo sviluppatore di *FamilyLegacy*, un'applicazione genealogica che sto utilizzando e migliorando progressivamente, e vorrei chiedervi se sia possibile pubblicare nel forum un messaggio per cercare beta tester.
+
+Prima di scrivere nulla, preferisco avere la vostra approvazione: non vorrei violare il regolamento del forum né creare disagio alla community.
+
+## Di cosa si tratta
+
+FamilyLegacy è un software open source (licenza MIT) il cui obiettivo non è soltanto costruire alberi genealogici, ma aiutare a documentare l'intero processo di ricerca genealogica: fonti e citazioni, ipotesi, conflitti tra evidenze, attività di ricerca, conclusioni motivate, luoghi storici e calendari storici.
+
+Non nasce per sostituire gli strumenti esistenti (GEDCOM, Gramps, ecc.), ma per affrontare aspetti che spesso vengono gestiti esternamente con note e fogli Excel. Importa da GEDCOM e Gramps, produce report in vari formati (Word, PDF, EPUB, HTML, sito statico) e gestisce la privacy delle persone viventi. È sotto la licenza MIT; esiste un installer per Windows. L'interfaccia è attualmente solo in inglese.
+
+Documentazione: https://github.com/mtrevisan/FamilyLegacy/wiki
+
+## Cosa vorrei pubblicare
+
+Il testo del messaggio che vorrei pubblicare è riportato in fondo a questa richiesta. Lo scopo è raccogliere feedback sinceri da genealogisti che facciano ricerca concreta su documenti e fonti: cosa funziona, cosa è poco intuitivo, cosa manca.
+
+Non ho alcun fine commerciale e non intendo fare pubblicità invasiva: si tratterebbe di un unico messaggio, e sarei disponibile a rispondere a domande e a seguire la discussione.
+
+## Domande
+
+- È consentito pubblicare un messaggio di questo tipo nel forum?
+- In quale sezione sarebbe più opportuno inserirlo?
+- Ci sono regole particolari (formato, lunghezza, link esterni, autopromozione) che devo rispettare?
+- Preferite che modifichi o accorci il testo in qualche modo?
+
+Se il messaggio non fosse adatto al forum, vi ringrazio comunque per l'attenzione e accetterò volentieri eventuali suggerimenti su dove proporlo.
+
+Grazie per il tempo dedicato e per il lavoro che svolgete per la community.
+
+Cordiali saluti
+
+---
+
+## Testo del messaggio proposto
+
+# FamilyLegacy - Ricerca di beta tester
+
+Ciao a tutti,
+
+negli ultimi anni ho sviluppato *FamilyLegacy*, un'applicazione genealogica che sto utilizzando e migliorando progressivamente.
+
+L'obiettivo non è soltanto costruire alberi genealogici, ma aiutare a documentare l'*intero processo di ricerca genealogica*:
+
+- persone, eventi, luoghi e relazioni
+- fonti e citazioni
+- ipotesi e possibili identità duplicate
+- attività di ricerca e domande aperte
+- conclusioni motivate e gestione delle evidenze in conflitto
+- contesto storico e culturale
+- luoghi storici e cambi di giurisdizione nel tempo
+- calendari storici e date complesse
+
+In breve: GEDCOM rappresenta molto bene il risultato della ricerca; FamilyLegacy cerca di rappresentare anche il percorso che ha portato a quel risultato, integrando nel modello genealogico ciò che spesso resta in note, fogli Excel e documenti separati. Non nasce per sostituire gli strumenti esistenti (Gramps incluso, da cui molte idee derivano), ma per rendere esplicito il ragionamento genealogico.
+
+Funzioni utili per provarlo: importazione da GEDCOM (5.5, 5.5.1, 7) e da Gramps con report di ciò che non è convertibile; 14 tipi di report in testo, Markdown, HTML, Word, PDF, EPUB e sito statico; gestione della privacy per persone viventi. Software open source (licenza MIT), con installer per Windows. L'interfaccia e la guida sono attualmente solo in inglese.
+
+Documentazione: https://github.com/mtrevisan/FamilyLegacy/wiki
+
+Sto cercando genealogisti interessati a provarlo e a fornire feedback sinceri:
+
+- cosa funziona bene
+- cosa è poco intuitivo
+- cosa manca
+- cosa potrebbe essere migliorato
+- quali problemi reali della ricerca genealogica non sono ancora coperti
+
+Non è necessario essere esperti di informatica: mi interessa soprattutto il punto di vista di chi fa ricerca genealogica concreta su documenti e fonti.
+
+Se qualcuno fosse interessato a provarlo, sarò felice di fornire maggiori informazioni e raccogliere suggerimenti.
+
+Grazie!

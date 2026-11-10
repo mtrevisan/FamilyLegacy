@@ -26,6 +26,7 @@ package io.github.mtrevisan.updater;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 
@@ -82,7 +83,7 @@ public final class Version implements Comparable<Version>{
 			int end = index + 1;
 			while(end < trimmed.length() && !Character.isWhitespace(trimmed.charAt(end)))
 				end ++;
-			qualifier = trimmed.substring(index + 1, end).toLowerCase(java.util.Locale.ROOT);
+			qualifier = trimmed.substring(index + 1, end).toLowerCase(Locale.ROOT);
 		}
 		return Optional.of(new Version(List.copyOf(numbers), qualifier));
 	}

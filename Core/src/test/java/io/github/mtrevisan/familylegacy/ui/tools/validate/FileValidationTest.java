@@ -40,6 +40,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -573,6 +575,74 @@ class FileValidationTest{
 		Assertions.assertEquals(ConsistencyService.Severity.ERROR, jurisdiction.getFirst().severity());
 		Assertions.assertEquals(1, succession.size(), succession.toString());
 		Assertions.assertEquals(ConsistencyService.Severity.WARNING, succession.getFirst().severity());
+	}
+
+	private static FLEFRecord citation(final String tag, final String citedId){
+		return FLEFRecord.createChildWithTag(tag)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, citedId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS));
+	}
+
+	/** A source derived from the given sources. */
+	private static FLEFRecord sourceDerivedFrom(final String id, final String... originalIds){
+		final FLEFRecord source = FLEFRecord.createMainRecord(id, SourceReader.TYPE);
+		for(final String originalId : originalIds)
+			source.addChild(citation(SourceReader.TAG_DERIVED_FROM, originalId));
+		return source;
+	}
+
+	@Test
+	void aCircleOfSourcesDerivedFromEachOtherIsOneError() throws IOException{
+		final FLEFModel model = model();
+		model.addRecord(sourceDerivedFrom("SX1", "SX2"));
+		model.addRecord(sourceDerivedFrom("SX2", "SX3"));
+		model.addRecord(sourceDerivedFrom("SX3", "SX1"));
+		//a chain that is not a circle, a source derived from two others that derive from the same one (a diamond, not a circle)
+		model.addRecord(sourceDerivedFrom("SX4", "SX5"));
+		model.addRecord(sourceDerivedFrom("SX5"));
+		model.addRecord(sourceDerivedFrom("SX6", "SX7", "SX8"));
+		model.addRecord(sourceDerivedFrom("SX7", "SX9"));
+		model.addRecord(sourceDerivedFrom("SX8", "SX9"));
+		model.addRecord(sourceDerivedFrom("SX9"));
+
+		final List<ConsistencyService.Issue> found = issuesContaining(model, "Circular derivation of sources");
+
+		Assertions.assertEquals(1, found.size(), found.toString());
+		Assertions.assertEquals("SX1", found.getFirst().recordId());
+		Assertions.assertEquals(ConsistencyService.Severity.ERROR, found.getFirst().severity());
+		Assertions.assertEquals("source_cycle", found.getFirst().kind());
+	}
+
+	@Test
+	void aSourceDerivedFromItselfIsAnError() throws IOException{
+		final FLEFModel model = model();
+		model.addRecord(sourceDerivedFrom("SX1", "SX1"));
+
+		final List<ConsistencyService.Issue> found = issuesContaining(model, "is derived from itself");
+
+		Assertions.assertEquals(1, found.size(), found.toString());
+		Assertions.assertEquals("SX1", found.getFirst().recordId());
+		Assertions.assertEquals(ConsistencyService.Severity.ERROR, found.getFirst().severity());
+		//it is not also reported as a circle of several
+		Assertions.assertTrue(issuesContaining(model, "Circular derivation of sources").isEmpty());
+	}
+
+	@Test
+	void sourcesWhoseNotesCiteEachOtherAreNotACircleOfDerivation() throws IOException{
+		//a note may cite a source to complete the text: it says nothing about where the source comes from
+		final FLEFModel model = model();
+		final FLEFRecord first = FLEFRecord.createMainRecord("SX1", SourceReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_NOTE)
+				.addChild(FLEFRecord.createChildWithTagAndValue("text", "a note"))
+				.addChild(citation(SourceCitationReader.TAG_SOURCE, "SX2")));
+		final FLEFRecord second = FLEFRecord.createMainRecord("SX2", SourceReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_NOTE)
+				.addChild(FLEFRecord.createChildWithTagAndValue("text", "a note"))
+				.addChild(citation(SourceCitationReader.TAG_SOURCE, "SX1")));
+		model.addRecord(first);
+		model.addRecord(second);
+
+		Assertions.assertTrue(issuesContaining(model, "Circular derivation of sources").isEmpty());
 	}
 
 	@Test

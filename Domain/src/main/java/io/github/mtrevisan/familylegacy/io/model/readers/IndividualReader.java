@@ -32,6 +32,7 @@ import org.apache.commons.lang3.Strings;
 
 import java.awt.Rectangle;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 
@@ -164,25 +165,52 @@ public final class IndividualReader{
 	public static List<String> extractFullNames(final FLEFRecord individual){
 		final List<Name> names = NameAnatomyService.extractForIndividual(individual);
 		return names.stream()
-			// Skip parts having a type explicitly classified as acquired or contextual
-			.filter(name -> name.parts().stream()
-				.noneMatch(part -> NameReader.isPartTypeExcludedFromPersonalName(part.type())))
 			.map(IndividualReader::parsePersonalName)
 			.filter(StringUtils::isNotEmpty)
 			.toList();
 	}
 
+	/**
+	 * The name to show for an individual: the preferred one among its names, by their type. The protocol has no preferred assertion
+	 * for names (a conclusion cannot point to one), so the choice is by type: the {@code birth} name, then the {@code official} one, then
+	 * the {@code legal} one; otherwise the first name that is not an alias or a nickname; otherwise the first one. A name with no
+	 * personal part (only a nickname, a title...) is not a candidate.
+	 *
+	 * @param individual the IndividualRecord
+	 * @return the full name, or {@code null} if the individual has none
+	 */
 	public static String extractPrimaryFullname(final FLEFRecord individual){
-		final List<String> fullnames = extractFullNames(individual);
-		return (!fullnames.isEmpty()? fullnames.getFirst(): null);
+		final List<Name> names = NameAnatomyService.extractForIndividual(individual).stream()
+			.filter(name -> StringUtils.isNotEmpty(parsePersonalName(name)))
+			.toList();
+		return (!names.isEmpty()? parsePersonalName(preferredName(names)): null);
 	}
+
+	/** @return the name to show among the names of an individual (not empty): by type, then the first that is not informal, then the first */
+	static Name preferredName(final List<Name> names){
+		for(final String preferredType : PREFERRED_NAME_TYPES)
+			for(final Name name : names)
+				if(preferredType.equalsIgnoreCase(name.type()))
+					return name;
+		for(final Name name : names)
+			if(!INFORMAL_NAME_TYPES.contains(StringUtils.lowerCase(name.type())))
+				return name;
+		return names.getFirst();
+	}
+
+	/** The types of name that are the name to show, in order of preference. */
+	private static final List<String> PREFERRED_NAME_TYPES = List.of(NameReader.ENUM_PERSONAL_TYPE_BIRTH, NameReader.ENUM_PERSONAL_TYPE_OFFICIAL,
+		NameReader.ENUM_PERSONAL_TYPE_LEGAL);
+	/** The types of name that are not shown if another name is there: informal names. */
+	private static final Set<String> INFORMAL_NAME_TYPES = Set.of(NameReader.ENUM_PERSONAL_TYPE_ALIAS,
+		NameReader.ENUM_PERSONAL_TYPE_NICKNAME);
 
 	private static String parsePersonalName(final Name name){
 		final StringJoiner fullName = new StringJoiner(StringUtils.SPACE);
 		final List<NamePart> parts = name.parts();
 		for(final NamePart part : parts){
 			final String value = part.value();
-			if(value != null)
+			if(value != null && !NameReader.isPartTypeExcludedFromPersonalName(part.type()))
 				fullName.add(value);
 		}
 		return fullName.toString();

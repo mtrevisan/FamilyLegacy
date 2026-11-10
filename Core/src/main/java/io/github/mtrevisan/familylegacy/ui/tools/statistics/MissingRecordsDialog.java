@@ -96,14 +96,11 @@ final class MissingRecordsDialog extends JDialog{
 
 		final JButton edit = new JButton(I18N.t("button.open_record"));
 		edit.addActionListener(e -> editSelected());
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel bottom = new JPanel(new BorderLayout());
 		bottom.add(count, BorderLayout.WEST);
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(edit);
-		buttons.add(close);
 		bottom.add(buttons, BorderLayout.EAST);
 
 		setLayout(new BorderLayout(8, 8));

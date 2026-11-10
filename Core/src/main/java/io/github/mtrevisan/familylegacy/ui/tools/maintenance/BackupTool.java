@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -125,9 +126,8 @@ public final class BackupTool implements ToolOperation{
 				try{
 					get();
 
-					JOptionPane.showMessageDialog(context.owner(),
-						I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), I18N.t("dialog.backup.title"),
-						JOptionPane.INFORMATION_MESSAGE);
+					SavedFileNotice.show(context.owner(), I18N.t("dialog.backup.title"),
+						I18N.l("dialog.backup.saved") + StringUtils.LF + target.getAbsolutePath(), target);
 				}
 				catch(final InterruptedException ex){
 					Thread.currentThread().interrupt();

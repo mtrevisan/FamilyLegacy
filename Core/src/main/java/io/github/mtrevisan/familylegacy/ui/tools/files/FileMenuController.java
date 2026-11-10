@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -277,17 +278,17 @@ public final class FileMenuController{
 		}
 	}
 
-	/** The document has changes and no file: choose one, lose them, or give up what was being done. */
+	/** The document has changes and no file: choose one, lose them, or give up what was being done (closing the question with ESC). */
 	private boolean askWhatToDoWithTheDocument(){
 		final int choice = JOptionPane.showOptionDialog(owner,
 			I18N.t("dialog.unsaved.message"), I18N.t("dialog.unsaved.title"),
-			JOptionPane.YES_NO_CANCEL_OPTION,
+			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE,
 			null,
-			new Object[]{I18N.t("button.save"), I18N.t("button.discard"), I18N.t("button.cancel")},
+			new Object[]{I18N.t("button.save"), I18N.t("button.discard")},
 			I18N.t("button.save"));
 
-		if(choice == 2 || choice == JOptionPane.CLOSED_OPTION)
+		if(choice == JOptionPane.CLOSED_OPTION)
 			return false;
 		if(choice == 0)
 			return saveAs();
@@ -444,6 +445,8 @@ public final class FileMenuController{
 
 		if(writeTo(target)){
 			setCurrentFile(target);
+			//where the file is, with the button to open its directory
+			SavedFileNotice.show(owner, I18N.t("dialog.file.save.title"), I18N.tf("dialog.file.saved", target.getAbsolutePath()), target);
 			return true;
 		}
 		return false;
@@ -474,6 +477,7 @@ public final class FileMenuController{
 		// the document is the saved file, read back as any other file
 		if(!writeTo(target, importedModel))
 			return false;
+		SavedFileNotice.show(owner, I18N.t("dialog.file.save_imported.title"), I18N.tf("dialog.file.saved", target.getAbsolutePath()), target);
 		openFile(target);
 		return true;
 	}

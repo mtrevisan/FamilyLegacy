@@ -74,8 +74,6 @@ final class IdentityOtherKinds{
 		.toList();
 	/** The probability from which a pair is a strong candidate (a warning), and the confidence proposed is high. */
 	static final double HIGH_PROBABILITY = 0.9;
-	/** The most pairs proposed for each kind. */
-	static final int MAX_PER_KIND = 25;
 
 
 	private IdentityOtherKinds(){}
@@ -99,7 +97,7 @@ final class IdentityOtherKinds{
 		final Set<String> hypotheses = existingHypotheses(model);
 		final List<IdentityFinding> findings = new ArrayList<>();
 		for(final RecordAbsorber.DuplicatePair pair : new RecordAbsorber(grammar)
-				.duplicatePairs(model, KINDS, settings.otherProbability(), MAX_PER_KIND)){
+				.duplicatePairs(model, KINDS, settings.otherProbability(), Integer.MAX_VALUE)){
 			final FLEFRecord first = model.getRecordById(pair.firstId());
 			final FLEFRecord second = model.getRecordById(pair.secondId());
 			if(first == null || second == null || PrivacyService.isHidden(model, first) || PrivacyService.isHidden(model, second)

@@ -399,7 +399,7 @@ public final class ChineseCalendarParser{
 	}
 
 
-	public static void main(String[] args){
+	static void main(final String[] args){
 		// Test 1: Cyclical year string format
 		final ChineseDateInput input1 = ChineseCalendarParser.parse("庚申年 正月 初一");
 		System.out.println(input1);

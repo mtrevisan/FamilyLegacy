@@ -42,6 +42,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
@@ -105,7 +106,7 @@ public final class ProvenanceDialog extends JDialog{
 
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
-		table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getSelectionModel()
 			.addListSelectionListener(e -> updateButtons());
 		table.addMouseListener(new MouseAdapter(){
@@ -135,7 +136,7 @@ public final class ProvenanceDialog extends JDialog{
 		add(top, BorderLayout.NORTH);
 		add(scroll, BorderLayout.CENTER);
 		add(ToolDialogs.createFooter(StringUtils.EMPTY, openRecord, openSource,
-			ToolDialogs.createCopyButton(() -> ((RowTableModel)table.getModel()).toText()), ToolDialogs.createCloseButton(this)),
+			ToolDialogs.createCopyButton(() -> ((RowTableModel)table.getModel()).toText())),
 			BorderLayout.SOUTH);
 
 		reload();

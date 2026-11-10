@@ -130,7 +130,7 @@ public class DateStructureDialog extends JDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

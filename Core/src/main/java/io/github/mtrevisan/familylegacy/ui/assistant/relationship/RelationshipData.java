@@ -42,13 +42,18 @@ import java.util.Set;
  * @param events        the events the individuals took part in
  * @param clergy        the individuals whose occupation is that of a member of the clergy
  * @param ecclesiasticalPlaces the places of the church: parishes, dioceses and what is part of them by an ecclesiastical relationship
+ * @param countries     the name of the largest place each place is part of (the country), in lower case, by place identifier
  */
 record RelationshipData(Map<String, Person> persons, Map<String, String> groups, List<Relationship> relationships,
-		List<Event> events, Set<String> clergy, Set<String> ecclesiasticalPlaces){
+		List<Event> events, Set<String> clergy, Set<String> ecclesiasticalPlaces, Map<String, String> countries){
 
 	RelationshipData(final Map<String, Person> persons, final Map<String, String> groups, final List<Relationship> relationships,
+			final List<Event> events, final Set<String> clergy, final Set<String> ecclesiasticalPlaces){
+		this(persons, groups, relationships, events, clergy, ecclesiasticalPlaces, Map.of());
+	}
+	RelationshipData(final Map<String, Person> persons, final Map<String, String> groups, final List<Relationship> relationships,
 			final List<Event> events){
-		this(persons, groups, relationships, events, Set.of(), Set.of());
+		this(persons, groups, relationships, events, Set.of(), Set.of(), Map.of());
 	}
 
 	/** What a relationship links. */
@@ -62,8 +67,15 @@ record RelationshipData(Map<String, Person> persons, Map<String, String> groups,
 	 * @param name  the name to show
 	 * @param sex   the sex
 	 * @param birth the days of the birth ({@code null} if not known)
+	 * @param death the days of the death ({@code null} if not known)
 	 */
-	record Person(String id, String name, SexType sex, DateRange birth){}
+	record Person(String id, String name, SexType sex, DateRange birth, DateRange death){
+
+		Person(final String id, final String name, final SexType sex, final DateRange birth){
+			this(id, name, sex, birth, null);
+		}
+
+	}
 
 	/**
 	 * @param id          the identifier of the relationship
@@ -88,11 +100,18 @@ record RelationshipData(Map<String, Person> persons, Map<String, String> groups,
 	 * @param dateText     the date, as written
 	 * @param participants the individuals that took part in it
 	 * @param placeId      the place of the event, or {@code null}
+	 * @param sourceTitles the titles of the sources that cite the event
 	 */
-	record Event(String id, String type, DateRange date, String dateText, List<Participant> participants, String placeId){
+	record Event(String id, String type, DateRange date, String dateText, List<Participant> participants, String placeId,
+			List<String> sourceTitles){
+
+		Event(final String id, final String type, final DateRange date, final String dateText, final List<Participant> participants,
+				final String placeId){
+			this(id, type, date, dateText, participants, placeId, List.of());
+		}
 
 		Event(final String id, final String type, final DateRange date, final String dateText, final List<Participant> participants){
-			this(id, type, date, dateText, participants, null);
+			this(id, type, date, dateText, participants, null, List.of());
 		}
 	}
 

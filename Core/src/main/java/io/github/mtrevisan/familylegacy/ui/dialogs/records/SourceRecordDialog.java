@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
@@ -46,6 +47,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
+import javax.swing.ListModel;
 import java.awt.Window;
 import java.io.IOException;
 
@@ -64,6 +66,7 @@ import java.io.IOException;
  *   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
  *   repository*: RepositoryCitation
  *   media*: Xref&lt;MediaRecord&gt;
+ *   derived_from*: SourceCitation   // the sources this one was made from (a transcription, an abstract, an index, a copy, a compilation); an original has none
  *   note*: Xref&lt;NoteRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -79,6 +82,7 @@ import java.io.IOException;
  * Tabs:
  * Tab 1 (Properties): title, author, publisher, date, place, media_type, repository, document
  * Tab 6 (Research): ConclusionRecord (resolves = this source), ResearchQuestionRecord (target[source] = this source), ResearchActivityRecord (source contains this source)
+ * Tab 7 (Sources): repository sources, derived_from (the sources this one derives from)
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -91,6 +95,9 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final DateField dateField;
 	private final EntityField placeField;
 	private final BoundComboBox<String> mediaTypeCombo;
+	private JPanel sourcesPanel;
+	/** The tree of the derivations, shown only when there are enough related sources. */
+	private SourceDerivationPanel derivationPanel;
 
 
 	public static SourceRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -120,6 +127,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.REPOSITORY, SourceReader.TAG_REPOSITORY, I18N.t("dialog.component.repositories_with_citations"))
 			.withComponent(PanelKey.DOCUMENT, SourceReader.TAG_MEDIA, I18N.t("dialog.component.media"))
+			.withComponent(PanelKey.SOURCE, SourceReader.TAG_DERIVED_FROM, I18N.t("dialog.component.derived_from"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
@@ -194,6 +202,15 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		final JPanel repositoryPanel = components.getPanel(PanelKey.REPOSITORY);
 		GUIHelper.addComponent(panel, repositoryPanel);
 
+		//the sources this one derives from
+		final JPanel derivedFromPanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, derivedFromPanel);
+
+		//the tree of the derivations, above and below this source
+		derivationPanel = new SourceDerivationPanel(model);
+		GUIHelper.addComponent(panel, derivationPanel);
+
+		sourcesPanel = panel;
 		return panel;
 	}
 
@@ -226,6 +243,27 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		placeField.load(record);
 
 		components.load(record);
+		derivationPanel.load(record.getId());
+	}
+
+	/** A source cannot be derived from itself, directly or through other sources (the derivations MUST be acyclic). */
+	@Override
+	protected boolean validData(){
+		final EntityListPanel derivedFromPanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		final ListModel<FLEFRecord> citations = derivedFromPanel.getList()
+			.getModel();
+		for(int i = 0; i < citations.getSize(); i ++){
+			final String originalId = SourceHelper.extractReferencedId(citations.getElementAt(i));
+			if(originalId != null && SourceHelper.isOrDerivesFrom(model, originalId, record.getId())){
+				GUIHelper.showValidationErrorAndFocus(this,
+					I18N.tf("validation.source_derivation_cycle", originalId),
+					tabbedPane, sourcesPanel, derivedFromPanel.getList());
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -239,7 +277,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(SourceRecordDialog::createEdit, "/tests/test.flef", "S1");
 	}
 

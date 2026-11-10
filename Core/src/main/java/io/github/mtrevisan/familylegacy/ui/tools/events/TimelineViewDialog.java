@@ -197,7 +197,6 @@ public final class TimelineViewDialog extends JDialog{
 		footer.add(statusLabel);
 		footer.add(openButton);
 		footer.add(ToolDialogs.createCopyButton(tableModel::toText));
-		footer.add(ToolDialogs.createCloseButton(this));
 		return footer;
 	}
 

@@ -33,6 +33,10 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 
 /** The progress dialog of the reports: the bar has the whole height it asks for, and the task is told at once when the user cancels. */
@@ -83,19 +87,24 @@ class ReportProgressDialogLayoutTest{
 				final int index = way;
 				dialog.onCancel(() -> told[index] ++);
 				dialog.validate();
-				final javax.swing.JButton cancel = buttonOf(dialog);
+				//ESC is the only key, and there is no button: the dialog is cancelled with it or by closing the window
+				final ActionListener escape = dialog.getRootPane()
+					.getActionForKeyStroke(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);
+				Assertions.assertNotNull(escape, "ESC is not bound");
+				final Runnable close = () -> {
+					for(final WindowListener listener : dialog.getWindowListeners())
+						listener.windowClosing(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+				};
+				final ActionEvent key = new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "esc");
 				if(way == 0)
-					cancel.doClick();
-				else if(way == 1){
+					escape.actionPerformed(key);
+				else if(way == 1)
 					//the window is closed
-					for(final java.awt.event.WindowListener listener : dialog.getWindowListeners())
-						listener.windowClosing(new java.awt.event.WindowEvent(dialog, java.awt.event.WindowEvent.WINDOW_CLOSING));
-				}
+					close.run();
 				else{
 					//twice: told once
-					cancel.doClick();
-					for(final java.awt.event.WindowListener listener : dialog.getWindowListeners())
-						listener.windowClosing(new java.awt.event.WindowEvent(dialog, java.awt.event.WindowEvent.WINDOW_CLOSING));
+					escape.actionPerformed(key);
+					close.run();
 				}
 				Assertions.assertTrue(dialog.isCancelled());
 				dialog.dispose();
@@ -103,19 +112,6 @@ class ReportProgressDialogLayoutTest{
 		});
 
 		Assertions.assertArrayEquals(new int[]{1, 1, 1}, told);
-	}
-
-	private static javax.swing.JButton buttonOf(final Container container){
-		for(final Component child : container.getComponents()){
-			if(child instanceof final javax.swing.JButton button)
-				return button;
-			if(child instanceof final Container inner){
-				final javax.swing.JButton found = buttonOf(inner);
-				if(found != null)
-					return found;
-			}
-		}
-		return null;
 	}
 
 }

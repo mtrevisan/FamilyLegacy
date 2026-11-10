@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JComponent;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -228,7 +229,7 @@ class RelationshipDraftDialogTest{
 		final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model)
 			.withParticipants(individuals.get(0), individuals.get(1), RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE);
 		//ESC, which is Cancel
-		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+		final Object binding = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);
 		dialog.getRootPane().getActionMap().get(binding)
 			.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));

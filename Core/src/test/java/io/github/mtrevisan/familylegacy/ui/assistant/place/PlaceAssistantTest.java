@@ -91,8 +91,12 @@ class PlaceAssistantTest{
 	}
 
 	@Test
-	void aTreeWithItsHierarchyHasNoPlaceFinding() throws IOException{
-		Assertions.assertTrue(diagnose(convert()).isEmpty(), diagnose(convert()).toString());
+	void aTreeWithItsHierarchyHasNoPlaceFindingButTheMissingSources() throws IOException{
+		final List<Diagnostic> found = diagnose(convert());
+
+		//the places an event happens in are cited by nothing in an imported tree: nothing else is reported
+		Assertions.assertEquals(2, found.size(), found.toString());
+		Assertions.assertTrue(found.stream().allMatch(d -> d.key().startsWith("place.no_source|")), found.toString());
 	}
 
 	@Test

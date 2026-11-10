@@ -186,10 +186,10 @@ public final class PlaceCoordinateResolver{
 
 			final FLEFRecord place = places.get(i);
 			final String placeId = place.getId();
-			final List<String> rawNames = PlaceReader.extractNames(place);
+			final String ownName = PlaceReader.extractPrimaryName(place);
 			//a place records only its own name: the address to look for is made of the names of the places that contain it too
 			final List<String> addresses = fullAddresses(place);
-			final String primaryName = (!addresses.isEmpty()? addresses.getFirst(): (!rawNames.isEmpty()? rawNames.getFirst(): placeId));
+			final String primaryName = (!addresses.isEmpty()? addresses.getFirst(): (ownName != null? ownName: placeId));
 
 			if(progress != null)
 				progress.onProgress(i + 1, total, primaryName);

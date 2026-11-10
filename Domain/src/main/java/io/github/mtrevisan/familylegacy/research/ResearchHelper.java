@@ -97,14 +97,16 @@ public final class ResearchHelper{
 	public static String firstTextValue(final FLEFRecord record, final String tag){
 		if(record == null)
 			return null;
-		final String direct = FLEFRecordHelper.getChildValue(record, tag);
-		if(direct != null && !direct.isBlank())
-			return direct;
-		final FLEFRecord child = FLEFRecordHelper.findChild(record, tag);
-		if(child == null)
-			return null;
-		final FLEFRecord onlyChild = child.getTheOnlyChild();
-		return (onlyChild != null? onlyChild.getValue(): null);
+		//a tag may be repeated (an activity or a task can contribute to several questions): the first one with a text wins
+		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, tag)){
+			final String direct = child.getValue();
+			if(direct != null && !direct.isBlank())
+				return direct;
+			final FLEFRecord onlyChild = child.getTheOnlyChild();
+			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
+				return onlyChild.getValue();
+		}
+		return null;
 	}
 
 	/** Title of a research question, or the id when missing. */

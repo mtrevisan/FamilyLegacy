@@ -238,7 +238,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(HistoricEventRecordDialog::createEdit, "/tests/test.flef", "HE1");
 	}
 

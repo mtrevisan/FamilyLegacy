@@ -42,11 +42,13 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
@@ -170,7 +172,7 @@ class CitationAssistantTest{
 			final CitationAssistantDialog dialog = new CitationAssistantDialog(null, null, null, "p. 4", applied::set, null);
 
 			final Object binding = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-				.get(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0));
+				.get(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
 			Assertions.assertNotNull(binding);
 			dialog.getRootPane().getActionMap().get(binding)
 				.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));

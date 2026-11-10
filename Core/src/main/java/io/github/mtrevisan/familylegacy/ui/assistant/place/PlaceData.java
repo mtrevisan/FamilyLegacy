@@ -44,11 +44,16 @@ record PlaceData(List<Place> places, List<Relation> relations){
 	 * @param lat   the latitude in degrees, or {@code null} if the place has no coordinates
 	 * @param lon   the longitude in degrees, or {@code null} if the place has no coordinates
 	 * @param usage how many events happened in the place
+	 * @param sourceCount how many sources cite the place or its coordinates
 	 */
-	record Place(String id, List<String> names, String type, Double lat, Double lon, int usage){
+	record Place(String id, List<String> names, String type, Double lat, Double lon, int usage, int sourceCount){
 
 		Place{
 			names = List.copyOf(names);
+		}
+
+		Place(final String id, final List<String> names, final String type, final Double lat, final Double lon, final int usage){
+			this(id, names, type, lat, lon, usage, 0);
 		}
 
 

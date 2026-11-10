@@ -101,3 +101,5 @@ Use it when two records could describe the same real-world entity and you want t
 | **Confidence** | How likely you think it is that they are the same. The mere existence of a hypothesis does not mean they are probably identical. |
 
 On Save, both identities are required and they must not be the same record. The same-kind rule is not checked by the editor.
+
+Once the hypothesis is saved, **Create New** in the list of conclusions of its **Research** tab opens a new conclusion that already resolves this hypothesis, with the issue set to *identity*.

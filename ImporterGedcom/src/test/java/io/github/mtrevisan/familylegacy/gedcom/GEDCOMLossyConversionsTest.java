@@ -52,7 +52,10 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /** Conversions that used to lose information: NOTE sources, CHAN, PLAC.FORM, custom tags, custom names, SLGC, ages, evidence. */
@@ -79,6 +82,100 @@ class GEDCOMLossyConversionsTest{
 		final String gedcom = "0 HEAD\n1 CHAR UTF-8\n" + headerLines + body + "0 TRLR\n";
 		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(gedcom));
 		return new GEDCOMToFLEFConverter().convert(roots);
+	}
+
+	@Test
+	void repositoriesWithTheSameNameAreOneRepository() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME State Archive
+			0 @R2@ REPO
+			1 NAME  state   ARCHIVE
+			1 PHON 123
+			0 @R3@ REPO
+			1 NAME Other Archive
+			0 @S1@ SOUR
+			1 TITL Book
+			1 REPO @R1@
+			1 REPO @R2@
+			0 @S2@ SOUR
+			1 TITL Register
+			1 REPO @R2@
+			""");
+
+		Assertions.assertEquals(2, model.getRecordsByType("REPOSITORY").size());
+		Assertions.assertFalse(model.hasRecord("R2"));
+		final FLEFRecord book = model.getRecordById("S1");
+		Assertions.assertEquals(List.of("R1"), FLEFRecordHelper.findChildren(book, "repository").stream()
+			.map(citation -> FLEFRecordHelper.getChildValue(citation, "repository")).toList());
+		final FLEFRecord register = model.getRecordById("S2");
+		Assertions.assertEquals("R1", FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(register, "repository"), "repository"));
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(model.getRecordById("R1"), "contact").size());
+	}
+
+	@Test
+	void placesWrittenInDifferentWaysAreOnePlace() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME Archive
+			1 PLAC Treviso,Italia
+			0 @S1@ SOUR
+			1 TITL Book
+			1 DATA
+			2 EVEN BIRT
+			3 PLAC  treviso ,  ITALIA
+			0 @I1@ INDI
+			1 NAME A /B/
+			1 BIRT
+			2 PLAC Treviso, Italia
+			1 DEAT
+			2 PLAC TREVISO,   Italia
+			""");
+
+		final List<String> names = model.getRecordsByType("PLACE").stream()
+			.map(place -> FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(place, "name"), "value")).toList();
+		Assertions.assertEquals(2, names.size(), names.toString());
+		Assertions.assertEquals(1, model.getRecordsByType("PLACE_RELATIONSHIP").size());
+	}
+
+	@Test
+	void placesWithTheSameNameAndCoordinatesAreOnePlace() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME A /B/
+			1 BIRT
+			2 PLAC Canizzano, Treviso, Italia
+			3 MAP
+			4 LATI N45.650556
+			4 LONG E12.213333
+			1 DEAT
+			2 PLAC Canizzano, Treviso, Veneto, Italia
+			3 MAP
+			4 LATI N45.650556
+			4 LONG E12.213333
+			1 BURI
+			2 PLAC Canizzano, Venezia, Italia
+			3 MAP
+			4 LATI N45.7
+			4 LONG E12.2
+			""");
+
+		final List<FLEFRecord> canizzano = model.getRecordsByType("PLACE").stream()
+			.filter(place -> "Canizzano".equals(FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(place, "name"), "value"))).toList();
+		//the third one has other coordinates
+		Assertions.assertEquals(2, canizzano.size());
+		final Set<String> ids = new HashSet<>();
+		for(final FLEFRecord record : model.getRecords())
+			collectPlaceReferences(record, ids);
+		for(final String id : ids)
+			Assertions.assertTrue(model.hasRecord(id), id);
+	}
+
+	private static void collectPlaceReferences(final FLEFRecord node, final Set<String> ids){
+		if("place".equalsIgnoreCase(node.getTag()) && node.getValue() != null)
+			ids.add(node.getValue());
+		for(final FLEFRecord child : node.getChildren())
+			collectPlaceReferences(child, ids);
 	}
 
 	private static FLEFRecord eventOfType(final FLEFModel model, final String type){
@@ -228,6 +325,26 @@ class GEDCOMLossyConversionsTest{
 
 		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY), placeTypes(model, "Treviso"));
 		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+	}
+
+
+	@Test
+	void aNameShorterThanTheFormStillEndsWithTheCountry() throws IOException{
+		//a tool that leaves out the levels it does not know: "Sarmede, Treviso, Italia" for "City, County, State, Country"
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC France
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Bordeaux, Gironde, France
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "France"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY), placeTypes(model, "Bordeaux"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Gironde"));
 	}
 
 
@@ -518,7 +635,7 @@ class GEDCOMLossyConversionsTest{
 		final List<String> titles = FLEFRecordHelper.findChildren(individual, NoteReader.TAG_NOTE).stream()
 			.map(note -> FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE))
 			.toList();
-		Assertions.assertEquals(java.util.Arrays.asList(null, "REFN", "Sex", "GEDCOM _FOO"), titles);
+		Assertions.assertEquals(Arrays.asList(null, "REFN", "Sex", "GEDCOM _FOO"), titles);
 		//the notes are contiguous
 		final int first = tags.indexOf(NoteReader.TAG_NOTE);
 		Assertions.assertEquals(first + 3, tags.lastIndexOf(NoteReader.TAG_NOTE));

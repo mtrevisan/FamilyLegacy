@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -94,9 +95,28 @@ public final class SourcesSection implements SectionBuilder{
 		for(final String sid : ids){
 			final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
 			if(src != null)
-				appendSource(out, src);
+				appendSource(out, src, false);
 		}
+
+		//the sources the cited ones are derived from, that nothing cites: a transcription is of no use without its register
+		if(ctx.config.includeOriginalSources())
+			for(final String sid : originalsNotCited(ids)){
+				final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
+				if(src != null)
+					appendSource(out, src, true);
+			}
 		return out;
+	}
+
+
+	/** @return	The sources above the cited ones, that are not cited themselves. */
+	private Set<String> originalsNotCited(final Set<String> cited){
+		final Set<String> extra = new LinkedHashSet<>();
+		for(final String sid : cited)
+			for(final String ancestor : ctx.derivations().ancestorIds(sid))
+				if(!cited.contains(ancestor))
+					extra.add(ancestor);
+		return extra;
 	}
 
 
@@ -104,9 +124,11 @@ public final class SourcesSection implements SectionBuilder{
 	 *                          Rendering
 	 * ====================================================================== */
 
-	private void appendSource(final List<ReportSection> out, final FLEFRecord src){
+	private void appendSource(final List<ReportSection> out, final FLEFRecord src, final boolean notCited){
 		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
 			ctx.sourceTitle(src.getId()))));
+		if(notCited)
+			out.add(new ReportSection.Paragraph("*" + ctx.labels.sections().sourceOriginalOfCited() + "*"));
 
 		appendBasicInfo(out, src);
 		appendRepositories(out, src);
@@ -127,7 +149,7 @@ public final class SourcesSection implements SectionBuilder{
 	private void appendBasicInfo(final List<ReportSection> out, final FLEFRecord src){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
-			FLEFRecordHelper.getChildValue(src, SourceReader.TAG_AUTHOR));
+			ReportFormatters.firstValue(src, SourceReader.TAG_AUTHOR));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
 			FLEFRecordHelper.getChildValue(src, SourceReader.TAG_PUBLISHER));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
@@ -136,6 +158,8 @@ public final class SourcesSection implements SectionBuilder{
 			PlaceCitationReader.extractPlace(src, ctx.model));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(src, SourceReader.TAG_MEDIA_TYPE));
+
+		SourceDerivationLines.appendRows(ctx, src.getId(), rows);
 
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
@@ -160,7 +184,7 @@ public final class SourcesSection implements SectionBuilder{
 
 		// Repository name (or raw ID when the reference cannot be resolved).
 		final String name = (repo != null
-			? RepositoryReader.extractPrimaryName(repo)
+			? RepositoryReader.displayName(repo)
 			: rid);
 		final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 

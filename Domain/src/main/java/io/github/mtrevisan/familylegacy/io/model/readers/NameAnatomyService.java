@@ -83,6 +83,40 @@ public final class NameAnatomyService{
 	}
 
 	/**
+	 * The name to show for a group, a place or a repository. The protocol has no preferred assertion for these names, so the choice is by
+	 * type: the {@code official} name that has a value, otherwise the first name that has one.
+	 *
+	 * @param record	The group, place or repository.
+	 * @return	The value of the name, or {@code null} if no name has a value.
+	 */
+	public static String extractPrimaryGenericName(final FLEFRecord record){
+		final List<Name> names = extractForGeneric(record).stream()
+			.filter(name -> StringUtils.isNotEmpty(name.value()))
+			.toList();
+		for(final Name name : names)
+			if(NameReader.ENUM_TYPE_OFFICIAL.equalsIgnoreCase(name.type()))
+				return name.value();
+		return (!names.isEmpty()? names.getFirst().value(): null);
+	}
+
+	/**
+	 * The text that stands for a group, a place or a repository: the {@code official} name that has a value, otherwise the first name that
+	 * has one, otherwise its id.
+	 *
+	 * @param record	The group, place or repository.
+	 * @return	The name, the id of the record or the empty string.
+	 */
+	public static String displayGenericName(final FLEFRecord record){
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final String name = extractPrimaryGenericName(record);
+		if(StringUtils.isNotBlank(name))
+			return name;
+		return StringUtils.defaultString(record.getId());
+	}
+
+	/**
 	 * Extracts the anatomy of every name of the given source.
 	 *
 	 * @param source the source

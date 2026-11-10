@@ -39,8 +39,43 @@ import java.util.Map;
  * @param events  the events the people took part in
  * @param parents the parent-child links
  * @param unions  the couples
+ * @param memberships the memberships of individuals in groups
+ * @param unreadable  the dates that could not be read, so that the checks above skipped them
  */
-record ChronologyData(Map<String, Person> persons, List<LifeEvent> events, List<ParentLink> parents, List<Union> unions){
+record ChronologyData(Map<String, Person> persons, List<LifeEvent> events, List<ParentLink> parents, List<Union> unions,
+		List<Membership> memberships, List<UnreadableDate> unreadable){
+
+	/** The data of a research without memberships of groups. */
+	ChronologyData(final Map<String, Person> persons, final List<LifeEvent> events, final List<ParentLink> parents,
+			final List<Union> unions){
+		this(persons, events, parents, unions, List.of(), List.of());
+	}
+
+	/** The data of a research without dates that cannot be read. */
+	ChronologyData(final Map<String, Person> persons, final List<LifeEvent> events, final List<ParentLink> parents,
+			final List<Union> unions, final List<Membership> memberships){
+		this(persons, events, parents, unions, memberships, List.of());
+	}
+
+	/**
+	 * @param recordId    the identifier of the record that has the date
+	 * @param description the record, to show
+	 * @param field       the field of the date
+	 * @param text        the date, as written
+	 * @param needsPlugin whether the date is valid but its calendar needs the Ephemeris plugin, which is not installed (not a problem of
+	 *                    the file), or it is not valid in the notation of its calendar
+	 */
+	record UnreadableDate(String recordId, String description, String field, String text, boolean needsPlugin){}
+
+	/**
+	 * @param relationshipId the identifier of the relationship
+	 * @param memberId       the individual that is a member
+	 * @param from           the days the membership began ({@code null} if not known)
+	 * @param to             the days the membership ended ({@code null} if not known)
+	 * @param fromText       the date the membership began, as written
+	 * @param toText         the date the membership ended, as written
+	 */
+	record Membership(String relationshipId, String memberId, DateRange from, DateRange to, String fromText, String toText){}
 
 	/**
 	 * @param id        the identifier of the individual

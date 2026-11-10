@@ -356,7 +356,8 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 		// Body rows — rows shorter than the header are padded with empty cells.
 		for(int r = 0; r < t.rows().size(); r ++){
-			final java.util.List<String> row = t.rows().get(r);
+			final java.util.List<String> row = t.rows()
+				.get(r);
 			final boolean shaded = (r % 2 == 1);
 
 			for(int c = 0; c < cols; c ++){

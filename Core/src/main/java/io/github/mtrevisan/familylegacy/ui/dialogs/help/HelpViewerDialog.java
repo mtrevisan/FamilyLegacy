@@ -24,10 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
-import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
@@ -77,11 +75,8 @@ public final class HelpViewerDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(editor);
 		scroll.setPreferredSize(new Dimension(760, 560));
 
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(close);
 
 		setLayout(new BorderLayout(8, 8));
 		add(scroll, BorderLayout.CENTER);

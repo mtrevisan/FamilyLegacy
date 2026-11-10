@@ -4,7 +4,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 ## Source
 
-Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Notes, Privacy, Audit. Nothing is checked on Save.
+Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Notes, Privacy, Audit. The only thing checked on Save is that no *Derived from* entry is this source or derives from it.
 
 | Field | Meaning |
 |---|---|
@@ -16,6 +16,22 @@ Open it with **Source > New Source...** or **Source > Manage Sources...**, or fr
 | **Media Type** | Editable. audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video. |
 | **Repositories with Citations** | Where the source is kept: each entry is a repository with a locator and remarks. |
 | **Media** | The media records (scans, photographs) of the source. |
+| **Derived from (Sources with Citations)** | In the **Sources** tab. The sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation, or a database taken from a register or a book. See [below](#sources-made-from-other-sources). |
+
+### Sources made from other sources
+
+An **original** source (the parish register itself, a deed, a tombstone) has nothing in *Derived from*. A source that is a transcription, an abstract, an index, a copy or a compilation of something else lists what it comes from there, so that the chain from the copy back to the original is written down.
+
+- In the **Sources** tab, **Derived from** is a list of citations, like the **Sources** tab of any other record: *Create New...* takes an existing source or creates one, and for each entry you fill in the same fields as in any [source citation](#source-citation).
+- The **Locator** says where in the original the content comes from (*page 45, entry 12*) and the **Extract** the passage; both are optional.
+- The **Stance** is *supports* in the usual case. Choose *contradicts* when this source disagrees with its original (a mistaken transcription, an index that gives the wrong year): the disagreement is then recorded and shows in red in Provenance.
+- Below the list, a **Derivations** tree shows the whole chain at a glance: the sources this one is made from, up to the originals, and the sources made from it. It appears only when at least **3** other sources are in the chain, above or below (with fewer, the list is enough), and it shows the state saved in the file, not the changes you are making. Each line gives the title, the identifier, the locator, and *(contradicts)* in red when the derived source disagrees with its original; *(circular derivation)* marks a chain that comes back on itself (Validate File reports it). Double-click a source to open it.
+- A source can derive from more than one source (a compilation of several registers), and several sources can derive from the same one.
+- It is about **where the content comes from**. A book that lists other works in a bibliography, or a note that mentions another source, does not derive from them: leave *Derived from* empty and write it in the notes.
+- A source cannot derive from itself, directly or through other sources (a transcription of a copy of that transcription). The editor refuses it on Save, and [Validate File](tools.md#validate-file) reports it as an error if it is found in a file.
+- Several sources derived from the same original are **not independent evidence** of what it says: two indexes of one register are one witness, not two. This is why it is worth writing the original down.
+- *Derived from* is separate from the **Source Type** of a citation (*original* or *derived*, see [Source citation](#source-citation)): that one is your assessment of how the evidence was used in a record; this one links the source to the one it comes from. The two can be used together.
+- The imports from GEDCOM and Gramps do not fill it in, as neither format has this link.
 
 ## Repository
 

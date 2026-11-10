@@ -240,7 +240,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(MediaRecordDialog::createEdit, "/tests/test.flef", "D1");
 	}
 

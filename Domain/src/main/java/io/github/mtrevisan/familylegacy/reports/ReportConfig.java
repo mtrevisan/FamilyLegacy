@@ -70,6 +70,8 @@ public record ReportConfig(
 	boolean groupAttributes,
 	boolean historicEvents,
 	boolean repositories,
+	/** Whether the sources a cited source is derived from (its originals) are listed too, even if nothing cites them. */
+	boolean includeOriginalSources,
 	boolean eventFullParticipants,
 	boolean coverageReport,
 	boolean timeline,
@@ -130,7 +132,7 @@ public record ReportConfig(
 		return new ReportConfig(language, privacyPolicy, value, value, value, value, value, value, value, value, value,
 			(value? scopes[scopes.length - 1]: CollateralScope.NONE), 0, (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL), value, value,
 			value, value, value, value, value, value, value,
-			value, value, value, value, value, value, value, value, value, value);
+			value, value, value, value, value, value, value, value, value, value, value);
 	}
 
 	public static ReportConfig defaults(){
@@ -161,6 +163,7 @@ public record ReportConfig(
 			true,   // groupAttributes
 			true,   // historicEvents
 			true,   // repositories
+			true,   // includeOriginalSources
 			false,  // eventFullParticipants
 			false,  // coverageReport
 			false,  // timeline

@@ -35,6 +35,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.util.Locale;
 
 
 /**
@@ -105,7 +106,7 @@ public final class PrivacyBadge implements Icon{
 			return null;
 
 		final StringBuilder sb = new StringBuilder(privacy.level().name()
-			.toLowerCase(java.util.Locale.ROOT));
+			.toLowerCase(Locale.ROOT));
 		switch(privacy.origin()){
 			case INHERITED -> sb.append(" (inherited)");
 			case LIVING_PERSON -> sb.append(" (may be living)");

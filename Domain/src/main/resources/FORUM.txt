@@ -79,6 +79,19 @@ In questo modo la documentazione del lavoro genealogico rimane collegata alle pe
 - supporto alla documentazione del ragionamento genealogico
 - strumenti di assistenza alla ricerca
 - workflow esplicito per ipotesi, conflitti e conclusioni
+- gestione della privacy (persone viventi, livelli di riservatezza) per viste, report ed esportazione
+
+## Importazione e report
+
+- **Importazione** da GEDCOM (5.5, 5.5.1 e 7) e da Gramps (XML), così è possibile provarlo con i propri dati senza ricominciare da zero. L'originale non viene mai modificato e, al termine, un report elenca ciò che non è stato possibile convertire.
+- **14 tipi di report** (antenati, discendenti, libro di famiglia, bibliografia, ricerche ancora da verificare, ...) in testo, Markdown, HTML, Word, PDF, EPUB e sito web statico.
+- I dati sono salvati in un formato proprio, testuale e aperto: *FLEF* (Family LEgacy Format).
+
+## Requisiti e licenza
+
+- Software open source, licenza MIT.
+- Esiste un installer per Windows, con controllo degli aggiornamenti integrato.
+- **L'interfaccia e la guida in linea sono attualmente solo in inglese.**
 
 ## Documentazione
 

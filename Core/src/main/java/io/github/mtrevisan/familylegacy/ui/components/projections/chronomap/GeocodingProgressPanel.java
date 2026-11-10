@@ -29,15 +29,16 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
+import javax.swing.AbstractAction;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
+import java.awt.event.ActionEvent;
 
 
 /**
- * Strip embedded in the chronomap, showing the progress of the geocoding and allowing to stop it.
+ * Strip embedded in the chronomap, showing the progress of the geocoding; ESC stops it (while the strip is shown, ESC is for it).
  * <p>
  * It is hidden until the geocoding starts, and hidden again when it ends.
  * </p>
@@ -46,13 +47,12 @@ final class GeocodingProgressPanel extends JPanel{
 
 	private final JLabel statusLabel = new JLabel();
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
-	private final JButton stopButton = new JButton(I18N.t("button.cancel"));
 
 	private Runnable cancelAction;
 
 
 	GeocodingProgressPanel(){
-		super(new MigLayout("ins 2 8 2 8,fillx", "[][grow,fill][]", "[]"));
+		super(new MigLayout("ins 2 8 2 8,fillx", "[][grow,fill]", "[]"));
 
 		statusLabel.setText(I18N.t("dialog.geocoding.status.starting"));
 		//fixed width, so that the progress bar does not resize when the text changes (a longer text is clipped)
@@ -60,9 +60,15 @@ final class GeocodingProgressPanel extends JPanel{
 
 		progressBar.setStringPainted(true);
 		add(progressBar, "growx");
-
-		stopButton.addActionListener(e -> stop());
-		add(stopButton);
+		//ESC stops the geocoding while the strip is shown (a hidden component is not asked for its keys, so the rest of the time ESC is
+		//for whoever else wants it)
+		getInputMap(WHEN_IN_FOCUSED_WINDOW).put(GUIHelper.ESCAPE_STROKE, "stopGeocoding");
+		getActionMap().put("stopGeocoding", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				stop();
+			}
+		});
 
 		setVisible(false);
 	}
@@ -79,7 +85,6 @@ final class GeocodingProgressPanel extends JPanel{
 		progressBar.setValue(0);
 		progressBar.setString(null);
 		statusLabel.setText(I18N.t("dialog.geocoding.status.starting"));
-		stopButton.setEnabled(true);
 		setVisible(true);
 	}
 
@@ -103,7 +108,6 @@ final class GeocodingProgressPanel extends JPanel{
 	}
 
 	private void stop(){
-		stopButton.setEnabled(false);
 
 		final Runnable action = cancelAction;
 		cancelAction = null;

@@ -351,7 +351,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(ResearchActivityRecordDialog::createEdit, "/tests/test.flef", "RA1");
 	}
 

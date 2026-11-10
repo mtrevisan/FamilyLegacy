@@ -109,6 +109,13 @@ public class PlaceCache{
 		if(parts.isEmpty())
 			return null;
 
+		//a name shorter than the form, without commas that stand for the missing levels ("Treviso, Italia" for "City, County, State,
+		//Country"), is written by tools that leave out the levels they do not know: the last jurisdiction is still the largest one
+		//(the country), not the level that its position would give ("Italia" typed as a state, "France" as a city)
+		//(a name of one jurisdiction only says nothing of its level: it is left untyped, unless a longer name types it)
+		if(parts.size() == rawParts.length && parts.size() < levelNamesParts.length)
+			levels.set(parts.size() - 1, (parts.size() > 1? levelNamesParts[levelNamesParts.length - 1]: null));
+
 		final String placeKey = String.join(", ", parts).toLowerCase(Locale.ROOT);
 		FLEFRecord leafPlace = cache.get(placeKey);
 		if(leafPlace == null){

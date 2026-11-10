@@ -35,13 +35,13 @@ A conclusion lists the records it resolves, states the **proof status** and expl
 
 ## Evidence qualifiers
 
-Records can carry *evidence qualifiers*, which say how good a piece of evidence is, along three dimensions:
+Each citation of a source can carry *evidence qualifiers*, which say how good a piece of evidence is, along three dimensions:
 
-- the **source type**: original or derived;
+- the **source type**: original or derived (a source can also say which source it is derived from, see [Sources made from other sources](editors-sources.md#sources-made-from-other-sources));
 - the **information type**: primary, secondary or undetermined;
 - the **evidence type**: direct, indirect or negative.
 
-**Research > Evidence Qualifiers...** is a report on how they are distributed in the file: an overview of the records with and without qualifiers, one tab for each dimension, and a tab **Without qualifiers** that lists those records by name (double-click one to open it and assess it). The records with no qualifiers at all are the most common gap in a file that has not been fully assessed.
+**Research > Evidence Qualifiers...** is a report on how they are distributed in the file: an overview of the citations with and without qualifiers, one tab for each dimension, and a tab **Without qualifiers** that lists the records whose citations lack them, by name (the search box above the list narrows it, word by word, with the *whole words* and *fuzzy* options as in the record selection; double-click one to open it and assess it). The citations with no qualifiers at all are the most common gap in a file that has not been fully assessed.
 
 ## Reporting
 

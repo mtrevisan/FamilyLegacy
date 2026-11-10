@@ -197,7 +197,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(HeaderDialog::new, "/tests/test.flef", null);
 	}
 

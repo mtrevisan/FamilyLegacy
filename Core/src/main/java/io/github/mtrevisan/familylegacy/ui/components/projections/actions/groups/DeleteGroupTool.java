@@ -71,7 +71,7 @@ public final class DeleteGroupTool implements ToolOperation{
 
 		final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> relationshipIds
 			= HandlerRegistry.getReferencingRecords(model, id);
-		final String displayName = GroupReader.extractPrimaryName(group);
+		final String displayName = GroupReader.displayName(group);
 		int relationshipCount = 0;
 		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
 			relationshipCount += entry.getValue().size();

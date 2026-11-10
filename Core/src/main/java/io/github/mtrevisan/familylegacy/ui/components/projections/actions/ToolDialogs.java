@@ -148,13 +148,6 @@ public final class ToolDialogs{
 		return footer;
 	}
 
-	/** Creates the "Close" button of a dialog. */
-	public static JButton createCloseButton(final JDialog dialog){
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dialog.dispose());
-		return close;
-	}
-
 	/** Creates the "Copy all" button, that puts the given text (computed when the button is pressed) in the clipboard. */
 	public static JButton createCopyButton(final Supplier<String> text){
 		final JButton copy = new JButton(I18N.t("button.copy_all"));

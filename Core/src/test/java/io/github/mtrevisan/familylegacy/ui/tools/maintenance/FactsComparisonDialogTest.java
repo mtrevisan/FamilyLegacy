@@ -28,12 +28,14 @@ import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 
@@ -84,11 +86,12 @@ class FactsComparisonDialogTest{
 		});
 	}
 
+	/** The dialog is painted to a picture: in the folder of the environment variable FACTS_SHOTS if there is one, otherwise in a temporary one. */
 	@Test
-	void picture() throws Exception{
+	void picture(@TempDir final Path temporary) throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless());
-		final String folder = System.getenv("FACTS_SHOTS");
-		Assumptions.assumeTrue(folder != null);
+		final String shots = System.getenv("FACTS_SHOTS");
+		final File folder = (shots != null? new File(shots): temporary.toFile());
 
 		final FactsComparisonDialog[] dialog = new FactsComparisonDialog[1];
 		SwingUtilities.invokeAndWait(() -> {
@@ -102,13 +105,14 @@ class FactsComparisonDialogTest{
 			final BufferedImage image = new BufferedImage(dialog[0].getWidth(), dialog[0].getHeight(), BufferedImage.TYPE_INT_RGB);
 			dialog[0].getRootPane().paint(image.getGraphics());
 			try{
-				ImageIO.write(image, "png", new File(folder, "facts.png"));
+				Assertions.assertTrue(ImageIO.write(image, "png", new File(folder, "facts.png")));
 			}
 			catch(final Exception e){
 				throw new RuntimeException(e);
 			}
 			dialog[0].dispose();
 		});
+		Assertions.assertTrue(new File(folder, "facts.png").length() > 0);
 	}
 
 }

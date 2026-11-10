@@ -207,7 +207,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		GUIHelper.launch(NoteStructureDialog::createNew);
 	}
 

@@ -333,9 +333,6 @@ public final class MergeRecordsDialog extends JDialog{
 		ok.addActionListener(e -> onConfirm());
 		buttons.add(ok);
 
-		final JButton cancel = new JButton(I18N.t("button.cancel"));
-		cancel.addActionListener(e -> dispose());
-		buttons.add(cancel);
 
 		return buttons;
 	}
@@ -734,7 +731,7 @@ public final class MergeRecordsDialog extends JDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -88,6 +89,18 @@ public record Diagnostic(Severity severity, AssistantCategory category, String t
 	/** @return the same finding with another rank */
 	public Diagnostic withRank(final double newRank){
 		return new Diagnostic(severity, category, title, explanation, recordIds, action, key, alternatives, newRank);
+	}
+
+	/**
+	 * @return the kind of the finding, the same in every language: what the key says it is (e.g. {@code place.possible_duplicate}),
+	 * or the category if it has no key. The findings of the same kind are listed together.
+	 */
+	public String kind(){
+		if(key == null)
+			return category.name().toLowerCase(Locale.ROOT);
+
+		final int bar = key.indexOf('|');
+		return (bar >= 0? key.substring(0, bar): key);
 	}
 
 	/** @return whether the user can ignore the finding */

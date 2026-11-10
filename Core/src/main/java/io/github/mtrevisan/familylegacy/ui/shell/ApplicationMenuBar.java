@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.common.Project
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceMenu;
+import io.github.mtrevisan.familylegacy.ui.preferences.SettingsMenu;
 import io.github.mtrevisan.familylegacy.ui.tools.dates.DateToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.events.EventToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
@@ -147,6 +148,7 @@ final class ApplicationMenuBar{
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
 		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
+		bar.add(SettingsMenu.create(frame));
 		bar.add(new HelpMenu(frame).create());
 		return bar;
 	}

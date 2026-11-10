@@ -136,8 +136,6 @@ final class RecentChangesDialog extends JDialog{
 		showDiff.addActionListener(e -> showDiff(tableModel.rowAt(table.getSelectedRow())));
 		final JButton refresh = new JButton(I18N.t("recent_changes.refresh"));
 		refresh.addActionListener(e -> refresh());
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		filterPanel.add(new JLabel(I18N.l("recent_changes.filter.type")));
@@ -147,7 +145,6 @@ final class RecentChangesDialog extends JDialog{
 		buttons.add(showDiff);
 		buttons.add(openRecord);
 		buttons.add(refresh);
-		buttons.add(close);
 
 		final JPanel south = new JPanel(new BorderLayout());
 		south.add(summary, BorderLayout.NORTH);

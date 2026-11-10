@@ -242,7 +242,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		GUIHelper.launch(TextValueVariantStructureDialog::createNew);
 	}
 

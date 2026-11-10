@@ -465,7 +465,7 @@ public class GroupDossierPanel extends JPanel{
 	 *                          Bootstrap
 	 * ====================================================================== */
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -120,6 +120,7 @@ public final class ReportOptionsPanel extends JPanel{
 	private final JCheckBox culturalNorms = cb("cultural_norms");
 	private final JCheckBox historicEvents = cb("historic_events");
 	private final JCheckBox repositories = cb("repositories");
+	private final JCheckBox originalSources = cb("include_original_sources");
 
 
 	/* ======================================================================
@@ -225,6 +226,7 @@ public final class ReportOptionsPanel extends JPanel{
 		culturalNorms.setSelected(initial.culturalNorms());
 		historicEvents.setSelected(initial.historicEvents());
 		repositories.setSelected(initial.repositories());
+		originalSources.setSelected(initial.includeOriginalSources());
 
 		groups.setSelected(initial.groups());
 		groupMembers.setSelected(initial.groupMembers());
@@ -286,6 +288,7 @@ public final class ReportOptionsPanel extends JPanel{
 			groupAttributes.isSelected(),
 			historicEvents.isSelected(),
 			repositories.isSelected(),
+			originalSources.isSelected(),
 			eventFull.isSelected(),
 			coverageReport.isSelected(),
 			timeline.isSelected(),
@@ -410,6 +413,7 @@ public final class ReportOptionsPanel extends JPanel{
 		addOption(p, ReportOption.HISTORIC_EVENTS, historicEvents);
 		addOption(p, ReportOption.EVIDENCE, evidence);
 		addOption(p, ReportOption.REPOSITORIES, repositories);
+		addOption(p, ReportOption.INCLUDE_ORIGINAL_SOURCES, originalSources);
 		return nonEmpty(p);
 	}
 

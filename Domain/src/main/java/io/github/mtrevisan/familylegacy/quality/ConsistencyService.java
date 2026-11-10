@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +78,8 @@ import java.util.Set;
  *   <li><b>Relationship that cannot link what it links</b> (error): a type that is not valid between the kinds of the two records
  *       (a spouse that is a group, a membership between two individuals);</li>
  *   <li><b>Circular hierarchy</b>: groups that are part of each other, places that are part of each other (error), places that
- *       succeed each other in a circle (warning, since the dates may explain it); each circle once;</li>
+ *       succeed each other in a circle (warning, since the dates may explain it), sources that are derived from each other in a circle,
+ *       or from themselves (error, the protocol says MUST be acyclic); each circle once;</li>
  *   <li><b>Relationship written twice</b> (warning): the same type and role between the same two records (a couple written from both sides is
  *       one relationship; two associates with different roles, a guardian and a ward, are two);</li>
  *   <li><b>Event without participants</b> (warning), and a birth, baptism, death, burial or cremation whose participants all have a
@@ -522,6 +524,18 @@ public final class ConsistencyService{
 		reportCircles(model, places, Severity.ERROR, "text.consistency.issue.place_cycle", issues);
 		//a place that succeeds another one that succeeds it: the dates may explain it (a place that was split and joined again)
 		reportCircles(model, succession, Severity.WARNING, "text.consistency.issue.succession_cycle", issues);
+
+		//the protocol says that the derivations of the sources MUST be acyclic: a source cannot come from itself
+		final Map<String, List<String>> derivations = new HashMap<>();
+		final List<FLEFRecord> sources = model.getRecordsByType(SourceReader.TYPE);
+		for(final FLEFRecord source : sources){
+			final List<String> originals = SourceReader.extractDerivedFromIds(source);
+			if(originals.contains(source.getId()))
+				issues.add(issue(Severity.ERROR, source.getId(), "text.consistency.issue.source_derived_from_itself", source.getId()));
+			for(final String originalId : originals)
+				addEdge(derivations, source.getId(), originalId);
+		}
+		reportCircles(model, derivations, Severity.ERROR, "text.consistency.issue.source_cycle", issues);
 	}
 
 	private static void addEdge(final Map<String, List<String>> graph, final String from, final String to){

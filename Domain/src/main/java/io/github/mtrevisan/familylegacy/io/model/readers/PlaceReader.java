@@ -114,8 +114,9 @@ public final class PlaceReader{
 
 
 	/**
-	 * Returns the primary display name of a place. {@code PlaceRecord.name} is a list of {@code NameStructure}; the first one with a
-	 * non-blank {@code value} is used. When no name is available, the place id is returned so the display stays readable.
+	 * Returns the primary display name of a place. {@code PlaceRecord.name} is a list of {@code NameStructure}, each with a required
+	 * {@code value}; the primary one is chosen as {@link #extractPrimaryName(FLEFRecord)} does. When no name is available, the place id is
+	 * returned so the display stays readable.
 	 *
 	 * @param place	The place.
 	 * @return	The name, the id of the place or the empty string.
@@ -124,19 +125,8 @@ public final class PlaceReader{
 		if(place == null)
 			return StringUtils.EMPTY;
 
-		for(final FLEFRecord child : place.getChildren()){
-			if(!TAG_NAME.equalsIgnoreCase(child.getTag()))
-				continue;
-
-			final String value = extractPrimaryName(child);
-			if(value != null && !value.isBlank())
-				return value;
-
-			final FLEFRecord onlyChild = child.getTheOnlyChild();
-			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
-				return onlyChild.getValue();
-		}
-		return (place.getId() != null? place.getId(): StringUtils.EMPTY);
+		final String name = extractPrimaryName(place);
+		return (StringUtils.isNotBlank(name)? name: NameAnatomyService.displayGenericName(place));
 	}
 
 	/**
@@ -154,9 +144,15 @@ public final class PlaceReader{
 			.toList();
 	}
 
+	/**
+	 * The name of a place to show, chosen as {@link NameAnatomyService#extractPrimaryGenericName(FLEFRecord)} does.
+	 *
+	 * @param place	The place.
+	 * @return	The name, or {@code null} if the place has no name with a value.
+	 */
 	public static String extractPrimaryName(final FLEFRecord place){
-		final List<String> names = extractNames(place);
-		return (!names.isEmpty()? names.getFirst(): null);
+		final String name = NameAnatomyService.extractPrimaryGenericName(place);
+		return (name != null? name.replace(StringUtils.LF, ", "): null);
 	}
 
 	public static String extractType(final FLEFRecord record){

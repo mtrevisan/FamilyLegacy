@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 
 
 /**
@@ -76,10 +75,8 @@ public final class PlaceCitationReader{
 		}
 
 		final FLEFRecord placeRecord = model.getRecordById(placeId);
-		if(placeRecord != null){
-			final List<Name> names = NameAnatomyService.extractForGeneric(placeRecord);
-			return (!names.isEmpty()? names.getFirst().value(): null);
-		}
+		if(placeRecord != null)
+			return PlaceReader.extractPrimaryName(placeRecord);
 		return null;
 	}
 

@@ -66,6 +66,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -186,7 +187,7 @@ class GroupTimelineTest{
 
 		Assertions.assertTrue(entry.label().contains(GroupTimelineBuilder.DATES_UNKNOWN), entry.label());
 		Assertions.assertEquals(Long.MIN_VALUE, entry.span().start().jdn());
-		Assertions.assertEquals(java.time.LocalDate.now().toEpochDay() + 2_440_588L, entry.span().end().jdn(), "it has no end: it ends today, and does not go on beyond");
+		Assertions.assertEquals(LocalDate.now().toEpochDay() + 2_440_588L, entry.span().end().jdn(), "it has no end: it ends today, and does not go on beyond");
 	}
 
 	@Test
@@ -426,7 +427,7 @@ class GroupTimelineTest{
 
 		final List<GroupRoleLegend.Role> roles = GroupRoleLegend.roles(GroupTimelineBuilder.build(model, "G1"));
 
-		Assertions.assertEquals(java.util.Arrays.asList("member", "president", null), roles.stream().map(GroupRoleLegend.Role::label).toList(),
+		Assertions.assertEquals(Arrays.asList("member", "president", null), roles.stream().map(GroupRoleLegend.Role::label).toList(),
 			"Bruno and the subgroup have no role");
 		Assertions.assertEquals(TemporalRoleColors.of("president"), roles.get(1).color(), "the color of the bars");
 		Assertions.assertEquals(TemporalRoleColors.NO_ROLE, roles.get(2).color());

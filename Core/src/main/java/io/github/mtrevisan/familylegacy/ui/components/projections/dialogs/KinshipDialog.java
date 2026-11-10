@@ -87,7 +87,6 @@ public class KinshipDialog extends JDialog{
 	private final EntityField fieldB;
 
 	private final JButton swapButton = new JButton(I18N.t("button.swap"));
-	private final JButton closeButton = new JButton(I18N.t("button.close"));
 	private final JTextArea resultArea = new JTextArea();
 
 
@@ -172,14 +171,12 @@ public class KinshipDialog extends JDialog{
 		// Footer: close
 		final JPanel footer = new JPanel(new MigLayout("ins 0", "[grow][]", "[]"));
 		footer.add(new JLabel(StringUtils.SPACE), "growx");
-		footer.add(closeButton);
 		main.add(footer, "growx");
 
 		setLayout(new BorderLayout());
 		add(main, BorderLayout.CENTER);
 
 		swapButton.addActionListener(e -> onSwap());
-		closeButton.addActionListener(e -> dispose());
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}

@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.importer.gramps.GrampsPackageReader;
 import io.github.mtrevisan.familylegacy.importer.gramps.GrampsXMLToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
-import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -54,7 +54,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -64,8 +63,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -324,11 +323,10 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
-	void theDocumentConvertsToAValidModel() throws IOException, URISyntaxException{
+	void theDocumentConvertsToAValidModel() throws IOException{
 		final FLEFModel model = convert();
 
-		final Path grammarPath = Path.of(Thread.currentThread().getContextClassLoader().getResource("gedg/flef_0.2.0.gedg").toURI());
-		final FLEFValidator validator = new FLEFValidator(FLEFGrammarParser.parse(grammarPath));
+		final FLEFValidator validator = new FLEFValidator(MergeGrammar.instance());
 		Assertions.assertEquals(List.of(), validator.validateSchema(model));
 		Assertions.assertEquals(List.of(), validator.validateIntegrity(model));
 	}
@@ -353,7 +351,7 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
-	void theGrampsExampleConvertsToAValidModel() throws IOException, URISyntaxException{
+	void theGrampsExampleConvertsToAValidModel() throws IOException{
 		final byte[] xml;
 		try(final InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("gedg/example.gramps")){
 			xml = GrampsPackageReader.readXml(in);
@@ -362,8 +360,7 @@ class GrampsXMLToFLEFConverterTest{
 		final FLEFModel model = GrampsXMLToFLEFConverter.convert(xml, (percent, message) -> {});
 
 		Assertions.assertEquals(2157, model.getRecordsByType(IndividualReader.TYPE).size());
-		final Path grammarPath = Path.of(Thread.currentThread().getContextClassLoader().getResource("gedg/flef_0.2.0.gedg").toURI());
-		final FLEFValidator validator = new FLEFValidator(FLEFGrammarParser.parse(grammarPath));
+		final FLEFValidator validator = new FLEFValidator(MergeGrammar.instance());
 		Assertions.assertEquals(List.of(), validator.validateSchema(model));
 		Assertions.assertEquals(List.of(), validator.validateIntegrity(model));
 	}
@@ -717,8 +714,8 @@ class GrampsXMLToFLEFConverterTest{
 		Assertions.assertEquals("100", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.width"));
 		Assertions.assertTrue(notesTitled(individual, "Region of O1").isEmpty());
 		Assertions.assertTrue(report.countsByReason().isEmpty());
-		Assertions.assertTrue(java.nio.file.Files.isRegularFile(directory.resolve("family_media").resolve("picture.png")));
-		Assertions.assertFalse(java.nio.file.Files.exists(directory.resolve("escape.png")));
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("family_media").resolve("picture.png")));
+		Assertions.assertFalse(Files.exists(directory.resolve("escape.png")));
 	}
 
 
@@ -744,7 +741,7 @@ class GrampsXMLToFLEFConverterTest{
 	@Test
 	void aNewYearRuleIsWrittenAsTheCalendar() throws IOException{
 		final String[] rules = {"Mar25", "Sep1", "Dec25", "Mar1", "Easter"};
-		final String[] calendars = {DateReader.ENUM_CALENDAR_FLORENTINE, DateReader.ENUM_CALENDAR_BYZANTINE_STYLE,
+		final String[] calendars = {DateReader.ENUM_CALENDAR_PISAN, DateReader.ENUM_CALENDAR_BYZANTINE_STYLE,
 			DateReader.ENUM_CALENDAR_NATIVITY, DateReader.ENUM_CALENDAR_VENETAN, DateReader.ENUM_CALENDAR_EASTER_STYLE};
 		final StringBuilder xml = new StringBuilder("<events>");
 		for(int i = 0; i < rules.length; i ++)
@@ -764,13 +761,16 @@ class GrampsXMLToFLEFConverterTest{
 
 	/**
 	 * The date written with the calendar of the new-year rule must be the same day as the Gramps date: it is read back through the
-	 * parser of the Calendars module and compared with the Julian day it came from.
+	 * parser of the Calendars module and compared with the Julian day Gramps computes. Gramps (Date._adjust_newyear) reads a date on or
+	 * after the day the year begins as a day of the year before the one written, and a date before that day as of the year written. It has no
+	 * Easter rule, so that one is not here.
 	 */
-	@Disabled("Fails by 365 days: either the importer writes the year of the Gramps value as is in the new-year calendar, or Gramps stores the year as written in the source. To decide with real Gramps data, see the README of the projections")
 	@Test
 	void aNewYearRuleKeepsTheDay() throws IOException{
-		final String[] rules = {"Mar25", "Sep1", "Dec25", "Mar1", "Easter"};
-		//a day after Easter (18 April 1499) in the year, and one before it that repeats between Jan 1 and Easter
+		final String[] rules = {"Mar25", "Sep1", "Dec25", "Mar1"};
+		//the month and day the year begins, for each rule
+		final int[][] starts = {{3, 25}, {9, 1}, {12, 25}, {3, 1}};
+		//a day before the beginning of the year for some rules, and after it for the others
 		final String[] days = {"1499-02-10", "1499-06-20"};
 		final StringBuilder xml = new StringBuilder("<events>");
 		for(int d = 0; d < days.length; d ++)
@@ -782,8 +782,11 @@ class GrampsXMLToFLEFConverterTest{
 
 		final FLEFModel model = convertXml(xml.toString());
 		for(int d = 0; d < days.length; d ++){
-			final long expected = CalendarType.JULIAN.parseToJdn(days[d].substring(8) + " " + (d == 0? "FEB": "JUN") + " 1499");
+			final int month = (d == 0? 2: 6);
 			for(int i = 0; i < rules.length; i ++){
+				final boolean onOrAfterStart = (month > starts[i][0] || month == starts[i][0] && 10 + 10 * d >= starts[i][1]);
+				final long expected = CalendarType.JULIAN.parseToJdn(days[d].substring(8) + " " + (d == 0? "FEB": "JUN") + " "
+					+ (onOrAfterStart? 1498: 1499));
 				final FLEFRecord event = record(model, "E" + d + i);
 				final String written = FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date");
 				final String calendar = FLEFRecordHelper.getChildValue(event, "date.value.point.calendar");

@@ -89,8 +89,7 @@ import java.util.function.Supplier;
  * record are clickable: double-clicking them (or selecting them and pressing "Open record") opens the edit dialog for that record. The id
  * is provided by the validator as data, so no parsing of the message is needed here.
  * <p>
- * A detail panel at the bottom shows the full message of the selected row, and a "Re-run" button validates again, in the background and
- * on a copy of the model as it is then, and refreshes the table in place.
+ * A detail panel at the bottom shows the full message of the selected row.
  */
 public final class ValidationReportDialog extends JDialog{
 
@@ -132,8 +131,6 @@ public final class ValidationReportDialog extends JDialog{
 	private final JComboBox<Filter> filter = new JComboBox<>(Filter.values());
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton copy = new JButton(I18N.t("button.copy_all"));
-	private final JButton rerun = new JButton(I18N.t("button.rerun"));
-	private final JButton close = new JButton(I18N.t("button.close"));
 
 
 	/** Validates a copy of the model, telling how far it got. */
@@ -235,14 +232,10 @@ public final class ValidationReportDialog extends JDialog{
 				openRecord(table.getSelectedRow());
 		});
 		copy.addActionListener(e -> copyToClipboard());
-		rerun.addActionListener(e -> refresh());
-		close.addActionListener(e -> dispose());
 
 		final JPanel bottomButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		bottomButtons.add(openRecord);
 		bottomButtons.add(copy);
-		bottomButtons.add(rerun);
-		bottomButtons.add(close);
 
 		final JPanel detailPanel = new JPanel(new BorderLayout());
 		detailPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
@@ -295,7 +288,6 @@ public final class ValidationReportDialog extends JDialog{
 		if(worker != null)
 			worker.cancel(true);
 
-		rerun.setEnabled(false);
 		openRecord.setEnabled(false);
 		summary.setText(I18N.t("text.validate.running"));
 		progressBar.setValue(0);
@@ -315,7 +307,6 @@ public final class ValidationReportDialog extends JDialog{
 					return;
 
 				progressBar.setVisible(false);
-				rerun.setEnabled(true);
 				try{
 					show(get());
 				}

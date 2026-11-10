@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -152,7 +153,7 @@ class ReadingSnapshotTest{
 
 
 	/** A service whose only assistant counts how many times it is asked for findings. */
-	private static ResearchAssistantService countingService(final java.util.concurrent.atomic.AtomicInteger calls){
+	private static ResearchAssistantService countingService(final AtomicInteger calls){
 		final ResearchAssistantService service = new ResearchAssistantService(IgnoredFindings.inMemory());
 		service.register(new AssistantContributor(){
 			@Override
@@ -175,7 +176,7 @@ class ReadingSnapshotTest{
 	void theFindingsOfTheSameCopyAreComputedOnce() throws IOException{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
-		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
 		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
 
@@ -191,7 +192,7 @@ class ReadingSnapshotTest{
 	void theFindingsAreComputedAgainWhenTheModelChanged() throws IOException{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
-		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
 		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
 
@@ -205,7 +206,7 @@ class ReadingSnapshotTest{
 	@Test
 	void aContextThatReadsTheModelAsItIsIsNeverKept() throws IOException{
 		final FLEFModel model = convert();
-		final java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
 		final AssistantContext context = new AssistantContext(null, null, model, FILE);
 

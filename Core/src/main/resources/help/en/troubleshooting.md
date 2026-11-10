@@ -3,7 +3,7 @@
 ## Before anything else
 
 - **Keep copies.** Every change is written to the file by itself, through a temporary file that replaces the real one only when it is complete, so an interrupted write (a full disk, a crash, a locked file) leaves the previous version of the file as it was. Even so, each write replaces the old version for good, so **there is no way back to the file as it was yesterday** except a copy: make a copy with **File > Backup...** before a long session of editing, and before an import, a restore or a merge. Name them with the date: the suggested name already has it.
-- **There are no unsaved changes**, so the application never asks whether to save. The only question of this kind is for the document that has **no file yet** (the empty one the application starts with, if you cancelled the choice of its file): *Save* lets you choose a file, *Discard* throws the changes away, *Cancel* stops what you were doing.
+- **There are no unsaved changes**, so the application never asks whether to save. The only question of this kind is for the document that has **no file yet** (the empty one the application starts with, if you cancelled the choice of its file): *Save* lets you choose a file, *Discard* throws the changes away, closing the question with `Esc` stops what you were doing.
 - **"Unable to save the changes automatically"** is shown once when a write fails; the application tries again at the next change. Fix the cause (free some space, close the program that locks the file) and make any change, or use **Save as...** to another place.
 
 ## Opening and saving
@@ -35,9 +35,9 @@ In every case, open the last backup. A file with correct syntax but wrong conten
 
 ## Tools > Validate File
 
-The report has the columns *Error* and *Record*, a *Details* area, and the buttons **Open record**, **Copy all**, **Re-run** and **Close**. It shows only errors (there are no warnings).
+The report has the columns *Error* and *Record*, a *Details* area, and the buttons **Open record** and **Copy all**. It shows only errors (there are no warnings).
 
-The check is **staged**: first the structure, and only if that is clean the references, and only then the business rules. Fixing a batch can therefore reveal new problems: press **Re-run** until it says *The file is valid. No errors found.*
+The check is **staged**: first the structure, and only if that is clean the references, and only then the business rules. Fixing a batch can therefore reveal new problems: the report refreshes by itself when you save a record you opened from it (or open **Tools > Validate File...** again), and you validate again until it says *The file is valid. No errors found.*
 
 | Message | What it means |
 |---|---|
@@ -48,7 +48,7 @@ The check is **staged**: first the structure, and only if that is clean the refe
 | *Constraint violation at ...: ...* | A rule between fields is broken: for example *field 'F' is required because 'C' is 'V'*, *expected exactly one of ...*, or a value that must be among those of another field. |
 | *Duplicate record ID 'X'* | Two records have the same identifier. |
 | *Unresolved cross-reference 'X': target record does not exist* | An identifier is declared and has no record. It has no record to open. |
-| *VALID_FROM must be before VALID_TO* | The validity range of a relationship is reversed (compared as text). |
+| *VALID_FROM must be before VALID_TO* | The validity range of a relationship (of people or of places) is reversed: every day of its end is before every day of its beginning. |
 | *IDENTITY must be present twice* / *IDENTITIES must be different records* | An identity hypothesis lacks its two candidates, or names the same record twice. |
 
 The validation checks the dates against each other when they cannot be right whatever the day they stand for (a death before the birth, a child before the parent, an event after the death, a relationship that ends before it begins), judging each date by all the days it may stand for, so an approximate date, a decade or a century never raises a false alarm. A date is checked in itself in the date editor, see [Entering dates](dates.md#what-the-application-tells-you), and the conventions (ages, the length of a life) are findings of the Chronology Assistant.
@@ -103,7 +103,7 @@ In the folder `.familylegacy` of your home directory:
 
 | File | What it is for |
 |---|---|
-| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown, and the findings you ignored in the Research Assistant for each file. **Deleting it restores every default.** *Appearance > Open preferences folder...* opens its folder (if the system cannot open it from here, a message gives its path). |
+| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown, and the findings you ignored in the Research Assistant for each file. **Deleting it restores every default.** *Settings > Open preferences folder...* opens its folder (if the system cannot open it from here, a message gives its path). |
 | `bookmarks.properties` | The [bookmarks](searching.md#bookmarks); a text file you can edit by hand. |
 | `geocoding.properties` | The coordinates already found for places, for the [Chronomap](chronomap.md). |
 | `historical-maps.properties` | The catalogue of historical maps found for each area, valid for 30 days. |

@@ -49,6 +49,15 @@ final class PlaceDataLoader{
 	private PlaceDataLoader(){}
 
 
+	/** @return how many sources cite the place, or the coordinates of the place */
+	private static int sourceCount(final FLEFRecord place){
+		int count = FLEFRecordHelper.findChildren(place, PlaceReader.TAG_SOURCE).size();
+		final FLEFRecord location = FLEFRecordHelper.findChild(place, PlaceReader.TAG_LOCATION);
+		if(location != null)
+			count += FLEFRecordHelper.findChildren(location, PlaceReader.TAG_SOURCE).size();
+		return count;
+	}
+
 	static PlaceData load(final FLEFModel model){
 		final Map<String, Integer> usage = new HashMap<>();
 		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
@@ -64,7 +73,7 @@ final class PlaceDataLoader{
 			final double[] coordinates = PlaceChecker.parseCoordinates(PlaceReader.extractCoordinates(place));
 			filteredPlaces.add(new PlaceData.Place(place.getId(), PlaceReader.extractNames(place), PlaceReader.extractType(place),
 				(coordinates != null? coordinates[0]: null), (coordinates != null? coordinates[1]: null),
-				usage.getOrDefault(place.getId(), 0)));
+				usage.getOrDefault(place.getId(), 0), sourceCount(place)));
 		}
 
 		final List<PlaceData.Relation> relations = new ArrayList<>();

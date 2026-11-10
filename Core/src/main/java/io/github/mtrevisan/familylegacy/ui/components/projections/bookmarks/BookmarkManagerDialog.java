@@ -105,16 +105,13 @@ public final class BookmarkManagerDialog extends JDialog{
 		final JPanel buttons = new JPanel(new MigLayout("ins 6,gapx 6", "[]8[]8[grow,fill][]8[]", "[]"));
 		final JButton rename = new JButton(I18N.t("button.rename"));
 		final JButton delete = new JButton(I18N.t("button.delete"));
-		final JButton close = new JButton(I18N.t("button.close"));
 
 		rename.addActionListener(e -> onRename());
 		delete.addActionListener(e -> onDelete());
-		close.addActionListener(e -> dispose());
 
 		buttons.add(rename);
 		buttons.add(delete);
 		buttons.add(new JPanel(), "growx");
-		buttons.add(close);
 
 		add(buttons, BorderLayout.SOUTH);
 	}

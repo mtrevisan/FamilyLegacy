@@ -79,7 +79,7 @@ class IdentityCheckerTest{
 		final Diagnostic finding = only(List.of(candidate("I1", "I2", 75)));
 
 		Assertions.assertEquals(AssistantCategory.IDENTITY, finding.category());
-		Assertions.assertEquals("Possible duplicate: Mario I1 and Mario I2 (similarity 75)", finding.title());
+		Assertions.assertEquals("Possible duplicate: Mario I1 [I1] and Mario I2 [I2] (similarity 75)", finding.title());
 		Assertions.assertEquals(List.of("I1", "I2"), finding.recordIds());
 		Assertions.assertTrue(finding.explanation().contains("similarity score 75"), finding.explanation());
 		Assertions.assertTrue(finding.explanation().contains("medium confidence"), finding.explanation());

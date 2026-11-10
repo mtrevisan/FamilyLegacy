@@ -85,7 +85,7 @@ public final class TextReportRenderer implements ReportRenderer{
 		else if(s instanceof ReportSection.Spacer){
 			w.newLine();
 		}
-		else if(s instanceof ReportSection.BulletList(java.util.List<String> items)){
+		else if(s instanceof ReportSection.BulletList(List<String> items)){
 			for(final String item : items){
 				w.write("  - ");
 				w.write(stripInline(item));

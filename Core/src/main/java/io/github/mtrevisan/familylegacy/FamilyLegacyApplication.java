@@ -78,7 +78,7 @@ public final class FamilyLegacyApplication{
 	};
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		final File fileToOpen = (args.length > 0? new File(args[0]): null);
 
 		SwingUtilities.invokeLater(() -> {

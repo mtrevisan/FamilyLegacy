@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
@@ -43,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -57,6 +59,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -67,6 +70,8 @@ public final class GapDataLoader{
 
 	private static final String TAG_FOLLOW_UP = ResearchActivityReader.TAG_FOLLOW_UP;
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
+	/** The place of an event is the place of the place citation of the event. */
+	private static final String EVENT_PLACE = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
 
 
 	private GapDataLoader(){}
@@ -104,6 +109,7 @@ public final class GapDataLoader{
 		final Set<String> withBirth = new HashSet<>();
 		final Set<String> withDeath = new HashSet<>();
 		final Set<String> withCensus = new HashSet<>();
+		final Map<String, Set<String>> placesOfPerson = new HashMap<>();
 		for(final Map.Entry<String, List<String>> entry : principals.entrySet()){
 			final FLEFRecord event = model.getRecordById(entry.getKey());
 			if(!EventHandler.isOfType(event))
@@ -116,6 +122,11 @@ public final class GapDataLoader{
 			for(final String personId : entry.getValue())
 				sources += FLEFRecordHelper.findChildren(filteredIndividuals.get(personId), IndividualReader.TAG_SOURCE).size();
 			events.add(new GapData.Event(entry.getKey(), type, sources, entry.getValue()));
+			final String placeName = (EventReader.ENUM_TYPE_BIRTH.equals(type)? null: placeName(model, event));
+			if(placeName != null)
+				for(final String personId : entry.getValue())
+					placesOfPerson.computeIfAbsent(personId, k -> new TreeSet<>())
+						.add(placeName);
 			for(final String personId : entry.getValue())
 				if(EventReader.ENUM_TYPE_BIRTH.equals(type)){
 					withBirth.add(personId);
@@ -141,7 +152,7 @@ public final class GapDataLoader{
 			final String name = IndividualReader.extractPrimaryFullname(individual);
 			persons.put(id, new GapData.Person(id, (name != null && !name.isBlank()? name: id), birthYears.get(id),
 				withBirth.contains(id), withDeath.contains(id), withResidence.contains(id), withCensus.contains(id),
-				eventsOfPerson.getOrDefault(id, Set.of()).size()));
+				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of()))));
 		}
 
 		final List<GapData.ParentLink> parents = new ArrayList<>();
@@ -210,6 +221,20 @@ public final class GapDataLoader{
 		return new GapData(today, persons, events, parents, unions, filteredQuestions, activities, tasks);
 	}
 
+
+	/** @return the primary name of the place of an event, or {@code null} if the event has no place or it has no name */
+	private static String placeName(final FLEFModel model, final FLEFRecord event){
+		final String placeId = FLEFRecordHelper.getChildValue(event, EVENT_PLACE);
+		if(placeId == null)
+			return null;
+
+		final FLEFRecord place = model.getRecordById(placeId);
+		if(!PlaceHandler.isOfType(place))
+			return null;
+
+		final String name = PlaceReader.extractPrimaryName(place);
+		return (notBlank(name)? name: null);
+	}
 
 	private static List<String> values(final FLEFRecord record, final String tag){
 		final List<String> values = new ArrayList<>();

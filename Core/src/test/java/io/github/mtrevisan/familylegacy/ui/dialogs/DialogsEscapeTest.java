@@ -77,6 +77,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
 import java.awt.KeyboardFocusManager;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -137,7 +138,7 @@ class DialogsEscapeTest{
 			if(component instanceof JTextComponent && component.isFocusable() && component.isEnabled() && component.isShowing())
 				return component;
 			if(fallback == null && component instanceof JComponent && component.isFocusable() && component.isEnabled()
-					&& component.isShowing() && !(component instanceof JPanel))
+					&& component.isShowing() && component.getClass() != JPanel.class)
 				fallback = component;
 			if(component instanceof Container child){
 				final Component found = findFocusTarget(child);
@@ -186,7 +187,7 @@ class DialogsEscapeTest{
 		final List<String> failed = new ArrayList<>();
 		final List<String> notClosed = new ArrayList<>();
 
-		final JDialog parent = new JDialog((java.awt.Window)null, "parent");
+		final JDialog parent = new JDialog((Window)null, "parent");
 		parent.pack();
 		parent.setVisible(true);
 		try{
@@ -256,7 +257,7 @@ class DialogsEscapeTest{
 
 		for(final String type : RECORD_TYPES){
 			//the dialogs opened one from the other: a record dialog over another one
-			final JDialog parent = new JDialog((java.awt.Window)null, "parent");
+			final JDialog parent = new JDialog((Window)null, "parent");
 			parent.pack();
 			final JDialog child;
 			try{
@@ -288,7 +289,7 @@ class DialogsEscapeTest{
 		final List<String> notBuilt = new ArrayList<>();
 
 		for(final String type : STRUCTURE_TYPES){
-			final JDialog parent = new JDialog((java.awt.Window)null, "parent");
+			final JDialog parent = new JDialog((Window)null, "parent");
 			parent.pack();
 			final JDialog child;
 			try{
@@ -338,7 +339,7 @@ class DialogsEscapeTest{
 	@Test
 	void theDialogsOfTheToolsCloseWithEscAndOnlyThemselves(){
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
-		final JDialog parent = new JDialog((java.awt.Window)null, "parent");
+		final JDialog parent = new JDialog((Window)null, "parent");
 		parent.pack();
 		final JDialog child = new JDialog(parent, "tool");
 		child.pack();

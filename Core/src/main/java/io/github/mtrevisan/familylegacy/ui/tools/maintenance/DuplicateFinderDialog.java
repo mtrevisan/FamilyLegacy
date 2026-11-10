@@ -219,9 +219,6 @@ public final class DuplicateFinderDialog extends JDialog{
 		footer.add(progressBar);
 		footer.add(statusLabel);
 
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
 
 		return footer;
 	}

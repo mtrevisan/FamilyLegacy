@@ -261,7 +261,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		final FLEFRecord culturalNorm = FLEFRecord.createMainRecord("CN1", CulturalNormHandler.TYPE);
 		culturalNorm.addChild(FLEFRecord.createChildWithTagAndValue("NAME", "Primogeniture"));
 

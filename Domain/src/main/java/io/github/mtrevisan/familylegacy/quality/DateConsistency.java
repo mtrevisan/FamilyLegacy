@@ -74,6 +74,11 @@ public final class DateConsistency{
 		EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_CORONER_REPORT, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_HONOR,
 		EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY,
 		EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
+	/** @return	Whether an event of that type can be dated after the death of the person (a burial, a probate, a commemoration). */
+	public static boolean isPosthumous(final String type){
+		return POSTHUMOUS_TYPES.contains(type);
+	}
+
 	/** The longest time between the death of the father and the birth of the child, in days. */
 	private static final int MAX_GESTATION_DAYS = 300;
 	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;

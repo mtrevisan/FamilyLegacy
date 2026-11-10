@@ -163,6 +163,7 @@ public final class DateReader{
 	public static final String ENUM_CALENDAR_SWEDISH = CalendarType.SWEDISH.getCode();
 	public static final String ENUM_CALENDAR_VENETAN = CalendarType.VENETAN.getCode();
 	public static final String ENUM_CALENDAR_FLORENTINE = CalendarType.FLORENTINE.getCode();
+	public static final String ENUM_CALENDAR_PISAN = CalendarType.PISAN.getCode();
 	public static final String ENUM_CALENDAR_NATIVITY = CalendarType.NATIVITY.getCode();
 	public static final String ENUM_CALENDAR_BYZANTINE_STYLE = CalendarType.BYZANTINE_STYLE.getCode();
 	public static final String ENUM_CALENDAR_EASTER_STYLE = CalendarType.EASTER_STYLE.getCode();

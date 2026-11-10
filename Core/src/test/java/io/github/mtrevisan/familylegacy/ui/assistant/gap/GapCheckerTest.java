@@ -173,55 +173,26 @@ class GapCheckerTest{
 	}
 
 	@Test
-	void fewDeathsAreAFindingEachManyAreOne(){
-		final Builder few = new Builder();
-		for(int i = 0; i < GapChecker.MAX_INDIVIDUAL_FINDINGS; i ++)
-			few.person("a" + i, 1900, false);
-		Assertions.assertEquals(GapChecker.MAX_INDIVIDUAL_FINDINGS, few.check().size());
+	void everyDeathBirthAndCoupleIsAFindingNoneIsSummedUp(){
+		final Builder deaths = new Builder();
+		for(int i = 0; i < 40; i ++)
+			deaths.person("a" + i, (i == 0? 1900: 1930), false);
+		final List<GapFinding> found = deaths.findings();
+		Assertions.assertEquals(40, found.size());
+		//one finding for each individual, the certainly dead first by usefulness, each with its own question
+		Assertions.assertTrue(found.stream().allMatch(f -> f.diagnostic().recordIds().size() == 1 && f.draft().kind() == GapDraft.Kind.QUESTION));
+		Assertions.assertEquals(85., found.stream().mapToDouble(f -> f.diagnostic().rank()).max().orElse(0));
 
-		//one more than the limit: an imported tree full of ancestors without a death is not a list of hundreds of findings
-		final Builder many = new Builder();
-		for(int i = 0; i < GapChecker.MAX_INDIVIDUAL_FINDINGS + 1; i ++)
-			many.person("a" + i, 1900, false);
-		final GapFinding finding = many.findings().getFirst();
-		Assertions.assertEquals(1, many.findings().size());
-		Assertions.assertEquals((GapChecker.MAX_INDIVIDUAL_FINDINGS + 1) + " individuals with no death recorded",
-			finding.diagnostic().title());
-		Assertions.assertEquals(85., finding.diagnostic().rank());
-		Assertions.assertEquals(GapChecker.MAX_INDIVIDUAL_FINDINGS + 1, finding.diagnostic().recordIds().size());
-		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
-		Assertions.assertTrue(finding.draft().text().contains((GapChecker.MAX_INDIVIDUAL_FINDINGS + 1) + " individuals"));
-	}
-
-	@Test
-	void theAggregateTakesTheUsefulnessOfTheMostUsefulAndIsCapped(){
-		final Builder builder = new Builder();
-		for(int i = 0; i < GapChecker.MAX_LISTED + 40; i ++)
-			builder.person("a" + i, (i == 0? 1900: 1930), false);
-
-		final Diagnostic finding = only(builder.check());
-
-		//one of them is certainly dead (85), the others probably (55)
-		Assertions.assertEquals(85., finding.rank());
-		Assertions.assertEquals(GapChecker.MAX_LISTED, finding.recordIds().size());
-		//the most useful comes first in the list
-		Assertions.assertEquals("a0", finding.recordIds().getFirst());
-	}
-
-	@Test
-	void manyBirthsAndManyCouplesAreOneFindingEach(){
 		final Builder births = new Builder();
-		for(int i = 0; i < GapChecker.MAX_INDIVIDUAL_FINDINGS + 5; i ++)
+		for(int i = 0; i < 30; i ++)
 			births.person(person("p" + i, false, false, false, 1));
-		Assertions.assertEquals((GapChecker.MAX_INDIVIDUAL_FINDINGS + 5) + " individuals with no birth recorded",
-			only(births.check()).title());
+		Assertions.assertEquals(30, births.check().size());
 
 		final Builder marriages = new Builder();
-		for(int i = 0; i < GapChecker.MAX_INDIVIDUAL_FINDINGS + 5; i ++)
+		for(int i = 0; i < 30; i ++)
 			marriages.person("a" + i, null, true).person("b" + i, null, true).person("c" + i, null, true)
 				.parent("c" + i, "a" + i).parent("c" + i, "b" + i);
-		Assertions.assertEquals((GapChecker.MAX_INDIVIDUAL_FINDINGS + 5) + " couples with children and no known marriage",
-			only(marriages.check()).title());
+		Assertions.assertEquals(30, marriages.check().size());
 	}
 
 	@Test
@@ -244,6 +215,28 @@ class GapCheckerTest{
 		//nobody is asked about a person the research knows nothing of
 		Assertions.assertTrue(new Builder().person(person("p", false, false, false, 0)).check().isEmpty());
 		Assertions.assertTrue(new Builder().person(person("p", true, false, false, 3)).check().isEmpty());
+	}
+
+	@Test
+	void aKnownPlaceWithoutTheBirthPointsToItsRegisters(){
+		final GapData.Person person = new GapData.Person("p", "Person p", null, false, false, false, false, 2,
+			List.of("Treviso", "Venezia"));
+
+		final GapFinding finding = new Builder().person(person).findings().getFirst();
+
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("Place known, birth record missing: Person p"),
+			finding.diagnostic().title());
+		Assertions.assertTrue(finding.diagnostic().explanation().contains("Treviso, Venezia"));
+		//5 more than the same gap without a place: the registers give somewhere to start
+		Assertions.assertEquals(55., finding.diagnostic().rank());
+		Assertions.assertTrue(finding.draft().text().contains("Treviso, Venezia"));
+		Assertions.assertEquals(GapDraft.Kind.QUESTION, finding.draft().kind());
+
+		//only three places are named
+		final GapFinding many = new Builder().person(new GapData.Person("p", "Person p", null, false, false, false, false, 4,
+			List.of("A", "B", "C", "D"))).findings().getFirst();
+		Assertions.assertTrue(many.draft().text().contains("A, B, C"));
+		Assertions.assertFalse(many.draft().text().contains("D"));
 	}
 
 	@Test
@@ -294,31 +287,32 @@ class GapCheckerTest{
 	}
 
 	@Test
-	void theVitalEventsWithoutASourceAreOneFinding(){
-		final GapFinding finding = new Builder()
+	void theVitalEventsWithoutASourceAreAFindingEach(){
+		final List<GapFinding> found = new Builder()
 			.event("e1", EventReader.ENUM_TYPE_BIRTH, 0, "a").event("e2", EventReader.ENUM_TYPE_DEATH, 0, "a").event("e3", EventReader.ENUM_TYPE_MARRIAGE, 0, "a", "b")
 			.event("e4", EventReader.ENUM_TYPE_BIRTH, 2, "c").event("e5", EventReader.ENUM_TYPE_CENSUS, 0, "a").event("e6", EventReader.ENUM_TYPE_BURIAL, 0, "a")
-			.findings().getFirst();
+			.findings();
 
-		Assertions.assertEquals("3 vital event(s) without a source", finding.diagnostic().title());
-		Assertions.assertEquals(List.of("e1", "e2", "e3"), finding.diagnostic().recordIds());
+		Assertions.assertEquals(3, found.size(), found.toString());
+		final GapFinding finding = found.getFirst();
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("Vital event without a source: "), finding.diagnostic().title());
+		Assertions.assertEquals("e1", finding.diagnostic().recordIds().getFirst());
+		Assertions.assertTrue(finding.diagnostic().recordIds().contains("a"));
+		//the marriage is about both
+		Assertions.assertTrue(found.get(2).diagnostic().recordIds().containsAll(List.of("e3", "a", "b")));
 		Assertions.assertEquals(70., finding.diagnostic().rank());
-		//the task to start: to find them
+		//the task to start: to find a source for it
 		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
-		Assertions.assertTrue(finding.draft().text().contains("3 vital events"));
 		Assertions.assertEquals(ResearchTaskReader.ENUM_PRIORITY_NORMAL, finding.draft().priority());
 	}
 
 	@Test
-	void theListOfTheUnsourcedEventsIsCapped(){
+	void everyUnsourcedEventIsListedNoneIsSummedUp(){
 		final Builder builder = new Builder();
-		for(int i = 0; i < GapChecker.MAX_LISTED + 30; i ++)
+		for(int i = 0; i < 230; i ++)
 			builder.event("e" + i, EventReader.ENUM_TYPE_BIRTH, 0, "a");
 
-		final Diagnostic finding = only(builder.check());
-
-		Assertions.assertEquals(GapChecker.MAX_LISTED, finding.recordIds().size());
-		Assertions.assertTrue(finding.title().startsWith((GapChecker.MAX_LISTED + 30) + " vital event(s)"));
+		Assertions.assertEquals(230, builder.check().size());
 	}
 
 	@Test
@@ -332,7 +326,7 @@ class GapCheckerTest{
 			.person(person("a", true, false, true, 1)).person(person("b", true, true, true, 1)).person(person("c", true, false, false, 1))
 			.findings().getFirst();
 
-		Assertions.assertEquals("1 individual(s) in a census without a residence", finding.diagnostic().title());
+		Assertions.assertTrue(finding.diagnostic().title().startsWith("In a census without a residence: "), finding.diagnostic().title());
 		Assertions.assertEquals(List.of("a"), finding.diagnostic().recordIds());
 		Assertions.assertEquals(40., finding.diagnostic().rank());
 		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, finding.draft().priority());
@@ -342,7 +336,7 @@ class GapCheckerTest{
 	void anOpenQuestionWithNoActivity(){
 		final GapFinding finding = new Builder().question("q", ResearchQuestionReader.ENUM_STATUS_OPEN, false).findings().getFirst();
 
-		Assertions.assertEquals("Research question with no activity: Title of q", finding.diagnostic().title());
+		Assertions.assertEquals("Research question with no activity: Title of q [q]", finding.diagnostic().title());
 		Assertions.assertEquals(75., finding.diagnostic().rank());
 		Assertions.assertEquals(GapDraft.Kind.TASK, finding.draft().kind());
 		Assertions.assertEquals(List.of("q"), finding.draft().records());
@@ -434,7 +428,7 @@ class GapCheckerTest{
 			.task("t", ResearchQuestionReader.ENUM_STATUS_OPEN, ConfidenceReader.ENUM_HIGH, "2026-10-27", "q").findings().getFirst();
 
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.diagnostic().severity());
-		Assertions.assertEquals("Overdue task: do t", finding.diagnostic().title());
+		Assertions.assertEquals("Overdue task: do t [t]", finding.diagnostic().title());
 		Assertions.assertEquals(85., finding.diagnostic().rank());
 		Assertions.assertTrue(finding.diagnostic().explanation().contains("1 day(s) ago"));
 		Assertions.assertEquals(List.of("t", "q"), finding.diagnostic().recordIds());
@@ -456,15 +450,17 @@ class GapCheckerTest{
 	}
 
 	@Test
-	void theCompletedActivitiesWithoutAResultAreOneFinding(){
-		final Diagnostic finding = only(new Builder()
+	void theCompletedActivitiesWithoutAResultAreAFindingEach(){
+		final List<Diagnostic> found = new Builder()
 			.activity("a1", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false).activity("a2", ResearchTaskReader.ENUM_STATUS_COMPLETED, null, false, false)
 			.activity("a3", ResearchActivityReader.ENUM_STATUS_PLANNED, null, false, false).activity("a4", ResearchTaskReader.ENUM_STATUS_COMPLETED, ResearchActivityReader.ENUM_RESULT_POSITIVE, false, false)
-			.check());
+			.check();
 
-		Assertions.assertEquals("2 completed activity(ies) without a result", finding.title());
-		Assertions.assertEquals(List.of("a1", "a2"), finding.recordIds());
-		Assertions.assertEquals(25., finding.rank());
+		Assertions.assertEquals(2, found.size(), found.toString());
+		Assertions.assertTrue(found.getFirst().title().startsWith("Completed activity without a result: "), found.getFirst().title());
+		Assertions.assertEquals(List.of("a1"), found.get(0).recordIds());
+		Assertions.assertEquals(List.of("a2"), found.get(1).recordIds());
+		Assertions.assertEquals(25., found.getFirst().rank());
 	}
 
 	@Test

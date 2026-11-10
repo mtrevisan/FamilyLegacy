@@ -81,6 +81,11 @@ final class RecordDifferentAction implements DiagnosticAction{
 	}
 
 	@Override
+	public int keySlot(){
+		return 2;
+	}
+
+	@Override
 	public void execute(final AssistantContext context){
 		final FLEFModel model = context.model();
 		if(model == null)

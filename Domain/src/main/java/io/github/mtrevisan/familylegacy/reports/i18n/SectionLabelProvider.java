@@ -718,6 +718,22 @@ public final class SectionLabelProvider{
 		return labels.getString("SOURCE_CITED_BY");
 	}
 
+	public String sourceDerivedFrom(){
+		return labels.getString("SOURCE_DERIVED_FROM");
+	}
+
+	public String sourceOriginal(){
+		return labels.getString("SOURCE_ORIGINAL");
+	}
+
+	public String sourceDerivatives(){
+		return labels.getString("SOURCE_DERIVATIVES");
+	}
+
+	public String sourceOriginalOfCited(){
+		return labels.getString("SOURCE_ORIGINAL_OF_CITED");
+	}
+
 	/* ======================================================================
 	 *                          Privacy details
 	 * ====================================================================== */

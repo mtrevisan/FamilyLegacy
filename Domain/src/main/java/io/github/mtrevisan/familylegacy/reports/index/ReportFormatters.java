@@ -74,6 +74,14 @@ public final class ReportFormatters{
 		return (s == null? StringUtils.EMPTY: s);
 	}
 
+	/** @return	The first non-blank value among the children of the record with the tag (a tag that may be repeated), {@code null} if none. */
+	public static String firstValue(final FLEFRecord record, final String tag){
+		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, tag))
+			if(child.getValue() != null && !child.getValue().isBlank())
+				return child.getValue();
+		return null;
+	}
+
 	/** Null-safe identity for values that may legitimately be empty. */
 	public static String orEmpty(final String s){
 		return (s == null? StringUtils.EMPTY: s);

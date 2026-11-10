@@ -139,7 +139,7 @@ public final class GroupsSection implements SectionBuilder{
 	private void appendGroup(final List<ReportSection> out, final MembershipEntry entry){
 		final FLEFRecord group = entry.group();
 
-		out.add(new ReportSection.Heading(2, GroupReader.extractPrimaryName(group)));
+		out.add(new ReportSection.Heading(2, GroupReader.displayName(group)));
 
 		appendBasicInfo(out, group);
 		appendMemberships(out, entry);
@@ -307,7 +307,7 @@ public final class GroupsSection implements SectionBuilder{
 			: FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TARGET_GROUP));
 		final FLEFRecord counterpart = (counterpartId != null
 			? ctx.visible(ctx.model.getRecordById(counterpartId)): null);
-		final String label = (counterpart != null? GroupReader.extractPrimaryName(counterpart): counterpartId);
+		final String label = (counterpart != null? GroupReader.displayName(counterpart): counterpartId);
 		if(StringUtils.isEmpty(label))
 			return;
 

@@ -112,9 +112,13 @@ public final class RepositoryReader{
 			.toList();
 	}
 
+	/** @return	The primary name of the repository, or its id if it has no name, or the empty string. */
+	public static String displayName(final FLEFRecord repository){
+		return NameAnatomyService.displayGenericName(repository);
+	}
+
 	public static String extractPrimaryName(final FLEFRecord repository){
-		final List<String> names = extractNames(repository);
-		return (!names.isEmpty()? names.getFirst(): null);
+		return NameAnatomyService.extractPrimaryGenericName(repository);
 	}
 
 	/** @return the type of the repository (one of {@link #TYPES} or a custom token), or {@code null} */

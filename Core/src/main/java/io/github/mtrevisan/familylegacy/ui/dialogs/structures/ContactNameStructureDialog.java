@@ -130,7 +130,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		GUIHelper.launch(ContactNameStructureDialog::createNew);
 	}
 

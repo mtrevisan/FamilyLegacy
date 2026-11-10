@@ -267,7 +267,7 @@ class ContextCheckerTest{
 	}
 
 	@Test
-	void manyImpactsAreSummedUp(){
+	void manyImpactsAreAllListed(){
 		final Builder builder = new Builder();
 		for(int i = 0; i < 12; i ++){
 			builder.historic("H" + i, HistoricEventReader.ENUM_TYPE_EPIDEMIC, range("1855-01-01", "1855-12-31"), "P1");
@@ -276,9 +276,9 @@ class ContextCheckerTest{
 
 		final List<ContextFinding> found = builder.findings();
 
-		//12 contexts, each with 12 deaths: 36 candidates at most, 25 listed and one finding for the rest
-		Assertions.assertEquals(ContextChecker.MAX_PER_KIND, ofKind(found, "context.candidate").size());
-		Assertions.assertEquals(1, ofKind(found, "context.candidate.more").size());
+		//12 contexts, each with 12 deaths: 36 candidates at most, all of them listed and none summed up
+		Assertions.assertEquals(12 * ContextChecker.MAX_PER_CONTEXT, ofKind(found, "context.candidate").size());
+		Assertions.assertEquals(0, ofKind(found, "context.candidate.more").size());
 	}
 
 

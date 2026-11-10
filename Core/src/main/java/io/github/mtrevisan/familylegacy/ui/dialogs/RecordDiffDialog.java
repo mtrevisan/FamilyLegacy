@@ -221,9 +221,8 @@ public class RecordDiffDialog extends JDialog{
 			buttonPanel.add(acceptLeftBtn);
 			buttonPanel.add(acceptRightBtn);
 		}
-		final JButton cancelBtn = new JButton(I18N.t(readOnly? "button.close": "button.cancel"));
-		cancelBtn.addActionListener(e -> dispose());
-		buttonPanel.add(cancelBtn);
+		if(!readOnly){
+		}
 
 		setLayout(new BorderLayout(10, 10));
 		add(headerPanel, BorderLayout.NORTH);
@@ -250,7 +249,7 @@ public class RecordDiffDialog extends JDialog{
 	/**
 	 * Opens the dialog in read-only comparison mode: no accept button is
 	 * shown, the diff is highlighted, and the dialog is closed only with
-	 * the Close button or the window close action.
+	 * the ESC key or the window close action.
 	 */
 	public static void showComparison(final Window owner, final String title,
 		final FLEFRecord left, final FLEFRecord right){
@@ -770,7 +769,7 @@ public class RecordDiffDialog extends JDialog{
 	 *                          Bootstrap
 	 * ====================================================================== */
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

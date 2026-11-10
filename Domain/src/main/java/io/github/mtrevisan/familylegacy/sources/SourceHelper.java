@@ -50,9 +50,13 @@ import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -98,14 +102,16 @@ public final class SourceHelper{
 	public static String firstTextValue(final FLEFRecord record, final String tag){
 		if(record == null)
 			return null;
-		final String direct = FLEFRecordHelper.getChildValue(record, tag);
-		if(direct != null && !direct.isBlank())
-			return direct;
-		final FLEFRecord child = FLEFRecordHelper.findChild(record, tag);
-		if(child == null)
-			return null;
-		final FLEFRecord onlyChild = child.getTheOnlyChild();
-		return (onlyChild != null? onlyChild.getValue(): null);
+		//a tag may be repeated (author*, title*): the first one with a text wins
+		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, tag)){
+			final String direct = child.getValue();
+			if(direct != null && !direct.isBlank())
+				return direct;
+			final FLEFRecord onlyChild = child.getTheOnlyChild();
+			if(onlyChild != null && onlyChild.getValue() != null && !onlyChild.getValue().isBlank())
+				return onlyChild.getValue();
+		}
+		return null;
 	}
 
 	/**
@@ -224,13 +230,47 @@ public final class SourceHelper{
 	private static void incrementCitations(final FLEFRecord record,
 		final Map<String, Integer> counts){
 		for(final FLEFRecord source : record.getChildren()){
-			if(!SourceReader.isOfType(source))
+			//the sources that a source is derived from are cited as well
+			if(!SourceReader.isOfType(source) && !isDerivedFrom(source))
 				continue;
 
 			final String sourceId = extractReferencedId(source);
 			if(sourceId != null)
 				counts.merge(sourceId, 1, Integer::sum);
 		}
+	}
+
+	/** @return	Whether the field is a {@code derived_from} citation of a source (a citation of the source it is made from). */
+	public static boolean isDerivedFrom(final FLEFRecord field){
+		return (field != null && SourceReader.TAG_DERIVED_FROM.equalsIgnoreCase(field.getTag()));
+	}
+
+	/**
+	 * @param model	The model.
+	 * @param sourceId	The identifier of a source.
+	 * @param originalId	The identifier of another source.
+	 * @return	Whether the source is {@code originalId} itself or is derived from it, directly or through other sources (following the
+	 * 	{@code derived_from} citations as saved in the model, and stopping at a circle already in the file).
+	 */
+	public static boolean isOrDerivesFrom(final FLEFModel model, final String sourceId, final String originalId){
+		if(sourceId == null || originalId == null)
+			return false;
+
+		final Set<String> visited = new HashSet<>();
+		final Deque<String> queue = new ArrayDeque<>();
+		queue.add(sourceId);
+		while(!queue.isEmpty()){
+			final String current = queue.poll();
+			if(current.equals(originalId))
+				return true;
+			if(!visited.add(current))
+				continue;
+
+			final FLEFRecord source = model.getRecordById(current);
+			if(source != null)
+				queue.addAll(SourceReader.extractDerivedFromIds(source));
+		}
+		return false;
 	}
 
 	public static String extractReferencedId(final FLEFRecord sourceBlock){

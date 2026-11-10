@@ -15,7 +15,7 @@ The **File** menu holds everything that concerns the whole document.
 
 Before an operation that replaces the document or closes the application (New, Open, Open Recent, Exit or the close button of the window, Import, Restore) what is still waiting is written, so nothing is lost. If that write fails you are told, and asked whether to go on anyway (the changes would be lost); answering *No* stops the operation.
 
-**The one document with no file** is the empty one the application starts with. At your first change you are asked where to write it, and from then on it is saved like any other. If you cancel that choice the document stays in memory only; when you close it, or open another file, you are asked whether to choose a file (*Save*), lose the changes (*Discard*) or give up (*Cancel*).
+**The one document with no file** is the empty one the application starts with. At your first change you are asked where to write it, and from then on it is saved like any other. If you cancel that choice the document stays in memory only; when you close it, or open another file, you are asked whether to choose a file (*Save*), lose the changes (*Discard*) or give up (close the question with `Esc`).
 
 A file can be plain text or compressed (the application recognises it), and is always read as UTF-8. **Saving is safe against interruptions**: the data is written to a temporary file in the same folder, forced to the disk, and only then moved over the real file, so a full disk, a crash or a locked file leave the previous version intact (the temporary file is removed). Because every change is written over the file, backups are the way to keep older versions: see [When something goes wrong](troubleshooting.md#before-anything-else).
 

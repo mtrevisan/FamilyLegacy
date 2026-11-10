@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
-import java.util.List;
 
 
 public class GroupHandler extends AbstractRecordTypeHandler<RecordDialog>{
@@ -75,9 +74,7 @@ public class GroupHandler extends AbstractRecordTypeHandler<RecordDialog>{
 		if(record == null)
 			return "--";
 
-		// Locate the first populated NAME structure
-		final List<String> names = GroupReader.extractNames(record);
-		final String name = (!names.isEmpty()? names.getFirst(): null);
+		final String name = GroupReader.extractPrimaryName(record);
 
 		final String type = GroupReader.extractType(record);
 

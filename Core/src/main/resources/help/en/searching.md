@@ -27,7 +27,7 @@ Both open the same dialog, *Select Record*:
 - **Whole word** and **Fuzzy**, both off.
 - A box of **filters** for the type. For individuals: *Sex* (the preferred sex of the person; a person whose sex is undetermined is not excluded), *Event Type*, *Date From* and *Date To* (each with its calendar), and *Place*. For groups: *Name* and *Type*. The filters on events, dates and places apply to the events of the individual.
 - **Results**: the list, with a status line (*Found N record(s)*) and a progress bar while it searches.
-- Buttons **Edit...**, **Unlink** and **Delete** (on the selected result), and **Select** and **Cancel**.
+- Buttons **Edit...**, **Unlink** and **Delete** (on the selected result), and **Select**. `Esc` closes the dialog.
 
 The search starts by itself about 0.4 seconds after you stop typing or change a filter, and runs in the background. `Esc` stops a search in progress and, if none is running, closes the dialog. A double-click on a result is **Select** (in the *Manage* dialogs it is **Edit**: see [Manage dialogs](#manage-dialogs)). Records hidden by the [privacy](privacy.md) policy are not found.
 
@@ -49,7 +49,7 @@ The result list shows, for individuals, the sex (`[M]`, `[F]`, `[U]`), the name,
 
 **Manage Events...**, **Manage Participants...**, **Manage Sources...**, **Manage Repositories...** and **Manage Places...** use the same dialog as *Find record*, with the filters of the type, but they manage records and do not pick one:
 
-- there is no **Select** button, and **Cancel** is called **Close** (`Esc` closes the dialog, or stops a search in progress);
+- there is no **Select** button and no **Cancel** one (`Esc` closes the dialog, or stops a search in progress);
 - a double-click on a record **edits** it;
 - **New...** creates a record, and the dialog stays open with the new record in the list;
 - **Edit...**, **Unlink** and **Delete** work on the selected record. **Unlink** lists the records that refer to it and removes the ones you choose.

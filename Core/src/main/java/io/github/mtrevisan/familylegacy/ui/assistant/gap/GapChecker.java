@@ -71,10 +71,6 @@ final class GapChecker{
 	/** The usefulness from which a gap is called high, and the one from which it is called medium. */
 	static final int HIGH_USEFULNESS = 70;
 	static final int MEDIUM_USEFULNESS = 45;
-	/** The most records a finding about many of them lists. */
-	static final int MAX_LISTED = 200;
-	/** The most findings there are about the same kind of gap, one for each individual: from there on they are one finding. */
-	static final int MAX_INDIVIDUAL_FINDINGS = 25;
 
 	/** The Julian Day Number of 1970-01-01, to turn a day into a Julian Day Number. */
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
@@ -85,6 +81,10 @@ final class GapChecker{
 	private static final Set<String> UNSUCCESSFUL_RESULTS = Set.of(ResearchActivityReader.ENUM_RESULT_NEGATIVE, ResearchActivityReader.ENUM_RESULT_INCONCLUSIVE,
 		ResearchActivityReader.ENUM_RESULT_UNAVAILABLE);
 	private static final Set<String> ACTIVE_TASKS = Set.of(ResearchTaskReader.ENUM_STATUS_OPEN, ResearchTaskReader.ENUM_STATUS_IN_PROGRESS);
+
+
+	/** The most places named in the explanation and in the draft of a birth. */
+	private static final int MAX_PLACES_LISTED = 3;
 
 
 	private GapChecker(){}
@@ -140,7 +140,7 @@ final class GapChecker{
 					I18N.tf("gap.draft.death.question", person.name()), List.of(person.id()), null),
 				person.name() + " [" + person.id() + "]", String.valueOf(person.birthYear()), age));
 		}
-		addOrAggregate("many_no_death", group, findings, "gap.draft.many_deaths.task");
+		findings.addAll(group);
 	}
 
 	/** The birth of an individual the research is about (they have children, or events): where do they come from? */
@@ -152,12 +152,24 @@ final class GapChecker{
 				continue;
 
 			final int usefulness = 45 + (sons > 0? 10: 0) + (person.eventCount() > 0? 5: 0);
+			if(!person.places().isEmpty()){
+				//a place is known but not the birth record: the registers of that place are where to start
+				final String places = String.join(", ", person.places().stream()
+					.limit(MAX_PLACES_LISTED)
+					.toList());
+				group.add(finding(Diagnostic.Severity.INFORMATION, "no_birth_place", List.of(person.id()), usefulness + 5,
+					new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.birth.title", person.name()),
+						I18N.tf("gap.draft.birth_place.question", person.name(), places), List.of(person.id()), null),
+					person.name() + " [" + person.id() + "]", sons, person.eventCount(), places));
+				continue;
+			}
+
 			group.add(finding(Diagnostic.Severity.INFORMATION, "no_birth", List.of(person.id()), usefulness,
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.birth.title", person.name()),
 					I18N.tf("gap.draft.birth.question", person.name()), List.of(person.id()), null),
 				person.name() + " [" + person.id() + "]", sons, person.eventCount()));
 		}
-		addOrAggregate("many_no_birth", group, findings, "gap.draft.many_births.task");
+		findings.addAll(group);
 	}
 
 	/** The parents of a child with no union between them, and no marriage event: children exist, but no marriage is known. */
@@ -206,36 +218,35 @@ final class GapChecker{
 					I18N.tf("gap.draft.marriage.question", first, second), couple, null),
 				first + " [" + couple.get(0) + "]", second + " [" + couple.get(1) + "]", entry.getValue().size()));
 		}
-		addOrAggregate("many_children_without_marriage", group, findings, "gap.draft.many_marriages.task");
+		findings.addAll(group);
 	}
 
-	/** The vital events (birth, death, marriage) that no source cites: the assertions with nothing behind them. One finding for all. */
+	/** The vital events (birth, death, marriage) that no source cites: the assertions with nothing behind them. One finding for each. */
 	private static void checkSources(final GapData data, final List<GapFinding> findings){
-		final List<String> unsourced = data.events().stream()
-			.filter(e -> VITAL_EVENTS.contains(e.type()) && e.sourceCount() == 0)
-			.map(GapData.Event::id)
-			.toList();
-		if(unsourced.isEmpty())
-			return;
+		for(final GapData.Event event : data.events()){
+			if(!VITAL_EVENTS.contains(event.type()) || event.sourceCount() != 0)
+				continue;
 
-		findings.add(finding(Diagnostic.Severity.INFORMATION, "unsourced_vital_events", unsourced.stream().limit(MAX_LISTED).toList(), 70,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.sources.task", unsourced.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
-			unsourced.size(), Math.min(unsourced.size(), MAX_LISTED)));
+			final List<String> ids = new ArrayList<>(List.of(event.id()));
+			ids.addAll(event.principals());
+			final String who = (event.principals().isEmpty() || !data.persons().containsKey(event.principals().getFirst())
+				? event.id()
+				: data.persons().get(event.principals().getFirst()).name() + " [" + event.principals().getFirst() + "]");
+			findings.add(finding(Diagnostic.Severity.INFORMATION, "unsourced_vital_event", ids, 70,
+				new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.source.task", event.type(), who), event.principals(),
+					ResearchTaskReader.ENUM_PRIORITY_NORMAL),
+				event.type(), who, event.id()));
+		}
 	}
 
-	/** The people found in a census who have no residence recorded: the census says where they lived. One finding for all. */
+	/** The people found in a census who have no residence recorded: the census says where they lived. One finding for each. */
 	private static void checkCensusResidences(final GapData data, final List<GapFinding> findings){
-		final List<String> withoutResidence = data.persons().values().stream()
-			.filter(p -> p.hasCensus() && !p.hasResidence())
-			.map(GapData.Person::id)
-			.toList();
-		if(withoutResidence.isEmpty())
-			return;
-
-		findings.add(finding(Diagnostic.Severity.INFORMATION, "census_without_residence",
-			withoutResidence.stream().limit(MAX_LISTED).toList(), 40,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.census.task", withoutResidence.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_LOW),
-			withoutResidence.size(), Math.min(withoutResidence.size(), MAX_LISTED)));
+		for(final GapData.Person person : data.persons().values())
+			if(person.hasCensus() && !person.hasResidence())
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "census_without_residence", List.of(person.id()), 40,
+					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.census.task", person.name()), List.of(person.id()),
+						ResearchTaskReader.ENUM_PRIORITY_LOW),
+					person.name() + " [" + person.id() + "]"));
 	}
 
 	/** The open questions that nobody works on, or that have run out of things to do. */
@@ -252,7 +263,7 @@ final class GapChecker{
 					(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status())? 75: 45),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.activity.task", question.title()),
 						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
-					question.title(), question.status()));
+					question.title() + " [" + question.id() + "]", question.status()));
 				continue;
 			}
 
@@ -263,7 +274,7 @@ final class GapChecker{
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_stalled", List.of(question.id()), 65,
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.stalled.task", question.title()),
 						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
-					question.title(), activities.size()));
+					question.title() + " [" + question.id() + "]", activities.size()));
 		}
 	}
 
@@ -272,13 +283,13 @@ final class GapChecker{
 		final Map<String, GapData.Question> questions = new HashMap<>();
 		data.questions().forEach(q -> questions.put(q.id(), q));
 
-		final List<String> withoutResult = new ArrayList<>();
 		for(final GapData.Activity activity : data.activities()){
 			if(!ResearchActivityReader.ENUM_STATUS_COMPLETED.equals(activity.status()))
 				continue;
 
 			if(activity.result() == null){
-				withoutResult.add(activity.id());
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "activities_without_result", List.of(activity.id()), 25, null,
+					activity.action() + " [" + activity.id() + "]"));
 				continue;
 			}
 
@@ -290,14 +301,9 @@ final class GapChecker{
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "no_follow_up", ids, 50,
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.follow_up.task", activity.action(), activity.result()),
 						activity.questionIds(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
-					activity.action(), activity.result()));
+					activity.action() + " [" + activity.id() + "]", activity.result()));
 			}
 		}
-
-		if(!withoutResult.isEmpty())
-			findings.add(finding(Diagnostic.Severity.INFORMATION, "activities_without_result",
-				withoutResult.stream().limit(MAX_LISTED).toList(), 25, null, withoutResult.size(),
-				Math.min(withoutResult.size(), MAX_LISTED)));
 	}
 
 	/** A task that is not done and past its due date. */
@@ -311,36 +317,10 @@ final class GapChecker{
 			final int bonus = (ResearchTaskReader.ENUM_PRIORITY_HIGH.equals(task.priority())? 15: (ResearchTaskReader.ENUM_PRIORITY_NORMAL.equals(task.priority())? 5: 0));
 			final List<String> ids = new ArrayList<>(List.of(task.id()));
 			ids.addAll(task.questionIds());
-			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, 70 + bonus, null, task.description(), days));
+			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, 70 + bonus, null, task.description() + " [" + task.id() + "]", days));
 		}
 	}
 
-
-	/**
-	 * A gap that is about each individual is a finding for each of them, until there are too many to be useful: an imported tree with
-	 * hundreds of ancestors with no death would bury every other finding, and the count of the indicator. Then it is one finding, with
-	 * the individuals listed, the usefulness of the most useful of them and a task for all.
-	 *
-	 * @param group the findings, one for each individual or couple
-	 */
-	private static void addOrAggregate(final String aggregateKey, final List<GapFinding> group, final List<GapFinding> findings,
-			final String taskKey){
-		if(group.size() <= MAX_INDIVIDUAL_FINDINGS){
-			findings.addAll(group);
-			return;
-		}
-
-		final List<String> ids = group.stream()
-			.sorted((a, b) -> Double.compare(b.diagnostic().rank(), a.diagnostic().rank()))
-			.flatMap(f -> f.diagnostic().recordIds().stream())
-			.distinct()
-			.limit(MAX_LISTED)
-			.toList();
-		final int usefulness = (int)group.stream().mapToDouble(f -> f.diagnostic().rank()).max().orElse(0);
-		findings.add(finding(Diagnostic.Severity.INFORMATION, aggregateKey, ids, usefulness,
-			new GapDraft(GapDraft.Kind.TASK, "", I18N.tf(taskKey, group.size()), List.of(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
-			group.size(), Math.min(group.size(), MAX_LISTED)));
-	}
 
 	private static String pair(final String first, final String second){
 		return (first.compareTo(second) <= 0? first + "|" + second: second + "|" + first);

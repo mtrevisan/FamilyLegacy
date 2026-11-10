@@ -35,16 +35,13 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
-import java.awt.Desktop;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -54,10 +51,10 @@ import java.util.function.Supplier;
 
 /**
  * Builds the menu bar entry that lets the user choose the application's UI
- * language and font. Both choices are persisted across runs via
+ * language, font and media paths. The choices are persisted across runs via
  * {@link AppPreferences}.
  *
- * <p>The menu contains two submenus:</p>
+ * <p>The menu contains:</p>
  * <ul>
  *   <li><b>Language</b> — a radio group of the languages offered by the
  *       application; picking one applies it immediately (with a prompt to
@@ -98,9 +95,6 @@ public final class AppearanceMenu{
 		menu.add(createLanguageMenu(owner, saveBeforeRestart, openFile));
 		menu.add(createFontMenu(owner));
 		menu.add(createMediaPathsMenu(owner));
-		menu.add(createIdentityItem(owner));
-		menu.add(new JSeparator());
-		menu.add(createOpenPreferencesItem(owner));
 		return menu;
 	}
 
@@ -235,48 +229,10 @@ public final class AppearanceMenu{
 	}
 
 
-	private static JMenuItem createIdentityItem(final Window owner){
-		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.identity"));
-		item.addActionListener(a -> IdentitySettingsDialog.show(owner));
-		return item;
-	}
-
-
 	private static JMenuItem createFontMenu(final Window owner){
 		final JMenuItem item = new JMenuItem(I18N.t("menu.appearance.font.dialog"));
 		item.addActionListener(a -> FontChooserDialog.show(owner));
 		return item;
-	}
-
-
-	/* ======================================================================
-	 *                          Open preferences item
-	 * ====================================================================== */
-
-	private static JMenuItem createOpenPreferencesItem(final Window owner){
-		final JMenuItem item = new JMenuItem(I18N.t("menu.item.open_preferences_folder"));
-		item.addActionListener(a -> onOpenPreferences(owner));
-		return item;
-	}
-
-	private static void onOpenPreferences(final Window owner){
-		try{
-			final Path folder = AppPreferences.filePath().getParent();
-			if(!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN)){
-				//the folder cannot be opened from here: at least the user is told where it is
-				JOptionPane.showMessageDialog(owner, I18N.tf("message.preferences_folder.unsupported", folder),
-					I18N.t("error.title"), JOptionPane.INFORMATION_MESSAGE);
-
-				return;
-			}
-
-			Desktop.getDesktop().open(folder.toFile());
-		}
-		catch(final Exception ex){
-			JOptionPane.showMessageDialog(owner,
-				I18N.t("message.preferences_folder.open_failed") + ":\n" + ex.getMessage(),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-		}
 	}
 
 }

@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -77,7 +75,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -608,9 +605,7 @@ public class FamilyLegacyFrame extends JFrame{
 	}
 
 
-	public static void main(final String[] args) throws IOException, URISyntaxException{
-		final FLEFGrammar grammar = MergeGrammar.instance();
-
+	static void main(final String[] args) throws IOException{
 		final String modelUri = "/tests/TGMZ.flef";
 //		final String rootIndividualId = "I1";
 		final String rootIndividualId = "I1430";

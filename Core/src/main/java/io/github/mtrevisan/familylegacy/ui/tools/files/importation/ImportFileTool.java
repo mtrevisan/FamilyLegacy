@@ -154,7 +154,7 @@ public final class ImportFileTool implements ToolOperation{
 			return;
 
 		final int answer = JOptionPane.showConfirmDialog(owner, I18N.tf("dialog.import.files.message", count),
-			I18N.t("dialog.import.files.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+			I18N.t("dialog.import.files.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE);
 		File folder = null;
 		if(answer == JOptionPane.OK_OPTION){
 			final JFileChooser chooser = new JFileChooser(startFolder);

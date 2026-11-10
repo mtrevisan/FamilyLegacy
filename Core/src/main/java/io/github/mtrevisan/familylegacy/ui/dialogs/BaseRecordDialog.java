@@ -498,7 +498,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 	/**
 	 * Wires up the standard dialog chrome that used to be repeated at the end of every {@code initComponents()}:
-	 * the frame's layout, the tabbed pane, and the Save/Cancel button row. Call it last, from the subclass's own
+	 * the frame's layout, the tabbed pane, and the Save button row (ESC cancels). Call it last, from the subclass's own
 	 * {@code initComponents()}, after all tabs have been added:
 	 * <pre>
 	 * tabbedPane.addTab("Main", createMainPanel());

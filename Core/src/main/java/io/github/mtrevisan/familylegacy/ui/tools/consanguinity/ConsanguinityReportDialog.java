@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -165,17 +164,13 @@ public class ConsanguinityReportDialog extends JDialog{
 		scroll.setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_TEXT_HEIGHT));
 		main.add(scroll, "grow,push,wrap");
 
-		final JButton closeButton = new JButton(I18N.t("button.close"));
-		closeButton.addActionListener(e -> dispose());
 		final JPanel footer = new JPanel(new MigLayout("ins 0", "[grow][]", "[]"));
 		footer.add(new JLabel(), "growx");
-		footer.add(closeButton);
 		main.add(footer, "growx");
 
 		setLayout(new BorderLayout());
 		add(main, BorderLayout.CENTER);
 
-		getRootPane().setDefaultButton(closeButton);
 	}
 
 	/** Writes the report in the text area, the references as links. */

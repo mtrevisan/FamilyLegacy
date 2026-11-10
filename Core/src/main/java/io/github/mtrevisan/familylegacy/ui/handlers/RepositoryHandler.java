@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
 import java.awt.Window;
-import java.util.List;
 
 
 /**
@@ -80,8 +79,8 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RecordDialog>{
 			return RepositoryCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		final List<String> names = RepositoryReader.extractNames(record);
-		return (!names.isEmpty()? names.getFirst() + " [" + id + "]": "[" + id + "]");
+		final String name = RepositoryReader.extractPrimaryName(record);
+		return (name != null? name + " [" + id + "]": "[" + id + "]");
 	}
 
 	@Override

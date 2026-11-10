@@ -182,9 +182,6 @@ public final class MediaManagementDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 		footer.add(statusLabel);
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
 		return footer;
 	}
 

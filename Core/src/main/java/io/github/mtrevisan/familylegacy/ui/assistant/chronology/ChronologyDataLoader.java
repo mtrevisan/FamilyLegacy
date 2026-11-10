@@ -25,9 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
@@ -81,9 +83,48 @@ final class ChronologyDataLoader{
 		final List<ChronologyData.ParentLink> parents = new ArrayList<>();
 		final List<ChronologyData.Union> unions = new ArrayList<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord relationship : relationships)
+		final List<ChronologyData.Membership> memberships = new ArrayList<>();
+		for(final FLEFRecord relationship : relationships){
 			loadRelationship(relationship, filteredIndividuals.keySet(), parents, unions);
-		return new ChronologyData(persons, events, parents, unions);
+			loadMembership(relationship, filteredIndividuals.keySet(), memberships);
+		}
+		return new ChronologyData(persons, events, parents, unions, memberships, loadUnreadable(model));
+	}
+
+	/** The dates the checks cannot judge: the ones not valid in their calendar, and the ones whose calendar needs the Ephemeris plugin. */
+	private static List<ChronologyData.UnreadableDate> loadUnreadable(final FLEFModel model){
+		final List<ChronologyData.UnreadableDate> unreadable = new ArrayList<>();
+		for(final FLEFRecord event : model.getRecordsByType(EventHandler.TYPE))
+			for(final FLEFRecord date : FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE))
+				addUnreadable(model, event, EventReader.TAG_DATE, date, unreadable);
+		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE))
+			for(final FLEFRecord relationship : model.getRecordsByType(type))
+				for(final String tag : List.of(RelationshipReader.TAG_VALID_FROM, RelationshipReader.TAG_VALID_TO))
+					addUnreadable(model, relationship, tag, FLEFRecordHelper.findChild(relationship, tag), unreadable);
+		return unreadable;
+	}
+
+	private static void addUnreadable(final FLEFModel model, final FLEFRecord record, final String field, final FLEFRecord date,
+			final List<ChronologyData.UnreadableDate> unreadable){
+		final DateNormalizer.Problem problem = DateNormalizer.problem(date);
+		if(problem != DateNormalizer.Problem.NONE)
+			unreadable.add(new ChronologyData.UnreadableDate(record.getId(), RecordDisplay.describe(record, model), field, text(date),
+				problem == DateNormalizer.Problem.NEEDS_PLUGIN));
+	}
+
+	/** The subject of a membership is the individual, the target the group. */
+	private static void loadMembership(final FLEFRecord relationship, final Set<String> individualIds,
+			final List<ChronologyData.Membership> memberships){
+		if(!RelationshipReader.isTypeGroupMember(RelationshipReader.extractType(relationship)))
+			return;
+
+		final String memberId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualHandler.TYPE);
+		if(memberId == null || !individualIds.contains(memberId))
+			return;
+
+		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
+		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
+		memberships.add(new ChronologyData.Membership(relationship.getId(), memberId, range(from), range(to), text(from), text(to)));
 	}
 
 

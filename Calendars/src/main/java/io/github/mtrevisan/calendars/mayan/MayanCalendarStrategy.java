@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.mayan;
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
@@ -80,8 +81,16 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 	private static double exactSeasonJdUT(final int kin, final int baktun){
 		final int targetYear = kin;
 
-		// Establish a simple leap-safe baseline calculation to anchor our initial search window
-		final long baselineApproxJdn = 1721426L + (long)((targetYear - 1) * 365.2425) + 152L;
+		//the first day of the month of the station, in the target year, as the Gregorian parser does: the nearest solstice or
+		//equinox to the middle of the year would take the winter solstice of the year before
+		final int month = switch(baktun){
+			case CalendarSeason.SEASON_SPRING -> 3;
+			case CalendarSeason.SEASON_SUMMER -> 6;
+			case CalendarSeason.SEASON_AUTUMN -> 9;
+			case CalendarSeason.SEASON_WINTER -> 12;
+			default -> 6;
+		};
+		final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(targetYear, month, 1);
 		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
 
 		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries

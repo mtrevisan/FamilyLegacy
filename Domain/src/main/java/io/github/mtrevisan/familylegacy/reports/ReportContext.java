@@ -49,6 +49,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
+import io.github.mtrevisan.familylegacy.sources.SourceDerivationTree;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.IdentityHashMap;
@@ -59,6 +60,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 
 /**
@@ -102,7 +104,7 @@ public final class ReportContext{
 	/** The records the sections that collect (sources, media, places) read from: the root, or the persons of a multi-person report. */
 	private final List<FLEFRecord> subjects;
 	/** Who owns each source citation: found once for the contexts of a report, that share it. */
-	private final CitationOwners citationOwners;
+	private final SharedLookups shared;
 	private Set<String> relatedRecordIds;
 	private PrivacyResolver privacy;
 
@@ -151,12 +153,12 @@ public final class ReportContext{
 
 	private ReportContext(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
 			final RelationIndex sharedIndex, final List<FLEFRecord> subjects){
-		this(model, root, config, sharedIndex, subjects, new CitationOwners());
+		this(model, root, config, sharedIndex, subjects, new SharedLookups());
 	}
 
 	private ReportContext(final FLEFModel model, final FLEFRecord root, final ReportConfig config,
-			final RelationIndex sharedIndex, final List<FLEFRecord> subjects, final CitationOwners citationOwners){
-		this.citationOwners = citationOwners;
+			final RelationIndex sharedIndex, final List<FLEFRecord> subjects, final SharedLookups shared){
+		this.shared = shared;
 		this.subjects = subjects;
 		this.model = model;
 		this.root = root;
@@ -172,7 +174,7 @@ public final class ReportContext{
 	 * 	record (the Full Bibliography) builds them.
 	 */
 	ReportContext withRoot(final FLEFRecord newRoot){
-		return new ReportContext(model, newRoot, config, index, List.of(newRoot), citationOwners);
+		return new ReportContext(model, newRoot, config, index, List.of(newRoot), shared);
 	}
 
 	/**
@@ -180,13 +182,26 @@ public final class ReportContext{
 	 * @return	The record that holds the citation, or {@code null}.
 	 */
 	FLEFRecord ownerOfCitation(final FLEFRecord citation){
-		return citationOwners.of(model).get(citation);
+		return shared.of(model).get(citation);
 	}
 
-	/** The record that holds each source citation of a model (a citation is an embedded structure, found by identity), built when first needed. */
-	private static final class CitationOwners{
+	/**
+	 * What is found once for the contexts of a report, built when first needed: the record that holds each source citation of a model (a
+	 * citation is an embedded structure, found by identity) and the derivations of its sources.
+	 */
+	private static final class SharedLookups{
 
 		private Map<FLEFRecord, FLEFRecord> owners;
+		private SourceDerivationTree derivations;
+
+
+		synchronized SourceDerivationTree derivationsOf(final FLEFModel model, final Predicate<FLEFRecord> visible){
+			if(derivations == null)
+				derivations = new SourceDerivationTree(model.getRecordsByType(SourceReader.TYPE).stream()
+					.filter(visible)
+					.toList());
+			return derivations;
+		}
 
 
 		synchronized Map<FLEFRecord, FLEFRecord> of(final FLEFModel model){
@@ -475,6 +490,11 @@ public final class ReportContext{
 	public KinshipCalculator kinship(){
 		if(kinship == null) kinship = KinshipCalculator.forModel(model).withVocabulary(labels.kinship());
 		return kinship;
+	}
+
+	/** @return	The derivations of the sources the report shows. */
+	public SourceDerivationTree derivations(){
+		return shared.derivationsOf(model, this::isVisible);
 	}
 
 	public CitationRenderer citations(){

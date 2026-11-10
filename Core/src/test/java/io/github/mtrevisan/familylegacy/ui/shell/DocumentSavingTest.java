@@ -125,6 +125,41 @@ class DocumentSavingTest{
 		return thread;
 	}
 
+	/** Closes the dialog that is showing without pressing any button, as ESC does. */
+	private static Thread closeDialog(){
+		final Thread thread = new Thread(() -> {
+			final long deadline = System.currentTimeMillis() + 15_000;
+			while(System.currentTimeMillis() < deadline){
+				final AtomicBoolean closed = new AtomicBoolean();
+				try{
+					SwingUtilities.invokeAndWait(() -> {
+						for(final Window window : Window.getWindows())
+							if(window instanceof JDialog dialog && dialog.isShowing()){
+								dialog.dispatchEvent(new WindowEvent(dialog, WindowEvent.WINDOW_CLOSING));
+								closed.set(true);
+								return;
+							}
+					});
+				}
+				catch(final Exception ignored){
+					return;
+				}
+				if(closed.get())
+					return;
+
+				try{
+					Thread.sleep(50);
+				}
+				catch(final InterruptedException ignored){
+					return;
+				}
+			}
+		}, "dialog-closer");
+		thread.setDaemon(true);
+		thread.start();
+		return thread;
+	}
+
 	private static AbstractButton find(final Container container, final String[] texts){
 		for(final Component child : container.getComponents()){
 			if(child instanceof AbstractButton button)
@@ -310,8 +345,8 @@ class DocumentSavingTest{
 			Assertions.assertNull(second.fileController().currentFile());
 			Assertions.assertTrue(history(second).isModified());
 
-			//closing: the changes would be lost, and the user is told; cancel keeps the window
-			Thread user = pressOneOf(I18N.t("button.cancel"));
+			//closing: the changes would be lost, and the user is told; closing the question (ESC) keeps the window
+			Thread user = closeDialog();
 			pressClose(second);
 			user.join(20_000);
 			flushEventQueue();

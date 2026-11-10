@@ -53,6 +53,11 @@ public final class CompareRecordsAction implements DiagnosticAction{
 	}
 
 	@Override
+	public int keySlot(){
+		return 1;
+	}
+
+	@Override
 	public void execute(final AssistantContext context){
 		final FLEFModel model = context.model();
 		if(model == null)

@@ -106,7 +106,7 @@ final class DateCalculatorDialog extends JDialog{
 		setLayout(new BorderLayout(8, 8));
 		add(note, BorderLayout.NORTH);
 		add(tabs, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringUtils.SPACE, assistant, ToolDialogs.createCloseButton(this)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter(StringUtils.SPACE, assistant), BorderLayout.SOUTH);
 
 		ToolDialogs.installEscapeToClose(this);
 

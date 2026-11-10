@@ -242,4 +242,42 @@ class RelationshipDataLoaderTest{
 		Assertions.assertTrue(findings(new GEDCOMToFLEFConverter().convert(roots)).isEmpty());
 	}
 
+
+	/** A marriage cited by a source and held at a place. */
+	private static final String GEDCOM_MARRIAGE_AT_A_PLACE = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @S1@ SOUR
+		1 TITL marriage Bianchi Carlo + Rossi Anna 18680601 religious
+		0 @I1@ INDI
+		1 NAME Anna /Rossi/
+		0 @I2@ INDI
+		1 NAME Carlo /Bianchi/
+		0 @F1@ FAM
+		1 HUSB @I2@
+		1 WIFE @I1@
+		1 MARR
+		2 DATE 1 JUN 1868
+		2 PLAC Treviso, Italia
+		2 SOUR @S1@
+		""";
+
+	@Test
+	void aSourceWithSeveralTitlesAndAPlaceWithSeveralNamesAreRead() throws IOException{
+		final FLEFModel model = new GEDCOMToFLEFConverter().convert(new GEDCOMParser().parse(new StringReader(GEDCOM_MARRIAGE_AT_A_PLACE)));
+		//a record can have several titles or names: the first one is used, nothing is ambiguous
+		for(final FLEFRecord source : model.getRecordsByType("source"))
+			source.addChild(FLEFRecord.createChildWithTag("title")
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", "another title")));
+		for(final FLEFRecord place : model.getRecordsByType("place"))
+			place.addChild(FLEFRecord.createChildWithTag("name")
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", "another name")));
+
+		final RelationshipData data = RelationshipDataLoader.load(model);
+
+		Assertions.assertTrue(data.events().stream().anyMatch(event -> event.sourceTitles()
+			.contains("marriage Bianchi Carlo + Rossi Anna 18680601 religious")), data.events().toString());
+		Assertions.assertTrue(data.countries().containsValue("italia"), data.countries().toString());
+	}
+
 }

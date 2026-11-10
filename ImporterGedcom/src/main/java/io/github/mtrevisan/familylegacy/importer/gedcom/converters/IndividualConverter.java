@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
@@ -31,8 +32,8 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -328,6 +329,13 @@ public class IndividualConverter {
 		final String type = (relationToken != null && ArrayUtils.contains(RelationshipReader.TYPES, relationToken)
 			? relationToken
 			: RelationshipReader.ENUM_TYPE_ASSOCIATE);
+		//a family relationship ("1 ASSO @I2@ 2 RELA child") that the other side contradicts with another kind of link ("1 ASSO @I1@
+		//2 RELA midwife": I2 is the baby that I1 delivered, not a child of I1) is an error of the file: the other side is kept
+		if(RelationshipReader.isTypeChild(type) && !"FAM".equals(associate.getTag())
+				&& saysAnotherKindOfLink(associate, individualId)){
+			GEDCOMImportContext.discard(ImportReasons.INCONSISTENT_ASSOCIATION, assoNode, StringUtils.EMPTY);
+			return;
+		}
 		//a RELA that is the name of an event ("1 ASSO @I2@ 2 RELA birth") says that the individual took part in that event of the
 		//associate, as a witness: it is settled once all the individuals are converted, as the event may not be there yet
 		if(relationToken != null && ArrayUtils.contains(EventReader.TYPES, relationToken) && !"FAM".equals(associate.getTag())){
@@ -335,6 +343,19 @@ public class IndividualConverter {
 			return;
 		}
 		createAssociation(individualId, indiNode, assoNode, associateId, associate, relation, relationToken, type);
+	}
+
+	/** @return whether the associate has an association to the individual whose RELA is not a family relationship (a child, a spouse) */
+	private static boolean saysAnotherKindOfLink(final GEDCOMNode associate, final String individualId){
+		for(GEDCOMNode reverse : GEDCOMHelper.findChildren(associate, GEDCOMMapper.TAG_ASSOCIATION)){
+			if(!individualId.equals(GEDCOMHelper.pointer(reverse.getValue())))
+				continue;
+
+			final String token = GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(reverse, "RELA"));
+			if(token != null && !RelationshipReader.isTypeChild(token) && !RelationshipReader.isTypePartner(token))
+				return true;
+		}
+		return false;
 	}
 
 	/** Makes a plain association (a RelationshipRecord) between two individuals, or an individual and a group. */

@@ -10,10 +10,10 @@
 
 ## The steps
 
-1. **File > Import** and choose **GEDCOM 5.5.x / 7.0...** or **Gramps XML 1.7.2...**. A file chooser opens (GEDCOM files `*.ged`; Gramps files `*.gramps` and `*.gpkg`).
+1. **File > Import** and choose **GEDCOM 5.5.x / 7.0...** or **Gramps XML 1.7.2...**. A file chooser opens (GEDCOM files `*.ged`; Gramps files `*.gramps` and `*.gpkg`). Each format is an add-on: if its file `importer-<format>.jar` is not in the `plugins` folder of the application, its entry is shown greyed out and ends with *(plugin not installed)*, and that format cannot be imported.
 2. A confirmation says that the import will convert the file into a new FLEF file that replaces the current document. Answer **Yes**.
 3. A progress window follows the stages: reading, parsing, registering identifiers, parsing records, resolving family links, building the model.
-4. If the GEDCOM 5.5 file embeds binary files (`BLOB`), a question asks where to save them: choose a folder and each file is written there (an existing file is never overwritten: a number is added to the name) and its media is linked to it. If you cancel (or press **Esc**), the media keep no file and are listed in the report.
+4. If the GEDCOM 5.5 file embeds binary files (`BLOB`), a question asks where to save them: choose a folder and each file is written there (an existing file is never overwritten: a number is added to the name) and its media is linked to it. If you cancel the choice of the folder (or press **Esc** on the question), the media keep no file and are listed in the report.
 5. A **Save** chooser asks where to put the new `.flef`. It starts in the folder of the imported file, with the same name and the `.flef` extension, and asks before overwriting an existing file. If you **cancel** here, the import is discarded and the current document is left as it was.
 6. The file is written and then opened, exactly as with **File > Open**.
 7. If something important was dropped, the **Import Report** opens (see [The import report](#the-import-report)).
@@ -28,7 +28,7 @@ The report appears after the new file is opened, and only if the import discarde
 - a **detail** table with the kind, the lost item and where it was found; click a column header to sort it. Only the first 5000 items are listed in detail; the summary counts all of them, and a note says how many are not listed;
 - **Copy to Clipboard** and **Save as Text...**, which give the whole list as plain text, one line per item.
 
-Press **Esc** or **Close** to dismiss it; the report is not kept, so save it if you want to keep it.
+Press **Esc** to dismiss it; the report is not kept, so save it if you want to keep it.
 
 ## GEDCOM
 

@@ -219,7 +219,7 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -28,17 +28,23 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Stream;
 
 
 /**
@@ -89,8 +95,9 @@ final class RelationshipChecker{
 	private static final Set<String> MARRIAGE_EVENTS = Set.of(EVENT_MARRIAGE, EVENT_BANNS, EVENT_LICENSE, EventReader.ENUM_TYPE_MARRIAGE_CONTRACT,
 		EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT);
 
-	/** The most records a finding about many relationships lists. */
-	static final int MAX_LISTED = 200;
+	/** The longest time between the death of the father and the birth of the child, in days. */
+	private static final int GESTATION_DAYS = 300;
+
 
 
 	private RelationshipChecker(){}
@@ -111,6 +118,7 @@ final class RelationshipChecker{
 		checkParticipants(data, findings);
 		checkDuplicates(data, findings);
 		checkDates(data, findings);
+		checkParentage(data, findings);
 		checkRoles(data, findings);
 		final Set<String> explained = new LinkedHashSet<>();
 		checkChildTypes(data, index, findings, explained);
@@ -201,7 +209,7 @@ final class RelationshipChecker{
 		for(final RelationshipData.Relationship relationship : data.relationships())
 			if(relationship.subjectId().equals(relationship.targetId()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "self_relationship", List.of(relationship.subjectId(), relationship.id()),
-					null, name(data, relationship.subjectId()), relationship.type()));
+					null, name(data, relationship.subjectId()), relationship.type(), relationship.id()));
 	}
 
 	/** A relationship whose type does not fit what it links (a spouse that is a group, a membership between two individuals). */
@@ -212,11 +220,11 @@ final class RelationshipChecker{
 
 			final Set<String> valid = validTypes(relationship.subjectKind(), relationship.targetKind());
 			if(!valid.contains(relationship.type()))
-				findings.add(finding(Diagnostic.Severity.WARNING, "invalid_for_participants",
+				findings.add(finding(Diagnostic.Severity.ERROR, "invalid_for_participants",
 					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null,
-					relationship.type(), relationship.subjectKind().name().toLowerCase(java.util.Locale.ROOT),
-					relationship.targetKind().name().toLowerCase(java.util.Locale.ROOT), name(data, relationship.subjectId()),
-					name(data, relationship.targetId())));
+					relationship.type(), relationship.subjectKind().name().toLowerCase(Locale.ROOT),
+					relationship.targetKind().name().toLowerCase(Locale.ROOT), name(data, relationship.subjectId()),
+					name(data, relationship.targetId()), relationship.id()));
 		}
 	}
 
@@ -241,7 +249,7 @@ final class RelationshipChecker{
 			final String key = (symmetric
 				? pair(relationship.subjectId(), relationship.targetId())
 				: relationship.subjectId() + ">" + relationship.targetId()) + "|" + relationship.type()
-					+ (hasRole? "|" + relationship.role().strip().toLowerCase(java.util.Locale.ROOT): "");
+					+ (hasRole? "|" + relationship.role().strip().toLowerCase(Locale.ROOT): "");
 			same.computeIfAbsent(key, k -> new ArrayList<>())
 				.add(relationship);
 		}
@@ -254,7 +262,7 @@ final class RelationshipChecker{
 			final List<String> ids = new ArrayList<>(List.of(first.subjectId(), first.targetId()));
 			duplicates.forEach(r -> ids.add(r.id()));
 			findings.add(finding(Diagnostic.Severity.WARNING, "duplicate_relationship", ids, null, name(data, first.subjectId()),
-				name(data, first.targetId()), first.type(), duplicates.size()));
+				name(data, first.targetId()), first.type(), duplicates.size(), idsOf(duplicates)));
 		}
 	}
 
@@ -263,7 +271,108 @@ final class RelationshipChecker{
 			if(relationship.from() != null && relationship.to() != null && relationship.to().isBefore(relationship.from()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "dates_reversed",
 					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, relationship.type(),
-					name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.fromText()));
+					name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.fromText(), relationship.id()));
+	}
+
+	/**
+	 * What the biological parentage cannot be together with: a child and the parent who are also spouses, and a parent who is also a
+	 * sibling of the child (they share a biological parent). Both are provable, so errors, as in Validate File: only the
+	 * {@code biological_child} type counts (a step-parent or an adoptive parent is not biological).
+	 */
+	private static void checkParentage(final RelationshipData data, final List<RelationshipFinding> findings){
+		//the biological parents of each child, with the relationship that says so
+		final Map<String, Map<String, List<String>>> parentsOf = new LinkedHashMap<>();
+		final Map<String, List<String>> marriages = new HashMap<>();
+		for(final RelationshipData.Relationship relationship : data.relationships()){
+			if(relationship.subjectKind() != RelationshipData.Kind.INDIVIDUAL || relationship.targetKind() != RelationshipData.Kind.INDIVIDUAL
+					|| relationship.subjectId().equals(relationship.targetId()))
+				continue;
+
+			if(BIOLOGICAL_CHILD.equals(relationship.type()))
+				parentsOf.computeIfAbsent(relationship.subjectId(), k -> new LinkedHashMap<>())
+					.computeIfAbsent(relationship.targetId(), k -> new ArrayList<>())
+					.add(relationship.id());
+			else if(MARRIAGE_TYPES.contains(relationship.type()))
+				marriages.computeIfAbsent(pairKey(relationship.subjectId(), relationship.targetId()), k -> new ArrayList<>())
+					.add(relationship.id());
+		}
+
+		for(final Map.Entry<String, Map<String, List<String>>> entry : new TreeMap<>(parentsOf).entrySet()){
+			final String childId = entry.getKey();
+			final Map<String, List<String>> parents = entry.getValue();
+			for(final Map.Entry<String, List<String>> parent : parents.entrySet()){
+				final String parentId = parent.getKey();
+				final List<String> marriage = marriages.get(pairKey(childId, parentId));
+				if(marriage != null){
+					//every relationship of the pair is named, none is left out
+					final List<String> ids = new ArrayList<>(List.of(childId, parentId));
+					ids.addAll(parent.getValue());
+					ids.addAll(marriage);
+					findings.add(finding(Diagnostic.Severity.ERROR, "child_married_to_parent", ids, null, name(data, childId),
+						name(data, parentId), String.join(", ", parent.getValue()), String.join(", ", marriage)));
+				}
+
+				final Map<String, List<String>> grandparents = parentsOf.get(parentId);
+				if(grandparents == null)
+					continue;
+
+				final Set<String> shared = new LinkedHashSet<>(grandparents.keySet());
+				shared.retainAll(parents.keySet());
+				if(!shared.isEmpty()){
+					final String commonId = shared.iterator().next();
+					final List<String> ids = new ArrayList<>(List.of(childId, parentId, commonId));
+					ids.addAll(parent.getValue());
+					ids.addAll(grandparents.get(commonId));
+					ids.addAll(parents.get(commonId));
+					findings.add(finding(Diagnostic.Severity.ERROR, "sibling_and_parent", ids, null,
+						name(data, childId), name(data, parentId), name(data, commonId), String.join(", ", parent.getValue()),
+						String.join(", ", grandparents.get(commonId)), String.join(", ", parents.get(commonId))));
+				}
+			}
+		}
+	}
+
+	/**
+	 * Relationships between the same two individuals that a text refers to: the checks use the first one, and the text gives the
+	 * identifier of every one, so that none is left out.
+	 */
+	private record Group(List<RelationshipData.Relationship> all){
+
+		boolean isEmpty(){
+			return all.isEmpty();
+		}
+
+		RelationshipData.Relationship first(){
+			return all.getFirst();
+		}
+
+		/** @return the identifiers, to put in a text between brackets (several are separated by commas) */
+		String ids(){
+			return String.join(", ", idList());
+		}
+
+		List<String> idList(){
+			return all.stream()
+				.map(RelationshipData.Relationship::id)
+				.toList();
+		}
+
+	}
+
+	private static Group group(final Stream<RelationshipData.Relationship> candidates){
+		return new Group(candidates.toList());
+	}
+
+	/** @return the identifiers of the relationships, to put in a text between brackets (several are separated by commas) */
+	private static String idsOf(final List<RelationshipData.Relationship> relationships){
+		return String.join(", ", relationships.stream()
+			.map(RelationshipData.Relationship::id)
+			.toList());
+	}
+
+
+	private static String pairKey(final String first, final String second){
+		return (first.compareTo(second) <= 0? first + "|" + second: second + "|" + first);
 	}
 
 	/** The role of the subject says nothing more than the type does, for the relationships of the family. */
@@ -273,7 +382,7 @@ final class RelationshipChecker{
 					&& (CHILD_TYPES.contains(relationship.type()) || PARTNER_TYPES.contains(relationship.type())))
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "unnecessary_role",
 					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, relationship.type(),
-					relationship.role(), name(data, relationship.subjectId()), name(data, relationship.targetId())));
+					relationship.role(), name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.id()));
 	}
 
 
@@ -304,7 +413,7 @@ final class RelationshipChecker{
 			if(adoption != null){
 				findings.add(finding((generic? Diagnostic.Severity.INFORMATION: Diagnostic.Severity.WARNING),
 					(generic? "suggest_adoptive": "conflicting_adoption"), List.of(child, parent, relationship.id(), adoption.id()),
-					null, name(data, child), name(data, parent), adoption.id(), adoption.dateText())
+					null, name(data, child), name(data, parent), adoption.id(), adoption.dateText(), relationship.id())
 					.withTypeChange(new RelationshipTypeChange(relationship.id(), ADOPTIVE_CHILD)));
 				explained.add(relationship.id());
 				continue;
@@ -322,15 +431,14 @@ final class RelationshipChecker{
 						continue;
 
 					//the parent married the other parent when the child was already born
-					final RelationshipData.Relationship marriage = index.between(parent, otherParent).stream()
+					final Group marriages = group(index.between(parent, otherParent).stream()
 						.filter(u -> PARTNER_TYPES.contains(u.type()) && u.from() != null
-							&& u.from().min() > childPerson.birth().max())
-						.findFirst()
-						.orElse(null);
-					if(marriage != null){
-						findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_step",
-							List.of(child, parent, otherParent, relationship.id(), marriage.id()), null, name(data, child),
-							name(data, parent), name(data, otherParent), marriage.fromText())
+							&& u.from().min() > childPerson.birth().max()));
+					if(!marriages.isEmpty()){
+						final List<String> ids = new ArrayList<>(List.of(child, parent, otherParent, relationship.id()));
+						ids.addAll(marriages.idList());
+						findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_step", ids, null, name(data, child),
+							name(data, parent), name(data, otherParent), marriages.first().fromText(), relationship.id(), marriages.ids())
 							.withTypeChange(new RelationshipTypeChange(relationship.id(), STEP_CHILD)));
 						explained.add(relationship.id());
 						break;
@@ -349,7 +457,11 @@ final class RelationshipChecker{
 					|| relationship.subjectId().equals(relationship.targetId()))
 				continue;
 
-			final MarriageEvidence marriage = marriageEvidence(data, index.eventsOf(relationship.subjectId(), relationship.targetId()));
+			final List<RelationshipData.Event> events = index.eventsOf(relationship.subjectId(), relationship.targetId());
+			//what the events and their sources say; if nothing, the period and the country, as a weak hint
+			MarriageEvidence marriage = marriageEvidence(data, events);
+			if(marriage == null)
+				marriage = periodEvidence(data, relationship, events);
 			if(marriage == null)
 				continue;
 
@@ -357,7 +469,7 @@ final class RelationshipChecker{
 			final String evidence = marriage.description();
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_spouse",
 				List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null,
-				name(data, relationship.subjectId()), name(data, relationship.targetId()), suggested, evidence)
+				name(data, relationship.subjectId()), name(data, relationship.targetId()), suggested, evidence, relationship.id())
 				.withTypeChange(new RelationshipTypeChange(relationship.id(), suggested)));
 			explained.add(relationship.id());
 		}
@@ -388,17 +500,72 @@ final class RelationshipChecker{
 				if(EventParticipationReader.ENUM_ROLE_OFFICIANT.equals(participant.role()) && data.clergy().contains(participant.personId()))
 					religious.add(I18N.tf("relationship.evidence.clergy_officiant", name(data, participant.personId())));
 		}
+		//the title of a source of the marriage that says its kind ("marriage Rossi Mario + Bianchi Anna 18500112 religious")
+		final List<String> civilSources = new ArrayList<>();
+		for(final RelationshipData.Event event : events)
+			if(EVENT_MARRIAGE.equals(event.type()) || EVENT_BANNS.equals(event.type()))
+				for(final String title : event.sourceTitles()){
+					final String lower = title.toLowerCase(Locale.ROOT);
+					if(lower.endsWith(" religious"))
+						religious.add(I18N.tf("relationship.evidence.source_title", title));
+					else if(lower.endsWith(" civil"))
+						civilSources.add(I18N.tf("relationship.evidence.source_title", title));
+				}
 		final boolean license = events.stream().anyMatch(e -> EVENT_LICENSE.equals(e.type()));
-		if(religious.isEmpty() == !license)
+		final boolean civil = (license || !civilSources.isEmpty());
+		if(religious.isEmpty() == !civil)
 			return null;
 
-		return (license? new MarriageEvidence(CIVIL_SPOUSE, EVENT_LICENSE)
+		return (civil? new MarriageEvidence(CIVIL_SPOUSE, (license? EVENT_LICENSE: civilSources.getFirst()))
 			: new MarriageEvidence(RELIGIOUS_SPOUSE, String.join(", ", religious.stream().distinct().toList())));
 	}
 
+	/** The first day of 1806, the year the civil marriage of the Napoleonic Kingdom of Italy came into force (a Julian Day Number). */
+	private static final long NAPOLEONIC_CODE = LocalDate.of(1806, 1, 1).toEpochDay() + 2_440_588L;
+	/** The first day of 1816, when the Napoleonic code ceased to apply in the states of the Restoration. */
+	private static final long RESTORATION = LocalDate.of(1816, 1, 1).toEpochDay() + 2_440_588L;
+	/** The first day of 1866, from which the civil marriage of the Kingdom of Italy applied (1871 in the Veneto). */
+	private static final long KINGDOM_OF_ITALY = LocalDate.of(1866, 1, 1).toEpochDay() + 2_440_588L;
+
 	/**
-	 * The relationships of a generic type that the evidence does not help to specify: one finding for all of them, not one for each
-	 * (an import from GEDCOM gives the generic type to every marriage that does not say which kind it is).
+	 * A weak hint, when the events and their sources say nothing: in Italy only the religious marriage was recognised before the
+	 * Napoleonic code (1806) and from the Restoration (1816) until the Kingdom of Italy (1866), so a marriage dated in those periods in a
+	 * place of Italy was most probably a religious one. It is a hint about the law of the territory, not evidence about this marriage: the
+	 * dates and the territory must be checked, so it says so.
+	 *
+	 * @return {@code null} if the place is not in Italy, or the date is unknown or in another period
+	 */
+	private static MarriageEvidence periodEvidence(final RelationshipData data, final RelationshipData.Relationship relationship,
+			final List<RelationshipData.Event> events){
+		DateRange date = relationship.from();
+		String dateText = relationship.fromText();
+		String placeId = null;
+		for(final RelationshipData.Event event : events)
+			if(EVENT_MARRIAGE.equals(event.type()) && event.placeId() != null){
+				placeId = event.placeId();
+				if(date == null){
+					date = event.date();
+					dateText = event.dateText();
+				}
+				break;
+			}
+		if(date == null || placeId == null)
+			return null;
+
+		final String country = data.countries().get(placeId);
+		if(!"italia".equals(country) && !"italy".equals(country))
+			return null;
+
+		final boolean beforeCode = (date.max() < NAPOLEONIC_CODE);
+		final boolean restoration = (date.min() >= RESTORATION && date.max() < KINGDOM_OF_ITALY);
+		return ((beforeCode || restoration)
+			? new MarriageEvidence(RELIGIOUS_SPOUSE, I18N.tf("relationship.evidence.period_italy", dateText))
+			: null);
+	}
+
+	/**
+	 * The relationships of a generic type that the evidence does not help to specify: one finding for each of them
+	 * (an import from GEDCOM gives the generic type to every marriage that does not say which kind it is), grouped by kind in the palette.
 	 */
 	private static void checkGenericTypes(final RelationshipData data, final List<RelationshipFinding> findings,
 			final Set<String> explained){
@@ -411,14 +578,14 @@ final class RelationshipChecker{
 			if(generic.isEmpty())
 				continue;
 
-			final List<String> ids = generic.stream()
-				.map(RelationshipData.Relationship::id)
-				.limit(MAX_LISTED)
-				.toList();
-			findings.add(new RelationshipFinding(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RELATIONSHIPS,
-				I18N.tf("relationship.generic_" + type + ".title", generic.size()),
-				I18N.tf("relationship.generic_" + type + ".explanation", generic.size(), Math.min(generic.size(), MAX_LISTED)),
-				ids, null, DiagnosticKeys.of("relationship.generic_" + type, List.of(), generic.size())), null));
+			for(final RelationshipData.Relationship relationship : generic){
+				final List<String> ids = List.of(relationship.subjectId(), relationship.targetId(), relationship.id());
+				final Object[] arguments = {name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.id()};
+				findings.add(new RelationshipFinding(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RELATIONSHIPS,
+					I18N.tf("relationship.generic_" + type + ".title", arguments),
+					I18N.tf("relationship.generic_" + type + ".explanation", arguments),
+					ids, null, DiagnosticKeys.of("relationship.generic_" + type, ids)), null));
+			}
 		}
 	}
 
@@ -460,7 +627,7 @@ final class RelationshipChecker{
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "marriage_without_relationship", ids,
 				new RelationshipDraft(couple.get(0), couple.get(1), type, entry.getValue().getFirst().id(), true), name(data, couple.get(0)),
 				name(data, couple.get(1)),
-				entry.getValue().getFirst().dateText()));
+				entry.getValue().getFirst().dateText(), entry.getValue().getFirst().id()));
 		}
 	}
 
@@ -474,19 +641,21 @@ final class RelationshipChecker{
 
 			final String first = engagement.subjectId();
 			final String second = engagement.targetId();
-			final RelationshipData.Relationship marriage = index.between(first, second).stream()
-				.filter(r -> MARRIAGE_TYPES.contains(r.type()))
-				.findFirst()
-				.orElse(null);
-			final RelationshipData.Event event = (marriage == null
+			final Group marriages = group(index.between(first, second).stream()
+				.filter(r -> MARRIAGE_TYPES.contains(r.type())));
+			final RelationshipData.Event event = (marriages.isEmpty()
 				? index.eventsOf(first, second).stream().filter(e -> EVENT_MARRIAGE.equals(e.type())).findFirst().orElse(null)
 				: null);
-			if(marriage == null && event == null)
+			if(marriages.isEmpty() && event == null)
 				continue;
 
-			findings.add(finding(Diagnostic.Severity.INFORMATION, "open_engagement",
-				List.of(first, second, engagement.id(), (marriage != null? marriage.id(): event.id())), null, name(data, first),
-				name(data, second)));
+			final List<String> ids = new ArrayList<>(List.of(first, second, engagement.id()));
+			if(!marriages.isEmpty())
+				ids.addAll(marriages.idList());
+			else
+				ids.add(event.id());
+			findings.add(finding(Diagnostic.Severity.INFORMATION, "open_engagement", ids, null, name(data, first),
+				name(data, second), engagement.id(), (!marriages.isEmpty()? marriages.ids(): event.id())));
 		}
 	}
 
@@ -498,6 +667,13 @@ final class RelationshipChecker{
 	 */
 	private static void checkPartnersOfParents(final RelationshipData data, final Index index, final List<RelationshipFinding> findings){
 		final Set<String> asked = new LinkedHashSet<>();
+		//a child with two biological parents already has the ones it can have: another partner of a parent is not a missing parent
+		final Map<String, Set<String>> biologicalParents = new HashMap<>();
+		for(final RelationshipData.Relationship tie : data.relationships())
+			if((BIOLOGICAL_CHILD.equals(tie.type()) || RelationshipReader.ENUM_TYPE_CHILD.equals(tie.type()))
+					&& tie.subjectKind() == RelationshipData.Kind.INDIVIDUAL && tie.targetKind() == RelationshipData.Kind.INDIVIDUAL)
+				biologicalParents.computeIfAbsent(tie.subjectId(), k -> new LinkedHashSet<>())
+					.add(tie.targetId());
 		for(final RelationshipData.Relationship tie : data.relationships()){
 			if(!CHILD_TYPES.contains(tie.type()) || tie.subjectKind() != RelationshipData.Kind.INDIVIDUAL
 					|| tie.targetKind() != RelationshipData.Kind.INDIVIDUAL || tie.subjectId().equals(tie.targetId()))
@@ -516,10 +692,17 @@ final class RelationshipChecker{
 					continue;
 				if(union.to() != null && childPerson != null && childPerson.birth() != null && union.to().max() < childPerson.birth().min())
 					continue;
+				if(biologicalParents.getOrDefault(child, Set.of()).size() >= 2)
+					continue;
+				//a partner who died before the child was conceived can be neither another parent nor a step-parent
+				final RelationshipData.Person partnerPerson = data.persons().get(partner);
+				if(partnerPerson != null && partnerPerson.death() != null && childPerson != null && childPerson.birth() != null
+						&& partnerPerson.death().max() + GESTATION_DAYS < childPerson.birth().min())
+					continue;
 
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "partner_of_parent_not_linked",
 					List.of(child, partner, parent, union.id()), new RelationshipDraft(child, partner, null), name(data, child),
-					name(data, partner), name(data, parent)));
+					name(data, partner), name(data, parent), union.id()));
 			}
 		}
 	}
@@ -603,7 +786,7 @@ final class RelationshipChecker{
 			ids.addAll(first);
 			ids.addAll(second);
 			findings.add(finding(Diagnostic.Severity.WARNING, "sibling_role_inconsistent", ids.stream().distinct().toList(), null,
-				name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.role(), I18N.t(reason)));
+				name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.role(), I18N.t(reason), relationship.id()));
 		}
 	}
 
@@ -624,20 +807,21 @@ final class RelationshipChecker{
 			if(kind == RoleKind.PARENT_OR_CHILD || kind == RoleKind.SPOUSE){
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_kinship_role", ids, null,
 					name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.role(),
-					(kind == RoleKind.SPOUSE? SPOUSE: CHILD)));
+					(kind == RoleKind.SPOUSE? SPOUSE: CHILD), relationship.id()));
 				continue;
 			}
 
-			final RelationshipData.Relationship family = index.between(relationship.subjectId(), relationship.targetId()).stream()
-				.filter(r -> CHILD_TYPES.contains(r.type()) || PARTNER_TYPES.contains(r.type()))
-				.findFirst()
-				.orElse(null);
+			final Group families = group(index.between(relationship.subjectId(), relationship.targetId()).stream()
+				.filter(r -> CHILD_TYPES.contains(r.type()) || PARTNER_TYPES.contains(r.type())));
 			//an association with a role says something that the tie does not (a witness, a ward, the birth it took part in): only one
 			//without a role adds nothing to the tie of the family
-			if(family != null && (relationship.role() == null || relationship.role().isBlank()))
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_redundant",
-					List.of(relationship.subjectId(), relationship.targetId(), relationship.id(), family.id()), null,
-					name(data, relationship.subjectId()), name(data, relationship.targetId()), family.type()));
+			if(!families.isEmpty() && (relationship.role() == null || relationship.role().isBlank())){
+				final List<String> tieIds = new ArrayList<>(List.of(relationship.subjectId(), relationship.targetId(), relationship.id()));
+				tieIds.addAll(families.idList());
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_redundant", tieIds, null,
+					name(data, relationship.subjectId()), name(data, relationship.targetId()), families.first().type(), relationship.id(),
+					families.ids()));
+			}
 		}
 	}
 
@@ -665,7 +849,7 @@ final class RelationshipChecker{
 				return OTHER;
 
 			final Set<String> words = new LinkedHashSet<>();
-			for(final String word : org.apache.commons.lang3.StringUtils.split(role.toLowerCase(java.util.Locale.ROOT), " _-/,;.()"))
+			for(final String word : StringUtils.split(role.toLowerCase(Locale.ROOT), " _-/,;.()"))
 				words.add(word);
 			if(words.stream().anyMatch(NOT_PLAIN::contains))
 				return OTHER;

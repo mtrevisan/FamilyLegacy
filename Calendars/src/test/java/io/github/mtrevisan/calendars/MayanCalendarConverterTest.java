@@ -62,4 +62,13 @@ class MayanCalendarConverterTest{
 		Assertions.assertEquals(2460482L, jdn);
 	}
 
+	@Test
+	void everyStationIsTheEquinoxOrSolsticeOfTheSameYear(){
+		//the winter station of a year is the December solstice of that year, as for the "winter 2024" of the Gregorian calendar
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("20 March 2024"), CalendarType.MAYAN.parseToJdn("Likin 2024"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("22 September 2024"), CalendarType.MAYAN.parseToJdn("Chikin 2024"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("21 December 2024"), CalendarType.MAYAN.parseToJdn("Nohol 2024"));
+		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("21 December 2024"), CalendarType.GREGORIAN.parseToJdn("winter 2024"));
+	}
+
 }

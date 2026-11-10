@@ -267,8 +267,10 @@ public final class ResearchAssistantService{
 			done ++;
 			progress.accept((double)done / count);
 		}
-		//the most serious first; among the same severity, the ones that matter more (e.g. the more likely duplicates), then by title
-		result.sort(Comparator.comparing(Diagnostic::severity).thenComparing(Diagnostic::rank, Comparator.reverseOrder())
+		//the most serious first; among the same severity, the ones of the same category and kind together; among the same kind, the ones that matter
+		//more (e.g. the more likely duplicates), then by title
+		result.sort(Comparator.comparing(Diagnostic::severity).thenComparing(Diagnostic::category).thenComparing(Diagnostic::kind)
+			.thenComparing(Diagnostic::rank, Comparator.reverseOrder())
 			.thenComparing(Diagnostic::title));
 		return result;
 	}
@@ -291,7 +293,7 @@ public final class ResearchAssistantService{
 		if(onlyAbout)
 			return about;
 
-		final List<Diagnostic> ordered = new java.util.ArrayList<>(about);
+		final List<Diagnostic> ordered = new ArrayList<>(about);
 		findings.stream()
 			.filter(d -> !d.recordIds().contains(recordId))
 			.forEach(ordered::add);

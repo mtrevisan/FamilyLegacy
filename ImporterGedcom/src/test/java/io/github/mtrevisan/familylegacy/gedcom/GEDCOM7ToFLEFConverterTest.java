@@ -53,10 +53,9 @@ import org.junit.jupiter.api.Test;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -209,11 +208,14 @@ class GEDCOM7ToFLEFConverterTest{
 
 
 	@Test
-	void validAgainstTheSchema() throws IOException, URISyntaxException{
+	void validAgainstTheSchema() throws IOException{
 		final FLEFModel model = convert();
 
-		final Path grammarPath = Path.of(Thread.currentThread().getContextClassLoader().getResource("gedg/flef_0.2.0.gedg").toURI());
-		final FLEFGrammar grammar = FLEFGrammarParser.parse(grammarPath);
+		//the grammar is in a jar (Domain): it is read as a stream, a path into a jar cannot be built without opening its file system
+		final FLEFGrammar grammar;
+		try(final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("gedg/flef_0.2.0.gedg")){
+			grammar = FLEFGrammarParser.parse(stream);
+		}
 		final FLEFValidator validator = new FLEFValidator(grammar);
 		Assertions.assertEquals(List.of(), validator.validateSchema(model));
 		Assertions.assertEquals(List.of(), validator.validateIntegrity(model));

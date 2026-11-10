@@ -641,7 +641,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 *                          Bootstrap
 	 * ====================================================================== */
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

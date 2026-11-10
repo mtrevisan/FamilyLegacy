@@ -1,6 +1,6 @@
 # Group timeline, group network and group career
 
-Three windows show the life of a group, or the groups of a person, over time. They all open in a modal dialog with a single **Close** button (`Esc` also closes it). They are for looking: a click does not move the main window.
+Three windows show the life of a group, or the groups of a person, over time. They all open in a modal dialog with no button to close it (`Esc` closes it). They are for looking: a click does not move the main window.
 
 ## Group Timeline
 

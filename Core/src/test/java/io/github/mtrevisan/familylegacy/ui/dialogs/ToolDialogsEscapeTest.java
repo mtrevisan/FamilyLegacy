@@ -105,8 +105,12 @@ class ToolDialogsEscapeTest{
 		final Class<?> type = parameter.getType();
 		if(type.isEnum())
 			return type.getEnumConstants()[0];
-		if(type == JComponent.class)
-			return new JPanel();
+		if(type == JComponent.class){
+			//a view the dialog shows (the panel of a temporal projection takes the focus)
+			final JPanel view = new JPanel(){};
+			view.setFocusable(true);
+			return view;
+		}
 		if(type == BookmarkStore.class)
 			return new BookmarkStore();
 		if(type == ImportReport.class)

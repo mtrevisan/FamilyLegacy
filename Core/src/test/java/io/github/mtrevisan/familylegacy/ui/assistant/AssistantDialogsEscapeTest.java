@@ -112,6 +112,19 @@ class AssistantDialogsEscapeTest{
 	}
 
 	@Test
+	void theListOfWhereUsedClosesOverTheEditorOfARecord() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+
+		final WhereUsedDialog list = new WhereUsedDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE));
+		pressEscape(list);
+
+		Assertions.assertFalse(list.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable(), "ESC in the list closed the editor below it");
+	}
+
+	@Test
 	void thePaletteClosesOverTheEditorItWasOpenedFrom() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();

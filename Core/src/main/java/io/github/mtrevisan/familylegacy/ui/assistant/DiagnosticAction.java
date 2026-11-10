@@ -36,6 +36,15 @@ public interface DiagnosticAction{
 	String title();
 
 	/**
+	 * The key of the action in the palette, which is the same for the action wherever it is offered, so that the user is never surprised:
+	 * {@code 0} for Enter (what the finding proposes: a draft, a change), {@code 1} for Ctrl+Enter, {@code 2} for Ctrl+Shift+Enter, {@code 3} for
+	 * Ctrl+Alt+Enter. A finding has at most one action for each key.
+	 */
+	default int keySlot(){
+		return 0;
+	}
+
+	/**
 	 * Runs the action, on the event dispatch thread.
 	 *
 	 * @param context where the user was when the assistant was opened

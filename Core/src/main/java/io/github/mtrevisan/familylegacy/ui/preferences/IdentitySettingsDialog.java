@@ -41,7 +41,7 @@ import java.awt.Window;
 
 /**
  * The settings of the Identity Assistant: from which similarity a pair is proposed, how many, the scores of the confidence and the
- * probability for the other kinds of record. They are saved when the user confirms (a settings dialog of the kind of JOptionPane, which
+ * probability for the other kinds of record. They are saved when the dialog is closed (there is no Cancel; it is a JOptionPane, which
  * Esc closes), and used the next time the findings are computed.
  */
 final class IdentitySettingsDialog{
@@ -84,10 +84,10 @@ final class IdentitySettingsDialog{
 		constraints.gridy = row + 1;
 		panel.add(defaults, constraints);
 
-		if(JOptionPane.showConfirmDialog(owner, panel, I18N.t("dialog.identity_settings.title"), JOptionPane.OK_CANCEL_OPTION,
-				JOptionPane.PLAIN_MESSAGE) == JOptionPane.OK_OPTION)
-			read(threshold, maxPairs, high, medium, other)
-				.save();
+		//there is no Cancel: whatever way the dialog is closed (OK or Esc), the values shown are the settings
+		JOptionPane.showMessageDialog(owner, panel, I18N.t("dialog.identity_settings.title"), JOptionPane.PLAIN_MESSAGE);
+		read(threshold, maxPairs, high, medium, other)
+			.save();
 	}
 
 	/** @return	The settings the spinners show (in range, and the medium score not above the high one). */
@@ -99,7 +99,10 @@ final class IdentitySettingsDialog{
 
 
 	private static JSpinner spinner(final int value, final int min, final int max){
-		return new JSpinner(new SpinnerNumberModel(value, min, max, 1));
+		final JSpinner spinner = new JSpinner(new SpinnerNumberModel(value, min, max, 1));
+		//all the spinners have the same width, whatever the number of digits of their values
+		((JSpinner.DefaultEditor)spinner.getEditor()).getTextField().setColumns(4);
+		return spinner;
 	}
 
 	private static int addRow(final JPanel panel, final int row, final String labelKey, final JSpinner spinner){

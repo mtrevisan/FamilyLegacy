@@ -63,8 +63,6 @@ final class ContextChecker{
 
 	/** The most impacts proposed for the same historic event or cultural norm. */
 	static final int MAX_PER_CONTEXT = 3;
-	/** The most findings of a kind: the other ones are summed up in one finding. */
-	static final int MAX_PER_KIND = 25;
 	/** An event that may be anywhere in a longer time than this tells too little to be tied to a context (days). */
 	static final long MAX_EVENT_SPAN = 5 * 366;
 	/** The time in which the deaths of a place are taken to be a crisis (days). */
@@ -137,7 +135,7 @@ final class ContextChecker{
 	 */
 	static List<ContextFinding> findings(final ContextData data){
 		final List<ContextFinding> findings = new ArrayList<>();
-		findings.addAll(capped(candidates(data)));
+		findings.addAll(candidates(data));
 		findings.addAll(clusters(data));
 		return findings;
 	}
@@ -204,7 +202,7 @@ final class ContextChecker{
 				return null;
 
 			usefulness = 55;
-			where = I18N.tf("context.why.place", data.placeLabels().getOrDefault(context.placeId(), context.placeId()));
+			where = I18N.tf("context.why.place", data.placeLabels().getOrDefault(context.placeId(), context.placeId()) + " [" + context.placeId() + "]");
 		}
 		else
 			where = I18N.t("context.why.no_place");
@@ -215,8 +213,8 @@ final class ContextChecker{
 		final String why = when + "; " + where;
 		final String hint = I18N.t("context.hint." + (context.historic()? "historic.": "norm.") + rule.hint());
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
-			I18N.tf("context.candidate.title", context.title(), event.label()),
-			I18N.tf("context.candidate.explanation", context.title(), event.label(), why, hint) + StringUtils.SPACE
+			I18N.tf("context.candidate.title", context.title() + " [" + context.id() + "]", event.label() + " [" + event.id() + "]"),
+			I18N.tf("context.candidate.explanation", context.title() + " [" + context.id() + "]", event.label() + " [" + event.id() + "]", why, hint) + StringUtils.SPACE
 				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
 			List.of(context.id(), event.id()), null,
 			DiagnosticKeys.of("context.candidate", List.of(context.id(), event.id()), rule.impact()))
@@ -273,7 +271,7 @@ final class ContextChecker{
 					start ++;
 			}
 		}
-		return capped(findings);
+		return findings;
 	}
 
 	private static ContextFinding cluster(final String placeId, final List<ContextData.Event> cluster, final int persons,
@@ -284,7 +282,7 @@ final class ContextChecker{
 					&& context.range().intersects(span) && (context.placeId() == null || isIn(placeId, context.placeId(), data)))
 				return null;
 
-		final String place = data.placeLabels().getOrDefault(placeId, placeId);
+		final String place = data.placeLabels().getOrDefault(placeId, placeId) + " [" + placeId + "]";
 		final String years = (year(span.min()) == year(span.max())? String.valueOf(year(span.min()))
 			: year(span.min()) + "–" + year(span.max()));
 		final int usefulness = Math.min(70, 40 + 5 * persons);
@@ -300,22 +298,5 @@ final class ContextChecker{
 			place, years)));
 	}
 
-
-	/** Keeps the findings with the highest rank, up to {@link #MAX_PER_KIND}, and sums up the other ones in a single finding. */
-	private static List<ContextFinding> capped(final List<ContextFinding> findings){
-		if(findings.size() <= MAX_PER_KIND)
-			return findings;
-
-		final List<ContextFinding> sorted = new ArrayList<>(findings);
-		sorted.sort(Comparator.comparingDouble((ContextFinding f) -> f.diagnostic().rank()).reversed());
-		final List<ContextFinding> result = new ArrayList<>(sorted.subList(0, MAX_PER_KIND));
-		final int more = sorted.size() - MAX_PER_KIND;
-		final String kind = (sorted.getFirst().impact() != null? "context.candidate": "context.cluster");
-		result.add(new ContextFinding(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
-			I18N.tf(kind + ".more.title", String.valueOf(more)), I18N.tf(kind + ".more.explanation", String.valueOf(more),
-			String.valueOf(MAX_PER_KIND)), List.of(), null, DiagnosticKeys.of(kind + ".more", List.of(), more))
-			.withRank(sorted.get(MAX_PER_KIND).diagnostic().rank()), null, null));
-		return result;
-	}
 
 }

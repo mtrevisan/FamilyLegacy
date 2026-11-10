@@ -32,7 +32,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -111,18 +110,14 @@ public class PedigreeCollapseDialog extends JDialog{
 		main.add(scroll, "grow,push,wrap");
 
 		// Footer
-		final JButton closeButton = new JButton(I18N.t("button.close"));
-		closeButton.addActionListener(e -> dispose());
 
 		final JPanel footer = new JPanel(new MigLayout("ins 0", "[grow][]", "[]"));
 		footer.add(new JLabel(StringUtils.SPACE), "growx");
-		footer.add(closeButton);
 		main.add(footer, "growx");
 
 		setLayout(new BorderLayout());
 		add(main, BorderLayout.CENTER);
 
-		getRootPane().setDefaultButton(closeButton);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 

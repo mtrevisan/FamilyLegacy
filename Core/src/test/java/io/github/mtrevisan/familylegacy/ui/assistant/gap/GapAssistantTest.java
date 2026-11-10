@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JComponent;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -88,9 +89,42 @@ class GapAssistantTest{
 		""";
 
 
+	/** Elena died in Treviso and has no birth: that place is where to look. Franco has a birth. */
+	private static final String GEDCOM_PLACES = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @I1@ INDI
+		1 NAME Elena /Rossi/
+		1 DEAT
+		2 PLAC Treviso
+		0 @I2@ INDI
+		1 NAME Franco /Verdi/
+		1 BIRT
+		2 PLAC Padova
+		1 DEAT
+		2 PLAC Padova
+		""";
+
+
 	private static FLEFModel convert() throws IOException{
 		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM));
 		return new GEDCOMToFLEFConverter().convert(roots);
+	}
+
+	@Test
+	void theBirthOfSomeoneKnownInAPlaceIsLookedForThere() throws IOException{
+		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM_PLACES));
+		final FLEFModel model = new GEDCOMToFLEFConverter().convert(roots);
+
+		final GapData data = GapDataLoader.load(model, TODAY);
+
+		final GapData.Person elena = data.persons().get(id(model, "Elena"));
+		Assertions.assertFalse(elena.hasBirth());
+		Assertions.assertEquals(List.of("Treviso"), elena.places());
+		//the places are the ones of the events other than the birth
+		Assertions.assertEquals(List.of("Padova"), data.persons().get(id(model, "Franco")).places());
+		final List<String> titles = GapChecker.check(data).stream().map(Diagnostic::title).toList();
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Place known, birth record missing: Elena")), titles.toString());
 	}
 
 	private static String id(final FLEFModel model, final String name){
@@ -129,9 +163,9 @@ class GapAssistantTest{
 		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("No death recorded: Anna Rossi [I1] (born 1890)")), titles.toString());
 		Assertions.assertTrue(titles.stream().anyMatch(t -> t.equals("Probably dead, no death recorded: Dino Bianchi [I3] (born 1930)")),
 			titles.toString());
-		//Carlo has a death; the events of an import have no source
-		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains("Carlo")), titles.toString());
-		Assertions.assertTrue(titles.stream().anyMatch(t -> t.endsWith("vital event(s) without a source")), titles.toString());
+		//Carlo has a death, so nothing is missing for him; the events of an import have no source, each one is a finding
+		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains("Carlo") && !t.startsWith("Vital event without a source")), titles.toString());
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Vital event without a source: ")), titles.toString());
 	}
 
 	@Test
@@ -206,10 +240,10 @@ class GapAssistantTest{
 
 		final List<String> titles = titles(findings(model));
 		//RQ1 has no activity; RQ2 has a negative search, and a task that is late
-		Assertions.assertTrue(titles.contains("Research question with no activity: Parents of Dino"), titles.toString());
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Research question with no activity: Parents of Dino")), titles.toString());
 		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Search without a follow-up: Searched the parish register")),
 			titles.toString());
-		Assertions.assertTrue(titles.contains("Overdue task: Ask the diocese archive"), titles.toString());
+		Assertions.assertTrue(titles.stream().anyMatch(t -> t.startsWith("Overdue task: Ask the diocese archive")), titles.toString());
 		Assertions.assertTrue(titles.stream().noneMatch(t -> t.contains("Death of Anna") && t.startsWith("Research question")),
 			titles.toString());
 	}
@@ -311,7 +345,7 @@ class GapAssistantTest{
 		final ResearchQuestionRecordDialog dialog = ResearchQuestionRecordDialog.createNew(null, model)
 			.withDraft("title", "question", List.of(model.getRecordById(id(model, "Anna"))));
 		//ESC, which is Cancel
-		final Object binding = dialog.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+		final Object binding = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
 			.get(io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper.ESCAPE_STROKE);
 		dialog.getRootPane().getActionMap().get(binding)
 			.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));

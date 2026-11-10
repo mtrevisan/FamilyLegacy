@@ -171,7 +171,7 @@ class DateToolsTest{
 		//every calendar, the Julian Day Number and the weekday, for today
 		Assertions.assertEquals(CalendarConversions.Calendar.values().length + 2, converterTables.getFirst().getRowCount());
 		Assertions.assertTrue(converterButtons.contains(I18N.t("button.other_calendars")), converterButtons.toString());
-		Assertions.assertTrue(converterButtons.contains(I18N.t("button.close")), converterButtons.toString());
+		Assertions.assertFalse(converterButtons.contains(I18N.t("button.close")), converterButtons.toString());
 		Assertions.assertTrue(calculatorButtons.contains(I18N.t("button.other_calendars_and_ages")), calculatorButtons.toString());
 		//opened from a menu there is no date to apply a suggestion to
 		Assertions.assertFalse(assistantButtons.contains(I18N.t("dialog.date_assistant.apply")), assistantButtons.toString());

@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -114,10 +113,7 @@ public final class StatisticsDialog extends JDialog{
 		// is no longer visible, so the summary would be misleading.
 		tabs.addChangeListener(e -> selectionSummary.setText(StringUtils.SPACE));
 
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(close);
 
 		final JPanel footer = new JPanel(new BorderLayout(8, 0));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));

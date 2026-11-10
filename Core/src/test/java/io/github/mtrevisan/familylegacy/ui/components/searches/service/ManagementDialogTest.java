@@ -84,14 +84,14 @@ class ManagementDialogTest{
 
 
 	@Test
-	void theManagementDialogHasNoSelectButtonAndIsClosedWithClose() throws InvocationTargetException, InterruptedException{
+	void theManagementDialogHasNoSelectButtonAndIsClosedWithEsc() throws InvocationTargetException, InterruptedException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 
 		final List<String> texts = buttonsOf(true);
 
 		Assertions.assertFalse(texts.contains(I18N.t("button.select")), texts.toString());
-		Assertions.assertFalse(texts.contains(I18N.t("button.cancel")), texts.toString());
-		Assertions.assertTrue(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains("Cancel"), texts.toString());
+		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.new")), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.edit")), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.delete")), texts.toString());
@@ -112,7 +112,7 @@ class ManagementDialogTest{
 			dialog.dispose();
 		});
 		Assertions.assertFalse(texts.contains(I18N.t("button.select")), texts.toString());
-		Assertions.assertTrue(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
 	}
 
 	@Test
@@ -216,13 +216,14 @@ class ManagementDialogTest{
 	}
 
 	@Test
-	void theSelectionDialogKeepsTheSelectButton() throws InvocationTargetException, InterruptedException{
+	void theSelectionDialogKeepsTheSelectButtonAndHasNoCancel() throws InvocationTargetException, InterruptedException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 
 		final List<String> texts = buttonsOf(false);
 
 		Assertions.assertTrue(texts.contains(I18N.t("button.select")), texts.toString());
-		Assertions.assertTrue(texts.contains(I18N.t("button.cancel")), texts.toString());
+		//it is closed with ESC: there is no button for that
+		Assertions.assertFalse(texts.contains("Cancel"), texts.toString());
 		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
 	}
 

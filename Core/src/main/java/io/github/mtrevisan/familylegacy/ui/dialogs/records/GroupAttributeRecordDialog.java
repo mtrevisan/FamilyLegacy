@@ -322,7 +322,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(GroupAttributeRecordDialog::createEdit, "/tests/test.flef", "GA1");
 	}
 

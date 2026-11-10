@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportIssue;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -107,13 +108,10 @@ public final class ImportReportDialog extends JDialog{
 		});
 		final JButton save = new JButton(I18N.t("dialog.import.report.save"));
 		save.addActionListener(e -> saveAsText());
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(copy);
 		buttons.add(save);
-		buttons.add(close);
 
 		setLayout(new BorderLayout(4, 4));
 		add(intro, BorderLayout.NORTH);
@@ -159,6 +157,8 @@ public final class ImportReportDialog extends JDialog{
 
 		try{
 			Files.writeString(chooser.getSelectedFile().toPath(), toText(report), StandardCharsets.UTF_8);
+			SavedFileNotice.show(this, I18N.t("dialog.import.report.title"),
+				I18N.tf("dialog.file.saved", chooser.getSelectedFile().getAbsolutePath()), chooser.getSelectedFile());
 		}
 		catch(final IOException ioe){
 			JOptionPane.showMessageDialog(this, I18N.t("dialog.import.report.save.error") + StringUtils.LF + ioe.getMessage(),

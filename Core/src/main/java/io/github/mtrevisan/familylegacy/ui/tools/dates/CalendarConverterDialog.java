@@ -99,8 +99,7 @@ final class CalendarConverterDialog extends JDialog{
 		setLayout(new BorderLayout(8, 8));
 		add(createForm(), BorderLayout.NORTH);
 		add(new JScrollPane(table), BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringUtils.SPACE, assistant, ToolDialogs.createCopyButton(() -> tableModel.toText()),
-			ToolDialogs.createCloseButton(this)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter(StringUtils.SPACE, assistant, ToolDialogs.createCopyButton(() -> tableModel.toText())), BorderLayout.SOUTH);
 
 		setPreferredSize(new Dimension(620, 420));
 

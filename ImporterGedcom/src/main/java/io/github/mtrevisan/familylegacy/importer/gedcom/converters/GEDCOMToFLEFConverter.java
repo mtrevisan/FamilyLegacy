@@ -233,6 +233,10 @@ public class GEDCOMToFLEFConverter {
 		familyConverter.reportChildLinksWithoutChild();
 		ageBirthConverter.convert();
 		multimediaConverter.linkSources();
+		//the places with the same name and coordinates are the same place, whatever their jurisdictions
+		PlaceMerger.merge(model);
+		//the repositories with the same name are the same repository (before the sources, so that their citations agree)
+		RepositoryMerger.merge(model, repositoryMap);
 		//the sources with the same title and the same media are the same source
 		SourceMerger.merge(model, sourceMap);
 

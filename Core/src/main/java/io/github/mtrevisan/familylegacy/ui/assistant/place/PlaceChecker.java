@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -56,14 +55,12 @@ import java.util.regex.Pattern;
  *   <li>places that may be the same place (same name and compatible type, not related, not clearly in different places);</li>
  *   <li>a place that is part of nothing, though its name says where it is (<em>Treviso, Veneto</em>) or it is used by events;</li>
  *   <li>a parish that belongs to no diocese;</li>
+ *   <li>a place where events happen, that no source cites;</li>
  *   <li>a place that is part of a smaller one (a province in a city), or of itself;</li>
  *   <li>places that are part of each other, or that succeed each other, in a circle.</li>
  * </ul>
  */
 final class PlaceChecker{
-
-	/** The most findings reported for the same kind of problem: the other ones are summed up in one finding. */
-	static final int MAX_PER_KIND = 25;
 
 	/** Places closer than this are probably the same place (km). */
 	static final double NEAR_KM = 5.;
@@ -147,11 +144,12 @@ final class PlaceChecker{
 			byId.put(place.id(), place);
 
 		final List<PlaceFinding> findings = new ArrayList<>();
-		findings.addAll(capped("duplicate", duplicates(data, byId)));
+		findings.addAll(duplicates(data, byId));
 		findings.addAll(brokenRelations(data, byId));
 		findings.addAll(cycles(data, byId));
-		findings.addAll(capped("no_parent", missingParents(data, byId)));
-		findings.addAll(capped("no_diocese", missingDioceses(data, byId)));
+		findings.addAll(missingParents(data, byId));
+		findings.addAll(missingDioceses(data, byId));
+		findings.addAll(unsourced(data));
 		return findings;
 	}
 
@@ -317,7 +315,7 @@ final class PlaceChecker{
 			data.relations().stream()
 				.filter(r -> types.contains(r.type()) && component.contains(r.subjectId()) && component.contains(r.targetId()))
 				.forEach(r -> ids.add(r.id()));
-			final String names = String.join(", ", component.stream().map(byId::get).map(PlaceData.Place::label).sorted().toList());
+			final String names = String.join(", ", component.stream().map(byId::get).map(p -> p.label() + " [" + p.id() + "]").sorted().toList());
 			findings.add(finding(severity, kind, new ArrayList<>(ids), I18N.tf(kind + ".title", names),
 				I18N.tf(kind + ".explanation", names), 0., null, String.valueOf(component.size())));
 		}
@@ -474,21 +472,22 @@ final class PlaceChecker{
 
 
 	/**
-	 * Keeps the findings with the highest rank, up to {@link #MAX_PER_KIND}, and sums up the other ones in a single finding.
+	 * The places where something happened (an event) that no source cites, neither the place nor its coordinates: where the events are
+	 * is as much an assertion as when. A place no event happens in is not reported: an imported tree is full of them, and they bury the
+	 * others.
 	 */
-	private static List<PlaceFinding> capped(final String kind, final List<PlaceFinding> findings){
-		if(findings.size() <= MAX_PER_KIND)
-			return findings;
+	private static List<PlaceFinding> unsourced(final PlaceData data){
+		final List<PlaceFinding> findings = new ArrayList<>();
+		for(final PlaceData.Place place : data.places()){
+			if(place.usage() == 0 || place.sourceCount() > 0)
+				continue;
 
-		final List<PlaceFinding> sorted = new ArrayList<>(findings);
-		sorted.sort(Comparator.comparingDouble((PlaceFinding f) -> f.diagnostic().rank()).reversed());
-		final List<PlaceFinding> result = new ArrayList<>(sorted.subList(0, MAX_PER_KIND));
-		final int more = sorted.size() - MAX_PER_KIND;
-		result.add(new PlaceFinding(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.PLACES,
-			I18N.tf("place." + kind + ".more.title", String.valueOf(more)),
-			I18N.tf("place." + kind + ".more.explanation", String.valueOf(more), String.valueOf(MAX_PER_KIND)), List.of(), null,
-			DiagnosticKeys.of("place." + kind + ".more", List.of(), more)), null, List.of()));
-		return result;
+			findings.add(finding(Diagnostic.Severity.INFORMATION, "place.no_source", List.of(place.id()),
+				I18N.tf("place.no_source.title", label(place)),
+				I18N.tf("place.no_source.explanation", label(place), String.valueOf(place.usage())),
+				place.usage(), null, null));
+		}
+		return findings;
 	}
 
 	private static PlaceFinding finding(final Diagnostic.Severity severity, final String kind, final List<String> ids,
@@ -500,8 +499,8 @@ final class PlaceChecker{
 
 	private static String label(final PlaceData.Place place){
 		return (place.type() != null
-			? place.label() + " (" + I18N.t("enum.place.type." + place.type(), place.type()) + ")"
-			: place.label());
+			? place.label() + " [" + place.id() + "] (" + I18N.t("enum.place.type." + place.type(), place.type()) + ")"
+			: place.label() + " [" + place.id() + "]");
 	}
 
 }

@@ -199,7 +199,8 @@ public final class ProvenanceService{
 	private static List<FLEFRecord> citationsOf(final FLEFRecord owner){
 		final List<FLEFRecord> citations = new ArrayList<>();
 		for(final FLEFRecord child : owner.getChildren())
-			if(SourceReader.isOfType(child))
+			//what a source is derived from is cited too: the chain from a transcription back to its original
+			if(SourceReader.isOfType(child) || SourceHelper.isDerivedFrom(child))
 				citations.add(child);
 		return citations;
 	}

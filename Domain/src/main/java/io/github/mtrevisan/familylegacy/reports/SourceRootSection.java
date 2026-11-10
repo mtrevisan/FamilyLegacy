@@ -76,6 +76,7 @@ public final class SourceRootSection implements SectionBuilder{
 		writeBasicInfo(out);
 		writeRepositories(out);
 		writeDocuments(out);
+		out.addAll(SourceDerivationLines.derivatives(ctx, ctx.root.getId()));
 		writeCitations(out);
 
 		if(ctx.config.notes())
@@ -92,7 +93,7 @@ public final class SourceRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceAuthor(),
-			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_AUTHOR));
+			ReportFormatters.firstValue(ctx.root, SourceReader.TAG_AUTHOR));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePublisher(),
 			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_PUBLISHER));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
@@ -101,6 +102,7 @@ public final class SourceRootSection implements SectionBuilder{
 			PlaceCitationReader.extractPlace(ctx.root, ctx.model));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_MEDIA_TYPE));
+		SourceDerivationLines.appendRows(ctx, ctx.root.getId(), rows);
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}

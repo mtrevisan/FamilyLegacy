@@ -73,6 +73,7 @@ import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 
@@ -213,9 +214,6 @@ public final class ResearchBoardDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 		footer.add(statusLabel);
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
 		return footer;
 	}
 
@@ -373,7 +371,7 @@ public final class ResearchBoardDialog extends JDialog{
 
 		final FLEFRecord record = node.record();
 		String message = I18N.tf("confirmation.delete.context_record.message",
-			I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(java.util.Locale.ROOT)), node.label());
+			I18N.t("confirmation.exist_record." + record.getTag().toLowerCase(Locale.ROOT)), node.label());
 		//the activities and the tasks of a question are not deleted with it: they are left under "(no question)"
 		if(node.kind() == ResearchTreeBuilder.Kind.QUESTION && (node.count(ResearchTreeBuilder.Kind.ACTIVITY) > 0
 				|| node.count(ResearchTreeBuilder.Kind.TASK) > 0))

@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -174,7 +175,7 @@ class SurnamesReportTest{
 		Assertions.assertNull(nowhere.rows().getFirst().firstYear());
 		Assertions.assertEquals(1, nowhere.rows().getFirst().undated());
 		//the places in alphabetical order: Borgo, Treviso; Padova
-		Assertions.assertEquals(java.util.Arrays.asList("P1", "P3", null), result.places().stream().map(SurnameDistribution.PlaceGroup::placeId).toList());
+		Assertions.assertEquals(Arrays.asList("P1", "P3", null), result.places().stream().map(SurnameDistribution.PlaceGroup::placeId).toList());
 	}
 
 	@Test

@@ -51,13 +51,13 @@ import java.util.stream.Collectors;
 public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
-	public static void main(String[] args) throws IOException, URISyntaxException{
-		String inputResource = "Core/src/main/resources/tests/TGMZ.ged";
-		String outputPath = "Core/src/main/resources/tests/TGMZ.flef";
-//		String inputResource = "Core/src/main/resources/tests/TGC55C.ged";
-//		String outputPath = "Core/src/main/resources/tests/TGC55C.flef";
+	static void main(final String[] args) throws IOException, URISyntaxException{
+		final String inputResource = "Core/src/main/resources/tests/TGMZ.ged";
+		final String outputPath = "Core/src/main/resources/tests/TGMZ.flef";
+//		final String inputResource = "Core/src/main/resources/tests/TGC55C.ged";
+//		final String outputPath = "Core/src/main/resources/tests/TGC55C.flef";
 
-		String gedcomContent;
+		final String gedcomContent;
 		try(final InputStream is = Files.newInputStream(Paths.get(inputResource));
 			final BufferedReader br = GEDCOMHelper.getBufferedReader(is)){
 			gedcomContent = br.lines()
@@ -65,15 +65,15 @@ public class GEDCOMConverterMain{
 		}
 
 		// Parse GEDCOM
-		GEDCOMParser parser = new GEDCOMParser();
-		List<GEDCOMNode> roots;
-		try(StringReader reader = new StringReader(gedcomContent)){
+		final GEDCOMParser parser = new GEDCOMParser();
+		final List<GEDCOMNode> roots;
+		try(final StringReader reader = new StringReader(gedcomContent)){
 			roots = parser.parse(reader);
 		}
 
 		// Convert to FLEF
-		GEDCOMToFLEFConverter converter = new GEDCOMToFLEFConverter();
-		FLEFModel model = converter.convert(roots);
+		final GEDCOMToFLEFConverter converter = new GEDCOMToFLEFConverter();
+		final FLEFModel model = converter.convert(roots);
 
 		validate(model);
 
@@ -81,10 +81,10 @@ public class GEDCOMConverterMain{
 //		MergeReport dedupReport = merger.deduplicate(model);
 
 		// Write FLEF file
-		FLEFWriter writer = FLEFWriter.createCompact();
-		Path outputFile = Paths.get(outputPath);
+		final FLEFWriter writer = FLEFWriter.createCompact();
+		final Path outputFile = Paths.get(outputPath);
 		Files.createDirectories(outputFile.getParent());
-		try(Writer fw = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8)){
+		try(final Writer fw = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8)){
 			writer.write(model, fw);
 		}
 

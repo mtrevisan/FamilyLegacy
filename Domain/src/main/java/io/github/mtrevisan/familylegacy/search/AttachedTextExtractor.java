@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.search;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,7 +66,7 @@ public final class AttachedTextExtractor{
 			final String tag = child.getTag();
 			if(NoteReader.TYPE.equalsIgnoreCase(tag))
 				appendNote(child, sb);
-			else if(SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(tag))
+			else if(SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(tag) || SourceReader.TAG_DERIVED_FROM.equalsIgnoreCase(tag))
 				appendCitation(child, sb);
 			collect(child, sb);
 		}

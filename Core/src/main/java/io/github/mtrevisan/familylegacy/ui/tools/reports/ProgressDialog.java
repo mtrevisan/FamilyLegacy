@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -51,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>The dialog is purely passive: it displays a message and a percentage,
  * and exposes a cancellation flag that the background task is expected to
  * poll between major steps. Closing the dialog via the window close button
- * or pressing Escape sets the same flag, so the user has several ways to abort.
+ * or pressing Escape sets the same flag, so the user can abort (there is no button for that: Escape is the way).
  * The task is also told at once, by the action given to {@link #onCancel(Runnable)}: the dialog stays open until the task
  * is over, so waiting for it to close would never tell the task to stop.</p>
  *
@@ -62,7 +61,6 @@ public final class ProgressDialog extends JDialog{
 
 	private final JLabel messageLabel = new JLabel(StringUtils.SPACE);
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
-	private final JButton cancelButton = new JButton(I18N.t("button.cancel"));
 	private final AtomicBoolean cancelled = new AtomicBoolean(false);
 	private volatile Runnable cancelAction;
 
@@ -79,16 +77,12 @@ public final class ProgressDialog extends JDialog{
 		progressBar.setStringPainted(true);
 		content.add(progressBar, "growx, h 22!");
 
-		final JPanel buttons = new JPanel();
-		cancelButton.addActionListener(e -> requestCancel());
-		buttons.add(cancelButton);
 
-		// Escape is the same as clicking Cancel (it does nothing once the cancellation has been requested).
-		getRootPane().registerKeyboardAction(e -> cancelButton.doClick(), GUIHelper.ESCAPE_STROKE,
+		// Escape cancels: the task is told to stop and the dialog closes when it is over (it does nothing once the cancellation has been requested).
+		getRootPane().registerKeyboardAction(e -> requestCancel(), GUIHelper.ESCAPE_STROKE,
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		add(content, BorderLayout.CENTER);
-		add(buttons, BorderLayout.SOUTH);
 
 		// Closing the window also means "cancel".
 		addWindowListener(new WindowAdapter(){
@@ -122,7 +116,6 @@ public final class ProgressDialog extends JDialog{
 		if(!cancelled.compareAndSet(false, true))
 			return;
 
-		cancelButton.setEnabled(false);
 		messageLabel.setText(I18N.t("text.cancelling"));
 		final Runnable action = cancelAction;
 		if(action != null)

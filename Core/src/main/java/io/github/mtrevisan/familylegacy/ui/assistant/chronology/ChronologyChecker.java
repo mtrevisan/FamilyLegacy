@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
+import io.github.mtrevisan.familylegacy.quality.DateConsistency;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
@@ -73,9 +74,6 @@ final class ChronologyChecker{
 	}
 
 
-	/** The events that happen after the death (or are about it): they are not reported when the date is after the death. */
-	private static final Set<String> POSTHUMOUS_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL,
-		EventReader.ENUM_TYPE_CREMATION, "coroner_report", "probate", "honor", "pardon", "deed", "escrow", "chancery");
 	private static final Set<String> MARRIAGE_TYPES = Set.of(EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_MARRIAGE_BANN,
 		EventReader.ENUM_TYPE_MARRIAGE_CONTRACT, EventReader.ENUM_TYPE_MARRIAGE_LICENSE, EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT,
 		"engagement");
@@ -98,6 +96,8 @@ final class ChronologyChecker{
 		checkEvents(data, findings);
 		checkParents(data, rules, findings);
 		checkUnions(data, findings);
+		checkMemberships(data, findings);
+		checkUnreadable(data, findings);
 		checkOverlappingMarriages(data, findings);
 		checkBirthIntervals(data, rules, findings);
 		checkMarriageAges(data, rules, findings);
@@ -154,7 +154,7 @@ final class ChronologyChecker{
 					&& isTooYoung(person, event.date(), rules)){
 				reported.add(person.id());
 				findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young", List.of(person.id(), event.eventId()),
-					person.name(), minMarriageAge(person, rules), person.birthText(), event.dateText()));
+					person.name(), minMarriageAge(person, rules), person.birthText(), event.dateText() + ", event [" + event.eventId() + "]"));
 			}
 		}
 		for(final ChronologyData.Union union : data.unions()){
@@ -166,7 +166,7 @@ final class ChronologyChecker{
 				if(partner != null && isTooYoung(partner, union.from(), rules) && reported.add(partner.id()))
 					findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young",
 						List.of(partner.id(), union.relationshipId()), partner.name(), minMarriageAge(partner, rules),
-						partner.birthText(), union.fromText()));
+						partner.birthText(), union.fromText() + ", relationship [" + union.relationshipId() + "]"));
 			}
 		}
 	}
@@ -211,10 +211,10 @@ final class ChronologyChecker{
 			final String type = event.type();
 			if(person.birth() != null && !EventReader.ENUM_TYPE_BIRTH.equals(type) && event.date().isBefore(person.birth()))
 				findings.add(finding(Diagnostic.Severity.ERROR, (MARRIAGE_TYPES.contains(type)? "marriage_before_birth": "event_before_birth"),
-					List.of(person.id(), event.eventId()), person.name(), type, event.dateText(), person.birthText()));
-			if(person.death() != null && !POSTHUMOUS_TYPES.contains(type) && person.death().isBefore(event.date()))
+					List.of(person.id(), event.eventId()), person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.birthText()));
+			if(person.death() != null && !DateConsistency.isPosthumous(type) && person.death().isBefore(event.date()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "event_after_death", List.of(person.id(), event.eventId()),
-					person.name(), type, event.dateText(), person.deathText()));
+					person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.deathText()));
 		}
 	}
 
@@ -260,6 +260,45 @@ final class ChronologyChecker{
 		}
 	}
 
+	/**
+	 * A membership of a group that begins before the member was born or after they died, or ends before they were born (the end is
+	 * reported only when the beginning does not already say it).
+	 */
+	private static void checkMemberships(final ChronologyData data, final List<Diagnostic> findings){
+		for(final ChronologyData.Membership membership : data.memberships()){
+			final ChronologyData.Person member = data.persons().get(membership.memberId());
+			if(member == null)
+				continue;
+
+			final List<String> ids = List.of(member.id(), membership.relationshipId());
+			final DateRange from = membership.from();
+			if(from != null){
+				if(member.birth() != null && from.isBefore(member.birth()))
+					findings.add(finding(Diagnostic.Severity.ERROR, "membership_before_birth", ids, member.name(), membership.fromText(),
+						member.birthText(), membership.relationshipId()));
+				if(member.death() != null && member.death().isBefore(from))
+					findings.add(finding(Diagnostic.Severity.ERROR, "membership_after_death", ids, member.name(), membership.fromText(),
+						member.deathText(), membership.relationshipId()));
+			}
+			if(membership.to() != null && member.birth() != null && membership.to().isBefore(member.birth())
+					&& (from == null || !from.isBefore(member.birth())))
+				findings.add(finding(Diagnostic.Severity.ERROR, "membership_ended_before_birth", ids, member.name(), membership.toText(),
+					member.birthText(), membership.relationshipId()));
+		}
+	}
+
+	/**
+	 * The dates the other checks could not judge, so that they are not silent about them: a date not valid in its calendar is a
+	 * problem of the file (a warning, as in Validate File); one whose calendar needs the Ephemeris plugin, which is not installed, is
+	 * only not checked (information: the file is not wrong).
+	 */
+	private static void checkUnreadable(final ChronologyData data, final List<Diagnostic> findings){
+		for(final ChronologyData.UnreadableDate date : data.unreadable())
+			findings.add(finding((date.needsPlugin()? Diagnostic.Severity.INFORMATION: Diagnostic.Severity.WARNING),
+				(date.needsPlugin()? "date_not_checked": "date_invalid"), List.of(date.recordId()), date.description(), date.field(),
+				date.text()));
+	}
+
 	private static void checkUnions(final ChronologyData data, final List<Diagnostic> findings){
 		for(final ChronologyData.Union union : data.unions()){
 			if(union.from() == null)
@@ -273,10 +312,10 @@ final class ChronologyChecker{
 				final List<String> ids = List.of(partner.id(), union.relationshipId());
 				if(partner.birth() != null && union.from().isBefore(partner.birth()))
 					findings.add(finding(Diagnostic.Severity.ERROR, "union_before_birth", ids, partner.name(), union.fromText(),
-						partner.birthText()));
+						partner.birthText(), union.relationshipId()));
 				if(partner.death() != null && partner.death().isBefore(union.from()))
 					findings.add(finding(Diagnostic.Severity.ERROR, "union_after_death", ids, partner.name(), union.fromText(),
-						partner.deathText()));
+						partner.deathText(), union.relationshipId()));
 			}
 		}
 	}
@@ -305,7 +344,7 @@ final class ChronologyChecker{
 							&& second.from().max() <= firstEnd)
 						findings.add(finding(Diagnostic.Severity.INFORMATION, "overlapping_marriages",
 							List.of(person.id(), first.relationshipId(), second.relationshipId()), person.name(),
-							name(data, firstPartner), name(data, secondPartner)));
+							name(data, firstPartner), name(data, secondPartner), first.relationshipId(), second.relationshipId()));
 				}
 		}
 	}

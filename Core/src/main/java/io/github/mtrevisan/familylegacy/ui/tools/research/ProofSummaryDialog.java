@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -125,8 +126,7 @@ final class ProofSummaryDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringSpace.EMPTY, openRecord, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText()),
-			ToolDialogs.createCloseButton(this)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter(StringSpace.EMPTY, openRecord, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);
@@ -187,7 +187,7 @@ final class ProofSummaryDialog extends JDialog{
 		columns.getColumn(2).setPreferredWidth(200);
 		columns.getColumn(3).setPreferredWidth(360);
 
-		statusFilter.setModel(new javax.swing.DefaultComboBoxModel<>(options.toArray(new String[0])));
+		statusFilter.setModel(new DefaultComboBoxModel<>(options.toArray(new String[0])));
 		verdict.setText(total == 0? I18N.t("text.proof_summary.empty"): I18N.tf("text.proof_summary.verdict", total));
 		tabs.setTitleAt(1, I18N.t("tab.title.conclusions") + " (" + total + ")");
 		summary.setText(GUIHelper.format(I18N.t("text.proof_summary.summary"), total));

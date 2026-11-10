@@ -129,17 +129,13 @@ public final class GroupReader{
 			.toList();
 	}
 
-	public static String extractPrimaryName(final FLEFRecord group){
-		final List<Name> names = NameAnatomyService.extractForGeneric(group);
-		final Name officialName = names.stream()
-			.filter(n -> NameReader.ENUM_TYPE_OFFICIAL.equals(n.type()))
-			.findFirst()
-			.orElse(null);
-		if(officialName != null)
-			return officialName.value();
+	/** @return	The primary name of the group, or its id if it has no name, or the empty string. */
+	public static String displayName(final FLEFRecord group){
+		return NameAnatomyService.displayGenericName(group);
+	}
 
-		final List<String> rawNames = extractNames(group);
-		return (!rawNames.isEmpty()? rawNames.getFirst(): null);
+	public static String extractPrimaryName(final FLEFRecord group){
+		return NameAnatomyService.extractPrimaryGenericName(group);
 	}
 
 	public static String extractSource(final FLEFRecord group){

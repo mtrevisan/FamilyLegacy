@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -123,15 +122,9 @@ public final class FactsComparisonDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
 
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
-
 		setLayout(new BorderLayout(0, 0));
 		add(top, BorderLayout.NORTH);
 		add(scroll, BorderLayout.CENTER);
-		add(footer, BorderLayout.SOUTH);
 
 		ToolDialogs.installEscapeToClose(this);
 

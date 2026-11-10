@@ -243,7 +243,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
+	static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

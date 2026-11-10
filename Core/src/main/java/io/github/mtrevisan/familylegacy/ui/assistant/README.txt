@@ -21,7 +21,9 @@ Status: the framework and the first assistant (dates) are implemented, in `ui/as
   other and compare them. ESC closes the list. Records that no longer exist are left out. Nothing changes unless the user edits a
   record and saves it in its editor.
 - A finding can carry more than one action of its own (`Diagnostic.alternatives`, after the main one): the keys are Enter, Ctrl+Enter,
-  Ctrl+Shift+Enter and Ctrl+Alt+Enter (at most four actions), and the opening of the records is always the last. `Diagnostic.rank` orders the findings of the same severity (the
+  Ctrl+Shift+Enter and Ctrl+Alt+Enter (at most four actions), and the opening of the records is always the last. The key belongs to the
+  action, not to its position (`DiagnosticAction.keySlot`: 0 what the finding proposes, 1 compare, 2 record as different, 3 open the
+  records), so that "Compare Side by Side" is Ctrl+Enter wherever it is offered; Enter also runs the first action when none has slot 0. `Diagnostic.rank` orders the findings of the same severity (the
   higher first); the severity still comes first.
 - `AssistantIndicator`, `FindingCounts`: the indicator of the main window, a button at the right end of the toolbar: "Assistant" and
   the findings to look at by severity (`✖ 1  ⚠ 3  ℹ 12`, or a tick when there are none, `…` while it is checking); the tooltip says it
@@ -123,17 +125,20 @@ Implementation Notes
 
 The long-term objective is to make the Research Assistant the primary entry point for advanced genealogy tools while keeping the main user interface simple and uncluttered.
 
-### DONE (except the natural-language interpreter) Create a Historical Date Assistant accessible from every DateStructure editor.
+### DONE Create a Historical Date Assistant accessible from every DateStructure editor.
 
 Status: `HistoricalDateAssistantDialog` (Core, `ui/components`) over the engine in `io.github.mtrevisan.calendars.assistant`
 (Calendars module). It opens from the Research Assistant (Ctrl+Shift+A in a date editor; category Dates, one action per
 tool). Tools: calendar conversion, liturgical calendar (movable feasts, feast references, distance from Easter, Julian computus,
 Gregorian reform by country), sunrise/sunset with equal and temporal hours and the readings of the day boundary, relative date,
-date relative to an event of the tree, age to estimated birth (completed years or Nth year of life; range or exact).
+date relative to an event of the tree, age to estimated birth (completed years or Nth year of life; range or exact), Roman date
+(Kalends, Nones and Ides: `RomanDateTool`, "ante diem III Nonas Martias", "pridie Kalendas Ianuarias", "the Ides of March", in a year;
+November 2026; in a leap year the classical reckoning with the doubled sixth day is given as well as the arithmetic one;
+`RomanDateToolTest`).
 Every result is a `DateSuggestion` (meaning, assumptions, calendar, steps, a date or a not-before/not-after range): nothing is
 applied unless the user asks, the replacement of an existing date is confirmed, and the explanation can be copied.
-Still to do: natural-language interpreter (Roman Kalends/Nones/Ides, "more veneto", "one hour after sunset" as text), age with a known
-birth to estimate the death date, regnal years.
+Still to do: regnal years (they need tables from an authoritative source, see the rule on calendars). Not done, by choice: age with a
+known birth to estimate the death date (arithmetic the user does alone); "more veneto" is already in the converters.
 
 ### DONE (core checks) Create an Identity Assistant for duplicate detection.
 
@@ -213,6 +218,9 @@ two real editors.
 What the other assistants report is not repeated: an identity hypothesis with no conclusion is a finding of the Conclusion Assistant.
 Done:
 - Missing from the tree, with the draft of a research QUESTION (what to find out, about whom; the question is only started):
+  - a birth missing for someone known at a place (an event other than the birth with a place, `GapData.Person.places`, the first three
+    named): "Place known, birth record missing", usefulness 5 more than the same gap with no place, and the draft says to look first in
+    the birth and baptism registers of that place and of the neighbouring ones (November 2026; `GapCheckerTest`, `GapAssistantTest`);
   - no death for an individual born 110 years ago or more (certainly dead, usefulness 85) or 90 years ago or more (probably, 55);
   - no birth for an individual with children or events (45, 55 with children, +5 with events);
   - children whose two parents are linked by no union and no marriage event (45 + 5 for each child, 70 at most).
@@ -237,9 +245,8 @@ Done:
 Still to do:
 - DONE (November 2026): the sources of the vital events are looked for on the event, on the participation of its principals and on the
   principals themselves (`GapDataLoader`), so an event cited elsewhere is no longer "without a source" (`GapAssistantTest`).
-- Missing in the example of this section and not done: "a place is known but the birth record is missing" (needs the places of the
-  residences and events against the birth), and a residence history that is incomplete beyond having none at all (the years between
-  two censuses).
+- Not done: the places of the residences (attributes) are not used for "place known, birth record missing" (only the events are), and a
+  residence history that is incomplete beyond having none at all (the years between two censuses).
 - Parents unknown (the brick walls) are not reported: there are as many as ancestors at the edge of the tree; it is the job of the
   Research Planner Assistant to choose which to work on.
 - The usefulness is a rule of thumb: the weights are not calibrated on real research and not configurable, and it does not know how
@@ -359,6 +366,11 @@ who gives birth after her death" is the same rule as the child born after the de
 The validation also warns of the dates that cannot be read (`date_invalid`: not valid in the notation of the calendar) and of the ones it
 did not check because the calendar needs the Ephemeris plugin (`date_not_checked`: not a problem of the file), told apart by
 `DateNormalizer.problem`.
+Done (November 2026): the memberships of a group outside the lifespan of the member (`membership_before_birth`, `membership_after_death`,
+`membership_ended_before_birth`) are errors here too; `relationship.invalid_for_participants` is an error, as in the validation. The two
+lists are kept in step by `ValidationAssistantParityTest`: a new kind of Validate File must be classified there (same check here, only
+there, or to do). `child_married_to_parent`, `sibling_and_parent` (relationship assistant) and `date_invalid` / `date_not_checked` (chronology
+assistant) are findings here too; the last is information, not a warning, because it is not a problem of the file. Two differences are on purpose: `parents` and `same_sex_parents` are warnings here, and nothing once a conclusion resolves them.
 Done since (November 2026): children of the same mother born less than 270 days apart (`births_too_close`; certainly less, and certainly
 more than 7 days apart, so twins are never reported) and a spouse married younger than the age of a parent of the same sex
 (`marriage_too_young`, from the marriage event or, if none, the union), as warnings; both limits are in `Rules`.
@@ -367,8 +379,6 @@ Still to do, and where it belongs:
 - Other overlapping incompatible events (residence, military service, prison, hospitalization) and overlapping attributes: not provable
   (two homes, a soldier who lives somewhere), so only an assistant warning, with weights that are a matter of judgement; not for the
   validation.
-- The dates that cannot be read are skipped silently by this assistant (the validation tells them): they could be findings here too
-  ("date not checked").
 - Age limits and the gestation limit configurable by the user (preferences, like the settings of the Identity Assistant); today only
   `Rules.DEFAULT`.
 - DONE (November 2026): "Check Chronology" for a selected individual is the "Only about ..." check box of the palette, for every assistant
@@ -398,10 +408,15 @@ Done:
   (warning), reported once per circle.
 - More than 25 findings of a kind: the most used are listed and one finding sums up the others.
 - "Create Place Relationship Draft": Enter on a finding opens `PlaceRelationshipRecordDialog.withDraft`; saved only if confirmed.
-Still to do: successor_of suggestions from the names and dates of places (historical jurisdiction changes), the validity dates of
-relationships (valid_from after valid_to, relationships outside the lifetime of a place), place citations (places with no source),
-places with no coordinates or type (suggest the type from the name: Diocesi di, Parrocchia di), the usage of places by other records
-than events, hierarchy by the names written with several parts, suggestions of the parent from the places near it.
+- Places with no source (November 2026): a place where events happen that neither a citation of the place nor one of its coordinates
+  backs (`PlaceData.Place.sourceCount`); one finding for each, ranked by the events, the most used first (25 at most, the others
+  summed up); a place no event happens in is not reported (an imported tree is full of them). No draft. `PlaceCheckerTest`.
+- A relationship of places whose `valid_from` is after its `valid_to` is not a finding of the assistant: it is provable, so it is an
+  error of Validate File (`FLEFValidator`, `validity_dates`, already there; `FileValidationTest`).
+Still to do: places with no type (suggest the type from the name: Diocesi di, Parrocchia di; low priority, one language only), successor_of
+suggestions from the names and dates of places (historical jurisdiction changes), relationships outside the lifetime of a place, the
+usage of places by other records than events, hierarchy by the names written with several parts, suggestions of the parent from the
+places near it.
 
 ### DONE (core checks) Create a Conclusion Assistant.
 
@@ -457,7 +472,7 @@ Still to do:
 - DONE (November 2026): the consistency of the conclusions is a check of the validation, not of the assistant: a `preferred` that is not
   in RESOLVES was already an error, and now RESOLVES or `preferred` that point to records that no longer exist are one too
   (`ConsistencyService`, `resolves_missing`). `proven` with a single source: not done (it can be legitimate).
-- DONE "Settled" has one definition, `ConclusionResolution`, shared with the merger (`ProtocolCleanup`); see `components/projections/README.txt`, "Altri TODO emersi dalla revisione".
+- DONE "Settled" has one definition, `ConclusionResolution`, shared with the merger (`ProtocolCleanup`).
 - Same limits as the Chronology Assistant: the whole model is read at each opening, away from the event dispatch thread while the
   user may be editing; English messages only.
 

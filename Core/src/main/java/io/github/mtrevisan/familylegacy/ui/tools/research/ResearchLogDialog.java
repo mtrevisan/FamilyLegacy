@@ -145,9 +145,6 @@ public final class ResearchLogDialog extends JDialog{
 		openRecord.addActionListener(e -> openSelected());
 		footer.add(statusLabel);
 		footer.add(openRecord);
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
-		footer.add(close);
 		return footer;
 	}
 

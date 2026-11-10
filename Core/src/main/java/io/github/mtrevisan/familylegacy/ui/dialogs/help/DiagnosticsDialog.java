@@ -102,12 +102,9 @@ public final class DiagnosticsDialog extends JDialog{
 				.setContents(selection, selection);
 		});
 
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(copy);
-		buttons.add(close);
 
 		setLayout(new BorderLayout(8, 8));
 		add(scroll, BorderLayout.CENTER);

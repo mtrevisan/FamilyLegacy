@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -111,11 +110,8 @@ public final class KeyboardShortcutsDialog extends JDialog{
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setPreferredSize(new Dimension(800, 520));
 
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(close);
 
 		setLayout(new BorderLayout(8, 8));
 		add(scroll, BorderLayout.CENTER);

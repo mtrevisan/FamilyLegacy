@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
@@ -48,7 +49,7 @@ import java.util.List;
 /** The Identity Assistant for the kinds of record other than individuals: the same source twice, the same repository twice. */
 class IdentityOtherKindsTest{
 
-	/** The same source and the same repository twice (an import of two copies), and a different source. */
+	/** The same source twice (an import of two copies), and a different source; the import merges the repeated repository. */
 	private static final String GEDCOM = """
 		0 HEAD
 		1 CHAR UTF-8
@@ -72,7 +73,14 @@ class IdentityOtherKindsTest{
 
 	private static FLEFModel convert() throws IOException{
 		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM));
-		return new GEDCOMToFLEFConverter().convert(roots);
+		final FLEFModel model = new GEDCOMToFLEFConverter().convert(roots);
+		//the import merges the repositories that are the same one, so the second copy is the one that somebody typed again by hand
+		final FLEFRecord survivor = model.getRecordsByType(RepositoryReader.TYPE).getFirst();
+		final FLEFRecord copy = FLEFRecord.createMainRecord("R99", RepositoryReader.TYPE);
+		survivor.deepCopyTo(copy);
+		copy.setId("R99");
+		model.addRecord(copy);
+		return model;
 	}
 
 	private static List<Diagnostic> found(final FLEFModel model){

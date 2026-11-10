@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -38,7 +39,7 @@ import java.util.List;
  * <pre>
  * // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
  * // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
- * // Citation relationships SHOULD NOT form cycles.
+ * // DERIVED_FROM relationships MUST NOT form cycles: a source cannot be derived from itself, directly or through other sources.
  * record SourceRecord {
  *   title+: NameStructure             // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
  *   author*: Agent                    // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
@@ -50,6 +51,7 @@ import java.util.List;
  *   } | Text
  *   repository*: RepositoryCitation
  *   media*: Xref&lt;MediaRecord&gt;        // the media (scans, photographs, recordings, ...) of this source
+ *   derived_from*: SourceCitation     // the sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation or a database taken from a register, a book or other sources. The locator of the citation says where in the original the content comes from (page, entry, folio) and the extract the passage; the stance is `contradicts` when this source disagrees with its original (e.g., a mistaken transcription). An original source has none. Sources derived from the same original are not independent evidence of what it says. This is about where the content comes from: a source that only mentions other works (a bibliography, a note that refers to a source) does not derive from them
  *   note*: NoteStructure              // may contain information to identify a book (ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -75,6 +77,7 @@ public final class SourceReader{
 	public static final String TAG_MEDIA_TYPE = "media_type";
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_MEDIA = "media";
+	public static final String TAG_DERIVED_FROM = "derived_from";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
@@ -154,6 +157,21 @@ public final class SourceReader{
 
 	public static String extractMediaType(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_MEDIA_TYPE);
+	}
+
+	/**
+	 * @param source	The SourceRecord.
+	 * @return	The identifiers of the sources it is derived from (its {@code derived_from} citations), in the order of the record; the
+	 * 	citations that name no source are left out.
+	 */
+	public static List<String> extractDerivedFromIds(final FLEFRecord source){
+		final List<String> ids = new ArrayList<>(0);
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(source, TAG_DERIVED_FROM)){
+			final String id = FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE);
+			if(StringUtils.isNotBlank(id))
+				ids.add(id);
+		}
+		return ids;
 	}
 
 }

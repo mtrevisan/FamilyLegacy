@@ -29,6 +29,7 @@ import io.github.mtrevisan.calendars.assistant.CalendarConversionTool;
 import io.github.mtrevisan.calendars.assistant.DateSuggestion;
 import io.github.mtrevisan.calendars.assistant.LiturgicalTool;
 import io.github.mtrevisan.calendars.assistant.RelativeDateTool;
+import io.github.mtrevisan.calendars.assistant.RomanDateTool;
 import io.github.mtrevisan.calendars.assistant.SunTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
@@ -87,7 +88,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		SUN,
 		RELATIVE,
 		EVENT,
-		AGE
+		AGE,
+		ROMAN
 	}
 
 	private static final String[] REFORM_KEYS = {"rome", "france", "britain", "julian"};
@@ -168,6 +170,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		tools.addTab(I18N.t("dialog.date_assistant.tool.relative"), createRelativePanel(calendarCode, dateText));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.event"), createEventPanel(events));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.age"), createAgePanel(calendarCode, dateText, events));
+		tools.addTab(I18N.t("dialog.date_assistant.tool.roman"), createRomanPanel());
 		tools.setSelectedIndex(initialTool.ordinal());
 
 		suggestionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -348,6 +351,22 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		panel.add(amount, "split 4,growx");
 		panel.add(unit);
 		panel.add(direction);
+		panel.add(run);
+		return panel;
+	}
+
+	private JPanel createRomanPanel(){
+		final JTextField expression = new JTextField(24);
+		expression.setToolTipText(I18N.t("dialog.date_assistant.roman.expression.tooltip"));
+		final JSpinner year = createYearSpinner();
+		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
+		run.addActionListener(e -> compute(() -> RomanDateTool.interpret(expression.getText(), (int)year.getValue())));
+
+		final JPanel panel = new JPanel(new MigLayout("fillx", "[][grow,fill][][]"));
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.roman.expression")));
+		panel.add(expression);
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.year")), "gapleft 10");
+		panel.add(year);
 		panel.add(run);
 		return panel;
 	}

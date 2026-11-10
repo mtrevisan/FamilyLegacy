@@ -31,7 +31,7 @@ From the top:
 2. **Output Formats**: *Plain Text (.txt)*, *Markdown (.md)* (ticked by default), *HTML (.html)*, *Word (.docx)*, *PDF (.pdf)*, *EPUB (.epub)* and *Static Website (folder)*. You can tick several. Word, PDF, EPUB and Static Website are optional components of the installation (see [The formats](#the-formats)): when one is missing, its box is greyed out and a tooltip says which file is not installed.
 3. **Language** of the document, see [Language](#language). It starts as the language of the application, until you choose another.
 4. The **options**, see below.
-5. **Restore Defaults**, **Cancel** (`Esc`) and **Generate...**.
+5. **Restore Defaults** and **Generate...** (`Esc` closes the dialog).
 
 **The dialog remembers your choices.** When you press **Generate...** and choose a folder, the dialog keeps the formats you ticked, the language, the folder, and the options of that kind of report (the *Ancestor Report* and the *Descendant Report* each have their own), and offers them again next time, also after the application is closed. **Restore Defaults** brings back the default options, the language of the application and the default format (Markdown). The **privacy policy** is the exception: it is never remembered and **always starts at Hide Confidential**, so that a choice made for a private report is not carried by mistake to one you will share. Hover over an option to read a short description of it.
 
@@ -64,7 +64,11 @@ Images are not copied next to the file in every format: Markdown and HTML refer 
 - **Order of persons**, for the *Family Book* only: *By family name* (default; then by the other names; whoever has no name comes last) or *By birth date* (the oldest first; whoever has no birth year comes last, in alphabetical order).
 - **Generations**, for the ancestor and descendant reports only, decides how far to follow the line: *All* (default), or from 1 to 20 generations (the parents, or the children, are the first). The person the report is about is not counted, and the tree, the list of persons and the collaterals stop there.
 
-**Content sections**: **Notes**, **Sources**, **Media**, **Historic events**, **Repositories** (on), and **Historic context & research**, **Cultural norms**, **Evidence qualifiers** (off).
+**Content sections**: **Notes**, **Sources**, **Media**, **Historic events**, **Repositories** (on), **Include original sources** (on), and **Historic context & research**, **Cultural norms**, **Evidence qualifiers** (off).
+
+**Include original sources** acts on the *Sources* section: when a cited source is derived from others (a copy of a transcription of a register), those are listed too, after the cited ones, marked *Not cited directly*, so that a bibliography never gives the transcription without the register behind it. Turn it off to list only what is cited. The *Full Bibliography* has every source already, and does not show the option.
+
+In every report that describes a source (the *Source Report*, the *Sources* sections and the *Full Bibliography*), a source that is derived from others says **Derived from** (the sources it is made from, with the locator, and *(Contradicts)* if it disagrees with them) and, if the chain is longer, **Original** (the sources at the top of it). The *Source Report* also lists the **Derived sources**: those made from it.
 
 **Group report**: **Groups and memberships** (on: the *Group memberships* list in the relationships of a person), and, for group roots and for the *Family Book*, **Show group members**, **Show subgroups** and **Show group attributes** (on). In the *Family Book*, **Groups and memberships** also decides whether the groups have a page.
 

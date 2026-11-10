@@ -11,7 +11,7 @@ Relationships and dates have their own pages: [Relationships](relationships.md) 
 
 ## The window
 
-- The title says *New* or *Edit* and the type of the record. **Save** and **Cancel** are at the bottom; `Esc` is Cancel.
+- The title says *New* or *Edit* and the type of the record. **Save** is at the bottom; there is no Cancel button: `Esc` (or the close button of the window) closes the editor and discards the changes.
 - Every field label ends with a colon. A label with an **asterisk** (`Type*:`) marks a required field, and a list title with an asterisk (`Personal Names*`) marks a list that needs at least one entry.
 - On Save, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on Save: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
 - A combo box that is **editable** accepts a value of your own as well as the listed ones. A combo that is not editable accepts only the listed values. A combo with a blank first item allows "no value". A value without a translation is shown with a capital letter and spaces instead of underscores.

@@ -315,7 +315,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		GUIHelper.launch(PlaceRecordDialog::createEdit, "/tests/test.flef", "P1");
 	}
 

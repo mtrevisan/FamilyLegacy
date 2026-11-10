@@ -267,9 +267,11 @@ final class GrampsDates{
 			return null;
 
 		final String style = switch(rule.toLowerCase(Locale.ROOT)){
+			//Gramps (Date._adjust_newyear) reads a date on or after the day the year begins as the day of the year before the one written: the
+			//year N begins before 1 January N, as in the anticipating styles (Venetan, Pisan, Byzantine, Nativity), and a date before that day is
+			//of the year written
 			case "mar1" -> DateReader.ENUM_CALENDAR_VENETAN;
-			//the year N begins on 25 March N, after 1 January: the English (Lady Day) numbering of the years
-			case "mar25" -> DateReader.ENUM_CALENDAR_FLORENTINE;
+			case "mar25" -> DateReader.ENUM_CALENDAR_PISAN;
 			case "sep1" -> DateReader.ENUM_CALENDAR_BYZANTINE_STYLE;
 			case "dec25" -> DateReader.ENUM_CALENDAR_NATIVITY;
 			case "easter" -> DateReader.ENUM_CALENDAR_EASTER_STYLE;

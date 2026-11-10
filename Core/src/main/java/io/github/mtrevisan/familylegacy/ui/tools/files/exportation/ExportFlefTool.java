@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -91,9 +92,14 @@ public final class ExportFlefTool implements ToolOperation{
 				.writeToString(result.model());
 			AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
 
+			//the file is saved: where it is, with the button to open its directory (and what the privacy policy left out, if anything)
 			if(result.omittedRecords() > 0 || result.omittedNodes() > 0)
-				JOptionPane.showMessageDialog(context.owner(),
-					I18N.tf("dialog.export.flef.omitted.message", result.omittedRecords(), result.omittedNodes()), I18N.t("dialog.export.flef.omitted.title"), JOptionPane.INFORMATION_MESSAGE);
+				SavedFileNotice.show(context.owner(), I18N.t("dialog.export.flef.omitted.title"),
+					I18N.tf("dialog.export.flef.omitted.message", result.omittedRecords(), result.omittedNodes()) + StringUtils.LF
+						+ target.getAbsolutePath(), target);
+			else
+				SavedFileNotice.show(context.owner(), I18N.t("dialog.export.flef.title"),
+					I18N.tf("dialog.export.flef.saved", target.getAbsolutePath()), target);
 		}
 		catch(final IOException ex){
 			JOptionPane.showMessageDialog(context.owner(),
