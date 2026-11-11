@@ -116,6 +116,14 @@ class DialogsEscapeTest{
 		SourceCitationHandler.TYPE, PlaceCitationHandler.TYPE, RepositoryCitationHandler.TYPE, HeaderHandler.TYPE);
 
 
+	static List<String> recordTypes(){
+		return RECORD_TYPES;
+	}
+
+	static List<String> structureTypes(){
+		return STRUCTURE_TYPES;
+	}
+
 	static FLEFModel convert() throws IOException{
 		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM));
 		return new GEDCOMToFLEFConverter().convert(roots);

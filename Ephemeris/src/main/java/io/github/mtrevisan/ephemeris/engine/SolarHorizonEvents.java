@@ -28,7 +28,7 @@ import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.helpers.SiderealTime;
 
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 
 /**
@@ -62,7 +62,7 @@ public final class SolarHorizonEvents{
 	 * 	day/night)
 	 */
 	public static double calculateSunset(final double midnightUtJd, final double latitude, final double longitude,
-			final Function<Double, Double> ttCenturyFunction){
+			final DoubleUnaryOperator ttCenturyFunction){
 		return calculateEvents(midnightUtJd, latitude, longitude, STANDARD_SUNSET_ALTITUDE, ttCenturyFunction)
 			.set();
 	}
@@ -80,7 +80,7 @@ public final class SolarHorizonEvents{
 	 * @return The events of the day; rise and set are Double.NaN if they do not happen during that day
 	 */
 	public static SolarDay calculateEvents(final double midnightUtJd, final double latitude, final double longitude,
-			final double targetAltitude, final Function<Double, Double> ttCenturyFunction){
+			final double targetAltitude, final DoubleUnaryOperator ttCenturyFunction){
 		final SunTrack track = new SunTrack(midnightUtJd, latitude, longitude, ttCenturyFunction);
 
 		// 1. Scan the civil day to bracket the events: the altitude crosses the target at rise and set, the hour angle
@@ -139,7 +139,7 @@ public final class SolarHorizonEvents{
 		private final double sinLatitude;
 		private final double cosLatitude;
 		private final double longitude;
-		private final Function<Double, Double> ttCenturyFunction;
+		private final DoubleUnaryOperator ttCenturyFunction;
 
 		// right ascension (unwrapped) and declination at midnight, noon, and the next midnight [rad]
 		private final double[] rightAscension = new double[3];
@@ -150,7 +150,7 @@ public final class SolarHorizonEvents{
 
 
 		private SunTrack(final double midnightUtJd, final double latitude, final double longitude,
-				final Function<Double, Double> ttCenturyFunction){
+				final DoubleUnaryOperator ttCenturyFunction){
 			this.midnightUtJd = midnightUtJd;
 			final double latRad = StrictMath.toRadians(latitude);
 			sinLatitude = StrictMath.sin(latRad);
@@ -161,7 +161,7 @@ public final class SolarHorizonEvents{
 			double noonDeltaPsi = 0.;
 			double noonTrueObliquity = 0.;
 			for(int i = 0; i < 3; i ++){
-				final double ttJc = ttCenturyFunction.apply(midnightUtJd + i * 0.5);
+				final double ttJc = ttCenturyFunction.applyAsDouble(midnightUtJd + i * 0.5);
 				final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
 				final double lambda = SunPosition.apparentSunLongitude(ttJc, nutation.getDeltaPsi());
 				final double obliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
@@ -201,7 +201,7 @@ public final class SolarHorizonEvents{
 		}
 
 		private double rawHourAngle(final double utJd){
-			final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttCenturyFunction.apply(utJd), deltaPsi,
+			final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttCenturyFunction.applyAsDouble(utJd), deltaPsi,
 				trueObliquity);
 			return gast + longitude - interpolate(rightAscension, utJd);
 		}

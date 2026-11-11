@@ -35,7 +35,7 @@ import io.github.mtrevisan.calendars.spi.CalendarMetadata;
  * "Indian Calendrical Calculations", §4.2).
  * <ul>
  *   <li>{@link #BENGALI}: West Bengal, year from Mesha (1 Baishakh), Bengali era (Gregorian year − 593), critical time at
- *   the midnight that starts the civil day (the special rules for a sankranti around midnight are not modeled);</li>
+ *   the midnight that starts the civil day, so that the month starts the day after the sankranti (the special rules for a sankranti around midnight are not modeled);</li>
  *   <li>{@link #TAMIL}: Tamil Nadu, year from Mesha (1 Chithirai), Saka era (Gregorian year − 78), critical time at
  *   sunset (Chennai);</li>
  *   <li>{@link #MALAYALAM}: Kerala, year from Simha (1 Chingam), Kollam era (Gregorian year − 824), critical time at 3/5 of
@@ -48,8 +48,12 @@ public class HinduSolarCalendarStrategy implements CalendarConverterPlugin{
 
 	/** The time of the civil day at which the sidereal sign of the Sun is evaluated. */
 	private enum CriticalTime{
-		/** Midnight at the start of the civil day. */
-		MIDNIGHT,
+		/**
+		 * The midnight that starts the civil day. The sankranti always follows the midnight that starts its own civil day,
+		 * so the month starts the day after the one that contains the sankranti (the Bengali rule: the special rules for a
+		 * sankranti within a few minutes of midnight are not modeled).
+		 */
+		START_OF_DAY,
 		/** Sunset. */
 		SUNSET,
 		/** Sunrise plus 3/5 of the daytime. */
@@ -58,19 +62,7 @@ public class HinduSolarCalendarStrategy implements CalendarConverterPlugin{
 
 	/** West Bengal (Bengali era, from 1 Baishakh). */
 	public static final HinduSolarCalendarStrategy BENGALI = new HinduSolarCalendarStrategy("Bengali", 0, 593,
-		CriticalTime.MIDNIGHT, 22.5726, 88.3639, new IndianMonthNames()
-		.register(1, "Boishakh", "Baishakh", "Baisakh", "Vaishakh", "বৈশাখ")
-		.register(2, "Joishtho", "Jyoishtho", "Jaishtha", "Jyeshtha", "Jaistha", "জ্যৈষ্ঠ")
-		.register(3, "Asharh", "Ashar", "Asadh", "Ashadh", "আষাঢ়", "আষাঢ")
-		.register(4, "Srabon", "Shrabon", "Shraban", "Sravan", "Shravan", "শ্রাবণ")
-		.register(5, "Bhadro", "Bhadra", "ভাদ্র")
-		.register(6, "Ashshin", "Ashwin", "Ashin", "Aswin", "আশ্বিন")
-		.register(7, "Kartik", "Kartick", "কার্তিক")
-		.register(8, "Ogrohayon", "Agrahayan", "Agrahayon", "Ograhayon", "অগ্রহায়ণ")
-		.register(9, "Poush", "Pous", "Paush", "পৌষ")
-		.register(10, "Magh", "মাঘ")
-		.register(11, "Falgun", "Phalgun", "Falgoon", "ফাল্গুন")
-		.register(12, "Choitro", "Chaitra", "Choitra", "চৈত্র"));
+		CriticalTime.START_OF_DAY, 22.5726, 88.3639, IndianMonthNames.BENGALI);
 
 	/** Tamil Nadu (Saka era, from 1 Chithirai). */
 	public static final HinduSolarCalendarStrategy TAMIL = new HinduSolarCalendarStrategy("Tamil", 0, 78,
@@ -92,7 +84,7 @@ public class HinduSolarCalendarStrategy implements CalendarConverterPlugin{
 	public static final HinduSolarCalendarStrategy MALAYALAM = new HinduSolarCalendarStrategy("Malayalam", 4, 824,
 		CriticalTime.AFTERNOON, 8.5241, 76.9366, new IndianMonthNames()
 		.register(1, "Chingam", "Chinnam", "ചിങ്ങം")
-		.register(2, "Kanni", "Kanni", "കന്നി")
+		.register(2, "Kanni", "കന്നി")
 		.register(3, "Thulam", "Tulam", "തുലാം")
 		.register(4, "Vrischikam", "Vrishchikam", "Vrichikam", "വൃശ്ചികം")
 		.register(5, "Dhanu", "ധനു")
@@ -164,7 +156,7 @@ public class HinduSolarCalendarStrategy implements CalendarConverterPlugin{
 
 	private double criticalTime(final long day){
 		return switch(criticalTime){
-			case MIDNIGHT -> day - 0.5 - HinduAstronomy.IST_OFFSET;
+			case START_OF_DAY -> day - 0.5 - HinduAstronomy.IST_OFFSET;
 			case SUNSET -> HinduAstronomy.sunriseSunset(day, latitude, longitude)[1];
 			case AFTERNOON -> {
 				final double[] sun = HinduAstronomy.sunriseSunset(day, latitude, longitude);

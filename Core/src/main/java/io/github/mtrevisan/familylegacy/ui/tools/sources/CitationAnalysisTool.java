@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -61,6 +62,11 @@ import java.util.Map;
  * The report is informational: it does not modify the model.
  */
 public final class CitationAnalysisTool implements ToolOperation{
+
+	@Override
+	public UxLevel minimumLevel(){
+		return UxLevel.STANDARD;
+	}
 
 	@Override
 	public String getName(){

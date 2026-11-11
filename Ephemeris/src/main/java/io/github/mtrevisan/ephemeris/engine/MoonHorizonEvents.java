@@ -26,13 +26,14 @@ package io.github.mtrevisan.ephemeris.engine;
 
 import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
 import io.github.mtrevisan.ephemeris.helpers.IllinoisSolver;
+import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.helpers.SiderealTime;
 
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 
 /**
- * High-precision lunar horizon event calculator utilizing ELP/MPP02 planetary theory,
+ * High-precision lunar horizon event calculator utilizing the ELP/MPP02 lunar theory,
  * topocentric parallax adjustments, and dynamical semidiameter variations.
  * <p>
  * The moonset is the instant the upper limb of the Moon touches the horizon, with the standard refraction of 34', as
@@ -72,7 +73,7 @@ public final class MoonHorizonEvents{
 	 * 	circumpolar, continuously below the horizon, or simply sets the day after, as happens about once a month)
 	 */
 	public static double calculateMoonset(final double midnightUtJd, final double latitude, final double longitude,
-			final Function<Double, Double> ttCenturyFunction){
+			final DoubleUnaryOperator ttCenturyFunction){
 		return calculateEvents(midnightUtJd, latitude, longitude, ttCenturyFunction)
 			.set();
 	}
@@ -89,8 +90,9 @@ public final class MoonHorizonEvents{
 	 * 	transits, and sets about 50 minutes later each day, so about once a month one of them falls on the day after)
 	 */
 	public static LunarDay calculateEvents(final double midnightUtJd, final double latitude, final double longitude,
-			final Function<Double, Double> ttCenturyFunction){
+			final DoubleUnaryOperator ttCenturyFunction){
 		final Observer observer = new Observer(latitude, longitude);
+		final MoonTrack track = new MoonTrack(midnightUtJd, observer, ttCenturyFunction);
 
 		// 1. Scan the civil day to bracket the events: the height of the upper limb above the horizon changes sign at
 		//    moonrise and moonset, the hour angle changes sign at the upper transit (the Moon moves by less than a degree
@@ -99,25 +101,25 @@ public final class MoonHorizonEvents{
 		double transit = Double.NaN;
 		double set = Double.NaN;
 		double previousTime = midnightUtJd;
-		MoonState previous = moonState(previousTime, observer, ttCenturyFunction);
-		final MoonState noon = moonState(midnightUtJd + 0.5, observer, ttCenturyFunction);
+		MoonState previous = moonState(previousTime, track);
+		final MoonState noon = moonState(midnightUtJd + 0.5, track);
 		double transitHeight = noon.height;
 		for(double time = midnightUtJd + SCAN_STEP; time < midnightUtJd + 1. + SCAN_STEP / 2.; time += SCAN_STEP){
-			final MoonState current = moonState(time, observer, ttCenturyFunction);
+			final MoonState current = moonState(time, track);
 
 			// 2. Refine the instants inside the bracketing steps
 			if(Double.isNaN(rise) && previous.height <= 0. && current.height > 0.)
 				rise = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
-					jd -> moonState(jd, observer, ttCenturyFunction).height);
+					jd -> moonState(jd, track).height);
 			if(Double.isNaN(set) && previous.height > 0. && current.height <= 0.)
 				set = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
-					jd -> moonState(jd, observer, ttCenturyFunction).height);
+					jd -> moonState(jd, track).height);
 			// the hour angle increases through zero at the upper transit, while it jumps from +π to -π at the lower one
 			if(Double.isNaN(transit) && previous.hourAngle < 0. && current.hourAngle >= 0.
 					&& current.hourAngle - previous.hourAngle < StrictMath.PI){
 				transit = IllinoisSolver.solve(previousTime, time, ACCURACY, MAX_ITERATIONS,
-					jd -> moonState(jd, observer, ttCenturyFunction).hourAngle);
-				transitHeight = moonState(transit, observer, ttCenturyFunction).height;
+					jd -> moonState(jd, track).hourAngle);
+				transitHeight = moonState(transit, track).height;
 			}
 
 			previousTime = time;
@@ -133,35 +135,20 @@ public final class MoonHorizonEvents{
 	 * @return the height [rad] (positive if the upper limb is visible, negative otherwise), and the hour angle [rad] in
 	 * 	the interval {@code (-π, π]}
 	 */
-	private static MoonState moonState(final double utJd, final Observer observer,
-			final Function<Double, Double> ttCenturyFunction){
-		final double ttJc = ttCenturyFunction.apply(utJd);
+	private static MoonState moonState(final double utJd, final MoonTrack track){
+		final Observer observer = track.observer;
+		final double ttJc = track.ttCenturyFunction.applyAsDouble(utJd);
 
-		// 1. Apparent geocentric ecliptic coordinates of date
-		final EclipticCoordinates moon = MoonPosition.getInstanceLLR()
-			.eclipticOfDate(ttJc);
-		final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
-		final double deltaPsi = nutation.getDeltaPsi();
-		final double lambda = MoonPosition.computeApparentMoonLongitude(moon, deltaPsi);
-		final double beta = moon.latitude();
-		final double distanceKm = moon.distance();
-		final double trueObliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
+		// 1. Apparent geocentric equatorial coordinates, interpolated from the hourly positions
+		final double rightAscension = track.interpolate(track.rightAscension, utJd);
+		final double declination = track.interpolate(track.declination, utJd);
+		final double distanceKm = track.interpolate(track.distance, utJd);
 
-		// 2. Ecliptic to equatorial coordinates (Meeus, Astronomical Algorithms, eqs. 13.3 and 13.4)
-		final double sinEpsilon = StrictMath.sin(trueObliquity);
-		final double cosEpsilon = StrictMath.cos(trueObliquity);
-		final double sinBeta = StrictMath.sin(beta);
-		final double cosBeta = StrictMath.cos(beta);
-		final double sinLambda = StrictMath.sin(lambda);
-		final double rightAscension = StrictMath.atan2(sinLambda * cosEpsilon * cosBeta - sinBeta * sinEpsilon,
-			StrictMath.cos(lambda) * cosBeta);
-		final double declination = StrictMath.asin(sinBeta * cosEpsilon + cosBeta * sinEpsilon * sinLambda);
-
-		// 3. Local hour angle from the Greenwich apparent sidereal time
-		final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttJc, deltaPsi, trueObliquity);
+		// 2. Local hour angle from the Greenwich apparent sidereal time
+		final double gast = SiderealTime.greenwichApparentSiderealTime(utJd, ttJc, track.deltaPsi, track.trueObliquity);
 		final double hourAngle = gast + observer.longitude - rightAscension;
 
-		// 4. Topocentric coordinates, removing the parallax (geocentric position of the observer on the ellipsoid)
+		// 3. Topocentric coordinates, removing the parallax (geocentric position of the observer on the ellipsoid)
 		final double cosDeclination = StrictMath.cos(declination);
 		final double deltaX = distanceKm * cosDeclination * StrictMath.cos(hourAngle)
 			- EARTH_EQUATORIAL_RADIUS_KM * observer.rhoCosPhi;
@@ -172,11 +159,11 @@ public final class MoonHorizonEvents{
 		final double topocentricDeclination = StrictMath.asin(deltaZ / topocentricDistanceKm);
 		final double topocentricHourAngle = StrictMath.atan2(deltaY, deltaX);
 
-		// 5. Altitude of the center (Meeus, Astronomical Algorithms, eq. 13.6)
+		// 4. Altitude of the center (Meeus, Astronomical Algorithms, eq. 13.6)
 		final double altitude = StrictMath.asin(observer.sinLatitude * StrictMath.sin(topocentricDeclination)
 			+ observer.cosLatitude * StrictMath.cos(topocentricDeclination) * StrictMath.cos(topocentricHourAngle));
 
-		// 6. The upper limb is on the horizon when the center is a semidiameter plus the refraction below it
+		// 5. The upper limb is on the horizon when the center is a semidiameter plus the refraction below it
 		final double semidiameter = StrictMath.asin(MOON_TO_EARTH_RADIUS * EARTH_EQUATORIAL_RADIUS_KM
 			/ topocentricDistanceKm);
 		return new MoonState(altitude + HORIZON_REFRACTION + semidiameter, topocentricHourAngle);
@@ -195,6 +182,77 @@ public final class MoonHorizonEvents{
 	public record LunarDay(double rise, double transit, double set, double transitHeight){}
 
 	private record MoonState(double height, double hourAngle){}
+
+	/**
+	 * Apparent geocentric equatorial coordinates of the Moon at hourly nodes around the civil day (one node before and one
+	 * after it, for the interpolation), interpolated with a quadratic through the three nearest nodes (Meeus, Astronomical
+	 * Algorithms, ch. 3): the lunar series is evaluated once per node instead of once per root-finder iteration.
+	 */
+	private static final class MoonTrack{
+		// the nodes are at midnight + (index - 1) hours
+		private static final int NODES = 27;
+
+		private final double midnightUtJd;
+		private final Observer observer;
+		private final DoubleUnaryOperator ttCenturyFunction;
+		// right ascension (unwrapped), declination [rad], and distance [km] at the nodes
+		private final double[] rightAscension = new double[NODES];
+		private final double[] declination = new double[NODES];
+		private final double[] distance = new double[NODES];
+		// nutation in longitude and true obliquity at noon (their variation during a day is negligible) [rad]
+		private final double deltaPsi;
+		private final double trueObliquity;
+
+
+		private MoonTrack(final double midnightUtJd, final Observer observer, final DoubleUnaryOperator ttCenturyFunction){
+			this.midnightUtJd = midnightUtJd;
+			this.observer = observer;
+			this.ttCenturyFunction = ttCenturyFunction;
+
+			final NutationCorrections noonNutation = NutationCorrections.calculate(
+				ttCenturyFunction.applyAsDouble(midnightUtJd + 0.5));
+			deltaPsi = noonNutation.getDeltaPsi();
+			trueObliquity = NutationCorrections.meanObliquity(ttCenturyFunction.applyAsDouble(midnightUtJd + 0.5))
+				+ noonNutation.getDeltaEpsilon();
+
+			for(int i = 0; i < NODES; i ++){
+				final double ttJc = ttCenturyFunction.applyAsDouble(midnightUtJd + (i - 1) * SCAN_STEP);
+
+				// apparent geocentric ecliptic coordinates of date
+				final EclipticCoordinates moon = MoonPosition.getInstanceLLR()
+					.eclipticOfDate(ttJc);
+				final NutationCorrections nutation = NutationCorrections.calculate(ttJc);
+				final double lambda = MoonPosition.computeApparentMoonLongitude(moon, nutation.getDeltaPsi());
+				final double beta = moon.latitude();
+				final double obliquity = NutationCorrections.meanObliquity(ttJc) + nutation.getDeltaEpsilon();
+
+				// ecliptic to equatorial coordinates (Meeus, Astronomical Algorithms, eqs. 13.3 and 13.4)
+				final double sinEpsilon = StrictMath.sin(obliquity);
+				final double cosEpsilon = StrictMath.cos(obliquity);
+				final double sinBeta = StrictMath.sin(beta);
+				final double cosBeta = StrictMath.cos(beta);
+				final double sinLambda = StrictMath.sin(lambda);
+				double alpha = StrictMath.atan2(sinLambda * cosEpsilon * cosBeta - sinBeta * sinEpsilon,
+					StrictMath.cos(lambda) * cosBeta);
+				if(i > 0)
+					// keep the right ascension continuous across 0h
+					alpha = rightAscension[i - 1] + MathHelper.modpipi(alpha - rightAscension[i - 1]);
+				rightAscension[i] = alpha;
+				declination[i] = StrictMath.asin(sinBeta * cosEpsilon + cosBeta * sinEpsilon * sinLambda);
+				distance[i] = moon.distance();
+			}
+		}
+
+		private double interpolate(final double[] values, final double utJd){
+			// nearest node with a neighbour on both sides
+			final double position = (utJd - midnightUtJd) / SCAN_STEP + 1.;
+			final int k = Math.clamp(Math.round(position), 1, NODES - 2);
+			final double n = position - k;
+			final double a = values[k] - values[k - 1];
+			final double b = values[k + 1] - values[k];
+			return values[k] + n / 2. * (a + b + n * (b - a));
+		}
+	}
 
 
 	/**

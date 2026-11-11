@@ -111,37 +111,6 @@ public final class MoonPosition{
 	private static final int ARG_COUNT = 14;
 
 	/* ======================================================================
-	 *                          Precession angles
-	 * ====================================================================== */
-
-	/**
-	 * Polynomial coefficients of the precession angle {@code p}, from the
-	 * ecliptic of date to the ecliptic and equinox of J2000. Units are
-	 * radians.
-	 */
-	private static final double[] P_COEFFS = {
-		0.,
-		0.10180391e-4,
-		0.47020439e-6,
-		-0.5417367e-9,
-		-0.2507948e-11,
-		0.463486e-14
-	};
-
-	/**
-	 * Polynomial coefficients of the precession angle {@code q}, companion
-	 * to {@link #P_COEFFS} in the rotation to the J2000 frame.
-	 */
-	private static final double[] Q_COEFFS = {
-		0.,
-		-0.113469002e-3,
-		0.12372674e-6,
-		0.1265417e-8,
-		-0.1371808e-11,
-		-0.320334e-14
-	};
-
-	/* ======================================================================
 	 *                          Fundamental arguments (eqs. 5–22)
 	 * ====================================================================== */
 
@@ -409,10 +378,6 @@ public final class MoonPosition{
 	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
 	 */
 	public static double[] rectangular(final double jce, final EclipticCoordinates sph){
-		// Precession angles from the ecliptic of date to J2000
-		final double p = MathHelper.polynomial(jce, P_COEFFS);
-		final double q = MathHelper.polynomial(jce, Q_COEFFS);
-
 		// The rotation of Chapront & Francou expects the longitude counted from the departure point
 		final double v = sph.longitude() - Converter.generalPrecessionInLongitude(jce);
 		final double rCosVcosU = sph.distance() * StrictMath.cos(v)
@@ -420,20 +385,7 @@ public final class MoonPosition{
 		final double rSinVcosU = sph.distance() * StrictMath.sin(v)
 			* StrictMath.cos(sph.latitude());
 		final double rSinU = sph.distance() * StrictMath.sin(sph.latitude());
-
-		// Rotation matrix elements from Chapront & Francou (2003), eq. 26.
-		final double oneMinus2P2 = 1. - 2. * p * p;
-		final double oneMinus2Q2 = 1. - 2. * q * q;
-		final double twoPQ = 2. * p * q;
-		final double sqrt = StrictMath.sqrt(1. - p * p - q * q);
-		final double twoPSqrt = 2. * p * sqrt;
-		final double twoQSqrt = 2. * q * sqrt;
-
-		final double x = oneMinus2P2 * rCosVcosU + twoPQ * rSinVcosU + twoPSqrt * rSinU;
-		final double y = twoPQ * rCosVcosU + oneMinus2Q2 * rSinVcosU - twoQSqrt * rSinU;
-		final double z = -twoPSqrt * rCosVcosU + twoQSqrt * rSinVcosU + (oneMinus2P2 - 2. * q * q) * rSinU;
-
-		return new double[]{x, y, z};
+		return Converter.toRectangularFromDateToJ2000(jce, rCosVcosU, rSinVcosU, rSinU);
 	}
 
 	/**

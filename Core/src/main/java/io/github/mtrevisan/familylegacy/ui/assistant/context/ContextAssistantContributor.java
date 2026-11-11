@@ -25,10 +25,12 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -51,9 +53,12 @@ public final class ContextAssistantContributor implements AssistantContributor{
 			if(context.model() == null)
 				return List.of();
 
-			return ContextChecker.findings(ContextDataLoader.load(context.model())).stream()
+			final List<Diagnostic> findings = new ArrayList<>(ContextChecker.findings(ContextDataLoader.load(context.model())).stream()
 				.map(ContextAssistantContributor::withAction)
-				.toList();
+				.toList());
+			//the dates estimated by a custom, with no cultural norm that justifies them
+			findings.addAll(NormEstimateChecker.findings(context.model().getRecordsByType(EventHandler.TYPE)));
+			return findings;
 		});
 	}
 

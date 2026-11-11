@@ -28,10 +28,8 @@ import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 
@@ -48,6 +46,11 @@ import java.util.Set;
 public final class RomanDateTool{
 
 	//the words are compared after TextNormalizer.normalize: lowercase, no accents, no punctuation
+	/** The words of "the day before" in English ("the day before the Nones"): the day, then before. */
+	private static final String BEFORE_WORD = "before";
+	private static final String DAY_WORD = "day";
+	/** The count (inclusive) of the sixth day before the Kalends of March, the one that was doubled in a leap year. */
+	private static final int SIXTH_DAY = 6;
 	private static final Set<String> KALENDS = Set.of("kal", "kalendas", "kalendis", "kalendae", "kalendarum", "kalendarium",
 		"kalends", "cal", "calendas", "calendis", "calendae", "calends");
 	private static final Set<String> NONES = Set.of("non", "nonas", "nonis", "nonae", "nonarum", "nones");
@@ -57,12 +60,14 @@ public final class RomanDateTool{
 	/** The doubled sixth day before the Kalends of March of a leap year ("ante diem bis sextum Kalendas Martias"). */
 	private static final Set<String> DOUBLED = Set.of("bis", "bissextum", "bissexto", "bissextus");
 	/** The words that carry no information ("ante diem", "a.d.", "on the", "of"). */
-	private static final Set<String> NOISE = Set.of("a", "d", "ad", "ante", "diem", "die", "dies", "the", "of", "on", "in", "day", "before",
+	private static final Set<String> NOISE = Set.of("a", "d", "ad", "ante", "diem", "die", "dies", "the", "of", "on", "in", DAY_WORD, BEFORE_WORD,
 		"mensis", "mensem");
 	/** The (lowercase, unaccented) beginnings of the Latin and English names of the months, from January to December. */
+	//the months of the early Julian calendar are included: Quintilis (July) and Sextilis (August), renamed in honour of
+	//Julius Caesar and of Augustus, but still used in the later sources
 	private static final String[][] MONTH_STEMS = {
-		{"ian", "jan"}, {"feb"}, {"mar"}, {"apr"}, {"mai", "may"}, {"iun", "jun"}, {"iul", "jul"}, {"aug"}, {"sep"}, {"oct"},
-		{"nov"}, {"dec"}};
+		{"ian", "jan"}, {"feb"}, {"mar"}, {"apr"}, {"mai", "may"}, {"iun", "jun"}, {"iul", "jul", "quint"}, {"aug", "sext"},
+		{"sep"}, {"oct"}, {"nov"}, {"dec"}};
 
 	private static final int MARCH = 3;
 	private static final int JANUARY = 1;
@@ -85,7 +90,9 @@ public final class RomanDateTool{
 	 */
 	public static List<DateSuggestion> interpret(final String expression, final int year){
 		if(year < 1)
-			throw new IllegalArgumentException("The year must be 1 or later");
+			throw new AssistantInputException("date_assistant.error.roman.year");
+		if(StringUtils.isBlank(expression))
+			throw new AssistantInputException("date_assistant.error.roman.empty");
 
 		final String[] words = TextNormalizer.tokenize(expression);
 		int reference = -1;
@@ -95,63 +102,64 @@ public final class RomanDateTool{
 				break;
 			}
 		if(reference < 0)
-			throw new IllegalArgumentException("No Kalends, Nones or Ides found in \"" + expression + "\"");
+			throw new AssistantInputException("date_assistant.error.roman.no_reference", expression);
 
 		final Kind kind = kindOf(words[reference]);
 		final int count = readDayNumber(words, reference, expression);
 		final boolean doubled = hasWord(words, reference, DOUBLED);
 		final int month = readMonth(words, reference, expression);
+		final String written = expression.trim();
 
-		final List<String> assumptions = new ArrayList<>();
-		assumptions.add("Roman reckoning of the Julian calendar: the days are counted backwards and inclusively from the next Kalends, "
-			+ "Nones or Ides");
+		final List<Message> assumptions = new ArrayList<>();
+		assumptions.add(Message.of("date_assistant.assumption.roman_reckoning"));
 		if(year < FIRST_REGULAR_LEAP_YEAR)
-			assumptions.add("Before AD 8 the leap years of the Julian calendar were not regular: February may be one day longer");
-		final List<String> steps = new ArrayList<>();
-		final String named = kind.label + " of " + monthName(month);
-		steps.add("Read \"" + expression.trim() + "\": " + describeCount(count) + ", " + named);
+			assumptions.add(Message.of("date_assistant.assumption.roman_early_leap"));
+		final List<Message> steps = new ArrayList<>();
+		final Message named = Message.of("date_assistant.roman.named", Message.of(kind.labelKey), java.time.Month.of(month));
+		steps.add(Message.of("date_assistant.step.roman_read", written, describeCount(count), named));
 
 		//the Kalends of January of a date of December are those of the following year
 		final int referenceYear = (kind == Kind.KALENDS && month == JANUARY && count > 1? year + 1: year);
 		if(referenceYear != year)
-			assumptions.add("The year " + year + " is the one of the day itself: the Kalends of January named are those of " + referenceYear);
+			assumptions.add(Message.of("date_assistant.assumption.roman_next_year_kalends", year, referenceYear));
 		final int referenceDay = referenceDay(kind, month);
 		final long referenceJdn = CivilDates.toJdn(referenceYear, month, referenceDay, CivilDates.JULIAN);
-		steps.add(named + " " + referenceYear + " is day " + referenceDay + " of the month: Julian Day Number "
-			+ referenceJdn);
+		steps.add(Message.of("date_assistant.step.roman_reference", named, referenceYear, referenceDay, referenceJdn));
 
 		final long arithmetic = referenceJdn - (count - 1);
 		validate(kind, month, referenceYear, arithmetic, count, expression);
 
-		final boolean leapFebruary = (kind == Kind.KALENDS && month == MARCH && isLeap(year) && count >= 6);
-		if(doubled && !(kind == Kind.KALENDS && month == MARCH && count == 6 && isLeap(year)))
-			throw new IllegalArgumentException("\"bis\" is only for the sixth day before the Kalends of March of a leap year");
+		final boolean leapFebruary = (kind == Kind.KALENDS && month == MARCH && isLeap(year) && count >= SIXTH_DAY);
+		if(doubled && !(kind == Kind.KALENDS && month == MARCH && count == SIXTH_DAY && isLeap(year)))
+			throw new AssistantInputException("date_assistant.error.roman.bis");
 		if(!leapFebruary){
-			steps.add("Subtracted " + (count - 1) + " day" + (count == 2? StringUtils.EMPTY: "s") + " (the reference day is the first of the count): "
-				+ "Julian Day Number " + arithmetic);
-			return CalendarConversionTool.fromJdn(arithmetic, "The Roman date \"" + expression.trim() + "\" of " + year, assumptions, steps);
+			steps.add(Message.of("date_assistant.step.roman_subtracted", count - 1, arithmetic));
+			return CalendarConversionTool.fromJdn(arithmetic, Message.of("date_assistant.meaning.roman", written, year), assumptions, steps);
 		}
 
-		//a leap year: the sixth day before the Kalends of March was doubled, the second one (the 25th) being the "bis sextum"
+		//a leap year: the sixth day before the Kalends of March was doubled. The bissextile day was inserted after the 23rd,
+		//so the first of the two sixth days (24 February) is the "bis sextum" (Digest 50.16.98, Celsus; Macrobius,
+		//Saturnalia 1.14; Blackburn and Holford-Strevens, The Oxford Companion to the Year, "bissextile"), and the second
+		//(25 February) the plain sixth day: the feast of Saint Matthias, "a.d. VI Kal. Mart.", falls on the 25th in the
+		//leap years. The days before the doubled one (the 23rd and the earlier ones) are the same in the two reckonings
+		//but for the shift of one day against the arithmetic one, that adds 29 February at the end of the month.
 		final List<DateSuggestion> result = new ArrayList<>();
-		final List<String> classicalSteps = new ArrayList<>(steps);
-		final long classical = (doubled? arithmetic: arithmetic - 1);
+		final List<Message> classicalSteps = new ArrayList<>(steps);
+		final long classical = arithmetic - 1;
 		if(!doubled){
-			final List<String> arithmeticAssumptions = new ArrayList<>(assumptions);
-			arithmeticAssumptions.add("Leap year, arithmetic reckoning: the 29th of February is added at the end of the month, as in the civil "
-				+ "use of the Middle Ages and in the Gregorian calendar");
-			final List<String> arithmeticSteps = new ArrayList<>(steps);
-			arithmeticSteps.add("Subtracted " + (count - 1) + " days: Julian Day Number " + arithmetic);
-			result.addAll(CalendarConversionTool.fromJdn(arithmetic, "The Roman date \"" + expression.trim() + "\" of " + year
-				+ ", the leap day added at the end", arithmeticAssumptions, arithmeticSteps));
+			final List<Message> arithmeticAssumptions = new ArrayList<>(assumptions);
+			arithmeticAssumptions.add(Message.of(count == SIXTH_DAY
+				? "date_assistant.assumption.roman_leap_arithmetic_matthias": "date_assistant.assumption.roman_leap_arithmetic"));
+			final List<Message> arithmeticSteps = new ArrayList<>(steps);
+			arithmeticSteps.add(Message.of("date_assistant.step.roman_subtracted_plain", count - 1, arithmetic));
+			result.addAll(CalendarConversionTool.fromJdn(arithmetic, Message.of("date_assistant.meaning.roman_leap_end", written, year),
+				arithmeticAssumptions, arithmeticSteps));
 		}
-		final List<String> classicalAssumptions = new ArrayList<>(assumptions);
-		classicalAssumptions.add("Leap year, classical reckoning: the sixth day before the Kalends of March is doubled (24 and 25 February), "
-			+ "so the days before it are one day earlier than by simple counting");
-		classicalSteps.add("Subtracted " + (count - 1) + " days" + (doubled? StringUtils.EMPTY: ", then one more for the doubled sixth day")
-			+ ": Julian Day Number " + classical);
-		result.addAll(CalendarConversionTool.fromJdn(classical, "The Roman date \"" + expression.trim() + "\" of " + year
-			+ ", the sixth day doubled", classicalAssumptions, classicalSteps));
+		final List<Message> classicalAssumptions = new ArrayList<>(assumptions);
+		classicalAssumptions.add(Message.of("date_assistant.assumption.roman_leap_classical"));
+		classicalSteps.add(Message.of("date_assistant.step.roman_subtracted_doubled", count - 1, classical));
+		result.addAll(CalendarConversionTool.fromJdn(classical, Message.of(doubled
+			? "date_assistant.meaning.roman_bis": "date_assistant.meaning.roman_doubled", written, year), classicalAssumptions, classicalSteps));
 		return result;
 	}
 
@@ -159,7 +167,7 @@ public final class RomanDateTool{
 	private static void validate(final Kind kind, final int month, final int referenceYear, final long jdn, final int count,
 			final String expression){
 		if(count < 1)
-			throw new IllegalArgumentException("The day count of \"" + expression + "\" is not valid");
+			throw new AssistantInputException("date_assistant.error.roman.bad_count", expression);
 
 		//the day must be after the previous reference day
 		final long previous;
@@ -173,8 +181,7 @@ public final class RomanDateTool{
 		else
 			previous = CivilDates.toJdn(referenceYear, month, 1, CivilDates.JULIAN);
 		if(count > 1 && jdn <= previous)
-			throw new IllegalArgumentException("\"" + expression.trim() + "\" counts back too far: that day belongs to an earlier "
-				+ "Kalends, Nones or Ides");
+			throw new AssistantInputException("date_assistant.error.roman.counts_back", expression.trim());
 	}
 
 	private static int referenceDay(final Kind kind, final int month){
@@ -217,7 +224,7 @@ public final class RomanDateTool{
 			}
 			if(DOUBLED.contains(word))
 				continue;
-			if("before".equals(word) && i > 0 && "day".equals(words[i - 1]) && !found){
+			if(BEFORE_WORD.equals(word) && i > 0 && DAY_WORD.equals(words[i - 1]) && !found){
 				//"the day before the Nones"
 				count = 2;
 				found = true;
@@ -228,7 +235,7 @@ public final class RomanDateTool{
 
 			final int value = Ordinals.parse(word);
 			if(value < 1 || found)
-				throw new IllegalArgumentException("\"" + word + "\" in \"" + expression.trim() + "\" is not understood");
+				throw new AssistantInputException("date_assistant.error.roman.not_understood", word, expression.trim());
 			count = value;
 			found = true;
 		}
@@ -243,11 +250,11 @@ public final class RomanDateTool{
 
 			final int value = monthOf(words[i]);
 			if(value < 1 || month > 0)
-				throw new IllegalArgumentException("\"" + words[i] + "\" in \"" + expression.trim() + "\" is not understood");
+				throw new AssistantInputException("date_assistant.error.roman.not_understood", words[i], expression.trim());
 			month = value;
 		}
 		if(month < 1)
-			throw new IllegalArgumentException("No month found in \"" + expression.trim() + "\"");
+			throw new AssistantInputException("date_assistant.error.roman.no_month", expression.trim());
 		return month;
 	}
 
@@ -259,22 +266,20 @@ public final class RomanDateTool{
 		return -1;
 	}
 
-	private static String monthName(final int month){
-		return java.time.Month.of(month).getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-	}
-
-	private static String describeCount(final int count){
-		return (count == 1? "the day itself": count == 2? "the day before": "the day number " + count + " counting inclusively");
+	private static Message describeCount(final int count){
+		return (count == 1
+			? Message.of("date_assistant.roman.count_itself")
+			: count == 2? Message.of("date_assistant.roman.count_before"): Message.of("date_assistant.roman.count_number", count));
 	}
 
 
 	private enum Kind{
-		KALENDS("Kalends"), NONES("Nones"), IDES("Ides");
+		KALENDS("date_assistant.roman.kalends"), NONES("date_assistant.roman.nones"), IDES("date_assistant.roman.ides");
 
-		private final String label;
+		private final String labelKey;
 
-		Kind(final String label){
-			this.label = label;
+		Kind(final String labelKey){
+			this.labelKey = labelKey;
 		}
 	}
 

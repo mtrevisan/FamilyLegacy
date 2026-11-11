@@ -39,7 +39,7 @@ Family Legacy is a genealogical data manager built on the **Family LEgacy Format
 - [Tools](tools.md): validation, statistics and the other commands of the Tools menu.
 - [Finding duplicates and merging people](merging.md): how the duplicate search scores, and what a merge does.
 - [Kinship and consanguinity](kinship.md): the kinship calculator and the consanguinity report.
-- [Group timeline, group network and group career](group-views.md): the group windows over time.
+- [Group timeline, group network and memberships over time](group-views.md): the group windows over time.
 - [Importing from GEDCOM and Gramps](import.md): what is kept, converted and lost.
 - [Privacy](privacy.md): levels, living people, policies, reports and export.
 

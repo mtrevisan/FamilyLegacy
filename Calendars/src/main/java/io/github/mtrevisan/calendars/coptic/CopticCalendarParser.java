@@ -25,13 +25,12 @@
 package io.github.mtrevisan.calendars.coptic;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -64,8 +63,6 @@ public final class CopticCalendarParser{
 		MONTHS.put("hathoor", 3);
 
 		// Month 4: Koiak
-		MONTHS.put(" choirⲁⲕ", 4);
-		MONTHS.put("كิาหก", 4);		// Historical Thai alignment artifact, fixed below
 		MONTHS.put("كياك", 4);		// Egyptian Arabic script
 		MONTHS.put("ⲕⲓⲁϩⲕ", 4);		// Coptic dialectal variant
 		MONTHS.put("kiahk", 4);
@@ -163,50 +160,25 @@ public final class CopticCalendarParser{
 		MONTHS.put("shumu", CalendarSeason.SEASON_SUMMER);
 	}
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	private static final NamedMonthDateParser PARSER = NamedMonthDateParser.builder("Coptic")
+		.months(MONTHS)
+		.monthLengths(MonthLengths.thirtyDayMonths(5, CopticCalendarStrategy::isLeapYear))
+		.build();
 
 
 	private CopticCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Coptic text expression into a validated structural container using exact flags.
+	 * Parses a raw Coptic text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
 	 * @param rawDate the string representing the calendar date (e.g., "Shom 1730")
-	 * @return a configured CopticDateInput instance
-	 * @throws IllegalArgumentException if the text layout expression matches an invalid layout format
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static CopticDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new CopticDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Coptic date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Coptic month or seasonal descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("Standard Coptic months consist strictly of 30 days.");
-		if(dayGroup != null && month == 13 && (day < 1 || day > 6))
-			throw new IllegalArgumentException("Coptic intercalary days are bound between 1 and 6 days.");
-
-		return new CopticDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

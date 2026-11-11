@@ -33,10 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -108,20 +106,6 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		registerTithi(30, "Amavasya", "Amavasi", "Amavas", "Amas", "अमावस्या", "अमावस");
 	}
 
-	private static final Set<String> SHUKLA = words("Shukla", "Sukla", "Sudi", "Sud", "Shudi", "Shuddha", "Sudhi",
-		"शुक्ल", "सुदी", "सुद");
-	private static final Set<String> KRISHNA = words("Krishna", "Krsna", "Vadi", "Vad", "Badi", "Bahula", "Bahul",
-		"कृष्ण", "वदी", "बदी", "वद");
-	private static final Set<String> ADHIKA = words("Adhika", "Adhik", "Adhic", "Mala", "Purushottam", "Purushottama",
-		"Purushottam", "अधिक", "मल", "पुरुषोत्तम");
-	private static final Set<String> NIJA = words("Nija", "Nij", "Shuddha", "निज");
-	private static final Set<String> AMANTA = words("Amanta", "Amavasyant", "Amavasyanta", "अमान्त");
-	private static final Set<String> PURNIMANTA = words("Purnimanta", "Purnimant", "Pournimanta", "पूर्णिमान्त");
-	private static final Set<String> KARTIKADI = words("Kartikadi", "Gujarati", "कार्तिकादि");
-	private static final Set<String> FILLERS = words("Vikram", "Vikrami", "Vikrama", "Samvat", "Sambat", "Samvata", "VS",
-		"V", "S", "Paksha", "Paksh", "Tithi", "Masa", "Maas", "Mas", "Month", "of", "the", "विक्रम", "संवत्", "संवत", "वि",
-		"सं", "पक्ष", "तिथि", "मास");
-
 	private static void registerMonth(final int month, final String... names){
 		for(final String name : names)
 			MONTHS.put(TextNormalizer.normalize(name), month);
@@ -131,14 +115,6 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		for(final String name : names)
 			TITHIS.put(TextNormalizer.normalize(name), tithi);
 	}
-
-	private static Set<String> words(final String... words){
-		final Set<String> set = new HashSet<>();
-		for(final String word : words)
-			set.add(TextNormalizer.normalize(word));
-		return set;
-	}
-
 
 	/** An amanta month: from new moon to new moon. */
 	private record LunarMonth(double newMoon, double nextNewMoon, int name, boolean adhika){}
@@ -294,20 +270,20 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 		boolean kartikadi = false;
 		final String[] words = TextNormalizer.tokenize(rawDate);
 		for(final String word : words){
-			if(FILLERS.contains(word) || NIJA.contains(word) || PURNIMANTA.contains(word))
+			if(VikramSamvatGrammar.FILLERS.contains(word) || VikramSamvatGrammar.NIJA.contains(word) || VikramSamvatGrammar.PURNIMANTA.contains(word))
 				continue;
 
-			if(ADHIKA.contains(word))
+			if(VikramSamvatGrammar.ADHIKA.contains(word))
 				adhika = true;
-			else if(AMANTA.contains(word))
+			else if(VikramSamvatGrammar.AMANTA.contains(word))
 				amanta = true;
-			else if(KARTIKADI.contains(word)){
+			else if(VikramSamvatGrammar.KARTIKADI.contains(word)){
 				kartikadi = true;
 				amanta = true;
 			}
-			else if(SHUKLA.contains(word))
+			else if(VikramSamvatGrammar.SHUKLA.contains(word))
 				pakshaGiven = true;
-			else if(KRISHNA.contains(word)){
+			else if(VikramSamvatGrammar.KRISHNA.contains(word)){
 				krishna = true;
 				pakshaGiven = true;
 			}

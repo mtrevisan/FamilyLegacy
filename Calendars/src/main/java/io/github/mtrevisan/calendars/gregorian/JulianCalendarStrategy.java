@@ -25,57 +25,34 @@
 package io.github.mtrevisan.calendars.gregorian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
-import io.github.mtrevisan.calendars.spi.DateInterpretation;
-
-import java.util.List;
-import java.util.Locale;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
-public class JulianCalendarStrategy implements CalendarConverterPlugin{
+public class JulianCalendarStrategy extends GregorianStyleCalendarStrategy{
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
+		final GregorianDateInput input = parseInput(rawDate);
 		final int year = input.year();
 		final int month = input.monthOrFirst();
 		final int day = input.dayOrFirst();
-		input.validateLeapDay(Math.floorMod(year, 4) == 0);
+		input.validateLeapDay(isLeapYear(year));
 		Indiction.validate(input, year);
 
-		if(month < 0){
-			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
-			// We calculate June 1st (Month 6) of that target Julian year to center our search window.
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
+		if(month < 0)
+			// the season starts near the first day of its month
+			return SeasonSolver.jdnNear(toJdn(year, CalendarSeason.gregorianSeasonMonth(month), 1), month, "Julian");
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			// Standard numeric execution path using the canonical algorithm for regular Julian dates
-			return toJdn(year, month, day);
+		// Standard numeric execution path using the canonical algorithm for regular Julian dates
+		return toJdn(year, month, day);
 	}
 
-	private static double exactSeasonJdUT(final int year, final int month){
-		final int y = year;
-		final int m = CalendarSeason.gregorianSeasonMonth(month);
-		final long baselineApproxJdn = Math.floorDiv(1461L * (y + 4716L), 4L)
-			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ 1 - 1524L;
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Julian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	/**
+	 * @param year the astronomical year
+	 * @return whether the year is a leap year of the (proleptic) Julian calendar
+	 */
+	public static boolean isLeapYear(final int year){
+		return (Math.floorMod(year, 4) == 0);
 	}
 
 	/**
@@ -93,17 +70,6 @@ public class JulianCalendarStrategy implements CalendarConverterPlugin{
 		return Math.floorDiv(1461L * (y + 4716L), 4L)
 			+ Math.floorDiv(153L * (m + 1), 5L)
 			+ day - 1524L;
-	}
-
-	@Override
-	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
-		return GregorianCalendarParser.interpretations(rawDate, locale);
-	}
-
-	@Override
-	public CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

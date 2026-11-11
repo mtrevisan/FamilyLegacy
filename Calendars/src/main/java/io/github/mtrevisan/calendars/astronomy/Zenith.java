@@ -27,8 +27,11 @@ package io.github.mtrevisan.calendars.astronomy;
 
 /** Defines the solar declination (altitude angle) used in computing the sunrise/sunset. */
 public enum Zenith implements ZenithInterface{
-	/** Official sunrise/set. */
-	OFFICIAL(0.),
+	/**
+	 * Official sunrise/set: the upper limb of the Sun on the apparent horizon, that is -34 arcminutes of atmospheric
+	 * refraction and -16 arcminutes of solar semidiameter, -50 arcminutes in all (-0.8333 degrees).
+	 */
+	OFFICIAL(-50. / 60.),
 	/** Civil sunrise/set (dawn/dusk) is when the sun is 6 degrees below the horizon. */
 	CIVIL(-6.),
 	/** Nautical sunrise/set is when the sun is 12 degrees below the horizon. */

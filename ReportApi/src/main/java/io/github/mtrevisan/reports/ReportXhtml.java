@@ -25,7 +25,9 @@
 package io.github.mtrevisan.reports;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -50,10 +52,27 @@ public final class ReportXhtml{
 	 */
 	public static void writeSection(final StringBuilder sb, final ReportSection section, final UnaryOperator<String> linkTarget,
 			final Function<Path, String> imageHref){
+		writeSection(sb, section, linkTarget, imageHref, new HashSet<>());
+	}
+
+	/**
+	 * Writes a section, with the anchors of the records written only once in a page.
+	 *
+	 * @param sb	Where the markup goes.
+	 * @param section	The section.
+	 * @param linkTarget	Gives the address of the page that has a record (see {@link ReportMarkup#inline(String, UnaryOperator)}).
+	 * @param imageHref	Gives the address of an image inside the output, after having put it there; {@code null} if it cannot be used
+	 * 	(then only its caption is written).
+	 * @param writtenAnchors	The identifiers of the records whose anchor is already in the page: the same set for all the sections of
+	 * 	a page, since an identifier cannot be twice in a page.
+	 */
+	public static void writeSection(final StringBuilder sb, final ReportSection section, final UnaryOperator<String> linkTarget,
+			final Function<Path, String> imageHref, final Set<String> writtenAnchors){
 		switch(section){
 			case ReportSection.Heading heading -> {
 				for(final String id : ReportMarkup.recordIds(heading.text()))
-					sb.append("<a id=\"").append(ReportMarkup.escape(id)).append("\"></a>");
+					if(writtenAnchors.add(id))
+						sb.append("<a id=\"").append(ReportMarkup.escape(id)).append("\"></a>");
 				final int level = Math.clamp(heading.level() + 1, 1, 6);
 				sb.append("<h").append(level).append('>').append(ReportMarkup.inline(heading.text(), linkTarget))
 					.append("</h").append(level).append(">\n");
@@ -82,14 +101,20 @@ public final class ReportXhtml{
 	}
 
 	private static void writeTable(final StringBuilder sb, final ReportSection.Table table, final UnaryOperator<String> linkTarget){
-		if(table.headers().isEmpty())
+		final int columns = table.columns();
+		if(columns == 0)
 			return;
 
-		final int columns = table.headers().size();
-		sb.append("<table><thead><tr>");
-		for(final String header : table.headers())
-			sb.append("<th>").append(ReportMarkup.inline(header, linkTarget)).append("</th>");
-		sb.append("</tr></thead><tbody>");
+		sb.append("<table>");
+		//a table without headers has no header row; the columns without a header are empty
+		if(!table.headers().isEmpty()){
+			sb.append("<thead><tr>");
+			for(int i = 0; i < columns; i ++)
+				sb.append("<th>").append(ReportMarkup.inline(i < table.headers().size()? table.headers().get(i): "", linkTarget))
+					.append("</th>");
+			sb.append("</tr></thead>");
+		}
+		sb.append("<tbody>");
 		for(final List<String> row : table.rows()){
 			sb.append("<tr>");
 			for(int i = 0; i < columns; i ++)

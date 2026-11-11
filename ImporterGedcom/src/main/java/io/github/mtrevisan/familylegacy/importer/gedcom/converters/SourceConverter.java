@@ -140,7 +140,8 @@ public class SourceConverter {
 	}
 
 	private static boolean hasNoChild(final FLEFRecord record, final String tag){
-		return record.getChildren().stream().noneMatch(child -> tag.equals(child.getTag()));
+		return record.getChildren().stream()
+			.noneMatch(child -> tag.equals(child.getTag()));
 	}
 
 	/** Whether the text is a GEDCOM date: it is understood as such and has a year (a bare small number is not one). */
@@ -213,13 +214,15 @@ public class SourceConverter {
 				"?"));
 			final String period = GEDCOMHelper.findFirstValue(evenNode, GEDCOMMapper.TAG_DATE);
 			final GEDCOMNode placNode = GEDCOMHelper.findFirstChild(evenNode, GEDCOMMapper.TAG_PLACE);
-			final boolean dateFree = source.getChildren().stream().noneMatch(child -> SourceReader.TAG_DATE.equals(child.getTag()));
+			final boolean dateFree = source.getChildren().stream()
+				.noneMatch(child -> SourceReader.TAG_DATE.equals(child.getTag()));
 			if(dateFree)
 				GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, period);
 			if(period != null && (!dateFree || severalEntries))
 				sb.append(", ").append(period);
 			if(placNode != null && StringUtils.isNotBlank(placNode.getValue())){
-				final boolean placeFree = source.getChildren().stream().noneMatch(child -> SourceReader.TAG_PLACE.equals(child.getTag()));
+				final boolean placeFree = source.getChildren().stream()
+					.noneMatch(child -> SourceReader.TAG_PLACE.equals(child.getTag()));
 				if(placeFree)
 					GEDCOMRecordBuilder.attachPlaceCitation(source, model, placNode, null, noteRawMap, placeCache);
 				if(!placeFree || severalEntries)

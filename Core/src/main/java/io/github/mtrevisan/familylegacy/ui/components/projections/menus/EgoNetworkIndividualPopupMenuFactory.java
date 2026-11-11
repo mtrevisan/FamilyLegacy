@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
@@ -92,6 +93,8 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
+				//the provenance (citation by citation, with stance and evidence) is offered from the standard level, as in the menu bar
+				provenanceItem.setVisible(FeatureVisibilityService.shared().isVisible(new ProvenanceTool().minimumLevel()));
 				final IndividualSummary data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);

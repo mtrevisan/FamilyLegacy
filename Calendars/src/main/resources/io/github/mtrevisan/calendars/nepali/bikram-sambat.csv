@@ -3,6 +3,8 @@
 # Panchanga Nirnayak Samiti. The open-source libraries disagree for 1975, 1977, 1981, 1989, 1991, 1993, 1998 (unresolved);
 # 2062 follows Hamro Patro and the Rajpatra (Baisakh 31, Jestha 31); the years from 2084 are projections.
 # Checked against Hamro Patro for 2000, 2001, 2050, 2062, 2080-2083, and against the 1 Baisakh of 2072-2083.
+# 2096 summed 364 days in the upstream tables (amitgaru/nepali-datetime): replaced with the row of opensource-nepal/py-nepali (366 days, the only other table with that year); every year must sum to 365 or 366 days (checked when the table is loaded, and by a test).
+# The 1 Baisakh of 2065-2083 BS are listed in bikram-sambat-new-years.csv: the table is anchored to them.
 # 1 Baisakh 1970 = 1913-04-13; source: https://raw.githubusercontent.com/medic/bikram-sambat/HEAD/java/lib/src/main/java/bikramsambat/BsCalendar.java (BS_EPOCH 1970-1-1 BS = 1913-4-13 AD) and https://raw.githubusercontent.com/medic/bikram-sambat/HEAD/test-data/toGreg.json
 # rows 1970-1974: https://raw.githubusercontent.com/medic/bikram-sambat/HEAD/test-data/daysInMonth.json ; rows 1975-2100: https://raw.githubusercontent.com/amitgaru/nepali-datetime/HEAD/nepali_datetime/data/calendar_bs.csv (its own anchor 1 Baisakh 1975 = 1918-04-13 per nepali_datetime/config.py REFERENCE_DATE_AD; consistent with medic rows 1970-1974). Rows > ~2083 are projections, not official. See indian-calendars.md for per-year disagreements.
 year;baisakh;jestha;asar;shrawan;bhadra;asoj;kartik;mangsir;poush;magh;falgun;chaitra
@@ -132,7 +134,7 @@ year;baisakh;jestha;asar;shrawan;bhadra;asoj;kartik;mangsir;poush;magh;falgun;ch
 2093;30;32;31;32;31;30;30;30;29;30;30;30
 2094;31;31;32;31;31;30;30;30;29;30;30;30
 2095;31;31;32;31;31;31;30;29;30;30;30;30
-2096;30;31;32;32;31;30;30;29;30;29;30;30
+2096;31;32;31;32;31;30;30;30;29;29;30;31
 2097;31;32;31;32;31;30;30;30;29;30;30;30
 2098;31;31;32;31;31;31;29;30;29;30;29;31
 2099;31;31;32;31;31;31;30;29;29;30;30;30

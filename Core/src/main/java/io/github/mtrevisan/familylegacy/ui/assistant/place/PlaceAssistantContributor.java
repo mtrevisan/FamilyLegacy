@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.CompareRecordsAction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -53,9 +54,13 @@ public final class PlaceAssistantContributor implements AssistantContributor{
 			if(context.model() == null)
 				return List.of();
 
-			return PlaceChecker.findings(PlaceDataLoader.load(context.model())).stream()
+			final PlaceData data = PlaceDataLoader.load(context.model());
+			final List<Diagnostic> findings = new ArrayList<>(PlaceChecker.findings(data).stream()
 				.map(PlaceAssistantContributor::withActions)
-				.toList();
+				.toList());
+			//the places whose jurisdiction changed over time: the timeline of the place is worth looking at
+			findings.addAll(JurisdictionChangeChecker.findings(data));
+			return findings;
 		});
 	}
 

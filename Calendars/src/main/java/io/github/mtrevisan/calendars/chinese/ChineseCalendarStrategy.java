@@ -25,11 +25,10 @@
 package io.github.mtrevisan.calendars.chinese;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
 public class ChineseCalendarStrategy implements CalendarConverterPlugin{
@@ -49,44 +48,20 @@ public class ChineseCalendarStrategy implements CalendarConverterPlugin{
 		final int day = input.day();
 
 		if(month < 0){
-			// Step A: Dynamically determine the spatial window of this exact solar year.
-			// Instead of a fixed June anchor which misses February (Lìchūn) or November (Lìdōng),
-			// we anchor onto the specific calendar month space corresponding to the season.
-			final int approximateTargetGregorianMonth = switch(month){
-				case CalendarSeason.SEASON_SPRING -> 2;	// Lìchūn -> Feb
-				case CalendarSeason.SEASON_SUMMER -> 5;	// Lìxià  -> May
-				case CalendarSeason.SEASON_AUTUMN -> 8;	// Lìqiū  -> Aug
-				case CalendarSeason.SEASON_WINTER -> 11;	// Lìdōng -> Nov
-				default -> 6;
-			};
+			// Step A: anchor on the first day of the Gregorian month of the season (the solar term, e.g. Lichun, falls
+			// within a month before it: the event nearest to the anchor is searched)
+			final int approximateTargetGregorianMonth = CalendarSeason.gregorianSeasonMonth(month);
 
 			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, approximateTargetGregorianMonth, 1);
-			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
+			final double exactSeasonJdUT = SeasonSolver.instantAtLongitude(baselineApproxJdn - 0.5, getTargetLongitude(month),
+				"Chinese");
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
+			// the civil day in the time zone of the calendar (the same used for the months), not the UT one
+			return ChineseCalendarAstronomicalEngine.civilDayOf(exactSeasonJdUT);
 		}
 		else
 			// Standard numeric execution path using your existing Chinese astronomical engine rules
 			return ChineseCalendarAstronomicalEngine.toJdn(year, month, leapMonth, day);
-	}
-
-	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries.
-		// Maps the 4 primary Solar Terms boundaries to their precise tropical longitude radian coordinates:
-		// Qiū / Lìqiū (-1)  = 135° = 3𝜋 / 4
-		// Dōng / Lìdōng (-2) = 225° = 5𝜋 / 4
-		// Chūn / Lìchūn (-3) = 315° = 7𝜋 / 4
-		// Xià / Lìxià (-4)  = 45°  = 𝜋 / 4
-		final double targetLongitude = getTargetLongitude(month);
-
-		// Step C: Trigger exact calculation to find the point where the Sun enters this solar term
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Chinese calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	private static double getTargetLongitude(final int month){

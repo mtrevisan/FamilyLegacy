@@ -15,7 +15,7 @@ State what you want to find out, for example *Who were the parents of Giovanni?*
 | **Conclusion** and its **Confidence** | What you concluded about the question, and how sure you are. |
 | **Rationale** | Why you reached the conclusion, or why the question is still open. |
 
-On Save, the title and the question are required. The **Research** tab lists the activities, tasks and conclusions of the question.
+On OK, the title and the question are required. The **Research** tab lists the activities, tasks and conclusions of the question.
 
 ## Research activity
 
@@ -46,7 +46,7 @@ One piece of research work, done or planned. It records the work, and what it fo
 - **Parent Activity**: the previous activity from which this one originated (the search that found the document now being reviewed).
 - **Research Follow Ups**: the tasks to start when this activity is completed.
 
-On Save, the type, the status and the action are required.
+On OK, the type, the status and the action are required.
 
 ## Research task
 
@@ -62,7 +62,7 @@ A to-do item that follows from the research, for example *Check the 1871 census 
 | **Due Date** | Free text. |
 | **Outcome** | What came out of the task once completed. |
 
-On Save, the description and the status are required.
+On OK, the description and the status are required.
 
 ## Conclusion
 
@@ -87,7 +87,7 @@ Use it when your sources disagree: it records which assertion you judge to be th
 
 A conclusion can resolve an event, a participation, a relationship, an individual, an attribute, a group, an identity hypothesis, a place, a place relationship, a repository, a source, a media, a cultural norm or a historic event.
 
-On Save, the issue and the proof status are required. The rules in the tooltips (*disproven* needs two resolved records, the preferred assertion must be one of them) are **not** checked by the editor: check them yourself.
+On OK, the issue and the proof status are required. The rules in the tooltips (*disproven* needs two resolved records, the preferred assertion must be one of them) are **not** checked by the editor: check them yourself.
 
 ## Identity hypothesis
 
@@ -100,6 +100,6 @@ Use it when two records could describe the same real-world entity and you want t
 | **Rationale** | Why you think they may be the same, for example the same parents and parish in both records. |
 | **Confidence** | How likely you think it is that they are the same. The mere existence of a hypothesis does not mean they are probably identical. |
 
-On Save, both identities are required and they must not be the same record. The same-kind rule is not checked by the editor.
+On OK, both identities are required and they must not be the same record. The same-kind rule is not checked by the editor.
 
 Once the hypothesis is saved, **Create New** in the list of conclusions of its **Research** tab opens a new conclusion that already resolves this hypothesis, with the issue set to *identity*.

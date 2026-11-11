@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.calendars.assistant;
 
-import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.liturgical.Computus;
+import io.github.mtrevisan.calendars.liturgical.LiturgicalCalendarStrategy;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -36,18 +36,18 @@ import java.util.List;
 /** Easter, the movable feasts and the feast-day references. */
 public final class LiturgicalTool{
 
-	private record Movable(String name, int offset){}
+	private record Movable(String key, int offset){}
 
 	private static final List<Movable> MOVABLE_FEASTS = List.of(
-		new Movable("Ash Wednesday", -46),
-		new Movable("Palm Sunday", -7),
-		new Movable("Maundy Thursday", -3),
-		new Movable("Good Friday", -2),
-		new Movable("Easter Sunday", 0),
-		new Movable("Ascension", 39),
-		new Movable("Pentecost", 49),
-		new Movable("Trinity Sunday", 56),
-		new Movable("Corpus Christi", 60));
+		new Movable("date_assistant.feast.ash_wednesday", -46),
+		new Movable("date_assistant.feast.palm_sunday", -7),
+		new Movable("date_assistant.feast.maundy_thursday", -3),
+		new Movable("date_assistant.feast.good_friday", -2),
+		new Movable("date_assistant.feast.easter_sunday", 0),
+		new Movable("date_assistant.feast.ascension", 39),
+		new Movable("date_assistant.feast.pentecost", 49),
+		new Movable("date_assistant.feast.trinity_sunday", 56),
+		new Movable("date_assistant.feast.corpus_christi", 60));
 
 	private static final int DAYS_IN_WEEK = 7;
 	private static final int ADVENT_WEEKS_BEFORE_SUNDAY = 3;
@@ -66,12 +66,12 @@ public final class LiturgicalTool{
 	public static List<DateSuggestion> feasts(final int year, final CalendarReform reform){
 		final long easter = easterJdn(year, reform);
 		final List<DateSuggestion> result = new ArrayList<>();
-		result.add(feast(year, reform, "Epiphany", CivilDates.toJdn(year, 1, 6, reform), "fixed feast, 6 January", null));
+		result.add(feast(year, reform, Message.of("date_assistant.feast.epiphany"), CivilDates.toJdn(year, 1, 6, reform),
+			Message.of("date_assistant.rule.epiphany"), null));
 		for(final Movable movable : MOVABLE_FEASTS)
-			result.add(feast(year, reform, movable.name(), easter + movable.offset(),
-				"Easter Sunday " + (movable.offset() >= 0? "+ ": "- ") + Math.abs(movable.offset()) + " days", easter));
-		result.add(feast(year, reform, "First Sunday of Advent", advent(year, reform),
-			"the fourth Sunday before Christmas", null));
+			result.add(feast(year, reform, Message.of(movable.key()), easter + movable.offset(), easterRule(movable.offset()), easter));
+		result.add(feast(year, reform, Message.of("date_assistant.feast.advent"), advent(year, reform), Message.of("date_assistant.rule.advent"),
+			null));
 		return result;
 	}
 
@@ -84,9 +84,10 @@ public final class LiturgicalTool{
 	 * @throws IllegalArgumentException if the expression cannot be parsed
 	 */
 	public static DateSuggestion resolveFeast(final String expression, final CalendarReform reform){
-		final CalendarType type = (reform == null? CalendarType.LITURGICAL_JULIAN: CalendarType.LITURGICAL);
-		final long jdn = type.parseToJdn(expression);
-		return feast(null, reform, "\"" + expression + "\"", jdn, "liturgical expression \"" + expression + "\"", null);
+		// the strategy of the reform in force (not the Catholic one for every country)
+		final long jdn = LiturgicalCalendarStrategy.forReform(reform).parseToJdn(expression);
+		final String name = StringUtils.normalizeSpace(expression);
+		return feast(null, reform, Message.text(name), jdn, Message.of("date_assistant.rule.expression", name), null);
 	}
 
 	/**
@@ -100,10 +101,14 @@ public final class LiturgicalTool{
 	public static DateSuggestion relativeToEaster(final int year, final long days, final CalendarReform reform){
 		final long easter = easterJdn(year, reform);
 		final long distance = Math.abs(days);
-		final String title = distance + (distance == 1? " day ": " days ") + (days < 0? "before": "after") + " Easter " + year;
-		return feast(year, reform, title, easter + days, "Easter Sunday " + (days >= 0? "+ ": "- ") + distance + " days", easter);
+		final Message title = Message.of(days < 0? "date_assistant.title.before_easter": "date_assistant.title.after_easter", distance, year);
+		return feast(year, reform, title, easter + days, easterRule(days), easter);
 	}
 
+
+	private static Message easterRule(final long offset){
+		return Message.of(offset >= 0? "date_assistant.rule.easter_plus": "date_assistant.rule.easter_minus", Math.abs(offset));
+	}
 
 	private static long easterJdn(final int year, final CalendarReform reform){
 		return (reform == null? Computus.julianEasterJdn(year): Computus.easterJdn(year, reform));
@@ -116,26 +121,27 @@ public final class LiturgicalTool{
 		return sundayBefore - (long)ADVENT_WEEKS_BEFORE_SUNDAY * DAYS_IN_WEEK;
 	}
 
-	private static DateSuggestion feast(final Integer year, final CalendarReform reform, final String name, final long jdn,
-			final String rule, final Long easter){
+	private static DateSuggestion feast(final Integer year, final CalendarReform reform, final Message name, final long jdn,
+			final Message rule, final Long easter){
 		final String calendar = CivilDates.calendarInForce(jdn, reform);
 		final String date = CivilDates.format(jdn, calendar);
 
-		final List<String> assumptions = new ArrayList<>();
+		final List<Message> assumptions = new ArrayList<>();
 		assumptions.add(reform == null
-			? "Julian calendar and Julian computus (Orthodox usage, or a Protestant country before its own reform)"
-			: "Julian calendar and computus up to the Gregorian reform of " + reform.firstGregorianYear()
-				+ ", Gregorian afterward");
-		final List<String> steps = new ArrayList<>();
+			? Message.of("date_assistant.assumption.liturgical_julian")
+			: Message.of("date_assistant.assumption.liturgical_reform", reform.firstGregorianYear()));
+		final List<Message> steps = new ArrayList<>();
 		if(easter != null){
 			final String easterCalendar = CivilDates.calendarInForce(easter, reform);
-			steps.add("Easter Sunday of " + year + " by the " + (CivilDates.JULIAN.equals(easterCalendar)? "Julian": "Gregorian")
-				+ " computus: " + CivilDates.format(easter, easterCalendar) + " (Julian Day Number " + easter + ")");
+			steps.add(Message.of("date_assistant.step.easter", year, Message.calendar(easterCalendar), CivilDates.format(easter, easterCalendar),
+				easter));
 		}
-		steps.add("Rule: " + rule + ", Julian Day Number " + jdn);
-		steps.add("Written in the " + calendar + " calendar: " + date + " (" + CivilDates.weekdayName(jdn) + ")");
-		return new DateSuggestion(name, name + (year != null? StringUtils.SPACE + year: StringUtils.EMPTY) + " falls on " + date, assumptions, calendar, steps,
-			date);
+		steps.add(Message.of("date_assistant.step.rule", rule, jdn));
+		steps.add(Message.of("date_assistant.step.written", jdn, Message.calendar(calendar), date, CivilDates.dayOfWeek(jdn)));
+		final Message meaning = (year != null
+			? Message.of("date_assistant.meaning.feast_year", name, year, date)
+			: Message.of("date_assistant.meaning.feast", name, date));
+		return new DateSuggestion(name, meaning, assumptions, calendar, steps, date);
 	}
 
 }

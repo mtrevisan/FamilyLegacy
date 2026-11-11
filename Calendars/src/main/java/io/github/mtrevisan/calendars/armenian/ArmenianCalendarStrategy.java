@@ -24,57 +24,39 @@
  */
 package io.github.mtrevisan.calendars.armenian;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Armenian calendar of the Great Armenian Era: twelve months of thirty days and five intercalary days (Avelyats),
+ * with no leap year, so that the year wanders through the seasons.
+ */
 public class ArmenianCalendarStrategy implements CalendarConverterPlugin{
+
+	/** Julian Day Number of the epoch of the Great Armenian Era (11 July 552 CE Julian). */
+	private static final long EPOCH_JDN = 1922868L;
+	private static final long DAYS_IN_YEAR = 365L;
+	private static final long DAYS_IN_MONTH = 30L;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final ArmenianDateInput input = ArmenianCalendarParser.parse(rawDate);
-		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
+		final YearMonthDay input = ArmenianCalendarParser.parse(rawDate);
 
-		if(month < 0){
-			// Step A: Determine the absolute linear window of this shifting Armenian year.
-			// The Great Armenian Era epoch starts on July 11, 552 CE Julian = JDN 1922868L.
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
+		final long startOfYear = EPOCH_JDN + DAYS_IN_YEAR * (input.year() - 1L);
+		if(input.isSeason())
+			// the year wanders through the seasons: the first event of the season on or after the start of the year
+			return SeasonalDates.onOrAfter("Armenian", startOfYear, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			// Standard arithmetic execution mapping path for typical regular Armenian months
-			// 1922868: JDN of the Great Armenian Era epoch (11 July 552 CE Julian)
-			return 1922868L + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
-	}
-
-	private static double exactSeasonJdUT(final int year, final int month){
-		final long startOfYearJdn = 1922868L + (year - 1) * 365L;
-
-		// Establish the middle of this specific shifting year block as an initial guess anchor
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the Sun cross point occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Armenian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return startOfYear + DAYS_IN_MONTH * (input.monthOrDefault() - 1L) + (input.dayOrDefault() - 1L);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final ArmenianDateInput input = ArmenianCalendarParser.parse(rawDate);
+		final YearMonthDay input = ArmenianCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

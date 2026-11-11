@@ -48,19 +48,7 @@ public class BangladeshCalendarStrategy implements CalendarConverterPlugin{
 	private static final int REVISION_2019_YEAR = 1426;
 	private static final int FALGUN = 11;
 
-	private static final IndianMonthNames MONTH_NAMES = new IndianMonthNames()
-		.register(1, "Boishakh", "Baishakh", "Baisakh", "Vaishakh", "বৈশাখ")
-		.register(2, "Joishtho", "Jyoishtho", "Jaishtha", "Jyeshtha", "Jaistha", "জ্যৈষ্ঠ")
-		.register(3, "Asharh", "Ashar", "Asadh", "Ashadh", "আষাঢ়", "আষাঢ")
-		.register(4, "Srabon", "Shrabon", "Shraban", "Sravan", "Shravan", "শ্রাবণ")
-		.register(5, "Bhadro", "Bhadra", "ভাদ্র")
-		.register(6, "Ashshin", "Ashwin", "Ashin", "Aswin", "আশ্বিন")
-		.register(7, "Kartik", "Kartick", "কার্তিক")
-		.register(8, "Ogrohayon", "Agrahayan", "Agrahayon", "Ograhayon", "অগ্রহায়ণ")
-		.register(9, "Poush", "Pous", "Paush", "পৌষ")
-		.register(10, "Magh", "মাঘ")
-		.register(11, "Falgun", "Phalgun", "Falgoon", "ফাল্গুন")
-		.register(12, "Choitro", "Chaitra", "Choitra", "চৈত্র");
+	private static final IndianMonthNames MONTH_NAMES = IndianMonthNames.BENGALI;
 
 
 	@Override
@@ -83,7 +71,7 @@ public class BangladeshCalendarStrategy implements CalendarConverterPlugin{
 	private static int monthLength(final int year, final int month){
 		// the Falgun of the year B falls in the Gregorian year B + 594
 		final int gregorianYear = year + ERA_OFFSET + 1;
-		final boolean leap = (gregorianYear % 4 == 0 && (gregorianYear % 100 != 0 || gregorianYear % 400 == 0));
+		final boolean leap = GregorianCalendarStrategy.isLeapYear(gregorianYear);
 		if(year >= REVISION_2019_YEAR){
 			if(month <= 6)
 				return 31;

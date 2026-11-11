@@ -26,11 +26,21 @@ package io.github.mtrevisan.calendars.venetan;
 
 
 /**
- * Data container for parsed historical Venetian (more Veneto) calendar components.
+ * Data container for parsed historical Venetin (more Veneto) calendar components.
+ * <p>
+ * The year is always present in a parsed date, and can be 0 (1 BC, astronomical numbering).
+ * </p>
  *
- * @param year  The Venetian year (starts on March 1st)
- * @param month The Venetian month (1 = March, 12 = February)
- * @param day   The day of the month
+ * @param year      The Venetan year (starts on March 1st); astronomical (1 BC is 0)
+ * @param month     The Venetan month (1 = March, 12 = February), or a negative season flag, or 0 if missing
+ * @param day       The day of the month, or 0 if missing
  * @param indiction The indiction written next to the year (1 to 15), or 0 if missing
+ * @param dualYear  Whether the year was written as a dual year (e.g. "1500/1"), valid in January and February only
  */
-public record VenetanDateInput(int year, int month, int day, int indiction){}
+public record VenetanDateInput(int year, int month, int day, int indiction, boolean dualYear){
+
+	public VenetanDateInput(final int year, final int month, final int day, final int indiction){
+		this(year, month, day, indiction, false);
+	}
+
+}

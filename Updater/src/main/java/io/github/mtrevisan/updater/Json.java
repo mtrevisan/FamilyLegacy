@@ -37,8 +37,12 @@ import java.util.Map;
  */
 final class Json{
 
+	/** The answer of GitHub is nested a few levels; more is not what is expected (and would exhaust the stack). */
+	private static final int MAX_DEPTH = 64;
+
 	private final String text;
 	private int position;
+	private int depth;
 
 
 	private Json(final String text){
@@ -92,11 +96,13 @@ final class Json{
 	}
 
 	private Map<String, Object> readObject(){
+		enter();
 		final Map<String, Object> result = new LinkedHashMap<>();
 		position ++;
 		skipWhitespace();
 		if(peek() == '}'){
 			position ++;
+			depth --;
 			return result;
 		}
 		while(true){
@@ -113,16 +119,19 @@ final class Json{
 				continue;
 			}
 			expect('}');
+			depth --;
 			return result;
 		}
 	}
 
 	private List<Object> readArray(){
+		enter();
 		final List<Object> result = new ArrayList<>();
 		position ++;
 		skipWhitespace();
 		if(peek() == ']'){
 			position ++;
+			depth --;
 			return result;
 		}
 		while(true){
@@ -133,8 +142,14 @@ final class Json{
 				continue;
 			}
 			expect(']');
+			depth --;
 			return result;
 		}
+	}
+
+	private void enter(){
+		if(++ depth > MAX_DEPTH)
+			throw error("nested too deeply");
 	}
 
 	private String readString(){
@@ -146,6 +161,8 @@ final class Json{
 			final char c = text.charAt(position ++);
 			if(c == '"')
 				return sb.toString();
+			if(c < ' ')
+				throw error("control character in a string");
 			if(c != '\\'){
 				sb.append(c);
 				continue;

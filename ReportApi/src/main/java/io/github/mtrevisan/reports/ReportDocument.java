@@ -43,7 +43,9 @@ public record ReportDocument(String title, String subtitle, List<ReportSection> 
 	public static final String DEFAULT_LANGUAGE = "en";
 	private static final String DEFAULT_CONTENTS_TITLE = "Contents";
 	/** The languages that are written from right to left. */
-	private static final Set<String> RIGHT_TO_LEFT = Set.of("ar", "he", "fa", "ur");
+	private static final Set<String> RIGHT_TO_LEFT = Set.of("ar", "he", "fa", "ur", "yi", "ps", "sd", "ug", "dv", "ckb", "syr", "ks");
+	/** The scripts that are written from right to left, for a language that has more than one ({@code "pa-Arab"}). */
+	private static final Set<String> RIGHT_TO_LEFT_SCRIPTS = Set.of("Arab", "Hebr", "Thaa", "Syrc", "Nkoo", "Adlm", "Rohg");
 
 
 	public ReportDocument{
@@ -60,7 +62,11 @@ public record ReportDocument(String title, String subtitle, List<ReportSection> 
 
 	/** @return	Whether the language is written from right to left. */
 	public boolean isRightToLeft(){
-		return RIGHT_TO_LEFT.contains(Locale.forLanguageTag(language).getLanguage());
+		final Locale locale = Locale.forLanguageTag(language);
+		if(RIGHT_TO_LEFT_SCRIPTS.contains(locale.getScript()))
+			return true;
+		//a language written from right to left in its usual script, unless the tag says another one
+		return (locale.getScript().isEmpty() && RIGHT_TO_LEFT.contains(locale.getLanguage()));
 	}
 
 }

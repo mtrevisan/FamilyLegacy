@@ -27,7 +27,7 @@ package io.github.mtrevisan.ephemeris.engine.coordinates;
 import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 
 
-public class Converter{
+public final class Converter{
 
 	/* ======================================================================
 	 *                          Precession angles
@@ -74,6 +74,39 @@ public class Converter{
 	};
 
 	private static final double ARCSEC_TO_RADIANS = StrictMath.PI / 648_000.;
+
+
+	private Converter(){}
+
+
+	/**
+	 * Rotates a geocentric rectangular vector from the mean ecliptic of date, with longitudes counted from the departure
+	 * point, to the inertial mean ecliptic and equinox of J2000.0 (Chapront &amp; Francou 2003, eq. 26).
+	 *
+	 * @param jce   Julian Ephemeris Century of Barycentric Dynamical Time (TDB) from J2000.0
+	 * @param xDate rectangular X coordinate of date
+	 * @param yDate rectangular Y coordinate of date
+	 * @param zDate rectangular Z coordinate of date
+	 * @return a double array containing the rectangular coordinates [x, y, z] in J2000.0
+	 */
+	public static double[] toRectangularFromDateToJ2000(final double jce, final double xDate, final double yDate,
+			final double zDate){
+		final double p = MathHelper.polynomial(jce, P_COEFFS);
+		final double q = MathHelper.polynomial(jce, Q_COEFFS);
+
+		final double oneMinus2P2 = 1. - 2. * p * p;
+		final double oneMinus2Q2 = 1. - 2. * q * q;
+		final double twoPQ = 2. * p * q;
+		final double sqrt = StrictMath.sqrt(1. - p * p - q * q);
+		final double twoPSqrt = 2. * p * sqrt;
+		final double twoQSqrt = 2. * q * sqrt;
+
+		return new double[]{
+			oneMinus2P2 * xDate + twoPQ * yDate + twoPSqrt * zDate,
+			twoPQ * xDate + oneMinus2Q2 * yDate - twoQSqrt * zDate,
+			-twoPSqrt * xDate + twoQSqrt * yDate + (oneMinus2P2 - 2. * q * q) * zDate
+		};
+	}
 
 
 	/**

@@ -20,7 +20,7 @@ Open it with **Individual > Edit Individual...** (or `F2`); **Individual > Add I
 - **Participations**: the *Event Participations*. A birth date, for instance, is changed through the birth event: see [Editing people, groups and places](editing.md#changing-a-date-of-birth).
 - **Context**: *Context Impacts*. **Research**: *Conclusions*, *Identity Hypotheses* and *Research Questions*.
 
-The editor does not check anything on Save, not even that the person has a name.
+The editor does not check anything on OK, not even that the person has a name.
 
 ## Individual attribute
 
@@ -36,7 +36,7 @@ A characteristic or status of a person that is not an event: an occupation, a re
 | **Place** | Where it held (a place with its citations). |
 | **Confidence** | See [The record editors](editors.md#confidence). |
 
-On Save the type is required, and the attribute must belong to an individual; for a *sex* the value must be *male*, *female* or *unknown*.
+On OK the type is required, and the attribute must belong to an individual; for a *sex* the value must be *male*, *female* or *unknown*.
 
 **The sex and the preferred assertion.** A person can have several *sex* attributes, for instance one for each source that states it, and they may disagree. The application uses one of them, the **preferred** one, chosen in this order:
 
@@ -59,7 +59,7 @@ Open it with **Group > Edit Group...**; **Group > Add Group...** creates one.
 - **Name**: the list of the names of the group. Each opens the [name editor](#name).
 - **Type**: editable. One of: family, household, neighborhood, fraternity, club, literary society, association, organization, tribe.
 
-The **Relationships** tab shows *Group Memberships* (who belongs to the group) and *Inverse Relationships*. The **Attributes** tab lists the *Group Attributes*. Nothing is checked on Save.
+The **Relationships** tab shows *Group Memberships* (who belongs to the group) and *Inverse Relationships*. The **Attributes** tab lists the *Group Attributes*. Nothing is checked on OK.
 
 ## Group attribute
 

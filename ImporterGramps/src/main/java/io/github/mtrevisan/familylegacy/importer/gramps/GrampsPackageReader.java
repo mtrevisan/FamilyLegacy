@@ -89,7 +89,8 @@ public final class GrampsPackageReader{
 
 	/** Extracts every regular file of the archive, but the data, into the directory. */
 	private static void extractMedia(final byte[] archive, final Path directory) throws IOException{
-		final Path root = directory.toAbsolutePath().normalize();
+		final Path root = directory.toAbsolutePath()
+			.normalize();
 		int position = 0;
 		while(position + TAR_BLOCK <= archive.length){
 			final String entryName = cString(archive, position, TAR_NAME_LENGTH);
@@ -103,7 +104,8 @@ public final class GrampsPackageReader{
 				throw new IOException("The package is truncated");
 
 			if((type == '0' || type == 0) && !entryName.endsWith(PACKAGE_DATA_NAME)){
-				final Path target = root.resolve(entryName).normalize();
+				final Path target = root.resolve(entryName)
+					.normalize();
 				if(target.startsWith(root) && !target.equals(root)
 						&& !(Files.isRegularFile(target) && Files.size(target) == size)){
 					Files.createDirectories(target.getParent());

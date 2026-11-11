@@ -48,8 +48,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -145,6 +147,8 @@ public class IndividualConverter {
 		}
 
 		// ---- Events and attributes, in the order of the file ----
+		boolean hasResidence = false;
+		final List<CensusEvent> censuses = new ArrayList<>();
 		for(GEDCOMNode child : indiNode.getChildren()){
 			final String tag = child.getTag();
 			if("NO".equals(tag)){
@@ -176,9 +180,12 @@ public class IndividualConverter {
 			final String age = GEDCOMHelper.findFirstValue(child, GEDCOMMapper.TAG_AGE);
 			if(typeToken != null && GEDCOMMapper.NAME_PART_FACT_TYPES.containsKey(typeToken))
 				attachNameFact(individual, child, GEDCOMMapper.NAME_PART_FACT_TYPES.get(typeToken));
-			else if(typeToken != null && GEDCOMMapper.ATTRIBUTE_FACT_TYPES.containsKey(typeToken))
-				ageBirthConverter.track(id, GEDCOMRecordBuilder.createIndividualAttribute(model, id, child,
-					GEDCOMMapper.ATTRIBUTE_FACT_TYPES.get(typeToken), noteRawMap, placeCache), null, age, child);
+			else if(typeToken != null && GEDCOMMapper.ATTRIBUTE_FACT_TYPES.containsKey(typeToken)){
+				final FLEFRecord attribute = GEDCOMRecordBuilder.createIndividualAttribute(model, id, child,
+					GEDCOMMapper.ATTRIBUTE_FACT_TYPES.get(typeToken), noteRawMap, placeCache);
+				hasResidence |= isResidence(attribute);
+				ageBirthConverter.track(id, attribute, null, age, child);
+			}
 			else if(isEvent){
 				final FLEFRecord event = GEDCOMRecordBuilder.createEvent(model, child, noteRawMap, placeCache);
 				//a citation may state that the individual had a role in the event, other than the main one; but in the birth, the baptism,
@@ -191,14 +198,20 @@ public class IndividualConverter {
 				if(citedRole != null && ownEvent)
 					GEDCOMRecordBuilder.reportInconsistentCitedRole(child, citedRole);
 				ageBirthConverter.track(id, event, participationId, age, child);
+				if(GEDCOMMapper.TAG_CENSUS.equals(tag) && (citedRole == null || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(citedRole)))
+					censuses.add(new CensusEvent(event, child));
 				GEDCOMRecordBuilder.attachEventAssociates(event.getId(), child, model, noteRawMap, recordsById);
 				if(GEDCOMMapper.TAG_ADOPTION.equals(tag))
 					GEDCOMRecordBuilder.attachAdoptiveParents(individual, model, indiNode, child, noteRawMap, recordsById);
 			}
-			else
-				ageBirthConverter.track(id, GEDCOMRecordBuilder.createIndividualAttribute(model, id, child, null, noteRawMap, placeCache),
-					null, age, child);
+			else{
+				final FLEFRecord attribute = GEDCOMRecordBuilder.createIndividualAttribute(model, id, child, null, noteRawMap, placeCache);
+				hasResidence |= isResidence(attribute);
+				ageBirthConverter.track(id, attribute, null, age, child);
+			}
 		}
+		if(!hasResidence)
+			deriveResidences(id, censuses);
 
 		// ---- Sources (SOUR) ----
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(indiNode, GEDCOMMapper.TAG_SOURCE)){
@@ -241,6 +254,51 @@ public class IndividualConverter {
 		individual.addChild(AuditBuilder.build(indiNode));
 
 		model.addRecord(individual);
+	}
+
+	/** A census of the individual, with the GEDCOM node it comes from. */
+	private record CensusEvent(FLEFRecord event, GEDCOMNode node){}
+
+	private static boolean isResidence(final FLEFRecord attribute){
+		return IndividualAttributeReader.ENUM_TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(attribute,
+			IndividualAttributeReader.TAG_TYPE));
+	}
+
+	/**
+	 * Makes a residence of each census of an individual that has no residence at all: a census lists the people where they lived,
+	 * so the place of the census, at the date of the census, is a residence of the individual.
+	 * <p>
+	 * It is done only for a census of the individual itself (not a witness), with both a place and a date; the residence has the
+	 * same date, place and sources of the census, and a note that links to it. Two censuses with the same date and place give one
+	 * residence. Nothing else is inferred (no continuity between two censuses).
+	 */
+	private void deriveResidences(final String individualId, final List<CensusEvent> censuses){
+		final Set<String> done = new HashSet<>();
+		for(final CensusEvent census : censuses){
+			final String date = GEDCOMHelper.findFirstValue(census.node(), GEDCOMMapper.TAG_DATE);
+			final FLEFRecord place = FLEFRecordHelper.findChild(census.event(), EventReader.TAG_PLACE);
+			if(StringUtils.isBlank(date) || place == null || !done.add(date + "|" + place.getValue()))
+				continue;
+
+			final FLEFRecord residence = FLEFRecord.createMainRecord(IDGenerator.nextId(IndividualAttributeReader.ID_PREFIX),
+					IndividualAttributeReader.TYPE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, individualId))
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE,
+					IndividualAttributeReader.ENUM_TYPE_RESIDENCE));
+			GEDCOMRecordBuilder.attachValidity(residence, date);
+			final FLEFRecord placeCopy = FLEFRecord.createEmpty();
+			place.deepCopyTo(placeCopy);
+			residence.addChild(placeCopy);
+			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(census.event(), IndividualAttributeReader.TAG_SOURCE)){
+				final FLEFRecord copy = FLEFRecord.createEmpty();
+				citation.deepCopyTo(copy);
+				residence.addChild(copy);
+			}
+			residence.addChild(GEDCOMRecordBuilder.createLinkNote("Census", "Derived from the census [" + census.event().getId() + "]("
+				+ GEDCOMMapper.FLEF_LINK_PREFIX + census.event().getId() + "): the individual was listed there", census.node()));
+			residence.addChild(AuditBuilder.build(census.node()));
+			model.addRecord(residence);
+		}
 	}
 
 	/**

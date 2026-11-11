@@ -131,6 +131,8 @@ public final class ResourceReader{
 
 				final VSOP2013Data data = new VSOP2013Data();
 				final VariableIndex variable = VariableIndex.of(Integer.parseInt(header[2]));
+				if(variable == null)
+					throw new IOException("Unknown VSOP2013 variable in " + filename + ": " + header[2]);
 				data.timePower = Integer.parseInt(header[3]);
 				final int count = Integer.parseInt(header[4]);
 				data.sines = new double[count];
@@ -142,6 +144,9 @@ public final class ResourceReader{
 				int arguments = 0;
 				for(int i = 0; i < count; i ++){
 					line = reader.readLine();
+					if(line == null)
+						throw new IOException("Truncated VSOP2013 file " + filename + ": expected " + count
+							+ " terms, found " + i);
 
 					data.argumentStart[i] = arguments;
 					for(int k = 0; k < MULTIPLIER_COLUMNS.length - 1; k ++){

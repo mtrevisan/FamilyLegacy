@@ -106,6 +106,12 @@ public final class ReportDialog extends JDialog{
 	private final Map<ReportRenderer, JCheckBox> formatBoxes = new LinkedHashMap<>();
 
 	private final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.values());
+	/** The font of the formats that let the choose one (the PDF): the first item is the automatic one, the others are read from the system. */
+	private final JComboBox<String> fontBox = new JComboBox<>(new String[]{I18N.t("text.report.font_automatic")});
+	/** The font the user chose the last time, until the fonts of the system are read and it can be selected. */
+	private String pendingFont;
+	private boolean fontsRequested;
+	private boolean fontsLoaded;
 	/** What the user chose the last time: the language, the formats, the options and the folder. */
 	private final ReportPreferences preferences = ReportPreferences.application();
 
@@ -130,6 +136,7 @@ public final class ReportDialog extends JDialog{
 		this.optionsPanel = new ReportOptionsPanel(preferences.options(reportType, ReportConfig.defaults()),
 			option -> ReportBuilder.optionState(reportType, selectedEntity, option));
 		language.setSelectedItem(preferences.language());
+		pendingFont = preferences.font();
 
 		initComponents();
 	}
@@ -189,7 +196,7 @@ public final class ReportDialog extends JDialog{
 		setLayout(new BorderLayout(0, 0));
 
 		final JPanel mainPanel = new JPanel(new MigLayout(
-			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]20[]10[]"));
+			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]5[]20[]10[]"));
 
 		// 1. Header panel displaying report type and targeted root entity
 		String targetText = I18N.t(reportType.isGlobal()? "text.report.whole_file": "text.report.no_subject");
@@ -204,10 +211,13 @@ public final class ReportDialog extends JDialog{
 		// 2. Format selection panel
 		mainPanel.add(createFormatSelectionPanel());
 
-		// 3. Language selection panel
+		// 3. Font selection panel (for the formats that have the choice)
+		mainPanel.add(createFontSelectionPanel());
+
+		// 4. Language selection panel
 		mainPanel.add(createLanguageSelectionPanel());
 
-		// 4. Options configuration panel
+		// 5. Options configuration panel
 		mainPanel.add(optionsPanel);
 
 		final JScrollPane scrollPane = new JScrollPane(mainPanel);
@@ -229,7 +239,9 @@ public final class ReportDialog extends JDialog{
 		add(scrollPane, BorderLayout.CENTER);
 		add(buttons, BorderLayout.SOUTH);
 
-		setPreferredSize(new Dimension(580, 620));
+		setPreferredSize(new Dimension(580, 680));
+
+		refreshFontChoice();
 	}
 
 	private JPanel createFormatSelectionPanel(){
@@ -255,8 +267,10 @@ public final class ReportDialog extends JDialog{
 			final ReportRenderer renderer = available.get(id);
 			final String label = I18N.t("checkbox.format_" + id, (renderer != null? renderer.displayName(): id));
 			final JCheckBox checkBox = new JCheckBox(label, renderer != null && chosen.contains(id));
-			if(renderer != null)
+			if(renderer != null){
 				formatBoxes.put(renderer, checkBox);
+				checkBox.addItemListener(e -> refreshFontChoice());
+			}
 			else{
 				checkBox.setEnabled(false);
 				checkBox.setToolTipText(I18N.tf("tooltip.format_unavailable", ReportRenderers.pluginFileName(id)));
@@ -265,6 +279,78 @@ public final class ReportDialog extends JDialog{
 		}
 
 		return panel;
+	}
+
+	private JPanel createFontSelectionPanel(){
+		final JPanel p = new JPanel(new MigLayout(
+			"ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]"));
+		p.setBorder(BorderFactory.createTitledBorder(I18N.t("border.report_font")));
+		fontBox.setToolTipText(I18N.t("tooltip.report_font"));
+		p.add(fontBox);
+		return p;
+	}
+
+	/** The font can be chosen only when a format that has the choice is ticked; the fonts of the system are read the first time. */
+	private void refreshFontChoice(){
+		final boolean wanted = formatBoxes.entrySet().stream()
+			.anyMatch(entry -> entry.getValue().isSelected() && entry.getKey().choosesFont());
+		fontBox.setEnabled(wanted && (fontsLoaded || !fontsRequested));
+		if(wanted && !fontsRequested)
+			loadFonts();
+	}
+
+	/** Reads the fonts of the system in the background (it takes a moment), then offers them. */
+	private void loadFonts(){
+		final ReportRenderer renderer = formatBoxes.keySet().stream()
+			.filter(ReportRenderer::choosesFont)
+			.findFirst()
+			.orElse(null);
+		if(renderer == null)
+			return;
+
+		fontsRequested = true;
+		fontBox.setEnabled(false);
+		fontBox.setToolTipText(I18N.t("text.report.fonts_loading"));
+
+		new SwingWorker<List<String>, Void>(){
+			@Override
+			protected List<String> doInBackground(){
+				return renderer.fonts();
+			}
+
+			@Override
+			protected void done(){
+				List<String> fonts;
+				try{
+					fonts = get();
+				}
+				catch(final Exception e){
+					//the fonts cannot be read: the automatic one stays
+					fonts = List.of();
+				}
+
+				final String chosen = (fontBox.getSelectedIndex() > 0? (String)fontBox.getSelectedItem(): pendingFont);
+				for(final String font : fonts)
+					fontBox.addItem(font);
+				if(chosen != null)
+					for(int i = 1; i < fontBox.getItemCount(); i ++)
+						if(fontBox.getItemAt(i).equalsIgnoreCase(chosen)){
+							fontBox.setSelectedIndex(i);
+							break;
+						}
+				fontsLoaded = true;
+				fontBox.setToolTipText(I18N.t("tooltip.report_font"));
+				refreshFontChoice();
+			}
+		}.execute();
+	}
+
+	/** @return	The font the user chose; {@code null} for the automatic one. */
+	private String chosenFont(){
+		if(fontBox.getSelectedIndex() > 0)
+			return (String)fontBox.getSelectedItem();
+		//the fonts are not read yet (the format was not ticked): the choice of the last time is kept
+		return (fontsLoaded? null: pendingFont);
 	}
 
 	private JPanel createLanguageSelectionPanel(){
@@ -325,14 +411,16 @@ public final class ReportDialog extends JDialog{
 		final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
 		final ReportConfig config = optionsPanel.toConfig(selectedLang);
 
-		remember(outDir, renderers, selectedLang, config);
-		runWithProgress(outDir, renderers, config);
+		final String font = chosenFont();
+		remember(outDir, renderers, selectedLang, config, font);
+		runWithProgress(outDir, renderers, config, font);
 	}
 
 	/** Keeps what the user chose, to offer it again the next time (not the privacy policy: see {@link ReportPreferences}). */
 	private void remember(final Path outDir, final Map<String, ReportRenderer> renderers, final ReportLanguage selectedLang,
-			final ReportConfig config){
+			final ReportConfig config, final String font){
 		preferences.setDirectory(outDir.toString());
+		preferences.setFont(font);
 		preferences.setFormats(renderers.values().stream()
 			.map(ReportRenderer::id)
 			.toList());
@@ -346,6 +434,8 @@ public final class ReportDialog extends JDialog{
 	private void restoreDefaults(){
 		optionsPanel.reset(ReportConfig.defaults());
 		language.setSelectedItem(preferences.defaultLanguage());
+		pendingFont = null;
+		fontBox.setSelectedIndex(0);
 		formatBoxes.forEach((renderer, box) -> box.setSelected(ReportRenderers.DEFAULT_ID.equals(renderer.id())));
 	}
 
@@ -381,7 +471,7 @@ public final class ReportDialog extends JDialog{
 
 	private void runWithProgress(final Path outDir,
 		final Map<String, ReportRenderer> renderers,
-		final ReportConfig config){
+		final ReportConfig config, final String font){
 
 		final ProgressDialog progressDialog =
 			new ProgressDialog(this, I18N.tf("dialog.report.generating", reportType.getTitle()));
@@ -441,7 +531,7 @@ public final class ReportDialog extends JDialog{
 						final Path targetFile = outDir.resolve(entry.getKey());
 						written.add(targetFile);
 						entry.getValue()
-							.render(doc, targetFile);
+							.render(doc, targetFile, font);
 						generatedFiles.add(targetFile);
 
 						i ++;

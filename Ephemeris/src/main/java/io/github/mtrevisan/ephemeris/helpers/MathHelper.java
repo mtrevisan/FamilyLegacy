@@ -33,9 +33,6 @@ public final class MathHelper{
 	private MathHelper(){}
 
 
-	public static double frac(final double x){
-		return x - (int)x;
-	}
 
 	/**
 	 * Reduce a value to the range {@code 0} to {@code max}.

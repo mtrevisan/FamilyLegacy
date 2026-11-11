@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -38,6 +39,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
  * status are grouped under a separate heading, so nothing is silently dropped. See {@link ProofSummaryDialog}.
  */
 public final class ProofSummaryTool implements ToolOperation{
+
+	@Override
+	public UxLevel minimumLevel(){
+		return UxLevel.ADVANCED;
+	}
 
 	@Override
 	public String getName(){

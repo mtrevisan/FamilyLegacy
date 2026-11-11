@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars.gregorian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.spi.DateInterpretation;
+import io.github.mtrevisan.calendars.text.DateFormulas;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
@@ -49,8 +50,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,6 +68,8 @@ public final class GregorianCalendarParser{
 	private static final String SLASH = "/";
 
 	private static final String RESOURCE = "seasons.csv";
+	/** Fields of each line of {@link #RESOURCE}: the languages, then the words of autumn, winter, spring, and summer. */
+	private static final int SEASON_FIELDS = 5;
 	/**
 	 * Comment of {@link #RESOURCE} declaring that a season word is kept even if it is also the abbreviation of a month in
 	 * another language (otherwise the month wins, and the collision is documented by a {@code # collision (month wins): }
@@ -117,13 +122,22 @@ public final class GregorianCalendarParser{
 
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String line;
+			int lineNumber = 0;
 			while((line = reader.readLine()) != null){
-				if(line.startsWith(SEASON_WINS_PREFIX))
-					seasonWins.add(StringUtils.split(line.substring(SEASON_WINS_PREFIX.length()))[0]);
+				lineNumber ++;
+				if(line.startsWith(SEASON_WINS_PREFIX)){
+					final String[] collision = StringUtils.split(line.substring(SEASON_WINS_PREFIX.length()));
+					if(collision == null || collision.length == 0)
+						throw new IllegalStateException("Malformed collision comment at line " + lineNumber + " of " + RESOURCE);
+					seasonWins.add(collision[0]);
+				}
 				if(line.isBlank() || line.startsWith("#"))
 					continue;
 
-				final String[] fields = StringUtils.split(line, ';');
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
+				if(fields.length != SEASON_FIELDS)
+					throw new IllegalStateException("Malformed line " + lineNumber + " of " + RESOURCE + ": expected "
+						+ SEASON_FIELDS + " fields (language;autumn;winter;spring;summer) but found " + fields.length + ": " + line);
 				putSeason(fields[0], fields[1], CalendarSeason.SEASON_AUTUMN, seasonWins);
 				putSeason(fields[0], fields[2], CalendarSeason.SEASON_WINTER, seasonWins);
 				putSeason(fields[0], fields[3], CalendarSeason.SEASON_SPRING, seasonWins);
@@ -242,18 +256,10 @@ public final class GregorianCalendarParser{
 	/** Maximum number of days of each month (February in a leap year). */
 	private static final int[] MONTH_MAX_DAYS = {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
+	/** First day of March that belongs to the new year (25 March, the start of the year in the Incarnation styles). */
+	private static final int DUAL_YEAR_END_DAY = 25;
+
 	private static final Pattern DUAL_DATE_PATTERN = Pattern.compile(".*\\d{4}/\\d{1,4}$");
-
-	/** Words of the date formulas that carry no information (e.g. "die 5 mensis martii anno Domini 1450", "5 de marzo de 1950"). */
-	private static final Pattern FORMULA_WORDS = Pattern.compile(
-		"(?iu)(?<![\\p{L}])(?:die|mensis|anno|domini|nativitatis|incarnationis|adi|adì|addì|a dì|the|of|de|del|di|du|des)(?![\\p{L}])");
-	/** "A.D." or "AD" next to the year. */
-	private static final Pattern ANNO_DOMINI = Pattern.compile("(?i)(?:(?<![\\p{L}])a\\.\\s?d\\.?|(?<![\\p{L}])ad)(?=\\s*\\d)|(?<=\\d)\\s*(?:a\\.\\s?d\\.?|ad)$");
-	/** Ordinal suffix of the day (e.g. "1st", "2nd", "1°", "1º"). */
-	private static final Pattern DAY_ORDINAL_SUFFIX = Pattern.compile("(?i)(?<![\\p{L}\\d])(\\d{1,2})(?:st|nd|rd|th|°|º)(?![\\p{L}])");
-
-	/** Trailing era marker for the years before Christ: "BC", "BCE", "B.C.", "B.C.E.", or the Italian "a.C.". */
-	private static final Pattern BEFORE_CHRIST_PATTERN = Pattern.compile("\\s*(?:(?i:b\\.?\\s?c\\.?(?:\\s?e\\.?)?)|a\\.\\s?C\\.?)\\s*$");
 
 	/** Trailing language of the date, by name or code, between parentheses (e.g. "1 pay 2006 (asturiano)"). */
 	private static final Pattern LANGUAGE_MARKER = Pattern.compile("\\s*\\(([^()]+)\\)\\s*$");
@@ -324,9 +330,17 @@ public final class GregorianCalendarParser{
 			month = meanings.iterator()
 				.next();
 		}
-		else if(dayGroup != null)
+		else if(dayGroup != null){
 			// When a day is present, strictly resolve as a month (seasons cannot have a day number)
-			month = resolvePolyglotMonth(monthName);
+			try{
+				month = resolvePolyglotMonth(monthName);
+			}
+			catch(final IllegalArgumentException iae){
+				if(SEASONS.containsKey(monthName) || SEASON_MEANINGS.containsKey(monthName))
+					throw new IllegalArgumentException("A season cannot have a day: " + rawDate, iae);
+				throw iae;
+			}
+		}
 		else{
 			final Integer season = SEASONS.get(monthName);
 			if(season != null)
@@ -342,24 +356,35 @@ public final class GregorianCalendarParser{
 
 		// Calculate the final historical year mapping boundary
 		int finalHistoricalYear = civilYear;
-		// Dual dating strictly applies to transition months (January, February, March)
-		final boolean dualYear = (dualYearFraction != null && month > 0 && month <= 3);
+		final boolean dualYear = (dualYearFraction != null);
 		if(dualYear){
-			if(dualYearFraction.length() < 4){
-				// Handles shorthand formats like "1704/5" or "1731/2", replacing the last digits of the civil year:
-				// the historical year is the one after the civil year (e.g. "1709/10" -> 1710, "1699/00" -> 1700)
-				final int modulus = (dualYearFraction.length() == 1? 10: (dualYearFraction.length() == 2? 100: 1000));
-				finalHistoricalYear = civilYear - Math.floorMod(civilYear, modulus) + Integer.parseInt(dualYearFraction);
-				if(finalHistoricalYear <= civilYear)
-					finalHistoricalYear += modulus;
-			}
-			else
-				// Handles full explicit expansions like "1704/1705"
-				finalHistoricalYear = Integer.parseInt(dualYearFraction);
+			validateDualYear(rawDate, civilYear, dualYearFraction, month, day);
+			// the historical year is the one after the civil year (e.g. "1709/10" -> 1710, "1699/00" -> 1700)
+			finalHistoricalYear = civilYear + 1;
 		}
 
 		return new GregorianDateInput(toAstronomicalYear(finalHistoricalYear, beforeChrist), month, day, dualYear,
 			indiction);
+	}
+
+	/**
+	 * Checks a dual year (e.g. "1704/5"): the second year must be the one after the first (written fully, or with its last
+	 * 1 to 3 digits), and the date must fall before the start of the year on 25 March, i.e. in January, February, or in
+	 * March before the 25th (a month without the day is accepted).
+	 */
+	private static void validateDualYear(final String rawDate, final int civilYear, final String fraction, final int month,
+			final int day){
+		if(month < 1 || month > 3 || month == 3 && day >= DUAL_YEAR_END_DAY)
+			throw new IllegalArgumentException("A dual year is valid only from 1 January to 24 March: " + rawDate);
+
+		final int length = fraction.length();
+		final long next = civilYear + 1L;
+		final boolean consistent = (length >= 4
+			? Long.parseLong(fraction) == next
+			: Long.parseLong(fraction) == Math.floorMod(next, (long)Math.pow(10, length)));
+		if(!consistent)
+			throw new IllegalArgumentException("The second year of a dual year must follow the first one (" + civilYear + "/"
+				+ next + "): " + rawDate);
 	}
 
 	/**
@@ -415,9 +440,15 @@ public final class GregorianCalendarParser{
 		final WrittenWord writtenWord = new WrittenWord(wordPattern, scripts(dateWord.word()),
 			(written && Character.isUpperCase(wordMatcher.group().codePointAt(0))));
 		final List<DateInterpretation> readings = new ArrayList<>(meanings.size());
-		meanings.forEach((meaning, languages) -> readings.add(
-			reading(target, checkedTarget, writtenWord, meaning, languages, locale)));
-		return readings;
+		meanings.forEach((meaning, languages) -> {
+			try{
+				readings.add(reading(target, checkedTarget, writtenWord, meaning, languages, locale));
+			}
+			catch(final IllegalStateException | NoSuchElementException | IllegalArgumentException ignored){
+				// a meaning that cannot be written unambiguously (e.g. a season with no name in any language) is not offered
+			}
+		});
+		return (readings.size() < 2? List.of(): readings);
 	}
 
 	/**
@@ -446,9 +477,13 @@ public final class GregorianCalendarParser{
 	}
 
 	/**
-	 * Removes the language declared by a date, if any.
+	 * Removes the language declared by a date between parentheses (e.g. "1 pay 2006 (asturiano)"), if it is the name or
+	 * the code of a language.
+	 *
+	 * @param date the date expression
+	 * @return the date without the declared language
 	 */
-	private static String removeLanguage(final String date){
+	public static String removeLanguage(final String date){
 		final Matcher languageMatcher = LANGUAGE_MARKER.matcher(date);
 		return (languageMatcher.find() && languagesOf(languageMatcher.group(1)) != null
 			? date.substring(0, languageMatcher.start())
@@ -708,7 +743,8 @@ public final class GregorianCalendarParser{
 			name = Month.of(meaning).getDisplayName(TextStyle.FULL_STANDALONE, locale);
 		else{
 			final List<String> seasonNames = names(meaning, Locale.of(locale.getLanguage()));
-			name = (!seasonNames.isEmpty()? seasonNames: names(meaning, Locale.ENGLISH)).getFirst();
+			final List<String> available = (!seasonNames.isEmpty()? seasonNames: names(meaning, Locale.ENGLISH));
+			name = (!available.isEmpty()? available.getFirst(): String.valueOf(meaning));
 		}
 
 		final List<String> languageNames = sortLanguages(languages, locale).stream()
@@ -753,13 +789,18 @@ public final class GregorianCalendarParser{
 	 */
 	private static CleanedDate clean(final String rawDate){
 		// The language of the date, if declared
-		final Matcher languageMatcher = LANGUAGE_MARKER.matcher(rawDate);
+		final String plainDate = DateFormulas.plainSpaces(rawDate);
+		final Matcher languageMatcher = LANGUAGE_MARKER.matcher(plainDate);
 		Set<String> languages = null;
-		String dateText = rawDate;
+		String dateText = plainDate;
 		if(languageMatcher.find()){
 			languages = languagesOf(languageMatcher.group(1));
-			if(languages != null)
-				dateText = rawDate.substring(0, languageMatcher.start());
+			if(languages != null){
+				dateText = plainDate.substring(0, languageMatcher.start());
+				// a language (or a code like "(ca)") next to a year alone, with no month word, is not the language of a date
+				if(StringUtils.isNumeric(StringUtils.deleteWhitespace(dateText)))
+					languages = null;
+			}
 		}
 
 		// The indiction is checked against the year by the calendar, after the conversion
@@ -767,10 +808,9 @@ public final class GregorianCalendarParser{
 		final String text = removeFormulas(extraction.text());
 
 		// Years before Christ: the historical year N BC is the astronomical year 1 - N (there is no year 0)
-		final Matcher beforeChristMatcher = BEFORE_CHRIST_PATTERN.matcher(text);
-		final boolean beforeChrist = beforeChristMatcher.find();
-		final String normalized = normalize(beforeChrist? text.substring(0, beforeChristMatcher.start()): text);
-		return new CleanedDate(normalized, extraction.indiction(), beforeChrist, languages);
+		final DateFormulas.Era era = DateFormulas.extractEra(text);
+		final String normalized = normalize(era.text());
+		return new CleanedDate(normalized, extraction.indiction(), era.beforeChrist(), languages);
 	}
 
 	/**
@@ -821,21 +861,17 @@ public final class GregorianCalendarParser{
 
 	/**
 	 * Removes the formulas of the documents that carry no date information: the Latin "die ... mensis ...",
-	 * "anno (Domini)", the Venetian "adì", the Romance "de"/"del"/"di" between the components, "A.D.", and the ordinal
+	 * "anno (Domini)", the Venetan "adì", the Romance "de"/"del"/"di" between the components, "A.D.", and the ordinal
 	 * suffixes of the day ("1st", "1°").
 	 */
 	private static String removeFormulas(final String text){
-		String result = FORMULA_WORDS.matcher(text).replaceAll(StringUtils.SPACE);
-		result = ANNO_DOMINI.matcher(result).replaceAll(StringUtils.SPACE);
-		result = DAY_ORDINAL_SUFFIX.matcher(result).replaceAll("$1");
-		return StringUtils.normalizeSpace(result);
+		//a formula word that is also the name of a month or of a season in some language is not removed
+		return DateFormulas.removeFormulas(text, word -> MONTHS.containsKey(word) || HISTORICAL_MONTHS.containsKey(word)
+			|| SEASONS.containsKey(word));
 	}
 
 	private static int toAstronomicalYear(final int historicalYear, final boolean beforeChrist){
-		if(beforeChrist && historicalYear < 1)
-			throw new IllegalArgumentException("There is no year " + historicalYear + " before Christ");
-
-		return (beforeChrist? 1 - historicalYear: historicalYear);
+		return DateFormulas.toAstronomicalYear(historicalYear, beforeChrist);
 	}
 
 	private static String normalize(final String rawDate){
@@ -939,29 +975,70 @@ public final class GregorianCalendarParser{
 				.iterator()
 				.next();
 
-		final Integer month = MONTHS.get(token);
-		if(month != null)
-			return month;
+		final Map<Integer, Set<Locale>> meanings = MONTH_MEANINGS.get(token);
+		if(meanings != null)
+			return preferredMonth(meanings);
 
-		final Locale[] locales = Locale.getAvailableLocales();
-		for(final Locale locale : locales){
-			final int resolvedMonth = parseMonthWithLocale(token, locale);
-			if(resolvedMonth != -1)
-				return resolvedMonth;
-		}
+		final int fallback = FALLBACK_MONTHS.computeIfAbsent(token, GregorianCalendarParser::resolveWithLocales);
+		if(fallback != -1)
+			return fallback;
 
 		if(AMBIGUOUS_SEASONS.contains(token))
 			throw new IllegalArgumentException("The word is a different season in different languages: " + token);
 		throw new IllegalArgumentException("Unknown Gregorian month or seasonal descriptor across global locale parameters: " + token);
 	}
 
+	/**
+	 * Picks the month of a word that is a different month in different languages, always in the same way: the month that
+	 * the most languages give to the word, and, if the languages are equally many, the month of the language whose code
+	 * comes first alphabetically (then the earliest month).
+	 */
+	private static int preferredMonth(final Map<Integer, Set<Locale>> meanings){
+		int best = -1;
+		int bestLanguages = -1;
+		String bestTag = null;
+		for(final Map.Entry<Integer, Set<Locale>> entry : meanings.entrySet()){
+			final int languages = entry.getValue().size();
+			final String tag = entry.getValue().stream()
+				.map(Locale::toLanguageTag)
+				.min(Comparator.naturalOrder())
+				.orElse(StringUtils.EMPTY);
+			final boolean better = (languages != bestLanguages
+				? languages > bestLanguages
+				: (tag.equals(bestTag)? entry.getKey() < best: tag.compareTo(bestTag) < 0));
+			if(better){
+				best = entry.getKey();
+				bestLanguages = languages;
+				bestTag = tag;
+			}
+		}
+		return best;
+	}
+
+	/** Months of the words that are not in the lookup tables, resolved by the locales (-1 if not a month). */
+	private static final Map<String, Integer> FALLBACK_MONTHS = new ConcurrentHashMap<>();
+	/** Parsers of the month names, one for each locale. */
+	private static final Map<Locale, DateTimeFormatter> MONTH_FORMATTERS = new ConcurrentHashMap<>();
+
+	private static int resolveWithLocales(final String token){
+		// the locales are always tried in the same order
+		final Locale[] locales = Locale.getAvailableLocales();
+		Arrays.sort(locales, Comparator.comparing(Locale::toLanguageTag));
+		for(final Locale locale : locales){
+			final int resolvedMonth = parseMonthWithLocale(token, locale);
+			if(resolvedMonth != -1)
+				return resolvedMonth;
+		}
+		return -1;
+	}
+
 	private static int parseMonthWithLocale(final String token, final Locale locale){
 		try{
-			// Build a dynamic parser instance configured to match full (MMMM), short (MMM), or numeric (M) textual components
-			final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+			// A parser instance configured to match full (MMMM), short (MMM), or numeric (M) textual components
+			final DateTimeFormatter formatter = MONTH_FORMATTERS.computeIfAbsent(locale, l -> new DateTimeFormatterBuilder()
 				.parseCaseInsensitive()
 				.appendPattern("[MMMM][MMM][M]")
-				.toFormatter(locale);
+				.toFormatter(l));
 
 			return formatter.parse(token)
 				.get(ChronoField.MONTH_OF_YEAR);

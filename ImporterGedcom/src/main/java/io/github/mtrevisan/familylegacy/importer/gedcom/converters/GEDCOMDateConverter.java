@@ -294,7 +294,7 @@ public final class GEDCOMDateConverter{
 		final List<String> result = new ArrayList<>();
 		for(final String part : ALTERNATIVE_SEPARATOR_PATTERN.split(date.trim())){
 			final boolean uncertain = part.endsWith("?");
-			final String core = (uncertain? StringUtils.removeEnd(part, "?").trim(): part);
+			final String core = (uncertain? Strings.CI.removeEnd(part, "?").trim(): part);
 			final Matcher m = YEAR_ALTERNATIVE_PATTERN.matcher(core);
 			if(m.matches()){
 				final String suffix = (uncertain? "?": StringUtils.EMPTY);
@@ -341,13 +341,14 @@ public final class GEDCOMDateConverter{
 		//a question mark makes the date approximate
 		final boolean uncertain = date.endsWith("?");
 		if(uncertain)
-			date = StringUtils.removeEnd(date, "?").trim();
+			date = Strings.CI.removeEnd(date, "?").trim();
 		//a qualifier of the date itself (e.g. the bound of `BEF ABT 1450`) prevails on the one of the whole date
 		String basis = approximateBasis;
 		final Matcher qualifierMatcher = QUALIFIER_PATTERN.matcher(date);
 		if(qualifierMatcher.matches()){
 			basis = mapBasis(qualifierMatcher.group(1).toUpperCase(Locale.ROOT));
-			date = qualifierMatcher.group(2).trim();
+			date = qualifierMatcher.group(2)
+				.trim();
 		}
 		if(basis == null && uncertain)
 			basis = DateReader.ENUM_BASIS_UNSPECIFIED;
@@ -427,7 +428,8 @@ public final class GEDCOMDateConverter{
 			final LocalDate birthDate = fullDate.minusYears(years != null? years: 0)
 				.minusMonths(months != null? months: 0)
 				.minusDays((weeks != null? weeks * 7L: 0L) + (days != null? days: 0));
-			birth = GEDCOM_DATE_EXACT.format(birthDate).toUpperCase(Locale.ROOT);
+			birth = GEDCOM_DATE_EXACT.format(birthDate)
+				.toUpperCase(Locale.ROOT);
 		}
 		else if(years != null && eventYear - years > 0)
 			birth = String.valueOf(eventYear - years);
@@ -472,9 +474,11 @@ public final class GEDCOMDateConverter{
 			if(calendar == null)
 				return null;
 
-			date = escapeMatcher.group(2).trim();
+			date = escapeMatcher.group(2)
+				.trim();
 		}
-		date = StringUtils.normalizeSpace(date).toUpperCase(Locale.ROOT);
+		date = StringUtils.normalizeSpace(date)
+			.toUpperCase(Locale.ROOT);
 
 		final Matcher m = MONTH_DATE_PATTERN.matcher(date);
 		if(calendar == null && m.matches() && m.group(2) != null){

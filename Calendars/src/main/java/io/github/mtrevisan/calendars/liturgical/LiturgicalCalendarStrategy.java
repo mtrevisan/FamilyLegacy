@@ -63,6 +63,21 @@ public class LiturgicalCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 
+	/**
+	 * The liturgical calendar of a country, that follows the Julian calendar and computus up to its Gregorian reform.
+	 *
+	 * @param reform the Gregorian reform in force, or {@code null} for the Julian calendar and computus
+	 * @return the strategy
+	 */
+	public static LiturgicalCalendarStrategy forReform(final CalendarReform reform){
+		if(reform == null)
+			return JULIAN;
+		if(reform.equals(CalendarReform.ROME))
+			return WESTERN;
+		return new LiturgicalCalendarStrategy(reform);
+	}
+
+
 	@Override
 	public long parseToJdn(final String rawDate){
 		final LiturgicalDateParser.LiturgicalDate date = LiturgicalDateParser.parse(rawDate);
@@ -111,7 +126,7 @@ public class LiturgicalCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private boolean isLeapYear(final int year){
-		return (reform != null? reform.isLeapYear(year): Math.floorMod(year, 4) == 0);
+		return (reform != null? reform.isLeapYear(year): JulianCalendarStrategy.isLeapYear(year));
 	}
 
 	private static long apply(final LiturgicalDateParser.Shift shift, final long jdn){

@@ -72,10 +72,10 @@ class RomanDateToolTest{
 
 	@Test
 	void leapYearHasBothReckonings(){
-		//the 24 February is the classical sixth day before the Kalends of March, the 25 the arithmetic one
+		//the 25 February is the plain sixth day (arithmetic and classical), the 24th the first of the two sixth days (bis sextum)
 		Assertions.assertEquals(List.of("25 February 1504", "24 February 1504"), julian("ante diem VI Kal. Mart.", 1504));
 		Assertions.assertEquals(List.of("24 February 1504", "23 February 1504"), julian("ante diem VII Kal. Mart.", 1504));
-		Assertions.assertEquals(List.of("25 February 1504"), julian("ante diem bis sextum Kalendas Martias", 1504));
+		Assertions.assertEquals(List.of("24 February 1504"), julian("ante diem bis sextum Kalendas Martias", 1504));
 		//after the leap day there is no difference
 		Assertions.assertEquals(List.of("28 February 1504"), julian("ante diem III Kal. Mart.", 1504));
 		Assertions.assertEquals(List.of("29 February 1504"), julian("pridie Kal. Mart.", 1504));

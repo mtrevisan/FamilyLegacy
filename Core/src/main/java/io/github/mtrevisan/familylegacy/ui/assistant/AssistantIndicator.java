@@ -180,7 +180,7 @@ public final class AssistantIndicator{
 		final AssistantContext reading = context.forReading();
 		executor.execute(() -> {
 			final long start = clock.getAsLong();
-			final List<Diagnostic> found = service.diagnose(reading);
+			final List<Diagnostic> found = FindingLevels.visible(service.diagnose(reading));
 			final long elapsed = clock.getAsLong() - start;
 			onEventThread.accept(() -> finish(found, elapsed));
 		});

@@ -201,6 +201,80 @@ class GapCheckerTest{
 		Assertions.assertTrue(new Builder().person(new GapData.Person("a", "A", null, true, false, false, false, 0)).check().isEmpty());
 	}
 
+	/** An individual with a birth event, so that only the death is in question; {@code null} years are unknown. */
+	private static GapData.Person dated(final String id, final Integer birthYear, final boolean hasDeath, final Integer deathYear){
+		return new GapData.Person(id, "Person " + id, birthYear, true, hasDeath, false, false, 0, List.of(), deathYear);
+	}
+
+	@Test
+	void aChildBornLongAgoMakesTheParentCertainlyDead(){
+		final Diagnostic finding = only(new Builder()
+			.person(dated("p", null, false, null)).person(dated("c", 1900, true, null)).parent("c", "p")
+			.check());
+
+		Assertions.assertTrue(finding.title().startsWith("No death recorded: Person p [p] (born 1900 at the latest, from relatives)"),
+			finding.title());
+		Assertions.assertEquals(85., finding.rank());
+		Assertions.assertTrue(finding.explanation().contains("certainly dead"), finding.explanation());
+	}
+
+	@Test
+	void theDeathOfAChildOrOfAParentBoundsTheBirth(){
+		//the child died in 1905: the parent was born in 1905 at the latest
+		final Diagnostic childDied = only(new Builder()
+			.person(dated("p", null, false, null)).person(dated("c", null, true, 1905)).parent("c", "p")
+			.check());
+		Assertions.assertTrue(childDied.title().contains("born 1905 at the latest"), childDied.title());
+
+		//the parent died in 1900: the child (posthumous, maybe) was born in 1901 at the latest
+		final Diagnostic parentDied = only(new Builder()
+			.person(dated("c", null, false, null)).person(dated("p", null, true, 1900)).parent("c", "p")
+			.check());
+		Assertions.assertTrue(parentDied.title().contains("born 1901 at the latest"), parentDied.title());
+		Assertions.assertEquals(85., parentDied.rank());
+	}
+
+	@Test
+	void theBirthIsDeducedFromTheDescendantsToo(){
+		final Diagnostic finding = only(new Builder()
+			.person(dated("g", null, false, null)).person(dated("p", null, true, null)).person(dated("c", 1930, true, null))
+			.parent("p", "g").parent("c", "p")
+			.check());
+
+		Assertions.assertTrue(finding.title().startsWith("Probably dead, no death recorded: Person g [g] (born 1930 at the latest, from relatives)"),
+			finding.title());
+		Assertions.assertEquals(55., finding.rank());
+	}
+
+	@Test
+	void theBirthIsEstimatedFromTheParentsOnlyAsProbable(){
+		//a parent born in 1890 puts the birth around 1915: 111 years ago, but only an estimate, so probably dead
+		final Diagnostic finding = only(new Builder()
+			.person(dated("c", null, false, null)).person(dated("p", 1890, true, null)).parent("c", "p")
+			.check());
+
+		Assertions.assertTrue(finding.title().startsWith("Probably dead, no death recorded: Person c [c] (born around 1915, from the parents)"),
+			finding.title());
+		Assertions.assertEquals(55., finding.rank());
+	}
+
+	@Test
+	void youngRelativesSayNothingAboutTheDeath(){
+		Assertions.assertTrue(new Builder()
+			.person(dated("p", null, false, null)).person(dated("c", 2000, false, null)).parent("c", "p")
+			.check().isEmpty());
+		Assertions.assertTrue(new Builder()
+			.person(dated("c", null, false, null)).person(dated("p", 1950, false, null)).parent("c", "p")
+			.check().isEmpty());
+	}
+
+	@Test
+	void anIndividualBornInAnImpossibleLoopDoesNotHangTheCheck(){
+		Assertions.assertTrue(new Builder()
+			.person(dated("a", null, false, null)).person(dated("b", null, false, null)).parent("a", "b").parent("b", "a")
+			.check().isEmpty());
+	}
+
 	@Test
 	void anIndividualWithChildrenOrEventsButNoBirth(){
 		final Diagnostic withChildren = only(new Builder()

@@ -26,14 +26,20 @@ package io.github.mtrevisan.familylegacy.ui.preferences;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import java.awt.Desktop;
 import java.awt.Window;
 import java.nio.file.Path;
+import java.util.Locale;
 
 
 /**
@@ -53,12 +59,47 @@ public final class SettingsMenu{
 	 */
 	public static JMenu create(final Window owner){
 		final JMenu menu = new JMenu(I18N.t("menu.settings"));
-		menu.add(createIdentityItem(owner));
+		menu.add(createLevelMenu());
+		menu.add(createSuggestionsItem());
 		menu.add(new JSeparator());
+		//the thresholds of the proposals of identity hypotheses: from the standard level
+		if(FeatureVisibilityService.shared().isVisible(UxLevel.STANDARD)){
+			menu.add(createIdentityItem(owner));
+			menu.add(new JSeparator());
+		}
 		menu.add(createOpenPreferencesItem(owner));
 		return menu;
 	}
 
+
+	/**
+	 * The level of the interface (basic, standard, advanced): how much of FLEF the menus offer. Nothing is removed from the file or the
+	 * application, the Research Assistant reaches everything at every level.
+	 */
+	private static JMenu createLevelMenu(){
+		final FeatureVisibilityService features = FeatureVisibilityService.shared();
+		final JMenu menu = new JMenu(I18N.t("menu.settings.level"));
+
+		final ButtonGroup group = new ButtonGroup();
+		for(final UxLevel level : UxLevel.values()){
+			final String key = "menu.settings.level." + level.name().toLowerCase(Locale.ROOT);
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t(key), features.level() == level);
+			item.setToolTipText(I18N.t(key + ".tooltip"));
+			item.addActionListener(a -> features.setLevel(level));
+			group.add(item);
+			menu.add(item);
+		}
+		return menu;
+	}
+
+	/** Whether the editors suggest advanced concepts (a quiet line at the bottom) when they could help. */
+	private static JCheckBoxMenuItem createSuggestionsItem(){
+		final JCheckBoxMenuItem item = new JCheckBoxMenuItem(I18N.t("menu.settings.suggestions"),
+			AppPreferences.getInstance().suggestionsEnabled());
+		item.setToolTipText(I18N.t("menu.settings.suggestions.tooltip"));
+		item.addActionListener(a -> AppPreferences.getInstance().setSuggestionsEnabled(item.isSelected()));
+		return item;
+	}
 
 	private static JMenuItem createIdentityItem(final Window owner){
 		final JMenuItem item = new JMenuItem(I18N.t("menu.settings.identity"));

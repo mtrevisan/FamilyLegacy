@@ -337,7 +337,8 @@ public final class ModelHistory{
 	private void apply(final Snapshot snapshot){
 		final FLEFRecord header = model.getHeader();
 		header.clear();
-		snapshot.header().deepCopyTo(header);
+		snapshot.header()
+			.deepCopyTo(header);
 
 		final Map<String, FLEFRecord> live = new HashMap<>();
 		final List<FLEFRecord> records = model.getRecords();

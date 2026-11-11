@@ -112,7 +112,12 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	/** Official Naw-Rúz (Julian Day Number) of 172-221 BE. */
-	private static final Map<Integer, Long> OFFICIAL_NAW_RUZ = loadOfficialNawRuz();
+	private static final Map<Integer, Long> OFFICIAL_NAW_RUZ = new HashMap<>();
+	/** Official number of days of Ayyám-i-Há of 172-221 BE. */
+	private static final Map<Integer, Integer> OFFICIAL_AYYAM_I_HA = new HashMap<>();
+	static{
+		loadOfficialData();
+	}
 	private static final Map<Integer, Long> COMPUTED_NAW_RUZ = new ConcurrentHashMap<>();
 
 
@@ -132,7 +137,7 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 		if(month == -1)
 			return nawRuz;
 
-		final int intercalaryDays = (int)(nawRuzJdn(year + 1) - nawRuz) - (MONTHS_BEFORE_INTERCALARY_DAYS + 1) * DAYS_IN_MONTH;
+		final int intercalaryDays = intercalaryDays(year, nawRuz);
 		final int dayOfMonth = (day != 0? day: 1);
 		final int monthLength = (month == AYYAM_I_HA? intercalaryDays: DAYS_IN_MONTH);
 		if(dayOfMonth < 1 || dayOfMonth > monthLength)
@@ -148,6 +153,19 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 		else
 			monthStart = nawRuz + MONTHS_BEFORE_INTERCALARY_DAYS * DAYS_IN_MONTH + intercalaryDays;
 		return monthStart + dayOfMonth - 1;
+	}
+
+	/**
+	 * @param year   the Bahá'í year (BE)
+	 * @param nawRuz the Julian Day Number of Naw-Rúz of the year
+	 * @return the number of days of Ayyám-i-Há: the published one for the years of the table (so that the last year of the
+	 * 	table does not need the Ephemeris plugin to know the next Naw-Rúz), otherwise from the next Naw-Rúz
+	 */
+	private static int intercalaryDays(final int year, final long nawRuz){
+		final Integer official = OFFICIAL_AYYAM_I_HA.get(year);
+		return (official != null
+			? official
+			: (int)(nawRuzJdn(year + 1) - nawRuz) - (MONTHS_BEFORE_INTERCALARY_DAYS + 1) * DAYS_IN_MONTH);
 	}
 
 	/**
@@ -223,8 +241,7 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 		return new int[]{year, month, day};
 	}
 
-	private static Map<Integer, Long> loadOfficialNawRuz(){
-		final Map<Integer, Long> nawRuz = new HashMap<>();
+	private static void loadOfficialData(){
 		try(final InputStream is = BahaiCalendarStrategy.class.getResourceAsStream(RESOURCE)){
 			if(is == null)
 				throw new IllegalStateException("Missing resource " + RESOURCE);
@@ -237,14 +254,25 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 
 				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
 				final LocalDate date = LocalDate.parse(fields[1]);
-				nawRuz.put(Integer.parseInt(fields[0]),
-					GregorianCalendarStrategy.toJdn(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+				final int year = Integer.parseInt(fields[0]);
+				OFFICIAL_NAW_RUZ.put(year, GregorianCalendarStrategy.toJdn(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+				OFFICIAL_AYYAM_I_HA.put(year, Integer.parseInt(fields[2].trim()));
 			}
 		}
 		catch(final IOException ioe){
 			throw new UncheckedIOException(ioe);
 		}
-		return nawRuz;
+
+		//the two columns of the table must agree: the days between two Naw-Rúz are 19 months of 19 days plus Ayyám-i-Há
+		for(final Map.Entry<Integer, Long> entry : OFFICIAL_NAW_RUZ.entrySet()){
+			final Long next = OFFICIAL_NAW_RUZ.get(entry.getKey() + 1);
+			if(next != null){
+				final int days = (int)(next - entry.getValue()) - (MONTHS_BEFORE_INTERCALARY_DAYS + 1) * DAYS_IN_MONTH;
+				if(days != OFFICIAL_AYYAM_I_HA.get(entry.getKey()))
+					throw new IllegalStateException("Ayyám-i-Há of " + entry.getKey() + " BE has " + OFFICIAL_AYYAM_I_HA.get(entry.getKey())
+						+ " days in " + RESOURCE + ", but " + days + " between the two Naw-Rúz");
+			}
+		}
 	}
 
 	@Override

@@ -65,7 +65,7 @@ Design decisions that refine the text below:
   a provider that fails is skipped.
 - Search is fuzzy over title, category name and description, so typing a category name filters by category. Without a query the
   order is the relevance in the context, with a query it is the match score.
-- Tools that are variants of one another are one action with a selector: the Venetian, Florentine and Pisan converters are the
+- Tools that are variants of one another are one action with a selector: the Venetan, Florentine and Pisan converters are the
   `Calendar Conversion` tool of the Historical Date Assistant (a calendar combo), not separate entries. The Roman calendar
   converter will come with the natural-language interpreter.
 - Every action must respect the data safety rules below; a test cannot enforce this, so it is a review rule.
@@ -252,7 +252,14 @@ Still to do:
 - The usefulness is a rule of thumb: the weights are not calibrated on real research and not configurable, and it does not know how
   important the individual is (a direct ancestor of the root, or a collateral), the period or the archives that exist.
 - The age for a missing death (110 and 90 years) is a convention; living people could be taken for dead in a tree with no dates of
-  death, and a person with no year of birth is never reported.
+  death.
+- DONE (November 2026): a person with no year of birth is no longer skipped when the relatives say something (`GapChecker.checkDeaths`):
+  (1) the latest year of birth that the descendants and ancestors allow: a parent is born no later than the birth or the death of a child
+  (any descendant, down the generations), a child no later than the year after the death of a parent; with that year the same 110 and 90
+  years apply (finding "... from relatives"); (2) failing that, the birth is estimated at 25 years (`GENERATION_YEARS`) after the birth
+  of the youngest parent with a year, and that is only ever "probably dead" (90 years, never "certainly"; finding "... from the
+  parents"). The year of the death of the relatives is read by `GapDataLoader` (`Person.deathYear`). Still never reported: a person
+  whose relatives have no dates either.
 - Baptisms and burials are not vital events here.
 - The drafts are in English and plain: no suggestion of where to look (repositories, sources, places), no due date, no link of a
   question to the tasks and activities that would follow.

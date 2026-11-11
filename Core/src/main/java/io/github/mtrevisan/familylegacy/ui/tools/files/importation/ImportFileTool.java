@@ -126,7 +126,8 @@ public final class ImportFileTool implements ToolOperation{
 						ImportReportDialog.show(owner, report);
 				}
 				catch(final InterruptedException ie){
-					Thread.currentThread().interrupt();
+					Thread.currentThread()
+						.interrupt();
 				}
 				catch(final ExecutionException ee){
 					LOGGER.error("Import of {} failed", file, ee);
@@ -149,7 +150,8 @@ public final class ImportFileTool implements ToolOperation{
 	 */
 	private static void resolveEmbeddedFiles(final Window owner, final FLEFModel imported, final ImportReport report,
 			final File startFolder){
-		final int count = report.pendingFiles().size();
+		final int count = report.pendingFiles()
+			.size();
 		if(count == 0)
 			return;
 

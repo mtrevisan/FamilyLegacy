@@ -34,7 +34,7 @@ import java.util.Map;
  * A part of a report that is a page of its own in the renderers that split it (a book, a website): the sections from a heading of the
  * first level to the next one. The first chapter is the title page, with what comes before the first heading.
  *
- * @param title	The title of the chapter, without Markdown.
+ * @param title	The title of the chapter, without Markdown and record references.
  * @param titlePage	Whether it is the title page, that carries the title of the document.
  * @param sections	The sections of the chapter, starting with its heading (except for the title page).
  */
@@ -63,7 +63,7 @@ public record ReportChapter(String title, boolean titlePage, List<ReportSection>
 		for(final ReportSection section : doc.sections()){
 			if(section instanceof ReportSection.Heading heading && heading.level() <= CHAPTER_LEVEL){
 				chapters.add(new ReportChapter(title, titlePage, sections));
-				title = ReportMarkup.plain(heading.text());
+				title = ReportMarkup.withoutRecordIds(ReportMarkup.plain(heading.text()));
 				titlePage = false;
 				sections = new ArrayList<>();
 			}

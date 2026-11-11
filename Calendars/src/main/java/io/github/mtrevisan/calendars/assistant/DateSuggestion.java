@@ -30,7 +30,8 @@ import java.util.List;
 /**
  * A candidate reading of a date, proposed to the researcher together with the reasoning that produced it.
  * <p>
- * A suggestion is never applied on its own: the user decides whether to use it.
+ * A suggestion is never applied on its own: the user decides whether to use it. The texts are messages, translated by the
+ * user interface.
  * </p>
  *
  * @param title          a short label of the candidate (e.g. "Julian calendar")
@@ -43,7 +44,7 @@ import java.util.List;
  * @param notBefore      the earliest possible date of a range, in the notation of the calendar, or {@code null}
  * @param notAfter       the latest possible date of a range, in the notation of the calendar, or {@code null}
  */
-public record DateSuggestion(String title, String meaning, List<String> assumptions, String calendarCode, List<String> steps,
+public record DateSuggestion(Message title, Message meaning, List<Message> assumptions, String calendarCode, List<Message> steps,
 		String normalizedDate, String notBefore, String notAfter){
 
 	public DateSuggestion{
@@ -52,8 +53,8 @@ public record DateSuggestion(String title, String meaning, List<String> assumpti
 	}
 
 	/** A suggestion that is a single date (or only informative if {@code normalizedDate} is {@code null}). */
-	public DateSuggestion(final String title, final String meaning, final List<String> assumptions, final String calendarCode,
-			final List<String> steps, final String normalizedDate){
+	public DateSuggestion(final Message title, final Message meaning, final List<Message> assumptions, final String calendarCode,
+			final List<Message> steps, final String normalizedDate){
 		this(title, meaning, assumptions, calendarCode, steps, normalizedDate, null, null);
 	}
 
@@ -66,31 +67,6 @@ public record DateSuggestion(String title, String meaning, List<String> assumpti
 	/** @return whether the suggestion carries a date or a range that can be applied to a date structure */
 	public boolean isApplicable(){
 		return (normalizedDate != null || isBounded());
-	}
-
-	/** @return the explanation as plain text, suitable to be copied into notes */
-	public String explanation(){
-		final StringBuilder sb = new StringBuilder();
-		sb.append(title).append('\n');
-		sb.append("Interpreted meaning: ").append(meaning).append('\n');
-		if(!assumptions.isEmpty()){
-			sb.append("Assumptions:\n");
-			assumptions.forEach(a -> sb.append("  - ").append(a).append('\n'));
-		}
-		if(calendarCode != null)
-			sb.append("Calendar: ").append(calendarCode).append('\n');
-		if(!steps.isEmpty()){
-			sb.append("Conversion steps:\n");
-			for(int i = 0; i < steps.size(); i ++)
-				sb.append("  ").append(i + 1).append(". ").append(steps.get(i)).append('\n');
-		}
-		if(normalizedDate != null)
-			sb.append("Normalized date: ").append(normalizedDate).append('\n');
-		if(notBefore != null)
-			sb.append("Not before: ").append(notBefore).append('\n');
-		if(notAfter != null)
-			sb.append("Not after: ").append(notAfter).append('\n');
-		return sb.toString();
 	}
 
 }

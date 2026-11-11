@@ -70,9 +70,16 @@ class VersionTest{
 	void aPreReleaseComesBeforeTheFinalVersion(){
 		Assertions.assertTrue(v("1.0.0-rc1").compareTo(v("1.0.0")) < 0);
 		Assertions.assertTrue(v("1.0.0-rc2").compareTo(v("1.0.0-rc1")) > 0);
+		Assertions.assertTrue(v("1.0.0-rc10").compareTo(v("1.0.0-rc2")) > 0);
+		Assertions.assertTrue(v("1.0.0-rc.1").compareTo(v("1.0.0-rc")) > 0);
+		Assertions.assertTrue(v("1.0.0-beta2").compareTo(v("1.0.0-rc1")) < 0);
+		Assertions.assertEquals(0, v("1.0.0-rc1").compareTo(v("1.0.0-RC.1")));
+		Assertions.assertEquals(v("1.0.0-rc1").hashCode(), v("1.0.0-RC.1").hashCode());
 		Assertions.assertTrue(v("1.0.1-SNAPSHOT").compareTo(v("1.0.0")) > 0);
 		Assertions.assertTrue(v("1.0.0-rc1").isPreRelease());
 		Assertions.assertFalse(v("1.0.0").isPreRelease());
+		Assertions.assertFalse(v("1.0.0-Final").isPreRelease());
+		Assertions.assertEquals(v("1.0.0"), v("1.0.0-release"));
 	}
 
 	@Test

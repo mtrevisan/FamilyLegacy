@@ -137,6 +137,8 @@ public final class FamilyLegacyApplication{
 
 		//after the window is shown, so it does not interfere with the creation of the UI fonts
 		SwingUtilities.invokeLater(AppearanceManager::preloadFontFamilies);
+		//last: the window is complete (and the file, if any, is being opened) before a dialog can appear on it
+		SwingUtilities.invokeLater(frame::checkForUpdatesAtStartup);
 	}
 
 	/**

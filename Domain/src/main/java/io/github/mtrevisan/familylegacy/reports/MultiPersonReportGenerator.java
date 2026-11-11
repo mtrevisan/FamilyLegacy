@@ -133,7 +133,7 @@ public final class MultiPersonReportGenerator{
 
 			final FLEFRecord person = persons.get(i);
 			final ReportContext ctx = ReportContext.build(model, person, config, sharedIndex);
-			sections.add(new ReportSection.PageBreak());
+			sections.add(ReportSection.PageBreak.INSTANCE);
 			sections.add(new ReportSection.Heading(1, ctx.displayText(person)));
 			sections.addAll(new IntroductionSection(ctx).build());
 			sections.addAll(new IndividualLifeStorySection(ctx).build());
@@ -148,7 +148,7 @@ public final class MultiPersonReportGenerator{
 
 			final FLEFRecord group = groups.get(i);
 			final ReportContext ctx = ReportContext.build(model, group, config, sharedIndex);
-			sections.add(new ReportSection.PageBreak());
+			sections.add(ReportSection.PageBreak.INSTANCE);
 			sections.add(new ReportSection.Heading(1, ctx.displayText(group)));
 			sections.addAll(new GroupIntroductionSection(ctx).build());
 			sections.addAll(new GroupStorySection(ctx).build());

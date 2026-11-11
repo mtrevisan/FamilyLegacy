@@ -287,6 +287,9 @@ public final class GUIHelper{
 	 * @param rowConstraints	The row constraints (e.g. "[]10[]")
 	 * @return	A new JPanel with the specified layout
 	 */
+	/** The space, in pixels, between the content of a dialog and its border: no content touches the edge of a dialog. */
+	public static final int DIALOG_MARGIN = 10;
+
 	public static JPanel createLabelFieldPanel(final int insets, final String rowConstraints){
 		return new JPanel(createLabelFieldLayout(insets, rowConstraints));
 	}
@@ -456,7 +459,7 @@ public final class GUIHelper{
 	 * (or with the close button of its window): both run {@code cancel}, and the dialog never closes in any other way.
 	 */
 	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
-		return createButtonPanel(dialog, I18N.t("button.save"), save, cancel);
+		return createButtonPanel(dialog, I18N.t("button.ok"), save, cancel);
 	}
 
 	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save, final Runnable cancel){

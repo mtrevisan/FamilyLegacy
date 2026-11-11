@@ -69,7 +69,8 @@ public class GEDCOMCharsetDetector{
 				.get();
 
 			if(bomIn.hasBOM())
-				return bomIn.getBOM().getCharsetName();
+				return bomIn.getBOM()
+					.getCharsetName();
 		}
 		finally{
 			in.reset();
@@ -91,7 +92,8 @@ public class GEDCOMCharsetDetector{
 		if(match != null && match.getConfidence() >= 50){
 			final String detectedName = match.getName();
 			try{
-				return Charset.forName(detectedName).name();
+				return Charset.forName(detectedName)
+					.name();
 			}
 			catch(final Exception e){
 				return detectedName;

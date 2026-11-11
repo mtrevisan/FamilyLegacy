@@ -1,4 +1,4 @@
-# Group timeline, group network and group career
+# Group timeline, group network and memberships over time
 
 Three windows show the life of a group, or the groups of a person, over time. They all open in a modal dialog with no button to close it (`Esc` closes it). They are for looking: a click does not move the main window.
 
@@ -47,9 +47,9 @@ Records hidden by the [privacy](privacy.md) policy are left out.
 
 **Mouse.** One click highlights a box; a **double-click makes that group the new centre**; a drag moves the picture. You cannot edit from this window. The tooltip of a box shows the name, the number of members and the identifier; the tooltip of a line says that A is part of B, or is associated with B, with the role and the dates if present.
 
-## Group Career
+## Memberships Over Time
 
-**Individual > Group Career...** (it needs a selected individual) shows the groups a person belonged to, against their own life.
+**Individual > Memberships Over Time...** (it needs a selected individual) shows the groups a person belonged to, against their own life.
 
 - The first row is the person's **life**: events such as the birth, the marriage and the death, attributes such as the occupation, and the context bands.
 - Then one row for **each group** the person was a member of, the earliest first, with a bar for each period. The bars are coloured by role; a person who left and came back, or changed role, has more than one bar on the row.

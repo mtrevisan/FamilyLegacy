@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
@@ -32,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -84,13 +86,20 @@ final class HelpMenu{
 		checkUpdates.addActionListener(e -> updateFlow.start());
 		menu.add(checkUpdates);
 
+		final JCheckBoxMenuItem automaticUpdates = new JCheckBoxMenuItem(I18N.t("menu.help.check.updates.auto"),
+			AppPreferences.getInstance().updateCheckEnabled());
+		automaticUpdates.setToolTipText(I18N.t("menu.help.check.updates.auto.tooltip"));
+		automaticUpdates.addActionListener(e -> AppPreferences.getInstance().setUpdateCheckEnabled(automaticUpdates.isSelected()));
+		menu.add(automaticUpdates);
+
 		final JMenuItem reportBug = new JMenuItem(I18N.t("menu.help.bug.report"), KeyEvent.VK_B);
 		reportBug.addActionListener(e -> openUrl(HelpContent.ISSUE_TRACKER_URL));
 		menu.add(reportBug);
 
 		final JMenuItem diagnostics = new JMenuItem(I18N.t("menu.help.diagnostics"), KeyEvent.VK_I);
 		diagnostics.addActionListener(e -> {
-			final File file = frame.fileController().currentFile();
+			final File file = frame.fileController()
+				.currentFile();
 			DiagnosticsDialog.show(frame, frame.model(), file);
 		});
 		menu.add(diagnostics);

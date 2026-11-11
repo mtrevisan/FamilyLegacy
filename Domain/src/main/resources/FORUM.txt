@@ -80,6 +80,19 @@ In questo modo la documentazione del lavoro genealogico rimane collegata alle pe
 - strumenti di assistenza alla ricerca
 - workflow esplicito per ipotesi, conflitti e conclusioni
 - gestione della privacy (persone viventi, livelli di riservatezza) per viste, report ed esportazione
+- interfaccia a tre livelli (Basic, Standard, Advanced) con suggerimenti contestuali: si usa come un normale programma genealogico e le funzioni di ricerca emergono quando servono
+
+## Semplice o completo, a scelta
+
+Non è necessario usare tutto: l'interfaccia ha tre livelli, che si cambiano da *Settings > Interface Level*.
+
+- **Basic** (predefinito): un programma genealogico tradizionale (persone, famiglie, eventi, luoghi, fonti, media); i concetti di ricerca non compaiono.
+- **Standard**: aggiunge il flusso di ricerca (domande, attività, task, ipotesi di identità).
+- **Advanced**: tutto, comprese conclusioni, norme culturali, eventi storici e impatti di contesto.
+
+Il file è lo stesso a tutti i livelli: cambia solo ciò che l'interfaccia mostra, e nulla viene perso passando da un livello all'altro.
+
+I concetti più avanzati vengono inoltre *suggeriti quando servono*, con una riga discreta in fondo all'editor del record, mai con finestre che interrompono il lavoro. Per esempio: fonti che si contraddicono, un possibile duplicato, una data stimata per consuetudine senza la norma che la giustifica, un luogo che ha cambiato giurisdizione o nome nel tempo. Le parole si adattano al livello (a Basic: "Possible duplicate person detected"; a Standard e Advanced: "Create Identity Hypothesis..."). I suggerimenti si possono nascondere, ignorare o disattivare del tutto da *Settings > Suggestions in the Editors*.
 
 ## Importazione e report
 

@@ -124,7 +124,8 @@ final class MarriageTypeInference{
 			if(title == null)
 				continue;
 
-			final String lower = title.trim().toLowerCase(Locale.ROOT);
+			final String lower = title.trim()
+				.toLowerCase(Locale.ROOT);
 			religious |= lower.endsWith(" " + RELIGIOUS);
 			civil |= lower.endsWith(" " + CIVIL);
 		}

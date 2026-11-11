@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.fields.StructureField;
 
 import java.awt.Window;
+import java.util.function.Supplier;
 
 
 /**
@@ -38,6 +39,7 @@ import java.awt.Window;
 public final class DateField extends StructureField{
 
 	private final String dialogTitle;
+	private Supplier<String> placeSupplier;
 
 
 	public static DateField create(final Window parent, final String dialogTitle, final FLEFModel model){
@@ -57,9 +59,22 @@ public final class DateField extends StructureField{
 	}
 
 
+	/**
+	 * Tells where to find the place of the event the date belongs to, so that the date assistant can start from the reform of
+	 * the jurisdiction of that place.
+	 *
+	 * @param placeSupplier	gives the id of the place, or {@code null} if the event has none; asked each time a dialog opens
+	 * @return	This field.
+	 */
+	public DateField withPlace(final Supplier<String> placeSupplier){
+		this.placeSupplier = placeSupplier;
+		return this;
+	}
+
+
 	@Override
 	protected FLEFRecord openNewDialog(){
-		final DateStructureDialog dialog = DateStructureDialog.createNew(parent, model, dialogTitle);
+		final DateStructureDialog dialog = DateStructureDialog.createNew(parent, model, dialogTitle, placeSupplier);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -67,7 +82,7 @@ public final class DateField extends StructureField{
 
 	@Override
 	protected boolean openEditDialog(final FLEFRecord record){
-		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record);
+		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record, placeSupplier);
 		dialog.setVisible(true);
 
 		return dialog.isSaved();

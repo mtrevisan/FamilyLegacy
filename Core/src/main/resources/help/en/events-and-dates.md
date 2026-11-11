@@ -38,7 +38,7 @@ The tools that work on dates, and not on events, are in the **Tools** menu, unde
 
 ## Calendars
 
-Dates can be written in the calendar of the document. Among the calendars the application knows are the Julian and Gregorian ones (with the reform date that applies to the country), the Venetian, Florentine and Pisan year starts, the Swedish calendar, the French Republican, Hebrew, Islamic, Persian, Coptic, Byzantine and Chinese calendars, and regnal years. The [Historical Date Assistant](assistant.md#the-historical-date-assistant) converts between them.
+Dates can be written in the calendar of the document. Among the calendars the application knows are the Julian and Gregorian ones (with the reform date that applies to the country), the Venetan, Florentine and Pisan year starts, the Swedish calendar, the French Republican, Hebrew, Islamic, Persian, Coptic, Byzantine and Chinese calendars, and regnal years. In every calendar a day cannot be given with a season, a day must exist in its month (the real length of that month and year), and a dual year (`1704/5`) is accepted only from 1 January to 24 March; the details are in [Entering dates](dates.md#calendars). The reform date offered by the assistant is Rome, France, Great Britain or the Julian calendar. The [Historical Date Assistant](assistant.md#the-historical-date-assistant) converts between them.
 
 ## Tips
 

@@ -45,7 +45,8 @@ public final class IDNormalizer{
 	public static String clean(String id){
 		if(id == null)
 			return null;
-		return id.replace("@", StringUtils.EMPTY).trim();
+		return id.replace("@", StringUtils.EMPTY)
+			.trim();
 	}
 
 	public static boolean isValidIdFormat(String id){

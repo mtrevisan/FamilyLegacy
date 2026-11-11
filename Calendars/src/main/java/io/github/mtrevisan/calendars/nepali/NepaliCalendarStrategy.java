@@ -36,7 +36,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,9 @@ import java.util.TreeMap;
 public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 
 	private static final String RESOURCE = "bikram-sambat.csv";
+	private static final String ANCHORS_RESOURCE = "bikram-sambat-new-years.csv";
+	/** A year has 365 or 366 days. */
+	private static final int MIN_YEAR_DAYS = 365;
 	/** 1 Baisakh of the first year of the table (1970 BS) is 13 April 1913. */
 	private static final long FIRST_NEW_YEAR_JDN = GregorianCalendarStrategy.toJdn(1913, 4, 13);
 	private static final int MIN_YEAR = 1000;
@@ -81,6 +86,7 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 	/** The month lengths of each year, and the Julian Day Number of its first day. */
 	private static final TreeMap<Integer, int[]> MONTH_LENGTHS = new TreeMap<>();
 	private static final Map<Integer, Long> NEW_YEARS = new HashMap<>();
+	private static final List<Integer> ANCHOR_MISMATCHES = new ArrayList<>();
 	static{
 		load();
 	}
@@ -179,14 +185,61 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 			throw new UncheckedIOException(ioe);
 		}
 
+		final Map<Integer, Long> anchors = loadAnchors();
 		long newYear = FIRST_NEW_YEAR_JDN;
 		final Set<Map.Entry<Integer, int[]>> entries = MONTH_LENGTHS.entrySet();
 		for(final Map.Entry<Integer, int[]> entry : entries){
-			NEW_YEARS.put(entry.getKey(), newYear);
+			final int year = entry.getKey();
 			final int[] lengths = entry.getValue();
+
+			int days = 0;
 			for(final int length : lengths)
-				newYear += length;
+				days += length;
+			if(days != MIN_YEAR_DAYS && days != MIN_YEAR_DAYS + 1)
+				throw new IllegalStateException("The Bikram Sambat year " + year + " has " + days + " days instead of "
+					+ MIN_YEAR_DAYS + " or " + (MIN_YEAR_DAYS + 1) + ": check " + RESOURCE);
+
+			//the published New Year prevails over the accumulation of the month lengths
+			final Long anchor = anchors.get(year);
+			if(anchor != null && anchor != newYear){
+				ANCHOR_MISMATCHES.add(year);
+				newYear = anchor;
+			}
+			NEW_YEARS.put(year, newYear);
+			newYear += days;
 		}
+	}
+
+	/**
+	 * @return the years whose published New Year (1 Baisakh) disagrees with the accumulation of the month lengths of the
+	 * 	previous years, the table of the month lengths being wrong somewhere before them (empty for a consistent table)
+	 */
+	public static List<Integer> anchorMismatches(){
+		return Collections.unmodifiableList(ANCHOR_MISMATCHES);
+	}
+
+	private static Map<Integer, Long> loadAnchors(){
+		final Map<Integer, Long> anchors = new HashMap<>();
+		try(final InputStream is = NepaliCalendarStrategy.class.getResourceAsStream(ANCHORS_RESOURCE)){
+			if(is == null)
+				throw new IllegalStateException("Missing resource " + ANCHORS_RESOURCE);
+
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+			String line;
+			while((line = reader.readLine()) != null){
+				if(line.isBlank() || line.startsWith("#") || line.startsWith("year"))
+					continue;
+
+				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
+				final LocalDate date = LocalDate.parse(fields[1].trim());
+				anchors.put(Integer.parseInt(fields[0].trim()),
+					GregorianCalendarStrategy.toJdn(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+			}
+		}
+		catch(final IOException ioe){
+			throw new UncheckedIOException(ioe);
+		}
+		return anchors;
 	}
 
 	@Override

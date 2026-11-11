@@ -752,7 +752,9 @@ class GrampsXMLToFLEFConverterTest{
 		final FLEFModel model = convertXml(xml.toString());
 		for(int i = 0; i < rules.length; i ++){
 			final FLEFRecord event = record(model, "E" + i);
-			Assertions.assertEquals("10 FEB 1499", FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date"));
+			//the Venetan year number is the one Gramps writes minus one (see GrampsDates.parse)
+			Assertions.assertEquals((DateReader.ENUM_CALENDAR_VENETAN.equals(calendars[i])? "10 FEB 1498": "10 FEB 1499"),
+				FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date"));
 			Assertions.assertEquals(calendars[i], FLEFRecordHelper.getChildValue(event, "date.value.point.calendar"));
 		}
 		final ImportReport report = report(xml.toString());

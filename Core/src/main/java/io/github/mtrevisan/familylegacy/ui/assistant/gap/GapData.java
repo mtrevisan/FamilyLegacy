@@ -59,12 +59,18 @@ public record GapData(LocalDate today, Map<String, Person> persons, List<Event> 
 	 * @param eventCount   how many events the individual is the principal of
 	 * @param places       the names of the places of the events of the individual other than the birth (without repetitions, in
 	 *                     alphabetical order): where the individual is known to have been
+	 * @param deathYear    the year of the death ({@code null} if not known): a death bounds the birth of the relatives
 	 */
 	public record Person(String id, String name, Integer birthYear, boolean hasBirth, boolean hasDeath, boolean hasResidence,
-			boolean hasCensus, int eventCount, List<String> places){
+			boolean hasCensus, int eventCount, List<String> places, Integer deathYear){
 
 		public Person{
 			places = List.copyOf(places);
+		}
+
+		public Person(final String id, final String name, final Integer birthYear, final boolean hasBirth, final boolean hasDeath,
+				final boolean hasResidence, final boolean hasCensus, final int eventCount, final List<String> places){
+			this(id, name, birthYear, hasBirth, hasDeath, hasResidence, hasCensus, eventCount, places, null);
 		}
 
 		public Person(final String id, final String name, final Integer birthYear, final boolean hasBirth, final boolean hasDeath,

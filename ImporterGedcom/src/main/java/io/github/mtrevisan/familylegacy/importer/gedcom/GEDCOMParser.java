@@ -78,7 +78,8 @@ public class GEDCOMParser{
 				int endXref = rest.indexOf('@', 1);
 				if(endXref > 1){
 					xref = GEDCOMHelper.cleanId(rest.substring(0, endXref + 1));
-					rest = rest.substring(endXref + 1).trim();
+					rest = rest.substring(endXref + 1)
+						.trim();
 				}
 			}
 

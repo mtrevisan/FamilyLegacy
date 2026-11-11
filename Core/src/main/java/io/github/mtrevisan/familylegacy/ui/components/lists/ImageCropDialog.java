@@ -90,7 +90,7 @@ public class ImageCropDialog extends JDialog{
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		setLayout(new MigLayout("ins 0,hidemode 3,fillx,wrap 2", "[]", "[]"));
+		setLayout(new MigLayout("ins " + GUIHelper.DIALOG_MARGIN + ",hidemode 3,fillx,wrap 2", "[]", "[]"));
 
 		final JPanel recordPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
 		GUIHelper.addComponent(recordPanel, imageHolder);

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -97,7 +98,8 @@ public class FamilyLegacyFrame extends JFrame{
 	private FLEFModel model;
 	private final ModelHistory history;
 	/** The Research Assistant, if the application has one: it is found as a service, so that the window does not depend on it. */
-	private final ResearchAssistantPort assistant = ResearchAssistantPort.find().orElse(null);
+	private final ResearchAssistantPort assistant = ResearchAssistantPort.find()
+		.orElse(null);
 	private RecentChangesDialog recentChangesDialog;
 	private ProjectionSwitcherPanel switcher;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
@@ -166,6 +168,9 @@ public class FamilyLegacyFrame extends JFrame{
 			toolBar.add(indicator.component());
 			//the findings are computed again when the model changes (a step of the history, an undo, a redo, another file)
 			history.addChangeListener(indicator::refreshSoon);
+			//the findings that are counted depend on the level of the interface
+			FeatureVisibilityService.shared()
+				.addListener(indicator::refreshSoon);
 			indicator.refreshSoon();
 		}
 
@@ -191,6 +196,13 @@ public class FamilyLegacyFrame extends JFrame{
 		final JMenuBar menuBar = new ApplicationMenuBar(this)
 			.build(repository);
 		setJMenuBar(menuBar);
+		//the level of the interface decides which items the menus offer: they are built again when it changes
+		FeatureVisibilityService.shared()
+			.addListener(() -> SwingUtilities.invokeLater(() -> {
+				setJMenuBar(new ApplicationMenuBar(this).build(repository));
+				revalidate();
+				repaint();
+			}));
 
 		PrivacyService.addListener(this::refreshPrivacy);
 		//the order of children and partners is a view preference: changing it only rebuilds the views
@@ -336,7 +348,8 @@ public class FamilyLegacyFrame extends JFrame{
 			return;
 		}
 
-		final RecordDialog dialog = found.handler().createEditDialog(this, model, record);
+		final RecordDialog dialog = found.handler()
+			.createEditDialog(this, model, record);
 		dialog.setVisible(true);
 		if(dialog.isSaved())
 			SwingUtilities.invokeLater(this::rebuildViews);
@@ -417,6 +430,11 @@ public class FamilyLegacyFrame extends JFrame{
 		fileController.openFile(file);
 	}
 
+	/** Looks for a newer release, if the user wants it and it is time (see {@link AutomaticUpdatePolicy}); call it on the event thread. */
+	public void checkForUpdatesAtStartup(){
+		new UpdateFlow(this).startAutomatic();
+	}
+
 	void editEntity(final String id){
 		switcher.editEntity(id);
 	}
@@ -472,11 +490,13 @@ public class FamilyLegacyFrame extends JFrame{
 		switch(projection){
 			case BIOLOGICAL_TREE -> {
 				bookmarkType = BookmarkType.BIOLOGICAL_TREE;
-				rootId = switcher.getTreeGraphPanel().getRootIndividualId();
+				rootId = switcher.getTreeGraphPanel()
+					.getRootIndividualId();
 			}
 			case SUGIYAMA_GRAPH -> {
 				bookmarkType = BookmarkType.SUGIYAMA_GRAPH;
-				rootId = switcher.getTreeGraphPanel().getRootIndividualId();
+				rootId = switcher.getTreeGraphPanel()
+					.getRootIndividualId();
 				props.put("showPartner", "true");
 			}
 			case CHRONOMAP -> {
@@ -493,7 +513,8 @@ public class FamilyLegacyFrame extends JFrame{
 			}
 			default -> {
 				bookmarkType = BookmarkType.EGO_NETWORK;
-				rootId = switcher.getEgoPanel().getCurrentEgoId();
+				rootId = switcher.getEgoPanel()
+					.getCurrentEgoId();
 			}
 		}
 

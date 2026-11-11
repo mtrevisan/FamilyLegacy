@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.Name;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -58,6 +61,13 @@ final class PlaceDataLoader{
 		return count;
 	}
 
+	/** @return whether the place has a name of type historic and another one: it was called otherwise in the past. */
+	private static boolean hasHistoricName(final FLEFRecord place){
+		final List<Name> names = NameAnatomyService.extractForGeneric(place);
+		return (names.size() > 1 && names.stream()
+			.anyMatch(name -> NameReader.ENUM_TYPE_HISTORIC.equals(name.type())));
+	}
+
 	static PlaceData load(final FLEFModel model){
 		final Map<String, Integer> usage = new HashMap<>();
 		final List<FLEFRecord> events = model.getRecordsByType(EventHandler.TYPE);
@@ -73,7 +83,7 @@ final class PlaceDataLoader{
 			final double[] coordinates = PlaceChecker.parseCoordinates(PlaceReader.extractCoordinates(place));
 			filteredPlaces.add(new PlaceData.Place(place.getId(), PlaceReader.extractNames(place), PlaceReader.extractType(place),
 				(coordinates != null? coordinates[0]: null), (coordinates != null? coordinates[1]: null),
-				usage.getOrDefault(place.getId(), 0), sourceCount(place)));
+				usage.getOrDefault(place.getId(), 0), sourceCount(place), hasHistoricName(place)));
 		}
 
 		final List<PlaceData.Relation> relations = new ArrayList<>();

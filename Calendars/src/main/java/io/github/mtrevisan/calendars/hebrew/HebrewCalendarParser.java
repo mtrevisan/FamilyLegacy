@@ -25,13 +25,12 @@
 package io.github.mtrevisan.calendars.hebrew;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 
 /**
@@ -157,48 +156,43 @@ public final class HebrewCalendarParser{
 		MONTHS.put("קיץ", CalendarSeason.SEASON_SUMMER);
 	}
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and localized alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	/** The bare "Adar", that is the second Adar in a leap year (where the Adar of Purim, of the birthdays and of the yahrzeits is the second one). */
+	private static final Set<String> BARE_ADAR = Set.of("adar", "אדר");
+	/** The month number of the first Adar in the numbering of the parser (Tishrei = 1, ..., Adar I = 6, Adar II = 7). */
+	private static final int ADAR_I = 6;
+	private static final int ADAR_II = 7;
+
+	private static final NamedMonthDateParser PARSER = NamedMonthDateParser.builder("Hebrew")
+		.months(MONTHS)
+		.monthResolver(HebrewCalendarParser::resolveMonth)
+		.monthLengths(HebrewCalendarStrategy::monthLength)
+		.build();
 
 
 	private HebrewCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Hebrew text expression into a validated structural container using exact flags.
+	 * The month of a name that depends on the year: in a leap year the bare "Adar" is the second Adar, in a common year it
+	 * is the only one.
+	 */
+	private static int resolveMonth(final String name, final int month, final int year){
+		if(month == ADAR_I && BARE_ADAR.contains(name) && HebrewCalendarStrategy.isLeapYear(year))
+			return ADAR_II;
+		return month;
+	}
+
+	/**
+	 * Parses a raw Hebrew text expression into its year, month and day, with the months numbered as in a leap year
+	 * (Adar I = 6, Adar II = 7, Nisan = 8, ..., Elul = 13). A bare "Adar" is the second Adar in a leap year; the second Adar
+	 * does not exist in a common year. A year alone stands for the first day of the year; a season (a Tekufah) takes no day.
 	 *
 	 * @param rawDate the string representing the calendar date (e.g., "Tekufat Nisan 5786")
-	 * @return a configured HebrewDateInput instance
-	 * @throws IllegalArgumentException if the text layout expression matches an invalid layout format
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static HebrewDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new HebrewDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Hebrew date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Hebrew month or Tekufah descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries.");
-
-		return new HebrewDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

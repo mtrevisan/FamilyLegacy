@@ -24,80 +24,96 @@
  */
 package io.github.mtrevisan.calendars.rumi;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Rumi (Ottoman fiscal) calendar: the Julian calendar with the year starting on 1 March (Mart = 1, ..., Kanun-i Evvel =
+ * 10, Kanun-i Sani = 11, Subat = 12) and the years counted from the Hijra (584 years less than the Julian ones), until the
+ * reform of 1917, when the Gregorian calendar was adopted and the year started on 1 January from 1334 (1918).
+ */
 public class RumiCalendarStrategy implements CalendarConverterPlugin{
+
+	/** The difference between the Rumi years and the Julian or Gregorian ones. */
+	private static final int YEAR_OFFSET = 584;
+	/** The last Rumi year of the Julian calendar (the 1917 reform fell in its last month). */
+	private static final int LAST_JULIAN_YEAR = 1332;
+	/** The first Rumi year that starts on 1 January. */
+	private static final int FIRST_JANUARY_YEAR = 1334;
+	/** The last month (December) counted from March. */
+	private static final int LAST_MARCH_MONTH = 10;
+	private static final int MONTHS_IN_YEAR = 12;
+	private static final int FEBRUARY_MONTH = 12;
+	/** 15 Subat 1332 (Julian, 28 February 1917 Gregorian) was followed by 1 Mart 1333 (Gregorian, 1 March 1917). */
+	private static final int REFORM_FEBRUARY_DAYS = 15;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		// Isolate components via the adaptive Rumi parser
-		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
+		final YearMonthDay input = RumiCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		if(month < 0){
-			// Step A: Determine the absolute temporal anchor window for this year.
-			// Rumi Year + 584 gives the Gregorian/Julian year parameter space.
-			final long startOfYearJdn = toJdn(year, 1, 1);
-			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
+		if(input.isSeason())
+			// all the seasons are in the Gregorian year of the March: the year runs from March (or January) to the end of the
+			// following February (or December)
+			return SeasonalDates.ofGregorianYear("Rumi", year + YEAR_OFFSET, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			// Standard numeric execution path using your dual-era Rumi calculation engine logic
-			return toJdn(year, month, day);
-	}
-
-	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Rumi calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return toJdn(year, input.monthOrDefault(), input.dayOrDefault());
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
-		// Rumi months are numbered from March (Mart = 1, ..., Kânûn-ı Evvel = 10, Kânûn-ı Sânî = 11, Şubat = 12), year difference is
-		// 584 years
-		// March=1->3, Dec=10->12
-		int calendarMonth = month + 2;
-		int calendarYear = year + 584;
-		if(month > 10){
-			// Jan=11->1, Feb=12->2
-			calendarMonth = month - 10;
-			// Until 1333 the year started in March, so January and February belong to the next Julian/Gregorian year;
-			// from 1334 (1918) the year starts in January
-			if(year < 1334)
-				calendarYear ++;
-		}
+		final int calendarYear = calendarYear(year, month);
+		final int calendarMonth = calendarMonth(month);
 
-		// 1917 reform: 15 Şubat 1332 (Julian) was followed by 1 Mart 1333 (Gregorian)
-		if(year > 1332)
+		// 1917 reform: 15 Subat 1332 (Julian) was followed by 1 Mart 1333 (Gregorian)
+		if(year > LAST_JULIAN_YEAR)
 			return GregorianCalendarStrategy.toJdn(calendarYear, calendarMonth, day);
 
-		// PRE-REFORM LOGIC: Pure Julian Calendar tracking with March start
 		return JulianCalendarStrategy.toJdn(calendarYear, calendarMonth, day);
+	}
+
+	/**
+	 * @param year  the Rumi year
+	 * @param month the Rumi month (Mart = 1, ..., Subat = 12)
+	 * @return the days of the month, or {@code 0} if the month does not exist (the year 1333 ended in December, when the
+	 * 	year 1334 started on 1 January)
+	 */
+	public static int monthLength(final int year, final int month){
+		if(month < 1 || month > MONTHS_IN_YEAR)
+			return 0;
+		if(month > LAST_MARCH_MONTH && year == LAST_JULIAN_YEAR + 1)
+			return 0;
+		if(year == LAST_JULIAN_YEAR && month == FEBRUARY_MONTH)
+			return REFORM_FEBRUARY_DAYS;
+
+		final int calendarYear = calendarYear(year, month);
+		final int calendarMonth = calendarMonth(month);
+		return (year > LAST_JULIAN_YEAR
+			? MonthLengths.gregorian(calendarYear, calendarMonth)
+			: MonthLengths.julian(calendarYear, calendarMonth));
+	}
+
+	/** @return the Julian or Gregorian month: March to December (3 to 12), then January and February (1 and 2) */
+	private static int calendarMonth(final int month){
+		return (month > LAST_MARCH_MONTH? month - LAST_MARCH_MONTH: month + 2);
+	}
+
+	private static int calendarYear(final int year, final int month){
+		final int calendarYear = year + YEAR_OFFSET;
+		// until 1333 the year started in March, so January and February belong to the next Julian/Gregorian year; from 1334
+		// (1918) the year starts in January
+		return (month > LAST_MARCH_MONTH && year < FIRST_JANUARY_YEAR? calendarYear + 1: calendarYear);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final RumiDateInput input = RumiCalendarParser.parse(rawDate);
+		final YearMonthDay input = RumiCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars.quaker;
 
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
@@ -60,6 +61,9 @@ public class QuakerCalendarStrategy implements CalendarConverterPlugin{
 	public long parseToJdn(final String rawDate){
 		final QuakerDateInput input = QuakerCalendarParser.parse(rawDate);
 		final int year = input.year();
+		// the second year of a dual year is the year after the first one (the parser checks it, a direct caller may not)
+		if(input.dualYear() != 0 && input.dualYear() != year + 1)
+			throw new IllegalArgumentException("The second year of a dual year must be the year after the first one: " + rawDate);
 
 		final int civilMonth;
 		final int day;
@@ -72,7 +76,7 @@ public class QuakerCalendarStrategy implements CalendarConverterPlugin{
 			}
 			else{
 				civilMonth = (input.month() <= 10? input.month() + 2: input.month() - 10);
-				day = (input.day() > 0? input.day(): 1);
+				day = YearMonthDay.dayOrFirst(input.day());
 			}
 
 			final boolean beforeLadyDay = (civilMonth < 3 || civilMonth == 3 && day < LADY_DAY);
@@ -82,8 +86,8 @@ public class QuakerCalendarStrategy implements CalendarConverterPlugin{
 				civilYear = (input.dualYear() != 0? input.dualYear(): year + 1);
 		}
 		else{
-			civilMonth = (input.month() != 0? input.month(): 1);
-			day = (input.day() > 0? input.day(): 1);
+			civilMonth = YearMonthDay.monthOrFirst(input.month());
+			day = YearMonthDay.dayOrFirst(input.day());
 			civilYear = year;
 		}
 
@@ -98,8 +102,8 @@ public class QuakerCalendarStrategy implements CalendarConverterPlugin{
 				+ rawDate);
 
 		final boolean leapYear = (gregorian
-			? year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
-			: Math.floorMod(year, 4) == 0);
+			? GregorianCalendarStrategy.isLeapYear(year)
+			: JulianCalendarStrategy.isLeapYear(year));
 		final int maxDays = MONTH_DAYS[month - 1] + (month == 2 && leapYear? 1: 0);
 		if(day > maxDays)
 			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries: " + rawDate);

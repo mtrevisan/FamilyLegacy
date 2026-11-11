@@ -50,6 +50,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Window;
+import java.util.function.Supplier;
 
 
 /**
@@ -74,6 +75,7 @@ import java.awt.Window;
 public class DateStructurePanel extends JPanel implements HistoricalDateAssistantHost{
 
 	private final FLEFModel model;
+	private Supplier<String> placeSupplier = () -> null;
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -261,8 +263,18 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		final boolean point = (tabbedPane.getSelectedIndex() == 0);
 		new HistoricalDateAssistantDialog(SwingUtilities.getWindowAncestor(this), tool,
 			(point? pointDateValuePanel.getCalendar(): null), (point? pointDateValuePanel.getFullDateText(): null),
-			model, this::applySuggestion)
+			model, this::applySuggestion, placeSupplier.get())
 			.setVisible(true);
+	}
+
+	/**
+	 * Sets where the place of the event the date belongs to is found: the assistant preselects the reform of the
+	 * jurisdiction of that place (the user can still choose another one).
+	 *
+	 * @param placeSupplier	gives the id of the place, or {@code null} if there is none (it is asked each time the assistant opens)
+	 */
+	public void setPlaceSupplier(final Supplier<String> placeSupplier){
+		this.placeSupplier = (placeSupplier != null? placeSupplier: () -> null);
 	}
 
 	/**

@@ -24,163 +24,155 @@
  */
 package io.github.mtrevisan.calendars.hebrew;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Hebrew calendar, by the rules of the fixed calendar of Hillel II (Reingold and Dershowitz, "Calendrical
+ * Calculations"): the months are numbered as the parser does, as in a leap year (Tishrei = 1, ..., Adar I = 6, Adar II = 7,
+ * Nisan = 8, ..., Elul = 13), so that Adar II is missing in the common years.
+ */
 public class HebrewCalendarStrategy implements CalendarConverterPlugin{
+
+	/** Julian Day Number of the day before the first day (Monday 7 October 3761 BCE Julian) of the elapsed days. */
+	private static final long EPOCH_BEFORE = 347997L;
+	private static final long MONTHS_PER_CYCLE = 235L;
+	/** The months of a cycle that precede the first year: the months elapsed are {@code (235 * year - 234) / 19}. */
+	private static final long MONTHS_BEFORE_EPOCH = 234L;
+	private static final int YEARS_PER_CYCLE = 19;
+	/** The molad of Tishrei of year 1: the hours and the parts (of 1080 in an hour) after the sunset of the day before. */
+	private static final long MOLAD_HOURS = 5L;
+	private static final long MOLAD_PARTS = 204L;
+	private static final long PARTS_PER_HOUR = 1080L;
+	private static final long PARTS_PER_MONTH_HOUR = 793L;
+	/** A molad at or after noon (18 hours from the sunset) postpones the new year (Molad Zaken). */
+	private static final long NOON_PARTS = 19440L;
+	/** Dehiyyat GaTaRaD: a Tuesday molad of a common year at or after 9 hours and 204 parts. */
+	private static final long GATARAD_PARTS = 9924L;
+	/** Dehiyyat BeTUTaKPaT: a Monday molad of the year after a leap year at or after 15 hours and 589 parts. */
+	private static final long BETUTAKPAT_PARTS = 16789L;
+	/** The weekdays of the elapsed days: the first elapsed day is a Monday, so that {@code day % 7} is 1 for a Monday. */
+	private static final int SUNDAY = 0;
+	private static final int MONDAY = 1;
+	private static final int TUESDAY = 2;
+	private static final int WEDNESDAY = 3;
+	private static final int FRIDAY = 5;
+	private static final int DAYS_IN_WEEK = 7;
+
+	private static final int ADAR_I = 6;
+	private static final int ADAR_II = 7;
+	private static final int MONTHS_IN_LEAP_YEAR = 13;
+	private static final int LEAP_YEAR_LENGTH_UNITS = 10;
+	/** The Gregorian year in which the Hebrew year 1 started (3761 BCE, that is -3760 astronomically), minus one. */
+	private static final int GREGORIAN_OFFSET = 3761;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
 		// Note: Traditional Hebrew days start at sunset. This structural JDN anchors to the civil day portion.
-		// 1. Unpack structural items using the specialized text parser
-		final HebrewDateInput input = HebrewCalendarParser.parse(rawDate);
+		final YearMonthDay input = HebrewCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		if(month < 0){
-			// Step A: Calculate a dynamic baseline anchor for the center of the target Hebrew year.
-			// We sample the start of the current year and estimate a middle point shift.
-			final long startOfYearJdn = hebrewNewYear(year);
-			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
+		if(input.isSeason())
+			// the Tekufot of the year: the autumn and the winter in the Gregorian year in which the Hebrew year starts
+			return SeasonalDates.ofAutumnYear("Hebrew", year - GREGORIAN_OFFSET, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else{
-			// The parser numbers the months as in a leap year (Adar I = 6, Adar II = 7, Nisan = 8, ..., Elul = 13):
-			// in a common year there is a single Adar (6), and Nisan to Elul shift back by one (7 to 12)
-			final int yearMonth = (!isLeapYear(year) && month >= 7? Math.max(month - 1, 6): month);
-
-			// Standard numeric execution path using the rabbinic calculation algorithm for regular Hebrew dates
-			return hebrewNewYear(year) + daysBeforeMonth(year, yearMonth) + (day - 1);
-		}
-	}
-
-	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
-		final double approximateMiddleJdUT = startOfYearJdn + 177. - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Hebrew calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return hebrewNewYear(year) + daysBeforeMonth(year, input.monthOrDefault()) + (input.dayOrDefault() - 1);
 	}
 
 	/**
-	 * Computes the Julian Day Number for Rosh HaShanah (1 Tishrei) of a given Hebrew year.
-	 * Strictly applies the historical Dehiyyot postponement rules in the correct mathematical sequence.
+	 * Computes the Julian Day Number of Rosh HaShanah (1 Tishrei) of a Hebrew year, from the molad of Tishrei and the
+	 * postponements (dehiyyot): Molad Zaken, GaTaRaD and BeTUTaKPaT (that look at the weekday and the time of the molad
+	 * itself), then ADU (Rosh HaShanah is never a Sunday, a Wednesday, or a Friday).
+	 *
+	 * @param year the Hebrew year (from 1)
+	 * @return the Julian Day Number
 	 */
-	private long hebrewNewYear(final int year){
-		// 1. Calculate the elapsed months and parts since the epoch
-		final long monthsElapsed = (235L * year - 234L) / 19L;
-		final long partsElapsed = 204L + 793L * (monthsElapsed % 1080L);
-		final long hoursElapsed = 11L + 12L * monthsElapsed + 793L * (monthsElapsed / 1080L) + partsElapsed / 1080L;
+	static long hebrewNewYear(final long year){
+		final long monthsElapsed = Math.floorDiv(MONTHS_PER_CYCLE * year - MONTHS_BEFORE_EPOCH, (long)YEARS_PER_CYCLE);
+		final long partsElapsed = MOLAD_PARTS + PARTS_PER_MONTH_HOUR * (monthsElapsed % PARTS_PER_HOUR);
+		final long hoursElapsed = MOLAD_HOURS + 12L * monthsElapsed + PARTS_PER_MONTH_HOUR * (monthsElapsed / PARTS_PER_HOUR)
+			+ partsElapsed / PARTS_PER_HOUR;
 
-		// Dynamic day calculation from the raw astronomical Molad calculation
+		// the day (counted from the epoch, a Monday) and the time of the molad
 		long day = 1L + 29L * monthsElapsed + hoursElapsed / 24L;
-		final long parts = (hoursElapsed % 24L) * 1080L + (partsElapsed % 1080L);
+		final long parts = (hoursElapsed % 24L) * PARTS_PER_HOUR + (partsElapsed % PARTS_PER_HOUR);
+		final int moladWeekday = (int)(day % DAYS_IN_WEEK);
 
-		// Convert to absolute JDN coordinates BEFORE evaluating the day of the week to fix the remainder bug
-		long roshHaShanahJdn = day + 347997L;
+		if(parts >= NOON_PARTS)
+			day ++;
+		else if(moladWeekday == TUESDAY && !isLeapYear(year) && parts >= GATARAD_PARTS)
+			// a Wednesday, that ADU moves to Thursday
+			day += 2L;
+		else if(moladWeekday == MONDAY && isLeapYear(year - 1) && parts >= BETUTAKPAT_PARTS)
+			day ++;
 
-		// Rule 1: Dehiyyat Molad Zaken (Postpone if Molad occurs at or after noon / 18 hours = 19440 parts)
-		if(parts >= 19440L)
-			roshHaShanahJdn ++;
+		final int weekday = (int)(day % DAYS_IN_WEEK);
+		if(weekday == SUNDAY || weekday == WEDNESDAY || weekday == FRIDAY)
+			day ++;
 
-		// 2. Identify the absolute day of the week (JDN % 7: 0 = Monday, 1 = Tuesday, ..., 5 = Saturday, 6 = Sunday)
-		long dayOfWeek = roshHaShanahJdn % 7L;
-
-		// Rule 3: Dehiyyat GATRAD
-		// Postpone if it's a common year, Molad falls on Tuesday (dayOfWeek == 1), and parts >= 9h 204p (9924 parts)
-		if(dayOfWeek == 1L && !isLeapYear(year) && parts >= 9924L)
-			roshHaShanahJdn += 2L;
-			// Rule 4: Dehiyyat BETUAGOT
-			// Postpone if it follows a leap year, Molad falls on Monday (dayOfWeek == 0), and parts >= 15h 589p (16789 parts)
-		else if(dayOfWeek == 0L && isLeapYear(year - 1) && parts >= 16789L)
-			roshHaShanahJdn ++;
-
-		// Re-evaluate day of the week for the final absolute check against prohibited days
-		dayOfWeek = roshHaShanahJdn % 7L;
-
-		// Rule 2: Dehiyyat ADU
-		// Rosh HaShanah cannot fall on Sunday, Wednesday, or Friday.
-		// Mapping JDN % 7: Sunday = 6, Wednesday = 2, Friday = 4
-		if(dayOfWeek == 6L || dayOfWeek == 2L || dayOfWeek == 4L)
-			roshHaShanahJdn ++;
-
-		return roshHaShanahJdn;
+		return day + EPOCH_BEFORE;
 	}
 
-	private boolean isLeapYear(final int year){
-		return ((7 * year + 1) % 19 < 7);
+	/**
+	 * @param year the Hebrew year
+	 * @return whether the year is a leap year, of thirteen months (the 3rd, 6th, 8th, 11th, 14th, 17th and 19th of the 19
+	 * 	years cycle)
+	 */
+	static boolean isLeapYear(final long year){
+		return (Math.floorMod(7L * year + 1L, (long)YEARS_PER_CYCLE) < 7L);
+	}
+
+	/**
+	 * @param year the Hebrew year
+	 * @return the number of days of the year (353, 354, 355, 383, 384, or 385)
+	 */
+	static int yearLength(final int year){
+		return (int)(hebrewNewYear(year + 1L) - hebrewNewYear(year));
+	}
+
+	/**
+	 * The length of a month, according to the length of the year: Cheshvan has 30 days in a complete year, Kislev has 29
+	 * in a deficient one.
+	 *
+	 * @param year  the Hebrew year
+	 * @param month the month, numbered as in a leap year (Adar I = 6, Adar II = 7, Nisan = 8, ..., Elul = 13)
+	 * @return the days of the month, or {@code 0} if it does not exist in the year (the second Adar of a common year)
+	 */
+	static int monthLength(final int year, final int month){
+		if(month < 1 || month > MONTHS_IN_LEAP_YEAR)
+			return 0;
+
+		final boolean leap = isLeapYear(year);
+		if(month == ADAR_II && !leap)
+			return 0;
+
+		return switch(month){
+			case 1, 5, 8, 10, 12 -> 30;
+			case 2 -> (yearLength(year) % LEAP_YEAR_LENGTH_UNITS == 5? 30: 29);
+			case 3 -> (yearLength(year) % LEAP_YEAR_LENGTH_UNITS == 3? 29: 30);
+			case ADAR_I -> (leap? 30: 29);
+			default -> 29;
+		};
 	}
 
 	/**
 	 * Computes the cumulative elapsed days in a Hebrew year before the given month.
 	 * Dynamically adjusts for deficient, regular, and complete year lengths.
 	 */
-	private int daysBeforeMonth(final int year, final int month){
-		// Resolve the absolute length of the current Hebrew year
-		final long thisNY = hebrewNewYear(year);
-		final long nextNY = hebrewNewYear(year + 1);
-		final int yearLength = (int)(nextNY - thisNY);
-
-		final boolean isLeap = isLeapYear(year);
-
-		// Detect custom year configurations (Heshvan and Kislev dynamic lengths)
-		// Deficient (353/383 days), Regular (354/384 days), Complete (355/385 days)
-		final boolean longCheshvan = (yearLength == 355 || yearLength == 385);
-		final boolean shortKislev = (yearLength == 353 || yearLength == 383);
-
+	private static int daysBeforeMonth(final int year, final int month){
 		int days = 0;
-		for(int m = 1; m < month; m ++){
-			days += switch(m){
-				// Tishrei
-				case 1 -> 30;
-				// Cheshvan
-				case 2 -> (longCheshvan? 30: 29);
-				// Kislev
-				case 3 -> (shortKislev? 29: 30);
-				// Tevet
-				case 4 -> 29;
-				// Shevat
-				case 5 -> 30;
-				// In a leap year, Month 6 is Adar I (30 days). In a common year, it is Adar (29 days).
-				case 6 -> (isLeap? 30: 29);
-				// In a leap year, Month 7 is Adar II (29 days). In a common year, it is Nisan (30 days).
-				case 7 -> (isLeap? 29: 30);
-				// In a leap year, Month 8 is Nisan (30 days). In a common year, it is Iyar (29 days).
-				case 8 -> (isLeap? 30: 29);
-				// In a leap year, Month 9 is Iyar (29 days). In a common year, it is Sivan (30 days).
-				case 9 -> (isLeap? 29: 30);
-				// In a leap year, Month 10 is Sivan (30 days). In a common year, it is Tammuz (29 days).
-				case 10 -> (isLeap? 30: 29);
-				// In a leap year, Month 11 is Tammuz (29 days). In a common year, it is Av (30 days).
-				case 11 -> (isLeap? 29: 30);
-				// In a leap year, Month 12 is Av (30 days). In a common year, it is Elul (29 days).
-				case 12 -> (isLeap? 30: 29);
-				// Elul in a leap year (Month 13)
-				case 13 -> 29;
-				default -> 0;
-			};
-		}
+		for(int m = 1; m < month; m ++)
+			days += monthLength(year, m);
 		return days;
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final HebrewDateInput input = HebrewCalendarParser.parse(rawDate);
+		final YearMonthDay input = HebrewCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

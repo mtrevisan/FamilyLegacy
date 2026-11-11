@@ -25,11 +25,14 @@
 package io.github.mtrevisan.updater;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -138,7 +141,26 @@ class UpdaterTest{
 	@Test
 	void aDraftOrAnUnknownTagIsIgnored() throws Exception{
 		Assertions.assertTrue(releases(withLatest(releaseJson("").replace("\"draft\":false", "\"draft\":true"))).latest().isEmpty());
-		Assertions.assertTrue(releases(withLatest(releaseJson("").replace("v1.2.0", "nightly"))).latest().isEmpty());
+	}
+
+	@Test
+	void aTagThatIsNotAVersionIsAnIoError(){
+		Assertions.assertThrows(IOException.class, () -> releases(withLatest(releaseJson("").replace("v1.2.0", "nightly"))).latest());
+	}
+
+	@Test
+	void anInstallerBiggerThanPublishedIsRefused(@TempDir final Path directory) throws Exception{
+		final ReleaseInfo release = release("a.exe", INSTALLER.length - 5, sha256(INSTALLER));
+
+		Assertions.assertThrows(IOException.class, () -> new InstallerDownloader(serving(INSTALLER)).download(release, directory, null, null));
+		try(final var files = Files.list(directory)){
+			Assertions.assertEquals(List.of(), files.toList());
+		}
+	}
+
+	@Test
+	void anAbsurdlyNestedAnswerIsAnIoError(){
+		Assertions.assertThrows(IOException.class, () -> releases(withLatest("[".repeat(100_000))).latest());
 	}
 
 	@Test
@@ -209,8 +231,19 @@ class UpdaterTest{
 	}
 
 	@Test
+	void anInstallerWithoutPublishedDigestIsRefused(@TempDir final Path directory) throws Exception{
+		final ReleaseInfo release = release("a.exe", INSTALLER.length, null);
+
+		Assertions.assertFalse(release.isInstallable());
+		Assertions.assertThrows(IOException.class, () -> new InstallerDownloader(serving(INSTALLER)).download(release, directory, null, null));
+		try(final var files = Files.list(directory)){
+			Assertions.assertEquals(List.of(), files.toList());
+		}
+	}
+
+	@Test
 	void aShortDownloadLeavesNothing(@TempDir final Path directory) throws Exception{
-		final ReleaseInfo release = release("a.exe", INSTALLER.length + 10, null);
+		final ReleaseInfo release = release("a.exe", INSTALLER.length + 10, sha256(INSTALLER));
 
 		Assertions.assertThrows(IOException.class, () -> new InstallerDownloader(serving(INSTALLER)).download(release, directory, null, null));
 		try(final var files = Files.list(directory)){
@@ -220,7 +253,7 @@ class UpdaterTest{
 
 	@Test
 	void canBeCancelled(@TempDir final Path directory) throws Exception{
-		final ReleaseInfo release = release("a.exe", INSTALLER.length, null);
+		final ReleaseInfo release = release("a.exe", INSTALLER.length, sha256(INSTALLER));
 
 		Assertions.assertThrows(InstallerDownloader.DownloadCancelledException.class,
 			() -> new InstallerDownloader(serving(INSTALLER)).download(release, directory, null, () -> true));
@@ -263,7 +296,53 @@ class UpdaterTest{
 		final Path msi = Path.of("x.msi").toAbsolutePath();
 
 		Assertions.assertEquals(List.of("msiexec", "/i", msi.toString()), InstallerLauncher.command(msi));
-		Assertions.assertEquals(List.of(Path.of("x.exe").toAbsolutePath().toString()), InstallerLauncher.command(Path.of("x.exe")));
+		//(an exe goes through the shell, so that an installer that needs administrator rights gets its UAC prompt)
+		Assertions.assertEquals(List.of("rundll32", "url.dll,FileProtocolHandler", Path.of("x.exe").toAbsolutePath().toString()),
+			InstallerLauncher.command(Path.of("x.exe")));
+	}
+
+	@Test
+	void aMalformedPageUrlFallsBackToTheReleasesPage() throws Exception{
+		final String json = releaseJson("").replace("https://github.com/mtrevisan/FamilyLegacy/releases/tag/v1.2.0", "https://exa mple.org/a b");
+
+		Assertions.assertEquals(URI.create("https://github.com/mtrevisan/FamilyLegacy/releases"),
+			releases(withLatest(json)).latest().orElseThrow().pageUrl());
+	}
+
+	@Test
+	void aNameNotAllowedByTheFileSystemIsAnIoError(@TempDir final Path directory){
+		//(on Windows ':' makes Path.of throw)
+		Assumptions.assumeTrue(InstallerLauncher.isWindows(System.getProperty("os.name", "")));
+
+		Assertions.assertThrows(IOException.class,
+			() -> new InstallerDownloader(serving(INSTALLER)).download(release("a:b.exe", INSTALLER.length, null), directory, null, null));
+	}
+
+	@Test
+	void aStalledReadFailsInsteadOfBlockingForever() throws Exception{
+		final java.util.concurrent.CountDownLatch closed = new java.util.concurrent.CountDownLatch(1);
+		final InputStream blocking = new InputStream(){
+			@Override
+			public int read() throws IOException{
+				try{
+					closed.await();
+				}
+				catch(final InterruptedException e){
+					Thread.currentThread().interrupt();
+				}
+				throw new IOException("closed");
+			}
+
+			@Override
+			public void close(){
+				closed.countDown();
+			}
+		};
+		final InputStream stalled = new StallGuardInputStream(blocking, Duration.ofMillis(200));
+
+		Assertions.assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+			Assertions.assertThrows(IOException.class, stalled::read);
+		});
 	}
 
 }

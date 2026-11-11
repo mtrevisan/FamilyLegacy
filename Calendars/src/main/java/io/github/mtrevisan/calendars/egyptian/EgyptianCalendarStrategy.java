@@ -24,59 +24,39 @@
  */
 package io.github.mtrevisan.calendars.egyptian;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Egyptian civil calendar of the Era of Nabonassar: twelve months of thirty days and five epagomenal days, with no
+ * leap year, so that the year wanders through the seasons.
+ */
 public class EgyptianCalendarStrategy implements CalendarConverterPlugin{
+
+	/** Era of Nabonassar (Ptolemy, Almagest): 1 Thoth 1 = 26 February 747 BCE Julian = JDN 1448638. */
+	private static final long EPOCH_JDN = 1448638L;
+	private static final long DAYS_IN_YEAR = 365L;
+	private static final long DAYS_IN_MONTH = 30L;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final EgyptianDateInput input = EgyptianCalendarParser.parse(rawDate);
-		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
+		final YearMonthDay input = EgyptianCalendarParser.parse(rawDate);
 
-		// Era of Nabonassar (Ptolemy, Almagest): 1 Thoth 1 = 26 February 747 BCE Julian = JDN 1448638.
-		final long egyptianEpochJdn = 1448638L;
+		final long startOfYear = EPOCH_JDN + DAYS_IN_YEAR * (input.year() - 1L);
+		if(input.isSeason())
+			// the year wanders through the seasons: the first event of the season on or after the start of the year
+			return SeasonalDates.onOrAfter("Egyptian", startOfYear, input.month());
 
-		if(month < 0){
-			// Step A: Determine the absolute linear window of this shifting Egyptian year.
-			final double exactSeasonJdUT = exactSeasonJdUT(egyptianEpochJdn, year, month);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			return egyptianEpochJdn + 365L * (year - 1L) + 30L * (month - 1L) + (day - 1L);
-	}
-
-	private static double exactSeasonJdUT(final long egyptianEpochJdn, final int year, final int month){
-		final long startOfYearJdn = egyptianEpochJdn + (year - 1) * 365L;
-
-		// Establish the middle of this specific shifting year block as an initial guess anchor
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Note: Mapped to match standard seasonal definitions:
-		// Akhet (Autumn = 𝜋), Peret (Winter = 3𝜋/2), Shemu (Summer = 𝜋/2)
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Egyptian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return startOfYear + DAYS_IN_MONTH * (input.monthOrDefault() - 1L) + (input.dayOrDefault() - 1L);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final EgyptianDateInput input = EgyptianCalendarParser.parse(rawDate);
+		final YearMonthDay input = EgyptianCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

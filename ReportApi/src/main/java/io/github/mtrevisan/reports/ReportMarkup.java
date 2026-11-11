@@ -38,8 +38,15 @@ import java.util.regex.Pattern;
 public final class ReportMarkup{
 
 	private static final Pattern INLINE_CODE = Pattern.compile("`([^`]+?)`");
-	private static final Pattern ITALIC = Pattern.compile("(?<!\\*)\\*(?!\\*)([^*]+?)(?<!\\*)\\*(?!\\*)");
-	private static final Pattern BOLD = Pattern.compile("\\*\\*(.+?)\\*\\*");
+	/**
+	 * The italic is a pair of asterisks attached to the words: the opening one is not preceded by a letter, a digit or an asterisk and is
+	 * followed by a non-space, the closing one is preceded by a non-space and is not followed by a letter, a digit or an asterisk.
+	 * So a lone {@code *1850} (born) is never an opening, and {@code *1850 ... *1852} is not an italic.
+	 */
+	private static final Pattern ITALIC = Pattern.compile("(?<![\\p{L}\\p{N}*])\\*(?![\\s*])([^*]+?)(?<![\\s*])\\*(?![\\p{L}\\p{N}*])");
+	private static final Pattern BOLD = Pattern.compile("(?<![\\p{L}\\p{N}*])\\*\\*(?![\\s*])(.+?)(?<![\\s*])\\*\\*(?![\\p{L}\\p{N}*])");
+	/** A record reference with the space that precedes it. */
+	private static final Pattern RECORD_ID_WITH_SPACE = Pattern.compile("\\s*\\[[A-Za-z]+\\d+\\]");
 	/** A record reference such as {@code [I12]} inside the text of a heading. */
 	private static final Pattern RECORD_ID = Pattern.compile("\\[([A-Za-z]+\\d+)\\]");
 	/** The protocol's internal link {@code [text](@id@)}. */
@@ -81,37 +88,144 @@ public final class ReportMarkup{
 	 *
 	 * @param text	The text (can be {@code null}).
 	 * @param linkTarget	Gives the address of the page that has the record whose identifier is passed ({@code "chapter-002.html#I1"});
-	 * 	{@code null} if there is none, and then the link is only its text.
+	 * 	can be {@code null} or return {@code null} if there is none, and then the link is only its text.
 	 * @return	The markup.
 	 */
 	public static String inline(final String text, final UnaryOperator<String> linkTarget){
-		final Matcher matcher = INTERNAL_LINK.matcher(escape(text));
+		final String escaped = escape(text);
+		final StringBuilder sb = new StringBuilder(escaped.length() + 16);
+		//the code spans are taken first: what is inside them is not Markdown
+		final Matcher code = INLINE_CODE.matcher(escaped);
+		int start = 0;
+		while(code.find()){
+			sb.append(inlineText(escaped.substring(start, code.start()), linkTarget))
+				.append("<code>").append(code.group(1)).append("</code>");
+			start = code.end();
+		}
+		sb.append(inlineText(escaped.substring(start), linkTarget));
+		return sb.toString();
+	}
+
+	/** The internal links, the bold and the italic of a text already escaped and without code spans. */
+	private static String inlineText(final String escaped, final UnaryOperator<String> linkTarget){
+		final Matcher matcher = INTERNAL_LINK.matcher(escaped);
 		final StringBuilder sb = new StringBuilder();
 		while(matcher.find()){
-			final String target = linkTarget.apply(matcher.group(2));
+			final String target = (linkTarget != null? linkTarget.apply(matcher.group(2)): null);
 			matcher.appendReplacement(sb, Matcher.quoteReplacement(target != null
-				? "<a href=\"" + target + "\">" + matcher.group(1) + "</a>"
+				? "<a href=\"" + escape(target) + "\">" + matcher.group(1) + "</a>"
 				: matcher.group(1)));
 		}
 		matcher.appendTail(sb);
 
-		String result = BOLD.matcher(sb).replaceAll("<b>$1</b>");
-		result = ITALIC.matcher(result).replaceAll("<i>$1</i>");
-		return INLINE_CODE.matcher(result).replaceAll("<code>$1</code>");
+		final String result = BOLD.matcher(sb)
+			.replaceAll("<b>$1</b>");
+		return ITALIC.matcher(result)
+			.replaceAll("<i>$1</i>");
+	}
+
+	/**
+	 * A run of text with the same style.
+	 *
+	 * @param text	The text, without the Markdown marks.
+	 * @param bold	Whether it is bold.
+	 * @param italic	Whether it is italic.
+	 * @param code	Whether it is a code span (monospaced).
+	 * @param link	The identifier of the record the text links to ({@code "I12"}), or {@code null}.
+	 */
+	public record Span(String text, boolean bold, boolean italic, boolean code, String link){}
+
+
+	/**
+	 * Splits a text with inline Markdown in runs of text with the same style, with the same rules of {@link #inline(String, UnaryOperator)}
+	 * (so a lone {@code *1850} is not an italic), for the renderers that do not write markup.
+	 *
+	 * @param text	The text (can be {@code null}).
+	 * @return	The runs, in order; empty for a {@code null} or empty text.
+	 */
+	public static List<Span> spans(final String text){
+		final List<Span> spans = new ArrayList<>();
+		if(text == null || text.isEmpty())
+			return spans;
+
+		final Matcher code = INLINE_CODE.matcher(text);
+		int start = 0;
+		while(code.find()){
+			linkSpans(text.substring(start, code.start()), spans);
+			spans.add(new Span(code.group(1), false, false, true, null));
+			start = code.end();
+		}
+		linkSpans(text.substring(start), spans);
+		return spans;
+	}
+
+	private static void linkSpans(final String text, final List<Span> spans){
+		final Matcher matcher = INTERNAL_LINK.matcher(text);
+		int start = 0;
+		while(matcher.find()){
+			boldSpans(text.substring(start, matcher.start()), null, spans);
+			boldSpans(matcher.group(1), matcher.group(2), spans);
+			start = matcher.end();
+		}
+		boldSpans(text.substring(start), null, spans);
+	}
+
+	private static void boldSpans(final String text, final String link, final List<Span> spans){
+		final Matcher matcher = BOLD.matcher(text);
+		int start = 0;
+		while(matcher.find()){
+			italicSpans(text.substring(start, matcher.start()), false, link, spans);
+			italicSpans(matcher.group(1), true, link, spans);
+			start = matcher.end();
+		}
+		italicSpans(text.substring(start), false, link, spans);
+	}
+
+	private static void italicSpans(final String text, final boolean bold, final String link, final List<Span> spans){
+		final Matcher matcher = ITALIC.matcher(text);
+		int start = 0;
+		while(matcher.find()){
+			addSpan(spans, text.substring(start, matcher.start()), bold, false, link);
+			addSpan(spans, matcher.group(1), bold, true, link);
+			start = matcher.end();
+		}
+		addSpan(spans, text.substring(start), bold, false, link);
+	}
+
+	private static void addSpan(final List<Span> spans, final String text, final boolean bold, final boolean italic, final String link){
+		if(!text.isEmpty())
+			spans.add(new Span(text, bold, italic, false, link));
 	}
 
 	/**
 	 * @param text	The text (can be {@code null}).
-	 * @return	The text without the Markdown and link syntax, for the titles.
+	 * @return	The text without the Markdown and link syntax, for the titles; the asterisks that are not a Markdown mark ({@code *1850}) stay.
 	 */
 	public static String plain(final String text){
 		if(text == null)
 			return "";
 
-		return INTERNAL_LINK.matcher(text).replaceAll("$1")
-			.replace("**", "")
-			.replace("*", "")
-			.replace("`", "")
+		final String linked = INTERNAL_LINK.matcher(text)
+			.replaceAll("$1");
+		final String bold = BOLD.matcher(linked)
+			.replaceAll("$1");
+		final String italic = ITALIC.matcher(bold)
+			.replaceAll("$1");
+		return INLINE_CODE.matcher(italic)
+			.replaceAll("$1")
+			.strip();
+	}
+
+	/**
+	 * @param text	The text of a heading (can be {@code null}).
+	 * @return	The text without the record references ({@code [I12]}) and the space before them.
+	 */
+	public static String withoutRecordIds(final String text){
+		if(text == null)
+			return "";
+
+		return RECORD_ID_WITH_SPACE.matcher(text)
+			.replaceAll("")
 			.strip();
 	}
 

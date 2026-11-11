@@ -24,65 +24,57 @@
  */
 package io.github.mtrevisan.calendars.frenchrepublican;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The French Republican calendar, with the arithmetic rule of the four-year cycle of the decree: twelve months of thirty
+ * days and five complementary days (Sansculottides), six in the sextile years III, VII, XI, XV, ... (the year whose number
+ * leaves 3 in the division by 4). The rule of Romme (the sextile years IV, VIII, ... with the corrections of the
+ * centuries) was never adopted, and the calendar was abolished in the year XIV, so the years after it are an extrapolation.
+ */
 public class FrenchRepublicanCalendarStrategy implements CalendarConverterPlugin{
+
+	/** Julian Day Number of 1 Vendemiaire of the year I (22 September 1792 Gregorian). */
+	private static final long EPOCH_JDN = 2375840L;
+	private static final long DAYS_IN_YEAR = 365L;
+	private static final long DAYS_IN_MONTH = 30L;
+	private static final int LEAP_CYCLE = 4;
+	private static final int LEAP_REMAINDER = 3;
+	/** The year I started in the Gregorian year 1792: the Gregorian year of the start is this number plus the year. */
+	private static final int GREGORIAN_OFFSET = 1791;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		// 1. Unpack structural components using the specialized text parser
-		final FrenchRepublicanDateInput input = FrenchRepublicanCalendarParser.parse(rawDate);
+		final YearMonthDay input = FrenchRepublicanCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		if(month < 0){
-			// Step A: Determine an approximate baseline anchor for the year.
-			// Year 1 began at JDN 2375840L (September 22, 1792).
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
+		if(input.isSeason())
+			// the year starts at the autumn equinox of the Gregorian year Y + 1791: the autumn and the winter fall in that
+			// year, the spring and the summer in the next one
+			return SeasonalDates.ofAutumnYear("French Republican", year + GREGORIAN_OFFSET, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else{
-			// Standard arithmetic execution mapping path for regular months (Romme arithmetic rule alignment)
-			final long epochJdn = 2375840L;	// JDN of September 22, 1792
-
-			// Days elapsed = (years * 365) + leap corrections + month days + current day offset
-			final long daysToAdd = (year - 1) * 365L
-				// Simplified Romme variant leap steps
-				+ (year / 4)
-				+ (month - 1) * 30L
-				+ (day - 1);
-
-			return epochJdn + daysToAdd;
-		}
+		return EPOCH_JDN + (year - 1L) * DAYS_IN_YEAR
+			+ Math.floorDiv(year, LEAP_CYCLE)
+			+ (input.monthOrDefault() - 1L) * DAYS_IN_MONTH
+			+ (input.dayOrDefault() - 1L);
 	}
 
-	private static double exactSeasonJdUT(final int year, final int month){
-		final long startOfYearJdn = 2375840L + (long)((year - 1) * 365.2422);
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the Sun cross point occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("French Republican calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	/**
+	 * @param year the year
+	 * @return whether the year is sextile, with six complementary days
+	 */
+	public static boolean isLeapYear(final int year){
+		return (Math.floorMod(year, LEAP_CYCLE) == LEAP_REMAINDER);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final FrenchRepublicanDateInput input = FrenchRepublicanCalendarParser.parse(rawDate);
+		final YearMonthDay input = FrenchRepublicanCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

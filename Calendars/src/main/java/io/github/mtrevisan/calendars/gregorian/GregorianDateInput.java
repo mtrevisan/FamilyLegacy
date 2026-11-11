@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
+
 
 /**
  * Data container for parsed Gregorian calendar components.
@@ -45,14 +47,14 @@ public record GregorianDateInput(int year, int month, int day, boolean dualYear,
 	 * @return the month (or the seasonal flag), or the first month of the year if the month is missing
 	 */
 	public int monthOrFirst(){
-		return (month != 0? month: 1);
+		return YearMonthDay.monthOrFirst(month);
 	}
 
 	/**
 	 * @return the day of the month, or the first day of the month if the day is missing
 	 */
 	public int dayOrFirst(){
-		return (day > 0? day: 1);
+		return YearMonthDay.dayOrFirst(day);
 	}
 
 	/**

@@ -79,7 +79,8 @@ public final class GrampsFileImporter implements FileImporter{
 	public FLEFModel read(final Path file, final ProgressListener progress, final ImportReport report) throws IOException{
 		progress.onProgress(-1, I18N.t("progress.reading_file"));
 		//the media of a package are extracted next to it, in a directory named after it (without the extension)
-		final String name = file.getFileName().toString();
+		final String name = file.getFileName()
+			.toString();
 		final Path mediaDirectory = (name.toLowerCase(Locale.ROOT).endsWith(".gpkg")
 			? file.toAbsolutePath().resolveSibling(name.substring(0, name.length() - ".gpkg".length()) + "_media")
 			: null);

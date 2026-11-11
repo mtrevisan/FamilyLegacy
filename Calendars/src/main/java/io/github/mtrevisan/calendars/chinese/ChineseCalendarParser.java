@@ -28,8 +28,8 @@ import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,9 +49,6 @@ public final class ChineseCalendarParser{
 	// Lunar calendar
 	private static final String NONGLI1 = "农历";
 	private static final String NONGLI2 = "農曆";
-
-	// Chine republic
-	private static final String MINGUO = "民国";
 
 	// Leap
 	private static final String RUN1 = "闰";
@@ -173,7 +170,11 @@ public final class ChineseCalendarParser{
 		SEASONS.put("li-hsia", CalendarSeason.SEASON_SUMMER);	// Wade-Giles transliteration
 	}
 
-	private static final Pattern YEAR_PATTERN = Pattern.compile("^(\\d{4})年");
+	private static final Pattern YEAR_PATTERN = Pattern.compile("^(\\d{1,4})年");
+
+	/** 4 AD is the year of the first sexagenary combination (jiazi, 甲子), as 1984 and 2044. */
+	private static final int SEXAGENARY_EPOCH_YEAR = 4;
+	private static final int SEXAGENARY_CYCLE = 60;
 
 	private static final String DIGITS = "一二三四五六七八九";
 
@@ -182,29 +183,35 @@ public final class ChineseCalendarParser{
 
 
 	/**
-	 * Parses a string in formats like "庚申年 正月 初一" or "康熙三十五年八月初二" into a discrete data record.
+	 * Parses a string in formats like "2020年 庚子年 正月 初一" or "康熙三十五年八月初二" into a discrete data record.
 	 * Whitespace between tokens is automatically stripped during validation.
+	 * <p>
+	 * The year needs an anchor: an era (nianhao, e.g. 康熙三十五年), or a numeric year (e.g. 2020年), optionally followed by
+	 * the sexagenary year (庚子年), that is checked against it. A sexagenary year alone is ambiguous (it repeats every 60
+	 * years) and is rejected. A season (or solar term) takes no month nor day.
+	 * </p>
 	 *
 	 * @param chineseDateString the raw traditional Chinese date string
 	 * @return a structured ChineseDateInput instance ready for astronomical execution
+	 * @throws IllegalArgumentException if the string is not valid, the year is not anchored, the stem and the branch of a
+	 * 	sexagenary year do not match, or a season is given with a month or a day
 	 */
 	public static ChineseDateInput parse(final String chineseDateString){
 		// Normalize text by removing spaces
 		String cleanStr = StringUtils.deleteWhitespace(chineseDateString);
-		if(cleanStr.startsWith(NONGLI1) || cleanStr.startsWith(NONGLI2))
-			cleanStr = cleanStr.substring(2);
+		cleanStr = stripLunarPrefix(cleanStr);
 
-		// Check if the prefix maps to a direct seasonal/Jieqi token property
+		// Check if the prefix maps to a direct seasonal/Jieqi token property: the longest matching term wins
 		Integer seasonalFlag = null;
-		final Set<String> terms = SEASONS.keySet();
-		for(final String term : terms)
-			if(cleanStr.startsWith(term)){
-				seasonalFlag = SEASONS.get(term);
-
-				cleanStr = cleanStr.substring(term.length());
-
-				break;
-			}
+		final String lowerCase = cleanStr.toLowerCase(Locale.ROOT);
+		String seasonTerm = null;
+		for(final String term : SEASONS.keySet())
+			if(lowerCase.startsWith(term) && (seasonTerm == null || term.length() > seasonTerm.length()))
+				seasonTerm = term;
+		if(seasonTerm != null){
+			seasonalFlag = SEASONS.get(seasonTerm);
+			cleanStr = stripLunarPrefix(cleanStr.substring(seasonTerm.length()));
+		}
 
 		final int cycleYear;
 
@@ -216,17 +223,14 @@ public final class ChineseCalendarParser{
 			cleanStr = cleanStr.substring(yearMatcher.end());
 		}
 
-		// 1. Check if the string contains a historical Era name (Nianhao)
+		// 1. Check if the string contains a historical Era name (Nianhao): the one that comes first, the longest if tied
 		String matchedEra = null;
 		int eraIndex = -1;
-		final Set<String> eras = ERA_BASE_YEARS.keySet();
-		for(final String era : eras){
+		for(final String era : ERA_BASE_YEARS.keySet()){
 			final int idx = cleanStr.indexOf(era);
-			if(idx != -1){
+			if(idx != -1 && (matchedEra == null || idx < eraIndex || idx == eraIndex && era.length() > matchedEra.length())){
 				eraIndex = idx;
 				matchedEra = era;
-
-				break;
 			}
 		}
 
@@ -238,49 +242,44 @@ public final class ChineseCalendarParser{
 				throw new IllegalArgumentException("Invalid string format: Missing structural year designation '年' after era.");
 
 			final String reignYearToken = cleanStr.substring(0, yearEndIndex);
-			final int reignYear = (matchedEra.equals(MINGUO) && StringUtils.isNumeric(reignYearToken))
+			final int reignYear = (StringUtils.isNumeric(reignYearToken)
 				? Integer.parseInt(reignYearToken)
-				: parseChineseNumber(reignYearToken);
+				: parseChineseNumber(reignYearToken));
+			if(reignYear < 1)
+				throw new IllegalArgumentException("Invalid reign year '" + reignYearToken + "'.");
 			cycleYear = ERA_BASE_YEARS.get(matchedEra) + reignYear - 1;
 			cleanStr = cleanStr.substring(yearEndIndex + 1);
 		}
-		else{
-			// Parse standard Ganzhi cyclical year format (e.g., "庚申年")
-			final int yearEndIndex = cleanStr.indexOf('年');
-			if(yearEndIndex < 2)
-				throw new IllegalArgumentException("Invalid string format: Missing structural year designation '年'.");
+		else if(explicitYear != null)
+			cycleYear = explicitYear;
+		else
+			throw new IllegalArgumentException("The year needs an era (e.g. 康熙三十五年) or a numeric year (e.g. 2020年 庚子年):"
+				+ " a sexagenary year alone repeats every 60 years.");
 
-			final String yearToken = cleanStr.substring(yearEndIndex - 2, yearEndIndex);
-			cycleYear = parseCyclicalYear(yearToken, explicitYear);
-			cleanStr = cleanStr.substring(yearEndIndex + 1);
+		// Optional sexagenary year, checked against the anchored one
+		cleanStr = stripLunarPrefix(cleanStr);
+		if(cleanStr.length() >= 3 && STEMS.indexOf(cleanStr.charAt(0)) >= 0 && BRANCHES.indexOf(cleanStr.charAt(1)) >= 0
+				&& cleanStr.charAt(2) == '年'){
+			if(sexagenaryIndex(cleanStr.substring(0, 2)) != Math.floorMod(cycleYear - SEXAGENARY_EPOCH_YEAR, SEXAGENARY_CYCLE))
+				throw new IllegalArgumentException("Era year and Ganzhi year are inconsistent: " + chineseDateString);
+
+			cleanStr = cleanStr.substring(3);
 		}
 
 		// Handle conditional routing branching rules
-		if(seasonalFlag != null)
-			// SEASONAL JUNCTION CONTEXT: Skip standard lunisolar moon-day parsing operations
-			// The day is not specified (kept as 0)
+		if(seasonalFlag != null){
+			// SEASONAL JUNCTION CONTEXT: standard lunisolar month and day are not allowed, the day is kept as 0
+			if(!cleanStr.isEmpty())
+				throw new IllegalArgumentException("A season cannot be given with a month or a day: " + chineseDateString);
+
 			return new ChineseDateInput(cycleYear, seasonalFlag, false, 0);
+		}
 
 		// 2. Parse Intercalary Month Flag (Runyue)
 		boolean isLeapMonth = false;
 		if(cleanStr.startsWith(RUN1) || cleanStr.startsWith(RUN2)){
 			isLeapMonth = true;
 			cleanStr = cleanStr.substring(1);
-		}
-
-		if(cleanStr.length() >= 3){
-			final String possibleGanzhi = cleanStr.substring(0, 2);
-
-			if(STEMS.indexOf(possibleGanzhi.charAt(0)) >= 0 && BRANCHES.indexOf(possibleGanzhi.charAt(1)) >= 0
-					&& cleanStr.charAt(2) == '年'){
-				// Optional consistency check
-				final int ganzhiYear = parseCyclicalYear(possibleGanzhi, cycleYear);
-
-				if(ganzhiYear != cycleYear)
-					throw new IllegalArgumentException("Era year and Ganzhi year are inconsistent.");
-
-				cleanStr = cleanStr.substring(3);
-			}
 		}
 
 		// 3. Parse Month Component
@@ -298,41 +297,27 @@ public final class ChineseCalendarParser{
 		return new ChineseDateInput(cycleYear, monthNumber, isLeapMonth, dayNumber);
 	}
 
-	private static int parseCyclicalYear(final String ganzhi, final Integer explicitYear){
-		int sexagenaryIndex = sexagenaryIndex(ganzhi);
-
-		// If an explicit year is provided (e.g., from an era or numerical indicator),
-		// use it as a base to anchor the correct 60-year cycle.
-		final int baseAnchor = (explicitYear != null? explicitYear: 1984);
-
-		int anchorYear = baseAnchor + ((sexagenaryIndex - (baseAnchor - 1984) % 60 + 60) % 60);
-		// If the calculated distance exceeds 30 years from the explicit year, normalize to the nearest 60-year occurrence
-		if(explicitYear != null){
-			while(anchorYear - explicitYear > 30)
-				anchorYear -= 60;
-			while(explicitYear - anchorYear > 30)
-				anchorYear += 60;
-		}
-
-		return anchorYear;
+	private static String stripLunarPrefix(final String text){
+		return (text.startsWith(NONGLI1) || text.startsWith(NONGLI2)? text.substring(NONGLI1.length()): text);
 	}
 
+	/**
+	 * @param ganzhi the stem and the branch
+	 * @return the index (0-59) in the sexagenary cycle
+	 * @throws IllegalArgumentException if a character is not a stem or a branch, or the stem and the branch have different parity
+	 */
 	private static int sexagenaryIndex(final String ganzhi){
-		final char stem = ganzhi.charAt(0);
-		final char branch = ganzhi.charAt(1);
-
-		final int stemIdx = STEMS.indexOf(stem);
-		final int branchIdx = BRANCHES.indexOf(branch);
+		final int stemIdx = STEMS.indexOf(ganzhi.charAt(0));
+		final int branchIdx = BRANCHES.indexOf(ganzhi.charAt(1));
 
 		if(stemIdx == -1 || branchIdx == -1)
 			throw new IllegalArgumentException("The provided combination '" + ganzhi + "' contains invalid Stem/Branch characters.");
+		if((stemIdx - branchIdx) % 2 != 0)
+			throw new IllegalArgumentException("The combination '" + ganzhi + "' does not exist in the sexagenary cycle:"
+				+ " stem and branch must have the same parity.");
 
 		// Calculate the sexagenary index within the [0, 59] boundary spectrum
-		int sexagenaryIndex = (stemIdx - branchIdx);
-		if(sexagenaryIndex < 0)
-			sexagenaryIndex += 12;
-		sexagenaryIndex = (sexagenaryIndex * 5) + stemIdx;
-		return sexagenaryIndex;
+		return Math.floorMod(stemIdx - branchIdx, 12) * 5 + stemIdx;
 	}
 
 	private static int parseChineseNumber(final String token){
@@ -358,6 +343,8 @@ public final class ChineseCalendarParser{
 				total += intermediate * 100;
 				intermediate = 0;
 			}
+			else
+				throw new IllegalArgumentException("Invalid character '" + c + "' in the Chinese number '" + token + "'.");
 		}
 		total += intermediate;
 		return total;
@@ -381,53 +368,33 @@ public final class ChineseCalendarParser{
 			return 20;
 		if(dayToken.equals(SANSHI))
 			return 30;
+		if(dayToken.length() == 1)
+			// a single character: 十 (10), 廿 (20), 卅 (30), or a unit (1-9)
+			return switch(dayToken.charAt(0)){
+				case '十' -> 10;
+				case '廿', '念' -> 20;
+				case '卅' -> 30;
+				default -> parseChineseNumber(dayToken);
+			};
 
 		final char prefix = dayToken.charAt(0);
 		final char unitChar = dayToken.charAt(1);
 		final int unitValue = DIGITS.indexOf(unitChar);
 
-		if(unitValue == -1 && prefix != '初' && prefix != '十' && prefix != '廿' && prefix != '卅')
-			return parseChineseNumber(dayToken);
-
 		return switch(prefix){
-			case '初' -> unitValue + 1;
+			case '初' -> {
+				// 初一 .. 初九, and 初十 (the tenth day)
+				if(unitChar == '十' && dayToken.length() == 2)
+					yield 10;
+				if(unitValue == -1 || dayToken.length() != 2)
+					throw new IllegalArgumentException("Invalid day '" + dayToken + "'.");
+				yield unitValue + 1;
+			}
 			case '十' -> 10 + (unitValue != -1? unitValue + 1: 0);
 			case '廿', '念' -> 20 + (unitValue != -1? unitValue + 1: 0);
 			case '卅' -> 30 + (unitValue != -1? unitValue + 1: 0);
 			default -> parseChineseNumber(dayToken);
 		};
-	}
-
-
-	static void main(final String[] args){
-		// Test 1: Cyclical year string format
-		final ChineseDateInput input1 = ChineseCalendarParser.parse("庚申年 正月 初一");
-		System.out.println(input1);
-		System.out.println("Year: 1980, Month: 1 (Leap: false), Day: 1");
-
-		final double exactJdUT1 = ChineseCalendarAstronomicalEngine.toJulianDateUT(
-			input1.year(),
-			input1.month(),
-			input1.leapMonth(),
-			input1.day()
-		);
-		System.out.println("Resulting Julian Date UT: " + exactJdUT1);
-		System.out.println("Resulting Julian Date UT: 2444477.1666666665");
-
-
-		// Test 2: Historical Imperial Era format
-		final ChineseDateInput input2 = ChineseCalendarParser.parse("康熙三十五年八月初二");
-		System.out.println(input2);
-		System.out.println("Year: 1696, Month: 8 (Leap: false), Day: 2");
-
-		final double exactJdUT2 = ChineseCalendarAstronomicalEngine.toJulianDateUT(
-			input2.year(),
-			input2.month(),
-			input2.leapMonth(),
-			input2.day()
-		);
-		System.out.println("Resulting Julian Date UT: " + exactJdUT2);
-		System.out.println("Resulting Julian Date UT: 2340973.176620375");
 	}
 
 }

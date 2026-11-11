@@ -79,7 +79,9 @@ public final class ImportReportDialog extends JDialog{
 		for(final Map.Entry<String, Integer> entry : report.countsByReason().entrySet())
 			summaryModel.addRow(new Object[]{I18N.t(entry.getKey()), entry.getValue()});
 		final JTable summary = new JTable(summaryModel);
-		summary.getColumnModel().getColumn(1).setMaxWidth(80);
+		summary.getColumnModel()
+			.getColumn(1)
+			.setMaxWidth(80);
 		final JScrollPane summaryScroll = new JScrollPane(summary);
 		summaryScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.import.report.summary")));
 		summaryScroll.setPreferredSize(new Dimension(640, 150));
@@ -104,7 +106,9 @@ public final class ImportReportDialog extends JDialog{
 		final JButton copy = new JButton(I18N.t("dialog.import.report.copy"));
 		copy.addActionListener(e -> {
 			final StringSelection selection = new StringSelection(toText(report));
-			Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+			Toolkit.getDefaultToolkit()
+				.getSystemClipboard()
+				.setContents(selection, selection);
 		});
 		final JButton save = new JButton(I18N.t("dialog.import.report.save"));
 		save.addActionListener(e -> saveAsText());

@@ -37,7 +37,19 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
+import io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
+import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
@@ -72,6 +84,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -80,7 +93,14 @@ import java.util.List;
  */
 public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
+	private static final int DIALOG_MARGIN = GUIHelper.DIALOG_MARGIN;
+
 	static final String PANEL_PROPERTY_NAME = "name";
+	/** The records that belong to the research workflow and to the historical context: their editors show every tab at every level. */
+	private static final Set<String> ADVANCED_RECORD_TYPES = Set.of(ConclusionHandler.TYPE, IdentityHypothesisHandler.TYPE,
+		ResearchQuestionHandler.TYPE, ResearchActivityHandler.TYPE, ResearchTaskHandler.TYPE, CulturalNormHandler.TYPE,
+		HistoricEventHandler.TYPE, ContextImpactHandler.TYPE);
+
 	public static final String TAB_NAME_PROPERTIES = "properties";
 	public static final String TAB_NAME_CAUSE = "cause";
 	public static final String TAB_NAME_LOCATION = "location";
@@ -116,6 +136,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	protected final JTabbedPane tabbedPane = new JTabbedPane();
 
 	protected final ImageCarouselPanel imageCarouselPanel = new ImageCarouselPanel();
+	/** The quiet strip where the advanced concepts that could help with the record are suggested (only in the editors with tabs). */
+	private SuggestionStrip suggestionStrip;
 
 
 	protected BaseRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record,
@@ -149,6 +171,32 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		repaint();
 
 		setLocationRelativeTo(parent);
+
+		installSuggestions();
+	}
+
+	/**
+	 * Asks, away from the event dispatch thread, which advanced concepts could help with the record, and shows them in the strip of the
+	 * editor when they are known. Nothing is asked for a new record (the assistant knows only what is saved), and nothing is shown if
+	 * there is nothing to suggest: the editor is not interrupted.
+	 */
+	private void installSuggestions(){
+		if(suggestionStrip == null || isNew || record.getId() == null)
+			return;
+
+		ContextualSuggestions.find()
+			.ifPresent(provider -> provider.suggest(this, model, record.getId(), this::showSuggestions));
+	}
+
+	private void showSuggestions(final List<Suggestion> suggestions){
+		//the user may have closed the editor meanwhile
+		if(!isDisplayable())
+			return;
+
+		suggestionStrip.show(suggestions);
+		//the editor grows by what the strip needs, instead of the strip taking room from the fields
+		setSize(getWidth(), getHeight() + suggestionStrip.getPreferredSize().height);
+		validate();
 	}
 
 	/** Explains, on the first tab, when the record is to be used (if the translations define it). */
@@ -170,8 +218,10 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		final JPanel attributesPanel = createAttributesPanel();
 		final JPanel relationshipsPanel = createRelationshipsPanel();
 		final JPanel participationsPanel = createParticipationsPanel();
-		final JPanel contextPanel = createContextPanel();
-		final JPanel researchPanel = createResearchPanel();
+		//the tabs of the research workflow and of the historical context are offered from the standard and advanced levels (the panels are
+		//built all the same: only the tab is not shown), except in the editors of those very records
+		final JPanel contextPanel = visibleAt(handler.getType(), UxLevel.ADVANCED, createContextPanel(), FeatureVisibilityService.shared());
+		final JPanel researchPanel = visibleAt(handler.getType(), UxLevel.STANDARD, createResearchPanel(), FeatureVisibilityService.shared());
 		final JPanel findingsPanel = createFindingsPanel();
 		final JPanel referencesPanel = createReferencesPanel();
 		final JPanel sourcesPanel = createSourcesPanel();
@@ -182,8 +232,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		if(attributesPanel == null && relationshipsPanel == null && participationsPanel == null && contextPanel == null
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
 				&& notesPanel == null && privacyPanel == null && auditPanel == null){
-			// No optional panels, just show the properties panel
-			setLayout(GUIHelper.createLabelFieldLayout(0, "[]"));
+			// No optional panels, just show the properties panel (with the same margin the tabbed dialogs have: no content touches the edge)
+			setLayout(GUIHelper.createLabelFieldLayout(DIALOG_MARGIN, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
 		}
 		else{
@@ -204,6 +254,18 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		}
 
 		finalizeLayout(tabbedPane);
+	}
+
+	/**
+	 * @param recordType the type of the record the editor is about
+	 * @param minimum    the lowest level the tab is shown at
+	 * @param panel      the panel of the tab ({@code null} if the editor has none)
+	 * @param features   what tells the level of the user
+	 * @return the panel if its tab is shown, otherwise {@code null}: the record of the research workflow and of the context are edited
+	 * 	with all their tabs at every level (the user got there on purpose), the other records show those tabs only from {@code minimum}
+	 */
+	static JPanel visibleAt(final String recordType, final UxLevel minimum, final JPanel panel, final FeatureVisibilityService features){
+		return (panel == null || ADVANCED_RECORD_TYPES.contains(recordType) || features.isVisible(minimum)? panel: null);
 	}
 
 	protected void setupKeyboardShortcuts(){
@@ -511,9 +573,12 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	 */
 	protected void finalizeLayout(final JTabbedPane tabbedPane){
 		if(tabbedPane.getTabCount() > 0){
-			setLayout(new MigLayout("ins 10,fillx,top"));
+			setLayout(new MigLayout("ins " + DIALOG_MARGIN + ",fillx,top"));
 
 			add(tabbedPane, "growx");
+
+			suggestionStrip = new SuggestionStrip();
+			add(suggestionStrip, "newline,growx,hidemode 3");
 		}
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,

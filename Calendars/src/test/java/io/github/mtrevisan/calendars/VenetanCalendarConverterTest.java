@@ -31,6 +31,16 @@ import org.junit.jupiter.api.Test;
 class VenetanCalendarConverterTest{
 
 	@Test
+	void standardMonthNamesAndAbbreviationsAreRead(){
+		// the months of the year of 1 March 1500 (Julian) written with the names that the importers use
+		Assertions.assertEquals(CalendarType.VENETAN.parseToJdn("10 marzo 1500"), CalendarType.VENETAN.parseToJdn("10 MAR 1500"));
+		Assertions.assertEquals(CalendarType.VENETAN.parseToJdn("10 desenbre 1500"), CalendarType.VENETAN.parseToJdn("10 DES 1500"));
+		Assertions.assertEquals(CalendarType.VENETAN.parseToJdn("10 genaio 1500"), CalendarType.VENETAN.parseToJdn("10 ĐAN 1500"));
+		// January and February belong to the year that began in the previous March
+		Assertions.assertEquals(CalendarType.JULIAN.parseToJdn("10 February 1501"), CalendarType.VENETAN.parseToJdn("10 FEB 1500"));
+	}
+
+	@Test
 	void firstDayOfYearBeforeGregorianReform(){
 		// More veneto year starts on 1 March (1 Mar 1500 Julian)
 		final long jdn = CalendarType.VENETAN.parseToJdn("1 marzo 1500");

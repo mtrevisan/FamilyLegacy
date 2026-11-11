@@ -1248,7 +1248,8 @@ public final class GrampsXMLToFLEFConverter{
 		if(StringUtils.isBlank(grampsType))
 			return null;
 
-		final String key = grampsType.strip().toLowerCase(Locale.ROOT);
+		final String key = grampsType.strip()
+			.toLowerCase(Locale.ROOT);
 		if(TYPE_UNKNOWN.equals(key))
 			return null;
 		for(final String member : RepositoryReader.TYPES)
@@ -1315,7 +1316,10 @@ public final class GrampsXMLToFLEFConverter{
 	private String location(final String source){
 		final boolean relative = !source.startsWith("/") && !source.contains(":") && !source.startsWith("\\");
 		if(relative && mediaDirectory != null)
-			return mediaDirectory.toAbsolutePath().resolve(source).normalize().toString();
+			return mediaDirectory.toAbsolutePath()
+				.resolve(source)
+				.normalize()
+				.toString();
 		if(!relative || mediaPath == null || mediaPath.contains("{"))
 			return source;
 
@@ -1408,7 +1412,8 @@ public final class GrampsXMLToFLEFConverter{
 			if(name != primary)
 				individual.addChild(name(name));
 
-		final String gender = StringUtils.defaultString(GrampsXML.childText(element, "gender")).toUpperCase(Locale.ROOT);
+		final String gender = StringUtils.defaultString(GrampsXML.childText(element, "gender"))
+			.toUpperCase(Locale.ROOT);
 		switch(gender){
 			case "M" -> sex(element, individual, IndividualReader.ENUM_SEX_MALE);
 			case "F" -> sex(element, individual, IndividualReader.ENUM_SEX_FEMALE);
@@ -1449,7 +1454,8 @@ public final class GrampsXMLToFLEFConverter{
 			final String prefix = StringUtils.trimToNull(GrampsXML.attribute(surname, "prefix"));
 			final String text = StringUtils.trimToNull(GrampsXML.text(surname));
 			final String value = StringUtils.trimToNull(StringUtils.defaultString(prefix) + " " + StringUtils.defaultString(text));
-			final String derivation = StringUtils.defaultString(GrampsXML.attribute(surname, "derivation")).toLowerCase(Locale.ROOT);
+			final String derivation = StringUtils.defaultString(GrampsXML.attribute(surname, "derivation"))
+				.toLowerCase(Locale.ROOT);
 			final String connector = GrampsXML.attribute(surname, "connector");
 			if(StringUtils.isNotBlank(connector))
 				discard(ImportReasons.NAME_DETAIL, "surname connector '" + connector + "' of " + value, name);
@@ -1652,7 +1658,8 @@ public final class GrampsXMLToFLEFConverter{
 	 */
 	private void parentChild(final Element child, final Element parent, final String kind, final Element reference,
 			final Element family){
-		final String key = Objects.toString(kind, "Birth").toLowerCase(Locale.ROOT);
+		final String key = Objects.toString(kind, "Birth")
+			.toLowerCase(Locale.ROOT);
 		final String type = CHILD_RELATIONSHIPS.getOrDefault(key, RelationshipReader.ENUM_TYPE_CHILD);
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(nextId(RelationshipReader.ID_PREFIX), RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_SUBJECT)

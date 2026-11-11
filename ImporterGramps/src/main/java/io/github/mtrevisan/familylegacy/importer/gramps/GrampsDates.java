@@ -204,9 +204,13 @@ final class GrampsDates{
 		final String yearStart = newYearCalendar(date);
 		final String calendar = (yearStart != null? yearStart: calendarOf(date));
 		final boolean dual = "1".equals(GrampsXML.attribute(date, "dualdated"));
+		//Gramps counts the year of a rule that begins it on 1 March (the Venetan one) as the year of the civil date minus one for the days from
+		//1 March on and as the year written before that, while the Venetan year number is the civil one from 1 March on and the civil minus one
+		//before: in both cases the Venetan year is the one written by Gramps minus one
+		final int yearShift = (DateReader.ENUM_CALENDAR_VENETAN.equals(yearStart)? -1: 0);
 		switch(GrampsXML.name(date)){
 			case "dateval" -> {
-				final Single value = singleOf(GrampsXML.attribute(date, "val"), calendar, dual);
+				final Single value = singleOf(GrampsXML.attribute(date, "val"), calendar, dual, yearShift);
 				if(value == null)
 					return null;
 
@@ -219,8 +223,8 @@ final class GrampsDates{
 				};
 			}
 			case "daterange", "datespan" -> {
-				final Single start = singleOf(GrampsXML.attribute(date, "start"), calendar, dual);
-				final Single stop = singleOf(GrampsXML.attribute(date, "stop"), calendar, dual);
+				final Single start = singleOf(GrampsXML.attribute(date, "start"), calendar, dual, yearShift);
+				final Single stop = singleOf(GrampsXML.attribute(date, "stop"), calendar, dual, yearShift);
 				if(start == null || stop == null)
 					return null;
 
@@ -335,10 +339,11 @@ final class GrampsDates{
 	/**
 	 * @param value	The date, as {@code year-month-day} (the unknown parts are {@code 0}).
 	 * @param calendar	The calendar, {@code null} if it cannot be written.
+	 * @param yearShift	The difference between the year the calendar writes and the one Gramps writes.
 	 * @param dual	Whether the year is a dual one (the Julian year that began in March, written {@code 1750/51}).
 	 * @return	The date in the notation of its calendar, or {@code null} if it cannot be written.
 	 */
-	private static Single singleOf(final String value, final String calendar, final boolean dual){
+	private static Single singleOf(final String value, final String calendar, final boolean dual, final int yearShift){
 		if(calendar == null || StringUtils.isBlank(value))
 			return null;
 
@@ -352,7 +357,7 @@ final class GrampsDates{
 		final int month;
 		final int day;
 		try{
-			year = Integer.parseInt(fields[0].trim());
+			year = Integer.parseInt(fields[0].trim()) + yearShift;
 			month = (fields.length > 1? Integer.parseInt(fields[1].trim()): 0);
 			day = (fields.length > 2? Integer.parseInt(fields[2].trim()): 0);
 		}

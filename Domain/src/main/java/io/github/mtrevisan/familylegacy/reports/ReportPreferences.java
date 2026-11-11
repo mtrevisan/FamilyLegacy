@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 
 /**
  * What the user chose the last time a report was generated, to offer it again: the language of the document, the formats, the
- * options of each type of report and the folder where the files were written.
+ * options of each type of report, the font of the PDF and the folder where the files were written.
  * <p>
  * The privacy policy is not remembered: a report always starts from the safest one (see {@link ReportConfig#defaults()}), so that a
  * choice made once for a private report is not carried by mistake to a report that will be shared.
@@ -60,6 +60,7 @@ public final class ReportPreferences{
 
 	private static final String KEY_LANGUAGE = "reports.language";
 	private static final String KEY_FORMATS = "reports.formats";
+	private static final String KEY_FONT = "reports.font";
 	private static final String KEY_DIRECTORY = "reports.directory";
 	private static final String KEY_OPTIONS = "reports.options.";
 	private static final char LIST_SEPARATOR = ',';
@@ -125,6 +126,18 @@ public final class ReportPreferences{
 
 	public void setFormats(final Collection<String> ids){
 		store.put(KEY_FORMATS, String.join(String.valueOf(LIST_SEPARATOR), ids));
+	}
+
+
+	/** @return	The font chosen for the PDF the last time, or {@code null} if none was chosen (the renderer picks one). */
+	public String font(){
+		final String value = store.get(KEY_FONT);
+		return (value == null || value.isBlank()? null: value);
+	}
+
+	/** @param font	The font chosen for the PDF; {@code null} or blank for the one the renderer picks. */
+	public void setFont(final String font){
+		store.put(KEY_FONT, font);
 	}
 
 

@@ -74,6 +74,18 @@ class ReportPreferencesTest{
 	}
 
 	@Test
+	void theFontOfThePdfIsRememberedAndAutomaticByDefault(){
+		Assertions.assertNull(preferences().font());
+
+		preferences().setFont("Segoe UI");
+		Assertions.assertEquals("Segoe UI", preferences().font());
+
+		//back to the automatic one
+		preferences().setFont(null);
+		Assertions.assertNull(preferences().font());
+	}
+
+	@Test
 	void anUnknownLanguageFallsBackToTheInterfaceOne(){
 		values.put("reports.language", "KLINGON");
 

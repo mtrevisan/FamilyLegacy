@@ -35,6 +35,9 @@ import io.github.mtrevisan.updater.Transport;
 import io.github.mtrevisan.updater.UpdateCheck;
 import io.github.mtrevisan.updater.UpdateChecker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -62,12 +65,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 final class UpdateFlow{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateFlow.class);
+
 	private static final int NOTES_COLUMNS = 60;
 	private static final int NOTES_ROWS = 12;
 
 	private final FamilyLegacyFrame frame;
 	private final GitHubReleases releases;
 	private final Transport transport;
+	private final AutomaticUpdatePolicy policy = AutomaticUpdatePolicy.application();
 	/** Only one check at a time: the menu item stays enabled while the answer is awaited. */
 	private boolean busy;
 
@@ -80,6 +86,43 @@ final class UpdateFlow{
 		this.frame = frame;
 		this.releases = releases;
 		this.transport = transport;
+	}
+
+	/**
+	 * Looks for a newer release at startup, if the user did not turn it off and the last check is old enough (see
+	 * {@link AutomaticUpdatePolicy}); call it on the event thread. It says nothing unless there is something to install: no message if
+	 * the application is up to date, nor if GitHub cannot be reached.
+	 */
+	void startAutomatic(){
+		if(busy || !policy.isDue())
+			return;
+
+		busy = true;
+		policy.recordAttempt();
+		final String current = ProjectInfo.getAppVersion();
+		new SwingWorker<UpdateCheck, Void>(){
+			@Override
+			protected UpdateCheck doInBackground() throws IOException{
+				return new UpdateChecker(releases).check(current);
+			}
+
+			@Override
+			protected void done(){
+				busy = false;
+				try{
+					final UpdateCheck check = get();
+					if(check.status() == UpdateCheck.Status.UPDATE_AVAILABLE)
+						offerUpdate(check.release(), current);
+				}
+				catch(final InterruptedException e){
+					Thread.currentThread()
+						.interrupt();
+				}
+				catch(final ExecutionException e){
+					LOGGER.info("Automatic check for updates failed: {}", (e.getCause() != null? e.getCause().getMessage(): e.getMessage()));
+				}
+			}
+		}.execute();
 	}
 
 	/** Starts the check; call it on the event thread. */
@@ -104,7 +147,8 @@ final class UpdateFlow{
 					show(get(), current);
 				}
 				catch(final InterruptedException e){
-					Thread.currentThread().interrupt();
+					Thread.currentThread()
+						.interrupt();
 				}
 				catch(final ExecutionException e){
 					final Throwable cause = (e.getCause() != null? e.getCause(): e);
@@ -127,7 +171,7 @@ final class UpdateFlow{
 
 	private void offerUpdate(final ReleaseInfo release, final String current){
 		final String headline = I18N.tf("menu.help.check.updates.available", current, release.version().toString());
-		if(!release.hasInstaller() || !InstallerLauncher.isSupportedPlatform()){
+		if(!release.isInstallable() || !InstallerLauncher.isSupportedPlatform()){
 			offerPage(headline + "<br>" + I18N.t("menu.help.check.updates.manual"), release);
 			return;
 		}
@@ -202,7 +246,8 @@ final class UpdateFlow{
 			installer = worker.get();
 		}
 		catch(final InterruptedException e){
-			Thread.currentThread().interrupt();
+			Thread.currentThread()
+				.interrupt();
 			return;
 		}
 		catch(final ExecutionException e){
@@ -247,7 +292,8 @@ final class UpdateFlow{
 	private void openPage(final URI url){
 		if(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)){
 			try{
-				Desktop.getDesktop().browse(url);
+				Desktop.getDesktop()
+					.browse(url);
 				return;
 			}
 			catch(final IOException ignored){

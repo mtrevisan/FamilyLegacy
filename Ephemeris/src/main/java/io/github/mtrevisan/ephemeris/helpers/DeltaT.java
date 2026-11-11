@@ -51,7 +51,7 @@ import java.util.function.DoubleUnaryOperator;
  *
  * <ol>
  *   <li><b>IERS observed table</b> — monthly samples from February 1973 to
- *       the present, loaded from {@code /deltat.data.txt}. These are the
+ *       the present, loaded from {@code /deltat.data}. These are the
  *       most accurate values available: they are derived directly from
  *       VLBI, satellite laser ranging and GPS observations, not from any
  *       lunar model.</li>
@@ -172,7 +172,7 @@ public final class DeltaT{
 			iers = (in != null? parseIERSFile(in): List.of());
 		}
 		catch(final IOException e){
-			iers = List.of();
+			throw new java.io.UncheckedIOException("Cannot read the IERS table", e);
 		}
 		IERS_SAMPLES = iers;
 		IERS_START = (iers.isEmpty()? 0.: iers.getFirst().decimalYear());
@@ -184,7 +184,7 @@ public final class DeltaT{
 			spline = (in != null? parseSplineFile(in): List.of());
 		}
 		catch(final IOException e){
-			spline = List.of();
+			throw new java.io.UncheckedIOException("Cannot read the S/M/H spline", e);
 		}
 		SPLINE_ROWS = spline;
 		SPLINE_START = (spline.isEmpty()? 0.: spline.getFirst().kStart());
@@ -237,16 +237,19 @@ public final class DeltaT{
 		// toward the spline just below the start and toward the polynomial
 		// just above the end.
 		// ------------------------------------------------------------------
+		// The blends lie outside the observed range, so that the observations are never altered.
 		if(hasIers
 			&& decimalYear >= IERS_START - TAPER_YEARS
 			&& decimalYear <= IERS_END + TAPER_YEARS){
-			if(hasSpline && decimalYear < IERS_START + TAPER_YEARS)
-				return blend(decimalYear, IERS_START,
-					DeltaT::splineValueCorrected, DeltaT::iersValue);
-			if(decimalYear > IERS_END - TAPER_YEARS)
-				return blend(decimalYear, IERS_END,
-					DeltaT::iersValue, DeltaT::polynomialValueCorrected);
-			return iersValue(decimalYear);
+			if(decimalYear < IERS_START)
+				return (hasSpline
+					? blend(decimalYear, IERS_START - TAPER_YEARS, IERS_START,
+						DeltaT::splineValueCorrected, DeltaT::iersValue)
+					: iersValue(decimalYear));
+			if(decimalYear <= IERS_END)
+				return iersValue(decimalYear);
+			return blend(decimalYear, IERS_END, IERS_END + TAPER_YEARS,
+				DeltaT::iersValue, DeltaT::polynomialValueCorrected);
 		}
 
 		// ------------------------------------------------------------------
@@ -257,7 +260,7 @@ public final class DeltaT{
 			&& decimalYear >= SPLINE_START - TAPER_YEARS
 			&& decimalYear <= SPLINE_END + TAPER_YEARS){
 			if(decimalYear < SPLINE_START + TAPER_YEARS)
-				return blend(decimalYear, SPLINE_START,
+				return blend(decimalYear, SPLINE_START - TAPER_YEARS, SPLINE_START + TAPER_YEARS,
 					DeltaT::polynomialValueCorrected, DeltaT::splineValueCorrected);
 			return splineValueCorrected(decimalYear);
 		}
@@ -306,15 +309,15 @@ public final class DeltaT{
 
 	/**
 	 * Blends two sources around a boundary using a cubic Hermite smoothstep
-	 * weight. The result equals {@code left(y)} at {@code yB − TAPER_YEARS},
-	 * {@code right(y)} at {@code yB + TAPER_YEARS}, and their weighted
+	 * weight. The result equals {@code left(y)} at {@code from},
+	 * {@code right(y)} at {@code to}, and their weighted
 	 * average in between. Because the smoothstep has zero derivative at
 	 * both endpoints and the formula is symmetric, the resulting curve is
 	 * C¹-continuous at every point, including the boundary itself.
 	 */
-	private static double blend(final double y, final double yB,
+	private static double blend(final double y, final double from, final double to,
 		final DoubleUnaryOperator left, final DoubleUnaryOperator right){
-		final double t = (y - (yB - TAPER_YEARS)) / (2. * TAPER_YEARS);
+		final double t = (y - from) / (to - from);
 		final double tc = (t < 0.? 0.: Math.min(t, 1.));
 		final double w = tc * tc * (3. - 2. * tc);
 		return (1. - w) * left.applyAsDouble(y) + w * right.applyAsDouble(y);
@@ -640,44 +643,6 @@ public final class DeltaT{
 	 */
 	private static double jdToDecimalYear(final double jd){
 		return 2000. + JulianDate.centuryJ2000Of(jd) * 100.;
-	}
-
-
-	static void main(final String[] args){
-		final double[] testYears = {
-			-720., -500., 0., 500., 1000., 1500., 1600., 1700., 1800.,
-			1850., 1900., 1920., 1940., 1950., 1960., 1970.,
-			1973., 1973.1, 1973.5, 1980., 1990., 2000., 2010., 2019.,
-			2020., 2023., 2025., 2026., 2026.25, 2026.3, 2030., 2036.,
-			2040., 2050., 2100.
-		};
-		System.out.printf("%-10s %-14s %-30s%n", "Year", "ΔT (s)", "Source");
-		for(final double y : testYears){
-			final double dt = deltaTSeconds(y);
-			final String source;
-			if(hasIERSCoverage(y))
-				source = "IERS (observed)";
-			else if(hasSplineCoverage(y))
-				source = "S/M/H spline";
-			else
-				source = "Espenak-Meeus";
-			System.out.printf("%-10.4f %-14.4f %-30s%n", y, dt, source);
-		}
-
-		// Continuity checks across every boundary.
-		System.out.println();
-		checkContinuity("Spline start", SPLINE_START);
-		if(!IERS_SAMPLES.isEmpty())
-			checkContinuity("IERS start", IERS_START);
-		if(!IERS_SAMPLES.isEmpty())
-			checkContinuity("IERS end", IERS_END);
-	}
-
-	private static void checkContinuity(final String label, final double yB){
-		final double before = deltaTSeconds(yB - 1.e-6);
-		final double after = deltaTSeconds(yB + 1.e-6);
-		System.out.printf("%-14s at %.4f: before=%.6f s, after=%.6f s, jump=%.2e s%n",
-			label, yB, before, after, Math.abs(after - before));
 	}
 
 }

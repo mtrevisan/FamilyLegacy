@@ -155,7 +155,8 @@ public final class GEDCOMRecordBuilder{
 		// a note cannot have notes: those of the citations (see attachSource) are appended to its text
 		final List<FLEFRecord> citationNotes = FLEFRecordHelper.findChildren(citations, NoteReader.TAG_NOTE);
 		if(!citationNotes.isEmpty()){
-			citations.getChildren().removeAll(citationNotes);
+			citations.getChildren()
+				.removeAll(citationNotes);
 			final FLEFRecord textRecord = FLEFRecordHelper.findChild(note, NoteReader.TAG_TEXT);
 			final StringBuilder text = new StringBuilder(textRecord.getValue());
 			for(final FLEFRecord citationNote : citationNotes)
@@ -1268,7 +1269,8 @@ public final class GEDCOMRecordBuilder{
 		if(eventTag == null)
 			return null;
 
-		final String eventType = GEDCOMMapper.mapEvent(eventTag, eventTag).replace('_', ' ');
+		final String eventType = GEDCOMMapper.mapEvent(eventTag, eventTag)
+			.replace('_', ' ');
 		final StringBuilder observation = new StringBuilder();
 		final String period = GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_DATE);
 		if(period != null)
@@ -1301,7 +1303,8 @@ public final class GEDCOMRecordBuilder{
 		// an activity cannot have notes: those of the citations (see attachSource) are appended to its observation
 		final List<FLEFRecord> citationNotes = FLEFRecordHelper.findChildren(activity, NoteReader.TAG_NOTE);
 		if(!citationNotes.isEmpty()){
-			activity.getChildren().removeAll(citationNotes);
+			activity.getChildren()
+				.removeAll(citationNotes);
 			for(final FLEFRecord citationNote : citationNotes){
 				if(!observation.isEmpty())
 					observation.append(StringUtils.LF);
@@ -1310,8 +1313,9 @@ public final class GEDCOMRecordBuilder{
 			observationField.setValue(observation.toString());
 			// the observation goes before the sources
 			if(!activity.getChildren().contains(observationField))
-				activity.getChildren().add(activity.getChildren().indexOf(FLEFRecordHelper.findChild(activity,
-					ResearchActivityReader.TAG_RESULT)) + 1, observationField);
+				activity.getChildren()
+					.add(activity.getChildren().indexOf(FLEFRecordHelper.findChild(activity,
+						ResearchActivityReader.TAG_RESULT)) + 1, observationField);
 		}
 		activity.addChild(AuditBuilder.build(node));
 		model.addRecord(activity);
@@ -1509,7 +1513,8 @@ public final class GEDCOMRecordBuilder{
 		}
 		else{
 			// Both exist: combine street address with place name, avoiding duplication
-			final String streetStr = streetAddr.toString().replace(StringUtils.LF, ", ");
+			final String streetStr = streetAddr.toString()
+				.replace(StringUtils.LF, ", ");
 			if(!basePlaceName.toLowerCase(Locale.ROOT).contains(streetStr.toLowerCase(Locale.ROOT))){
 				finalPlaceName = streetStr + ", " + basePlaceName;
 			}

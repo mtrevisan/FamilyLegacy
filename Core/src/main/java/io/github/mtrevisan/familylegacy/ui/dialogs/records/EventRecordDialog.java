@@ -28,7 +28,9 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -127,6 +129,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(EventReader.TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(EventReader.TAG_DATE, this, I18N.t("dialog.event.date"), model);
 		placeField = EntityField.createForStructureWithReference(EventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		//the date assistant starts from the reform of the place of the event (the user can still choose another one)
+		dateField.withPlace(() -> (placeField.hasData()
+			? FLEFRecordHelper.getChildValue(placeField.getEntity(), PlaceCitationReader.TAG_PLACE): null));
 		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
 		causeConfidenceCombo = new BoundComboBox<>(EventReader.TAG_CAUSE_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		causeConfidenceCombo.setI18NPrefix("enum.confidence");

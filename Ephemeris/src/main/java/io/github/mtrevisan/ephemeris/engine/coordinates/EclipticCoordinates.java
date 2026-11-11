@@ -34,7 +34,7 @@ import java.text.DecimalFormat;
  *
  * @param latitude  [rad]
  * @param longitude [rad]
- * @param distance  [AU]
+ * @param distance  [AU] for the Sun and the Earth-Moon barycenter, [km] for the Moon
  * @see <a href="https://en.wikipedia.org/wiki/Ecliptic_coordinate_system">Ecliptic coordinate system</>
  */
 public record EclipticCoordinates(double latitude, double longitude, double distance){

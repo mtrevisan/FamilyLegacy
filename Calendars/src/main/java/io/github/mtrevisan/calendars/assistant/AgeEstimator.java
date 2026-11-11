@@ -59,17 +59,37 @@ public final class AgeEstimator{
 	 */
 	public static List<DateSuggestion> birthFromAge(final String calendarCode, final String eventDate, final int years,
 			final Integer months, final Integer days, final boolean ordinalYear, final String eventName){
+		if(StringUtils.isBlank(eventDate))
+			throw new AssistantInputException("date_assistant.error.event_date_empty");
+
 		final String trimmed = eventDate.trim();
 		final long minJdn;
 		final long maxJdn;
 		final String countingCalendar;
-		if(YEAR_ONLY.matcher(trimmed).matches()){
+		final boolean civil = (CivilDates.JULIAN.equals(calendarCode) || CivilDates.GREGORIAN.equals(calendarCode));
+		Message label = Message.of("date_assistant.label.date_in_calendar", trimmed, Message.calendar(calendarCode));
+		if(YEAR_ONLY.matcher(trimmed).matches() && civil){
+			// a bare number is a civil year only for a civil calendar
 			final int year = Integer.parseInt(trimmed);
-			final long january = CivilDates.toJdn(year, 1, 1, (CivilDates.JULIAN.equals(calendarCode)
-				? CivilDates.JULIAN: CivilDates.GREGORIAN));
-			countingCalendar = countingCalendar(calendarCode, january);
-			minJdn = CivilDates.toJdn(year, 1, 1, countingCalendar);
-			maxJdn = CivilDates.toJdn(year, 12, 31, countingCalendar);
+			countingCalendar = calendarCode;
+			if(CivilDates.GREGORIAN.equals(calendarCode) && year == CalendarReform.ROME.firstGregorianYear()){
+				// the reform fell inside the year: it started on a Julian 1 January and ended on a Gregorian 31 December
+				minJdn = CalendarReform.ROME.toJdn(year, 1, 1);
+				maxJdn = CalendarReform.ROME.toJdn(year, 12, 31);
+				label = Message.of("date_assistant.label.reform_year", label);
+			}
+			else{
+				minJdn = CivilDates.toJdn(year, 1, 1, countingCalendar);
+				maxJdn = CivilDates.toJdn(year, 12, 31, countingCalendar);
+			}
+		}
+		else if(YEAR_ONLY.matcher(trimmed).matches()){
+			// the year of another calendar (e.g. the Hebrew 5786): from its first day to the day before the next year
+			final CalendarType type = CalendarType.fromCode(calendarCode);
+			minJdn = type.parseToJdn(trimmed);
+			maxJdn = type.parseToJdn(String.valueOf(Integer.parseInt(trimmed) + 1)) - 1;
+			countingCalendar = countingCalendar(calendarCode, minJdn);
+			label = Message.of("date_assistant.label.whole_year", label);
 		}
 		else{
 			minJdn = CalendarType.fromCode(calendarCode).parseToJdn(trimmed);
@@ -77,8 +97,7 @@ public final class AgeEstimator{
 			countingCalendar = countingCalendar(calendarCode, minJdn);
 		}
 
-		return birthFromAge(minJdn, maxJdn, countingCalendar, "\"" + trimmed + "\" (" + calendarCode + ")", years, months, days,
-			ordinalYear, eventName);
+		return birthFromAge(minJdn, maxJdn, countingCalendar, label, years, months, days, ordinalYear, eventName);
 	}
 
 	/**
@@ -97,69 +116,72 @@ public final class AgeEstimator{
 	 * @throws IllegalArgumentException if the age is not valid
 	 */
 	public static List<DateSuggestion> birthFromAge(final long minJdn, final long maxJdn, final String countingCalendar,
-			final String eventLabel, final int years, final Integer months, final Integer days, final boolean ordinalYear,
+			final Message eventLabel, final int years, final Integer months, final Integer days, final boolean ordinalYear,
 			final String eventName){
 		if(years < 0 || (ordinalYear && years < 1) || (months != null && (months < 0 || months >= MONTHS_IN_YEAR))
 				|| (days != null && days < 0))
-			throw new IllegalArgumentException("Not a valid age");
+			throw new AssistantInputException("date_assistant.error.invalid_age");
 
 		final int completedYears = (ordinalYear? years - 1: years);
 		final int completedMonths = (months != null? months: 0);
+		final Message.Calendar calendar = Message.calendar(countingCalendar);
 
-		final List<String> assumptions = new ArrayList<>();
-		final List<String> steps = new ArrayList<>();
-		steps.add("Date of the " + eventName + ": " + eventLabel + (minJdn == maxJdn
-			? ", Julian Day Number " + minJdn
-			: ", from Julian Day Number " + minJdn + " to " + maxJdn));
+		final List<Message> assumptions = new ArrayList<>();
+		final List<Message> steps = new ArrayList<>();
+		steps.add(minJdn == maxJdn
+			? Message.of("date_assistant.step.event_date", eventName, eventLabel, minJdn)
+			: Message.of("date_assistant.step.event_date_range", eventName, eventLabel, minJdn, maxJdn));
 		if(ordinalYear){
-			assumptions.add("\"In the " + years + "th year\" means " + completedYears + " years completed");
-			steps.add("Age in the " + years + "th year of life = " + completedYears + " completed years");
+			assumptions.add(Message.of("date_assistant.assumption.ordinal_year", years, completedYears));
+			steps.add(Message.of("date_assistant.step.ordinal_age", years, completedYears));
 		}
 		else
-			assumptions.add("The age is in completed years (the modern convention)");
-		assumptions.add("Years and months are counted in the " + countingCalendar + " calendar; a day that does not exist in the "
-			+ "month reached (e.g. 29 February) becomes the last day of the month");
+			assumptions.add(Message.of("date_assistant.assumption.completed_years"));
+		assumptions.add(Message.of("date_assistant.assumption.counting_calendar", calendar));
 
 		final long lower;
 		final long upper;
-		final String age;
+		final Message age;
 		if(days != null){
-			age = completedYears + " years, " + completedMonths + " months, " + days + " days";
+			age = Message.of("date_assistant.age.years_months_days", completedYears, completedMonths, days);
 			lower = subtract(minJdn, completedYears, completedMonths, days, countingCalendar);
 			upper = subtract(maxJdn, completedYears, completedMonths, days, countingCalendar);
-			assumptions.add("The age is exact to the day");
+			assumptions.add(Message.of("date_assistant.assumption.age_exact_day"));
 		}
 		else if(months != null){
-			age = completedYears + " years, " + completedMonths + " months";
+			age = Message.of("date_assistant.age.years_months", completedYears, completedMonths);
 			lower = subtract(minJdn, completedYears, completedMonths + 1, 0, countingCalendar) + 1;
 			upper = subtract(maxJdn, completedYears, completedMonths, 0, countingCalendar);
-			assumptions.add("The days of the age are not stated: the birth can be any day of that month of life");
+			assumptions.add(Message.of("date_assistant.assumption.age_any_day_of_month"));
 		}
 		else{
-			age = completedYears + " years";
+			age = Message.of("date_assistant.age.years", completedYears);
 			lower = subtract(minJdn, completedYears + 1, 0, 0, countingCalendar) + 1;
 			upper = subtract(maxJdn, completedYears, 0, 0, countingCalendar);
-			assumptions.add("Only the years of the age are stated: the birth can be any day of that year of life");
+			assumptions.add(Message.of("date_assistant.assumption.age_any_day_of_year"));
 		}
-		assumptions.add("Ancient sources often round the age: widen the range if the age is approximate");
-		steps.add("Date of the event minus " + age + (days == null? " (and the unknown rest of the last unit)": StringUtils.EMPTY));
+		assumptions.add(Message.of("date_assistant.assumption.age_rounded"));
+		steps.add(Message.of(days == null? "date_assistant.step.minus_age_rest": "date_assistant.step.minus_age", age));
 
-		final String meaning = "Born " + age + " before the " + eventName + " (" + eventLabel + ")";
+		final Message meaning = Message.of("date_assistant.meaning.born", age, eventName, eventLabel);
 		final String earliest = CivilDates.format(lower, countingCalendar);
 		final String latest = CivilDates.format(upper, countingCalendar);
-		steps.add("Julian Day Number " + lower + (lower == upper? StringUtils.EMPTY: " to " + upper) + " written in the " + countingCalendar
-			+ " calendar: " + earliest + (lower == upper? StringUtils.EMPTY: " to " + latest));
+		steps.add(lower == upper
+			? Message.of("date_assistant.step.written_plain", lower, calendar, earliest)
+			: Message.of("date_assistant.step.written_span", lower, upper, calendar, earliest, latest));
 
 		if(lower == upper)
-			return List.of(new DateSuggestion("Estimated birth date", meaning, assumptions, countingCalendar, steps, earliest));
+			return List.of(new DateSuggestion(Message.of("date_assistant.title.birth_date"), meaning, assumptions, countingCalendar, steps,
+				earliest));
 
 		final int firstYear = CivilDates.fields(lower, countingCalendar)[0];
 		final int lastYear = CivilDates.fields(upper, countingCalendar)[0];
-		final String years2 = (firstYear == lastYear? "the year " + firstYear: "the year " + firstYear + " or " + lastYear
-			+ " (" + (lastYear - firstYear + 1) + " years if the event is a range)");
-		steps.add("The birth falls in " + years2);
-		return List.of(new DateSuggestion("Estimated birth range", meaning + ": in " + years2, assumptions, countingCalendar,
-			steps, null, earliest, latest));
+		final Message birthYears = (firstYear == lastYear
+			? Message.of("date_assistant.years.one", firstYear)
+			: Message.of("date_assistant.years.two", firstYear, lastYear, lastYear - firstYear + 1));
+		steps.add(Message.of("date_assistant.step.birth_falls", birthYears));
+		return List.of(new DateSuggestion(Message.of("date_assistant.title.birth_range"), Message.of("date_assistant.meaning.born_range", meaning,
+			birthYears), assumptions, countingCalendar, steps, null, earliest, latest));
 	}
 
 

@@ -169,7 +169,8 @@ public final class RecordMerger{
 				throw new IllegalArgumentException("Field '" + field.tag() + "' holds a single value: keep either the target's or the"
 					+ " source's");
 
-		final int childrenBefore = target.getChildren().size();
+		final int childrenBefore = target.getChildren()
+			.size();
 		final List<String> conflicts = new ArrayList<>();
 
 		// 1. Per-tag decisions on collisions.

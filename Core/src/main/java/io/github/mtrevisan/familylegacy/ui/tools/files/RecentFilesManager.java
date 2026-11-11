@@ -86,7 +86,9 @@ public final class RecentFilesManager{
 	 * 	(links resolved, capitals as they are). The same file reached through different paths is a single entry of the list.
 	 */
 	public static File normalized(final File file){
-		Path path = file.toPath().toAbsolutePath().normalize();
+		Path path = file.toPath()
+			.toAbsolutePath()
+			.normalize();
 		try{
 			if(Files.exists(path))
 				path = path.toRealPath();

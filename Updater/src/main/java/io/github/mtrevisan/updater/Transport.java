@@ -46,13 +46,13 @@ public interface Transport{
 	 */
 	InputStream open(URI uri) throws IOException;
 
+	/** How long a read may wait for data before the connection is given up. */
+	Duration STALL_TIMEOUT = Duration.ofSeconds(30);
+
 
 	/** @return	The transport that reads from the network (HTTPS, following the redirects the GitHub downloads use). */
 	static Transport http(){
-		final HttpClient client = HttpClient.newBuilder()
-			.connectTimeout(Duration.ofSeconds(15))
-			.followRedirects(HttpClient.Redirect.NORMAL)
-			.build();
+		final HttpClient client = Shared.CLIENT;
 		return uri -> {
 			final HttpRequest request = HttpRequest.newBuilder(uri)
 				.timeout(Duration.ofSeconds(30))
@@ -66,13 +66,27 @@ public interface Transport{
 					response.body().close();
 					throw new HttpStatusException(response.statusCode(), uri);
 				}
-				return response.body();
+				return new StallGuardInputStream(response.body(), STALL_TIMEOUT);
 			}
 			catch(final InterruptedException e){
 				Thread.currentThread().interrupt();
 				throw new InterruptedIOException("Interrupted while reading " + uri);
 			}
 		};
+	}
+
+
+	/** One client for the whole application (it holds threads and connections). */
+	final class Shared{
+
+		private static final HttpClient CLIENT = HttpClient.newBuilder()
+			.connectTimeout(Duration.ofSeconds(15))
+			.followRedirects(HttpClient.Redirect.NORMAL)
+			.build();
+
+
+		private Shared(){}
+
 	}
 
 

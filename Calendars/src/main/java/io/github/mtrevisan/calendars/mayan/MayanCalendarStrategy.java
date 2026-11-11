@@ -25,11 +25,10 @@
 package io.github.mtrevisan.calendars.mayan;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
 public class MayanCalendarStrategy implements CalendarConverterPlugin{
@@ -40,8 +39,10 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 	 * <p>
 	 * Note on Correlation Constants:
 	 * <ul>
-	 *   <li><b>584283</b>: Standard GMT (Goodman-Martínez-Thompson) correlation; epoch 11 Aug 3114 BCE (proleptic Julian).</li>
-	 *   <li><b>584285</b>: Astronomical GMT correlation (2-day shift for lunar/eclipse alignment); epoch 13 Aug 3114 BCE.</li>
+	 *   <li><b>584283</b>: Standard GMT (Goodman-Martínez-Thompson) correlation; epoch 11 Aug 3114 BCE (proleptic
+	 *   Gregorian, which is 6 Sep 3114 BCE in the proleptic Julian calendar).</li>
+	 *   <li><b>584285</b>: Astronomical GMT correlation (2-day shift for lunar/eclipse alignment); epoch 13 Aug 3114 BCE
+	 *   (proleptic Gregorian).</li>
 	 *   <li><b>489384</b>: Spinden correlation (historical alternative shift).</li>
 	 * </ul>
 	 */
@@ -57,12 +58,11 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 
 		// 2. Evaluate tracking branch
 		if(baktun < 0){
-			// Step A: Approximate a baseline JDN anchor for the center of the targeted Gregorian year.
-			// Mayan kin holds the year value. Gregorian 1970-01-01 = JDN 2440588L.
-			// We calculate June 1st of that target year as our search anchor guess.
-			final double exactSeasonJdUT = exactSeasonJdUT(kin, baktun);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
+			// the kin holds the Gregorian year; the anchor is the first day of the month of the station in that year, as the
+			// Gregorian parser does: the nearest solstice or equinox to the middle of the year would take the winter solstice of
+			// the year before
+			final long anchorJdn = GregorianCalendarStrategy.toJdn(kin, CalendarSeason.gregorianSeasonMonth(baktun), 1);
+			return SeasonSolver.jdnNear(anchorJdn, baktun, "Mayan");
 		}
 		else{
 			// STANDARD LINEAR LONG COUNT ARITHMETIC PATHWAY
@@ -73,36 +73,9 @@ public class MayanCalendarStrategy implements CalendarConverterPlugin{
 				+ uinal * 20L
 				+ kin;
 
-			// Mayan Era GMT Correlation Anchor (11 August 3114 BC proleptic Gregorian = JDN 584283L)
+			// Mayan Era GMT Correlation Anchor (11 August 3114 BCE proleptic Gregorian = JDN 584283L)
 			return totalDays + 584283L;
 		}
-	}
-
-	private static double exactSeasonJdUT(final int kin, final int baktun){
-		final int targetYear = kin;
-
-		//the first day of the month of the station, in the target year, as the Gregorian parser does: the nearest solstice or
-		//equinox to the middle of the year would take the winter solstice of the year before
-		final int month = switch(baktun){
-			case CalendarSeason.SEASON_SPRING -> 3;
-			case CalendarSeason.SEASON_SUMMER -> 6;
-			case CalendarSeason.SEASON_AUTUMN -> 9;
-			case CalendarSeason.SEASON_WINTER -> 12;
-			default -> 6;
-		};
-		final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(targetYear, month, 1);
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching standard alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(baktun);
-
-		// Step C: Trigger exact calculation to find the point where the Sun enters this station
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Mayan calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
 	}
 
 	@Override

@@ -4,13 +4,12 @@
 package io.github.mtrevisan.calendars.sovieteternal;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -79,32 +78,6 @@ public final class SovietEternalCalendarParser{
 		MONTHS.put("dekabr", 12);
 		MONTHS.put("dekabr'", 12);
 
-		// --- INTERCALARY STANDALONE REVOLUTIONARY HOLIDAYS ---
-		// Month 13: Collective and individual legal name allocations for non-month days
-		MONTHS.put("revolutionary-holidays", 13);
-		MONTHS.put("holiday-days", 13);
-		MONTHS.put("день ленина", 13);       // Lenin Day (Observed January 22nd)
-		MONTHS.put("lenin day", 13);
-		MONTHS.put("дни труда", 13);         // International Labor Days (Observed May 1st & 2nd)
-		MONTHS.put("labor days", 13);
-		MONTHS.put("индустриальные дни", 13); // Industry Days (Observed November 7th & 8th)
-		MONTHS.put("industry days", 13);
-		MONTHS.put("високосный день", 13);   // Intercalary Leap Day (Extra Revolutionary Holiday)
-
-		// --- SOVIET PRODUCTION WEEK COLOR SHIFT TOKENS ---
-		// These tokens are routed to index 0 to flag continuous shift tracking layers
-		MONTHS.put("желтый", 0);            // Yellow Shift (Жёлтый)
-		MONTHS.put("yellow", 0);
-		MONTHS.put("розовый", 0);           // Pink Shift
-		MONTHS.put("pink", 0);
-		MONTHS.put("красный", 0);           // Red Shift
-		MONTHS.put("red", 0);
-		MONTHS.put("фиолетовый", 0);        // Purple Shift
-		MONTHS.put("purple", 0);
-		MONTHS.put("зеленый", 0);           // Green Shift (Зелёный)
-		MONTHS.put("green", 0);
-
-
 		// Autumn
 		MONTHS.put("осень", CalendarSeason.SEASON_AUTUMN);
 		MONTHS.put("осен", CalendarSeason.SEASON_AUTUMN);            // Truncated phonetic token
@@ -123,50 +96,56 @@ public final class SovietEternalCalendarParser{
 		MONTHS.put("leto", CalendarSeason.SEASON_SUMMER);
 	}
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	/**
+	 * The five revolutionary holidays that stood outside the five-day weeks of the calendar (1929-1931), on their Gregorian
+	 * day: Lenin Day (22 January), the Labor Days (1 and 2 May), and the Industry Days (7 and 8 November); written "2 labor
+	 * days 1930" for the second one. The leap day is 29 February, valid in the leap years only.
+	 */
+	private static final Map<String, NamedMonthDateParser.NamedDay> NAMED_DAYS = Map.of(
+		"день ленина", new NamedMonthDateParser.NamedDay(1, 22, 1),
+		"lenin day", new NamedMonthDateParser.NamedDay(1, 22, 1),
+		"дни труда", new NamedMonthDateParser.NamedDay(5, 1, 2),
+		"labor days", new NamedMonthDateParser.NamedDay(5, 1, 2),
+		"labour days", new NamedMonthDateParser.NamedDay(5, 1, 2),
+		"индустриальные дни", new NamedMonthDateParser.NamedDay(11, 7, 2),
+		"industry days", new NamedMonthDateParser.NamedDay(11, 7, 2),
+		"високосный день", new NamedMonthDateParser.NamedDay(2, 29, 1));
+	/** The names that are known, but do not identify a day. */
+	private static final Map<String, String> REJECTED = Map.ofEntries(
+		Map.entry("revolutionary-holidays", "The collective name of the revolutionary holidays does not identify a day"),
+		Map.entry("holiday-days", "The collective name of the revolutionary holidays does not identify a day"),
+		Map.entry("желтый", "A shift colour of the production week is not a date"),
+		Map.entry("yellow", "A shift colour of the production week is not a date"),
+		Map.entry("розовый", "A shift colour of the production week is not a date"),
+		Map.entry("pink", "A shift colour of the production week is not a date"),
+		Map.entry("красный", "A shift colour of the production week is not a date"),
+		Map.entry("red", "A shift colour of the production week is not a date"),
+		Map.entry("фиолетовый", "A shift colour of the production week is not a date"),
+		Map.entry("purple", "A shift colour of the production week is not a date"),
+		Map.entry("зеленый", "A shift colour of the production week is not a date"),
+		Map.entry("green", "A shift colour of the production week is not a date"));
+
+	private static final NamedMonthDateParser PARSER =NamedMonthDateParser.builder("Soviet Eternal")
+		.months(MONTHS)
+		.namedDays(NAMED_DAYS)
+		.rejected(REJECTED)
+		.monthLengths(MonthLengths::gregorian)
+		.build();
 
 
 	private SovietEternalCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Soviet string expression into a validated architectural container using exact flags.
+	 * Parses a raw Soviet Eternal text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
-	 * @param rawDate the string representing the Soviet Revolutionary date
-	 * @return a configured SovietDateInput instance
-	 * @throws IllegalArgumentException if the expression layout is invalid
+	 * @param rawDate the string representing the calendar date (e.g., "7 ноябрь 1930")
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static SovietEternalDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new SovietEternalDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches()){
-			throw new IllegalArgumentException("Invalid Soviet Eternal date format: " + rawDate);
-		}
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Soviet month or seasonal descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && (day < 1 || day > 31)){
-			throw new IllegalArgumentException("Day variable breaches monthly operational limits.");
-		}
-
-		return new SovietEternalDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

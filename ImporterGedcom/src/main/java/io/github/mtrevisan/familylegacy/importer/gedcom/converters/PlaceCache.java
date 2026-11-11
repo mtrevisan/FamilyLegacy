@@ -116,7 +116,8 @@ public class PlaceCache{
 		if(parts.size() == rawParts.length && parts.size() < levelNamesParts.length)
 			levels.set(parts.size() - 1, (parts.size() > 1? levelNamesParts[levelNamesParts.length - 1]: null));
 
-		final String placeKey = String.join(", ", parts).toLowerCase(Locale.ROOT);
+		final String placeKey = String.join(", ", parts)
+			.toLowerCase(Locale.ROOT);
 		FLEFRecord leafPlace = cache.get(placeKey);
 		if(leafPlace == null){
 			// Build the place hierarchy by linking each part to its parent container
@@ -320,16 +321,19 @@ public class PlaceCache{
 		if(StringUtils.isBlank(value))
 			return null;
 
-		String text = value.trim().toUpperCase(Locale.ROOT);
+		String text = value.trim()
+			.toUpperCase(Locale.ROOT);
 		char sign = '+';
 		final char hemisphere = text.charAt(0);
 		if(hemisphere == positive || hemisphere == negative){
 			sign = (hemisphere == negative? '-': '+');
-			text = text.substring(1).trim();
+			text = text.substring(1)
+				.trim();
 		}
 		else if(hemisphere == '+' || hemisphere == '-'){
 			sign = hemisphere;
-			text = text.substring(1).trim();
+			text = text.substring(1)
+				.trim();
 		}
 		if(!DEGREES_PATTERN.matcher(text).matches())
 			return null;

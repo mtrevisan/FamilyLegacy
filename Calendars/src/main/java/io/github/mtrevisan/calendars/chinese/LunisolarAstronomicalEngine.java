@@ -52,8 +52,10 @@ public final class LunisolarAstronomicalEngine{
 	/** Apparent solar longitude of the winter solstice. */
 	private static final double WINTER_SOLSTICE_LONGITUDE = 3. * StrictMath.PI / 2.;
 	private static final double PI_BY_6 = StrictMath.PI / 6.;
-	/** Maximum number of New Moons needed to encompass a leap year plus the two months following the next Month 11. */
-	private static final int MAX_NEW_MOONS = 17;
+	/** Maximum number of New Moons needed to encompass a leap year plus the three months following the next Month 11. */
+	private static final int MAX_NEW_MOONS = 20;
+	/** Number of New Moons kept after the next Month 11 (the leap 11th or 12th month, the 12th month, and its end). */
+	private static final int MONTHS_AFTER_NEXT_MONTH11 = 4;
 
 	/**
 	 * Astronomical layout of a lunar year.
@@ -62,15 +64,29 @@ public final class LunisolarAstronomicalEngine{
 	 *                              preceding the year
 	 * @param month11Index          the index of the month containing the preceding Winter Solstice
 	 * @param nextMonth11Index      the index of the month containing the following Winter Solstice
-	 * @param leapMonthIndex        the index of the leap month, or {@code -1} if none
+	 * @param leapMonthIndex        the index of the leap month of the cycle that goes from the preceding to the following
+	 *                              Winter Solstice, or {@code -1} if none
+	 * @param followingLeapOffset   the position, after the month containing the following Winter Solstice, of the leap
+	 *                              month of the next cycle (1: leap 11th month, 2: leap 12th month), or {@code 0} if none
 	 */
-	private record LunarYear(double[] newMoonsLocalMidnight, int month11Index, int nextMonth11Index, int leapMonthIndex){}
+	private record LunarYear(double[] newMoonsLocalMidnight, int month11Index, int nextMonth11Index, int leapMonthIndex,
+		int followingLeapOffset){}
+
+	/**
+	 * A month of the lunar year.
+	 *
+	 * @param startLocalMidnight the Julian Date of the local midnight that starts the month
+	 * @param length             the number of days (29 or 30)
+	 */
+	private record MonthSpan(double startLocalMidnight, int length){}
 
 
 	/** The local time offset from UT [hours] as a function of the Julian Date (UT). */
 	private final DoubleUnaryOperator utcOffsetHours;
 	/** Astronomical layout of each lunar year computed so far. */
 	private final Map<Integer, LunarYear> lunarYears = new ConcurrentHashMap<>();
+	/** Astronomical layout of each cycle between two Winter Solstices computed so far, without the following leap month. */
+	private final Map<Integer, LunarYear> cycles = new ConcurrentHashMap<>();
 
 
 	/**
@@ -111,35 +127,40 @@ public final class LunisolarAstronomicalEngine{
 	 * @throws IllegalArgumentException if the month does not exist in the year
 	 */
 	public int monthLength(final int lunarYear, final int month, final boolean isLeapMonth){
-		final long first = toJdn(lunarYear, month, isLeapMonth, 1);
-		try{
-			toJdn(lunarYear, month, isLeapMonth, 30);
-			return 30;
-		}
-		catch(final IllegalArgumentException iae){
-			return (int)(toJdn(lunarYear, month, isLeapMonth, 29) - first + 1);
-		}
+		return locate(lunarYear, month, isLeapMonth).length();
 	}
 
 	private double toLocalMidnightJd(final int lunarYear, final int month, final boolean isLeapMonth, final int day){
+		final MonthSpan span = locate(lunarYear, month, isLeapMonth);
+		if(day < 1 || day > span.length())
+			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": StringUtils.EMPTY) + "month " + month + " of the lunar year "
+				+ lunarYear + " has " + span.length() + " days");
+
+		return span.startLocalMidnight() + (day - 1);
+	}
+
+	private MonthSpan locate(final int lunarYear, final int month, final boolean isLeapMonth){
 		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 		if(!engine.isAvailable())
 			throw new UnsupportedOperationException("The lunisolar calendars require the optional Ephemeris astronomical plugin JAR in classpath.");
 
 		final LunarYear layout = lunarYears.computeIfAbsent(lunarYear, year -> computeLunarYear(engine, year));
 		final double[] newMoonsLocalMidnight = layout.newMoonsLocalMidnight();
-		final int leapMonthIndex = layout.leapMonthIndex();
 
 		// Months 11 and 12 of the year follow the winter solstice of the same Gregorian year (next cycle),
 		// while months 1..10 belong to the cycle that starts at the preceding winter solstice.
 		int i = layout.month11Index();
 		int number = 11;
 		final int end;
+		final int leapMonthIndex;
 		if(month >= 11){
 			i = layout.nextMonth11Index();
-			end = layout.nextMonth11Index() + 2;
+			//the leap 11th or 12th month belongs to the next cycle
+			leapMonthIndex = (layout.followingLeapOffset() > 0? i + layout.followingLeapOffset(): -1);
+			end = i + (leapMonthIndex >= 0? 3: 2);
 		}
 		else{
+			leapMonthIndex = layout.leapMonthIndex();
 			// skip month 11 and 12 (leap months do not advance the counter)
 			while(number != 1){
 				if(i != leapMonthIndex)
@@ -166,13 +187,8 @@ public final class LunisolarAstronomicalEngine{
 			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": StringUtils.EMPTY) + "month " + month
 				+ " does not exist in the lunar year " + lunarYear);
 
-		final int monthLength = (int)StrictMath.round(newMoonsLocalMidnight[targetIndex + 1]
-			- newMoonsLocalMidnight[targetIndex]);
-		if(day < 1 || day > monthLength)
-			throw new IllegalArgumentException("The " + (isLeapMonth? "leap ": StringUtils.EMPTY) + "month " + month + " of the lunar year "
-				+ lunarYear + " has " + monthLength + " days");
-
-		return newMoonsLocalMidnight[targetIndex] + (day - 1);
+		return new MonthSpan(newMoonsLocalMidnight[targetIndex], (int)StrictMath.round(newMoonsLocalMidnight[targetIndex + 1]
+			- newMoonsLocalMidnight[targetIndex]));
 	}
 
 	/**
@@ -180,6 +196,31 @@ public final class LunisolarAstronomicalEngine{
 	 * so it is cached.
 	 */
 	private LunarYear computeLunarYear(final EphemerisEngine engine, final int lunarYear){
+		final LunarYear cycle = cycles.computeIfAbsent(lunarYear, year -> computeCycle(engine, year));
+
+		//the leap month of the following cycle can be the 11th or the 12th month of this lunar year
+		final LunarYear following = cycles.computeIfAbsent(lunarYear + 1, year -> computeCycle(engine, year));
+		int followingLeapOffset = 0;
+		if(following.leapMonthIndex() >= 0){
+			final int offset = following.leapMonthIndex() - following.month11Index();
+			if(offset == 1 || offset == 2){
+				final double leapStart = cycle.newMoonsLocalMidnight()[cycle.nextMonth11Index() + offset];
+				if(StrictMath.abs(leapStart - following.newMoonsLocalMidnight()[following.leapMonthIndex()]) > 0.5)
+					throw new IllegalStateException("Inconsistent leap month between the lunar years " + lunarYear + " and "
+						+ (lunarYear + 1));
+
+				followingLeapOffset = offset;
+			}
+		}
+		return new LunarYear(cycle.newMoonsLocalMidnight(), cycle.month11Index(), cycle.nextMonth11Index(),
+			cycle.leapMonthIndex(), followingLeapOffset);
+	}
+
+	/**
+	 * Computes the new moons, the months 11, and the leap month of the cycle that goes from the Winter Solstice preceding
+	 * a lunar year to the following one.
+	 */
+	private LunarYear computeCycle(final EphemerisEngine engine, final int lunarYear){
 		// 1. Estimate the Winter Solstice preceding the year (Meeus' polynomial approximation)
 		final double y = (lunarYear - 1 - 2000.) / 1000.;
 		final double approxWinterSolsticeJd = 2451900.05952
@@ -204,7 +245,7 @@ public final class LunisolarAstronomicalEngine{
 		int month11Index = -1;
 		int nextMonth11Index = -1;
 		double searchStartJd = winterSolsticeUT - 35.;
-		for(int i = 0; i < MAX_NEW_MOONS && (nextMonth11Index < 0 || i < nextMonth11Index + 3); i ++){
+		for(int i = 0; i < MAX_NEW_MOONS && (nextMonth11Index < 0 || i < nextMonth11Index + MONTHS_AFTER_NEXT_MONTH11); i ++){
 			final double newMoonUT = engine.findNextNewMoon(searchStartJd);
 			newMoonsLocalMidnight[i] = localMidnight(newMoonUT);
 			searchStartJd = newMoonUT + MEAN_SYNODIC_MONTH - 5.;
@@ -221,6 +262,10 @@ public final class LunisolarAstronomicalEngine{
 					&& nextSolsticeMidnightLocalJd < newMoonsLocalMidnight[i])
 				nextMonth11Index = i - 1;
 		}
+
+		if(month11Index < 0 || nextMonth11Index < 0)
+			throw new IllegalStateException("The months containing the Winter Solstices of the lunar year " + lunarYear
+				+ " were not found among the " + MAX_NEW_MOONS + " new moons computed");
 
 		// A leap year has 13 months between the two Month 11
 		int leapMonthIndex = -1;
@@ -246,7 +291,15 @@ public final class LunisolarAstronomicalEngine{
 			}
 		}
 
-		return new LunarYear(newMoonsLocalMidnight, month11Index, nextMonth11Index, leapMonthIndex);
+		return new LunarYear(newMoonsLocalMidnight, month11Index, nextMonth11Index, leapMonthIndex, 0);
+	}
+
+	/**
+	 * @param jdUT	the Julian Date (UT) of an instant
+	 * @return	the Julian Day Number of the civil day containing the instant, in the time zone of the calendar
+	 */
+	public long civilDayOf(final double jdUT){
+		return (long)StrictMath.floor(localMidnight(jdUT) + 0.5);
 	}
 
 	/**

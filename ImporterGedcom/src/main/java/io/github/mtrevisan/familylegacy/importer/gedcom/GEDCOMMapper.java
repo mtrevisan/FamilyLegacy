@@ -57,6 +57,7 @@ public final class GEDCOMMapper{
 	public static final String TAG_NOTE = "NOTE";
 	public static final String TAG_SOURCE = "SOUR";
 	public static final String TAG_DATE = "DATE";
+	public static final String TAG_CENSUS = "CENS";
 	public static final String TAG_TYPE = "TYPE";
 	public static final String TAG_MULTIMEDIA = "OBJE";
 	public static final String TAG_PLACE = "PLAC";
@@ -549,7 +550,8 @@ public final class GEDCOMMapper{
 		if(StringUtils.isBlank(gedcomRole))
 			return null;
 
-		final String role = gedcomRole.trim().toUpperCase(Locale.ROOT);
+		final String role = gedcomRole.trim()
+			.toUpperCase(Locale.ROOT);
 		return switch(role){
 			case "WITN" -> EventParticipationReader.ENUM_ROLE_WITNESS;
 			case "OFFICIATOR", "CLERGY" -> EventParticipationReader.ENUM_ROLE_OFFICIANT;
@@ -678,7 +680,8 @@ public final class GEDCOMMapper{
 			}
 
 		if(StringUtils.isNotBlank(gedcomFormat)){
-			final String format = gedcomFormat.trim().toLowerCase(Locale.ROOT);
+			final String format = gedcomFormat.trim()
+				.toLowerCase(Locale.ROOT);
 			if(format.startsWith("image/"))
 				return MediaReader.ENUM_KIND_IMAGE;
 			if(format.startsWith("audio/"))

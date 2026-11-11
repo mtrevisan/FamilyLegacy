@@ -43,6 +43,11 @@ import java.net.URI;
 public record ReleaseInfo(Version version, String tag, String name, String notes, URI pageUrl, String installerName, URI installerUrl,
 		long installerSize, String sha256){
 
+	/** @return	Whether the installer can be downloaded and checked: it has a published SHA-256. */
+	public boolean isInstallable(){
+		return (hasInstaller() && sha256 != null);
+	}
+
 	/** @return	Whether the release carries an installer that can be downloaded. */
 	public boolean hasInstaller(){
 		return (installerUrl != null);

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
@@ -142,14 +143,18 @@ final class ApplicationMenuBar{
 		bar.add(createPlaceMenu());
 		bar.add(createSourceMenu());
 		bar.add(createEventMenu());
-		bar.add(createResearchMenu());
+		final JMenu research = createResearchMenu();
+		//no research tool at this level: no menu (the Research Assistant still reaches them)
+		if(research.getMenuComponentCount() > 0)
+			bar.add(research);
 		bar.add(createReportsMenu());
 		bar.add(createToolsMenu());
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
 		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
 		bar.add(SettingsMenu.create(frame));
-		bar.add(new HelpMenu(frame).create());
+		bar.add(new HelpMenu(frame)
+			.create());
 		return bar;
 	}
 
@@ -236,7 +241,8 @@ final class ApplicationMenuBar{
 			public void menuSelected(final MenuEvent e){
 				menu.removeAll();
 
-				final List<File> recent = fileController.recentFiles().list();
+				final List<File> recent = fileController.recentFiles()
+					.list();
 				if(recent.isEmpty()){
 					final JMenuItem empty = new JMenuItem(I18N.t("menu.file.open_recent.empty"));
 					empty.setEnabled(false);
@@ -606,13 +612,10 @@ final class ApplicationMenuBar{
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
-		addToolsToMenu(menu, ResearchToolRegistry.planningTools(), bindings);
-		menu.add(new JSeparator());
-		addToolsToMenu(menu, ResearchToolRegistry.contextTools(), bindings);
-		menu.add(new JSeparator());
-		addToolsToMenu(menu, ResearchToolRegistry.analysisTools(), bindings);
-		menu.add(new JSeparator());
-		addToolsToMenu(menu, ResearchToolRegistry.reportTools(), bindings);
+		//the workflow, then the reasoning on the evidence (conclusions, hypotheses), then the context it is read in, then the reports; a group
+		//with one tool left at the level of the user joins the previous one instead of standing alone between two separators
+		addToolGroups(menu, bindings, List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.analysisTools(),
+			ResearchToolRegistry.contextTools(), ResearchToolRegistry.reportTools()), true);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -649,14 +652,7 @@ final class ApplicationMenuBar{
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
 		//the reports are in groups, by what they start from, each one separated from the next
-		boolean first = true;
-		for(final List<ToolOperation> group : reportOperationGroups()){
-			if(!first)
-				menu.addSeparator();
-			first = false;
-
-			addToolsToMenu(menu, group, bindings);
-		}
+		addToolGroups(menu, bindings, reportOperationGroups(), false);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -708,7 +704,8 @@ final class ApplicationMenuBar{
 		back.setAccelerator(ShortcutRegistry.NAV_BACK.keyStroke());
 		back.addActionListener(e -> {
 			if(frame.switcher().canGoBack())
-				frame.switcher().navigateBack();
+				frame.switcher()
+					.navigateBack();
 		});
 		menu.add(back);
 
@@ -716,7 +713,8 @@ final class ApplicationMenuBar{
 		forward.setAccelerator(ShortcutRegistry.NAV_FORWARD.keyStroke());
 		forward.addActionListener(e -> {
 			if(frame.switcher().canGoForward())
-				frame.switcher().navigateForward();
+				frame.switcher()
+					.navigateForward();
 		});
 		menu.add(forward);
 
@@ -737,7 +735,8 @@ final class ApplicationMenuBar{
 		final JMenuItem clearHistory = new JMenuItem(I18N.t("menu.navigate.clear.history"), KeyEvent.VK_C);
 		clearHistory.addActionListener(e -> {
 			//the entry is grey from now on: nothing else to say
-			frame.switcher().clearHistory();
+			frame.switcher()
+				.clearHistory();
 		});
 		menu.add(clearHistory);
 
@@ -747,16 +746,17 @@ final class ApplicationMenuBar{
 		menu.addMenuListener(new MenuListener(){
 			@Override
 			public void menuSelected(final MenuEvent e){
-				final boolean canGoBack = frame.switcher().canGoBack();
-				final boolean canGoForward = frame.switcher().canGoForward();
+				final boolean canGoBack = frame.switcher()
+					.canGoBack();
+				final boolean canGoForward = frame.switcher()
+					.canGoForward();
 				back.setEnabled(canGoBack);
 				forward.setEnabled(canGoForward);
 				clearHistory.setEnabled(canGoBack || canGoForward);
 
 				// The jump-to dialog offers different record types
 				// depending on the active projection.
-				final boolean ego = frame.switcher().getCurrentProjectionType()
-					== ProjectionType.EGO_NETWORK;
+				final boolean ego = (frame.switcher().getCurrentProjectionType() == ProjectionType.EGO_NETWORK);
 				jumpTo.setText(ego
 					? ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.action()
 					: ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.action());
@@ -801,8 +801,53 @@ final class ApplicationMenuBar{
 	 *                          Helpers
 	 * ====================================================================== */
 
+	/** Adds the groups of tools that are shown at the current level, separating each group from the next (an empty group leaves no separator). */
+	private void addToolGroups(final JMenu menu, final List<ToolItemBinding> bindings, final List<List<ToolOperation>> groups,
+			final boolean joinSingles){
+		boolean first = true;
+		for(final List<ToolOperation> group : visibleGroups(groups, FeatureVisibilityService.shared(), joinSingles)){
+			if(!first)
+				menu.add(new JSeparator());
+			first = false;
+
+			addToolsToMenu(menu, group, bindings);
+		}
+	}
+
+	/**
+	 * @param groups      the groups of tools of a menu, in order
+	 * @param features    what tells the level of the user
+	 * @param joinSingles whether a group with a single tool shown joins the previous group (the first group never joins)
+	 * @return the groups with only the tools shown at the level of the user, without the empty ones
+	 */
+	static List<List<ToolOperation>> visibleGroups(final List<List<ToolOperation>> groups, final FeatureVisibilityService features,
+			final boolean joinSingles){
+		final List<List<ToolOperation>> visible = new ArrayList<>();
+		for(final List<ToolOperation> group : groups){
+			final List<ToolOperation> shown = group.stream()
+				.filter(tool -> features.isVisible(tool.minimumLevel()))
+				.toList();
+			if(shown.isEmpty())
+				continue;
+
+			if(joinSingles && shown.size() == 1 && !visible.isEmpty())
+				visible.getLast().addAll(shown);
+			else
+				visible.add(new ArrayList<>(shown));
+		}
+		return visible;
+	}
+
+	private static boolean isVisible(final ToolOperation tool){
+		return FeatureVisibilityService.shared()
+			.isVisible(tool.minimumLevel());
+	}
+
 	private void addToolsToMenu(final JMenu menu, final List<ToolOperation> tools, final List<ToolItemBinding> bindings){
 		for(final ToolOperation tool : tools){
+			if(!isVisible(tool))
+				continue;
+
 			final JMenuItem item = toolItem(tool, 0);
 			if(tool.getAccelerator() != null)
 				item.setAccelerator(tool.getAccelerator());
@@ -815,7 +860,8 @@ final class ApplicationMenuBar{
 
 	/** Returns the platform menu shortcut mask (Ctrl on Windows/Linux, Cmd on macOS). */
 	private static int menuShortcutMask(){
-		return Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+		return Toolkit.getDefaultToolkit()
+			.getMenuShortcutKeyMaskEx();
 	}
 
 	/**

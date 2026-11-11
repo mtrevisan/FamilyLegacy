@@ -79,7 +79,8 @@ public final class InstallerLauncher{
 		final String path = installer.toAbsolutePath().toString();
 		if(path.toLowerCase(Locale.ROOT).endsWith(".msi"))
 			return List.of("msiexec", "/i", path);
-		return List.of(path);
+		//(an installer that asks for administrator rights cannot be started by CreateProcess, error 740: the shell can, with the UAC prompt)
+		return List.of("rundll32", "url.dll,FileProtocolHandler", path);
 	}
 
 	/**

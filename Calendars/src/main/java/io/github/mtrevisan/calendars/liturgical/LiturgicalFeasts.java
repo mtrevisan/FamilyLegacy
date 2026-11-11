@@ -88,7 +88,7 @@ public final class LiturgicalFeasts{
 			"Dominica in Palmis", "Dominica Palmarum", "Palmarum", "Palm Sunday", "Dimanche des Rameaux", "Rameaux",
 			"Palmsonntag");
 		register(Feast.easter("maundy_thursday", -3), "Giovedì Santo", "Coena Domini", "Feria quinta in Coena Domini",
-			"In Coena Domini", "Maundy Thursday", "Jeudi saint", "Gründonnerstag");
+			"In Coena Domini", "Maundy Thursday", "Holy Thursday", "Jeudi saint", "Gründonnerstag");
 		register(Feast.easter("good_friday", -2), "Venerdì Santo", "Parasceve", "Feria sexta in Parasceve",
 			"Good Friday", "Vendredi saint", "Karfreitag");
 		register(Feast.easter("holy_saturday", -1), "Sabato Santo", "Sabbatum Sanctum", "Holy Saturday", "Samedi saint",
@@ -107,7 +107,7 @@ public final class LiturgicalFeasts{
 		register(Feast.easter("cantate", 28), "Cantate");
 		register(Feast.easter("rogate", 35), "Rogate", "Vocem jucunditatis", "Rogation Sunday");
 		register(Feast.easter("ascension", 39), "Ascensione", "Ascensione del Signore", "Ascensio Domini", "Ascensionis",
-			"Ascension", "Ascension Day", "Ascension Thursday", "Holy Thursday", "Christi Himmelfahrt", "Himmelfahrt",
+			"Ascension", "Ascension Day", "Ascension Thursday", "Christi Himmelfahrt", "Himmelfahrt",
 			"Ascensión");
 		register(Feast.easter("exaudi", 42), "Exaudi");
 		register(Feast.easter("pentecost", 49), "Pentecoste", "Domenica di Pentecoste", "Pentecostes", "Pentecosten",
@@ -281,9 +281,20 @@ public final class LiturgicalFeasts{
 	private LiturgicalFeasts(){}
 
 
+	/**
+	 * Registers the names of a feast. A name that is already the one of another feast is a mistake of the table: it is an
+	 * error, never silently ignored.
+	 *
+	 * @throws IllegalStateException if a name is already registered for another feast
+	 */
 	private static void register(final Feast feast, final String... names){
-		for(final String name : names)
-			FEASTS.putIfAbsent(key(name, false), feast);
+		for(final String name : names){
+			final String key = key(name, false);
+			final Feast previous = FEASTS.putIfAbsent(key, feast);
+			if(previous != null && !previous.equals(feast))
+				throw new IllegalStateException("The feast name '" + name + "' is registered for both " + previous.id() + " and "
+					+ feast.id());
+		}
 	}
 
 	/**

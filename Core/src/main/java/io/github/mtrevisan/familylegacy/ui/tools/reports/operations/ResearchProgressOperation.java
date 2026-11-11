@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
@@ -31,6 +32,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
 
 
 public final class ResearchProgressOperation implements ToolOperation{
+
+	@Override
+	public UxLevel minimumLevel(){
+		return UxLevel.STANDARD;
+	}
 
 	@Override
 	public String getName(){

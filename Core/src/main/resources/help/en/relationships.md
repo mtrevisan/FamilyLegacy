@@ -45,7 +45,7 @@ The Relationships findings are suggestions: nothing is created or changed until 
 - **Create Relationship Draft**: for a marriage event with no relationship, the new relationship starts with the **date of the marriage** as *Valid from* and the **sources of the event**; for the partner of a parent who has no relationship with the child, and for the informant of a birth who has none with the child, it starts with the two individuals and no type (the partner may be a parent or a step-parent, the informant a parent, a relative or a neighbour: the choice is yours), the informant's draft with the sources of the birth.
 - **Siblings** have no type: they are written as an *associate* relationship with a role such as *brother* or *half-brother*. The assistant checks that role against the biological parents (full siblings have both in common, half-siblings one) when both individuals have parents. A role that says a parent, a child or a spouse, for which there are types, and an association between two individuals already linked by a family relationship, are reported as information.
 
-On Save the editor refuses a relationship with no subject, no target or no type, and one whose subject and target are the same entity. Everything else is not blocked: contradictions are reported by the [Research Assistant](assistant.md) as findings.
+On OK the editor refuses a relationship with no subject, no target or no type, and one whose subject and target are the same entity. Everything else is not blocked: contradictions are reported by the [Research Assistant](assistant.md) as findings.
 
 ## How to record the usual cases
 

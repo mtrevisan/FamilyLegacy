@@ -24,69 +24,58 @@
  */
 package io.github.mtrevisan.calendars.ethiopian;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Ethiopian calendar: twelve months of thirty days and a month of five days, six in the year before a Julian leap year
+ * (the year whose number leaves 3 in the division by 4), so that the year starts on 29 August of the Julian calendar (30
+ * August after a Julian leap day).
+ */
 public class EthiopianCalendarStrategy implements CalendarConverterPlugin{
+
+	/** Incarnation epoch, Amete Mihret (29 August 8 CE Julian). */
+	private static final long EPOCH_JDN = 1724221L;
+	private static final long DAYS_IN_YEAR = 365L;
+	private static final long DAYS_IN_MONTH = 30L;
+	private static final int LEAP_CYCLE = 4;
+	/** The year number that, in the division by 4, leaves the remainder of the leap years. */
+	private static final int LEAP_REMAINDER = 3;
+	/** The Julian year in which the year starts is this number more than the year of the calendar. */
+	private static final int JULIAN_YEAR_OFFSET = 7;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		// 1. Unpack structural items using the specialized text parser
-		final EthiopianDateInput input = EthiopianCalendarParser.parse(rawDate);
+		final YearMonthDay input = EthiopianCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		if(month < 0){
-			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
-			// Ethiopian Year + 7 gives the approximate underlying Julian calendar timeline year.
-			// We calculate June 1st (Month 6) of that target year on the Julian framework to center our search.
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
+		if(input.isSeason())
+			// the year starts at the end of August of the Julian year Y + offset: the autumn and the winter fall in that
+			// Julian year, the spring and the summer in the next one
+			return SeasonalDates.ofAutumnYear("Ethiopian", year + JULIAN_YEAR_OFFSET, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else{
-			// Standard arithmetic execution mapping path for typical regular Ethiopian months
-			// Incarnation Epoch
-			final long ethiopianEpochJdn = 1724221L;	// 29 August 8 CE Julian
-
-			// Arithmetic tracking: 365 days per year flat + leap years added every 4 years
-			return ethiopianEpochJdn + (year - 1) * 365L
-				+ Math.floorDiv(year, 4)
-				+ (month - 1) * 30L
-				+ day - 1;
-		}
+		// 365 days per year flat, plus a leap day every 4 years
+		return EPOCH_JDN + (year - 1L) * DAYS_IN_YEAR
+			+ Math.floorDiv(year, LEAP_CYCLE)
+			+ (input.monthOrDefault() - 1L) * DAYS_IN_MONTH
+			+ input.dayOrDefault() - 1L;
 	}
 
-	private static double exactSeasonJdUT(final int year, final int month){
-		final int y = year + 7;
-		final int m = CalendarSeason.gregorianSeasonMonth(month);
-		final long baselineApproxJdn = Math.floorDiv(1461L * (y + 4716L), 4L)
-			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ 1 - 1524L;
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Ethiopian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+	/**
+	 * @param year the year
+	 * @return whether the year has six intercalary days (it is the one before a Julian leap year)
+	 */
+	public static boolean isLeapYear(final int year){
+		return (Math.floorMod(year, LEAP_CYCLE) == LEAP_REMAINDER);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final EthiopianDateInput input = EthiopianCalendarParser.parse(rawDate);
+		final YearMonthDay input = EthiopianCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

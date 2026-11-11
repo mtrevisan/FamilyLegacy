@@ -120,7 +120,8 @@ public final class JulianDate{
 	public static double of(final int year, final int month, final int day){
 		final int z = year + (month - 14) / 12;
 		int jd = (int)(365.25 * (z + 4716)) + F[month - 1] + day;
-		if(jd > JULIAN_CALENDAR_END){
+		//the comparison is made before the offset of 1524 days is removed
+		if(jd > JULIAN_CALENDAR_END + 1524){
 			//number of full centuries
 			final int aa = z / 100;
 			//days within the whole centuries (in the Julian Calendar) adding back days removed in the Gregorian Calendar
@@ -180,8 +181,9 @@ public final class JulianDate{
 		year -= 4715;
 
 		final LocalDate date = LocalDate.of(year, month, day);
-		final LocalTime time = LocalTime.ofSecondOfDay(Math.round(timeOfDay * SECONDS_PER_DAY));
-		return LocalDateTime.of(date, time);
+		//the rounding can reach 86400 s: let the date roll over to the next day
+		return date.atStartOfDay()
+			.plusSeconds(Math.round(timeOfDay * SECONDS_PER_DAY));
 	}
 
 	public static int getYear(final double jd){
@@ -210,9 +212,11 @@ public final class JulianDate{
 
 	public static double[] extractDateAndTime(final double jd){
 		//calculate time of day [day]
-		final double time = ((jd - 0.5) % 1);
+		final double midnightBased = jd - 0.5;
+		final double days = StrictMath.floor(midnightBased);
+		final double time = midnightBased - days;
 		//calculate UT at 0h [day]
-		final double date = (long)jd - 0.5;
+		final double date = days + 0.5;
 		return new double[]{date, time};
 	}
 

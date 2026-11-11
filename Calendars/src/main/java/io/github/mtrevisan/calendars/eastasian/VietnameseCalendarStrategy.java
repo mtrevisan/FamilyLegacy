@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars.eastasian;
 
 import io.github.mtrevisan.calendars.chinese.LunisolarAstronomicalEngine;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
@@ -33,8 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -53,15 +52,6 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 	private static final LunisolarAstronomicalEngine VIETNAM = new LunisolarAstronomicalEngine(
 		VietnameseCalendarStrategy::utcOffset);
 
-	private static final String DAY = "ngay";
-	private static final Set<String> DAY_PREFIXES = Set.of("ngay", "mung", "mong");
-	private static final String MONTH = "thang";
-	private static final String YEAR = "nam";
-	private static final String LEAP = "nhuan";
-	private static final String FULL_MOON_DAY = "ram";
-	private static final Map<String, Integer> MONTH_NAMES = Map.of("gieng", 1, "mot", 11, "chap", 12);
-	private static final Set<String> FILLERS = Set.of("am", "lich", "al", "nam", "le", "vao", "luc");
-	private static final int MIN_YEAR = 100;
 
 
 	/** A parsed date: the year, the month (0 if missing), the leap flag, and the day (0 if missing). */
@@ -71,7 +61,7 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 	@Override
 	public long parseToJdn(final String rawDate){
 		final LunarDate date = parse(rawDate);
-		final int month = (date.month() != 0? date.month(): 1);
+		final int month = YearMonthDay.monthOrFirst(date.month());
 		final int day = (date.day() != 0? date.day(): 1);
 		return VIETNAM.toJdn(date.year(), month, date.leap(), day);
 	}
@@ -85,6 +75,9 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private static LunarDate parse(final String rawDate){
+		if(StringUtils.isBlank(rawDate))
+			throw new IllegalArgumentException("The Vietnamese date is empty.");
+
 		final String[] words = TextNormalizer.tokenize(rawDate);
 		int year = 0;
 		int month = 0;
@@ -94,22 +87,22 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 		for(int i = 0; i < words.length; i ++){
 			final String word = words[i];
 			final String next = (i + 1 < words.length? words[i + 1]: null);
-			if(word.equals(LEAP))
+			if(word.equals(VietnameseTokens.LEAP))
 				leap = true;
-			else if(word.equals(FULL_MOON_DAY))
+			else if(word.equals(VietnameseTokens.FULL_MOON_DAY))
 				day = 15;
-			else if(DAY_PREFIXES.contains(word) && StringUtils.isNumeric(next)){
+			else if(VietnameseTokens.DAY_PREFIXES.contains(word) && StringUtils.isNumeric(next)){
 				day = Integer.parseInt(next);
 				i ++;
 			}
-			else if(word.equals(MONTH) && next != null){
-				if(next.equals(LEAP) && i + 2 < words.length){
+			else if(word.equals(VietnameseTokens.MONTH) && next != null){
+				if(next.equals(VietnameseTokens.LEAP) && i + 2 < words.length){
 					// "tháng nhuận 4"
 					leap = true;
 					i ++;
 				}
 				final String monthWord = words[i + 1];
-				final Integer named = MONTH_NAMES.get(monthWord);
+				final Integer named = VietnameseTokens.MONTH_NAMES.get(monthWord);
 				if(named != null)
 					month = named;
 				else if(StringUtils.isNumeric(monthWord))
@@ -118,19 +111,19 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 					throw new IllegalArgumentException("Unknown Vietnamese month '" + monthWord + "': " + rawDate);
 				i ++;
 			}
-			else if(word.equals(YEAR) && StringUtils.isNumeric(next)){
+			else if(word.equals(VietnameseTokens.YEAR) && StringUtils.isNumeric(next)){
 				year = Integer.parseInt(next);
 				i ++;
 			}
 			else if(StringUtils.isNumeric(word))
 				bareNumbers.add(Integer.parseInt(word));
-			else if(!FILLERS.contains(word) && !word.equals(DAY))
+			else if(!VietnameseTokens.FILLERS.contains(word) && !word.equals(VietnameseTokens.DAY))
 				throw new IllegalArgumentException("Unknown word '" + word + "' in the Vietnamese date: " + rawDate);
 		}
 
 		// numeric layout: "15/8/2023" (day, month, year) or "2023-08-15"
 		if(!bareNumbers.isEmpty()){
-			final boolean yearFirst = (bareNumbers.getFirst() >= MIN_YEAR);
+			final boolean yearFirst = (bareNumbers.getFirst() >= VietnameseTokens.MIN_YEAR);
 			if(yearFirst){
 				year = bareNumbers.removeFirst();
 				if(!bareNumbers.isEmpty() && month == 0)
@@ -139,7 +132,7 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 					day = bareNumbers.removeFirst();
 			}
 			else{
-				if(bareNumbers.getLast() >= MIN_YEAR && year == 0)
+				if(bareNumbers.getLast() >= VietnameseTokens.MIN_YEAR && year == 0)
 					year = bareNumbers.removeLast();
 				if(!bareNumbers.isEmpty() && day == 0 && bareNumbers.size() == 2)
 					day = bareNumbers.removeFirst();
@@ -149,7 +142,7 @@ public class VietnameseCalendarStrategy implements CalendarConverterPlugin{
 			if(!bareNumbers.isEmpty())
 				throw new IllegalArgumentException("Invalid Vietnamese date: " + rawDate);
 		}
-		if(year < MIN_YEAR)
+		if(year < VietnameseTokens.MIN_YEAR)
 			throw new IllegalArgumentException("Missing year in the Vietnamese date: " + rawDate);
 		if(month < 0 || month > 12)
 			throw new IllegalArgumentException("Month must be between 1 and 12: " + rawDate);

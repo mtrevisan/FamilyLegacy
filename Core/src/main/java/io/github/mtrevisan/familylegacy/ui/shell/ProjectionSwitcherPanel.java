@@ -208,7 +208,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 
 		if(isChronomapShown()){
 			refreshChronomap();
-			chronomapPanel.selection().select(individualId);
+			chronomapPanel.selection()
+				.select(individualId);
 		}
 		else if(isTemporalShown())
 			temporalPanel.refreshProjection();
@@ -227,7 +228,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	/** @return	The individual the current projection is rooted on. */
 	public String getCurrentRootId(){
 		if(isChronomapShown())
-			return chronomapPanel.selection().get();
+			return chronomapPanel.selection()
+				.get();
 		if(isTemporalShown())
 			return lastRootId;
 		if(isSocialShown())
@@ -308,7 +310,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			else if(target == egoPanel)
 				egoPanel.load(currentRootId);
 			else if(target == chronomapPanel)
-				chronomapPanel.selection().select(currentRootId);
+				chronomapPanel.selection()
+					.select(currentRootId);
 			else if(target == socialPanel)
 				socialPanel.setFocus(currentRootId);
 		}
@@ -473,7 +476,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 */
 	public String getSelectedEntityId(){
 		if(isChronomapShown())
-			return chronomapPanel.selection().get();
+			return chronomapPanel.selection()
+				.get();
 		if(isTemporalShown())
 			return selectedIdOf(temporalPanel.getSelectedEntity(), lastRootId);
 		if(isSocialShown())
@@ -501,7 +505,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			treeGraphPanel.removeEntity(id);
 
 			if(id.equals(chronomapPanel.selection().get()))
-				chronomapPanel.selection().clear();
+				chronomapPanel.selection()
+					.clear();
 			refreshChronomap();
 		}
 		else if(isTemporalShown()){
@@ -640,7 +645,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		lastRootId = id;
 
 		if(isChronomapShown())
-			chronomapPanel.selection().select(id);
+			chronomapPanel.selection()
+				.select(id);
 		else if(isTemporalShown())
 			temporalPanel.refreshProjection();
 		else if(isSocialShown())
@@ -714,7 +720,8 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		if(chronomapPanel == null)
 			return;
 
-		chronomapPanel.index().rebuild();
+		chronomapPanel.index()
+			.rebuild();
 		chronomapPanel.setIndividuals(visibleIndividuals());
 	}
 

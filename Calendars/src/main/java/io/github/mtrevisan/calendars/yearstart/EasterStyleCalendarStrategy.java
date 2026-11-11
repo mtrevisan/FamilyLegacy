@@ -27,15 +27,13 @@ package io.github.mtrevisan.calendars.yearstart;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
+import io.github.mtrevisan.calendars.gregorian.GregorianStyleCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.liturgical.Computus;
-import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
-import io.github.mtrevisan.calendars.spi.DateInterpretation;
+import io.github.mtrevisan.calendars.text.DateFormulas;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,18 +48,35 @@ import java.util.regex.Pattern;
  * or "après Pâques"; the same qualifier ("avant/après Pâques", "ante/post Pascha", "before/after Easter",
  * "prima/dopo Pasqua") picks the occurrence here, and an expression that is still ambiguous is rejected.
  * <p>
+ * A dual year (e.g. "12 febbraio 1704/5") is already counted from 1 January and needs no qualifier. A season is rejected,
+ * since the equinoxes and solstices cannot be placed in a year that starts on a moving date.
+ * <p>
  * Days and months follow the Julian calendar, and the Gregorian one from 20 December 1582 (as in France).
  */
-public class EasterStyleCalendarStrategy implements CalendarConverterPlugin{
+public class EasterStyleCalendarStrategy extends GregorianStyleCalendarStrategy{
 
 	private static final CalendarReform REFORM = CalendarReform.FRANCE;
 
-	private static final Pattern BEFORE_EASTER = Pattern.compile(
-		"(?iu)(?<![\\p{L}])(?:avant|ante|before|prima di|prima della|prima|vor)\\s+(?:p[aâ]ques|pascha[em]?|easter|pasqua|ostern)(?![\\p{L}])");
-	private static final Pattern AFTER_EASTER = Pattern.compile(
-		"(?iu)(?<![\\p{L}])(?:apr[eè]s|post|after|dopo|nach)\\s+(?:p[aâ]ques|pascha[em]?|easter|pasqua|ostern)(?![\\p{L}])");
+	/** Words that put a date before Easter (French, Latin, English, Italian, German). */
+	private static final List<String> BEFORE_WORDS = List.of("avant", "ante", "before", "prima di", "prima della", "prima",
+		"vor");
+	/** Words that put a date after Easter. */
+	private static final List<String> AFTER_WORDS = List.of("après", "apres", "post", "after", "dopo", "nach");
+	/** The names of Easter. */
+	private static final List<String> EASTER_NAMES = List.of("pâques", "paques", "pascha", "paschae", "pascham", "easter",
+		"pasqua", "ostern");
+
+	private static final Pattern BEFORE_EASTER = qualifier(BEFORE_WORDS);
+	private static final Pattern AFTER_EASTER = qualifier(AFTER_WORDS);
 
 	private enum Qualifier{NONE, BEFORE_EASTER, AFTER_EASTER}
+
+
+	/** Composes the pattern of a qualifier word followed by a name of Easter. */
+	private static Pattern qualifier(final List<String> words){
+		return Pattern.compile("(?iu)(?<![\\p{L}])(?:" + DateFormulas.alternation(words) + ")\\s+(?:"
+			+ DateFormulas.alternation(EASTER_NAMES) + ")(?![\\p{L}])");
+	}
 
 
 	@Override
@@ -83,14 +98,23 @@ public class EasterStyleCalendarStrategy implements CalendarConverterPlugin{
 
 		final GregorianDateInput input = GregorianCalendarParser.parse(StringUtils.normalizeSpace(text));
 		final int year = input.year();
-		if(input.month() <= 0){
+		if(input.month() == 0){
 			// a year alone starts on Easter Sunday
 			Indiction.validate(input, year);
 			return Computus.easterJdn(year, REFORM);
 		}
+		if(input.month() < 0)
+			// the equinoxes and solstices cannot be placed in a year that starts on Easter, which moves from year to year
+			throw new IllegalArgumentException("A season cannot be dated in the Easter-style year: " + rawDate);
 
 		final int month = input.month();
 		final int day = input.dayOrFirst();
+		if(input.dualYear()){
+			// a dual year is already counted from 1 January, and tells the day without ambiguity
+			input.validateLeapDay(REFORM.isLeapYear(year));
+			Indiction.validate(input, year);
+			return REFORM.toJdn(year, month, day);
+		}
 		// the day after the Easter of its year, or before the Easter of the next year
 		final Long afterEaster = occurrence(year, month, day, true);
 		final Long beforeEaster = occurrence(year + 1, month, day, false);
@@ -142,14 +166,13 @@ public class EasterStyleCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	@Override
-	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
-		return GregorianCalendarParser.interpretations(rawDate, removeQualifiers(rawDate), locale);
+	protected GregorianDateInput parseInput(final String rawDate){
+		return GregorianCalendarParser.parse(removeQualifiers(rawDate));
 	}
 
 	@Override
-	public CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(removeQualifiers(rawDate));
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
+	protected String readableText(final String rawDate){
+		return removeQualifiers(rawDate);
 	}
 
 	private static String removeQualifiers(final String rawDate){

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars.eastasian;
 
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
@@ -46,7 +47,7 @@ public record EastAsianDateInput(String era, int year, int month, boolean leapMo
 	 * @return the month, or the first month of the year if the month is missing
 	 */
 	public int monthOrFirst(){
-		return (month != 0? month: 1);
+		return YearMonthDay.monthOrFirst(month);
 	}
 
 	/**

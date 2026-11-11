@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.places;
 
+import io.github.mtrevisan.calendars.gregorian.CalendarReform;
+import io.github.mtrevisan.calendars.gregorian.CalendarReforms;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
@@ -37,6 +39,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -100,6 +103,49 @@ public final class PlaceNameResolver{
 			queue.addAll(parentsByChild.getOrDefault(id, List.of()));
 		}
 		return names;
+	}
+
+
+	/**
+	 * The names of a place and of its containers, one level at a time: the place itself first, then the places that contain it
+	 * directly, then the ones that contain these, and so on (a cycle in a malformed file is cut at the first repeated place).
+	 *
+	 * @param placeId	the id of the place
+	 * @return	for each level, all the names (primary and alternative) of the places of that level; empty if the place is unknown
+	 */
+	public List<List<String>> nameLevels(final String placeId){
+		final List<List<String>> levels = new ArrayList<>(0);
+		final Set<String> visited = new HashSet<>();
+		List<String> current = List.of(placeId);
+		while(!current.isEmpty()){
+			final List<String> names = new ArrayList<>(0);
+			final List<String> next = new ArrayList<>(0);
+			for(final String id : current)
+				if(visited.add(id)){
+					final FLEFRecord place = model.getRecordById(id);
+					if(place != null)
+						names.addAll(PlaceReader.extractNames(place));
+					next.addAll(parentsByChild.getOrDefault(id, List.of()));
+				}
+			if(!names.isEmpty())
+				levels.add(names);
+			current = next;
+		}
+		return levels;
+	}
+
+	/**
+	 * The Gregorian reform that applies to a place, from the historical jurisdiction the place belongs to: a town in Tyrol
+	 * changed with Tyrol, not with Austria. Every place is a jurisdiction here, because a place that is not one is recognised
+	 * through the places that contain it.
+	 *
+	 * @param placeId	the id of the place
+	 * @return	the reform, empty if neither the place nor its containers are a known jurisdiction (for example a place whose
+	 *		country had several reform dates and whose province is not recorded)
+	 * @see CalendarReforms#resolveByNames(List)
+	 */
+	public Optional<CalendarReform> calendarReform(final String placeId){
+		return CalendarReforms.resolveByNames(nameLevels(placeId));
 	}
 
 

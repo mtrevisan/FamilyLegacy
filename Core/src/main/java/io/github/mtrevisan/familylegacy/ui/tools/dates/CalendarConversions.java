@@ -126,10 +126,14 @@ final class CalendarConversions{
 		try{
 			return switch(calendar){
 				case GREGORIAN -> iso.format(ISO);
-				case HIJRAH -> HijrahDate.from(iso).toString();
-				case MINGUO -> MinguoDate.from(iso).toString();
-				case THAI_BUDDHIST -> ThaiBuddhistDate.from(iso).toString();
-				case JAPANESE -> JapaneseDate.from(iso).toString();
+				case HIJRAH -> HijrahDate.from(iso)
+					.toString();
+				case MINGUO -> MinguoDate.from(iso)
+					.toString();
+				case THAI_BUDDHIST -> ThaiBuddhistDate.from(iso)
+					.toString();
+				case JAPANESE -> JapaneseDate.from(iso)
+					.toString();
 				case JULIAN -> throw new IllegalStateException();
 			};
 		}

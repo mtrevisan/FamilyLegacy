@@ -25,13 +25,11 @@
 package io.github.mtrevisan.calendars.rumi;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -145,47 +143,25 @@ public final class RumiCalendarParser{
 		MONTHS.put("haziran-season", CalendarSeason.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	private static final NamedMonthDateParser PARSER = NamedMonthDateParser.builder("Rumi")
+		.months(MONTHS)
+		.monthLengths(RumiCalendarStrategy::monthLength)
+		.build();
 
 
 	private RumiCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Rumi string expression into a validated architectural container.
+	 * Parses a raw Rumi text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
-	 * @param rawDate the string representing the Rumi date
-	 * @return a configured RumiDateInput instance
-	 * @throws IllegalArgumentException if the expression layout is invalid
+	 * @param rawDate the string representing the calendar date (e.g., "15 Mart 1330")
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static RumiDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new RumiDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Rumi date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Rumi month or seasonal descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && (day < 1 || day > 31))
-			throw new IllegalArgumentException("Day variable breaches Rumi monthly limits.");
-
-		return new RumiDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

@@ -25,18 +25,11 @@
 package io.github.mtrevisan.calendars.yearstart;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
+import io.github.mtrevisan.calendars.gregorian.GregorianStyleCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
-import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
-import io.github.mtrevisan.calendars.spi.DateInterpretation;
-
-import java.util.List;
-import java.util.Locale;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
 /**
@@ -51,8 +44,13 @@ import java.util.Locale;
  *   year 1600 on 25 March 1600, so that 10 January 1600 is 10 January 1601 in modern reckoning).</li>
  * </ul>
  * A dual year (e.g. "10 gennaio 1600/1") is already counted from 1 January, and is not shifted.
+ * <p>
+ * A month alone stands for its first day. When the month contains the start of the year and the year does not start on
+ * its first day (e.g. "marzo 1600" in the Florentine style, which starts on 25 March), the month belongs partly to each of
+ * two years: the date is read as the first day of the month, which falls before the start of the year when the start is
+ * later in the month. Write the day (or the dual year) to avoid the doubt.
  */
-public class YearStartStyleCalendarStrategy implements CalendarConverterPlugin{
+public class YearStartStyleCalendarStrategy extends GregorianStyleCalendarStrategy{
 
 	/** Style of the Incarnation, Florentine computation: the year starts on 25 March, after 1 January (Tuscany until 1749). */
 	public static final YearStartStyleCalendarStrategy FLORENTINE = new YearStartStyleCalendarStrategy(3, 25, false);
@@ -82,7 +80,7 @@ public class YearStartStyleCalendarStrategy implements CalendarConverterPlugin{
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
+		final GregorianDateInput input = parseInput(rawDate);
 		final int year = input.year();
 
 		if(input.month() == 0){
@@ -93,19 +91,10 @@ public class YearStartStyleCalendarStrategy implements CalendarConverterPlugin{
 
 		final int month = input.month();
 		final int day = input.dayOrFirst();
-		if(month < 0){
-			final int m = CalendarSeason.gregorianSeasonMonth(month);
-			final double approximateJdUT = toJdn(year, m, 1) - 0.5;
-			final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
+		if(month < 0)
+			return SeasonSolver.jdnNear(toJdn(year, CalendarSeason.gregorianSeasonMonth(month), 1), month,
+				"Year Start-style");
 
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Year Start-style calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
 
 		final int commonYear = (input.dualYear()? year: toCommonYear(year, month, day));
 		input.validateLeapDay(REFORM.isLeapYear(commonYear));
@@ -138,17 +127,6 @@ public class YearStartStyleCalendarStrategy implements CalendarConverterPlugin{
 		if(anticipating)
 			return (onOrAfterStart? year - 1: year);
 		return (onOrAfterStart? year: year + 1);
-	}
-
-	@Override
-	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
-		return GregorianCalendarParser.interpretations(rawDate, locale);
-	}
-
-	@Override
-	public CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

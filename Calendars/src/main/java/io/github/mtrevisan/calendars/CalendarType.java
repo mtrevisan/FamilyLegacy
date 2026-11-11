@@ -72,6 +72,7 @@ import io.github.mtrevisan.calendars.yearstart.YearStartStyleCalendarStrategy;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 
 /**
@@ -131,6 +132,8 @@ public enum CalendarType implements CalendarConverterPlugin{
 	BERBER("berber", new BerberCalendarStrategy());
 
 
+	private static final System.Logger LOGGER = System.getLogger(CalendarType.class.getName());
+
 	private final String code;
 	private final CalendarConverterPlugin strategy;
 
@@ -145,17 +148,48 @@ public enum CalendarType implements CalendarConverterPlugin{
 		return code;
 	}
 
-	public static CalendarType fromCode(final String code){
-		final CalendarType[] values = values();
-		for(final CalendarType type : values)
+	/**
+	 * Finds a calendar by its code (case insensitive), strictly.
+	 *
+	 * @param code the calendar code
+	 * @return the calendar, or empty if the code is {@code null} or unknown
+	 */
+	public static Optional<CalendarType> findByCode(final String code){
+		if(code == null)
+			return Optional.empty();
+
+		for(final CalendarType type : values())
 			if(type.code.equalsIgnoreCase(code))
-				return type;
+				return Optional.of(type);
+		return Optional.empty();
+	}
 
-//		throw new IllegalArgumentException("Unsupported calendar: " + code);
-//
-//		LOGGER.warn("Unsupported calendar: {}, default to 'gregorian'", code);
+	/**
+	 * Finds a calendar by its code (case insensitive), strictly.
+	 *
+	 * @param code the calendar code
+	 * @return the calendar
+	 * @throws IllegalArgumentException if the code is {@code null} or unknown
+	 */
+	public static CalendarType fromCodeOrThrow(final String code){
+		return findByCode(code)
+			.orElseThrow(() -> new IllegalArgumentException("Unsupported calendar: " + code));
+	}
 
-		return GREGORIAN;
+	/**
+	 * Finds a calendar by its code (case insensitive), leniently: an unknown or missing code is logged and defaults to the
+	 * Gregorian calendar. Use {@link #fromCodeOrThrow(String)} or {@link #findByCode(String)} where a wrong code must not
+	 * go unnoticed.
+	 *
+	 * @param code the calendar code
+	 * @return the calendar, or {@link #GREGORIAN} if the code is {@code null} or unknown
+	 */
+	public static CalendarType fromCode(final String code){
+		return findByCode(code)
+			.orElseGet(() -> {
+				LOGGER.log(System.Logger.Level.WARNING, "Unsupported calendar: {0}, default to ''gregorian''", code);
+				return GREGORIAN;
+			});
 	}
 
 	@Override
@@ -208,16 +242,17 @@ public enum CalendarType implements CalendarConverterPlugin{
 	 */
 	public static SunlightPhase getSunlightPhase(final String calendarCode, final String rawDate,
 			final double latitude, final double longitude, final ZenithInterface zenith){
-		final CalendarType type = CalendarType.fromCode(calendarCode);
+		// fail first if the plugin is missing, before the (possibly expensive, or plugin-dependent) parsing
+		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
+		if(!engine.isAvailable())
+			throw new UnsupportedOperationException("Astronomical computation framework requires the Ephemeris JAR.");
+
+		final CalendarType type = CalendarType.fromCodeOrThrow(calendarCode);
 		final long jdn = type.parseToJdn(rawDate);
 
 		// Local mean midnight, in UT: the Julian Day Number starts at Greenwich noon, and the local mean time is ahead of
 		// UT by one hour every 15° East
 		final double midnightUtJd = jdn - 0.5 - longitude / 360.;
-
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Astronomical computation framework requires the Ephemeris JAR.");
 
 		// Execute the proxy calculation call out to the plugin JAR
 		return engine.calculateHorizonEvent(EphemerisEngine.CelestialBody.SUN, midnightUtJd, latitude, longitude, zenith);

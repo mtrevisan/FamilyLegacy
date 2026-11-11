@@ -90,7 +90,8 @@ public final class GEDCOM7Normalizer{
 			normalizeNode(child);
 
 		// once the children are normalized (e.g. the ROLE of an ASSO), resolve the pointers to nothing
-		final ListIterator<GEDCOMNode> itr = node.getChildren().listIterator();
+		final ListIterator<GEDCOMNode> itr = node.getChildren()
+			.listIterator();
 		while(itr.hasNext()){
 			final GEDCOMNode child = itr.next();
 			if(!VOID_POINTER.equals(StringUtils.trim(child.getValue())))
@@ -123,7 +124,8 @@ public final class GEDCOM7Normalizer{
 		final String phrase = (phraseNode != null? StringUtils.trimToNull(phraseNode.getValue()): null);
 		if(phrase != null){
 			date = (date != null? "INT " + date + " (" + phrase + ")": "(" + phrase + ")");
-			dateNode.getChildren().remove(phraseNode);
+			dateNode.getChildren()
+				.remove(phraseNode);
 		}
 		dateNode.setValue(date);
 	}

@@ -129,9 +129,12 @@ public final class EventTypesDialog extends JDialog{
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
 		final TableColumnModel columnModel = table.getColumnModel();
-		columnModel.getColumn(0).setPreferredWidth(300);
-		columnModel.getColumn(1).setPreferredWidth(100);
-		columnModel.getColumn(2).setPreferredWidth(100);
+		columnModel.getColumn(0)
+			.setPreferredWidth(300);
+		columnModel.getColumn(1)
+			.setPreferredWidth(100);
+		columnModel.getColumn(2)
+			.setPreferredWidth(100);
 
 		table.addMouseListener(new MouseAdapter(){
 			@Override

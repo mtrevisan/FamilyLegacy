@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -49,6 +50,8 @@ public final class Reigns{
 
 	private static final Pattern ROMAN_NUMERAL = Pattern.compile("[ivxlc]+");
 	private static final String POPES_RESOURCE = "popes.csv";
+	/** number;name_it;name_la;name_en;ordinal;antipope;election;start;start_kind;end;source */
+	private static final int POPE_FIELDS = 10;
 
 	/** Variant spellings of the Latin, Italian, and English names of the popes. */
 	private static final Map<String, List<String>> NAME_VARIANTS = Map.ofEntries(
@@ -94,7 +97,13 @@ public final class Reigns{
 		// the readeption of Henry VI was dated in his 49th year
 		new Reign("henry_vi_readeption", names("Henry", "Hen", "Henrici", "Enrico"), 6, date("1422-09-01"),
 			date("1470-10-09"), date("1471-04-11"), Reign.YearRule.ANNIVERSARY),
-		monarch("edward_iv", 4, "1461-03-04", "1483-04-09", "Edward", "Edw", "Edwardi", "Edoardo"),
+		// Edward IV is split around the readeption of Henry VI, so that the days of the readeption are not his; the regnal
+		// years are counted unbroken from 4 March 1461 (Cheney; the Handbook of British Chronology gives the readeption
+		// from 3 October 1470 to 11 April 1471, the readeption years being counted from 9 October 1470)
+		new Reign("edward_iv", names("Edward", "Edw", "Edwardi", "Edoardo"), 4, date("1461-03-04"), date("1461-03-04"),
+			date("1470-10-08"), Reign.YearRule.ANNIVERSARY),
+		new Reign("edward_iv_restored", names("Edward", "Edw", "Edwardi", "Edoardo"), 4, date("1461-03-04"),
+			date("1471-04-12"), date("1483-04-09"), Reign.YearRule.ANNIVERSARY),
 		monarch("edward_v", 5, "1483-04-09", "1483-06-25", "Edward", "Edw", "Edwardi", "Edoardo"),
 		monarch("richard_iii", 3, "1483-06-26", "1485-08-22", "Richard", "Ric", "Ricardi", "Riccardo"),
 		monarch("henry_vii", 7, "1485-08-22", "1509-04-21", "Henry", "Hen", "Henrici", "Enrico"),
@@ -170,7 +179,9 @@ public final class Reigns{
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String line;
 			boolean header = true;
+			int lineNumber = 0;
 			while((line = reader.readLine()) != null){
+				lineNumber ++;
 				if(line.isBlank() || line.startsWith("#"))
 					continue;
 				if(header){
@@ -180,7 +191,17 @@ public final class Reigns{
 
 				// number;name_it;name_la;name_en;ordinal;antipope;election;start;start_kind;end;source
 				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
-				final int ordinal = Integer.parseInt(fields[4]);
+				if(fields.length < POPE_FIELDS)
+					throw new IllegalStateException("Malformed line " + lineNumber + " of " + POPES_RESOURCE + ": expected "
+						+ POPE_FIELDS + " fields, found " + fields.length + ": " + line);
+				final int ordinal;
+				try{
+					ordinal = Integer.parseInt(fields[4]);
+				}
+				catch(final NumberFormatException nfe){
+					throw new IllegalStateException("Malformed line " + lineNumber + " of " + POPES_RESOURCE
+						+ ": the ordinal is not a number: " + line, nfe);
+				}
 				final Set<String> names = new LinkedHashSet<>();
 				final String[] nameList = {fields[1], fields[2], fields[3]};
 				for(final String name : nameList)
@@ -188,7 +209,7 @@ public final class Reigns{
 				final Reign.CivilDate election = date(fields[6]);
 				final Reign.CivilDate start = (StringUtils.isNotBlank(fields[7])? date(fields[7]): election);
 				final Reign.CivilDate end = (StringUtils.isNotBlank(fields[9])? date(fields[9]): null);
-				final String id = (Boolean.parseBoolean(fields[5])? "antipope_": "pope_") + fields[3].toLowerCase()
+				final String id = (Boolean.parseBoolean(fields[5])? "antipope_": "pope_") + fields[3].toLowerCase(Locale.ROOT)
 					.replace(' ', '_');
 				popes.add(new Reign(id, List.copyOf(names), ordinal, start, election, end, Reign.YearRule.ANNIVERSARY));
 			}

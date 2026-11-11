@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.context;
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -31,6 +32,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
 
 /** Opens the context board (Research menu): historic events, cultural norms, and their impacts in a single tree. */
 public final class ContextBoardTool implements ToolOperation{
+
+	@Override
+	public UxLevel minimumLevel(){
+		return UxLevel.ADVANCED;
+	}
 
 	@Override
 	public String getName(){

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
@@ -34,6 +35,11 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 
 /** Opens the conclusion management dialog. */
 public final class ManageConclusionsTool implements ToolOperation{
+
+	@Override
+	public UxLevel minimumLevel(){
+		return UxLevel.ADVANCED;
+	}
 
 	@Override
 	public String getName(){

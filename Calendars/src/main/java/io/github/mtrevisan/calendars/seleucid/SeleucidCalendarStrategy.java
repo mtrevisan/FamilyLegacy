@@ -24,78 +24,67 @@
  */
 package io.github.mtrevisan.calendars.seleucid;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Seleucid (Syro-Macedonian) calendar, the Julian one with the years counted from the Seleucid Era (1 October 312 BCE)
+ * and the year starting on 1 October: the months are numbered from October (1) to September (12).
+ */
 public class SeleucidCalendarStrategy implements CalendarConverterPlugin{
+
+	/** The months from October to December belong to the Julian year that is this number less than the year. */
+	private static final int YEAR_OFFSET_AUTUMN = 312;
+	/** The months from January to September belong to the Julian year that is this number less than the year. */
+	private static final int YEAR_OFFSET_REST = 311;
+	/** The last month (December) of the Julian year that is counted from October. */
+	private static final int LAST_AUTUMN_MONTH = 3;
+	private static final int MONTHS_IN_YEAR = 12;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final SeleucidDateInput input = SeleucidCalendarParser.parse(rawDate);
+		final YearMonthDay input = SeleucidCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		if(month < 0){
-			// Step A: Determine the absolute temporal anchor window for this year.
-			// The Seleucid Era (Syro-Macedonian) epoch starts roughly at JDN 1607739L.
-			// We calculate an approximate middle point for that specific calendar year.
-			final long startOfYearJdn = toJdn(year, 1, 1);
-			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
+		if(input.isSeason())
+			// the year starts on 1 October of the Julian year Y - 312: the autumn equinox just before it and the winter fall in
+			// that Julian year, the spring and the summer in the next one
+			return SeasonalDates.ofAutumnYear("Seleucid", year - YEAR_OFFSET_AUTUMN, input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			// Standard numeric execution path using your existing Julian shifting logic
-			return toJdn(year, month, day);
+		final int month = input.monthOrDefault();
+		return JulianCalendarStrategy.toJdn(julianYear(year, month), julianMonth(month), input.dayOrDefault());
 	}
 
-	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+	/**
+	 * @param year  the Seleucid year
+	 * @param month the Seleucid month (October = 1, ..., September = 12)
+	 * @return the days of the month, or {@code 0} if the month does not exist
+	 */
+	public static int monthLength(final int year, final int month){
+		if(month < 1 || month > MONTHS_IN_YEAR)
+			return 0;
 
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the transit occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Seleucid calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return MonthLengths.julian(julianYear(year, month), julianMonth(month));
 	}
 
-	private static long toJdn(final int year, final int month, final int day){
-		// Convert Seleucid year and month to standard Julian calendar coordinates
-		// October (1) to December (3) -> Julian year = Seleucid year - 312
-		// January (4) to September (12) -> Julian year = Seleucid year - 311
-		final int julianYear;
-		final int julianMonth;
+	private static int julianYear(final int year, final int month){
+		return (month <= LAST_AUTUMN_MONTH? year - YEAR_OFFSET_AUTUMN: year - YEAR_OFFSET_REST);
+	}
 
-		if(month <= 3){
-			julianYear = year - 312;
-			// Oct=10, Nov=11, Dec=12
-			julianMonth = month + 9;
-		}
-		else{
-			julianYear = year - 311;
-			// Jan=1, Feb=2, ..., Sep=9
-			julianMonth = month - 3;
-		}
-
-		// Standard Julian Calendar JDN conversion logic (Meeus framework)
-		return JulianCalendarStrategy.toJdn(julianYear, julianMonth, day);
+	/** @return the Julian month: October to December (10 to 12), then January to September (1 to 9) */
+	private static int julianMonth(final int month){
+		return (month <= LAST_AUTUMN_MONTH? month + 9: month - LAST_AUTUMN_MONTH);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final SeleucidDateInput input = SeleucidCalendarParser.parse(rawDate);
+		final YearMonthDay input = SeleucidCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

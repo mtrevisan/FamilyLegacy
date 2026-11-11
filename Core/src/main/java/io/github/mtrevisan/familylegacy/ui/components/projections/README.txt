@@ -11,6 +11,14 @@ l'aiuto in `Core/src/main/resources/help`). Per le viste specializzate vedere an
 Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO" sono nelle sezioni sotto). Priorità: ALTA,
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
+### ALTA
+- scansiona il modulo Domain e trova errori o possibili migliorie
+- scansiona il modulo Core e trova errori o possibili migliorie
+- scansiona il modulo ImporterGedcom e trova errori o possibili migliorie
+- scansiona il modulo ImporterGramps e trova errori o possibili migliorie
+- scansiona il modulo ReportEpub e trova errori o possibili migliorie
+- scansiona il modulo ReportSite e trova errori o possibili migliorie
+
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
 - ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).
@@ -62,8 +70,9 @@ BASSA (in ordine di valore, il più utile per primo; revisione del 2026-11-10)
 - Date: anni di regno (servono tabelle da fonte autorevole, vedi la regola sui calendari: molto lavoro di ricerca per un caso d'uso raro).
 
 LIMITI NOTI, non lavori pianificati
-- Convenzioni dichiarate: età 110/90 per la morte mancante (chi non ha anno di nascita non è mai segnalato: senza dati non c'è
-  nulla da dire), soglie 25 e 200 dell'aggregazione, pesi di utilità non calibrati (senza ricerche reali su cui tararli).
+- Convenzioni dichiarate: età 110/90 per la morte mancante (senza anno di nascita proprio si usa quello che i parenti consentono: al
+  più tardi la nascita o la morte di un discendente, l'anno dopo la morte di un genitore; in mancanza, nascita del genitore + 25 anni,
+  solo come "probabilmente morto"; chi non ha dati nemmeno tra i parenti non è segnalato), soglie 25 e 200 dell'aggregazione, pesi di utilità non calibrati (senza ricerche reali su cui tararli).
 - Bozza della conclusione costruita all'apertura della palette (un record cambiato dopo è saltato) e modello letto intero a ogni
   apertura; la bozza di un'ipotesi di identità risolve un solo bersaglio; l'editor non è un wizard.
 - Indicatore e ricalcolo: nessuna opzione per spegnere la riapertura della palette; i risultati ignorati sono per percorso del file e

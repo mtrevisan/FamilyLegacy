@@ -38,13 +38,31 @@ public record CalendarMetadata(Map<String, Boolean> nativeComponents, boolean is
 	public static final String COMPONENT_DAY = "day";
 
 
+	/**
+	 * Builds the metadata of a date whose missing year is written as 0 (for the calendars that have no year 0). The
+	 * calendars that have the year 0 (e.g. the astronomical year of the Gregorian one) must use
+	 * {@link #createFromYearMonthDay(boolean, int, int)}.
+	 */
 	public static CalendarMetadata createFromYearMonthDay(final int year, final int month, final int day){
+		return createFromYearMonthDay(year != 0, month, day);
+	}
+
+	/**
+	 * Builds the metadata of a date whose year is known to be present or not, independently of its value (the year 0 is a
+	 * valid astronomical year, 1 BC, and must not be taken for a missing one).
+	 *
+	 * @param yearPresent whether the date has the year
+	 * @param month       the month (0 if missing)
+	 * @param day         the day (0 if missing)
+	 * @return the metadata
+	 */
+	public static CalendarMetadata createFromYearMonthDay(final boolean yearPresent, final int month, final int day){
 		final Map<String, Boolean> components = new LinkedHashMap<>();
-		components.put(COMPONENT_YEAR, (year != 0));
+		components.put(COMPONENT_YEAR, yearPresent);
 		components.put(COMPONENT_MONTH, (month != 0));
 		components.put(COMPONENT_DAY, (day != 0));
 
-		final boolean isComplete = (year != 0 && month != 0 && day != 0);
+		final boolean isComplete = (yearPresent && month != 0 && day != 0);
 		return new CalendarMetadata(components, isComplete);
 	}
 
@@ -93,7 +111,8 @@ public record CalendarMetadata(Map<String, Boolean> nativeComponents, boolean is
 
 
 	public CalendarMetadata{
-		nativeComponents = Collections.unmodifiableMap(nativeComponents);
+		// defensive copy, keeping the order of the components
+		nativeComponents = Collections.unmodifiableMap(new LinkedHashMap<>(nativeComponents));
 	}
 
 }

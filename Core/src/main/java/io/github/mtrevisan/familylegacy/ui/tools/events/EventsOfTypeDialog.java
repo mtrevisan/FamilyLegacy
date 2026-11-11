@@ -73,10 +73,14 @@ final class EventsOfTypeDialog extends JDialog{
 			I18N.t("column.place"), I18N.t("column.description")}, rows);
 		table = ToolDialogs.createTable(tableModel, row -> openRow(row));
 		final TableColumnModel columns = table.getColumnModel();
-		columns.getColumn(0).setPreferredWidth(100);
-		columns.getColumn(1).setPreferredWidth(140);
-		columns.getColumn(2).setPreferredWidth(140);
-		columns.getColumn(3).setPreferredWidth(380);
+		columns.getColumn(0)
+			.setPreferredWidth(100);
+		columns.getColumn(1)
+			.setPreferredWidth(140);
+		columns.getColumn(2)
+			.setPreferredWidth(140);
+		columns.getColumn(3)
+			.setPreferredWidth(380);
 		table.getSelectionModel()
 			.addListSelectionListener(e -> openRecord.setEnabled(table.getSelectedRow() >= 0));
 
@@ -105,7 +109,8 @@ final class EventsOfTypeDialog extends JDialog{
 
 
 	private void openRow(final int modelRow){
-		final String eventId = (String)((RowTableModel)table.getModel()).rowAt(modelRow)[0];
+		final String eventId = (String)((RowTableModel)table.getModel())
+			.rowAt(modelRow)[0];
 		ToolDialogs.openRecordEditor(this, model, model.getRecordById(eventId));
 	}
 

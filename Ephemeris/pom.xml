@@ -14,6 +14,37 @@
 
 	<profiles>
 		<profile>
+			<!-- mvn package -Pupdate-deltat
+				Downloads the IERS table of ΔT from the U.S. Naval Observatory (see DeltaTUpdater) into
+				src/main/resources/deltat.data, and into target/classes so that this build already contains it.
+				Opt-in on purpose: the build stays reproducible and works offline, and a download failure never breaks it
+				(run the class with the strict option to make it fail). Run it once in a while, and commit the new file. -->
+			<id>update-deltat</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.5.0</version>
+						<executions>
+							<execution>
+								<id>update-deltat</id>
+								<phase>process-classes</phase>
+								<goals><goal>java</goal></goals>
+								<configuration>
+									<mainClass>io.github.mtrevisan.ephemeris.tools.DeltaTUpdater</mainClass>
+									<arguments>
+										<argument>${project.basedir}/src/main/resources/deltat.data</argument>
+										<argument>${project.build.outputDirectory}/deltat.data</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
 			<!-- mvn clean package -Pwindows-exe -DskipTests
 				Builds the Windows installer, a single self-contained file (it bundles a Java runtime):
 				Core/target/windows-exe/FamilyLegacy-<version>.exe

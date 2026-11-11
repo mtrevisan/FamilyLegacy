@@ -12,4 +12,28 @@
 	<!-- The model of a report (document and sections) and the SPI of the renderers that write it in a file format -->
 	<artifactId>ReportApi</artifactId>
 	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						--add-reads io.github.mtrevisan.reports=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.reports/io.github.mtrevisan.reports=org.junit.platform.commons
+					</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

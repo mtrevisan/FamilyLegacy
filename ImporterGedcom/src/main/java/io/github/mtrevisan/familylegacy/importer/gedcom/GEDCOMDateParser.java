@@ -69,7 +69,8 @@ public final class GEDCOMDateParser{
 		if(interpretedMatcher.matches()){
 			final String phrase = interpretedMatcher.group("phrase");
 			builder.phrase(phrase != null? phrase.trim(): null);
-			trimmed = interpretedMatcher.group("date").trim();
+			trimmed = interpretedMatcher.group("date")
+				.trim();
 		}
 
 		// 1. Check for leading qualifier (ABT, BEF, AFT, etc.)

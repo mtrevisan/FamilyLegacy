@@ -54,9 +54,10 @@ public final class IllinoisSolver{
 		double y0 = f.applyAsDouble(x0);
 		double y1 = f.applyAsDouble(x1);
 
-		if(StrictMath.abs(y0) < tolerance)
+		//the tolerance is expressed in the unit of x, not of y: the function value is only checked against exact zero
+		if(y0 == 0.)
 			return x0;
-		if(StrictMath.abs(y1) < tolerance)
+		if(y1 == 0.)
 			return x1;
 
 		if(y0 * y1 > 0.)
@@ -70,7 +71,7 @@ public final class IllinoisSolver{
 			x2 = (x0 * y1 - x1 * y0) / (y1 - y0);
 			final double y2 = f.applyAsDouble(x2);
 
-			if(StrictMath.abs(x1 - x0) < tolerance || StrictMath.abs(y2) < tolerance)
+			if(StrictMath.abs(x1 - x0) < tolerance || y2 == 0.)
 				return x2;
 
 			if(y2 * y1 < 0.){

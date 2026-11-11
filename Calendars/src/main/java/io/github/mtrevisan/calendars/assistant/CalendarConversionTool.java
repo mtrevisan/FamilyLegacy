@@ -54,14 +54,14 @@ public final class CalendarConversionTool{
 	public static List<DateSuggestion> convert(final String calendarCode, final String rawDate){
 		final CalendarType type = CalendarType.fromCode(calendarCode);
 		final long jdn = type.parseToJdn(rawDate);
+		final Message.Calendar calendar = Message.calendar(type.getCode());
 
-		final List<String> steps = new ArrayList<>();
-		steps.add("Read \"" + rawDate + "\" as a " + type.getCode() + " date: Julian Day Number " + jdn);
-		final List<String> assumptions = new ArrayList<>();
+		final List<Message> steps = new ArrayList<>();
+		steps.add(Message.of("date_assistant.step.read", rawDate, calendar, jdn));
+		final List<Message> assumptions = new ArrayList<>();
 		if(YEAR_START_STYLES.contains(type))
-			assumptions.add("The year number of the source follows the " + type.getCode()
-				+ " style, whose year does not start on 1 January");
-		return fromJdn(jdn, "The " + type.getCode() + " date \"" + rawDate + "\"", assumptions, steps);
+			assumptions.add(Message.of("date_assistant.assumption.year_start_style", calendar));
+		return fromJdn(jdn, Message.of("date_assistant.meaning.date", calendar, rawDate), assumptions, steps);
 	}
 
 	/**
@@ -73,29 +73,26 @@ public final class CalendarConversionTool{
 	 * @param steps       the steps done so far
 	 * @return the candidates, the calendar in force in Rome at the date first
 	 */
-	static List<DateSuggestion> fromJdn(final long jdn, final String meaning, final List<String> assumptions,
-			final List<String> steps){
+	static List<DateSuggestion> fromJdn(final long jdn, final Message meaning, final List<Message> assumptions,
+			final List<Message> steps){
 		final boolean julianFirst = CivilDates.JULIAN.equals(CivilDates.calendarInForce(jdn, CalendarReform.ROME));
 
-		final DateSuggestion julian = candidate("Julian calendar", jdn, meaning, assumptions, steps, CivilDates.JULIAN,
-			(julianFirst? null: "The Julian calendar was no longer in use in Catholic countries at this date"));
-		final DateSuggestion gregorian = candidate("Gregorian calendar", jdn, meaning, assumptions, steps, CivilDates.GREGORIAN,
-			(julianFirst
-				? "Before 15 October 1582 the Gregorian date is proleptic: it was not used at the time"
-				: "Countries adopted the Gregorian calendar at different dates (e.g. Great Britain in 1752)"));
+		final DateSuggestion julian = candidate(Message.of("date_assistant.title.julian"), jdn, meaning, assumptions, steps, CivilDates.JULIAN,
+			(julianFirst? null: Message.of("date_assistant.note.julian_obsolete")));
+		final DateSuggestion gregorian = candidate(Message.of("date_assistant.title.gregorian"), jdn, meaning, assumptions, steps,
+			CivilDates.GREGORIAN, Message.of(julianFirst? "date_assistant.note.gregorian_proleptic": "date_assistant.note.gregorian_adoption"));
 		return (julianFirst? List.of(julian, gregorian): List.of(gregorian, julian));
 	}
 
-	private static DateSuggestion candidate(final String title, final long jdn, final String meaning,
-			final List<String> assumptions, final List<String> steps, final String calendarCode, final String note){
+	private static DateSuggestion candidate(final Message title, final long jdn, final Message meaning,
+			final List<Message> assumptions, final List<Message> steps, final String calendarCode, final Message note){
 		final String date = CivilDates.format(jdn, calendarCode);
 
-		final List<String> allAssumptions = new ArrayList<>(assumptions);
+		final List<Message> allAssumptions = new ArrayList<>(assumptions);
 		if(note != null)
 			allAssumptions.add(note);
-		final List<String> allSteps = new ArrayList<>(steps);
-		allSteps.add("Julian Day Number " + jdn + " written in the " + calendarCode + " calendar: " + date
-			+ " (" + CivilDates.weekdayName(jdn) + ")");
+		final List<Message> allSteps = new ArrayList<>(steps);
+		allSteps.add(Message.of("date_assistant.step.written", jdn, Message.calendar(calendarCode), date, CivilDates.dayOfWeek(jdn)));
 		return new DateSuggestion(title, meaning, allAssumptions, calendarCode, allSteps, date);
 	}
 

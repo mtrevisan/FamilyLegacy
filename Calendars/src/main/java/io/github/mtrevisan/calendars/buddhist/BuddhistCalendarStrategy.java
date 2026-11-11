@@ -25,11 +25,13 @@
 package io.github.mtrevisan.calendars.buddhist;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
+
+import java.time.YearMonth;
 
 
 /**
@@ -54,9 +56,9 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 		final BuddhistDateInput input = BuddhistCalendarParser.parse(rawDate);
 		final int year = input.year();
 		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
+		final int month = YearMonthDay.monthOrFirst(input.month());
 		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
+		final int day = YearMonthDay.dayOrFirst(input.day());
 
 		// Resolve true Gregorian temporal mapping baseline (Epoch offset: -543 years, or +1781 for the Rattanakosin era); up to
 		// 2483 BE the year started on 1 April, so January to March belong to the next Gregorian year
@@ -69,31 +71,18 @@ public class BuddhistCalendarStrategy implements CalendarConverterPlugin{
 		final int gregorianYear = (aprilNewYear && month >= 1 && month < APRIL? startYear + 1: startYear);
 
 		if(month < 0){
-			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
 			final int m = CalendarSeason.gregorianSeasonMonth(month);
-			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(gregorianYear, m, 1);
-			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
+			return SeasonSolver.jdnNear(GregorianCalendarStrategy.toJdn(gregorianYear, m, 1), month, "Buddhist");
 		}
-		else
+		else{
+			final int length = YearMonth.of(gregorianYear, month).lengthOfMonth();
+			if(day > length)
+				throw new IllegalArgumentException("The month " + month + " of the year " + gregorianYear + " has " + length + " days: "
+					+ rawDate);
+
 			// Standard numeric execution path using the canonical algorithm for regular Gregorian dates via gregorianYear
 			return GregorianCalendarStrategy.toJdn(gregorianYear, month, day);
-	}
-
-	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
-		final double approxMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Buddhist calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approxMiddleJdUT, targetLongitude);
+		}
 	}
 
 	@Override

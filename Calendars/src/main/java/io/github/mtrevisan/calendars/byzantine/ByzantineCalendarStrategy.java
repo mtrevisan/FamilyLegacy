@@ -24,42 +24,67 @@
  */
 package io.github.mtrevisan.calendars.byzantine;
 
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * The Byzantine calendar, the Julian one with the years counted from the creation of the world (1 September 5509 BCE) and
+ * the year starting on 1 September: the months are numbered from September (1) to August (12).
+ */
 public class ByzantineCalendarStrategy implements CalendarConverterPlugin{
+
+	/** The months from September to December belong to the Julian year that is this number less than the year. */
+	private static final int YEAR_OFFSET_AUTUMN = 5509;
+	/** The months from January to August belong to the Julian year that is this number less than the year. */
+	private static final int YEAR_OFFSET_REST = 5508;
+	/** The last month (December) of the Julian year that is counted from September. */
+	private static final int LAST_AUTUMN_MONTH = 4;
+	private static final int MONTHS_IN_YEAR = 12;
+
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final ByzantineDateInput input = ByzantineCalendarParser.parse(rawDate);
+		final YearMonthDay input = ByzantineCalendarParser.parse(rawDate);
 		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
 
-		final int julianYear;
-		final int julianMonth;
-		if(month <= 4){
-			julianYear = year - 5509;
-			// Sep=9, Oct=10, Nov=11, Dec=12
-			julianMonth = month + 8;
-		}
-		else{
-			julianYear = year - 5508;
-			// Jan=1, Feb=2, ..., Aug=8
-			julianMonth = month - 4;
-		}
+		if(input.isSeason())
+			// the year starts on 1 September of the Julian year Y - 5509: the autumn and the winter fall in that Julian year,
+			// the spring and the summer in the next one
+			return SeasonalDates.ofAutumnYear("Byzantine", year - YEAR_OFFSET_AUTUMN, input.month());
 
-		// Adjust year boundary for the historical astronomical algorithm anchor
-		return JulianCalendarStrategy.toJdn(julianYear, julianMonth, day);
+		final int month = input.monthOrDefault();
+		return JulianCalendarStrategy.toJdn(julianYear(year, month), julianMonth(month), input.dayOrDefault());
+	}
+
+	/**
+	 * @param year  the Byzantine year
+	 * @param month the Byzantine month (September = 1, ..., August = 12)
+	 * @return the days of the month, or {@code 0} if the month does not exist
+	 */
+	public static int monthLength(final int year, final int month){
+		if(month < 1 || month > MONTHS_IN_YEAR)
+			return 0;
+
+		return MonthLengths.julian(julianYear(year, month), julianMonth(month));
+	}
+
+	private static int julianYear(final int year, final int month){
+		return (month <= LAST_AUTUMN_MONTH? year - YEAR_OFFSET_AUTUMN: year - YEAR_OFFSET_REST);
+	}
+
+	/** @return the Julian month: September to December (9 to 12), then January to August (1 to 8) */
+	private static int julianMonth(final int month){
+		return (month <= LAST_AUTUMN_MONTH? month + 8: month - LAST_AUTUMN_MONTH);
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final ByzantineDateInput input = ByzantineCalendarParser.parse(rawDate);
+		final YearMonthDay input = ByzantineCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

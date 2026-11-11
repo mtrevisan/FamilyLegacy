@@ -106,6 +106,7 @@ public final class GapDataLoader{
 
 		final List<GapData.Event> events = new ArrayList<>();
 		final Map<String, Integer> birthYears = new HashMap<>();
+		final Map<String, Integer> deathYears = new HashMap<>();
 		final Set<String> withBirth = new HashSet<>();
 		final Set<String> withDeath = new HashSet<>();
 		final Set<String> withCensus = new HashSet<>();
@@ -134,8 +135,12 @@ public final class GapDataLoader{
 					if(year != null)
 						birthYears.merge(personId, year, Math::min);
 				}
-				else if(EventReader.ENUM_TYPE_DEATH.equals(type))
+				else if(EventReader.ENUM_TYPE_DEATH.equals(type)){
 					withDeath.add(personId);
+					final Integer year = year(event);
+					if(year != null)
+						deathYears.merge(personId, year, Math::min);
+				}
 				else if(EventReader.ENUM_TYPE_CENSUS.equals(type))
 					withCensus.add(personId);
 		}
@@ -152,7 +157,7 @@ public final class GapDataLoader{
 			final String name = IndividualReader.extractPrimaryFullname(individual);
 			persons.put(id, new GapData.Person(id, (name != null && !name.isBlank()? name: id), birthYears.get(id),
 				withBirth.contains(id), withDeath.contains(id), withResidence.contains(id), withCensus.contains(id),
-				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of()))));
+				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of())), deathYears.get(id)));
 		}
 
 		final List<GapData.ParentLink> parents = new ArrayList<>();

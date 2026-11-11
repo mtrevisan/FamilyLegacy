@@ -24,65 +24,37 @@
  */
 package io.github.mtrevisan.calendars.sovieteternal;
 
-import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 
 
+/**
+ * Soviet Revolutionary Calendar (1929-1940).
+ * <p>
+ * The solar dates and leap year rules were identical to the Gregorian calendar. The five national holidays outside the
+ * five-day weeks (Lenin Day, 22 January; the Labor Days, 1 and 2 May; the Industry Days, 7 and 8 November) and the leap day
+ * (29 February) are named days that the parser maps to their Gregorian date.
+ * </p>
+ */
 public class SovietEternalCalendarStrategy implements CalendarConverterPlugin{
 
-	/**
-	 * Soviet Revolutionary Calendar (1929–1940).
-	 * <p>
-	 * The solar dates and leap year rules were identical to the Gregorian calendar.
-	 * The 5 (or 6) national "intercalary/holiday days" outside the standard 5-day cycle
-	 * map directly onto the corresponding solar days of the Gregorian system.
-	 */
 	@Override
 	public long parseToJdn(final String rawDate){
-		// 1. Unpack structural components using the specialized text parser
-		final SovietEternalDateInput input = SovietEternalCalendarParser.parse(rawDate);
-		final int year = input.year();
-		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
-		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
+		final YearMonthDay input = SovietEternalCalendarParser.parse(rawDate);
 
-		if(month < 0){
-			// Step A: Determine an approximate baseline anchor for the year.
-			// Soviet dates align completely with Gregorian absolute years. Gregorian year 1970-01-01 = JDN 2440588L.
-			final int m = CalendarSeason.gregorianSeasonMonth(month);
-			final long baselineApproxJdn = GregorianCalendarStrategy.toJdn(year, m, 1);
-			final double exactSeasonJdUT = exactSeasonJdUT(baselineApproxJdn, month);
+		if(input.isSeason())
+			// the dates are the Gregorian ones: the seasons are those of the Gregorian year
+			return SeasonalDates.ofGregorianYear("Soviet Eternal", input.year(), input.month());
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else
-			// Standard numeric execution path using your existing arithmetic baseline formula for Soviet dates
-			// Since the production cycles share solar boundaries, it maps directly back onto Gregorian JDN steps:
-			return GregorianCalendarStrategy.toJdn(year, month, day);
-	}
-
-	private static double exactSeasonJdUT(final long baselineApproxJdn, final int month){
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun cross point occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Sovietic Eternal calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		return GregorianCalendarStrategy.toJdn(input.year(), input.monthOrDefault(), input.dayOrDefault());
 	}
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final SovietEternalDateInput input = SovietEternalCalendarParser.parse(rawDate);
+		final YearMonthDay input = SovietEternalCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

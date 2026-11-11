@@ -47,9 +47,11 @@ public interface EphemerisEngine{
 
 
 	/**
-	 * Computes the exact Julian Date (UT) of the New Moon conjunction closest to a target date.
+	 * Computes the exact Julian Date (UT) of the first New Moon conjunction that follows a date ("next after"): the
+	 * result is never before the date, and it is at most one synodic month (about 29.5 days) after it. The callers search
+	 * from a date that precedes the expected conjunction (e.g. a few days before the expected start of the month).
 	 *
-	 * @param approximateJdUT the starting guess in Julian Date UT
+	 * @param approximateJdUT the date from which the following conjunction is searched, in Julian Date UT
 	 * @return the exact Julian Date UT of the conjunction
 	 */
 	double findNextNewMoon(double approximateJdUT);
@@ -89,7 +91,8 @@ public interface EphemerisEngine{
 	 * @param midnightUtJd the Julian Date representing local civil midnight converted to UT
 	 * @param latitude     the observer's geodetic latitude in degrees (North positive)
 	 * @param longitude    the observer's geodetic longitude in degrees (East positive)
-	 * @param zenith       horizon definition (OFFICIAL, CIVIL, NAUTICAL, ASTRONOMICAL)
+	 * @param zenith       horizon definition (OFFICIAL, CIVIL, NAUTICAL, ASTRONOMICAL): for the Sun, the solar elevation
+	 *                     {@link ZenithInterface#getElevation()} is the altitude of the center of the disk at which the event occurs
 	 * @return a configured immutable instance of {@link SunlightPhase}
 	 */
 	SunlightPhase calculateHorizonEvent(CelestialBody body, double midnightUtJd, double latitude, double longitude,

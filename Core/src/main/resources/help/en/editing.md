@@ -7,7 +7,7 @@
 
 An editor is a dialog with several tabs. The *Properties* tab holds the fields of the record itself; the other tabs list the records connected to it. For an individual they are: attributes, relationships, participations (the events the person took part in), context, research, sources, notes, privacy and audit.
 
-Fields marked with an asterisk are required. **Save** checks the fields that are really required and tells you which one is missing, and `Esc` closes the editor and discards the changes. What every field means is explained in [The record editors](editors.md) and the pages that follow it.
+Fields marked with an asterisk are required. **OK** checks the fields that are really required and tells you which one is missing, and `Esc` closes the editor and discards the changes. What every field means is explained in [The record editors](editors.md) and the pages that follow it.
 
 ## Adding people
 
@@ -52,7 +52,7 @@ A group is a set of individuals (a family, a household, a congregation...). Memb
 ## Individual helpers
 
 - **Kinship Calculator...** tells how two individuals are related; the selected individual fills the first side. See [Kinship and consanguinity](kinship.md).
-- **Group Career...** shows the groups the individual belonged to in time, with the role in each. See [Group timeline, group network and group career](group-views.md).
+- **Memberships Over Time...** shows the groups the individual belonged to in time, with the role in each. See [Group timeline, group network and memberships over time](group-views.md).
 - To merge two entries for the same person, see [Finding duplicates and merging people](merging.md).
 
 ## Places

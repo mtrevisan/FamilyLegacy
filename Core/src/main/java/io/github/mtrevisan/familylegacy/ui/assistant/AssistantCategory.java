@@ -38,7 +38,8 @@ public enum AssistantCategory{
 	RESEARCH("research"),
 	CONCLUSIONS("conclusions"),
 	CONTEXT("context"),
-	DIAGNOSTICS("diagnostics");
+	DIAGNOSTICS("diagnostics"),
+	TOOLS("tools");
 
 
 	private final String key;

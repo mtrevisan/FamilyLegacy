@@ -68,6 +68,8 @@ final class GapChecker{
 	static final int CERTAINLY_DEAD_YEARS = 110;
 	/** An individual born so long ago is probably dead. */
 	static final int PROBABLY_DEAD_YEARS = 90;
+	/** The years from the birth of a parent to the birth of a child, when only the birth of the parent is known. */
+	static final int GENERATION_YEARS = 25;
 	/** The usefulness from which a gap is called high, and the one from which it is called medium. */
 	static final int HIGH_USEFULNESS = 70;
 	static final int MEDIUM_USEFULNESS = 45;
@@ -125,22 +127,96 @@ final class GapChecker{
 	/** The death of an individual who is certainly (or probably) dead: they were born a century ago, and no death is recorded. */
 	private static void checkDeaths(final GapData data, final List<GapFinding> findings){
 		final List<GapFinding> group = new ArrayList<>();
+		final Map<String, List<String>> childrenOf = new HashMap<>();
+		final Map<String, List<String>> parentsOf = new HashMap<>();
+		for(final GapData.ParentLink link : data.parents()){
+			childrenOf.computeIfAbsent(link.parentId(), k -> new ArrayList<>())
+				.add(link.childId());
+			parentsOf.computeIfAbsent(link.childId(), k -> new ArrayList<>())
+				.add(link.parentId());
+		}
+
+		final int thisYear = data.today().getYear();
 		for(final GapData.Person person : data.persons().values()){
-			if(person.hasDeath() || person.birthYear() == null)
+			if(person.hasDeath())
 				continue;
 
-			final int age = data.today().getYear() - person.birthYear();
-			final int usefulness = (age >= CERTAINLY_DEAD_YEARS? 85: (age >= PROBABLY_DEAD_YEARS? 55: 0));
+			//own year of birth first; if there is none, the year the relatives allow, then the one estimated from the parents
+			String key = "no_death";
+			Integer year = person.birthYear();
+			Integer parentYear = null;
+			if(year == null){
+				year = latestBirthYear(person.id(), data, childrenOf, parentsOf, new HashSet<>());
+				key = "no_death_%s_relatives";
+				if(year == null || thisYear - year < PROBABLY_DEAD_YEARS){
+					parentYear = latestParentBirthYear(person.id(), data, parentsOf);
+					year = (parentYear != null? parentYear + GENERATION_YEARS: null);
+					key = "no_death_probable_estimated";
+				}
+			}
+			if(year == null)
+				continue;
+
+			final int age = thisYear - year;
+			final boolean certain = (age >= CERTAINLY_DEAD_YEARS && !key.endsWith("_estimated"));
+			final int usefulness = (certain? 85: (age >= PROBABLY_DEAD_YEARS? 55: 0));
 			if(usefulness == 0)
 				continue;
 
-			group.add(finding(Diagnostic.Severity.INFORMATION, (age >= CERTAINLY_DEAD_YEARS? "no_death_certain": "no_death_probable"),
-				List.of(person.id()), usefulness,
+			if(key.contains("%s"))
+				key = key.formatted(certain? "certain": "probable");
+			else if(key.equals("no_death"))
+				key = (certain? "no_death_certain": "no_death_probable");
+			group.add(finding(Diagnostic.Severity.INFORMATION, key, List.of(person.id()), usefulness,
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.death.title", person.name()),
 					I18N.tf("gap.draft.death.question", person.name()), List.of(person.id()), null),
-				person.name() + " [" + person.id() + "]", String.valueOf(person.birthYear()), age));
+				person.name() + " [" + person.id() + "]", String.valueOf(year), age, String.valueOf(parentYear), GENERATION_YEARS));
 		}
 		findings.addAll(group);
+	}
+
+	/**
+	 * @return the latest year the individual can have been born, from the dates of their descendants and ancestors (a parent is born no
+	 * later than a child is born or dies, a child is born no later than the year after the death of a parent), or {@code null} if the
+	 * relatives say nothing; {@code visiting} guards against loops
+	 */
+	private static Integer latestBirthYear(final String id, final GapData data, final Map<String, List<String>> childrenOf,
+			final Map<String, List<String>> parentsOf, final Set<String> visiting){
+		if(!visiting.add(id))
+			return null;
+
+		Integer latest = null;
+		for(final String childId : childrenOf.getOrDefault(id, List.of())){
+			final GapData.Person child = data.persons().get(childId);
+			if(child == null)
+				continue;
+
+			latest = min(latest, child.birthYear());
+			latest = min(latest, child.deathYear());
+			latest = min(latest, latestBirthYear(childId, data, childrenOf, parentsOf, visiting));
+		}
+		for(final String parentId : parentsOf.getOrDefault(id, List.of())){
+			final GapData.Person parent = data.persons().get(parentId);
+			if(parent != null && parent.deathYear() != null)
+				latest = min(latest, parent.deathYear() + 1);
+		}
+		visiting.remove(id);
+		return latest;
+	}
+
+	/** @return the year of birth of the youngest parent who has one, or {@code null} */
+	private static Integer latestParentBirthYear(final String id, final GapData data, final Map<String, List<String>> parentsOf){
+		Integer latest = null;
+		for(final String parentId : parentsOf.getOrDefault(id, List.of())){
+			final GapData.Person parent = data.persons().get(parentId);
+			if(parent != null && parent.birthYear() != null && (latest == null || parent.birthYear() > latest))
+				latest = parent.birthYear();
+		}
+		return latest;
+	}
+
+	private static Integer min(final Integer a, final Integer b){
+		return (a == null? b: (b == null? a: Integer.valueOf(Math.min(a, b))));
 	}
 
 	/** The birth of an individual the research is about (they have children, or events): where do they come from? */

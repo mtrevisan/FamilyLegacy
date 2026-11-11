@@ -25,84 +25,57 @@
 package io.github.mtrevisan.calendars.gregorian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
-import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
-import io.github.mtrevisan.calendars.spi.DateInterpretation;
-
-import java.util.List;
-import java.util.Locale;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
-public class ReformedJulianCalendarStrategy implements CalendarConverterPlugin{
+public class ReformedJulianCalendarStrategy extends GregorianStyleCalendarStrategy{
 
 	@Override
 	public long parseToJdn(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
+		final GregorianDateInput input = parseInput(rawDate);
 		final int year = input.year();
 		final int month = input.monthOrFirst();
 		final int day = input.dayOrFirst();
-		// century years are leap only when they give remainder 200 or 600 when divided by 900
-		final int centuryRemainder = Math.floorMod(year, 900);
-		input.validateLeapDay(Math.floorMod(year, 4) == 0
-			&& (year % 100 != 0 || centuryRemainder == 200 || centuryRemainder == 600));
+		input.validateLeapDay(isLeapYear(year));
 		Indiction.validate(input, year);
 
-		if(month < 0){
-			// Step A: Calculate a dynamic baseline anchor for the center of the target year.
-			// We calculate June 1st (Month 6) of that target Reformed Julian year to center our search window.
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
+		if(month < 0)
+			// the season starts near the first day of its month
+			return SeasonSolver.jdnNear(toJdn(year, CalendarSeason.gregorianSeasonMonth(month), 1), month,
+				"Reformed Julian");
 
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
-		else{
-			// Standard numeric execution path using the Milanković algorithm for regular Reformed Julian dates
-			final int y = (month <= 2? year - 1: year);
-			final int m = (month <= 2? month + 12: month);
-
-			return Math.floorDiv(365L * y, 1L)
-				+ Math.floorDiv(y, 4L)
-				- Math.floorDiv(y, 100L)
-				+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
-				+ Math.floorDiv(153L * (m + 1), 5L)
-				+ day + 1720997L;
-		}
+		// Standard numeric execution path using the Milanković algorithm for regular Reformed Julian dates
+		return toJdn(year, month, day);
 	}
 
-	private static double exactSeasonJdUT(final int year, final int month){
-		final int y = year;
-		final int m = CalendarSeason.gregorianSeasonMonth(month);
-		// Reformed Julian 900-year cycle mathematical calculation framework
-		final long baselineApproxJdn = Math.floorDiv(365L * y, 1L)
+	/**
+	 * @param year the astronomical year
+	 * @return whether the year is a leap year of the Reformed Julian calendar: the century years are leap only when they
+	 * 	give remainder 200 or 600 when divided by 900
+	 */
+	public static boolean isLeapYear(final int year){
+		final int centuryRemainder = Math.floorMod(year, 900);
+		return (Math.floorMod(year, 4) == 0 && (year % 100 != 0 || centuryRemainder == 200 || centuryRemainder == 600));
+	}
+
+	/**
+	 * Converts a proleptic Reformed Julian (Milanković) date into its Julian Day Number.
+	 *
+	 * @param year  the astronomical year (1 BCE = 0)
+	 * @param month the month (1 to 12)
+	 * @param day   the day of the month
+	 * @return the Julian Day Number
+	 */
+	public static long toJdn(final int year, final int month, final int day){
+		final int y = (month <= 2? year - 1: year);
+		final int m = (month <= 2? month + 12: month);
+
+		return 365L * y
 			+ Math.floorDiv(y, 4L)
 			- Math.floorDiv(y, 100L)
 			+ Math.floorDiv(2L * Math.floorDiv(y, 100L) + 6, 9L)
 			+ Math.floorDiv(153L * (m + 1), 5L)
-			+ 1 + 1720997L;
-		final double approximateMiddleJdUT = baselineApproxJdn - 0.5;
-
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		// Matching structural alignments: Autumn (-1) = 𝜋, Winter (-2) = 3𝜋/2, Spring (-3) = 0, Summer (-4) = 𝜋/2
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-precision calculation to track the exact instant the Sun enters this season
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Reformed Julian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
-	}
-
-	@Override
-	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
-		return GregorianCalendarParser.interpretations(rawDate, locale);
-	}
-
-	@Override
-	public CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate);
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
+			+ day + 1720997L;
 	}
 
 }

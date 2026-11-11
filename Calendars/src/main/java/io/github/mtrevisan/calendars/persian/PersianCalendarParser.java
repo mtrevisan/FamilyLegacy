@@ -25,13 +25,13 @@
 package io.github.mtrevisan.calendars.persian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
+import io.github.mtrevisan.calendars.text.ScriptText;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 
 /**
@@ -48,197 +48,167 @@ public final class PersianCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: Farvardin (Aries / Al-Hamal) - Commences at the Vernal Equinox
-		MONTHS.put("فروردین", 1);           // Native Persian script
-		MONTHS.put("Фарвардин", 1);         // Tajik Cyrillic script
-		MONTHS.put("farvardin", 1);         // Standard Latin transliteration
-		MONTHS.put("hamal", 1);             // Afghan Dari zodiac name (حمل)
-		MONTHS.put("حمل", 1);                // Afghan Arabic script
+		register("فروردین", 1);           // Native Persian script
+		register("Фарвардин", 1);         // Tajik Cyrillic script
+		register("farvardin", 1);         // Standard Latin transliteration
+		register("hamal", 1);             // Afghan Dari zodiac name (حمل)
+		register("حمل", 1);                // Afghan Arabic script
 
 		// Month 2: Ordibehesht (Taurus / Ath-Thawr)
-		MONTHS.put("اردیبهشت", 2);
-		MONTHS.put("Орدیбеҳишт", 2);        // Tajik Cyrillic variant
-		MONTHS.put("ordibehesht", 2);
-		MONTHS.put("ordibehešt", 2);        // Scientific linguistic notation
-		MONTHS.put("thawr", 2);             // Afghan Dari zodiac name (ثور)
-		MONTHS.put("ثور", 2);
-		MONTHS.put("sawr", 2);              // Phonetic Afghan variant
+		register("اردیبهشت", 2);
+		register("Ордибеҳишт", 2);          // Tajik Cyrillic variant
+		register("ordibehesht", 2);
+		register("ordibehešt", 2);        // Scientific linguistic notation
+		register("thawr", 2);             // Afghan Dari zodiac name (ثور)
+		register("ثور", 2);
+		register("sawr", 2);              // Phonetic Afghan variant
 
 		// Month 3: Khordad (Gemini / Al-Jauza)
-		MONTHS.put("خرداد", 3);
-		MONTHS.put("Хурдод", 3);            // Tajik Cyrillic script
-		MONTHS.put("khordad", 3);
-		MONTHS.put("xordad", 3);            // Simplified common ASCII notation
-		MONTHS.put("jauza", 3);             // Afghan Dari zodiac name (جوزا)
-		MONTHS.put("جوزا", 3);
-		MONTHS.put("jawza", 3);
+		register("خرداد", 3);
+		register("Хурдод", 3);            // Tajik Cyrillic script
+		register("khordad", 3);
+		register("xordad", 3);            // Simplified common ASCII notation
+		register("jauza", 3);             // Afghan Dari zodiac name (جوزا)
+		register("جوزا", 3);
+		register("jawza", 3);
 
 		// Month 4: Tir (Cancer / As-Saratan) - Commences at the Estival Solstice
-		MONTHS.put("تیر", 4);
-		MONTHS.put("Тир", 4);               // Tajik Cyrillic script
-		MONTHS.put("tir", 4);
-		MONTHS.put("teer", 4);              // Common phonetic variant
-		MONTHS.put("saratan", 4);           // Afghan Dari zodiac name (سرطان)
-		MONTHS.put("سرطان", 4);
+		register("تیر", 4);
+		register("Тир", 4);               // Tajik Cyrillic script
+		register("tir", 4);
+		register("teer", 4);              // Common phonetic variant
+		register("saratan", 4);           // Afghan Dari zodiac name (سرطان)
+		register("سرطان", 4);
 
 		// Month 5: Mordad / Amardad (Leo / Al-Asad)
-		MONTHS.put("مرداد", 5);              // Colloquial/Secular Iranian script
-		MONTHS.put("امرداد", 5);             // Purified philological Persian script
-		MONTHS.put("Мурдод", 5);            // Tajik Cyrillic script
-		MONTHS.put("mordad", 5);
-		MONTHS.put("amardad", 5);           // Historical etymological variant
-		MONTHS.put("asad", 5);              // Afghan Dari zodiac name (اسد)
-		MONTHS.put("اسد", 5);
+		register("مرداد", 5);              // Colloquial/Secular Iranian script
+		register("امرداد", 5);             // Purified philological Persian script
+		register("Мурдод", 5);            // Tajik Cyrillic script
+		register("mordad", 5);
+		register("amardad", 5);           // Historical etymological variant
+		register("asad", 5);              // Afghan Dari zodiac name (اسد)
+		register("اسد", 5);
 
 		// Month 6: Shahrivar (Virgo / As-Sunbula)
-		MONTHS.put("شهریور", 6);
-		MONTHS.put("Шаҳривар", 6);          // Tajik Cyrillic script
-		MONTHS.put("shahrivar", 6);
-		MONTHS.put("shahrewar", 6);         // Archaic text alignment variant
-		MONTHS.put("sunbula", 6);           // Afghan Dari zodiac name (سنبله)
-		MONTHS.put("سنبله", 6);
+		register("شهریور", 6);
+		register("Шаҳривар", 6);          // Tajik Cyrillic script
+		register("shahrivar", 6);
+		register("shahrewar", 6);         // Archaic text alignment variant
+		register("sunbula", 6);           // Afghan Dari zodiac name (سنبله)
+		register("سنبله", 6);
 
 		// Month 7: Mehr (Libra / Al-Mizan) - Commences at the Autumnal Equinox
-		MONTHS.put("مهر", 7);
-		MONTHS.put("Меҳр", 7);              // Tajik Cyrillic script
-		MONTHS.put("mehr", 7);
-		MONTHS.put("mihr", 7);              // Pahlavi/Scientific short transliteration
-		MONTHS.put("mizan", 7);             // Afghan Dari zodiac name (میزان)
-		MONTHS.put("میزان", 7);
+		register("مهر", 7);
+		register("Меҳр", 7);              // Tajik Cyrillic script
+		register("mehr", 7);
+		register("mihr", 7);              // Pahlavi/Scientific short transliteration
+		register("mizan", 7);             // Afghan Dari zodiac name (میزان)
+		register("میزان", 7);
 
 		// Month 8: Aban (Scorpio / Al-Aqrab)
-		MONTHS.put("آبان", 8);
-		MONTHS.put("Обон", 8);              // Tajik Cyrillic script
-		MONTHS.put("aban", 8);
-		MONTHS.put("aqrab", 8);             // Afghan Dari zodiac name (عقرب)
-		MONTHS.put("عقرب", 8);
+		register("آبان", 8);
+		register("Обон", 8);              // Tajik Cyrillic script
+		register("aban", 8);
+		register("aqrab", 8);             // Afghan Dari zodiac name (عقرب)
+		register("عقرب", 8);
 
 		// Month 9: Azar (Sagittarius / Al-Qaws)
-		MONTHS.put("آذر", 9);
-		MONTHS.put("Оذر", 9);               // Tajik Cyrillic script
-		MONTHS.put("azar", 9);
-		MONTHS.put("qaws", 9);              // Afghan Dari zodiac name (قوس)
-		MONTHS.put("قوس", 9);
-		MONTHS.put("ghows", 9);             // Phonetic variant
+		register("آذر", 9);
+		register("Озар", 9);                // Tajik Cyrillic script
+		register("azar", 9);
+		register("qaws", 9);              // Afghan Dari zodiac name (قوس)
+		register("قوس", 9);
+		register("ghows", 9);             // Phonetic variant
 
 		// Month 10: Dey (Capricorn / Al-Jady) - Commences at the Hibernal Solstice
-		MONTHS.put("دی", 10);
-		MONTHS.put("Дэй", 10);              // Tajik Cyrillic script
-		MONTHS.put("dey", 10);
-		MONTHS.put("day", 10);              // Common alternative spelling
-		MONTHS.put("dei", 10);              // French/European notation variant
-		MONTHS.put("jady", 10);             // Afghan Dari zodiac name (جدی)
-		MONTHS.put("جدی", 10);
-		MONTHS.put("jadi", 10);
+		register("دی", 10);
+		register("Дэй", 10);              // Tajik Cyrillic script
+		register("dey", 10);
+		register("day", 10);              // Common alternative spelling
+		register("dei", 10);              // French/European notation variant
+		register("jady", 10);             // Afghan Dari zodiac name (جدی)
+		register("جدی", 10);
+		register("jadi", 10);
 
 		// Month 11: Bahman (Aquarius / Ad-Dalw)
-		MONTHS.put("بهمن", 11);
-		MONTHS.put("Баҳման", 11);           // Tajik Cyrillic script
-		MONTHS.put("bahman", 11);
-		MONTHS.put("dalw", 11);             // Afghan Dari zodiac name (دلو)
-		MONTHS.put("دلو", 11);
+		register("بهمن", 11);
+		register("Баҳман", 11);           // Tajik Cyrillic script
+		register("bahman", 11);
+		register("dalw", 11);             // Afghan Dari zodiac name (دلو)
+		register("دلو", 11);
 
 		// Month 12: Esfand (Pisces / Al-Hut)
-		MONTHS.put("اسفند", 12);
-		MONTHS.put("Эсфанд", 12);           // Tajik Cyrillic script
-		MONTHS.put("esfand", 12);
-		MONTHS.put("asfand", 12);           // Classic vocalization spelling
-		MONTHS.put("hut", 12);              // Afghan Dari zodiac name (حوت)
-		MONTHS.put("حوت", 12);
-		MONTHS.put("hoot", 12);             // Phonetic variant
+		register("اسفند", 12);
+		register("Эсфанд", 12);           // Tajik Cyrillic script
+		register("esfand", 12);
+		register("asfand", 12);           // Classic vocalization spelling
+		register("hut", 12);              // Afghan Dari zodiac name (حوت)
+		register("حوت", 12);
+		register("hoot", 12);             // Phonetic variant
 
 
 		// Autumn
-		MONTHS.put("paeez", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("payiz", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("پاییز", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("Хазон", CalendarSeason.SEASON_AUTUMN);         // Tajik Cyrillic word for Autumn
-		MONTHS.put("khazon", CalendarSeason.SEASON_AUTUMN);
+		register("paeez", CalendarSeason.SEASON_AUTUMN);
+		register("payiz", CalendarSeason.SEASON_AUTUMN);
+		register("پاییز", CalendarSeason.SEASON_AUTUMN);
+		register("Хазон", CalendarSeason.SEASON_AUTUMN);         // Tajik Cyrillic word for Autumn
+		register("khazon", CalendarSeason.SEASON_AUTUMN);
 
 		// Winter
-		MONTHS.put("zemestan", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("زمستان", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("Зимистон", CalendarSeason.SEASON_WINTER);      // Tajik Cyrillic word for Winter
-		MONTHS.put("zimiston", CalendarSeason.SEASON_WINTER);
+		register("zemestan", CalendarSeason.SEASON_WINTER);
+		register("زمستان", CalendarSeason.SEASON_WINTER);
+		register("Зимистон", CalendarSeason.SEASON_WINTER);      // Tajik Cyrillic word for Winter
+		register("zimiston", CalendarSeason.SEASON_WINTER);
 
 		// Spring
-		MONTHS.put("bahar", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("بهار", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("Баҳор", CalendarSeason.SEASON_SPRING);         // Tajik Cyrillic word for Spring
-		MONTHS.put("bahor", CalendarSeason.SEASON_SPRING);
+		register("bahar", CalendarSeason.SEASON_SPRING);
+		register("بهار", CalendarSeason.SEASON_SPRING);
+		register("Баҳор", CalendarSeason.SEASON_SPRING);         // Tajik Cyrillic word for Spring
+		register("bahor", CalendarSeason.SEASON_SPRING);
 
 		// Summer
-		MONTHS.put("tabestan", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("تابستان", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("Тоβистон", CalendarSeason.SEASON_SUMMER);      // Tajik Cyrillic variant
-		MONTHS.put("توبستان", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("toviston", CalendarSeason.SEASON_SUMMER);
+		register("tabestan", CalendarSeason.SEASON_SUMMER);
+		register("تابستان", CalendarSeason.SEASON_SUMMER);
+		register("Тобистон", CalendarSeason.SEASON_SUMMER);      // Tajik Cyrillic variant
+		register("توبستان", CalendarSeason.SEASON_SUMMER);
+		register("toviston", CalendarSeason.SEASON_SUMMER);
 	}
 
-	// Adaptive pattern supporting both standalone seasonal notations ("Bahar 1357")
-	// and explicit three-token expressions ("22 Bahman 1357")
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([a-zA-Zآ-ی\\s-]+?)\\s+(\\d+)");
+	private static void register(final String name, final int month){
+		ScriptText.register(MONTHS, name, month);
+	}
 
 
 	private PersianCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Persian text string into a validated structural model.
-	 *
-	 * @param rawDate the string representing the Persian date
-	 * @return a configured PersianDateInput instance
-	 * @throws IllegalArgumentException if the expression layout is invalid
+	 * @return the normalized names of the months and of the seasons known by the parser
 	 */
-	public static PersianDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(convertDigitsToAscii(rawDate));
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new PersianDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Persian date: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Persian month or seasonal descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && month <= 6 && (day < 1 || day > 31))
-			throw new IllegalArgumentException("The first six Persian months consist strictly of 31 days.");
-		if(dayGroup != null && month >= 7 && month <= 11 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("Persian months 7 through 11 consist strictly of 30 days.");
-		if(dayGroup != null && month == 12 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("The final Persian month cannot exceed 30 days.");
-
-		return new PersianDateInput(year, month, day);
+	public static Set<String> knownNames(){
+		return Collections.unmodifiableSet(MONTHS.keySet());
 	}
 
 	/**
-	 * Converts Persian and Arabic-Indic digits to ASCII digits.
+	 * Parses a raw Persian text string into a validated structural model.
+	 *
+	 * @param rawDate the string representing the Persian date
+	 * @return the components
+	 * @throws IllegalArgumentException if the expression layout is invalid, or a season is given with a day
 	 */
-	private static String convertDigitsToAscii(final String text){
-		final StringBuilder sb = new StringBuilder(text.length());
-		for(int i = 0; i < text.length(); i ++){
-			final char c = text.charAt(i);
+	public static YearMonthDay parse(final String rawDate){
+		final ScriptText.Parsed parsed = ScriptText.parse(rawDate, "Persian", MONTHS, false);
 
-			if(c >= '۰' && c <= '۹')
-				sb.append((char)('0' + c - '۰'));
-			else if(c >= '٠' && c <= '٩')
-				sb.append((char)('0' + c - '٠'));
-			else
-				sb.append(c);
-		}
-		return sb.toString();
+		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = parsed.dayOrZero();
+
+		// the actual length of Esfand depends on the year, and is checked by the calendar
+		final int month = parsed.month();
+		final int maxDay = (month >= 1 && month <= 6? 31: 30);
+		if(parsed.day() != null && (day < 1 || day > maxDay))
+			throw new IllegalArgumentException("The Persian month " + month + " has at most " + maxDay + " days: " + rawDate);
+
+		return new YearMonthDay(parsed.year(), month, day);
 	}
 
 }

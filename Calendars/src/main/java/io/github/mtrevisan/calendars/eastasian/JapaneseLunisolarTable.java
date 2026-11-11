@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -53,6 +54,9 @@ public final class JapaneseLunisolarTable{
 	private static final String RESOURCE = "japanese-lunisolar.csv";
 	private static final String COMMENT = "#";
 	private static final String LEAP_PREFIX = "L";
+	/** lunar_year;new_year_gregorian;months */
+	private static final int FIELDS = 3;
+	private static final int MAX_MONTH_LENGTH = 30;
 
 	/**
 	 * The months of a lunar year.
@@ -168,35 +172,64 @@ public final class JapaneseLunisolarTable{
 
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 			String line;
+			int lineNumber = 0;
 			while((line = reader.readLine()) != null){
+				lineNumber ++;
 				if(line.isBlank() || line.startsWith(COMMENT))
 					continue;
 
-				final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
-				final int lunarYear = Integer.parseInt(fields[0]);
-				final LocalDate newYear = LocalDate.parse(fields[1]);
-				final String[] months = StringUtils.split(fields[2], ' ');
-				final int[] numbers = new int[months.length];
-				final boolean[] leap = new boolean[months.length];
-				final int[] lengths = new int[months.length];
-				for(int i = 0; i < months.length; i ++){
-					String month = months[i];
-					leap[i] = month.startsWith(LEAP_PREFIX);
-					if(leap[i])
-						month = month.substring(LEAP_PREFIX.length());
-					final int separator = month.indexOf(':');
-					numbers[i] = Integer.parseInt(month.substring(0, separator));
-					lengths[i] = Integer.parseInt(month.substring(separator + 1));
+				try{
+					final String[] fields = StringUtils.splitPreserveAllTokens(line, ';');
+					if(fields.length != FIELDS)
+						throw new IllegalArgumentException("expected " + FIELDS + " fields, found " + fields.length);
+
+					final int lunarYear = Integer.parseInt(fields[0]);
+					final LocalDate newYear = LocalDate.parse(fields[1]);
+					final String[] months = StringUtils.split(fields[2], ' ');
+					final int[] numbers = new int[months.length];
+					final boolean[] leap = new boolean[months.length];
+					final int[] lengths = new int[months.length];
+					for(int i = 0; i < months.length; i ++){
+						String month = months[i];
+						leap[i] = month.startsWith(LEAP_PREFIX);
+						if(leap[i])
+							month = month.substring(LEAP_PREFIX.length());
+						final int separator = month.indexOf(':');
+						if(separator < 0)
+							throw new IllegalArgumentException("the month '" + months[i] + "' is not in the form number:length");
+						numbers[i] = Integer.parseInt(month.substring(0, separator));
+						lengths[i] = Integer.parseInt(month.substring(separator + 1));
+						if(lengths[i] < 1 || lengths[i] > MAX_MONTH_LENGTH)
+							throw new IllegalArgumentException("the month '" + months[i] + "' has an impossible length");
+					}
+					final long newYearJdn = GregorianCalendarStrategy.toJdn(newYear.getYear(), newYear.getMonthValue(),
+						newYear.getDayOfMonth());
+					if(years.put(lunarYear, new LunarYear(newYearJdn, numbers, leap, lengths)) != null)
+						throw new IllegalArgumentException("the year " + lunarYear + " is defined twice");
 				}
-				final long newYearJdn = GregorianCalendarStrategy.toJdn(newYear.getYear(), newYear.getMonthValue(),
-					newYear.getDayOfMonth());
-				years.put(lunarYear, new LunarYear(newYearJdn, numbers, leap, lengths));
+				catch(final IllegalArgumentException | DateTimeParseException e){
+					throw new IllegalStateException("Malformed line " + lineNumber + " of " + RESOURCE + ": " + e.getMessage()
+						+ ": " + line, e);
+				}
 			}
 		}
 		catch(final IOException ioe){
 			throw new UncheckedIOException(ioe);
 		}
+
+		validateContinuity(years);
 		return years;
+	}
+
+	/** The months of each year must add up to the day on which the next year starts. */
+	private static void validateContinuity(final TreeMap<Integer, LunarYear> years){
+		for(final Map.Entry<Integer, LunarYear> entry : years.entrySet()){
+			final LunarYear next = years.get(entry.getKey() + 1);
+			if(next != null && entry.getValue().endJdn() != next.newYearJdn())
+				throw new IllegalStateException("The months of the Japanese lunisolar year " + entry.getKey() + " in " + RESOURCE
+					+ " end on the Julian Day Number " + entry.getValue().endJdn() + ", but the year " + (entry.getKey() + 1)
+					+ " starts on " + next.newYearJdn());
+		}
 	}
 
 }

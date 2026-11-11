@@ -142,7 +142,8 @@ public class EditableComboAdapter extends FocusAdapter implements ActionListener
 
 			final String textRepresentation = (value != null? value.toString(): StringUtils.EMPTY);
 
-			comboBox.getEditor().setItem(value);
+			comboBox.getEditor()
+				.setItem(value);
 			comboBox.setSelectedItem(value);
 
 			if(!textComp.getText().equals(textRepresentation))

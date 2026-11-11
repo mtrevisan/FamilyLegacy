@@ -25,19 +25,14 @@
 package io.github.mtrevisan.calendars.swedish;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
+import io.github.mtrevisan.calendars.gregorian.GregorianStyleCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
-import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
-import io.github.mtrevisan.calendars.spi.CalendarMetadata;
-import io.github.mtrevisan.calendars.spi.DateInterpretation;
-
-import java.util.List;
-import java.util.Locale;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
 /**
@@ -50,36 +45,29 @@ import java.util.Locale;
  *   <li>the Gregorian calendar was adopted in 1753, when 17 February was followed by 1 March.</li>
  * </ul>
  */
-public class SwedishCalendarStrategy implements CalendarConverterPlugin{
+public class SwedishCalendarStrategy extends GregorianStyleCalendarStrategy{
 
 	private static final int SWEDISH_START_YEAR = 1700;
 	private static final int SWEDISH_END_YEAR = 1712;
-	private static final int GREGORIAN_ADOPTION_YEAR = 1753;
-	/** The last day of the Julian calendar (17 February 1753), followed by 1 March 1753 */
-	private static final int JULIAN_LAST_DAY = 17;
+	/** The return to the Gregorian calendar: 17 February 1753 was followed by 1 March 1753. */
+	private static final CalendarReform GREGORIAN_ADOPTION = CalendarReform.SWEDEN;
 	private static final int FEBRUARY_MAX_DAYS = 30;
 
 
 	@Override
+	protected GregorianDateInput parseInput(final String rawDate){
+		return GregorianCalendarParser.parse(rawDate, FEBRUARY_MAX_DAYS);
+	}
+
+	@Override
 	public long parseToJdn(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate, FEBRUARY_MAX_DAYS);
+		final GregorianDateInput input = parseInput(rawDate);
 		final int year = input.year();
 		final int month = input.monthOrFirst();
 		final int day = input.dayOrFirst();
 
-		if(month < 0){
-			final int m = CalendarSeason.gregorianSeasonMonth(month);
-			final double approximateJdUT = toJdn(year, m, 1) - 0.5;
-			final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-			if(!engine.isAvailable())
-				throw new UnsupportedOperationException("Swedish calendar requires the Ephemeris plugin.");
-
-			final double exactSeasonJdUT = engine.findSolarLongitudeEvent(approximateJdUT, targetLongitude);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
-		}
+		if(month < 0)
+			return SeasonSolver.jdnNear(toJdn(year, CalendarSeason.gregorianSeasonMonth(month), 1), month, "Swedish");
 
 		validate(year, month, day);
 		Indiction.validate(input, year);
@@ -87,6 +75,9 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private static void validate(final int year, final int month, final int day){
+		if(GREGORIAN_ADOPTION.isSkipped(year, month, day))
+			throw new IllegalArgumentException("The days from " + (GREGORIAN_ADOPTION.lastJulianDay() + 1)
+				+ " to 28 February " + GREGORIAN_ADOPTION.firstGregorianYear() + " were skipped by the Gregorian reform");
 		if(month != 2)
 			return;
 
@@ -94,15 +85,13 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 			throw new IllegalArgumentException("30 February exists only in the Swedish year 1712");
 		if(day == 29 && !isLeapYear(year))
 			throw new IllegalArgumentException("29 February does not exist in the Swedish year " + year);
-		if(year == GREGORIAN_ADOPTION_YEAR && day > JULIAN_LAST_DAY)
-			throw new IllegalArgumentException("The days from 18 to 28 February 1753 were skipped by the Gregorian reform");
 	}
 
 	private static boolean isLeapYear(final int year){
-		if(year > GREGORIAN_ADOPTION_YEAR)
-			return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+		if(year > GREGORIAN_ADOPTION.firstGregorianYear())
+			return GregorianCalendarStrategy.isLeapYear(year);
 		// the leap day of 1700 was skipped
-		return (year != SWEDISH_START_YEAR && Math.floorMod(year, 4) == 0);
+		return (year != SWEDISH_START_YEAR && JulianCalendarStrategy.isLeapYear(year));
 	}
 
 	/**
@@ -114,7 +103,7 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 	 * @return the Julian Day Number
 	 */
 	public static long toJdn(final int year, final int month, final int day){
-		if(year > GREGORIAN_ADOPTION_YEAR || year == GREGORIAN_ADOPTION_YEAR && month > 2)
+		if(GREGORIAN_ADOPTION.isGregorian(year, month, day))
 			return GregorianCalendarStrategy.toJdn(year, month, day);
 
 		final long julianJdn = JulianCalendarStrategy.toJdn(year, month, day);
@@ -123,17 +112,6 @@ public class SwedishCalendarStrategy implements CalendarConverterPlugin{
 			|| year == SWEDISH_START_YEAR && month > 2
 			|| year == SWEDISH_END_YEAR && month <= 2);
 		return (swedishPeriod? julianJdn - 1: julianJdn);
-	}
-
-	@Override
-	public List<DateInterpretation> getInterpretations(final String rawDate, final Locale locale){
-		return GregorianCalendarParser.interpretations(rawDate, locale);
-	}
-
-	@Override
-	public CalendarMetadata getMetadata(final String rawDate){
-		final GregorianDateInput input = GregorianCalendarParser.parse(rawDate, FEBRUARY_MAX_DAYS);
-		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 
 }

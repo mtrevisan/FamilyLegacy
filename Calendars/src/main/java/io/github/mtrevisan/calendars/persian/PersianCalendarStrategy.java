@@ -25,11 +25,11 @@
 package io.github.mtrevisan.calendars.persian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 
 public class PersianCalendarStrategy implements CalendarConverterPlugin{
@@ -45,43 +45,36 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 		2394, 2456, 3178};
 
 
+	/** The difference between the Gregorian year in which the Persian year starts (March) and the Persian year. */
+	private static final int GREGORIAN_OFFSET = 621;
+	private static final int ESFAND = 12;
+	private static final int COMMON_YEAR_ESFAND_DAYS = 29;
+	private static final int LEAP_YEAR_DAYS = 366;
+
+
 	@Override
 	public long parseToJdn(final String rawDate){
 		// Expected native format: "۱ فروردین ۱۳۰۰" or "۱۰ رمضان ۱۲۶۸ هـ.ق"
-		final PersianDateInput date = PersianCalendarParser.parse(rawDate);
+		final YearMonthDay date = PersianCalendarParser.parse(rawDate);
 		final int year = date.year();
 		// a missing month stands for the first month of the year
-		final int month = (date.month() != 0? date.month(): 1);
+		final int month = date.monthOrDefault();
 		// a missing day stands for the first day of the month
-		final int day = (date.day() > 0? date.day(): 1);
+		final int day = date.dayOrDefault();
 
 		if(month < 0){
-			// Step A: Determine an approximate baseline anchor for the year.
-			// Solar Hijri Year + 622 gives the Gregorian year parameter space.
-			final double exactSeasonJdUT = exactSeasonJdUT(year, month);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
+			// the year starts at the vernal equinox of the Gregorian year + 621: the four seasons fall in that same Gregorian year
+			// anchored on the first day of the Gregorian month of the season: the event nearest to it is the one searched
+			final long anchorJdn = GregorianCalendarStrategy.toJdn(year + GREGORIAN_OFFSET, CalendarSeason.gregorianSeasonMonth(month), 1);
+			return SeasonSolver.jdnNear(anchorJdn, month, "Persian");
 		}
-		else
-			// Standard numeric execution path using your existing arithmetic baseline formula for Persian dates
-			// e.g., mapping back via your custom Persian JDN translation algorithms
-			return toJdn(year, month, day);
-	}
 
-	private static double exactSeasonJdUT(final int year, final int month){
-		final long baselineApproxJdn = 1948320L + (long)((year - 1) * 365.24219);
-		// Middle of the year shift
-		final double approximateMiddleJdUT = baselineApproxJdn + 182. - 0.5;
+		// Esfand has 30 days only in a leap year
+		if(month == ESFAND && day == COMMON_YEAR_ESFAND_DAYS + 1 && toJdn(year + 1, 1, 1) - toJdn(year, 1, 1) != LEAP_YEAR_DAYS)
+			throw new IllegalArgumentException("Esfand of the Persian year " + year + " has " + COMMON_YEAR_ESFAND_DAYS + " days: " + rawDate);
 
-		// Step B: Map negative flag parameters directly onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the Sun pierces this seasonal step
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Persian calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		// Standard numeric execution path using the arithmetic baseline formula for Persian dates
+		return toJdn(year, month, day);
 	}
 
 	private static long toJdn(final int year, final int month, final int day){
@@ -133,7 +126,7 @@ public class PersianCalendarStrategy implements CalendarConverterPlugin{
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){
-		final PersianDateInput input = PersianCalendarParser.parse(rawDate);
+		final YearMonthDay input = PersianCalendarParser.parse(rawDate);
 		return CalendarMetadata.createFromYearMonthDay(input.year(), input.month(), input.day());
 	}
 

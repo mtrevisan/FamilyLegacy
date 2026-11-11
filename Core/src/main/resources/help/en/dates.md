@@ -49,11 +49,12 @@ Rules worth knowing:
 - **Numbers are always day, month, year.** There is no month-first reading: `05/03/1953` is 5 March, and `03/15/1953` is rejected because there is no month 15. A number first of four digits means year, month, day.
 - **Month names** are accepted in almost any language (full and abbreviated, any case), and also in Latin (`Ianuarii`, `Martii`...) and in the old numeral forms (`7bris`, `8bre`, `9ber`, `10bris`, `Xbris`). Examples that work: `1 Gennaio 2000`, `15 août 1953`, `15 января 1953`, `15 Ianuarii 1953`, `15 7bris 1650`.
 - **Days are checked.** `32 January 1953`, `0 January 1953`, `31 February 2023` and `29 February 2023` are rejected; `29 February` is accepted only in a leap year.
-- **Before Christ.** Add `BC`, `B.C.`, `BCE` or `B.C.E.` after the year (or `a.C.` in Italian): `15 March 44 BC`. There is no year 0.
+- **Before Christ.** Add `BC`, `B.C.`, `BCE` or `B.C.E.` after the year (or `a.C.` in Italian): `15 March 44 BC`. The marker is read in any case and with the usual spacings (`bc`, `B. C.`, `a. C.`). There is no year 0.
 - **Filler words** found in old documents are ignored: *die*, *mensis*, *anno*, *domini*, *nativitatis*, *incarnationis*, *adi*, *the*, *of*, *de*, *del*, *di*, and the ordinal marks of the day (`1st`, `2nd`, `1°`). So `die 5 mensis martii anno Domini 1450` is read as 5 March 1450.
 - **Indiction.** A phrase such as `indictione tertia decima` or `indictione XIV` is checked against the year and then ignored. If it does not match the year, the date is rejected.
-- **Dual dating** (the English habit before 1752 of writing two years for January to March): `12 Feb 1704/5` is 12 February 1705, and `6 January 1705/6` is read in the same way. It applies only to January, February and March.
-- **Seasons** can replace the month, when there is no day: `spr 2024`, `sum 2024`, `estate 2024`. The date is taken as the equinox or solstice of that year. **This needs the Ephemeris plugin**; without it, the date is accepted but cannot be placed on the timeline. With a day (`15 spring 2024`) a season is rejected.
+- **Dual dating** (the English habit before 1752 of writing two years for January to March): `12 Feb 1704/5` is 12 February 1705, and `6 January 1705/6` is read in the same way. It is valid only from 1 January to 24 March (a month alone is accepted), and the second year must be the first plus one (`1704/5`, `1704/05` and `1704/1705` are right, `1704/7` is rejected); otherwise the date is rejected with a message.
+- **Seasons** can replace the month, when there is no day: `spr 2024`, `sum 2024`, `estate 2024`. The date is taken as the equinox or solstice of that year. **This needs the Ephemeris plugin**; without it, the date is accepted but cannot be placed on the timeline. A day together with a season (`15 spring 2024`, `5 winter 1500`) is rejected, in every calendar.
+- **Numbers written as words.** The day can be an ordinal word (`primo`, `tertio`, `third`). Words that are only a number in some languages are not read as one: `sei`, `un`, and the bare Latin stems `non` and `quart` (they need an ending, as in `nono`, `quarto`).
 - **Weekday names** are not read.
 
 ## When a word can be read in several ways
@@ -64,7 +65,7 @@ Some words are a month in one language and a season, or another month, in anothe
 - **Use Selected** replaces the text in the field with the chosen reading, which ends with the language in parentheses, for example `est 1850 (Cornish)`.
 - **Edit Date** goes back to the field without saving.
 
-You can avoid the question by writing the language yourself at the end of the date, in parentheses: `1 pay 2006 (asturiano)`. The language can be given by its name in any language or by its code (`Asturian`, `asturiano`, `ast`). A word that is a different season in different languages (such as `yaz`) is rejected unless you give the language. The language in parentheses is understood by the Gregorian-family parsers; for the other calendars, check the result in the display text after saving.
+You can avoid the question by writing the language yourself at the end of the date, in parentheses: `1 pay 2006 (asturiano)`. The language can be given by its name in any language or by its code (`Asturian`, `asturiano`, `ast`). A word that is a different season in different languages (such as `yaz`) is rejected unless you give the language. When a month word belongs to several languages and none of the rules above settles it, the choice is always the same for the same text (it does not depend on the order of the languages inside the application). In `1850 (ca)` the `(ca)` after a bare year is not read as a language (Catalan): it is *circa*, and the date is not rejected for it. The language in parentheses is understood by the Gregorian-family parsers; for the other calendars, check the result in the display text after saving.
 
 ## Calendars
 
@@ -76,8 +77,9 @@ The **Calendar** box lists the calendars the application knows (it is editable, 
   - *Pisan*: the year begins on 25 March, before 1 January. `26 marzo 1601` is 26 March 1600.
   - *Nativity*: the year begins on 25 December. `25 dicembre 1500` is 25 December 1499.
   - *Byzantine style*: the year begins on 1 September.
-  - *Venetan* (*more veneto*): the year begins on 1 March, and the Venetian month names are understood (`15 febraro 1499`, with an optional `mv`).
+  - *Venetan* (*more veneto*): the year begins on 1 March, and the Venetan month names are understood (`15 febraro 1499`, with an optional `mv`). It reads the same forms as the other styles: `BC`, `AD`, ordinal days (`5th`, `1°`, `primo`), a language in parentheses at the end, and a dual year (valid only in January and February).
   - *Easter style*: the year begins at Easter. A day that occurs twice in the year needs `avant Pâques` or `après Pâques` (also: *before/after Easter*, *prima/dopo Pasqua*, *ante/post Pascha*, *vor/nach Ostern*). `5 avril 1402 après Pâques` is 5 April 1402.
+  - *Easter style* accepts a dual year but rejects the seasons (`spring 1402` is an error: the year would start in the middle of them).
   - A dual year (`1499/1500`) is already counted from 1 January and is not shifted.
 - **Swedish**: the Swedish calendar of 1700 to 1712, which accepts `30 February 1712`.
 - **Quaker**: numbered days and months, for example `4th day 11th month 1702/3`, `4 da 11 mo 1702`, `the fourth of the eleventh month 1702`.
@@ -136,7 +138,13 @@ Notes on the table:
 - **Bangladesh** has its own fixed Bengali calendar (the year starts on 14 April, and the year number is the Gregorian one minus 593); the Bengali digits and month names (`১ বৈশাখ ১৪৩১`) are read.
 - **Soviet eternal calendar** was in force from 1929 to 1940, with the days and leap years of the Gregorian calendar, so the date is the Gregorian one written with Russian month names. The month is written in the nominative (`январь`, not `января`: the second is rejected), a season (`лето 1930`) needs the Ephemeris plugin, and a year outside 1929-1940 is not rejected.
 - **Buddhist** accepts the Thai month names, not the English ones.
-- A day that does not exist in the month of that calendar (`30 Falgun 1431` in the Bangladesh variant, which has 29 days) is rejected with a message that says so.
+- A day that does not exist in the month of that calendar (`30 Falgun 1431` in the Bangladesh variant, which has 29 days) is rejected with a message that says so. The length is the real one of that month and year in the Hebrew, Coptic, Ethiopian, French Republican, Byzantine, Seleucid, Rumi, Soviet, Persian, Indian, Islamic and Buddhist calendars: for example the sixth complementary day of the French Republican calendar exists only in a leap year.
+- **Hebrew**: the bare `Adar` is Adar II in a leap year (the Adar of Purim, birthdays and yahrzeits) and the only Adar in a common year; `Adar II` in a common year is rejected, and `Ve'adar` is accepted for Adar II.
+- **Islamic**: the Umm al-Qura calendar of Saudi Arabia. From 1300 to 1600 AH (1882 to 2174) the month starts are those of the official table, so they are exact; before 1300 AH and after 1600 AH they are computed astronomically and can be one day off.
+- **French Republican**: the complementary days can be written by name (the days of the Virtue to the Rewards are days 1 to 5, the day of the Revolution is day 6 and exists only in sextile years); the collective name `Franciade` does not identify a day and is rejected.
+- **Soviet eternal calendar**: the revolutionary holidays can be written by name and are mapped to their fixed date: `Lenin Day` (22 January), the Labor Days (1 and 2 May), the Industry Days (7 and 8 November) and the leap day. A name that does not point to one day (the collective name of the holidays) is rejected.
+- **Chinese**: a sexagenary year alone (`癸卯年`) is rejected: write it with an era (`康熙三十五年`) or with the numeric year (`2023年 癸卯年`). The stem and the branch must agree in parity. Days such as `初十` and one-character days are read. A season followed by a month or a day is rejected.
+- **Indian national (Saka)**: only the standard month names are read; the regional ones (`Chithirai`, `Vaigasi`, `Choitro`, `Boishak`, `Shrabon`) belong to the Tamil, Bengali and other regional calendars, which you choose from the Calendar box. The Ritu seasons start at 60-degree steps of the sun.
 
 For the calendars other than the Gregorian family, the examples above and in the table are the forms known to work. If you are not sure how to write a date, the [Historical Date Assistant](assistant.md#the-historical-date-assistant) converts between calendars and shows what it understood.
 

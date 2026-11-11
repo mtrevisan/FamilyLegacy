@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.updater;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -84,6 +85,9 @@ public final class Version implements Comparable<Version>{
 			while(end < trimmed.length() && !Character.isWhitespace(trimmed.charAt(end)))
 				end ++;
 			qualifier = trimmed.substring(index + 1, end).toLowerCase(Locale.ROOT);
+			//(these say that it is the final version)
+			if(qualifier.equals("final") || qualifier.equals("release") || qualifier.equals("ga"))
+				qualifier = "";
 		}
 		return Optional.of(new Version(List.copyOf(numbers), qualifier));
 	}
@@ -108,7 +112,52 @@ public final class Version implements Comparable<Version>{
 			return 1;
 		if(other.qualifier.isEmpty())
 			return -1;
-		return qualifier.compareTo(other.qualifier);
+		return compareQualifiers(qualifier, other.qualifier);
+	}
+
+	/** Compares token by token ({@code rc10} is {@code rc, 10}): numbers numerically, and before words, words alphabetically. */
+	private static int compareQualifiers(final String a, final String b){
+		final List<String> left = tokens(a);
+		final List<String> right = tokens(b);
+		final int size = Math.min(left.size(), right.size());
+		for(int i = 0; i < size; i ++){
+			final String x = left.get(i);
+			final String y = right.get(i);
+			final boolean numericX = Character.isDigit(x.charAt(0));
+			final boolean numericY = Character.isDigit(y.charAt(0));
+			final int result;
+			if(numericX && numericY)
+				result = new BigInteger(x).compareTo(new BigInteger(y));
+			else if(numericX != numericY)
+				result = (numericX? -1: 1);
+			else
+				result = x.compareTo(y);
+			if(result != 0)
+				return Integer.signum(result);
+		}
+		return Integer.compare(left.size(), right.size());
+	}
+
+	private static List<String> tokens(final String qualifier){
+		final List<String> result = new ArrayList<>();
+		int start = 0;
+		for(int i = 1; i <= qualifier.length(); i ++)
+			if(i == qualifier.length() || isSeparator(qualifier.charAt(i)) || isSeparator(qualifier.charAt(i - 1))
+					|| Character.isDigit(qualifier.charAt(i)) != Character.isDigit(qualifier.charAt(i - 1))){
+				if(!isSeparator(qualifier.charAt(start)))
+					result.add(qualifier.substring(start, i));
+				start = i;
+			}
+		return result;
+	}
+
+	/** Numbers equal as values have the same form ({@code 01} and {@code 1}). */
+	private static String canonical(final String token){
+		return (Character.isDigit(token.charAt(0))? new BigInteger(token).toString(): token);
+	}
+
+	private static boolean isSeparator(final char c){
+		return (c == '.' || c == '-' || c == '_');
 	}
 
 	@Override
@@ -121,7 +170,7 @@ public final class Version implements Comparable<Version>{
 		int end = numbers.size();
 		while(end > 1 && numbers.get(end - 1) == 0)
 			end --;
-		return numbers.subList(0, end).hashCode() * 31 + qualifier.hashCode();
+		return numbers.subList(0, end).hashCode() * 31 + tokens(qualifier).stream().map(Version::canonical).toList().hashCode();
 	}
 
 	@Override

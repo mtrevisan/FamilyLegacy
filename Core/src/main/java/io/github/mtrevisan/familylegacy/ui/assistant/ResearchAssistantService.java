@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
@@ -49,6 +50,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 
 /**
@@ -358,6 +360,19 @@ public final class ResearchAssistantService{
 		});
 	}
 
+	/**
+	 * @param owner the window the suggestions of an editor open their dialogs from
+	 * @param model the model the editor shows
+	 * @return the context of an editor, to compute findings on a copy of the model and to act on the model of the file, or {@code null}
+	 * 	if the assistant is not installed (nothing is computed on a model that the user may be editing)
+	 */
+	public synchronized AssistantContext contextFor(final Window owner, final FLEFModel model){
+		if(snapshotSupplier == null || model == null)
+			return null;
+
+		return new AssistantContext(owner, null, model, scopeSupplier.get(), snapshotSupplier, null);
+	}
+
 	/** Opens the palette on what the user is doing now. */
 	public void open(){
 		final KeyboardFocusManager focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
@@ -365,10 +380,13 @@ public final class ResearchAssistantService{
 		final Window window = (focusManager.getActiveWindow() != null
 			? focusManager.getActiveWindow()
 			: (focusOwner != null? SwingUtilities.getWindowAncestor(focusOwner): null));
-		//only a window of the main window has a selection: from an editor the selection is not what the user is working on
+		//only a window of the main window has a selection: from an editor the selection is not what the user is working on...
 		final boolean inEditor = (window instanceof java.awt.Dialog);
-		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier,
-			(inEditor? null: selectionSupplier.get())));
+		//...but the record the editor shows is what the user is working on: the findings are about it
+		final String selected = (window instanceof RecordDialog editor && editor.getRecord() != null
+			? editor.getRecord().getId()
+			: (inEditor? null: selectionSupplier.get()));
+		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier, selected));
 	}
 
 	public void open(final AssistantContext context){
@@ -403,7 +421,13 @@ public final class ResearchAssistantService{
 	 * @param before  the findings the user was looking at
 	 */
 	public Recalculation recalculate(final AssistantContext context, final List<Diagnostic> before){
-		final List<Diagnostic> after = diagnose(context);
+		return recalculate(context, before, findings -> findings);
+	}
+
+	/** As {@link #recalculate(AssistantContext, List)}, listing only the findings that {@code listed} keeps (the ones the user sees). */
+	private Recalculation recalculate(final AssistantContext context, final List<Diagnostic> before,
+			final UnaryOperator<List<Diagnostic>> listed){
+		final List<Diagnostic> after = listed.apply(diagnose(context));
 		final Set<String> previous = identities(before);
 		final Set<String> current = identities(after);
 		final int resolved = (int)previous.stream().filter(id -> !current.contains(id)).count();
@@ -429,7 +453,7 @@ public final class ResearchAssistantService{
 		//the copy of the model is taken now, on the event dispatch thread and after the edit, and read away from it
 		final AssistantContext reading = context.forReading();
 		CompletableFuture
-			.supplyAsync(() -> recalculate(reading, before))
+			.supplyAsync(() -> recalculate(reading, before, FindingLevels::visible))
 			.thenAccept(recalculation -> {
 				if(recalculation.isChanged())
 					SwingUtilities.invokeLater(() -> new ResearchAssistantPalette(this, context, recalculation, state).setVisible(true));

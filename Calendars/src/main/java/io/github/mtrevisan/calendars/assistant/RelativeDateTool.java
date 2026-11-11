@@ -26,7 +26,6 @@ package io.github.mtrevisan.calendars.assistant;
 
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +36,15 @@ public final class RelativeDateTool{
 
 	/** The unit of the distance. */
 	public enum Unit{
-		DAYS(1, "day"),
-		WEEKS(7, "week");
+		DAYS(1, "date_assistant.distance.days"),
+		WEEKS(7, "date_assistant.distance.weeks");
 
 		private final int days;
-		private final String label;
+		private final String distanceKey;
 
-		Unit(final int days, final String label){
+		Unit(final int days, final String distanceKey){
 			this.days = days;
-			this.label = label;
+			this.distanceKey = distanceKey;
 		}
 	}
 
@@ -68,7 +67,8 @@ public final class RelativeDateTool{
 			final boolean after){
 		final CalendarType type = CalendarType.fromCode(calendarCode);
 		final long base = type.parseToJdn(baseDate);
-		return offsetFromRange(base, base, "\"" + baseDate + "\" (" + type.getCode() + ")", amount, unit, after);
+		return offsetFromRange(base, base, Message.of("date_assistant.label.date_in_calendar", baseDate, Message.calendar(type.getCode())),
+			amount, unit, after);
 	}
 
 	/**
@@ -83,32 +83,39 @@ public final class RelativeDateTool{
 	 * @param after     {@code true} for a date after the base one, {@code false} for before
 	 * @return for a single day, the candidates (Julian and Gregorian); for a range, the range of the result
 	 */
-	public static List<DateSuggestion> offsetFromRange(final long minJdn, final long maxJdn, final String baseLabel,
+	public static List<DateSuggestion> offsetFromRange(final long minJdn, final long maxJdn, final Message baseLabel,
 			final int amount, final Unit unit, final boolean after){
+		if(amount < 0)
+			throw new AssistantInputException("date_assistant.error.negative_distance", amount);
+
 		final long days = (long)amount * unit.days;
 		final long shift = (after? days: -days);
 
-		final String distance = amount + StringUtils.SPACE + unit.label + (amount == 1? StringUtils.EMPTY: "s");
-		final String meaning = distance + (after? " after ": " before ") + baseLabel;
-		final List<String> assumptions = new ArrayList<>();
-		assumptions.add("Days are counted exclusively of the base day, so that 1 day after is the following day");
-		assumptions.add("Ancient and medieval sources often count inclusively (the base day is the first): adjust by one day if so");
-		final List<String> steps = new ArrayList<>();
+		final Message distance = Message.of(unit.distanceKey, amount);
+		//the steps state the distance in days too, unless it is already in days
+		final Message stepDistance = (unit.days == 1? distance: Message.of("date_assistant.distance.with_days", distance, days));
+		final Message meaning = Message.of(after? "date_assistant.meaning.relative_after": "date_assistant.meaning.relative_before", distance,
+			baseLabel);
+		final List<Message> assumptions = new ArrayList<>();
+		assumptions.add(Message.of("date_assistant.assumption.exclusive_count"));
+		assumptions.add(Message.of("date_assistant.assumption.inclusive_count"));
+		final List<Message> steps = new ArrayList<>();
 		if(minJdn == maxJdn){
-			steps.add("Base date " + baseLabel + ": Julian Day Number " + minJdn);
-			steps.add((after? "Added ": "Subtracted ") + distance + " (" + days + " days): Julian Day Number " + (minJdn + shift));
+			steps.add(Message.of("date_assistant.step.base_date", baseLabel, minJdn));
+			steps.add(Message.of(after? "date_assistant.step.added": "date_assistant.step.subtracted", stepDistance, minJdn + shift));
 			return CalendarConversionTool.fromJdn(minJdn + shift, meaning, assumptions, steps);
 		}
 
-		assumptions.add("The base date is not a single day: the result is a range with the same uncertainty");
-		steps.add("Base date " + baseLabel + ": from Julian Day Number " + minJdn + " to " + maxJdn);
-		steps.add((after? "Added ": "Subtracted ") + distance + " (" + days + " days) to both: from " + (minJdn + shift) + " to "
-			+ (maxJdn + shift));
+		assumptions.add(Message.of("date_assistant.assumption.range_base"));
+		steps.add(Message.of("date_assistant.step.base_range", baseLabel, minJdn, maxJdn));
+		steps.add(Message.of(after? "date_assistant.step.added_range": "date_assistant.step.subtracted_range", stepDistance,
+			minJdn + shift, maxJdn + shift));
 		final String calendar = CivilDates.calendarInForce(minJdn + shift, CalendarReform.ROME);
 		final String notBefore = CivilDates.format(minJdn + shift, calendar);
 		final String notAfter = CivilDates.format(maxJdn + shift, calendar);
-		steps.add("Written in the " + calendar + " calendar: from " + notBefore + " to " + notAfter);
-		return List.of(new DateSuggestion("Range of the result", meaning, assumptions, calendar, steps, null, notBefore, notAfter));
+		steps.add(Message.of("date_assistant.step.written_range", Message.calendar(calendar), notBefore, notAfter));
+		return List.of(new DateSuggestion(Message.of("date_assistant.title.range"), meaning, assumptions, calendar, steps, null, notBefore,
+			notAfter));
 	}
 
 }

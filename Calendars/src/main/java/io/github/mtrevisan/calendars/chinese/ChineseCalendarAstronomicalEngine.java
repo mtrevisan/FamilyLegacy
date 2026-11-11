@@ -76,6 +76,15 @@ public final class ChineseCalendarAstronomicalEngine{
 	}
 
 	/**
+	 * Converts an instant into the Julian Day Number of the Chinese civil day containing it (Beijing time).
+	 *
+	 * @param jdUT	the Julian Date (UT) of the instant
+	 */
+	public static long civilDayOf(final double jdUT){
+		return CHINA.civilDayOf(jdUT);
+	}
+
+	/**
 	 * Determines the historical China UTC time offset for a given Julian Date.
 	 * <ul>
 	 *   <li><b>1929 to present:</b> Standard UTC+8 (120° E) time zone.</li>

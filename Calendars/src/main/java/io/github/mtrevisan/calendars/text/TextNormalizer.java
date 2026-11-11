@@ -55,14 +55,16 @@ public final class TextNormalizer{
 			return StringUtils.EMPTY;
 
 		String normalized = Normalizer.normalize(asciiDigits(text).toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
-		normalized = COMBINING_MARKS.matcher(normalized).replaceAll(StringUtils.EMPTY);
+		normalized = COMBINING_MARKS.matcher(normalized)
+			.replaceAll(StringUtils.EMPTY);
 		// the ligatures of the Latin texts
 		normalized = normalized
 			.replace("æ", "ae")
 			.replace("œ", "oe")
 			.replace("ſ", "s")
 			.replace("ß", "ss");
-		normalized = PUNCTUATION.matcher(normalized).replaceAll(StringUtils.SPACE);
+		normalized = PUNCTUATION.matcher(normalized)
+			.replaceAll(StringUtils.SPACE);
 		return StringUtils.normalizeSpace(normalized);
 	}
 

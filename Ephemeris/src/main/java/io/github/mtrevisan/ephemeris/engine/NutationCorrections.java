@@ -30,14 +30,14 @@ import io.github.mtrevisan.ephemeris.readers.NutationReader;
 import io.github.mtrevisan.ephemeris.readers.NutationReader.NutationTerm;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 
 public final class NutationCorrections{
 
-	/** Number of fundamental arguments: ̧{@code l, l', F, D, Ω}, 8 planetary mean longitudes, general precession. */
+	/** Number of fundamental arguments: {@code l, l', F, D, Ω}, 8 planetary mean longitudes, general precession. */
 	private static final int FUNDAMENTAL_ARGUMENTS = 14;
 
 	/*
@@ -54,8 +54,7 @@ public final class NutationCorrections{
 			epsTerms = NutationReader.readIau2000a("tab5.3b.txt");
 		}
 		catch(final IOException e){
-			psiTerms = Collections.emptyList();
-			epsTerms = Collections.emptyList();
+			throw new UncheckedIOException("Cannot read the IAU 2000A nutation series", e);
 		}
 		NUTATION_PSI_SERIES = new NutationSeries[]{NutationSeries.of(psiTerms, 0), NutationSeries.of(psiTerms, 1)};
 		NUTATION_EPS_SERIES = new NutationSeries[]{NutationSeries.of(epsTerms, 0), NutationSeries.of(epsTerms, 1)};
@@ -78,7 +77,7 @@ public final class NutationCorrections{
 		335779.526232, 1739527262.8478, -12.7512, -0.001037, 0.00000417
 	};
 	// `D`: Mean elongation of the Moon from the Sun
-	public static final double[] MOON_ELONGATION_SUN = {
+	private static final double[] MOON_ELONGATION_SUN = {
 		1072260.703692, 1602961601.2090, -6.3706, 0.006593, -0.00003169
 	};
 	// `Ω`: Mean longitude of the ascending node of the Moon
@@ -125,7 +124,7 @@ public final class NutationCorrections{
 
 
 	/**
-	 * Calculate IAU 2000B Nutation corrections.
+	 * Calculate IAU 2000A Nutation corrections.
 	 *
 	 * @param jc Julian Century of Terrestrial Time from J2000.0 (t = (JD - 2451545.) / 36525).
 	 */

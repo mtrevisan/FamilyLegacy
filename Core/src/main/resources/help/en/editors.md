@@ -11,9 +11,9 @@ Relationships and dates have their own pages: [Relationships](relationships.md) 
 
 ## The window
 
-- The title says *New* or *Edit* and the type of the record. **Save** is at the bottom; there is no Cancel button: `Esc` (or the close button of the window) closes the editor and discards the changes.
+- The title says *New* or *Edit* and the type of the record. **OK** is at the bottom and confirms the record; there is no Cancel button: `Esc` (or the close button of the window) closes the editor and discards the changes. Once confirmed, the change can be reverted with Undo (`Ctrl+Z`).
 - Every field label ends with a colon. A label with an **asterisk** (`Type*:`) marks a required field, and a list title with an asterisk (`Personal Names*`) marks a list that needs at least one entry.
-- On Save, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on Save: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
+- On OK, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on OK: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
 - A combo box that is **editable** accepts a value of your own as well as the listed ones. A combo that is not editable accepts only the listed values. A combo with a blank first item allows "no value". A value without a translation is shown with a capital letter and spaces instead of underscores.
 - Hovering a value or a field often shows a tooltip that explains it. Hovering the first tab shows a short *when to use this record* hint.
 
@@ -64,7 +64,7 @@ What the levels and the policies do is explained in [Privacy](privacy.md); the v
 
 ## Audit
 
-The **Audit** tab has the **Creation Comment** (with the creation date) and the list of **Updates**, each with a date and a comment. When you save a change to a record that has an audit, the application adds an update by itself, with the date and a summary of what changed.
+The **Audit** tab has the **Creation Comment** (with the creation date) and the list of **Updates**, each with a date and a comment. When you confirm a change to a record that has an audit, the application adds an update by itself, with the date and a summary of what changed.
 
 ## Validity range
 

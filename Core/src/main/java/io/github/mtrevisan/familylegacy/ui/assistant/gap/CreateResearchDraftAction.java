@@ -54,6 +54,11 @@ public final class CreateResearchDraftAction implements DiagnosticAction{
 	}
 
 
+	/** @return what the action starts: a question or a task. */
+	public GapDraft draft(){
+		return draft;
+	}
+
 	@Override
 	public String title(){
 		return I18N.t(draft.kind() == GapDraft.Kind.QUESTION? "gap.draft.question.action": "gap.draft.task.action");

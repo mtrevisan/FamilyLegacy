@@ -18,7 +18,7 @@ Open it with **Event > New Event...**, or from **Event > Manage Events...**, or 
 
 **Cause** (for an event that has one, such as a death): **Reason** (text), the **Sources with Citations** that support the cause, and **Evidence**, a rating of low, medium or high for the cause. **Participations** lists the *Event Participations*; **Research** lists the conclusions and questions.
 
-On Save, the type and the description are required.
+On OK, the type and the description are required.
 
 **Event types**
 
@@ -43,7 +43,7 @@ It says that an individual, a group or a place took part in an event, and in whi
 
 **Roles.** For an individual or a group: principal, sponsor, power-of-attorney, prisoner, witness, officiant, informant, executor, grantor, grantee, landlord, tenant, soldier, commander, victim, survivor, accused, judge. For a place: *property*. Until you choose the participant, the whole list is shown.
 
-On Save, the participant and the event are required.
+On OK, the participant and the event are required.
 
 ## Place
 

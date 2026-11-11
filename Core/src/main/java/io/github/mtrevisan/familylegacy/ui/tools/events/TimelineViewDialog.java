@@ -167,11 +167,16 @@ public final class TimelineViewDialog extends JDialog{
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);
 		final TableColumnModel columnModel = table.getColumnModel();
-		columnModel.getColumn(0).setPreferredWidth(140);
-		columnModel.getColumn(1).setPreferredWidth(110);
-		columnModel.getColumn(2).setPreferredWidth(260);
-		columnModel.getColumn(3).setPreferredWidth(260);
-		columnModel.getColumn(4).setPreferredWidth(280);
+		columnModel.getColumn(0)
+			.setPreferredWidth(140);
+		columnModel.getColumn(1)
+			.setPreferredWidth(110);
+		columnModel.getColumn(2)
+			.setPreferredWidth(260);
+		columnModel.getColumn(3)
+			.setPreferredWidth(260);
+		columnModel.getColumn(4)
+			.setPreferredWidth(280);
 
 		table.addMouseListener(new MouseAdapter(){
 			@Override
@@ -273,7 +278,8 @@ public final class TimelineViewDialog extends JDialog{
 		field.setForeground(UIManager.getColor("TextField.foreground"));
 		field.setToolTipText(I18N.t("text.timeline.placeholder"));
 
-		final String text = field.getText().trim();
+		final String text = field.getText()
+			.trim();
 		if(text.isEmpty())
 			return null;
 
@@ -305,8 +311,9 @@ public final class TimelineViewDialog extends JDialog{
 
 	private FLEFRecord selectedIndividual(){
 		final String id = context.selectedEntityId();
-		final FLEFRecord record = context.model().getRecordById(id);
-		return (record != null && IndividualHandler.isOfType(record)? record: null);
+		final FLEFRecord record = context.model()
+			.getRecordById(id);
+		return (IndividualHandler.isOfType(record)? record: null);
 	}
 
 	private void selectParticipant(final FLEFRecord individual){

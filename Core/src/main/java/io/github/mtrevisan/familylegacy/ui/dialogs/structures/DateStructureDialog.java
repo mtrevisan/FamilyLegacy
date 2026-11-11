@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Window;
+import java.util.function.Supplier;
 
 
 public class DateStructureDialog extends JDialog{
@@ -53,7 +54,16 @@ public class DateStructureDialog extends JDialog{
 	 * @return	A new dialog instance.
 	 */
 	public static DateStructureDialog createNew(final Window parent, final FLEFModel model, final String title){
-		return new DateStructureDialog(parent, model, title, null);
+		return createNew(parent, model, title, null);
+	}
+
+	/**
+	 * @param placeSupplier	gives the id of the place of the event the date belongs to (can be {@code null})
+	 * @see #createNew(Window, FLEFModel, String)
+	 */
+	public static DateStructureDialog createNew(final Window parent, final FLEFModel model, final String title,
+			final Supplier<String> placeSupplier){
+		return new DateStructureDialog(parent, model, title, null, placeSupplier);
 	}
 
 	/**
@@ -66,14 +76,25 @@ public class DateStructureDialog extends JDialog{
 	 */
 	public static DateStructureDialog createEdit(final Window parent, final FLEFModel model, final String title,
 			final FLEFRecord record){
-		return new DateStructureDialog(parent, model, title, record);
+		return createEdit(parent, model, title, record, null);
+	}
+
+	/**
+	 * @param placeSupplier	gives the id of the place of the event the date belongs to (can be {@code null})
+	 * @see #createEdit(Window, FLEFModel, String, FLEFRecord)
+	 */
+	public static DateStructureDialog createEdit(final Window parent, final FLEFModel model, final String title,
+			final FLEFRecord record, final Supplier<String> placeSupplier){
+		return new DateStructureDialog(parent, model, title, record, placeSupplier);
 	}
 
 
-	private DateStructureDialog(final Window parent, final FLEFModel model, final String title, final FLEFRecord record){
+	private DateStructureDialog(final Window parent, final FLEFModel model, final String title, final FLEFRecord record,
+			final Supplier<String> placeSupplier){
 		super(parent, title, ModalityType.APPLICATION_MODAL);
 
 		datePanel = new DateStructurePanel(this, model);
+		datePanel.setPlaceSupplier(placeSupplier);
 		datePanel.load(record);
 
 

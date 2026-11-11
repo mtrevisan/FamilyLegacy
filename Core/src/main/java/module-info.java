@@ -53,6 +53,11 @@ module io.github.mtrevisan.familylegacy.core {
 	provides io.github.mtrevisan.familylegacy.ui.shell.ResearchAssistantPort
 		with io.github.mtrevisan.familylegacy.ui.assistant.app.FrameAssistantPort;
 
+	// The editors ask for the suggestions of advanced concepts, they do not depend on the assistant that knows them
+	uses io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
+	provides io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions
+		with io.github.mtrevisan.familylegacy.ui.assistant.app.AssistantContextualSuggestions;
+
 	// The handlers create the editors through a registry that the catalog of the editors fills
 	uses io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogProvider;
 	provides io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogProvider

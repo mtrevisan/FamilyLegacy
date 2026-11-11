@@ -37,10 +37,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
@@ -136,12 +138,13 @@ public final class EpubReportRenderer implements ReportRenderer{
 		if(chapter.titlePage())
 			sb.append("<h1>").append(ReportMarkup.escape(chapter.title())).append("</h1>\n");
 		//a link to a record that has no heading in the book is only its text
+		final Set<String> writtenAnchors = new HashSet<>();
 		chapter.sections().forEach(section -> ReportXhtml.writeSection(sb, section,
 			id -> (anchors.containsKey(id)? chapterFile(anchors.get(id)) + "#" + id: null),
 			file -> {
 				final Image image = register(file, images);
 				return (image != null? image.href(): null);
-			}));
+			}, writtenAnchors));
 		return xhtml(doc, chapter.title(), sb.toString());
 	}
 
@@ -158,11 +161,13 @@ public final class EpubReportRenderer implements ReportRenderer{
 		if(file == null)
 			return null;
 
-		final Path key = file.toAbsolutePath().normalize();
+		final Path key = file.toAbsolutePath()
+			.normalize();
 		if(images.containsKey(key))
 			return images.get(key);
 
-		final String name = key.getFileName().toString();
+		final String name = key.getFileName()
+			.toString();
 		final int dot = name.lastIndexOf('.');
 		final String mediaType = (dot >= 0? IMAGE_TYPES.get(name.substring(dot + 1).toLowerCase(Locale.ROOT)): null);
 		if(mediaType == null)
@@ -188,7 +193,8 @@ public final class EpubReportRenderer implements ReportRenderer{
 		final StringBuilder sb = new StringBuilder("<nav epub:type=\"toc\" id=\"toc\"><h1>")
 			.append(ReportMarkup.escape(doc.contentsTitle())).append("</h1><ol>");
 		for(int i = 0; i < chapters.size(); i ++){
-			final String title = chapters.get(i).title();
+			final String title = chapters.get(i)
+				.title();
 			sb.append("<li><a href=\"").append(chapterFile(i)).append("\">")
 				.append(ReportMarkup.escape(title.isBlank()? "-": title)).append("</a></li>");
 		}

@@ -25,11 +25,11 @@
 package io.github.mtrevisan.calendars.parsi;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
-import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 import java.time.Year;
 
@@ -45,6 +45,9 @@ public class ParsiCalendarStrategy implements CalendarConverterPlugin{
 	private static final int FASLI_NEW_YEAR_DAY = 21;
 	private static final int GATHA = 13;
 	private static final int AVARDAD_SAL_GAH = 6;
+	/** The Julian Day Number of 1 January 1970. */
+	private static final long GREGORIAN_EPOCH_1970_JDN = 2440588L;
+	private static final double DAYS_PER_YEAR = 365.2425;
 
 
 	@Override
@@ -53,38 +56,40 @@ public class ParsiCalendarStrategy implements CalendarConverterPlugin{
 		final ParsiDateInput input = ParsiCalendarParser.parse(rawDate);
 		final int year = input.year();
 		// a missing month stands for the first month of the year
-		final int month = (input.month() != 0? input.month(): 1);
+		final int month = YearMonthDay.monthOrFirst(input.month());
 		// a missing day stands for the first day of the month
-		final int day = (input.day() > 0? input.day(): 1);
-		final long startOfYearJdn = startOfYearJdn(year, input.variant());
+		final int day = YearMonthDay.dayOrFirst(input.day());
+		final ParsiVariant variant = input.variant();
+		final long startOfYearJdn = startOfYearJdn(year, variant);
 		if(month == GATHA && day == AVARDAD_SAL_GAH && !Year.isLeap(year + FASLI_ERA_OFFSET + 1L))
 			throw new IllegalArgumentException("Avardad-sal-Gah (the sixth Gatha day) is only in the Fasli years containing"
 				+ " a Gregorian 29 February: " + rawDate);
 
 		if(month < 0){
-			// Step A: Determine the linear window of this Parsi year (365 days, or 366 for a Fasli leap year)
-			// Establish the middle of this specific shifting year block as an initial guess anchor
-			final double exactSeasonJdUT = exactSeasonJdUT(startOfYearJdn, month);
-
-			return (long)Math.floor(exactSeasonJdUT + 0.5);
+			return seasonJdn(year, variant, month);
 		}
 		else
 			// Standard arithmetic execution mapping path for typical regular Parsi months
 			return startOfYearJdn + 30L * (month - 1L) + (day - 1L);
 	}
 
-	private static double exactSeasonJdUT(final long startOfYearJdn, final int month){
-		final double approximateMiddleJdUT = startOfYearJdn + 182.5 - 0.5;
+	/**
+	 * The year (365 days, or 366 for a Fasli leap year) contains each solstice and equinox once: the Gregorian month of the
+	 * season is the anchor of the search, then the event that falls inside the year is chosen (the Shahenshahi and Kadmi
+	 * years drift through the seasons, so their start does not tell the Gregorian year).
+	 */
+	private static long seasonJdn(final int year, final ParsiVariant variant, final int month){
+		final long start = startOfYearJdn(year, variant);
+		final long end = startOfYearJdn(year + 1, variant);
 
-		// Step B: Map negative flag parameters onto true solar ecliptic target boundaries
-		final double targetLongitude = CalendarSeason.getGeneralTargetLongitude(month);
-
-		// Step C: Execute high-fidelity calculation to track the exact instant the Sun cross point occurs
-		final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
-		if(!engine.isAvailable())
-			throw new UnsupportedOperationException("Parsi calendar requires the Ephemeris plugin.");
-
-		return engine.findSolarLongitudeEvent(approximateMiddleJdUT, targetLongitude);
+		final int seasonMonth = CalendarSeason.gregorianSeasonMonth(month);
+		final int approximateGregorianYear = (int)Math.floor((start - GREGORIAN_EPOCH_1970_JDN) / DAYS_PER_YEAR) + 1970;
+		for(int gregorianYear = approximateGregorianYear - 1; gregorianYear <= approximateGregorianYear + 1; gregorianYear ++){
+			final long eventJdn = SeasonSolver.jdnNear(GregorianCalendarStrategy.toJdn(gregorianYear, seasonMonth, 1), month, "Parsi");
+			if(eventJdn >= start && eventJdn < end)
+				return eventJdn;
+		}
+		throw new IllegalArgumentException("The season does not fall in the Parsi year " + year);
 	}
 
 	/**

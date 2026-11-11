@@ -25,13 +25,11 @@
 package io.github.mtrevisan.calendars.byzantine;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -171,46 +169,25 @@ public final class ByzantineCalendarParser{
 		MONTHS.put("leto", CalendarSeason.SEASON_SUMMER);
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");
+	private static final NamedMonthDateParser PARSER = NamedMonthDateParser.builder("Byzantine")
+		.months(MONTHS)
+		.monthLengths(ByzantineCalendarStrategy::monthLength)
+		.build();
 
 
 	private ByzantineCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Byzantine text expression into a validated structural DTO.
+	 * Parses a raw Byzantine text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
-	 * @param rawDate the date string (e.g., "1 Σεπτέμβριος 7000" or "15 September 6500" or "Theros 6508")
-	 * @return a configured ByzantineDateInput instance
-	 * @throws IllegalArgumentException if string validations or regex checks fail
+	 * @param rawDate the string representing the calendar date (e.g., "15 September 6500")
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static ByzantineDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new ByzantineDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Byzantine date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Byzantine month or seasonal context: " + monthName);
-
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		// Basic sanity boundary check (Julian structure mapping)
-		if(dayGroup != null && month > 0 && (day < 1 || day > 31))
-			throw new IllegalArgumentException("Invalid day count for the targeted Julian boundary.");
-
-		return new ByzantineDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

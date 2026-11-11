@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -330,6 +331,8 @@ final class ResearchAssistantPalette extends JDialog{
 			selectedOnlyCheckBox.setText(I18N.tf("assistant.selected_only", RecordDisplay.describe(context.selectedRecord().orElseThrow(),
 				context.model())));
 			selectedOnlyCheckBox.setFocusable(false);
+			//opened from an editor, only the findings about its record (the user can ask for all of them)
+			selectedOnlyCheckBox.setSelected(context.window() instanceof RecordDialog);
 			selectedOnlyCheckBox.addActionListener(e -> refresh());
 			modes.add(selectedOnlyCheckBox);
 		}
@@ -481,7 +484,7 @@ final class ResearchAssistantPalette extends JDialog{
 		//a copy of the model, taken here on the event dispatch thread: the actions keep the context with the model itself
 		final AssistantContext reading = context.forReading();
 		CompletableFuture
-			.supplyAsync(() -> service.diagnose(reading, this::showProgress))
+			.supplyAsync(() -> FindingLevels.visible(service.diagnose(reading, this::showProgress)))
 			.exceptionally(e -> List.of())
 			.thenAccept(found -> SwingUtilities.invokeLater(() -> {
 				diagnostics = found;

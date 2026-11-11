@@ -145,7 +145,8 @@ public final class MediaReader{
 		if(dot <= separator)
 			return ENUM_KIND_DOCUMENT;
 
-		final String extension = path.substring(dot + 1).toLowerCase(Locale.ROOT);
+		final String extension = path.substring(dot + 1)
+			.toLowerCase(Locale.ROOT);
 		if(IMAGE_EXTENSIONS.contains(extension))
 			return ENUM_KIND_IMAGE;
 		if(AUDIO_EXTENSIONS.contains(extension))

@@ -6,7 +6,7 @@ Family Legacy separates three things that are usually mixed:
 - **hypotheses**: possible interpretations, such as "these two records may be the same person";
 - **conclusions**: what the researcher decides after weighing the evidence.
 
-Because they are separate records, a wrong conclusion can be revised without losing the evidence it was drawn from. The **Research** menu holds the commands.
+Because they are separate records, a wrong conclusion can be revised without losing the evidence it was drawn from. The **Research** menu holds the commands; it is shown from the *Standard* level (and some of its commands only at *Advanced*), see [Interface level](preferences.md#interface-level). The [Research Assistant](assistant.md) reaches all of them at every level.
 
 ## Planning the research
 

@@ -29,7 +29,7 @@ import io.github.mtrevisan.ephemeris.helpers.JulianDate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.function.Function;
+import java.util.function.DoubleUnaryOperator;
 
 
 /**
@@ -41,7 +41,7 @@ import java.util.function.Function;
 class SolarHorizonEventsTest{
 
 	/** UT to Julian centuries of TT, using ΔT. */
-	private static final Function<Double, Double> TT_CENTURIES = jdUT -> JulianDate.centuryJ2000Of(
+	private static final DoubleUnaryOperator TT_CENTURIES = jdUT -> JulianDate.centuryJ2000Of(
 		jdUT + DeltaT.deltaTSecondsFromJd(jdUT) / JulianDate.SECONDS_PER_DAY);
 
 	/** USNO times are rounded to the minute. */

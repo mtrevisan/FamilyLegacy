@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
+import io.github.mtrevisan.calendars.text.DateFormulas;
 import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,9 +51,13 @@ import java.util.regex.Pattern;
  */
 public final class Indiction{
 
+	/** The keywords that introduce the indiction (Latin, Italian, English, and abbreviations). */
+	private static final List<String> KEYWORDS = List.of("indictione", "indictionis", "indictio", "indizione", "indiction",
+		"indict", "ind");
+
 	/** The keyword, followed by the number (one or two words, e.g. "XV", "3", "tertia", "tertia decima"). */
 	private static final Pattern INDICTION_PATTERN = Pattern.compile(
-		"(?iu)[,;]?\\s*\\b(?:indictione|indictionis|indictio|indizione|indiction|indict|ind)\\b\\.?\\s*([\\p{L}\\d]+)(?:\\s+([\\p{L}]+))?");
+		"(?iu)[,;]?\\s*\\b(?:" + DateFormulas.alternation(KEYWORDS) + ")\\b\\.?\\s*([\\p{L}\\d]+)(?:\\s+([\\p{L}]+))?");
 
 	private static final int CYCLE = 15;
 	/** First month of the period that can belong to the following indiction (September). */

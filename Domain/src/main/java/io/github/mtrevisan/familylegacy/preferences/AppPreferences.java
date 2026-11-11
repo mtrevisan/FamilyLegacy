@@ -85,6 +85,13 @@ public final class AppPreferences{
 	public static final String KEY_IDENTITY_HIGH_SCORE = "assistant.identity.high_score";
 	public static final String KEY_IDENTITY_MEDIUM_SCORE = "assistant.identity.medium_score";
 	public static final String KEY_IDENTITY_OTHER_PERCENT = "assistant.identity.other_percent";
+	// the level of the interface: how much of FLEF the menus offer by default (presentation only, never genealogical data)
+	public static final String KEY_UX_LEVEL = "ui.level";
+	// whether the editors suggest advanced concepts when they could help (presentation only)
+	public static final String KEY_SUGGESTIONS = "ui.suggestions";
+	// whether the application looks for a newer release at startup, and when it last asked GitHub (epoch milliseconds)
+	public static final String KEY_UPDATE_CHECK = "update.check";
+	public static final String KEY_UPDATE_LAST = "update.last";
 	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
 	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
 
@@ -168,6 +175,56 @@ public final class AppPreferences{
 	/** Persists the name of the privacy policy. */
 	public void setPrivacyPolicyName(final String name){
 		put(KEY_PRIVACY_POLICY, Objects.requireNonNull(name, "name"));
+	}
+
+	/** Returns the persisted level of the interface, or the default (basic) when unset or unknown. */
+	public UxLevel uxLevel(){
+		try{
+			return UxLevel.valueOf(properties.getProperty(KEY_UX_LEVEL, UxLevel.BASIC.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return UxLevel.BASIC;
+		}
+	}
+
+	/** Returns whether the editors suggest advanced concepts when they could help; on unless the user turned it off. */
+	public boolean suggestionsEnabled(){
+		return !"false".equals(properties.getProperty(KEY_SUGGESTIONS));
+	}
+
+	/** Persists whether the editors suggest advanced concepts (a view preference: it is not stored in the genealogy). */
+	public void setSuggestionsEnabled(final boolean enabled){
+		put(KEY_SUGGESTIONS, Boolean.toString(enabled));
+	}
+
+	/** Returns whether the application looks for a newer release at startup; on unless the user turned it off. */
+	public boolean updateCheckEnabled(){
+		return !"false".equals(properties.getProperty(KEY_UPDATE_CHECK));
+	}
+
+	/** Persists whether the application looks for a newer release at startup. */
+	public void setUpdateCheckEnabled(final boolean enabled){
+		put(KEY_UPDATE_CHECK, Boolean.toString(enabled));
+	}
+
+	/** Returns when GitHub was last asked for a newer release at startup (epoch milliseconds), 0 if never. */
+	public long lastUpdateCheck(){
+		try{
+			return Long.parseLong(properties.getProperty(KEY_UPDATE_LAST, "0").trim());
+		}
+		catch(final NumberFormatException ignored){
+			return 0;
+		}
+	}
+
+	/** Persists when GitHub was last asked for a newer release at startup (epoch milliseconds). */
+	public void setLastUpdateCheck(final long millis){
+		put(KEY_UPDATE_LAST, Long.toString(millis));
+	}
+
+	/** Persists the level of the interface (a view preference: it is not stored in the genealogy). */
+	public void setUxLevel(final UxLevel level){
+		put(KEY_UX_LEVEL, Objects.requireNonNull(level, "level").name());
 	}
 
 	/** Returns the persisted display order of the children, or the default (by birth date) when unset or unknown. */

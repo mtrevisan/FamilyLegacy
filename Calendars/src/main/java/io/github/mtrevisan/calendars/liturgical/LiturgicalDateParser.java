@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars.liturgical;
 
 import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +56,13 @@ import java.util.regex.Pattern;
 final class LiturgicalDateParser{
 
 	private static final Pattern YEAR_WORD = Pattern.compile("\\d{3,4}");
+	/** The tokens of the formula of the year ("anno Domini", "A.D."), and the ordinal of the first (prima) of the grammar. */
+	private static final String YEAR_ANNO = "anno";
+	private static final String YEAR_DOMINI = "domini";
+	private static final String YEAR_AD = "ad";
+	private static final String YEAR_A = "a";
+	private static final String YEAR_D = "d";
+	private static final String FIRST_FEMININE = "prima";
 	/** A relative position, applied to the day of a feast. */
 	record Shift(Kind kind, int weekday, int count, int days){
 
@@ -124,7 +132,7 @@ final class LiturgicalDateParser{
 	/** Articles and prepositions that can precede a relative position (e.g. "il giovedì", "in vigilia", "the morrow"). */
 	private static final Set<String> LEADING_ARTICLES = Set.of("il", "lo", "la", "l", "the", "on", "in", "le", "am", "au",
 		"el", "nel", "nella", "nell", "a", "al", "alla", "all", "die", "der", "den");
-	private static final Set<String> YEAR_WORDS = Set.of("anno", "domini", "ad", "year", "an", "jahr");
+	private static final Set<String> YEAR_WORDS = Set.of(YEAR_ANNO, YEAR_DOMINI, YEAR_AD, "year", "an", "jahr");
 
 
 	private LiturgicalDateParser(){}
@@ -144,6 +152,9 @@ final class LiturgicalDateParser{
 	 * @throws IllegalArgumentException if the expression cannot be parsed
 	 */
 	static LiturgicalDate parse(final String rawDate){
+		if(StringUtils.isBlank(rawDate))
+			throw new IllegalArgumentException("The liturgical date is empty.");
+
 		final List<String> words = new ArrayList<>(Arrays.asList(TextNormalizer.tokenize(rawDate)));
 		final int year = extractYear(words, rawDate);
 
@@ -169,15 +180,15 @@ final class LiturgicalDateParser{
 		final int year = Integer.parseInt(words.remove(yearIndex));
 		// the formula before the year ("anno Domini", "anno", "A.D."), and "A.D." after it ("Domini" alone belongs to
 		// feasts like "Corpus Domini")
-		if(endsWith(words, yearIndex, "anno", "domini") || endsWith(words, yearIndex, "a", "d"))
+		if(endsWith(words, yearIndex, YEAR_ANNO, YEAR_DOMINI) || endsWith(words, yearIndex, YEAR_A, YEAR_D))
 			yearIndex = removeBefore(words, yearIndex, 2);
-		else if(yearIndex > 0 && YEAR_WORDS.contains(words.get(yearIndex - 1)) && !words.get(yearIndex - 1).equals("domini"))
+		else if(yearIndex > 0 && YEAR_WORDS.contains(words.get(yearIndex - 1)) && !words.get(yearIndex - 1).equals(YEAR_DOMINI))
 			yearIndex = removeBefore(words, yearIndex, 1);
-		if(yearIndex + 1 < words.size() && words.get(yearIndex).equals("a") && words.get(yearIndex + 1).equals("d")){
+		if(yearIndex + 1 < words.size() && words.get(yearIndex).equals(YEAR_A) && words.get(yearIndex + 1).equals(YEAR_D)){
 			words.remove(yearIndex);
 			words.remove(yearIndex);
 		}
-		else if(yearIndex < words.size() && words.get(yearIndex).equals("ad"))
+		else if(yearIndex < words.size() && words.get(yearIndex).equals(YEAR_AD))
 			words.remove(yearIndex);
 		return year;
 	}
@@ -223,7 +234,7 @@ final class LiturgicalDateParser{
 					kind = Shift.Kind.WEEKDAY_AFTER;
 					next ++;
 				}
-				else if(BEFORE.contains(word) && (!word.equals("prima") || beforeLink)){
+				else if(BEFORE.contains(word) && (!word.equals(FIRST_FEMININE) || beforeLink)){
 					kind = Shift.Kind.WEEKDAY_BEFORE;
 					next ++;
 				}

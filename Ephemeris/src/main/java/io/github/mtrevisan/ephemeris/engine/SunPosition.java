@@ -31,19 +31,22 @@ import io.github.mtrevisan.ephemeris.helpers.MathHelper;
 import io.github.mtrevisan.ephemeris.readers.ResourceReader;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 
 
 public final class SunPosition{
 
-	private static Map<ResourceReader.VariableIndex, List<ResourceReader.VSOP2013Data>> EMB_DATA;
+	private static final Map<ResourceReader.VariableIndex, List<ResourceReader.VSOP2013Data>> EMB_DATA;
 	static{
 		try{
 			// VSOP2013 Planetary Theory
 			EMB_DATA = ResourceReader.readData("VSOP2013p3.dat");
 		}
-		catch(final IOException ignored){}
+		catch(final IOException e){
+			throw new UncheckedIOException("Cannot read the VSOP2013 data", e);
+		}
 	}
 
 	// Standard Moon-Earth mass ratio factor

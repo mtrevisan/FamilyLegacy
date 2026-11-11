@@ -250,7 +250,8 @@ public final class FileMenuController{
 				.get();
 		}
 		catch(final InterruptedException ex){
-			Thread.currentThread().interrupt();
+			Thread.currentThread()
+				.interrupt();
 
 			return false;
 		}
@@ -392,7 +393,8 @@ public final class FileMenuController{
 					setCurrentFile(file);
 				}
 				catch(final InterruptedException ex){
-					Thread.currentThread().interrupt();
+					Thread.currentThread()
+						.interrupt();
 				}
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
@@ -590,7 +592,8 @@ public final class FileMenuController{
 					success[0] = true;
 				}
 				catch(final InterruptedException ex){
-					Thread.currentThread().interrupt();
+					Thread.currentThread()
+						.interrupt();
 				}
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);

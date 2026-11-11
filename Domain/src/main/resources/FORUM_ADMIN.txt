@@ -54,7 +54,7 @@ L'obiettivo non è soltanto costruire alberi genealogici, ma aiutare a documenta
 - luoghi storici e cambi di giurisdizione nel tempo
 - calendari storici e date complesse
 
-In breve: GEDCOM rappresenta molto bene il risultato della ricerca; FamilyLegacy cerca di rappresentare anche il percorso che ha portato a quel risultato, integrando nel modello genealogico ciò che spesso resta in note, fogli Excel e documenti separati. Non nasce per sostituire gli strumenti esistenti (Gramps incluso, da cui molte idee derivano), ma per rendere esplicito il ragionamento genealogico.
+In breve: GEDCOM rappresenta molto bene il risultato della ricerca; FamilyLegacy cerca di rappresentare anche il percorso che ha portato a quel risultato, integrando nel modello genealogico ciò che spesso resta in note, fogli Excel e documenti separati. Non nasce per sostituire gli strumenti esistenti (Gramps incluso, da cui molte idee derivano), ma per rendere esplicito il ragionamento genealogico. L'interfaccia ha tre livelli (Basic, Standard, Advanced): si presenta come un normale programma genealogico, e i concetti di ricerca (domande, ipotesi, conclusioni, contesto storico) compaiono a livello Standard e Advanced o vengono suggeriti quando servono, con una riga discreta nell'editor.
 
 Funzioni utili per provarlo: importazione da GEDCOM (5.5, 5.5.1, 7) e da Gramps con report di ciò che non è convertibile; 14 tipi di report in testo, Markdown, HTML, Word, PDF, EPUB e sito statico; gestione della privacy per persone viventi. Software open source (licenza MIT), con installer per Windows. L'interfaccia e la guida sono attualmente solo in inglese.
 

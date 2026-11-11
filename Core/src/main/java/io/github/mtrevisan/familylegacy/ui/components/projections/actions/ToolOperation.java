@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions;
 
 
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
+
 import javax.swing.KeyStroke;
 
 
@@ -45,6 +47,14 @@ public interface ToolOperation{
 
 	default KeyStroke getAccelerator(){
 		return null;
+	}
+
+	/**
+	 * @return	The lowest user level the operation is shown at in the menus (progressive disclosure, see
+	 * 	{@code FeatureVisibilityService}): the operation is always usable, the level only decides whether it is offered by default.
+	 */
+	default UxLevel minimumLevel(){
+		return UxLevel.BASIC;
 	}
 
 	/** Runs the operation. */

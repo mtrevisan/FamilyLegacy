@@ -25,13 +25,12 @@
 package io.github.mtrevisan.calendars.frenchrepublican;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -39,6 +38,9 @@ import java.util.regex.Pattern;
  * Supports revolutionary months, Sansculottides complementary days, and seasonal markers.
  */
 public final class FrenchRepublicanCalendarParser{
+
+	/** The month of the complementary days (Sansculottides). */
+	private static final int COMPLEMENTARY_MONTH = 13;
 
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
@@ -126,18 +128,6 @@ public final class FrenchRepublicanCalendarParser{
 		MONTHS.put("jours complémentaires", 13);
 		MONTHS.put("sans-culottides-days", 13);
 
-		// Month 13: Specific legal individual names of the 5/6 festival days
-		MONTHS.put("jour de la vertu", 13);   // Day 1: Virtue Day
-		MONTHS.put("jour du génie", 13);     // Day 2: Genius Day
-		MONTHS.put("jour du genie", 13);
-		MONTHS.put("jour du travail", 13);   // Day 3: Labour Day
-		MONTHS.put("jour de l'opinion", 13); // Day 4: Opinion Day
-		MONTHS.put("jour des récompenses", 13); // Day 5: Rewards Day
-		MONTHS.put("jour des recompenses", 13);
-		MONTHS.put("jour de la révolution", 13); // Day 6: Leap-year Revolutionary Day
-		MONTHS.put("jour de la revolution", 13);
-		MONTHS.put("franciade", 13);         // The leap-year quadrennial cycle name
-
 
 		// =============================================================================
 		// REPUBLICAN SEASONAL ALIGNMENT (Aligned to structural Equinox/Solstice grids)
@@ -161,49 +151,55 @@ public final class FrenchRepublicanCalendarParser{
 		MONTHS.put("été-season", CalendarSeason.SEASON_SUMMER);
 	}
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and world alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	/**
+	 * The names of the complementary days (Sansculottides), as of the decree of 24 October 1793: the days of the
+	 * thirteenth month, from the first (the Virtue) to the fifth (the Rewards), and the sixth one (the Revolution, in the
+	 * sextile years only). The day of a name is the one of the month, so that the Revolution is not valid in a common year.
+	 */
+	private static final Map<String, NamedMonthDateParser.NamedDay> NAMED_DAYS = new HashMap<>();
+	static{
+		registerDay(1, "jour de la vertu", "fête de la vertu", "fete de la vertu", "la vertu", "les vertus");
+		registerDay(2, "jour du génie", "jour du genie", "fête du génie", "fete du genie", "le génie", "le genie");
+		registerDay(3, "jour du travail", "fête du travail", "fete du travail", "le travail");
+		registerDay(4, "jour de l'opinion", "fête de l'opinion", "fete de l'opinion", "l'opinion");
+		registerDay(5, "jour des récompenses", "jour des recompenses", "fête des récompenses", "fete des recompenses",
+			"les récompenses", "les recompenses");
+		registerDay(6, "jour de la révolution", "jour de la revolution", "fête de la révolution", "fete de la revolution",
+			"la révolution", "la revolution");
+	}
+	/** The names that are known, but do not identify a day. */
+	private static final Map<String, String> REJECTED = Map.of(
+		"franciade", "The Franciade is the period of four years, not a day: name the sixth complementary day");
+
+	private static final NamedMonthDateParser PARSER =NamedMonthDateParser.builder("French Republican")
+		.months(MONTHS)
+		.namedDays(NAMED_DAYS)
+		.rejected(REJECTED)
+		.monthLengths(MonthLengths.thirtyDayMonths(5, FrenchRepublicanCalendarStrategy::isLeapYear))
+		.build();
 
 
 	private FrenchRepublicanCalendarParser(){}
 
+
+	/** The days of the thirteenth month: the complementary day {@code day} has the given names. */
+	private static void registerDay(final int day, final String... names){
+		final NamedMonthDateParser.NamedDay namedDay = new NamedMonthDateParser.NamedDay(COMPLEMENTARY_MONTH, day, 1);
+		for(final String name : names)
+			NAMED_DAYS.put(name, namedDay);
+	}
+
+
 	/**
-	 * Parses a raw French Republican string expression into a validated architectural container using exact flags.
+	 * Parses a raw French Republican text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
-	 * @param rawDate the string representing the Revolutionary date
-	 * @return a configured FrenchRepublicanDateInput instance
-	 * @throws IllegalArgumentException if the expression layout is invalid
+	 * @param rawDate the string representing the calendar date (e.g., "9 Thermidor 2")
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static FrenchRepublicanDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new FrenchRepublicanDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid French Republican date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown French Republican month or seasonal descriptor: " + monthName);
-
-		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("Standard Revolutionary months consist strictly of 30 days.");
-		if(dayGroup != null && month == 13 && (day < 1 || day > 6))
-			throw new IllegalArgumentException("Sansculottides complementary days are bound between 1 and 6 days.");
-
-		return new FrenchRepublicanDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

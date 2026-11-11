@@ -37,6 +37,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.util.HashMap;
@@ -79,6 +80,10 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 		add(new JLabel(I18N.l("dialog.event.date")));
 		add(dateField, "growx");
 		add(new JLabel(I18N.l("dialog.date.calendar")));
+		//the items stay the calendar codes, the labels are localized
+		final ListCellRenderer<? super String> base = calendarCombo.getRenderer();
+		calendarCombo.setRenderer((list, value, index, selected, focus) -> base.getListCellRendererComponent(list,
+			value == null? null: I18N.t("enum.date.calendar." + value, value), index, selected, focus));
 		add(calendarCombo, "growx");
 		add(new JLabel(I18N.l("dialog.place")));
 		add(placeField, "growx");

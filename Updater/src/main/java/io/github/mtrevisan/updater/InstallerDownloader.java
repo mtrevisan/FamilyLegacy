@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
@@ -93,14 +94,19 @@ public final class InstallerDownloader{
 		if(!"https".equalsIgnoreCase(release.installerUrl().getScheme()))
 			throw new IOException("The installer is not served over HTTPS: " + release.installerUrl());
 
+		//(the digest comes with the release, never from the downloaded file: without it nothing tells a good installer from a bad one)
+		if(release.sha256() == null)
+			throw new IOException("The release " + release.tag() + " does not publish the SHA-256 of its installer");
+
 		final String fileName = release.installerName();
 		//(the name comes from the network: it must not lead outside the directory)
-		if(fileName == null || !Path.of(fileName).getFileName().toString().equals(fileName))
+		if(!isPlainFileName(fileName))
 			throw new IOException("Unexpected name of the installer: " + fileName);
 
 		Files.createDirectories(directory);
 		final Path target = directory.resolve(fileName);
-		final Path partial = directory.resolve(fileName + ".part");
+		//(a name of its own: two instances of the application must not write the same file)
+		final Path partial = Files.createTempFile(directory, "installer-", ".part");
 
 		final MessageDigest digest = newDigest();
 		long done = 0;
@@ -109,13 +115,17 @@ public final class InstallerDownloader{
 			final long total = release.installerSize();
 			final byte[] buffer = new byte[BUFFER_SIZE];
 			int read;
-			while((read = in.read(buffer)) >= 0){
-				if(cancelled != null && cancelled.getAsBoolean())
+			while(true){
+				if((cancelled != null && cancelled.getAsBoolean()) || Thread.currentThread().isInterrupted())
 					throw new DownloadCancelledException();
+				if((read = in.read(buffer)) < 0)
+					break;
 
 				out.write(buffer, 0, read);
 				digest.update(buffer, 0, read);
 				done += read;
+				if(total >= 0 && done > total)
+					throw new IOException("The installer is bigger than the published " + total + " bytes");
 				if(progress != null)
 					progress.update(done, total);
 			}
@@ -128,7 +138,7 @@ public final class InstallerDownloader{
 		try{
 			if(release.installerSize() >= 0 && done != release.installerSize())
 				throw new IOException("Incomplete download: " + done + " bytes of " + release.installerSize());
-			if(release.sha256() != null && !release.sha256().equalsIgnoreCase(HexFormat.of().formatHex(digest.digest())))
+			if(!release.sha256().equalsIgnoreCase(HexFormat.of().formatHex(digest.digest())))
 				throw new IOException("The downloaded installer does not match its published SHA-256");
 
 			Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING);
@@ -137,6 +147,18 @@ public final class InstallerDownloader{
 		catch(final IOException | RuntimeException e){
 			Files.deleteIfExists(partial);
 			throw e;
+		}
+	}
+
+	private static boolean isPlainFileName(final String fileName){
+		if(fileName == null)
+			return false;
+		try{
+			return Path.of(fileName).getFileName().toString().equals(fileName);
+		}
+		catch(final InvalidPathException ignored){
+			//(characters that are not allowed in a file name, such as ':' on Windows)
+			return false;
 		}
 	}
 

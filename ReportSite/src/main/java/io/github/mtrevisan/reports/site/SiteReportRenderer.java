@@ -36,6 +36,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -147,10 +148,11 @@ public final class SiteReportRenderer implements ReportRenderer{
 			if(doc.subtitle() != null && !doc.subtitle().isBlank())
 				sb.append("<p class=\"subtitle\">").append(ReportMarkup.escape(ReportMarkup.plain(doc.subtitle()))).append("</p>\n");
 		}
+		final Set<String> writtenAnchors = new HashSet<>();
 		chapter.sections().forEach(section -> ReportXhtml.writeSection(sb, section,
 			//a link to a record that has no heading in the site is only its text
 			id -> (anchors.containsKey(id)? pageFile(anchors.get(id)) + "#" + id: null),
-			file -> copyImage(file, target, images)));
+			file -> copyImage(file, target, images), writtenAnchors));
 
 		if(chapter.titlePage()){
 			sb.append("<h2>").append(ReportMarkup.escape(doc.contentsTitle())).append("</h2>\n<ol>\n");

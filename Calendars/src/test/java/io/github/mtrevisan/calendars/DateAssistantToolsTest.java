@@ -28,6 +28,7 @@ import io.github.mtrevisan.calendars.assistant.AgeEstimator;
 import io.github.mtrevisan.calendars.assistant.CalendarConversionTool;
 import io.github.mtrevisan.calendars.assistant.DateSuggestion;
 import io.github.mtrevisan.calendars.assistant.LiturgicalTool;
+import io.github.mtrevisan.calendars.assistant.Message;
 import io.github.mtrevisan.calendars.assistant.RelativeDateTool;
 import io.github.mtrevisan.calendars.assistant.SunTool;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
@@ -90,42 +91,46 @@ class DateAssistantToolsTest{
 
 	@Test
 	void feastsGregorian(){
-		final Map<String, DateSuggestion> feasts = LiturgicalTool.feasts(2024, CalendarReform.ROME).stream()
+		final Map<Message, DateSuggestion> feasts = LiturgicalTool.feasts(2024, CalendarReform.ROME).stream()
 			.collect(Collectors.toMap(DateSuggestion::title, Function.identity()));
 
-		Assertions.assertEquals("14 February 2024", feasts.get("Ash Wednesday").normalizedDate());
-		Assertions.assertEquals("31 March 2024", feasts.get("Easter Sunday").normalizedDate());
-		Assertions.assertEquals("9 May 2024", feasts.get("Ascension").normalizedDate());
-		Assertions.assertEquals("19 May 2024", feasts.get("Pentecost").normalizedDate());
-		Assertions.assertEquals("1 December 2024", feasts.get("First Sunday of Advent").normalizedDate());
-		Assertions.assertEquals("6 January 2024", feasts.get("Epiphany").normalizedDate());
+		Assertions.assertEquals("14 February 2024", feasts.get(feast("ash_wednesday")).normalizedDate());
+		Assertions.assertEquals("31 March 2024", feasts.get(feast("easter_sunday")).normalizedDate());
+		Assertions.assertEquals("9 May 2024", feasts.get(feast("ascension")).normalizedDate());
+		Assertions.assertEquals("19 May 2024", feasts.get(feast("pentecost")).normalizedDate());
+		Assertions.assertEquals("1 December 2024", feasts.get(feast("advent")).normalizedDate());
+		Assertions.assertEquals("6 January 2024", feasts.get(feast("epiphany")).normalizedDate());
 	}
 
 	@Test
 	void feastsJulianComputus(){
-		final Map<String, DateSuggestion> feasts = LiturgicalTool.feasts(2024, null).stream()
+		final Map<Message, DateSuggestion> feasts = LiturgicalTool.feasts(2024, null).stream()
 			.collect(Collectors.toMap(DateSuggestion::title, Function.identity()));
 
 		//Orthodox Easter of 2024 is 5 May Gregorian, that is 22 April Julian
-		Assertions.assertEquals("22 April 2024", feasts.get("Easter Sunday").normalizedDate());
-		Assertions.assertEquals("julian", feasts.get("Easter Sunday").calendarCode());
-		Assertions.assertEquals("10 June 2024", feasts.get("Pentecost").normalizedDate());
+		Assertions.assertEquals("22 April 2024", feasts.get(feast("easter_sunday")).normalizedDate());
+		Assertions.assertEquals("julian", feasts.get(feast("easter_sunday")).calendarCode());
+		Assertions.assertEquals("10 June 2024", feasts.get(feast("pentecost")).normalizedDate());
 	}
 
 	@Test
 	void feastsAgreeWithTheLiturgicalCalendar(){
 		for(final int year : new int[]{1300, 1500, 1582, 1583, 1752, 1800, 2000, 2024}){
-			final Map<String, DateSuggestion> feasts = LiturgicalTool.feasts(year, CalendarReform.ROME).stream()
+			final Map<Message, DateSuggestion> feasts = LiturgicalTool.feasts(year, CalendarReform.ROME).stream()
 				.collect(Collectors.toMap(DateSuggestion::title, Function.identity()));
 
-			assertFeast(feasts, "Easter Sunday", "Pasqua " + year, year);
-			assertFeast(feasts, "Ash Wednesday", "Mercoledì delle Ceneri " + year, year);
-			assertFeast(feasts, "Pentecost", "Pentecoste " + year, year);
-			assertFeast(feasts, "First Sunday of Advent", "Avvento " + year, year);
+			assertFeast(feasts, feast("easter_sunday"), "Pasqua " + year, year);
+			assertFeast(feasts, feast("ash_wednesday"), "Mercoledì delle Ceneri " + year, year);
+			assertFeast(feasts, feast("pentecost"), "Pentecoste " + year, year);
+			assertFeast(feasts, feast("advent"), "Avvento " + year, year);
 		}
 	}
 
-	private static void assertFeast(final Map<String, DateSuggestion> feasts, final String title, final String expression,
+	private static Message feast(final String id){
+		return Message.of("date_assistant.feast." + id);
+	}
+
+	private static void assertFeast(final Map<Message, DateSuggestion> feasts, final Message title, final String expression,
 			final int year){
 		final DateSuggestion feast = feasts.get(title);
 		Assertions.assertEquals(CalendarType.LITURGICAL.parseToJdn(expression),
@@ -145,7 +150,7 @@ class DateAssistantToolsTest{
 	void relativeToEaster(){
 		Assertions.assertEquals("3 April 2024", LiturgicalTool.relativeToEaster(2024, 3, CalendarReform.ROME).normalizedDate());
 		Assertions.assertEquals("17 March 2024", LiturgicalTool.relativeToEaster(2024, -14, CalendarReform.ROME).normalizedDate());
-		Assertions.assertTrue(LiturgicalTool.relativeToEaster(2024, 1, CalendarReform.ROME).title().startsWith("1 day after"));
+		Assertions.assertTrue(LiturgicalTool.relativeToEaster(2024, 1, CalendarReform.ROME).title().key().equals("date_assistant.title.after_easter"));
 	}
 
 	@Test
@@ -198,7 +203,7 @@ class DateAssistantToolsTest{
 			8.);
 
 		Assertions.assertEquals("13 January 1400", suggestions.get(1).normalizedDate());
-		Assertions.assertTrue(suggestions.get(1).title().contains("after midnight"));
+		Assertions.assertEquals("date_assistant.title.midnight_after", suggestions.get(1).title().key());
 		Assertions.assertEquals("13 January 1400", suggestions.get(2).normalizedDate());
 	}
 
@@ -211,9 +216,9 @@ class DateAssistantToolsTest{
 			.get(1);
 
 		//the winter night is longer than 12 hours, so the temporal hours are longer than 60 minutes: the event is later
-		Assertions.assertTrue(unequal.explanation().contains("Temporal hour"));
+		Assertions.assertTrue(unequal.steps().stream().anyMatch(s -> "date_assistant.step.temporal_hour".equals(s.key())));
 		Assertions.assertNotEquals(equal.meaning(), unequal.meaning());
-		Assertions.assertTrue(unequal.steps().stream().anyMatch(s -> s.startsWith("Night:")));
+		Assertions.assertTrue(unequal.steps().stream().anyMatch(s -> "date_assistant.step.night".equals(s.key())));
 	}
 
 	@Test
@@ -286,25 +291,23 @@ class DateAssistantToolsTest{
 		final long from = CalendarType.GREGORIAN.parseToJdn("1 March 1500");
 		final long to = CalendarType.GREGORIAN.parseToJdn("31 March 1500");
 
-		final DateSuggestion range = RelativeDateTool.offsetFromRange(from, to, "birth", 40, RelativeDateTool.Unit.DAYS, true).getFirst();
+		final DateSuggestion range = RelativeDateTool.offsetFromRange(from, to, Message.text("birth"), 40, RelativeDateTool.Unit.DAYS, true).getFirst();
 		Assertions.assertTrue(range.isBounded());
 		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("1 March 1500") + 40,
 			CalendarType.fromCode(range.calendarCode()).parseToJdn(range.notBefore()));
 		Assertions.assertEquals(from + 40 + 30, CalendarType.fromCode(range.calendarCode()).parseToJdn(range.notAfter()));
 
 		//a single day gives the usual candidates
-		Assertions.assertEquals(2, RelativeDateTool.offsetFromRange(from, from, "birth", 40, RelativeDateTool.Unit.DAYS, true).size());
+		Assertions.assertEquals(2, RelativeDateTool.offsetFromRange(from, from, Message.text("birth"), 40, RelativeDateTool.Unit.DAYS, true).size());
 	}
 
 	@Test
-	void explanation(){
+	void suggestionCarriesMessagesNotWords(){
 		final DateSuggestion suggestion = CalendarConversionTool.convert("gregorian", "12 January 1400").getLast();
-		final String explanation = suggestion.explanation();
 
-		Assertions.assertTrue(explanation.contains("Interpreted meaning:"));
-		Assertions.assertTrue(explanation.contains("Assumptions:"));
-		Assertions.assertTrue(explanation.contains("Conversion steps:"));
-		Assertions.assertTrue(explanation.contains("Normalized date: " + suggestion.normalizedDate()));
+		Assertions.assertFalse(suggestion.meaning().isLiteral());
+		Assertions.assertFalse(suggestion.assumptions().isEmpty());
+		Assertions.assertFalse(suggestion.steps().isEmpty());
 		Assertions.assertTrue(suggestion.isApplicable());
 	}
 

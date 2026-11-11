@@ -24,9 +24,11 @@
  */
 package io.github.mtrevisan.calendars.berber;
 
+import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
+import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -85,11 +87,7 @@ public class BerberCalendarStrategy implements CalendarConverterPlugin{
 		final int month = (date[1] != 0? date[1]: 1);
 		final int day = (date[2] != 0? date[2]: 1);
 
-		final int monthLength = switch(month){
-			case 2 -> (Math.floorMod(julianYear, 4) == 0? 29: 28);
-			case 4, 6, 9, 11 -> 30;
-			default -> 31;
-		};
+		final int monthLength = GregorianCalendarStrategy.monthLength(month, JulianCalendarStrategy.isLeapYear(julianYear));
 		if(day < 1 || day > monthLength)
 			throw new IllegalArgumentException("Day " + day + " does not exist in month " + month + ": " + rawDate);
 
@@ -97,6 +95,10 @@ public class BerberCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	/**
+	 * Parses "year", "month year", or "day month year", where the month is a name or a number from 1 to 12 and the day
+	 * can have an ordinal suffix ("5th", "1st"). With two words the first one is always the month (so "5 2976" is the
+	 * month 5, Mayyu, of 2976, and a day alone is never accepted).
+	 *
 	 * @return the year, the month (0 if missing), and the day (0 if missing)
 	 */
 	private static int[] parse(final String rawDate){
@@ -107,6 +109,8 @@ public class BerberCalendarStrategy implements CalendarConverterPlugin{
 		final String yearWord = words[words.length - 1];
 		if(!StringUtils.isNumeric(yearWord))
 			throw new IllegalArgumentException("Missing year in the Amazigh date: " + rawDate);
+		if(yearWord.length() > MAX_YEAR_DIGITS)
+			throw new IllegalArgumentException("Year too large in the Amazigh date: " + rawDate);
 		final int year = Integer.parseInt(yearWord);
 
 		int month = 0;
@@ -116,18 +120,23 @@ public class BerberCalendarStrategy implements CalendarConverterPlugin{
 			final Integer named = MONTHS.get(monthWord);
 			if(named != null)
 				month = named;
-			else if(StringUtils.isNumeric(monthWord) && Integer.parseInt(monthWord) >= 1 && Integer.parseInt(monthWord) <= 12)
-				month = Integer.parseInt(monthWord);
-			else
-				throw new IllegalArgumentException("Unknown Amazigh month '" + monthWord + "': " + rawDate);
+			else{
+				final int number = (StringUtils.isNumeric(monthWord) && monthWord.length() <= 2? Integer.parseInt(monthWord): 0);
+				if(number < 1 || number > 12)
+					throw new IllegalArgumentException("Unknown Amazigh month '" + monthWord + "': " + rawDate);
+				month = number;
+			}
 		}
 		if(words.length == 3){
-			if(!StringUtils.isNumeric(words[0]))
+			day = Ordinals.parse(words[0]);
+			if(day < 1)
 				throw new IllegalArgumentException("Invalid day in the Amazigh date: " + rawDate);
-			day = Integer.parseInt(words[0]);
 		}
 		return new int[]{year, month, day};
 	}
+
+	/** Maximum number of digits of a year. */
+	private static final int MAX_YEAR_DIGITS = 6;
 
 	@Override
 	public CalendarMetadata getMetadata(final String rawDate){

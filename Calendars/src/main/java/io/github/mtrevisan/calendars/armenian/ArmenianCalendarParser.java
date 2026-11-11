@@ -25,13 +25,12 @@
 package io.github.mtrevisan.calendars.armenian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
+import io.github.mtrevisan.calendars.dateparsing.NamedMonthDateParser;
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -151,47 +150,25 @@ public final class ArmenianCalendarParser{
 		MONTHS.put("amaṟ", CalendarSeason.SEASON_SUMMER);			// Scientific transliteration (trilled R)
 	}
 
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?(\\S+)\\s+(\\d+)");
+	private static final NamedMonthDateParser PARSER = NamedMonthDateParser.builder("Armenian")
+		.months(MONTHS)
+		.monthLengths(MonthLengths.thirtyDayMonths(5, null))
+		.build();
 
 
 	private ArmenianCalendarParser(){}
 
 
 	/**
-	 * Parses a raw Armenian text expression into a validated structural container.
+	 * Parses a raw Armenian text expression into its year, month and day. A year alone stands for the first day of the
+	 * year; a season (an equinox or a solstice) is a negative flag and takes no day.
 	 *
-	 * @param rawDate the date string (e.g., "1 Navasard 1400" or "3 Avelyats 1450")
-	 * @return a configured ArmenianDateInput instance
+	 * @param rawDate the string representing the calendar date (e.g., "1 Navasard 1400")
+	 * @return the components of the date
+	 * @throws IllegalArgumentException if the text is empty, cannot be parsed, or names a day that does not exist
 	 */
-	public static ArmenianDateInput parse(final String rawDate){
-		final String normalized = StringUtils.normalizeSpace(rawDate);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new ArmenianDateInput(Integer.parseInt(normalized), 0, 0);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Armenian date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT);
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Armenian month or seasonal descriptor: " + monthName);
-
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		// Defensive boundary checks matching physical constraints
-		if(dayGroup != null && month > 0 && month <= 12 && (day < 1 || day > 30))
-			throw new IllegalArgumentException("Standard Armenian months must have exactly 30 days.");
-		if(dayGroup != null && month == 13 && (day < 1 || day > 5))
-			throw new IllegalArgumentException("Avelyats intercalary period consists strictly of 5 days.");
-
-		return new ArmenianDateInput(year, month, day);
+	public static YearMonthDay parse(final String rawDate){
+		return PARSER.parse(rawDate);
 	}
 
 }

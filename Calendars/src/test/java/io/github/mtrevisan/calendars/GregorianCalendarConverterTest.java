@@ -111,9 +111,8 @@ class GregorianCalendarConverterTest{
 		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("12 2 1705"), jdn);
 
 
-		jdn = CalendarType.GREGORIAN.parseToJdn("12 AUG 1752/53");
-
-		Assertions.assertEquals(CalendarType.GREGORIAN.parseToJdn("12 8 1752"), jdn);
+		// a dual year exists only before the start of the year (25 March), and the second year must follow the first
+		Assertions.assertThrows(IllegalArgumentException.class, () -> CalendarType.GREGORIAN.parseToJdn("12 AUG 1752/53"));
 	}
 
 

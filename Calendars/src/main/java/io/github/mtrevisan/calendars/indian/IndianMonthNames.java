@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars.indian;
 
+import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,7 +42,7 @@ final class IndianMonthNames{
 	record SolarDate(int year, int month, int day){
 
 		int monthOrFirst(){
-			return (month != 0? month: 1);
+			return YearMonthDay.monthOrFirst(month);
 		}
 
 		int dayOrFirst(){
@@ -58,6 +59,21 @@ final class IndianMonthNames{
 		TextNormalizer.normalize("കൊല്ലവർഷം"), TextNormalizer.normalize("ക"), TextNormalizer.normalize("വ"));
 	private static final int MIN_YEAR = 100;
 	private static final int MAX_DAY = 32;
+
+	/** The months of the Bengali calendars (West Bengal and Bangladesh), shared by their strategies. */
+	static final IndianMonthNames BENGALI = new IndianMonthNames()
+		.register(1, "Boishakh", "Baishakh", "Baisakh", "Vaishakh", "বৈশাখ")
+		.register(2, "Joishtho", "Jyoishtho", "Jaishtha", "Jyeshtha", "Jaistha", "জ্যৈষ্ঠ")
+		.register(3, "Asharh", "Ashar", "Asadh", "Ashadh", "আষাঢ়", "আষাঢ")
+		.register(4, "Srabon", "Shrabon", "Shraban", "Sravan", "Shravan", "শ্রাবণ")
+		.register(5, "Bhadro", "Bhadra", "ভাদ্র")
+		.register(6, "Ashshin", "Ashwin", "Ashin", "Aswin", "আশ্বিন")
+		.register(7, "Kartik", "Kartick", "কার্তিক")
+		.register(8, "Ogrohayon", "Agrahayan", "Agrahayon", "Ograhayon", "অগ্রহায়ণ")
+		.register(9, "Poush", "Pous", "Paush", "পৌষ")
+		.register(10, "Magh", "মাঘ")
+		.register(11, "Falgun", "Phalgun", "Falgoon", "ফাল্গুন")
+		.register(12, "Choitro", "Chaitra", "Choitra", "চৈত্র");
 
 	private final Map<String, Integer> months = new HashMap<>();
 

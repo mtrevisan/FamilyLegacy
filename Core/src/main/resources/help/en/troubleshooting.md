@@ -91,6 +91,8 @@ The diagnostics contain no record of your data and no log, but they do contain t
 
 **Help > Check for Updates...** looks on GitHub, in the [releases of Family Legacy](https://github.com/mtrevisan/FamilyLegacy/releases), for a version newer than the one you are running (shown by **Help > About Family Legacy**). It needs an internet connection; the rest of the application does not.
 
+**Help > Check for Updates at Startup** (ticked by default) makes the application do the same check by itself when it starts. It asks GitHub at most once every 12 hours, however many times you start the application (GitHub limits the requests of each internet address), and it speaks up only when a newer version exists: if you are up to date, or there is no connection, nothing is shown. Untick it to never check unless you choose **Check for Updates...**.
+
 - If you are up to date, a message says so.
 - If a newer version is published, a window shows its number and its release notes. **Download and Install** downloads the installer (a progress bar shows how much has arrived; **Cancel**, `Esc` or the close button of the window stop it and delete what was downloaded), then asks you to confirm. **Close and Install** closes the application and starts the installer, which replaces the installed version: your files, preferences and bookmarks are not touched. **Open Release Page** shows the release in the browser instead, and **Later** does nothing.
 - Downloading and installing from the application works on Windows. On other systems the window offers only the release page.

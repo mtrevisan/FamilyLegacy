@@ -29,7 +29,7 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.Zenith;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -47,17 +47,17 @@ public final class SunTool{
 	/** How the hours of a medieval source are counted. */
 	public enum HourSystem{
 		/** Hours of 60 minutes, as in a modern clock. */
-		EQUAL("equal hours of 60 minutes"),
+		EQUAL("date_assistant.hour_system.equal"),
 		/**
 		 * Temporal hours: the time from sunrise to sunset (by day), or from sunset to the next sunrise (by night), is divided
 		 * in 12 hours, whose length changes with the season and the latitude.
 		 */
-		UNEQUAL("unequal (temporal) hours: a twelfth of the day, or of the night");
+		UNEQUAL("date_assistant.hour_system.unequal");
 
-		private final String description;
+		private final String descriptionKey;
 
-		HourSystem(final String description){
-			this.description = description;
+		HourSystem(final String descriptionKey){
+			this.descriptionKey = descriptionKey;
 		}
 	}
 
@@ -97,42 +97,42 @@ public final class SunTool{
 
 		final SunlightPhase today = horizon(engine, jdn, latitude, longitude);
 
-		final String place = "latitude " + latitude + "°, longitude " + longitude + "°";
-		final List<String> assumptions = new ArrayList<>();
-		assumptions.add("Local mean time of the place (historical dates predate the time zones): UTC + longitude / 15 hours");
-		assumptions.add("Official sunrise and sunset (the upper limb of the Sun at the horizon), without the local relief");
+		final Message place = Message.of("date_assistant.place", String.valueOf(latitude), String.valueOf(longitude));
+		final List<Message> assumptions = new ArrayList<>();
+		assumptions.add(Message.of("date_assistant.assumption.local_mean_time"));
+		assumptions.add(Message.of("date_assistant.assumption.official_sun"));
 
-		final List<String> steps = new ArrayList<>();
-		steps.add("Read \"" + rawDate + "\" as a " + type.getCode() + " date: Julian Day Number " + jdn);
-		final String meaning;
+		final List<Message> steps = new ArrayList<>();
+		steps.add(Message.of("date_assistant.step.read", rawDate, Message.calendar(type.getCode()), jdn));
+		final Message meaning;
 		ZonedDateTime sunrise = null;
 		ZonedDateTime sunset = null;
 		switch(today){
 			case SunlightPhase.RegularDay day -> {
 				sunrise = day.sunrise();
 				sunset = day.sunset();
-				final String times = "the Sun rises at " + localTime(sunrise, longitude) + " and sets at "
-					+ localTime(sunset, longitude) + " (local mean time)";
-				steps.add("Sunrise and sunset: " + times);
-				meaning = "On " + rawDate + " at " + place + StringUtils.SPACE + times;
+				final Message times = Message.of("date_assistant.sun.times", localTime(sunrise, longitude), localTime(sunset, longitude));
+				steps.add(Message.of("date_assistant.step.sun_times", times));
+				meaning = Message.of("date_assistant.meaning.sun_regular", rawDate, place, times);
 			}
-			case SunlightPhase.AlwaysDay ignored -> meaning = "At " + place + " the Sun does not set on " + rawDate + " (polar day)";
-			case SunlightPhase.AlwaysNight ignored -> meaning = "At " + place + " the Sun does not rise on " + rawDate + " (polar night)";
+			case SunlightPhase.AlwaysDay ignored -> meaning = Message.of("date_assistant.meaning.polar_day", place, rawDate);
+			case SunlightPhase.AlwaysNight ignored -> meaning = Message.of("date_assistant.meaning.polar_night", place, rawDate);
 		}
 
 		final List<DateSuggestion> result = new ArrayList<>();
-		result.add(new DateSuggestion("Sunrise and sunset", meaning, assumptions, null, steps, null));
+		result.add(new DateSuggestion(Message.of("date_assistant.title.sun"), meaning, assumptions, null, steps, null));
 		if(hoursFromSunset == null)
 			return result;
 
 		if(sunrise == null || sunset == null)
-			throw new IllegalStateException("The Sun does not both rise and set on " + rawDate + " at " + place);
+			throw new AssistantStateException("date_assistant.error.sun_no_events", rawDate, place);
 
 		final ZonedDateTime event = eventInstant(engine, jdn, latitude, longitude, hourSystem, hoursFromSunset, sunrise, sunset,
 			steps, assumptions);
-		final String hours = formatHours(Math.abs(hoursFromSunset)) + (hoursFromSunset >= 0? " after": " before") + " sunset";
-		final String when = hours + " (" + hourSystem.description + "), at " + localTime(event, longitude) + " local mean time";
-		steps.add("Instant of the event: " + localTime(event, longitude) + " local mean time");
+		final Message hours = Message.of("date_assistant.hours", Math.abs(hoursFromSunset));
+		final Message when = Message.of(hoursFromSunset >= 0? "date_assistant.when.after": "date_assistant.when.before", hours,
+			Message.of(hourSystem.descriptionKey), localTime(event, longitude));
+		steps.add(Message.of("date_assistant.step.event_instant", localTime(event, longitude)));
 
 		result.addAll(dateReadings(calendarCode, rawDate, jdn, hoursFromSunset, event, sunset, longitude, when, steps, assumptions));
 		return result;
@@ -149,9 +149,9 @@ public final class SunTool{
 	/** The instant of an event at a number of hours from the sunset. */
 	private static ZonedDateTime eventInstant(final EphemerisEngine engine, final long jdn, final double latitude,
 			final double longitude, final HourSystem hourSystem, final double hoursFromSunset, final ZonedDateTime sunrise,
-			final ZonedDateTime sunset, final List<String> steps, final List<String> assumptions){
+			final ZonedDateTime sunset, final List<Message> steps, final List<Message> assumptions){
 		if(hourSystem == HourSystem.EQUAL){
-			assumptions.add("Hours of 60 minutes, counted from the sunset");
+			assumptions.add(Message.of("date_assistant.assumption.equal_hours"));
 			return sunset.plus(Math.round(hoursFromSunset * SECONDS_PER_HOUR), ChronoUnit.SECONDS);
 		}
 
@@ -159,58 +159,55 @@ public final class SunTool{
 		final Duration span;
 		if(hoursFromSunset >= 0){
 			if(!(horizon(engine, jdn + 1, latitude, longitude) instanceof SunlightPhase.RegularDay next))
-				throw new IllegalStateException("The Sun does not rise and set on the day after: the night has no temporal hours");
+				throw new AssistantStateException("date_assistant.error.sun_no_next_day");
 
 			span = Duration.between(sunset, next.sunrise());
-			steps.add("Night: from sunset (" + localTime(sunset, longitude) + ") to the next sunrise ("
-				+ localTime(next.sunrise(), longitude) + "), " + formatDuration(span));
-			assumptions.add("The temporal hours of the night are a twelfth of the time from sunset to the next sunrise");
+			steps.add(Message.of("date_assistant.step.night", localTime(sunset, longitude), localTime(next.sunrise(), longitude),
+				duration(span)));
+			assumptions.add(Message.of("date_assistant.assumption.temporal_night"));
 		}
 		else{
 			span = Duration.between(sunrise, sunset);
-			steps.add("Day: from sunrise (" + localTime(sunrise, longitude) + ") to sunset (" + localTime(sunset, longitude) + "), "
-				+ formatDuration(span));
-			assumptions.add("The temporal hours of the day are a twelfth of the time from sunrise to sunset");
+			steps.add(Message.of("date_assistant.step.day", localTime(sunrise, longitude), localTime(sunset, longitude), duration(span)));
+			assumptions.add(Message.of("date_assistant.assumption.temporal_day"));
 		}
 		final long hourMillis = span.toMillis() / TEMPORAL_HOURS;
-		steps.add("Temporal hour: " + formatDuration(Duration.ofMillis(hourMillis)));
+		steps.add(Message.of("date_assistant.step.temporal_hour", duration(Duration.ofMillis(hourMillis))));
 		return sunset.plus(Math.round(hoursFromSunset * hourMillis), ChronoUnit.MILLIS);
 	}
 
 	private static List<DateSuggestion> dateReadings(final String calendarCode, final String rawDate, final long jdn,
 			final double hoursFromSunset, final ZonedDateTime event, final ZonedDateTime sunset, final double longitude,
-			final String when, final List<String> steps, final List<String> assumptions){
+			final Message when, final List<Message> steps, final List<Message> assumptions){
 		//the civil day changes at the local midnight, that may fall between the sunset and the event
 		final long shift = ChronoUnit.DAYS.between(localDate(sunset, longitude), localDate(event, longitude));
 
 		final List<DateSuggestion> readings = new ArrayList<>();
-		readings.add(reading(shift == 0? "Day starts at midnight": "Day starts at midnight (after midnight)",
-			rawDate + ", " + when, calendarCode, rawDate, jdn, shift, steps, assumptions,
-			shift == 0
-				? "The civil day starts at midnight (modern convention): the event is still on " + rawDate
-				: "The civil day starts at midnight (modern convention): the event falls after the local midnight, in the following day"));
+		readings.add(reading(Message.of(shift == 0? "date_assistant.title.midnight": "date_assistant.title.midnight_after"),
+			Message.of("date_assistant.meaning.reading", rawDate, when), calendarCode, rawDate, jdn, shift, steps, assumptions,
+			Message.of(shift == 0? "date_assistant.assumption.midnight_same_day": "date_assistant.assumption.midnight_next_day", rawDate)));
 		if(hoursFromSunset > 0)
-			readings.add(reading("Day starts at sunset", "The day after " + rawDate + ", " + when, calendarCode, rawDate, jdn, 1,
-				steps, assumptions, "The day starts at sunset (Hebrew and Islamic reckoning, Italian hours, and many liturgical "
-					+ "sources): the evening and the night belong to the following day"));
+			readings.add(reading(Message.of("date_assistant.title.sunset"), Message.of("date_assistant.meaning.reading_next", rawDate, when),
+				calendarCode, rawDate, jdn, 1, steps, assumptions, Message.of("date_assistant.assumption.sunset_day")));
 		return readings;
 	}
 
-	private static DateSuggestion reading(final String title, final String meaning, final String calendarCode,
-			final String rawDate, final long jdn, final long shift, final List<String> steps, final List<String> assumptions,
-			final String assumption){
-		final List<String> allAssumptions = new ArrayList<>(assumptions);
+	private static DateSuggestion reading(final Message title, final Message meaning, final String calendarCode,
+			final String rawDate, final long jdn, final long shift, final List<Message> steps, final List<Message> assumptions,
+			final Message assumption){
+		final List<Message> allAssumptions = new ArrayList<>(assumptions);
 		allAssumptions.add(assumption);
-		final List<String> allSteps = new ArrayList<>(steps);
+		final List<Message> allSteps = new ArrayList<>(steps);
 		if(shift == 0)
 			return new DateSuggestion(title, meaning, allAssumptions, calendarCode, allSteps, rawDate);
 
-		final String code = (CivilDates.GREGORIAN.equals(calendarCode)? CivilDates.GREGORIAN: CivilDates.JULIAN);
+		//a civil source keeps its calendar, any other one is written in the calendar in force at the date (as in the conversion)
+		final boolean civil = (CivilDates.GREGORIAN.equals(calendarCode) || CivilDates.JULIAN.equals(calendarCode));
+		final String code = (civil? calendarCode: CivilDates.calendarInForce(jdn + shift, CalendarReform.ROME));
 		final String date = CivilDates.format(jdn + shift, code);
-		allSteps.add("Julian Day Number " + jdn + " + " + shift + " = " + (jdn + shift) + ", written in the " + code
-			+ " calendar: " + date);
+		allSteps.add(Message.of("date_assistant.step.shift", jdn, shift, jdn + shift, Message.calendar(code), date));
 		if(!code.equals(calendarCode))
-			allAssumptions.add("The date is written in the " + code + " calendar: change it if the source follows another one");
+			allAssumptions.add(Message.of("date_assistant.assumption.written_in_force", Message.calendar(code)));
 		return new DateSuggestion(title, meaning, allAssumptions, code, allSteps, date);
 	}
 
@@ -225,18 +222,14 @@ public final class SunTool{
 
 	private static String localTime(final ZonedDateTime utc, final double longitude){
 		if(utc == null)
-			return "none";
+			return "-";
 
 		final LocalDateTime local = shiftToLocal(utc, longitude);
 		return String.format("%02d:%02d", local.getHour(), local.getMinute());
 	}
 
-	private static String formatDuration(final Duration duration){
-		return duration.toHours() + " h " + duration.toMinutesPart() + " min";
-	}
-
-	private static String formatHours(final double hours){
-		return (hours == Math.rint(hours)? String.valueOf((long)hours): String.valueOf(hours)) + (hours == 1.? " hour": " hours");
+	private static Message duration(final Duration duration){
+		return Message.of("date_assistant.duration", duration.toHours(), duration.toMinutesPart());
 	}
 
 }

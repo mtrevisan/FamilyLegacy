@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  */
 public final class Ordinals{
 
-	private static final Pattern ARABIC = Pattern.compile("(\\d{1,4})(?:st|nd|rd|th|a|o|e|i|er|re|eme|e)?");
+	private static final Pattern ARABIC = Pattern.compile("(\\d{1,4})(?:st|nd|rd|th|a|o|e|er|re|eme)?");
 	/**
 	 * Roman numerals up to 89 (regnal years, indictions, ordinals); "c", "d", and "m" are left out, so that common words
 	 * like "di" or "mi" are not taken for numbers.
@@ -79,12 +79,12 @@ public final class Ordinals{
 
 		// cardinal numbers (e.g. "tre giorni dopo", "three days before", "tribus diebus post")
 		final String[][] cardinals = {
-			{"uno", "un", "una", "one", "unus", "unum", "une"},
+			{"uno", "una", "one", "unus", "unum", "une"},
 			{"due", "two", "duo", "duobus", "deux"},
 			{"tre", "three", "tres", "tribus", "trois"},
 			{"quattro", "four", "quattuor", "quatuor", "quatre"},
 			{"cinque", "five", "quinque", "cinq"},
-			{"sei", "six", "sex"},
+			{"six", "sex"},
 			{"sette", "seven", "septem", "sept"},
 			{"otto", "eight", "octo", "huit"},
 			{"nove", "nine", "novem", "neuf"},
@@ -192,11 +192,11 @@ public final class Ordinals{
 		return total;
 	}
 
+	/**
+	 * Parses a Latin ordinal: the stem needs an inflected ending (e.g. "tertio"), so that the bare stems that are common
+	 * words of other languages (e.g. "non", "quart") are not taken for numbers.
+	 */
 	private static int parseLatin(final String word){
-		final Integer exact = LATIN_STEMS.get(word);
-		if(exact != null)
-			return exact;
-
 		final Matcher ending = LATIN_ENDING.matcher(word);
 		if(!ending.find())
 			return -1;

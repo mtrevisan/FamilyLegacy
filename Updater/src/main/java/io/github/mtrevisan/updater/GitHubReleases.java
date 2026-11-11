@@ -85,6 +85,7 @@ public final class GitHubReleases{
 			body = readText(uri);
 		}
 		catch(final Transport.HttpStatusException e){
+			//(also what GitHub answers for a repository that is private or renamed, or with pre-releases only)
 			if(e.status() == 404)
 				return Optional.empty();
 			if(e.status() == 403 || e.status() == 429)
@@ -102,11 +103,15 @@ public final class GitHubReleases{
 		return parse(release);
 	}
 
-	private Optional<ReleaseInfo> parse(final Map<String, Object> release){
+	private Optional<ReleaseInfo> parse(final Map<String, Object> release) throws IOException{
 		final String tag = Json.asString(release.get("tag_name"));
-		final Optional<Version> version = Version.parse(tag);
-		if(version.isEmpty() || Boolean.TRUE.equals(release.get("draft")))
+		if(Boolean.TRUE.equals(release.get("draft")))
 			return Optional.empty();
+
+		//(a release exists but cannot be compared: this is not "nothing published")
+		final Optional<Version> version = Version.parse(tag);
+		if(version.isEmpty())
+			throw new IOException("The latest release has a tag that is not a version: " + tag);
 
 		final String name = Json.asString(release.get("name"));
 		final String notes = Json.asString(release.get("body"));
@@ -142,7 +147,7 @@ public final class GitHubReleases{
 		}
 
 		return Optional.of(new ReleaseInfo(version.get(), tag, (name == null || name.isBlank()? tag: name), (notes == null? "": notes),
-			(page == null? releasesPage(): URI.create(page)), installerName, installerUrl, installerSize, sha256));
+			(isHttps(page)? URI.create(page): releasesPage()), installerName, installerUrl, installerSize, sha256));
 	}
 
 	private static boolean isHttps(final String url){

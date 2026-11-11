@@ -106,9 +106,7 @@ final class CivilDates{
 		if(reform == null)
 			return JULIAN;
 
-		final long firstGregorian = reform.toJdn(reform.firstGregorianYear(), reform.firstGregorianMonth(),
-			reform.firstGregorianDay());
-		return (jdn < firstGregorian? JULIAN: GREGORIAN);
+		return (jdn < reform.firstGregorianJdn()? JULIAN: GREGORIAN);
 	}
 
 	static String format(final long jdn, final String calendarCode){
@@ -125,13 +123,15 @@ final class CivilDates{
 		return (int)Math.floorMod(jdn, 7L);
 	}
 
-	static String weekdayName(final long jdn){
-		return DayOfWeek.of(weekday(jdn) + 1).getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+	static DayOfWeek dayOfWeek(final long jdn){
+		return DayOfWeek.of(weekday(jdn) + 1);
 	}
 
 
 	private static String format(final int year, final Month month, final int day){
-		return day + StringUtils.SPACE + month.getDisplayName(TextStyle.FULL, Locale.ENGLISH) + StringUtils.SPACE + year;
+		//the astronomical years 0, -1, ... are the years 1 BC, 2 BC, ... (there is no year 0)
+		final String written = (year > 0? String.valueOf(year): (1 - year) + " BC");
+		return day + StringUtils.SPACE + month.getDisplayName(TextStyle.FULL, Locale.ENGLISH) + StringUtils.SPACE + written;
 	}
 
 }

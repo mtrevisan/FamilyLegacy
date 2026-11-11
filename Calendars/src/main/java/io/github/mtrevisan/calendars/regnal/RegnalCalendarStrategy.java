@@ -139,8 +139,14 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 		final long nextYearStart = reign.yearStartJdn(regnalYear + 1, reform, julianAnniversary);
 		final long jdn;
 		if(date.month() == 0)
-			// a regnal year alone starts with the reign itself, if later (e.g. the readeption of Henry VI, in his 49th year)
-			jdn = Math.max(yearStart, reign.validFrom().toJdn(reform));
+			{
+				// a regnal year alone starts with the reign itself, if later (e.g. the readeption of Henry VI, in his 49th year)
+				final long validFrom = reign.validFrom()
+					.toJdn(reform);
+				if(nextYearStart <= validFrom)
+					throw new IllegalArgumentException("The regnal year " + regnalYear + " ended before the reign: " + rawDate);
+				jdn = Math.max(yearStart, validFrom);
+			}
 		else{
 			// the day falls in one of the (at most two) calendar years overlapping the regnal year
 			final int firstYear = yearOf(yearStart);
@@ -178,8 +184,7 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 	 */
 	private int yearOf(final long jdn){
 		// the Julian and Gregorian years differ only around 1 January
-		final long gregorianReformJdn = reform.toJdn(reform.firstGregorianYear(), reform.firstGregorianMonth(),
-			reform.firstGregorianDay());
+		final long gregorianReformJdn = reform.firstGregorianJdn();
 		final long z = jdn;
 		if(jdn >= gregorianReformJdn){
 			// Gregorian (Richards' algorithm)
@@ -197,6 +202,9 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 	}
 
 	private RegnalDate parse(final String rawDate){
+		if(StringUtils.isBlank(rawDate))
+			throw new IllegalArgumentException("Date string context cannot be empty.");
+
 		final List<String> words = new ArrayList<>(Arrays.asList(TextNormalizer.tokenize(rawDate)));
 		if(words.isEmpty())
 			throw new IllegalArgumentException("Date string context cannot be empty.");

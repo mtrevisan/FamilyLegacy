@@ -25,13 +25,14 @@
 package io.github.mtrevisan.calendars.buddhist;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
+import io.github.mtrevisan.calendars.text.ScriptText;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -44,133 +45,141 @@ public final class BuddhistCalendarParser{
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
 	static{
 		// Month 1: January
-		MONTHS.put("มกราคม", 1);
-		MONTHS.put("ม.ค.", 1);               // Official Thai abbreviation
-		MONTHS.put("mokarakhom", 1);        // Correct RTGS spelling
-		MONTHS.put("makarakhom", 1);        // Common phonetic variant
+		register("มกราคม", 1);
+		register("ม.ค.", 1);               // Official Thai abbreviation
+		register("mokarakhom", 1);        // Correct RTGS spelling
+		register("makarakhom", 1);        // Common phonetic variant
 
 		// Month 2: February
-		MONTHS.put("กุมภาพันธ์", 2);
-		MONTHS.put("ก.พ.", 2);               // Official Thai abbreviation
-		MONTHS.put("kumphaphan", 2);        // Correct RTGS spelling
+		register("กุมภาพันธ์", 2);
+		register("ก.พ.", 2);               // Official Thai abbreviation
+		register("kumphaphan", 2);        // Correct RTGS spelling
 
 		// Month 3: March
-		MONTHS.put("มีนาคม", 3);
-		MONTHS.put("มี.ค.", 3);               // Official Thai abbreviation
-		MONTHS.put("minakhom", 3);          // Correct RTGS spelling
+		register("มีนาคม", 3);
+		register("มี.ค.", 3);               // Official Thai abbreviation
+		register("minakhom", 3);          // Correct RTGS spelling
 
 		// Month 4: April
-		MONTHS.put("เมษายน", 4);
-		MONTHS.put("เม.ย.", 4);               // Official Thai abbreviation
-		MONTHS.put("mesayon", 4);           // Correct RTGS spelling
+		register("เมษายน", 4);
+		register("เม.ย.", 4);               // Official Thai abbreviation
+		register("mesayon", 4);           // Correct RTGS spelling
 
 		// Month 5: May
-		MONTHS.put("พฤษภาคม", 5);
-		MONTHS.put("พ.ค.", 5);               // Official Thai abbreviation
-		MONTHS.put("phruetsaphakhom", 5);   // Correct RTGS spelling
-		MONTHS.put("phrasaphakhom", 5);     // Common variant
-		MONTHS.put("phrutsubhakhom", 5);    // Common variant
+		register("พฤษภาคม", 5);
+		register("พ.ค.", 5);               // Official Thai abbreviation
+		register("phruetsaphakhom", 5);   // Correct RTGS spelling
+		register("phrasaphakhom", 5);     // Common variant
+		register("phrutsubhakhom", 5);    // Common variant
 
 		// Month 6: June
-		MONTHS.put("มิถุนายน", 6);
-		MONTHS.put("มิ.ย.", 6);               // Official Thai abbreviation
-		MONTHS.put("mithunayon", 6);        // Correct RTGS spelling
+		register("มิถุนายน", 6);
+		register("มิ.ย.", 6);               // Official Thai abbreviation
+		register("mithunayon", 6);        // Correct RTGS spelling
 
 		// Month 7: July
-		MONTHS.put("กรกฎาคม", 7);
-		MONTHS.put("ก.ค.", 7);               // Official Thai abbreviation
-		MONTHS.put("korakadahkom", 7);       // Correct RTGS spelling
-		MONTHS.put("karakhadakhom", 7);     // Phonetic variant
+		register("กรกฎาคม", 7);
+		register("ก.ค.", 7);               // Official Thai abbreviation
+		register("korakadahkom", 7);       // Correct RTGS spelling
+		register("karakhadakhom", 7);     // Phonetic variant
 
 		// Month 8: August
-		MONTHS.put("สิงหาคม", 8);
-		MONTHS.put("ส.ค.", 8);               // Official Thai abbreviation
-		MONTHS.put("singhakhom", 8);        // Correct RTGS spelling
+		register("สิงหาคม", 8);
+		register("ส.ค.", 8);               // Official Thai abbreviation
+		register("singhakhom", 8);        // Correct RTGS spelling
 
 		// Month 9: September
-		MONTHS.put("กันยายน", 9);
-		MONTHS.put("ก.ย.", 9);               // Official Thai abbreviation
-		MONTHS.put("kanyayon", 9);          // Correct RTGS spelling
+		register("กันยายน", 9);
+		register("ก.ย.", 9);               // Official Thai abbreviation
+		register("kanyayon", 9);          // Correct RTGS spelling
 
 		// Month 10: October
-		MONTHS.put("ตุลาคม", 10);
-		MONTHS.put("ต.ค.", 10);              // Official Thai abbreviation
-		MONTHS.put("tulakhom", 10);         // Correct RTGS spelling
+		register("ตุลาคม", 10);
+		register("ต.ค.", 10);              // Official Thai abbreviation
+		register("tulakhom", 10);         // Correct RTGS spelling
 
 		// Month 11: November
-		MONTHS.put("พฤศจิกายน", 11);
-		MONTHS.put("พ.ย.", 11);              // Official Thai abbreviation
-		MONTHS.put("phruetsachikayon", 11); // Correct RTGS spelling
-		MONTHS.put("phrachikayon", 11);     // Colloquial short form
+		register("พฤศจิกายน", 11);
+		register("พ.ย.", 11);              // Official Thai abbreviation
+		register("phruetsachikayon", 11); // Correct RTGS spelling
+		register("phrachikayon", 11);     // Colloquial short form
 
 		// Month 12: December
-		MONTHS.put("ธันวาคม", 12);
-		MONTHS.put("ธ.ค.", 12);              // Official Thai abbreviation
-		MONTHS.put("thanwakhom", 12);       // Correct RTGS spelling
+		register("ธันวาคม", 12);
+		register("ธ.ค.", 12);              // Official Thai abbreviation
+		register("thanwakhom", 12);       // Correct RTGS spelling
 
 		// Thai Seasons Alignment
 		// Winter / Cold Cycle
-		MONTHS.put("ฤดูหนาว", CalendarSeason.SEASON_WINTER);   // Common formal form
-		MONTHS.put("หน้าหนาว", CalendarSeason.SEASON_WINTER);   // Colloquial spoken form
-		MONTHS.put("เหมันต์", CalendarSeason.SEASON_WINTER);    // Literary Sanskrit form (Hemanta)
-		MONTHS.put("เหมันตฤดู", CalendarSeason.SEASON_WINTER);   // Complete literary form
-		MONTHS.put("hemanta", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("hemanta-rue-du", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("ru-du-nao", CalendarSeason.SEASON_WINTER);   // Correct RTGS transliteration
-		MONTHS.put("ru-du-naow", CalendarSeason.SEASON_WINTER);  // Common phonetic variant
-		MONTHS.put("rudunao", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("nha-nao", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("nhanao", CalendarSeason.SEASON_WINTER);
+		register("ฤดูหนาว", CalendarSeason.SEASON_WINTER);   // Common formal form
+		register("หน้าหนาว", CalendarSeason.SEASON_WINTER);   // Colloquial spoken form
+		register("เหมันต์", CalendarSeason.SEASON_WINTER);    // Literary Sanskrit form (Hemanta)
+		register("เหมันตฤดู", CalendarSeason.SEASON_WINTER);   // Complete literary form
+		register("hemanta", CalendarSeason.SEASON_WINTER);
+		register("hemanta-rue-du", CalendarSeason.SEASON_WINTER);
+		register("ru-du-nao", CalendarSeason.SEASON_WINTER);   // Correct RTGS transliteration
+		register("ru-du-naow", CalendarSeason.SEASON_WINTER);  // Common phonetic variant
+		register("rudunao", CalendarSeason.SEASON_WINTER);
+		register("nha-nao", CalendarSeason.SEASON_WINTER);
+		register("nhanao", CalendarSeason.SEASON_WINTER);
 
 		// Summer / Hot Cycle
-		MONTHS.put("ฤดูร้อน", CalendarSeason.SEASON_SUMMER);    // Common formal form
-		MONTHS.put("หน้าร้อน", CalendarSeason.SEASON_SUMMER);    // Colloquial spoken form
-		MONTHS.put("คิมหันต์", CalendarSeason.SEASON_SUMMER);    // Literary Sanskrit form (Kimhana)
-		MONTHS.put("คิมหันตฤดู", CalendarSeason.SEASON_SUMMER);   // Complete literary form
-		MONTHS.put("kimmhana", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("kimhant", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("ru-du-ron", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("ruduron", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("nha-ron", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("nharon", CalendarSeason.SEASON_SUMMER);
+		register("ฤดูร้อน", CalendarSeason.SEASON_SUMMER);    // Common formal form
+		register("หน้าร้อน", CalendarSeason.SEASON_SUMMER);    // Colloquial spoken form
+		register("คิมหันต์", CalendarSeason.SEASON_SUMMER);    // Literary Sanskrit form (Kimhana)
+		register("คิมหันตฤดู", CalendarSeason.SEASON_SUMMER);   // Complete literary form
+		register("kimmhana", CalendarSeason.SEASON_SUMMER);
+		register("kimhant", CalendarSeason.SEASON_SUMMER);
+		register("ru-du-ron", CalendarSeason.SEASON_SUMMER);
+		register("ruduron", CalendarSeason.SEASON_SUMMER);
+		register("nha-ron", CalendarSeason.SEASON_SUMMER);
+		register("nharon", CalendarSeason.SEASON_SUMMER);
 
 		// Spring / Vernal Equinox Cross-alignment
-		MONTHS.put("ฤดูใบไม้ผลิ", CalendarSeason.SEASON_SPRING); // Common form ("Sprouting leaves")
-		MONTHS.put("วสันต์", CalendarSeason.SEASON_SPRING);       // Literary Sanskrit form (Vasanta)
-		MONTHS.put("วสันตฤดู", CalendarSeason.SEASON_SPRING);     // Complete literary form
-		MONTHS.put("vasanta", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("wasan", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("wasanta", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("ru-du-bai-mai-phli", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("rudubaimaiphli", CalendarSeason.SEASON_SPRING);
+		register("ฤดูใบไม้ผลิ", CalendarSeason.SEASON_SPRING); // Common form ("Sprouting leaves")
+		register("วสันต์", CalendarSeason.SEASON_SPRING);       // Literary Sanskrit form (Vasanta)
+		register("วสันตฤดู", CalendarSeason.SEASON_SPRING);     // Complete literary form
+		register("vasanta", CalendarSeason.SEASON_SPRING);
+		register("wasan", CalendarSeason.SEASON_SPRING);
+		register("wasanta", CalendarSeason.SEASON_SPRING);
+		register("ru-du-bai-mai-phli", CalendarSeason.SEASON_SPRING);
+		register("rudubaimaiphli", CalendarSeason.SEASON_SPRING);
 
 		// Autumn / Autumnal Equinox Cross-alignment
-		MONTHS.put("ฤดูใบไม้ร่วง", CalendarSeason.SEASON_AUTUMN); // Common form ("Falling leaves")
-		MONTHS.put("สารท", CalendarSeason.SEASON_AUTUMN);        // Literary Sanskrit form (Sarada)
-		MONTHS.put("ศารทฤดู", CalendarSeason.SEASON_AUTUMN);      // Complete literary form
-		MONTHS.put("osen", CalendarSeason.SEASON_AUTUMN);         // Cross-point alignment variant
-		MONTHS.put("sarada", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("sarat", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("ru-du-bai-mai-ruang", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("rudubaimairuang", CalendarSeason.SEASON_AUTUMN);
+		register("ฤดูใบไม้ร่วง", CalendarSeason.SEASON_AUTUMN); // Common form ("Falling leaves")
+		register("สารท", CalendarSeason.SEASON_AUTUMN);        // Literary Sanskrit form (Sarada)
+		register("ศารทฤดู", CalendarSeason.SEASON_AUTUMN);      // Complete literary form
+		register("osen", CalendarSeason.SEASON_AUTUMN);         // Cross-point alignment variant
+		register("sarada", CalendarSeason.SEASON_AUTUMN);
+		register("sarat", CalendarSeason.SEASON_AUTUMN);
+		register("ru-du-bai-mai-ruang", CalendarSeason.SEASON_AUTUMN);
+		register("rudubaimairuang", CalendarSeason.SEASON_AUTUMN);
 	}
 
 	private static final Pattern RATTANAKOSIN_MARKER = Pattern.compile("(?i)ร\\.?\\s?ศ\\.?|(?<![\\p{L}])r\\.?\\s?s\\.?(?![\\p{L}])");
 	private static final Pattern BUDDHIST_MARKER = Pattern.compile("(?i)พ\\.?\\s?ศ\\.?|(?<![\\p{L}])b\\.?\\s?e\\.?(?![\\p{L}])");
 
-	// Robust, exception-free Unicode pattern supporting optional day prefix and localized alphabets
-	private static final Pattern DATE_PATTERN = Pattern.compile("(?:(\\d+)\\s+)?([\\p{L}\\p{M}\\s-]+?)\\s+(\\d+)");
+	private static void register(final String name, final int month){
+		ScriptText.register(MONTHS, name, month);
+	}
 
 
 	private BuddhistCalendarParser(){}
 
 
 	/**
+	 * @return the normalized names of the months and of the seasons known by the parser
+	 */
+	public static Set<String> knownNames(){
+		return Collections.unmodifiableSet(MONTHS.keySet());
+	}
+
+	/**
 	 * Parses a raw Buddhist text expression into a validated structural container using exact flags.
 	 *
 	 * @param rawDate the string representing the calendar date (e.g., "Kimmhana 2500")
 	 * @return a configured BuddhistDateInput instance
-	 * @throws IllegalArgumentException if the text layout expression matches an invalid layout format
+	 * @throws IllegalArgumentException if the text layout expression matches an invalid layout format, or a season is given with a day
 	 */
 	public static BuddhistDateInput parse(final String rawDate){
 		// Thai digits, and the era markers: Buddhist (พ.ศ., BE) or Rattanakosin (ร.ศ., RS)
@@ -180,33 +189,14 @@ public final class BuddhistCalendarParser{
 			.replaceAll(StringUtils.SPACE);
 		text = BUDDHIST_MARKER.matcher(text)
 			.replaceAll(StringUtils.SPACE);
-		final String normalized = StringUtils.normalizeSpace(text);
-
-		// A year alone (e.g. the start of a decade or century) stands for the first day of the year
-		if(StringUtils.isNumeric(normalized))
-			return new BuddhistDateInput(Integer.parseInt(normalized), 0, 0, rattanakosin);
-
-		final Matcher matcher = DATE_PATTERN.matcher(normalized);
-		if(!matcher.matches())
-			throw new IllegalArgumentException("Invalid Buddhist date format: " + rawDate);
-
-		final String dayGroup = matcher.group(1);
-		final String monthName = matcher.group(2)
-			.toLowerCase(Locale.ROOT)
-			.trim();
-		final int year = Integer.parseInt(matcher.group(3));
-
-		final Integer month = MONTHS.get(monthName);
-		if(month == null)
-			throw new IllegalArgumentException("Unknown Buddhist month or seasonal descriptor: " + monthName);
+		final ScriptText.Parsed parsed = ScriptText.parseNormalized(ScriptText.normalize(text), rawDate, "Buddhist", MONTHS, false);
 
 		// A missing day (month and year only, or a seasonal record) is kept as 0
-		final int day = (dayGroup != null? Integer.parseInt(dayGroup): 0);
-
-		if(dayGroup != null && month > 0 && (day < 1 || day > 31))
+		final int day = parsed.dayOrZero();
+		if(parsed.day() != null && (day < 1 || day > 31))
 			throw new IllegalArgumentException("Day variable breaches standard monthly boundaries.");
 
-		return new BuddhistDateInput(year, month, day, rattanakosin);
+		return new BuddhistDateInput(parsed.year(), parsed.month(), day, rattanakosin);
 	}
 
 }
