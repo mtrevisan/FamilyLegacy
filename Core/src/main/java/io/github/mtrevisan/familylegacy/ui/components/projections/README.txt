@@ -12,6 +12,7 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### ALTA
+- la ricerca per record con nomi multipli (individual, group, place, repository, source) deve essere fatta su tutti i nomi possibili
 - scansiona il modulo Domain e trova errori o possibili migliorie
 - scansiona il modulo Core e trova errori o possibili migliorie
 - scansiona il modulo ImporterGedcom e trova errori o possibili migliorie
