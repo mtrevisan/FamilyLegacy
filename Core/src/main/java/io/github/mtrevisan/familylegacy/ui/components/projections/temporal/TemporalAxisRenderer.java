@@ -92,9 +92,11 @@ public final class TemporalAxisRenderer{
 
 		// Baseline at the bottom of the strip
 		g.setColor(COLOR_AXIS_LINE);
+		final Stroke strokeBeforeBaseline = g.getStroke();
 		g.setStroke(new BasicStroke(STRIP_BASELINE_THICKNESS));
 		final int baselineY = axisBounds.y + axisBounds.height - 1;
 		g.drawLine(axisBounds.x, baselineY, axisBounds.x + axisBounds.width - 1, baselineY);
+		g.setStroke(strokeBeforeBaseline);
 
 		if(axis.isEmpty())
 			return;
@@ -146,14 +148,20 @@ public final class TemporalAxisRenderer{
 			return;
 
 		g.setColor(COLOR_GRID_MINOR);
+		final Stroke originalStroke = g.getStroke();
 		g.setStroke(new BasicStroke(1f));
 
-		final List<TemporalAxis.Tick> ticks = axis.computeTicks();
-		for(final TemporalAxis.Tick tick : ticks){
-			final int x = contentBounds.x + tick.x();
-			if(x < contentBounds.x || x > contentBounds.x + contentBounds.width)
-				continue;
-			g.drawLine(x, contentBounds.y, x, contentBounds.y + contentBounds.height);
+		try{
+			final List<TemporalAxis.Tick> ticks = axis.computeTicks();
+			for(final TemporalAxis.Tick tick : ticks){
+				final int x = contentBounds.x + tick.x();
+				if(x < contentBounds.x || x > contentBounds.x + contentBounds.width)
+					continue;
+				g.drawLine(x, contentBounds.y, x, contentBounds.y + contentBounds.height);
+			}
+		}
+		finally{
+			g.setStroke(originalStroke);
 		}
 	}
 

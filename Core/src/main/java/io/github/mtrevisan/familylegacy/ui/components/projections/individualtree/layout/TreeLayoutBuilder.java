@@ -146,10 +146,9 @@ public final class TreeLayoutBuilder{
 			final String cellConstraints = (isVertical
 				? "cell " + dimension + StringUtils.SPACE + (maxDepth - depth) + ",span " + span + " 1,align center"
 				: "cell " + (depth + 1) + StringUtils.SPACE + dimension + ",span 1 " + span + ",align center");
-			LOGGER.debug((node.getFather() != null? node.getFather().getIndividualId(): "null")
-				+ "+"
-				+ (node.getMother() != null? node.getMother().getIndividualId(): "null")
-				+ ": " + cellConstraints);
+			if(LOGGER.isDebugEnabled())
+				LOGGER.debug("{}+{}: {}", (node.getFather() != null? node.getFather().getIndividualId(): "null"),
+					(node.getMother() != null? node.getMother().getIndividualId(): "null"), cellConstraints);
 
 			// Create the panel for this slot
 			final BoxPanelType boxPanelType = (depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY);
@@ -290,10 +289,6 @@ public final class TreeLayoutBuilder{
 			constraints.append("[grow,center]");
 		}
 		return constraints.toString();
-	}
-
-	private static PartnersPanel createEmptyPanelForNode(final BoxPanelType type, final TreeLayout treeLayout){
-		return PartnersPanel.createEmpty(type, treeLayout);
 	}
 
 	public static PartnersPanel createPanelForNode(final TreeNode node, final BoxPanelType type,

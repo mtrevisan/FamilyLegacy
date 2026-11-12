@@ -82,6 +82,9 @@ public class AgentHandler extends AbstractRecordTypeHandler<RecordDialog>{
 			return "--";
 
 		final FLEFRecord child = record.getTheOnlyChild();
+		if(child == null)
+			return "--";
+
 		if(IndividualHandler.isOfType(child)){
 			final FLEFRecord individual = model.getRecordById(child.getValue());
 			return IndividualHandler.getInstance()

@@ -213,7 +213,7 @@ public final class ConsanguineousUnionDetector{
 
 	private static String pairKey(final String a, final String b, final Map<String, String[]> pairs){
 		final String first = (a.compareTo(b) <= 0? a: b);
-		final String second = (first == a? b: a);
+		final String second = (first.equals(a) ? b: a);
 		final String key = first + '\u0000' + second;
 		pairs.putIfAbsent(key, new String[]{first, second});
 		return key;

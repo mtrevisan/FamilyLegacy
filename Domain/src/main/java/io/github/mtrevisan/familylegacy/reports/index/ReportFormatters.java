@@ -196,7 +196,6 @@ public final class ReportFormatters{
 		return (only != null? only.getValue(): StringUtils.EMPTY);
 	}
 
-	/** Extracts the referenced source ID from a {@code source} citation. */
 	/** @return the descendants of a record (at any depth) with the given tag, in the order of the tree */
 	public static List<FLEFRecord> collectDescendantsWithTag(final FLEFRecord rec, final String tag){
 		final List<FLEFRecord> out = new ArrayList<>();
@@ -212,6 +211,7 @@ public final class ReportFormatters{
 		}
 	}
 
+	/** Extracts the referenced source ID from a {@code source} citation. */
 	public static String extractSourceId(final FLEFRecord sourceChild){
 		final String direct = FLEFRecordHelper.getChildValue(sourceChild, TAG_SOURCE);
 		if(direct != null)
@@ -392,10 +392,10 @@ public final class ReportFormatters{
 			.replaceAll(StringUtils.EMPTY))
 			.replaceAll(StringUtils.EMPTY);
 		return text
-			.replace("&amp;", "&")
 			.replace("&lt;", "<")
 			.replace("&gt;", ">")
-			.replace("&quot;", "\"");
+			.replace("&quot;", "\"")
+			.replace("&amp;", "&");
 	}
 
 	/**

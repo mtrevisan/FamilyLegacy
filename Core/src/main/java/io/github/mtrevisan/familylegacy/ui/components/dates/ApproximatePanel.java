@@ -156,7 +156,7 @@ public class ApproximatePanel extends JPanel{
 		if(StringUtils.isNotEmpty(basis))
 			FLEFRecordHelper.updateChildValue(approx, DateReader.TAG_BASIS, basis);
 
-		culturalNormPanel.save(parent);
+		culturalNormPanel.save(approx);
 
 		final String margin = marginField.getText()
 			.trim();

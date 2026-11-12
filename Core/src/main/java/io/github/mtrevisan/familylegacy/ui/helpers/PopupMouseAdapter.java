@@ -28,6 +28,7 @@ import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -57,8 +58,10 @@ public class PopupMouseAdapter extends MouseAdapter{
 
 	private void processMouseEvent(final MouseEvent event){
 		if(component.isEnabled() && event.isPopupTrigger() && hasPopupMenuVisibleItems()){
-			popupMenu.show(event.getComponent(), event.getX(), event.getY());
-			popupMenu.setInvoker(component);
+			//show() sets the invoker itself, so show it directly on the owning component (not on the event source, fixing the
+			// invoker only afterwards)
+			final Point point = SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), component);
+			popupMenu.show(component, point.x, point.y);
 		}
 	}
 

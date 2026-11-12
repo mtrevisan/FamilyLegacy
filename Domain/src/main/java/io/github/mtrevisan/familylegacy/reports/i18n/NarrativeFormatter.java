@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports.i18n;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.Locale;
 
@@ -179,6 +180,18 @@ public final class NarrativeFormatter{
 		return String.format(labels.getString("GROUP_NARRATIVE_FOUNDING_UNKNOWN"), name);
 	}
 
+	public String groupNarrativeUnion(final String name, final String type, final String date, final String place){
+		return tidy(String.format(labels.getString("GROUP_NARRATIVE_UNION_BASE"), name, type, dateFrag(date), placeFrag(place)));
+	}
+
+	public String groupUnionDefaultType(){
+		return labels.getString("GROUP_UNION_DEFAULT_TYPE");
+	}
+
+	public String noIndividualAvailable(){
+		return labels.getString("REPORT_NO_INDIVIDUAL");
+	}
+
 	public String groupNarrativeResidence(final String name, final String place){
 		return String.format(labels.getString("GROUP_NARRATIVE_RESIDENCE"), name, place);
 	}
@@ -214,7 +227,7 @@ public final class NarrativeFormatter{
 
 	/** Closes the gap left by a missing fragment (a date, a place, a cause), that would leave a double space or a space before the full stop. */
 	private static String tidy(final String sentence){
-		return StringUtils.replace(StringUtils.normalizeSpace(sentence), " .", ".");
+		return Strings.CS.replace(StringUtils.normalizeSpace(sentence), " .", ".");
 	}
 
 	private String dateFrag(final String date){

@@ -70,6 +70,7 @@ public final class ReportPreferences{
 
 	private final Store store;
 	private final Supplier<String> interfaceLanguageTag;
+	private final Supplier<List<ReportLanguage>> availableLanguages;
 
 
 	/** @return	The preferences of the application, kept in its preferences file. */
@@ -93,28 +94,33 @@ public final class ReportPreferences{
 	 * @param interfaceLanguageTag	The language tag of the user interface, the language of a document until the user chooses another.
 	 */
 	public ReportPreferences(final Store store, final Supplier<String> interfaceLanguageTag){
+		this(store, interfaceLanguageTag, ReportLanguage::available);
+	}
+
+	/** @param availableLanguages	The languages a report can be written in. */
+	public ReportPreferences(final Store store, final Supplier<String> interfaceLanguageTag,
+			final Supplier<List<ReportLanguage>> availableLanguages){
 		this.store = store;
 		this.interfaceLanguageTag = interfaceLanguageTag;
+		this.availableLanguages = availableLanguages;
 	}
 
 
 	/** @return	The language of a document when the user has not chosen one: the one of the user interface. */
 	public ReportLanguage defaultLanguage(){
-		return ReportLanguage.forLanguageTag(interfaceLanguageTag.get());
+		return ReportLanguage.forLanguageTag(interfaceLanguageTag.get(), availableLanguages.get());
 	}
 
 	/** @return	The language the user chose the last time, or the default one. */
 	public ReportLanguage language(){
-		final String name = store.get(KEY_LANGUAGE);
-		if(name != null)
-			for(final ReportLanguage language : ReportLanguage.values())
-				if(language.name().equals(name))
-					return language;
+		final ReportLanguage stored = ReportLanguage.withTag(store.get(KEY_LANGUAGE), availableLanguages.get());
+		if(stored != null)
+			return stored;
 		return defaultLanguage();
 	}
 
 	public void setLanguage(final ReportLanguage language){
-		store.put(KEY_LANGUAGE, language.name());
+		store.put(KEY_LANGUAGE, language.locale().toLanguageTag());
 	}
 
 

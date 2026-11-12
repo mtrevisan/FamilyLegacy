@@ -76,7 +76,7 @@ public final class ImportReport{
 
 	/** @return	The files to write to disk (a snapshot, unmodifiable). */
 	public synchronized List<PendingFile> pendingFiles(){
-		return Collections.unmodifiableList(new ArrayList<>(pendingFiles));
+		return List.copyOf(pendingFiles);
 	}
 
 	/** Forgets the pending files (once written, or declined). */
@@ -90,7 +90,7 @@ public final class ImportReport{
 
 	/** @return	The issues kept in detail, in the order they were found (a snapshot, unmodifiable). */
 	public synchronized List<ImportIssue> issues(){
-		return Collections.unmodifiableList(new ArrayList<>(issues));
+		return List.copyOf(issues);
 	}
 
 	/** @return	How many issues there are for each reason (all of them, also the ones not kept in detail), in order of first appearance. */

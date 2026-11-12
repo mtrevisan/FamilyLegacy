@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.swing.BorderFactory;
@@ -39,6 +40,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -49,6 +51,7 @@ import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 
 
 // TODO test
@@ -66,7 +69,7 @@ public class TimeRangeDialog extends JDialog{
 	private JScrollPane waveformScrollPane;
 
 	private boolean isSaved;
-	private long totalDurationMicros;
+	private long loadTicket;
 
 
 	public static TimeRangeDialog create(final Window parent){
@@ -131,33 +134,51 @@ public class TimeRangeDialog extends JDialog{
 	}
 
 	private void loadAudioWaveform(final String uri){
-		if(StringUtils.isBlank(uri)){
-			waveformPanel.setAudioData(null, 0);
+		final long ticket = ++loadTicket;
+		waveformPanel.setAudioData(null, 0);
+		if(StringUtils.isBlank(uri))
 			return;
-		}
 
-		try{
-			final File file = new File(uri);
-			if(!file.exists()){
-				waveformPanel.setAudioData(null, 0);
-				return;
+		//the whole audio is read and converted off the event dispatch thread
+		new SwingWorker<byte[], Void>(){
+			@Override
+			protected byte[] doInBackground() throws Exception{
+				final File file = new File(uri);
+				if(!file.exists())
+					return null;
+
+				try(final AudioInputStream source = AudioSystem.getAudioInputStream(file)){
+					final AudioFormat sourceFormat = source.getFormat();
+					//the waveform is drawn from 16-bit signed little-endian samples, whatever the format of the file
+					final AudioFormat target = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16,
+						sourceFormat.getChannels(), 2 * sourceFormat.getChannels(), sourceFormat.getSampleRate(), false);
+					if(sourceFormat.matches(target))
+						return source.readAllBytes();
+
+					try(final AudioInputStream converted = AudioSystem.getAudioInputStream(target, source)){
+						return converted.readAllBytes();
+					}
+				}
 			}
 
-			try(final AudioInputStream audioStream = AudioSystem.getAudioInputStream(file)){
-				final var format = audioStream.getFormat();
-				final long frames = audioStream.getFrameLength();
-				totalDurationMicros = (frames != javax.sound.sampled.AudioSystem.NOT_SPECIFIED && format.getFrameRate() > 0)
-					? (long)(frames / format.getFrameRate() * 1_000_000.0)
-					: 0L;
+			@Override
+			protected void done(){
+				if(ticket != loadTicket)
+					return;
 
-				final byte[] audioBytes = audioStream.readAllBytes();
-				waveformPanel.setAudioData(audioBytes, format.getSampleSizeInBits());
+				try{
+					final byte[] audioBytes = get();
+					waveformPanel.setAudioData(audioBytes, audioBytes != null? 16: 0);
+				}
+				catch(final InterruptedException ie){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ee){
+					LOGGER.error("Error loading audio waveform", ee.getCause());
+					waveformPanel.setAudioData(null, 0);
+				}
 			}
-		}
-		catch(final Exception e){
-			LOGGER.error("Error loading audio waveform", e);
-			waveformPanel.setAudioData(null, 0);
-		}
+		}.execute();
 	}
 
 	public void save(){
@@ -230,6 +251,10 @@ public class TimeRangeDialog extends JDialog{
 			final Graphics2D g2 = (Graphics2D)g.create();
 			final int width = getWidth();
 			final int height = getHeight();
+			if(width <= 0){
+				g2.dispose();
+				return;
+			}
 			final int centerY = height / 2;
 
 			g2.setColor(new Color(100, 150, 220));
@@ -241,15 +266,18 @@ public class TimeRangeDialog extends JDialog{
 				if(index >= audioData.length)
 					break;
 
-				int sample = 0;
-				if(bytesPerSample == 2){
+				final int sample;
+				final double fullScale;
+				if(bytesPerSample == 2 && index + 1 < audioData.length){
 					sample = (audioData[index + 1] << 8) | (audioData[index] & 0xFF);
+					fullScale = 32768.;
 				}
 				else{
 					sample = audioData[index];
+					fullScale = 128.;
 				}
 
-				final int sampleHeight = (int)((double)sample / 32768. * centerY);
+				final int sampleHeight = (int)(sample / fullScale * centerY);
 				g2.drawLine(x, centerY - sampleHeight, x, centerY + sampleHeight);
 			}
 

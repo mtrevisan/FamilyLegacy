@@ -31,8 +31,10 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,6 +60,7 @@ public class FLEFModel implements RecordLookup{
 	private final Map<String, FLEFRecord> placesById = new HashMap<>();
 	private final Map<String, FLEFRecord> eventsById = new HashMap<>();
 	private final Map<String, FLEFRecord> questionsById = new HashMap<>();
+	private final Set<String> duplicateIds = new LinkedHashSet<>();
 
 
 	public FLEFRecord getHeader(){
@@ -73,11 +76,34 @@ public class FLEFModel implements RecordLookup{
 		this.header = header;
 	}
 
+	/**
+	 * The ids that were found twice at the top level while parsing (the last record won).
+	 */
+	public Set<String> getDuplicateIds(){
+		return Collections.unmodifiableSet(duplicateIds);
+	}
+
+	/**
+	 * NOTE: Used by {@link io.github.mtrevisan.familylegacy.io.FLEFParser#parse(String)} only.
+	 */
+	public void markDuplicateId(final String id){
+		if(id != null)
+			duplicateIds.add(id);
+	}
+
 	public List<FLEFRecord> getRecords(){
 		return records;
 	}
 
+	/**
+	 * Adds the record, replacing the one with the same id (if any).
+	 *
+	 * @throws IllegalArgumentException	If the record is {@code null} or has no id.
+	 */
 	public void addRecord(final FLEFRecord record){
+		if(record == null || record.getId() == null)
+			throw new IllegalArgumentException("A record must have an id to be added to the model");
+
 		final String id = record.getId();
 		if(recordsById.containsKey(id))
 			// Optionally remove existing record to allow replacement/update
@@ -161,12 +187,12 @@ public class FLEFModel implements RecordLookup{
 		questionsById.remove(id);
 
 		if(record != null){
-			records.remove(record);
+			records.removeIf(r -> r == record);
 
 			final String type = record.getTag();
 			final List<FLEFRecord> list = recordsByType.get(type);
 			if(list != null){
-				list.remove(record);
+				list.removeIf(r -> r == record);
 				if(list.isEmpty())
 					recordsByType.remove(type);
 			}
@@ -194,13 +220,13 @@ public class FLEFModel implements RecordLookup{
 			return false;
 
 		final FLEFModel other = (FLEFModel)obj;
-		return (Objects.equals(header, other.header)
+		return (Objects.equals(getHeader(), other.getHeader())
 			&& Objects.equals(new HashSet<>(records), new HashSet<>(other.records)));
 	}
 
 	@Override
 	public int hashCode(){
-		int hash = Objects.hash(header);
+		int hash = Objects.hash(getHeader());
 		hash = 31 * hash + childrenHash(records);
 		return hash;
 	}

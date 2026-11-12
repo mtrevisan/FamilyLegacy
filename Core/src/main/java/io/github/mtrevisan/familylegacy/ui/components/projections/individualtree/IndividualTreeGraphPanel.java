@@ -268,13 +268,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	}
 
 	public void load(final String rootIndividualId, final int maxAncestors){
-		if(!Objects.equals(currentRootIndividualId, rootIndividualId)){
-			// NOTE: clear the current couple when multiple
-//			partnerSelectionMap.remove(rootIndividualId);
-
-			// NOTE: this should be commented, otherwise paste of individual does not trigger a reload
-//			return;
-		}
+		//NOTE: do not return early when the root is unchanged, otherwise paste of individual does not trigger a reload
 
 		// Capture the currently displayed couple BEFORE the rebuild. At this
 		// point rootNode still refers to the old tree, so if the new root is
@@ -493,6 +487,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		final String centeringKey = currentRootIndividualId + "|" + treeLayout + "|" + layoutEngine.getClass().getName() + "|" + showPartner;
 		if(!centeringKey.equals(centeredKey)){
 			centeredKey = centeringKey;
+			centerNow();
 			ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
 		}
 
@@ -501,6 +496,12 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 
 			treeCanvas.repaint();
 		});
+	}
+
+	/** Centers before the first paint of the rebuilt tree, so it does not show at the old position and then jump. */
+	private void centerNow(){
+		treeScroll.validate();
+		ViewportCentering.centerOn(treeScroll, treeCanvas, true, false);
 	}
 
 	private void buildLayout(){
@@ -570,6 +571,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		treeCanvas.repaint();
 
 		//the other layout is another tree to the eye: it starts centered too
+		centerNow();
 		ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
 
 		SwingUtilities.invokeLater(() -> {

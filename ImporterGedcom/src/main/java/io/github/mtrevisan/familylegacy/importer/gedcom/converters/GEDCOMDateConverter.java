@@ -42,6 +42,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -97,6 +99,17 @@ public final class GEDCOMDateConverter{
 		.parseCaseInsensitive()
 		.appendPattern("d MMM uuuu")
 		.toFormatter(Locale.ENGLISH);
+	/** A GEDCOM time: {@code H:mm[:ss[.fraction]]}, with one or two digits for the hour. */
+	private static final DateTimeFormatter GEDCOM_TIME = new DateTimeFormatterBuilder()
+		.appendValue(ChronoField.HOUR_OF_DAY, 1, 2, SignStyle.NOT_NEGATIVE)
+		.appendLiteral(':')
+		.appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+		.optionalStart()
+		.appendLiteral(':')
+		.appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+		.optionalStart()
+		.appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+		.toFormatter(Locale.ROOT);
 
 
 	private record SingleDate(String date, String calendar){}
@@ -114,7 +127,7 @@ public final class GEDCOMDateConverter{
 	 */
 	public static FLEFRecord buildDateStructure(final String tag, final String gedcomDate){
 		final List<FLEFRecord> structures = buildDateStructures(tag, gedcomDate);
-		return (structures.isEmpty()? null: structures.get(0));
+		return (structures.isEmpty()? null: structures.getFirst());
 	}
 
 	/**
@@ -229,7 +242,7 @@ public final class GEDCOMDateConverter{
 		switch(dateInfo.getType()){
 			case POINT -> {
 				for(final String alternative : alternatives(dateInfo.getValue()))
-					texts.add(qualifier == null || QUALIFIER_PATTERN.matcher(alternative).matches()? alternative: qualifier + " " + alternative);
+					texts.add(qualifier == null || QUALIFIER_PATTERN.matcher(alternative).matches()? alternative: qualifier + StringUtils.SPACE + alternative);
 			}
 			case BOUNDED -> {
 				for(final String start : alternatives(dateInfo.getNotBefore()))
@@ -239,7 +252,7 @@ public final class GEDCOMDateConverter{
 			default -> {
 				for(final String start : alternatives(dateInfo.getFrom()))
 					for(final String end : alternatives(dateInfo.getTo()))
-						texts.add((start != null? "FROM " + start + (end != null? " ": StringUtils.EMPTY): StringUtils.EMPTY)
+						texts.add((start != null? "FROM " + start + (end != null? StringUtils.SPACE: StringUtils.EMPTY): StringUtils.EMPTY)
 							+ (end != null? "TO " + end: StringUtils.EMPTY));
 			}
 		}
@@ -279,7 +292,7 @@ public final class GEDCOMDateConverter{
 
 	/** The first alternative of a date (the validity of a fact keeps only that one). */
 	private static String first(final String date){
-		return alternatives(date).get(0);
+		return alternatives(date).getFirst();
 	}
 
 	/**
@@ -522,7 +535,7 @@ public final class GEDCOMDateConverter{
 		}
 
 		if(calendar == null)
-			calendar = (gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN);
+			calendar = (gm.group(4) != null || gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN);
 		return new SingleDate(date, calendar);
 	}
 
@@ -576,7 +589,7 @@ public final class GEDCOMDateConverter{
 		if(timeNode != null && StringUtils.isNotBlank(timeNode.getValue())){
 			try{
 				// GEDCOM 7 marks UTC with a trailing Z, the time zone GEDCOM 5.5.1 times are taken in anyway
-				time = LocalTime.parse(Strings.CS.removeEnd(timeNode.getValue().trim(), "Z"));
+				time = LocalTime.parse(Strings.CS.removeEnd(timeNode.getValue().trim(), "Z"), GEDCOM_TIME);
 			}
 			catch(final DateTimeParseException ignored){}
 		}

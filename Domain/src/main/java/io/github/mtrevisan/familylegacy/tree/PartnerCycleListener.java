@@ -34,6 +34,6 @@ import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
  */
 public interface PartnerCycleListener{
 
-	public void onPartnerCycled(Side anchorSide, IndividualSummary newPartner);
+	void onPartnerCycled(Side anchorSide, IndividualSummary newPartner);
 
 }

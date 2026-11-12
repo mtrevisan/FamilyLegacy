@@ -91,7 +91,8 @@ final class RecordSignature{
 		if(byTag.isEmpty())
 			return;
 
-		sb.append('{');
+		//the evidence is left out, and a structure that has nothing else states what one with no children does
+		final StringBuilder fields = new StringBuilder();
 		for(final Map.Entry<String, List<FLEFRecord>> entry : byTag.entrySet()){
 			final String tag = entry.getKey();
 			final TypeDefinition childType = childType(type, tag);
@@ -99,12 +100,15 @@ final class RecordSignature{
 				continue;
 
 			for(final FLEFRecord child : entry.getValue()){
-				sb.append(tag);
-				append(sb, child, childType);
-				sb.append(';');
+				fields.append(tag);
+				append(fields, child, childType);
+				fields.append(';');
 			}
 		}
-		sb.append('}');
+		if(!fields.isEmpty())
+			sb.append('{')
+				.append(fields)
+				.append('}');
 	}
 
 	/** Marker for a field that must be left out of the signature. */

@@ -85,7 +85,7 @@ public final class JurisdictionTimelineBuilder{
 	 */
 	public static TemporalProjectionModel build(final FLEFModel model, final String placeId){
 		final FLEFRecord place = (placeId != null? model.getRecordById(placeId): null);
-		if(place == null || !PlaceReader.isOfType(place) || PrivacyService.visible(model, List.of(place)).isEmpty())
+		if(!PlaceReader.isOfType(place) || PrivacyService.visible(model, List.of(place)).isEmpty())
 			return TemporalProjectionModel.empty();
 
 		final TemporalExtractor extractor = new TemporalExtractor(model, TemporalIndices.build(model));
@@ -112,7 +112,7 @@ public final class JurisdictionTimelineBuilder{
 
 			final String otherId = (isOutgoing? targetId: subjectId);
 			final FLEFRecord other = model.getRecordById(otherId);
-			if(other == null || !PlaceReader.isOfType(other) || PrivacyService.visible(model, List.of(other)).isEmpty())
+			if(!PlaceReader.isOfType(other) || PrivacyService.visible(model, List.of(other)).isEmpty())
 				continue;
 
 			(isOutgoing? outgoing: incoming).computeIfAbsent(otherId, id -> new GroupTimelineBuilder.Membership(

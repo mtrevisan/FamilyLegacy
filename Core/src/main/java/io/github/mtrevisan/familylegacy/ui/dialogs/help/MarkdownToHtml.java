@@ -204,7 +204,7 @@ public final class MarkdownToHtml{
 		int i = start;
 		while(i < lines.size() && lines.get(i).strip().startsWith(">")){
 			final String text = lines.get(i).strip().substring(1);
-			inner.add(text.startsWith(" ")? text.substring(1): text);
+			inner.add(text.startsWith(StringUtils.SPACE)? text.substring(1): text);
 			i ++;
 		}
 		html.append("<blockquote>");

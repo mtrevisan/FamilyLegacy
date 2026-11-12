@@ -25,16 +25,19 @@
 package io.github.mtrevisan.familylegacy.importer.gedcom;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -46,6 +49,10 @@ public class GEDCOMHelper{
 	private static final Pattern GEDCOM7_VERSION = Pattern.compile("^\\s*1\\s+GEDC\\s*$\\s*^\\s*2\\s+VERS\\s+7",
 		Pattern.MULTILINE);
 	private static final int HEADER_PEEK_SIZE = 8192;
+	private static final int HEADER_MARK_LIMIT = 1 << 20;
+	/** The charsets that files in a Unicode encoding often (wrongly) declare. */
+	private static final Set<String> AMBIGUOUS_CHARSETS = Set.of("ASCII", "US-ASCII", "CP1252", "WINDOWS-1252", "ISO-8859-1",
+		"ANSEL", "UTF-16", "UNICODEBIGUNMARKED");
 
 
 	private GEDCOMHelper(){}
@@ -56,33 +63,56 @@ public class GEDCOMHelper{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
 
-		// 1. Primary check: GEDCOM 7 is always UTF-8, otherwise detect charset directly from byte sequence
-		String charEncoding = (declaresGEDCOM7(in)
+		// GEDCOM 7 is always UTF-8, otherwise the charset comes from the byte order mark, the header and the bytes themselves
+		final String charEncoding = (declaresGEDCOM7(in)
 			? StandardCharsets.UTF_8.name()
-			: GEDCOMCharsetDetector.detectCharsetFromBytes(in));
+			: chooseCharset(in));
 
-		// 2. Fallback check: Read '1 CHAR' header if byte detection is inconclusive
-		if(charEncoding == null){
-			in.mark(Integer.MAX_VALUE);
-			charEncoding = readCorrectedCharsetName(in);
-			in.reset();
-
-			// Retry reading header using UTF-16 reader if initial read failed
-			if(StringUtils.isEmpty(charEncoding)){
-				in.mark(Integer.MAX_VALUE);
-				try(BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_16))){
-					charEncoding = readCorrectedCharsetName(br);
-				}
-				in.reset();
-			}
-		}
-
-		// 3. Default fallback if no charset was detected
-		if(StringUtils.isEmpty(charEncoding))
-			charEncoding = AnselInputStreamReader.CHARACTER_ENCODING;
-
-		// 4. Skip initial garbage/junk characters before '0' (0 HEAD)
+		// Skip initial garbage/junk characters before '0' (0 HEAD)
 		return buildBufferedReaderSkippingJunk(in, charEncoding);
+	}
+
+	/**
+	 * Chooses the charset of a file that is not GEDCOM 7.
+	 * <ol>
+	 *   <li>a byte order mark is conclusive;</li>
+	 *   <li>so is the charset declared in the header ({@code 1 CHAR}), which is more reliable than a guess made on the first bytes (an
+	 *   ANSEL file can look like Latin-1), but for the ones that are commonly wrong: a file that declares ASCII, ANSI, ... and is in
+	 *   fact in a Unicode encoding is read as such;</li>
+	 *   <li>lacking a (known) declaration, the guess made on the bytes, or else UTF-8.</li>
+	 * </ol>
+	 */
+	private static String chooseCharset(final InputStream in) throws IOException{
+		final String bom = GEDCOMCharsetDetector.detectBom(in);
+		if(bom != null)
+			return bom;
+
+		String declared = readCorrectedCharsetName(in);
+		if(declared != null && !isSupported(declared))
+			declared = null;
+		String detected = GEDCOMCharsetDetector.detectHeuristically(in);
+		//the name of a charset that the guess found may not be known to this runtime
+		if(detected != null && !isSupported(detected))
+			detected = null;
+
+		if(declared == null)
+			return (detected != null? detected: StandardCharsets.UTF_8.name());
+		if(AMBIGUOUS_CHARSETS.contains(declared.toUpperCase(Locale.ROOT)) && detected != null
+				&& detected.toUpperCase(Locale.ROOT).startsWith("UTF"))
+			return detected;
+		return declared;
+	}
+
+	private static boolean isSupported(final String charsetName){
+		if(AnselInputStreamReader.CHARACTER_ENCODING.equalsIgnoreCase(charsetName))
+			return true;
+
+		try{
+			return Charset.isSupported(charsetName);
+		}
+		catch(final IllegalArgumentException ignored){
+			return false;
+		}
 	}
 
 	/** Whether the header declares GEDCOM 7 ({@code 1 GEDC} followed by {@code 2 VERS 7.x}). */
@@ -120,8 +150,22 @@ public class GEDCOMHelper{
 		return bufferedReader;
 	}
 
-	private static String readCorrectedCharsetName(final InputStream is) throws IOException{
-		return readCorrectedCharsetName(new BufferedReader(new InputStreamReader(is)));
+	/**
+	 * Reads the first lines of the header, looking for the declared charset (the stream is left where it was).
+	 *
+	 * @return	The name of the charset, corrected for the generators that are known to write it wrong, {@code null} if the header does
+	 * 	not declare it (or it cannot be read: e.g. a UTF-16 file without a byte order mark).
+	 */
+	private static String readCorrectedCharsetName(final InputStream in) throws IOException{
+		in.mark(HEADER_MARK_LIMIT);
+		try{
+			//the header is ASCII, whatever the charset of the file; the reader is not closed, as that would close the stream
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.ISO_8859_1));
+			return readCorrectedCharsetName(reader);
+		}
+		finally{
+			in.reset();
+		}
 	}
 
 	private static String readCorrectedCharsetName(final BufferedReader in) throws IOException{
@@ -130,35 +174,35 @@ public class GEDCOMHelper{
 		String generatorName = null;
 		String encoding = null;
 		String version = null;
-		for(int i = 0; i < 100; i ++){
-			line = in.readLine();
-			if(line != null){
-				String[] split = PATTERN_SPACES.split(line, 3);
-				if(split.length == 3){
-					final boolean level1 = "1".equals(split[0]);
-					if(level1){
-						final String id = split[1];
-						if(generatorName == null && GEDCOMMapper.TAG_SOURCE.equals(id))
-							generatorName = split[2];
-						else if("CHAR".equals(id)){
-							//get encoding
-							encoding = split[2].toUpperCase(Locale.ROOT);
-							//look for version
-							line = in.readLine();
-							if(line != null){
-								split = PATTERN_SPACES.split(line, 3);
-								if(split.length == 3 && "2".equals(split[0]) && GEDCOMMapper.TAG_VERSION.equals(split[1]))
-									version = split[2];
-							}
-						}
-					}
-				}
+		String levelOneTag = null;
+		for(int i = 0; i < 100 && (line = in.readLine()) != null; i ++){
+			final String[] split = PATTERN_SPACES.split(StringUtils.stripStart(line, null), 3);
+			if(split.length < 2)
+				continue;
+
+			if("0".equals(split[0])){
+				//the header ends where the next record starts
+				if(i > 0 && !GEDCOMMapper.TAG_HEADER.equals(split[1]))
+					break;
+				continue;
 			}
-			if(generatorName != null && encoding != null)
-				break;
+			if("1".equals(split[0])){
+				levelOneTag = split[1];
+				if(split.length < 3)
+					continue;
+
+				if(generatorName == null && GEDCOMMapper.TAG_SOURCE.equals(levelOneTag))
+					generatorName = split[2].trim();
+				else if("CHAR".equals(levelOneTag))
+					//get encoding
+					encoding = split[2].trim().toUpperCase(Locale.ROOT);
+			}
+			else if("2".equals(split[0]) && split.length == 3 && "CHAR".equals(levelOneTag) && GEDCOMMapper.TAG_VERSION.equals(split[1]))
+				//look for version
+				version = split[2].trim();
 		}
 
-		return getCorrectedCharsetName(generatorName, encoding, version);
+		return (encoding != null? getCorrectedCharsetName(generatorName, encoding, version): null);
 	}
 
 	static String getCorrectedCharsetName(final String generatorName, String encoding, final String version){
@@ -211,7 +255,7 @@ public class GEDCOMHelper{
 		String xref = node.getXrefId();
 		if(xref != null){
 			String cleaned = IDNormalizer.clean(xref);
-			if(isValidIdFormat(cleaned)){
+			if(isUppercaseLettersThenNumbers(cleaned)){
 				id = cleaned;
 			} else {
 				id = IDGenerator.nextId(idPrefix);
@@ -235,13 +279,6 @@ public class GEDCOMHelper{
 	 */
 	public static boolean isUppercaseLettersThenNumbers(String value){
 		return value != null && UPPERCASE_LETTERS_THEN_DIGITS.matcher(value).matches();
-	}
-
-	/**
-	 * Checks if the ID matches the FLEF format: letters followed by digits.
-	 */
-	private static boolean isValidIdFormat(String id){
-		return id != null && UPPERCASE_LETTERS_THEN_DIGITS.matcher(id).matches();
 	}
 
 
@@ -320,6 +357,20 @@ public class GEDCOMHelper{
 			}
 		}
 		return (!sb.isEmpty()? sb.toString(): null);
+	}
+
+	/**
+	 * Whether a custom tag (underscore tag) of an individual or of a family is an event: it holds a date or a place.
+	 * <p>
+	 * The custom tags without data (flags, identifiers, creation and update stamps) are not.
+	 */
+	public static boolean isCustomEvent(final GEDCOMNode node){
+		final String tag = node.getTag();
+		if(!Strings.CS.startsWith(tag, "_") || GEDCOMMapper.CUSTOM_NON_EVENT_TAGS.contains(tag.toUpperCase(Locale.ROOT))
+				|| GEDCOMMapper.TAG_TODO.equalsIgnoreCase(tag) || GEDCOMMapper.TAG_MARRIED_NAME.equalsIgnoreCase(tag) || GEDCOMMapper.TAG_AKA.equalsIgnoreCase(tag))
+			return false;
+
+		return (findFirstChild(node, GEDCOMMapper.TAG_DATE) != null || findFirstChild(node, GEDCOMMapper.TAG_PLACE) != null);
 	}
 
 }

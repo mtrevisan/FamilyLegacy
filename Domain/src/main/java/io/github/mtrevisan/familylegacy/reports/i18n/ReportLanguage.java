@@ -24,110 +24,49 @@
  */
 package io.github.mtrevisan.familylegacy.reports.i18n;
 
+import io.github.mtrevisan.familylegacy.preferences.AvailableLanguages;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Properties;
 
 
 /**
- * Languages supported by the report generator.
+ * A language a report can be written in.
  *
- * <p>Each constant carries a {@link Locale} that drives locale-sensitive
- * formatting (numbers, dates, ICU plural rules) as well as a human-readable
- * display name shown in the UI.</p>
+ * <p>The languages are not a closed list: dropping a file {@code report_messages_<language>[_<COUNTRY>].properties} in
+ * {@code i18n/report} is enough to make the language available (see {@link #available()}), with the name shown in the user interface
+ * taken from its {@value #KEY_LANGUAGE_NAME} property. The file without suffix is the English one and the fallback of every text a
+ * language does not translate.</p>
  *
- * <p>Locales are obtained through {@link Locale#of} or the standard
- * constants, never through the {@code new Locale(...)} constructors
- * (deprecated since Java 19). For simple languages the single-argument
- * {@code Locale.of(language)} is used; for regional variants the
- * two-argument overload is used.</p>
- *
- * <p><b>RTL languages</b> (Arabic, Hebrew, Urdu, Persian): the
- * {@code .properties} file is UTF-8, so the text is stored literally;
- * right-to-left rendering is a concern of the output format, not of the
- * bundle.</p>
- *
- * <p><b>Plural forms</b>: Arabic declares six CLDR categories
- * ({@code zero/one/two/few/many/other}), Slavic languages declare three
- * ({@code one/few/many}), Hindi/Urdu/Bengali declare two, and Chinese,
- * Japanese, Korean, Thai, Indonesian, Turkish, Persian and Vietnamese
- * declare only {@code other}. The {@code .properties} files handle this
- * directly; the code does not need to know.</p>
+ * <p><b>RTL languages</b> (Arabic, Hebrew, Urdu, Persian): the {@code .properties} file is UTF-8, so the text is stored literally;
+ * right-to-left rendering is a concern of the output format, not of the bundle.</p>
  */
-public enum ReportLanguage{
+public final class ReportLanguage{
 
-	/* ----- Western Europe ----- */
+	private static final String BUNDLE_DIRECTORY = "/i18n/report";
+	private static final String BUNDLE_BASE_NAME = "report_messages";
+	private static final String BUNDLE_PATH = BUNDLE_DIRECTORY + "/" + BUNDLE_BASE_NAME;
+	private static final String KEY_LANGUAGE_NAME = "LANGUAGE_NAME";
 
-	ENGLISH(Locale.ENGLISH, "English"),
-	ENGLISH_GB(Locale.UK, "English (UK)"),
-	ENGLISH_US(Locale.US, "English (US)"),
-	ITALIAN(Locale.ITALIAN, "Italiano"),
-	GERMAN(Locale.GERMAN, "Deutsch"),
-	FRENCH(Locale.FRENCH, "Français"),
-	SPANISH(Locale.of("es"), "Español"),
-	PORTUGUESE(Locale.of("pt"), "Português"),
-	DUTCH(Locale.of("nl"), "Nederlands"),
 
-	/* ----- Northern Europe ----- */
-
-	SWEDISH(Locale.of("sv"), "Svenska"),
-	DANISH(Locale.of("da"), "Dansk"),
-	NORWEGIAN(Locale.of("nb"), "Norsk bokmål"),
-	FINNISH(Locale.of("fi"), "Suomi"),
-
-	/* ----- Central and Eastern Europe ----- */
-
-	POLISH(Locale.of("pl"), "Polski"),
-	CZECH(Locale.of("cs"), "Čeština"),
-	HUNGARIAN(Locale.of("hu"), "Magyar"),
-	ROMANIAN(Locale.of("ro"), "Română"),
-	RUSSIAN(Locale.of("ru"), "Русский"),
-	UKRAINIAN(Locale.of("uk"), "Українська"),
-	GREEK(Locale.of("el"), "Ελληνικά"),
-
-	/* ----- Middle East ----- */
-
-	ARABIC(Locale.of("ar"), "العربية"),
-	HEBREW(Locale.of("he"), "עברית"),
-	TURKISH(Locale.of("tr"), "Türkçe"),
-	PERSIAN(Locale.of("fa"), "فارسی"),
-
-	/* ----- South Asia ----- */
-
-	HINDI(Locale.of("hi"), "हिन्दी"),
-	BENGALI(Locale.of("bn"), "বাংলা"),
-	URDU(Locale.of("ur"), "اردو"),
-	TAMIL(Locale.of("ta"), "தமிழ்"),
-	TELUGU(Locale.of("te"), "తెలుగు"),
-	MARATHI(Locale.of("mr"), "मराठी"),
-	GUJARATI(Locale.of("gu"), "ગુજરાતી"),
-	PUNJABI(Locale.of("pa"), "ਪੰਜਾਬੀ"),
-
-	/* ----- Southeast Asia ----- */
-
-	INDONESIAN(Locale.of("id"), "Bahasa Indonesia"),
-	VIETNAMESE(Locale.of("vi"), "Tiếng Việt"),
-	THAI(Locale.of("th"), "ไทย"),
-	TAGALOG(Locale.of("tl"), "Tagalog"),
-
-	/* ----- East Asia ----- */
-
-	CHINESE_SIMPLIFIED(Locale.of("zh", "CN"), "简体中文"),
-	CHINESE_TRADITIONAL(Locale.of("zh", "TW"), "繁體中文"),
-	JAPANESE(Locale.of("ja"), "日本語"),
-	KOREAN(Locale.of("ko"), "한국어"),
-
-	/* ----- Africa ----- */
-
-	SWAHILI(Locale.of("sw"), "Kiswahili"),
-	HAUSA(Locale.of("ha"), "Hausa");
+	/** The language of the file without suffix: it is always there. */
+	public static final ReportLanguage ENGLISH = new ReportLanguage(Locale.ENGLISH);
 
 
 	private final Locale locale;
-	private final String displayName;
+	private String displayName;
 
 
-	ReportLanguage(final Locale locale, final String displayName){
-		this.locale = locale;
-		this.displayName = displayName;
+	private ReportLanguage(final Locale locale){
+		this.locale = Objects.requireNonNull(locale, "locale");
 	}
 
 
@@ -136,30 +75,107 @@ public enum ReportLanguage{
 	}
 
 	/**
+	 * @return	The languages a report can be written in: English (the root bundle) and one for each
+	 * 	{@code report_messages_<language>[_<COUNTRY>].properties} file found, English first and then sorted by name.
+	 */
+	public static List<ReportLanguage> available(){
+		final List<ReportLanguage> languages = new ArrayList<>();
+		for(final Locale found : AvailableLanguages.findLocales(BUNDLE_DIRECTORY, BUNDLE_BASE_NAME))
+			if(!Locale.ENGLISH.equals(found))
+				languages.add(of(found));
+		languages.sort((a, b) -> {
+			final int byName = a.displayName().compareToIgnoreCase(b.displayName());
+			return (byName != 0? byName: a.locale.toLanguageTag().compareTo(b.locale.toLanguageTag()));
+		});
+		languages.addFirst(ENGLISH);
+		return languages;
+	}
+
+	/** @return	{@code language} if a report can be written in it, English otherwise. */
+	public static ReportLanguage orEnglish(final ReportLanguage language){
+		return (available().contains(language)? language: ENGLISH);
+	}
+
+	/** @return	The language of the locale. */
+	public static ReportLanguage of(final Locale locale){
+		return (Locale.ENGLISH.equals(locale)? ENGLISH: new ReportLanguage(locale));
+	}
+
+	/**
 	 * @param tag	A BCP 47 language tag, as the one of the user interface ({@code "it"}, {@code "en-US"}, {@code "zh-CN"}).
-	 * @return	The language of that tag, or the closest one with the same base language; English if there is none.
+	 * @return	The available language of that tag, or the closest one with the same base language; English if there is none.
 	 */
 	public static ReportLanguage forLanguageTag(final String tag){
+		return forLanguageTag(tag, available());
+	}
+
+	/** @see #forLanguageTag(String) */
+	public static ReportLanguage forLanguageTag(final String tag, final List<ReportLanguage> candidates){
 		if(tag == null || tag.isBlank())
 			return ENGLISH;
 
 		final Locale wanted = Locale.forLanguageTag(tag.strip());
-		for(final ReportLanguage language : values())
+		for(final ReportLanguage language : candidates)
 			if(language.locale.equals(wanted))
 				return language;
-		for(final ReportLanguage language : values())
+		for(final ReportLanguage language : candidates)
 			if(language.locale.getLanguage().equals(wanted.getLanguage()))
 				return language;
 		return ENGLISH;
 	}
 
-	public String displayName(){
+	/** @return	The language with exactly that tag among the candidates, or {@code null}. */
+	public static ReportLanguage withTag(final String tag, final List<ReportLanguage> candidates){
+		if(tag != null)
+			for(final ReportLanguage language : candidates)
+				if(language.locale.toLanguageTag().equals(tag))
+					return language;
+		return null;
+	}
+
+	private String bundleFile(){
+		if(Locale.ENGLISH.equals(locale))
+			return BUNDLE_PATH + ".properties";
+
+		final String country = locale.getCountry();
+		return BUNDLE_PATH + "_" + locale.getLanguage() + (country.isEmpty()? "": "_" + country) + ".properties";
+	}
+
+	/** @return	The name of the language, written in the language itself: the {@code LANGUAGE_NAME} property of its bundle, if any. */
+	public synchronized String displayName(){
+		if(displayName == null){
+			displayName = readName();
+			if(displayName.isEmpty())
+				displayName = StringUtils.capitalize(locale.getDisplayName(locale));
+		}
 		return displayName;
+	}
+
+	private String readName(){
+		try(final InputStream stream = ReportLanguage.class.getResourceAsStream(bundleFile())){
+			if(stream != null){
+				final Properties properties = new Properties();
+				properties.load(new InputStreamReader(stream, StandardCharsets.UTF_8));
+				return properties.getProperty(KEY_LANGUAGE_NAME, "").trim();
+			}
+		}
+		catch(final IOException ignored){}
+		return "";
+	}
+
+	@Override
+	public boolean equals(final Object obj){
+		return (this == obj || obj instanceof ReportLanguage other && locale.equals(other.locale));
+	}
+
+	@Override
+	public int hashCode(){
+		return locale.hashCode();
 	}
 
 	@Override
 	public String toString(){
-		return displayName;
+		return displayName();
 	}
 
 }

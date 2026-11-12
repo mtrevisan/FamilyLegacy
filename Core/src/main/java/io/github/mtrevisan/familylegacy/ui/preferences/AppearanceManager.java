@@ -24,12 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
+import javax.swing.plaf.FontUIResource;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
@@ -129,23 +131,31 @@ public final class AppearanceManager{
 	 */
 	public static void applyFont(final Font font){
 		if(font != null){
+			// a FontUIResource, otherwise the components keep this font as if explicitly set and ignore the next change
+			final FontUIResource resource = new FontUIResource(font);
 			final UIDefaults defaults = UIManager.getDefaults();
 			for(final Object key : new ArrayList<>(defaults.keySet())){
 				if(key instanceof String s && s.endsWith(".font"))
-					defaults.put(key, font);
+					defaults.put(key, resource);
 			}
 			AppPreferences.getInstance().setFontFamily(font.getFamily());
 			AppPreferences.getInstance().setFontSize(font.getSize());
 		}
 		else{
-			// Restore the look-and-feel defaults by resetting the font keys
-			// to null; the L&F will repopulate them on the next UI update.
+			// Restore the look-and-feel defaults: copy back the fonts of the current L&F (never put null in the defaults)
 			final UIDefaults defaults = UIManager.getDefaults();
+			final UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
 			for(final Object key : new ArrayList<>(defaults.keySet())){
-				if(key instanceof String s && s.endsWith(".font"))
-					defaults.put(key, null);
+				if(key instanceof String s && s.endsWith(".font")){
+					final Object lafFont = lafDefaults.get(key);
+					if(lafFont != null)
+						defaults.put(key, lafFont);
+				}
 			}
 			AppPreferences.getInstance().setFontFamily(null);
+			final Font lafLabelFont = lafDefaults.getFont("Label.font");
+			if(lafLabelFont != null)
+				AppPreferences.getInstance().setFontSize(lafLabelFont.getSize());
 		}
 		refreshComponentTrees();
 	}
@@ -165,10 +175,11 @@ public final class AppearanceManager{
 
 		final Font font = savedFont();
 		if(font != null){
+			final FontUIResource resource = new FontUIResource(font);
 			final UIDefaults defaults = UIManager.getDefaults();
 			for(final Object key : new ArrayList<>(defaults.keySet())){
 				if(key instanceof String s && s.endsWith(".font"))
-					defaults.put(key, font);
+					defaults.put(key, resource);
 			}
 		}
 	}
@@ -184,6 +195,17 @@ public final class AppearanceManager{
 	 */
 	public static String[] availableFontFamilies(){
 		return preloadFontFamilies().join().clone();
+	}
+
+	/**
+	 * Returns the installed font families able to draw every character of the current language's messages
+	 * (see {@link I18N#allCharacters()}), sorted alphabetically.
+	 */
+	public static String[] fontFamiliesCoveringMessages(){
+		final String characters = I18N.allCharacters();
+		return Arrays.stream(availableFontFamilies())
+			.filter(family -> new Font(family, Font.PLAIN, 12).canDisplayUpTo(characters) < 0)
+			.toArray(String[]::new);
 	}
 
 	private static CompletableFuture<String[]> fontFamilies;

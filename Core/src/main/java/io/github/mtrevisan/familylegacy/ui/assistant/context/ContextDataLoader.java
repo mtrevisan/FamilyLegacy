@@ -109,6 +109,9 @@ final class ContextDataLoader{
 				continue;
 
 			final String type = EventReader.extractType(event);
+			//an event with no type matches no rule
+			if(type == null)
+				continue;
 			final DateRange range = range(event, EventReader.TAG_DATE);
 			final String who = String.join(", ", entry.getValue().stream().map(names::get).toList());
 			final String what = I18N.t("enum.event.type." + type, String.valueOf(type));

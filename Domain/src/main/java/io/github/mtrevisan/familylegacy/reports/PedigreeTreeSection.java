@@ -68,11 +68,15 @@ public final class PedigreeTreeSection implements SectionBuilder{
 		DESCENDANTS
 	}
 
-	private static final String BRANCH = "\u251C\u2500\u2500 ";  // "├── "
-	private static final String LAST_BRANCH = "\u2514\u2500\u2500 ";  // "└── "
-	private static final String VERTICAL = "\u2502   ";            // "│   "
+	// "├── "
+	private static final String BRANCH = "\u251C\u2500\u2500 ";
+	// "└── "
+	private static final String LAST_BRANCH = "\u2514\u2500\u2500 ";
+	// "│   "
+	private static final String VERTICAL = "\u2502   ";
 	private static final String SPACE = "    ";
-	private static final String ARROW = " \u2192 ";             // " → "
+	// " → "
+	private static final String ARROW = " \u2192 ";
 
 
 	private final ReportContext ctx;
@@ -122,19 +126,19 @@ public final class PedigreeTreeSection implements SectionBuilder{
 		final FLEFRecord root = directLine.getFirst();
 		sb.append(ReportFormatters.escape(ctx.displayText(root)))
 			.append(StringUtils.LF);
-		renderChildren(sb, root, StringUtils.EMPTY);
+		renderChildren(sb, root, StringUtils.EMPTY, new HashSet<>(Set.of(root.getId())));
 		return sb.toString();
 	}
 
 	private void renderChildren(final StringBuilder sb, final FLEFRecord node,
-		final String prefix){
+		final String prefix, final Set<String> path){
 		final List<FLEFRecord> next = (direction == Direction.ANCESTORS
 			? ctx.index.parentsOf(node)
 			: ctx.index.childrenOf(node));
 
 		final List<FLEFRecord> inLine = new ArrayList<>(next.size());
 		for(final FLEFRecord r : next)
-			if(directLine.contains(r))
+			if(directLine.contains(r) && !path.contains(r.getId()))
 				inLine.add(r);
 
 		for(int i = 0; i < inLine.size(); i ++){
@@ -143,7 +147,10 @@ public final class PedigreeTreeSection implements SectionBuilder{
 				.append(last? LAST_BRANCH: BRANCH)
 				.append(ReportFormatters.escape(ctx.displayText(inLine.get(i))))
 				.append(StringUtils.LF);
-			renderChildren(sb, inLine.get(i), prefix + (last? SPACE: VERTICAL));
+			//a circle of parentage (an error of the file) must not be followed forever
+			path.add(inLine.get(i).getId());
+			renderChildren(sb, inLine.get(i), prefix + (last? SPACE: VERTICAL), path);
+			path.remove(inLine.get(i).getId());
 		}
 	}
 
@@ -166,8 +173,8 @@ public final class PedigreeTreeSection implements SectionBuilder{
 		final StringBuilder header = new StringBuilder("- **")
 			.append(name).append("**");
 		if(!kinship.isBlank() && !"self".equals(kinship) && !"unrelated".equals(kinship))
-			header.append(" — *").append(ReportFormatters.escape(kinship))
-				.append("* of ").append(ReportFormatters.escape(ctx.displayText(root)));
+			header.append(" — ").append(ctx.labels.sections().collateralOf("*" + ReportFormatters.escape(kinship) + "*",
+				ReportFormatters.escape(ctx.displayText(root))));
 		out.add(new ReportSection.Paragraph(header.toString()));
 
 		final List<FLEFRecord> path = findPath(c, root);

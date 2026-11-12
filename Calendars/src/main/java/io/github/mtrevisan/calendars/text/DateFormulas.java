@@ -93,7 +93,7 @@ public final class DateFormulas{
 	public static String alternation(final List<String> tokens){
 		return tokens.stream()
 			.sorted(Comparator.comparingInt(String::length).reversed().thenComparing(Comparator.naturalOrder()))
-			.map(token -> Pattern.quote(token).replace(" ", "\\E\\s+\\Q"))
+			.map(token -> Pattern.quote(token).replace(StringUtils.SPACE, "\\E\\s+\\Q"))
 			.collect(Collectors.joining("|"));
 	}
 

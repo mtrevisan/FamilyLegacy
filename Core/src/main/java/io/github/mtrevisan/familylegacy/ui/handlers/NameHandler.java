@@ -84,7 +84,7 @@ public class NameHandler extends AbstractRecordTypeHandler<RecordDialog>{
 			return "--";
 
 		String value = NameReader.extractValue(record);
-		value = GUIHelper.limitTextLength(value.replace(StringUtils.LF, ", "));
+		value = GUIHelper.limitTextLength(StringUtils.defaultString(value).replace(StringUtils.LF, ", "));
 
 		final String type = NameReader.extractType(record);
 		if(StringUtils.isNotEmpty(type))

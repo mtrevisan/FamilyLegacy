@@ -81,8 +81,8 @@ public class ScaledImage extends JLabel{
 	private int[] curvedImageBuffer;
 	private BufferedImage viewportImage;
 	private int[] viewportImageBuffer;
-	private final double[] asinTable = new double[REQUIRED_SIZE];
-	private final double[] atan2Table = new double[REQUIRED_SIZE * REQUIRED_SIZE];
+	private double[] asinTable;
+	private double[] atan2Table;
 	private double[][][] rayVectors;
 
 	// cylindrical (equirectangular horizontal/vertical mapped) image data:
@@ -156,7 +156,13 @@ public class ScaledImage extends JLabel{
 			if(!(img instanceof BufferedImage)){
 				final BufferedImage bufferedImage = new BufferedImage(img.getWidth(null), img.getHeight(null),
 					BufferedImage.TYPE_INT_RGB);
-				bufferedImage.getGraphics().drawImage(img, 0, 0, null);
+				final Graphics g = bufferedImage.getGraphics();
+				try{
+					g.drawImage(img, 0, 0, null);
+				}
+				finally{
+					g.dispose();
+				}
 				img = bufferedImage;
 			}
 			setRectangularImage((BufferedImage)img);
@@ -185,7 +191,13 @@ public class ScaledImage extends JLabel{
 			imageHeight = image.getHeight();
 
 			this.image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
-			this.image.getGraphics().drawImage(image, 0, 0, null);
+			final Graphics g = this.image.getGraphics();
+			try{
+				g.drawImage(image, 0, 0, null);
+			}
+			finally{
+				g.dispose();
+			}
 			curvedImageBuffer = ((DataBufferInt)((BufferedImage)this.image).getRaster().getDataBuffer()).getData();
 
 			cylindrical = false;
@@ -286,13 +298,13 @@ public class ScaledImage extends JLabel{
 		for(int y = 0; y < viewportHeight; y ++)
 			for(int x = 0; x < viewportWidth; x ++){
 				rotation.applyRotation(rayVectors[x][y], rotatedVector);
-				final int iX = (int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR);
-				final int iY = (int)((rotatedVector[1] + 1.) * ACCURACY_FACTOR);
-				final int iZ = (int)((rotatedVector[2] + 1.) * ACCURACY_FACTOR);
+				final int iX = Math.clamp((int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR), 0, REQUIRED_SIZE - 1);
+				final int iY = Math.clamp((int)((rotatedVector[1] + 1.) * ACCURACY_FACTOR), 0, REQUIRED_SIZE - 1);
+				final int iZ = Math.clamp((int)((rotatedVector[2] + 1.) * ACCURACY_FACTOR), 0, REQUIRED_SIZE - 1);
 				final double u = 0.5 + atan2Table[iZ + iX * REQUIRED_SIZE] * INV_2PI;
 				final double v = 0.5 - asinTable[iY] * INV_PI;
-				final int tx = (int)(imageWidth * u);
-				final int ty = (int)(imageHeight * (1. - v));
+				final int tx = Math.clamp((int)(imageWidth * u), 0, imageWidth - 1);
+				final int ty = Math.clamp((int)(imageHeight * (1. - v)), 0, imageHeight - 1);
 				final int color = curvedImageBuffer[ty * imageWidth + tx];
 				viewportImageBuffer[y * viewportWidth + x] = color;
 			}
@@ -424,6 +436,10 @@ public class ScaledImage extends JLabel{
 	}
 
 	private void precalculateAsinAndAtan2Tables(){
+		if(asinTable == null){
+			asinTable = new double[REQUIRED_SIZE];
+			atan2Table = new double[REQUIRED_SIZE * REQUIRED_SIZE];
+		}
 		for(int i = 0; i < 2 * ACCURACY_FACTOR; i ++){
 			asinTable[i] = StrictMath.asin((i - ACCURACY_FACTOR) / ACCURACY_FACTOR);
 			for(int j = 0; j < 2 * ACCURACY_FACTOR; j ++){
@@ -618,7 +634,7 @@ public class ScaledImage extends JLabel{
 					dragStartPointY = evt.getY();
 				}
 
-				if(!viewOnly){
+				if(!viewOnly && !evt.isControlDown()){
 					final int x = Math.clamp(getInverseX(evt.getX()), 0, imageWidth);
 					final int y = Math.clamp(getInverseY(evt.getY()), 0, imageHeight);
 

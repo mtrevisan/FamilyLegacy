@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -85,8 +86,10 @@ public class MultimediaConverter{
 	 */
 	public void convert(GEDCOMNode objNode){
 		String xref = objNode.getXrefId();
-		if(xref == null)
+		if(xref == null){
+			GEDCOMImportContext.discardUnidentified(objNode);
 			return;
+		}
 
 		IDGenerator.registerExistingId(xref);
 		GEDCOMImportContext.setRecord(xref);
@@ -95,10 +98,11 @@ public class MultimediaConverter{
 		final List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(objNode, "FILE");
 		GEDCOMRecordBuilder.fillMediaRecord(media, model, objNode, (!fileNodes.isEmpty()? fileNodes.getFirst(): null), noteRawMap);
 		for(int i = 1; i < fileNodes.size(); i ++){
-			final FLEFRecord note = GEDCOMRecordBuilder.createNoteStruct("Additional file", fileNodes.get(i).getValue(), objNode);
+			final FLEFRecord note = NoteBuilder.createNoteStruct(GedcomTexts.t("title.additional_file"), fileNodes.get(i).getValue(), objNode);
 			// notes go before privacy and audit, the last fields of a MediaRecord
-			media.getChildren()
-				.add(media.getChildren().size() - 1, note);
+			if(note != null)
+				media.getChildren()
+					.add(media.getChildren().size() - 1, note);
 		}
 		// what has no field in FLEF is kept as notes
 		KeptNotes.keepIdentifiers(media, objNode, StringUtils.EMPTY, objNode);

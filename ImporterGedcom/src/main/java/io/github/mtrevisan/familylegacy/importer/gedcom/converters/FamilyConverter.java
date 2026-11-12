@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -110,7 +111,7 @@ public class FamilyConverter{
 		String familyId;
 		String husbandId;
 		String wifeId;
-		List<String> childrenIds = new ArrayList<>();
+		final List<String> childrenIds = new ArrayList<>();
 		GEDCOMNode famNode;
 	}
 
@@ -141,8 +142,10 @@ public class FamilyConverter{
 	 */
 	public void collect(GEDCOMNode famNode){
 		String famXref = famNode.getXrefId();
-		if(famXref == null)
+		if(famXref == null){
+			GEDCOMImportContext.discardUnidentified(famNode);
 			return;
+		}
 
 		IDGenerator.registerExistingId(famXref);
 		GEDCOMImportContext.setRecord(famXref);
@@ -297,7 +300,7 @@ public class FamilyConverter{
 					createGroupAttribute(child, group, GEDCOMMapper.GROUP_ATTRIBUTE_FACT_TYPES.get(typeToken));
 				else if(GEDCOMMapper.TAG_TODO.equalsIgnoreCase(child.getTag()))
 					GEDCOMRecordBuilder.createResearchTask(model, child, noteRawMap, AgentReader.TAG_GROUP, group.getId());
-				else if(GEDCOMMapper.FAMILY_EVENT_TAGS.contains(child.getTag()) || GEDCOMMapper.isCustomEvent(child)){
+				else if(GEDCOMMapper.FAMILY_EVENT_TAGS.contains(child.getTag()) || GEDCOMHelper.isCustomEvent(child)){
 					final FLEFRecord event = GEDCOMRecordBuilder.createEvent(model, child, noteRawMap, placeCache);
 					//the person the role of a citation refers to is not known
 					GEDCOMRecordBuilder.reportCitedRoles(child);
@@ -337,6 +340,17 @@ public class FamilyConverter{
 	 * The relationships are marked as derived. To be called after {@link #resolveLinks()}.
 	 */
 	public void deriveStepRelationships(){
+		//the families of each spouse, so as not to look for them among all the families for each marriage
+		final Map<String, List<FamilyLink>> familiesOf = new HashMap<>();
+		for(final FamilyLink link : familyLinks){
+			if(link.husbandId != null)
+				familiesOf.computeIfAbsent(link.husbandId, k -> new ArrayList<>())
+					.add(link);
+			if(link.wifeId != null && !link.wifeId.equals(link.husbandId))
+				familiesOf.computeIfAbsent(link.wifeId, k -> new ArrayList<>())
+					.add(link);
+		}
+
 		for(final FamilyLink marriage : familyLinks){
 			if(!individualMap.containsKey(marriage.husbandId) || !individualMap.containsKey(marriage.wifeId))
 				continue;
@@ -346,9 +360,8 @@ public class FamilyConverter{
 			for(final String[] spouses : new String[][]{{marriage.husbandId, marriage.wifeId}, {marriage.wifeId, marriage.husbandId}}){
 				final String parentId = spouses[0];
 				final String stepParentId = spouses[1];
-				for(final FamilyLink other : familyLinks){
-					if(other == marriage || !(parentId.equals(other.husbandId) || parentId.equals(other.wifeId))
-							|| stepParentId.equals(other.husbandId) || stepParentId.equals(other.wifeId))
+				for(final FamilyLink other : familiesOf.getOrDefault(parentId, List.of())){
+					if(other == marriage || stepParentId.equals(other.husbandId) || stepParentId.equals(other.wifeId))
 						continue;
 
 					for(final String childId : other.childrenIds){
@@ -376,8 +389,7 @@ public class FamilyConverter{
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(FLEFRecord.createChildWithTagAndValue(AgentReader.TAG_INDIVIDUAL, stepParentId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_STEP_CHILD))
-			.addChild(GEDCOMRecordBuilder.createNoteStruct("Derived", "Not stated in the file: derived from the marriage of "
-				+ stepParentId + " with a parent of " + childId + ", and from the child being of another family.", marriageNode))
+			.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.derived"), GedcomTexts.tf("text.step_child_derived", stepParentId, childId), marriageNode))
 			.addChild(AuditBuilder.build(marriageNode));
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
 	}
@@ -480,7 +492,7 @@ public class FamilyConverter{
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_SPOUSE));
 			if(StringUtils.isNotEmpty(marriageType))
 				note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE)
-					.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, "Type of the marriage in the file: " + marriageType))
+					.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, GedcomTexts.tf("text.marriage_type", marriageType)))
 					.addChild(AuditBuilder.build(null));
 		}
 
@@ -523,7 +535,7 @@ public class FamilyConverter{
 		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(famcNode, GEDCOMMapper.TAG_NOTE))
 			GEDCOMRecordBuilder.attachNote(relationship, model, noteNode, noteRawMap);
 		if(status != null)
-			relationship.addChild(GEDCOMRecordBuilder.createNoteStruct("Linkage status", status, famcNode));
+			relationship.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.linkage_status"), status, famcNode));
 		final String confidence = GEDCOMMapper.mapChildLinkageStatus(status);
 		if(confidence != null)
 			relationship.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_CONFIDENCE, confidence));
@@ -542,8 +554,10 @@ public class FamilyConverter{
 	private void attachAssociation(final FLEFRecord group, final GEDCOMNode famNode, final GEDCOMNode assoNode){
 		final String associateId = GEDCOMHelper.pointer(assoNode.getValue());
 		final GEDCOMNode associate = recordsById.get(associateId);
-		if(associate == null || !GEDCOMMapper.TAG_INDIVIDUAL.equals(associate.getTag()))
+		if(associate == null || !GEDCOMMapper.TAG_INDIVIDUAL.equals(associate.getTag())){
+			GEDCOMImportContext.discard(ImportReasons.OTHER, assoNode, StringUtils.EMPTY);
 			return;
+		}
 
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipReader.ID_PREFIX),
 				RelationshipReader.TYPE)

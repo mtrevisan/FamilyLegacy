@@ -112,6 +112,12 @@ public final class GEDCOMImportContext{
 		report.discard(reasonKey, item, (StringUtils.isEmpty(record)? path: record + StringUtils.SPACE + path));
 	}
 
+	/** Records the discard of a record that has no xref, so that nothing can point to it. */
+	public static void discardUnidentified(final GEDCOMNode node){
+		setRecord(StringUtils.EMPTY);
+		discard(ImportReasons.OTHER, node, StringUtils.EMPTY);
+	}
+
 	/** Records a file embedded in the data (e.g. a BLOB), to be written to disk by the application. */
 	public static synchronized void addPendingFile(final PendingFile file){
 		report.addPendingFile(file);

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.calendars.gregorian;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -250,7 +251,7 @@ public final class CalendarReforms{
 
 	private static String normalize(final String jurisdiction){
 		final String lower = jurisdiction.toLowerCase(Locale.ROOT);
-		final String decomposed = java.text.Normalizer.normalize(lower, java.text.Normalizer.Form.NFD);
+		final String decomposed = Normalizer.normalize(lower, Normalizer.Form.NFD);
 		final StringBuilder sb = new StringBuilder(decomposed.length());
 		for(int i = 0; i < decomposed.length(); i ++){
 			final char c = decomposed.charAt(i);

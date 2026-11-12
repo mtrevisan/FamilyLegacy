@@ -24,13 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gramps;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Element;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,8 +65,13 @@ final class GrampsDates{
 	private static final List<String> PERSIAN_MONTHS = List.of("farvardin", "ordibehesht", "khordad", "tir", "mordad", "shahrivar",
 		"mehr", "aban", "azar", "dey", "bahman", "esfand");
 	/** The age of an individual at an event: a number of years, that may be qualified (less than, more than, about). */
-	private static final Pattern AGE = Pattern.compile("\\s*(<|>|about|abt\\.?|ca?\\.?|circa|~)?\\s*(\\d{1,3})\\s*(?:y|yr|yrs|year|years)?\\s*",
+	private static final Pattern AGE = Pattern.compile("\\s*(<|>|circa|about|abt\\.?|ca?\\.?|~)?\\s*(.*?)\\s*",
+		Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+	/** A part of an age: a number with its unit (years when missing; months and days are less than a year). */
+	private static final Pattern AGE_PART = Pattern.compile("(\\d{1,3})\\s*(years?|yrs?|y|months?|mos?|m|days?|d)?",
 		Pattern.CASE_INSENSITIVE);
+	/** The dates already read (a date is asked for many times); the keys are not kept alive. */
+	private static final Map<Element, Optional<Parsed>> PARSED = Collections.synchronizedMap(new WeakHashMap<>());
 
 	private static final String CALENDAR_GREGORIAN = DateReader.ENUM_CALENDAR_GREGORIAN;
 	private static final String CALENDAR_JULIAN = DateReader.ENUM_CALENDAR_JULIAN;
@@ -159,8 +169,13 @@ final class GrampsDates{
 		if(!matcher.matches() || event == null || event.kind() != Kind.POINT || event.first() == null || event.first().year() <= 0)
 			return null;
 
+		//{years, whether the age says less than a year too}
+		final int[] years = yearsOf(matcher.group(2));
+		if(years == null)
+			return null;
+
 		final Single at = event.first();
-		final int year = at.year() - Integer.parseInt(matcher.group(2));
+		final int year = at.year() - years[0];
 		if(year <= 0)
 			return null;
 
@@ -171,9 +186,48 @@ final class GrampsDates{
 			case "<" -> new Parsed(Kind.BOUNDED, birth, new Single(Integer.toString(at.year()), at.calendar(), at.year()), null);
 			//older than the age: born before that year
 			case ">" -> new Parsed(Kind.BOUNDED, null, birth, null);
-			default -> new Parsed(Kind.POINT, birth, null, DateReader.ENUM_BASIS_CALCULATED);
+			//less than a year old: born the year of the event or the year before
+			default -> (years[0] == 0 && year > 1
+				? new Parsed(Kind.BOUNDED, new Single(Integer.toString(year - 1), at.calendar(), year - 1), birth, null)
+				: new Parsed(Kind.POINT, birth, null, DateReader.ENUM_BASIS_CALCULATED));
 		};
 		return structureOf(tag, parsed);
+	}
+
+	/**
+	 * @param text	An age: {@code 25}, {@code 25 years}, {@code 25y 3m}, {@code 5 months}, {@code 12 days}.
+	 * @return	The whole years (0 if the age has only months or days), {@code null} if it is not an age.
+	 */
+	private static int[] yearsOf(final String text){
+		final Matcher matcher = AGE_PART.matcher(text);
+		final int length = text.length();
+		Integer years = null;
+		boolean partial = false;
+		int position = 0;
+		while(true){
+			while(position < length && Character.isWhitespace(text.charAt(position)))
+				position ++;
+			if(position == length)
+				break;
+
+			matcher.region(position, length);
+			if(!matcher.lookingAt())
+				return null;
+
+			final String unit = matcher.group(2);
+			if(unit == null || unit.toLowerCase(Locale.ROOT).startsWith("y")){
+				if(years != null)
+					return null;
+
+				years = Integer.parseInt(matcher.group(1));
+			}
+			else
+				partial = true;
+			position = matcher.end();
+		}
+		if(years == null)
+			years = (partial? 0: null);
+		return (years != null? new int[]{years, (partial? 1: 0)}: null);
 	}
 
 	/** @return	The date as text, with its calendar when it is not the Gregorian one ({@code null} if there is no date). */
@@ -182,27 +236,30 @@ final class GrampsDates{
 			return null;
 
 		final String calendar = GrampsXML.attribute(date, "cformat");
-		final String prefix = (calendar != null && !CALENDAR_GREGORIAN.equalsIgnoreCase(calendar)? calendar + " ": StringUtils.EMPTY);
+		final String prefix = (calendar != null && !CALENDAR_GREGORIAN.equalsIgnoreCase(calendar)? calendar + StringUtils.SPACE: StringUtils.EMPTY);
 		return switch(GrampsXML.name(date)){
 			case "datestr" -> GrampsXML.attribute(date, "val");
 			case "dateval" -> {
 				final String type = GrampsXML.attribute(date, "type");
-				yield (type != null? type + " ": StringUtils.EMPTY) + prefix + GrampsXML.attribute(date, "val");
+				yield (type != null? type + StringUtils.SPACE: StringUtils.EMPTY) + prefix + StringUtils.defaultString(GrampsXML.attribute(date, "val"));
 			}
-			case "daterange" -> "between " + prefix + GrampsXML.attribute(date, "start") + " and "
-				+ GrampsXML.attribute(date, "stop");
-			case "datespan" -> "from " + prefix + GrampsXML.attribute(date, "start") + " to " + GrampsXML.attribute(date, "stop");
+			case "daterange" -> I18N.tf("import.gramps.text.between", prefix + StringUtils.defaultString(GrampsXML.attribute(date, "start")),
+				StringUtils.defaultString(GrampsXML.attribute(date, "stop")));
+			case "datespan" -> I18N.tf("import.gramps.text.span", prefix + StringUtils.defaultString(GrampsXML.attribute(date, "start")),
+				StringUtils.defaultString(GrampsXML.attribute(date, "stop")));
 			default -> null;
 		};
 	}
 
 
 	private static Parsed parse(final Element date){
-		if(date == null)
-			return null;
+		return (date != null? PARSED.computeIfAbsent(date, k -> Optional.ofNullable(parseDate(k))).orElse(null): null);
+	}
 
-		final String yearStart = newYearCalendar(date);
-		final String calendar = (yearStart != null? yearStart: calendarOf(date));
+	private static Parsed parseDate(final Element date){
+		final String baseCalendar = calendarOf(date);
+		final String yearStart = newYearCalendar(date, baseCalendar);
+		final String calendar = (yearStart != null? yearStart: baseCalendar);
 		final boolean dual = "1".equals(GrampsXML.attribute(date, "dualdated"));
 		//Gramps counts the year of a rule that begins it on 1 March (the Venetan one) as the year of the civil date minus one for the days from
 		//1 March on and as the year written before that, while the Venetan year number is the civil one from 1 March on and the civil minus one
@@ -250,7 +307,22 @@ final class GrampsDates{
 	 * @return	Whether the new-year rule of the date is written (as the calendar of the date), so that it is not lost.
 	 */
 	static boolean newYearKept(final Element date){
-		return (newYearCalendar(date) != null && parse(date) != null);
+		return (date != null && newYearCalendar(date, calendarOf(date)) != null && parse(date) != null);
+	}
+
+	/**
+	 * @param date	A date element, may be {@code null}.
+	 * @return	The quality of the date (estimated, calculated) when it cannot be kept, {@code null} if it is kept or the date has none.
+	 * 	It is kept only as the basis of a single date; a before, after, about, range or span loses it.
+	 */
+	static String ignoredQuality(final Element date){
+		final String quality = (date != null? GrampsXML.attribute(date, "quality"): null);
+		if(quality == null || parse(date) == null)
+			return null;
+
+		final String type = StringUtils.defaultString(GrampsXML.attribute(date, "type")).toLowerCase(Locale.ROOT);
+		final boolean kept = "dateval".equals(GrampsXML.name(date)) && !List.of("before", "after", "about").contains(type);
+		return (kept? null: quality);
 	}
 
 	/**
@@ -260,12 +332,11 @@ final class GrampsDates{
 	 *
 	 * @return	The calendar, {@code null} if the date has no (known) rule or if the rule cannot be written.
 	 */
-	private static String newYearCalendar(final Element date){
+	private static String newYearCalendar(final Element date, final String calendar){
 		final String rule = GrampsXML.attribute(date, "newyear");
 		if(rule == null || "1".equals(GrampsXML.attribute(date, "dualdated")))
 			return null;
 
-		final String calendar = calendarOf(date);
 		final boolean julian = CALENDAR_JULIAN.equals(calendar);
 		if(!julian && !CALENDAR_GREGORIAN.equals(calendar))
 			return null;
@@ -288,7 +359,7 @@ final class GrampsDates{
 			case "dateval" -> List.of(StringUtils.defaultString(GrampsXML.attribute(date, "val")));
 			case "daterange", "datespan" -> List.of(StringUtils.defaultString(GrampsXML.attribute(date, "start")),
 				StringUtils.defaultString(GrampsXML.attribute(date, "stop")));
-			default -> List.<String>of();
+			default -> List.of();
 		};
 		if(values.isEmpty())
 			return null;
@@ -303,6 +374,10 @@ final class GrampsDates{
 
 	/** @return	The date {@code year-month-day} as {@code yyyymmdd} (the unknown parts are {@code 0}), {@code -1} if it is not one. */
 	private static int dayKey(final String value){
+		//a date before the era is not read in the styles of the year start
+		if(value.startsWith("-"))
+			return -1;
+
 		final String[] fields = StringUtils.split(value, '-');
 		if(fields.length < 1 || fields.length > 3)
 			return -1;
@@ -368,15 +443,19 @@ final class GrampsDates{
 			return null;
 
 		final List<String> months = monthsOf(calendar);
+		//a month that the calendar does not have is not a date that can be written (it is kept as text, not reduced to the year)
+		if(month < 0 || month > months.size())
+			return null;
+
 		final StringBuilder sb = new StringBuilder();
-		if(month >= 1 && month <= months.size()){
+		if(month >= 1){
 			if(day > 0)
 				sb.append(day).append(' ');
 			sb.append(months.get(month - 1)).append(' ');
 		}
 		sb.append(year);
 		if(dual)
-			sb.append('/').append(String.format("%02d", (year + 1) % 100));
+			sb.append('/').append(String.format(Locale.ROOT, "%02d", (year + 1) % 100));
 		if(negative)
 			sb.append(" BCE");
 		return new Single(sb.toString(), calendar, (negative? -year: year));

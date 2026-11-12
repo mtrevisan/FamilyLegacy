@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.tree.TreeService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -261,7 +262,7 @@ class ToolDialogsEscapeTest{
 			owner.dispose();
 		}
 
-		System.out.println("Tool dialogs closed with a real ESC: " + audited.size() + " " + audited);
+		System.out.println("Tool dialogs closed with a real ESC: " + audited.size() + StringUtils.SPACE + audited);
 		System.out.println("Tool dialogs not built: " + notBuilt);
 		final Map<String, String> unexpected = new TreeMap<>(notBuilt);
 		unexpected.keySet().removeAll(NEEDS_SPECIAL_ARGUMENTS);

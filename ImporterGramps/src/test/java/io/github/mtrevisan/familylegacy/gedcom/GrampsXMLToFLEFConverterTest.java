@@ -53,6 +53,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -66,6 +67,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -787,13 +789,13 @@ class GrampsXMLToFLEFConverterTest{
 			final int month = (d == 0? 2: 6);
 			for(int i = 0; i < rules.length; i ++){
 				final boolean onOrAfterStart = (month > starts[i][0] || month == starts[i][0] && 10 + 10 * d >= starts[i][1]);
-				final long expected = CalendarType.JULIAN.parseToJdn(days[d].substring(8) + " " + (d == 0? "FEB": "JUN") + " "
+				final long expected = CalendarType.JULIAN.parseToJdn(days[d].substring(8) + StringUtils.SPACE + (d == 0? "FEB": "JUN") + StringUtils.SPACE
 					+ (onOrAfterStart? 1498: 1499));
 				final FLEFRecord event = record(model, "E" + d + i);
 				final String written = FLEFRecordHelper.getChildValue(event, "date.value.point.value.full_date");
 				final String calendar = FLEFRecordHelper.getChildValue(event, "date.value.point.calendar");
 				Assertions.assertEquals(expected, CalendarType.fromCode(calendar).parseToJdn(written),
-					rules[i] + " " + days[d] + " written as " + written + " (" + calendar + ")");
+					rules[i] + StringUtils.SPACE + days[d] + " written as " + written + " (" + calendar + ")");
 			}
 		}
 	}
@@ -871,6 +873,133 @@ class GrampsXMLToFLEFConverterTest{
 			ImportReasons.SOURCE_DETAIL, ImportReasons.UNMAPPED_TAG, ImportReasons.OTHER);
 		for(final String key : report.countsByReason().keySet())
 			Assertions.assertTrue(valid.contains(key), key);
+	}
+
+	/* ---------------------------- robustness ---------------------------- */
+
+	@Test
+	void theStylesOfANoteFollowTheTextAsItIsWritten() throws IOException{
+		//the text begins with a blank and has a character outside the basic plane before the style
+		final FLEFModel model = convertXml("<notes><note handle=\"_n\" id=\"N1\" change=\"1\" type=\"General\"><text>\n  \uD83D\uDE00 big word</text>"
+			+ "<style name=\"bold\"><range start=\"5\" end=\"8\"/></style></note></notes>"
+			+ "<people><person handle=\"_i\" id=\"I1\" change=\"1\"><noteref hlink=\"_n\"/></person></people>");
+
+		final String text = FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChildren(record(model, "I1"), NoteReader.TAG_NOTE).getFirst(),
+			NoteReader.TAG_TEXT);
+		Assertions.assertTrue(text.contains("**big**"), text);
+	}
+
+	@Test
+	void aNoteThatNothingRefersToIsReported() throws IOException{
+		final ImportReport report = report("<notes><note handle=\"_n\" id=\"N1\" change=\"1\"><text>alone</text></note></notes>");
+
+		Assertions.assertEquals(1, report.countsByReason().get(ImportReasons.NOTE_DETAIL));
+	}
+
+	@Test
+	void aMonthThatTheCalendarDoesNotHaveKeepsTheDateAsText() throws IOException{
+		final FLEFModel model = convertXml("<events><event handle=\"_e\" id=\"E1\" change=\"1\"><type>Birth</type><dateval val=\"1850-13-05\"/></event></events>");
+
+		final FLEFRecord birth = record(model, "E1");
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(birth, "date.value.point.value.full_date"));
+		Assertions.assertEquals(1, notesTitled(birth, "Date").size());
+	}
+
+	@Test
+	void theQualityOfADateThatCannotKeepItIsReported() throws IOException{
+		final ImportReport report = report("<events><event handle=\"_e\" id=\"E1\" change=\"1\"><type>Birth</type>"
+			+ "<dateval val=\"1850-01-01\" type=\"before\" quality=\"estimated\"/></event></events>");
+
+		Assertions.assertEquals(1, report.countsByReason().get(ImportReasons.DATE_DETAIL));
+	}
+
+	@Test
+	void anAgeWithMonthsAndDaysGivesTheBirth() throws IOException{
+		final FLEFModel years = convertAge("25y 3m", false, false);
+		Assertions.assertEquals("1855", FLEFRecordHelper.getChildValue(births(years).getFirst(), "date.value.point.value.full_date"));
+
+		final FLEFModel months = convertAge("5 months", false, false);
+		final FLEFRecord infant = births(months).getFirst();
+		Assertions.assertEquals("1879", FLEFRecordHelper.getChildValue(infant, "date.value.bounded.not_before.value.full_date"));
+		Assertions.assertEquals("1880", FLEFRecordHelper.getChildValue(infant, "date.value.bounded.not_after.value.full_date"));
+
+		Assertions.assertTrue(births(convertAge("many", false, false)).isEmpty());
+	}
+
+	@Test
+	void anAttributeWithoutValueIsReported() throws IOException{
+		final ImportReport report = report("<events><event handle=\"_e\" id=\"E1\" change=\"1\"><type>Occupation</type></event></events>"
+			+ "<people><person handle=\"_i\" id=\"I1\" change=\"1\"><eventref hlink=\"_e\" role=\"Primary\"/></person></people>");
+
+		Assertions.assertEquals(1, report.countsByReason().get(ImportReasons.OTHER));
+	}
+
+	@Test
+	void anAddressDoesNotJoinAnAmbiguousPlace() throws IOException{
+		final FLEFModel model = convertXml("<places>"
+			+ "<placeobj handle=\"_a\" id=\"P1\" type=\"City\" change=\"1\"><pname value=\"Springfield\"/></placeobj>"
+			+ "<placeobj handle=\"_b\" id=\"P2\" type=\"City\" change=\"1\"><pname value=\"Springfield\"/></placeobj></places>"
+			+ "<people><person handle=\"_i\" id=\"I1\" change=\"1\"><address><street>Main 1</street><city>Springfield</city></address></person></people>");
+
+		final long cities = model.getRecordsByType(PlaceReader.TYPE).stream()
+			.filter(place -> "Springfield".equals(FLEFRecordHelper.getChildValue(place, "name.value")))
+			.count();
+		//a third one is made: neither of the two is the city of the address
+		Assertions.assertEquals(3, cities);
+	}
+
+
+	/* ---------------------------- package ---------------------------- */
+
+	private static byte[] longNameEntry(final String name, final byte[] content) throws IOException{
+		final ByteArrayOutputStream tar = new ByteArrayOutputStream();
+		//a GNU long name: the entry before holds the name
+		tarEntry(tar, "././@LongLink", (name + "\0").getBytes(StandardCharsets.UTF_8));
+		final byte[] bytes = tar.toByteArray();
+		bytes[156] = 'L';
+		final ByteArrayOutputStream result = new ByteArrayOutputStream();
+		result.write(bytes);
+		tarEntry(result, name.substring(0, 99), content);
+		return result.toByteArray();
+	}
+
+	@Test
+	void aPackageEntryWithALongNameIsExtractedWhole(@TempDir final Path directory) throws IOException{
+		final String xml = XML_HEADER + XML_FOOTER;
+		final String longName = "photos/" + "a".repeat(120) + ".png";
+		final ByteArrayOutputStream tar = new ByteArrayOutputStream();
+		//a media whose name ends as the data does must not be taken for it
+		tarEntry(tar, "mydata.gramps", "not xml".getBytes(StandardCharsets.UTF_8));
+		tar.write(longNameEntry(longName, new byte[]{1, 2, 3}));
+		tarEntry(tar, "data.gramps", xml.getBytes(StandardCharsets.UTF_8));
+		tar.write(new byte[1024]);
+
+		final byte[] read = GrampsPackageReader.readXml(new ByteArrayInputStream(tar.toByteArray()), directory);
+
+		Assertions.assertEquals(xml, new String(read, StandardCharsets.UTF_8));
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve(longName)));
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("mydata.gramps")));
+	}
+
+	@Test
+	void aPackageWhoseDataIsNotXmlLeavesNoMedia(@TempDir final Path directory) throws IOException{
+		final ByteArrayOutputStream tar = new ByteArrayOutputStream();
+		tarEntry(tar, "data.gramps", "garbage".getBytes(StandardCharsets.UTF_8));
+		tarEntry(tar, "picture.png", new byte[]{1});
+		tar.write(new byte[1024]);
+
+		Assertions.assertThrows(IOException.class, () -> GrampsPackageReader.readXml(new ByteArrayInputStream(tar.toByteArray()), directory));
+		Assertions.assertFalse(Files.exists(directory.resolve("picture.png")));
+	}
+
+	@Test
+	void aTruncatedPackageIsAnIoError(){
+		final ByteArrayOutputStream tar = new ByteArrayOutputStream();
+		Assertions.assertThrows(IOException.class, () -> {
+			tarEntry(tar, "data.gramps", new byte[2000]);
+			final byte[] bytes = tar.toByteArray();
+			GrampsPackageReader.readXml(new ByteArrayInputStream(Arrays.copyOf(bytes, 700)), null);
+		});
 	}
 
 }

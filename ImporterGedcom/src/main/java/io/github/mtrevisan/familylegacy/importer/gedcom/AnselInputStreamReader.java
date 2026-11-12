@@ -31,6 +31,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -53,6 +57,8 @@ class AnselInputStreamReader extends InputStreamReader{
 
 	private final InputStream input;
 	private int pending;
+	/** The characters already decoded, waiting to be returned (the base letter comes before its marks in Unicode). */
+	private final Deque<Integer> decoded = new ArrayDeque<>();
 
 
 	AnselInputStreamReader(final InputStream in) throws IOException{
@@ -64,6 +70,50 @@ class AnselInputStreamReader extends InputStreamReader{
 	}
 
 	public int read() throws IOException{
+		if(!decoded.isEmpty())
+			return decoded.poll();
+
+		final int c = decode();
+		if(c < 0 || !isCombining(c))
+			return c;
+
+		//ANSEL puts the non-spacing marks before the letter they belong to, Unicode after it (and the mark closest to the letter
+		//comes first): the letter is returned first, then the marks, reversed
+		final List<Integer> marks = new ArrayList<>();
+		marks.add(c);
+		int next;
+		while((next = decode()) >= 0 && isCombining(next))
+			marks.add(next);
+		if(next < 0){
+			//no letter: the marks are returned as they are
+			decoded.addAll(marks.subList(1, marks.size()));
+			return c;
+		}
+
+		if(next < ' '){
+			//a line break (or any control character) ends what the marks belong to: they stay where they are
+			decoded.addAll(marks.subList(1, marks.size()));
+			decoded.add(next);
+			return c;
+		}
+
+		for(int i = marks.size() - 1; i >= 0; i --)
+			decoded.add(marks.get(i));
+		return next;
+	}
+
+	@Override
+	public boolean ready(){
+		return (!decoded.isEmpty() || pending >= 0);
+	}
+
+	/** Whether the character is a non-spacing mark (a combining diacritic, or a half of a double one). */
+	private static boolean isCombining(final int c){
+		return ((c >= 0x0300 && c <= 0x036F) || (c >= 0xFE20 && c <= 0xFE2F));
+	}
+
+	/** Decodes the next character (or the next pair, if the table has a precomposed one), marks included. */
+	private int decode() throws IOException{
 		final int b = pending;
 		if(b < 0)
 			//return EOF unchanged
@@ -93,14 +143,16 @@ class AnselInputStreamReader extends InputStreamReader{
 	 * Fill a supplied buffer with UNICODE characters.
 	 */
 	public int read(final char[] buffer, final int offset, final int length) throws IOException{
-		if(pending < 0)
+		if(length == 0)
+			return 0;
+		if(pending < 0 && decoded.isEmpty())
 			//have already hit EOF
 			return -1;
 
-		for(int i = offset; i < offset + length; i ++){
+		for(int i = 0; i < length; i ++){
 			final int c = read();
 			if(c < 0)
-				return i - offset;
+				return i;
 
 			buffer[offset + i] = (char)c;
 		}

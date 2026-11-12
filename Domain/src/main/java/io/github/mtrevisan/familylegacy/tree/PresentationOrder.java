@@ -127,7 +127,7 @@ public final class PresentationOrder{
 	 * @return	A new list; the input is not modified.
 	 */
 	public static <T> List<T> byDate(final Collection<T> items, final Function<? super T, NormalizedDate> dateOf){
-		return sortKeyed(items, dateOf, (a, b) -> a.compareTo(b));
+		return sortKeyed(items, dateOf, NormalizedDate::compareTo);
 	}
 
 	/**

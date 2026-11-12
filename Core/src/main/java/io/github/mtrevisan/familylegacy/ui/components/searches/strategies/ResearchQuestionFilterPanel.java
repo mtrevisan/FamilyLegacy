@@ -37,7 +37,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,22 +83,7 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 		statusCombo.addActionListener(e -> fireChanged());
 		confidenceCombo.addActionListener(e -> fireChanged());
 
-		final DocumentListener docListener = new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent e){
-				fireChanged();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent e){
-				fireChanged();
-			}
-
-			@Override
-			public void changedUpdate(final DocumentEvent e){
-				fireChanged();
-			}
-		};
+		final DocumentListener docListener = new DocumentChangeListener(this::fireChanged);
 
 		titleField.getDocument()
 			.addDocumentListener(docListener);

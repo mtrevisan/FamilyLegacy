@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gramps;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
@@ -65,6 +66,7 @@ import org.apache.commons.lang3.Strings;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
@@ -73,6 +75,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -168,6 +171,28 @@ public final class GrampsXMLToFLEFConverter{
 	private static final String GRAMPS_AGE = "age";
 	private static final String GRAMPS_NEWYEAR = "newyear";
 	private static final String GRAMPS_PRIMARY = "prim";
+	private static final String GRAMPS_TITLE = "title";
+	private static final String GRAMPS_SUFFIX = "suffix";
+	/** The types of event of Gramps (lowercase). */
+	private static final String GRAMPS_EVENT_BIRTH = "birth";
+	private static final String GRAMPS_EVENT_DEATH = "death";
+	private static final String GRAMPS_EVENT_BURIAL = "burial";
+	private static final String GRAMPS_EVENT_CREMATION = "cremation";
+	private static final String GRAMPS_EVENT_NATURALIZATION = "naturalization";
+	private static final String GRAMPS_EVENT_EMIGRATION = "emigration";
+	private static final String GRAMPS_EVENT_IMMIGRATION = "immigration";
+	private static final String GRAMPS_EVENT_CENSUS = "census";
+	private static final String GRAMPS_EVENT_PROBATE = "probate";
+	private static final String GRAMPS_EVENT_WILL = "will";
+	private static final String GRAMPS_EVENT_GRADUATION = "graduation";
+	private static final String GRAMPS_EVENT_RETIREMENT = "retirement";
+	private static final String GRAMPS_EVENT_OCCUPATION = "occupation";
+	private static final String GRAMPS_EVENT_RESIDENCE = "residence";
+	private static final String GRAMPS_EVENT_EDUCATION = "education";
+	private static final String GRAMPS_EVENT_MARRIAGE = "marriage";
+	private static final String GRAMPS_EVENT_DIVORCE = "divorce";
+	private static final String GRAMPS_EVENT_ANNULMENT = "annulment";
+	private static final String GRAMPS_EVENT_ENGAGEMENT = "engagement";
 
 	/** The identifiers that can be kept: they must begin with a letter, and have only letters and digits. */
 	private static final Pattern ID_FORMAT = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
@@ -175,20 +200,20 @@ public final class GrampsXMLToFLEFConverter{
 
 	/** The GEDCOM tag of the types of event of Gramps (lowercase), whose FLEF type is given by the mapper of GEDCOM. */
 	private static final Map<String, String> EVENT_TAGS = Map.ofEntries(
-		Map.entry(EventReader.ENUM_TYPE_BIRTH, "BIRT"), Map.entry(EventReader.ENUM_TYPE_DEATH, "DEAT"), Map.entry("baptism", "BAPM"), Map.entry(EventReader.ENUM_TYPE_BURIAL, "BURI"),
-		Map.entry("christening", "CHR"), Map.entry(EventReader.ENUM_TYPE_CREMATION, "CREM"), Map.entry("adopted", "ADOP"),
+		Map.entry(GRAMPS_EVENT_BIRTH, "BIRT"), Map.entry(GRAMPS_EVENT_DEATH, "DEAT"), Map.entry("baptism", "BAPM"), Map.entry(GRAMPS_EVENT_BURIAL, "BURI"),
+		Map.entry("christening", "CHR"), Map.entry(GRAMPS_EVENT_CREMATION, "CREM"), Map.entry("adopted", "ADOP"),
 		Map.entry("bar mitzvah", "BARM"), Map.entry("bas mitzvah", "BASM"), Map.entry("blessing", "BLES"),
 		Map.entry("adult christening", "CHRA"), Map.entry("confirmation", "CONF"), Map.entry("first communion", "FCOM"),
-		Map.entry("ordination", "ORDN"), Map.entry(EventReader.ENUM_TYPE_NATURALIZATION, "NATU"), Map.entry(EventReader.ENUM_TYPE_EMIGRATION, "EMIG"),
-		Map.entry(EventReader.ENUM_TYPE_IMMIGRATION, "IMMI"), Map.entry(EventReader.ENUM_TYPE_CENSUS, "CENS"), Map.entry(EventReader.ENUM_TYPE_PROBATE, "PROB"), Map.entry(EventReader.ENUM_TYPE_WILL, "WILL"),
-		Map.entry(EventReader.ENUM_TYPE_GRADUATION, "GRAD"), Map.entry(EventReader.ENUM_TYPE_RETIREMENT, "RETI"),
-		Map.entry(IndividualAttributeReader.ENUM_TYPE_OCCUPATION, "OCCU"), Map.entry(IndividualAttributeReader.ENUM_TYPE_RESIDENCE, "RESI"), Map.entry(IndividualAttributeReader.ENUM_TYPE_EDUCATION, "EDUC"),
+		Map.entry("ordination", "ORDN"), Map.entry(GRAMPS_EVENT_NATURALIZATION, "NATU"), Map.entry(GRAMPS_EVENT_EMIGRATION, "EMIG"),
+		Map.entry(GRAMPS_EVENT_IMMIGRATION, "IMMI"), Map.entry(GRAMPS_EVENT_CENSUS, "CENS"), Map.entry(GRAMPS_EVENT_PROBATE, "PROB"), Map.entry(GRAMPS_EVENT_WILL, "WILL"),
+		Map.entry(GRAMPS_EVENT_GRADUATION, "GRAD"), Map.entry(GRAMPS_EVENT_RETIREMENT, "RETI"),
+		Map.entry(GRAMPS_EVENT_OCCUPATION, "OCCU"), Map.entry(GRAMPS_EVENT_RESIDENCE, "RESI"), Map.entry(GRAMPS_EVENT_EDUCATION, "EDUC"),
 		Map.entry("religion", "RELI"), Map.entry("nationality", "NATI"), Map.entry("property", "PROP"),
 		Map.entry("caste", "CAST"), Map.entry("physical description", "DSCR"), Map.entry("number of children", "NCHI"),
 		Map.entry("number of marriages", "NMR"), Map.entry("social security number", "SSN"),
 		Map.entry("nobility title", "TITL"), Map.entry("identification number", "IDNO"),
-		Map.entry(EventReader.ENUM_TYPE_MARRIAGE, "MARR"), Map.entry(EventReader.ENUM_TYPE_DIVORCE, "DIV"), Map.entry(EventReader.ENUM_TYPE_ANNULMENT, "ANUL"),
-		Map.entry(EventReader.ENUM_TYPE_ENGAGEMENT, "ENGA"), Map.entry("marriage banns", "MARB"), Map.entry("marriage contract", "MARC"),
+		Map.entry(GRAMPS_EVENT_MARRIAGE, "MARR"), Map.entry(GRAMPS_EVENT_DIVORCE, "DIV"), Map.entry(GRAMPS_EVENT_ANNULMENT, "ANUL"),
+		Map.entry(GRAMPS_EVENT_ENGAGEMENT, "ENGA"), Map.entry("marriage banns", "MARB"), Map.entry("marriage contract", "MARC"),
 		Map.entry("marriage license", "MARL"), Map.entry("marriage settlement", "MARS"), Map.entry("divorce filing", "DIVF"));
 	/** The tags that are attributes of an individual (they are not events). */
 	private static final Set<String> ATTRIBUTE_TAGS = Set.of("OCCU", "RESI", "EDUC", "RELI", "NATI", "PROP", "CAST", "DSCR",
@@ -237,6 +262,8 @@ public final class GrampsXMLToFLEFConverter{
 	private final Map<String, String> tagNames = new HashMap<>();
 	/** The identifiers of the places by name and type, to find the ones that are already there. */
 	private final Map<String, String> placeIds = new HashMap<>();
+	/** The keys of the places that more than one place has: an address does not belong to any of them. */
+	private final Set<String> ambiguousPlaceKeys = new HashSet<>();
 	/** The individuals that have a birth with a date. */
 	private final Set<String> datedBirths = new HashSet<>();
 	/** The size of the images by media. */
@@ -288,8 +315,8 @@ public final class GrampsXMLToFLEFConverter{
 	 * @return	The model.
 	 * @throws IOException	If the document is not a valid XML, or is not a Gramps one.
 	 */
-	public static FLEFModel convert(final byte[] xml, final GEDCOMToFLEFConverter.ProgressListener listener, final ImportReport report,
-			final Path mediaDirectory) throws IOException{
+	public static synchronized FLEFModel convert(final byte[] xml, final GEDCOMToFLEFConverter.ProgressListener listener,
+			final ImportReport report, final Path mediaDirectory) throws IOException{
 		final Document document;
 		try{
 			document = GrampsXML.parse(xml);
@@ -307,37 +334,38 @@ public final class GrampsXMLToFLEFConverter{
 
 
 	private FLEFModel build(final GEDCOMToFLEFConverter.ProgressListener listener){
-		listener.onProgress(0, "Indexing…");
+		listener.onProgress(0, t("progress.indexing"));
 		index();
 		allocateIds();
 		collectOwners();
 		collectDatedBirths();
 
-		listener.onProgress(10, "Header…");
+		listener.onProgress(10, t("progress.header"));
 		header();
-		listener.onProgress(20, "Places…");
+		listener.onProgress(20, t("progress.places"));
 		for(final Element place : items(GRAMPS_PLACES, GRAMPS_PLACEOBJ))
 			place(place);
 		for(final Element place : items(GRAMPS_PLACES, GRAMPS_PLACEOBJ))
 			placeRelationships(place);
-		listener.onProgress(30, "Repositories and media…");
+		listener.onProgress(30, t("progress.repositories_media"));
 		for(final Element repository : items("repositories", GRAMPS_REPOSITORY))
 			repository(repository);
 		for(final Element object : items("objects", GRAMPS_OBJECT))
 			media(object);
-		listener.onProgress(40, "Individuals…");
+		listener.onProgress(40, t("progress.individuals"));
 		for(final Element person : items(GRAMPS_PEOPLE, GRAMPS_PERSON))
 			person(person);
-		listener.onProgress(60, "Families…");
+		listener.onProgress(60, t("progress.families"));
 		for(final Element family : items(GRAMPS_FAMILIES, GRAMPS_FAMILY))
 			family(family);
-		listener.onProgress(75, "Events…");
+		listener.onProgress(75, t("progress.events"));
 		for(final Element event : items("events", GRAMPS_EVENT))
 			event(event);
-		listener.onProgress(90, "Sources…");
+		listener.onProgress(90, t("progress.sources"));
 		for(final Element source : items("sources", GRAMPS_SOURCE))
 			source(source);
-		listener.onProgress(100, "Done");
+		orphanNotes();
+		listener.onProgress(100, t("progress.done"));
 		return model;
 	}
 
@@ -345,6 +373,26 @@ public final class GrampsXMLToFLEFConverter{
 	/* ======================================================================
 	 *                          Preparation
 	 * ====================================================================== */
+
+	private static String t(final String key){
+		return I18N.t("import.gramps." + key);
+	}
+
+	private static String tf(final String key, final Object... arguments){
+		return I18N.tf("import.gramps." + key, arguments);
+	}
+
+	/** Tells the notes that no record refers to: FLEF keeps a note only inside the record it is about, so they are not kept. */
+	private void orphanNotes(){
+		final Set<String> referenced = new HashSet<>();
+		final NodeList references = root.getElementsByTagNameNS("*", GRAMPS_NOTEREF);
+		for(int i = 0; i < references.getLength(); i ++)
+			referenced.add(GrampsXML.attribute((Element)references.item(i), GRAMPS_HLINK));
+		for(final Element note : items("notes", GRAMPS_NOTE))
+			if(!referenced.contains(GrampsXML.attribute(note, GRAMPS_HANDLE)))
+				discard(ImportReasons.NOTE_DETAIL, tf("discard.note_unattached", GrampsXML.attribute(note, "id"),
+					StringUtils.abbreviate(StringUtils.defaultString(GrampsXML.childText(note, GRAMPS_TEXT)), 80)), note);
+	}
 
 	private List<Element> items(final String collection, final String item){
 		return GrampsXML.children(GrampsXML.child(root, collection), item);
@@ -392,7 +440,13 @@ public final class GrampsXMLToFLEFConverter{
 
 	/** Tells that the new-year rule of a date is not kept (the default ones say nothing). */
 	private void newYear(final Element date, final Element about){
-		final String newYear = (date != null? GrampsXML.attribute(date, GRAMPS_NEWYEAR): null);
+		if(date == null)
+			return;
+
+		final String quality = GrampsDates.ignoredQuality(date);
+		if(quality != null)
+			discard(ImportReasons.DATE_DETAIL, "quality=" + quality, about);
+		final String newYear = GrampsXML.attribute(date, GRAMPS_NEWYEAR);
 		if(newYear != null && !"0".equals(newYear) && !"Jan1".equalsIgnoreCase(newYear) && !GrampsDates.newYearKept(date))
 			discard(ImportReasons.DATE_DETAIL, GRAMPS_NEWYEAR + "=" + newYear, about);
 	}
@@ -402,7 +456,7 @@ public final class GrampsXMLToFLEFConverter{
 		final String type = GrampsXML.attribute(attribute, GRAMPS_TYPE);
 		final String value = GrampsXML.attribute(attribute, GRAMPS_VALUE);
 		if(type != null || value != null)
-			discard(ImportReasons.OTHER, GRAMPS_ATTRIBUTE + " " + Objects.toString(type, "?") + "=" + Objects.toString(value, "?"), about);
+			discard(ImportReasons.OTHER, GRAMPS_ATTRIBUTE + StringUtils.SPACE + Objects.toString(type, "?") + "=" + Objects.toString(value, "?"), about);
 	}
 
 	/** Tells that the data entries of a source or a citation are not kept. */
@@ -412,9 +466,9 @@ public final class GrampsXMLToFLEFConverter{
 				final String key = GrampsXML.attribute(entry, "key");
 				final String value = GrampsXML.attribute(entry, GRAMPS_VALUE);
 				if(key != null || value != null)
-					discard(ImportReasons.SOURCE_DETAIL, name + " " + Objects.toString(key, "?") + "=" + Objects.toString(value, "?"), holder);
+					discard(ImportReasons.SOURCE_DETAIL, name + StringUtils.SPACE + Objects.toString(key, "?") + "=" + Objects.toString(value, "?"), holder);
 				for(final Element item : GrampsXML.children(entry))
-					discard(ImportReasons.SOURCE_DETAIL, name + " " + Objects.toString(GrampsXML.attribute(item, "key"), "?") + "="
+					discard(ImportReasons.SOURCE_DETAIL, name + StringUtils.SPACE + Objects.toString(GrampsXML.attribute(item, "key"), "?") + "="
 						+ Objects.toString(GrampsXML.attribute(item, GRAMPS_VALUE), "?"), holder);
 			}
 	}
@@ -493,7 +547,7 @@ public final class GrampsXMLToFLEFConverter{
 	}
 
 	private static boolean isBirth(final Element event){
-		return EventReader.ENUM_TYPE_BIRTH.equalsIgnoreCase(GrampsXML.childText(event, GRAMPS_TYPE));
+		return GRAMPS_EVENT_BIRTH.equalsIgnoreCase(GrampsXML.childText(event, GRAMPS_TYPE));
 	}
 
 
@@ -587,12 +641,13 @@ public final class GrampsXMLToFLEFConverter{
 				tags.add(name);
 		}
 		if(!tags.isEmpty())
-			parent.addChild(note("Tags", String.join(", ", tags), holder));
+			parent.addChild(note(t("title.tags"), String.join(", ", tags), holder));
 	}
 
 	/** A note of Gramps; its formatting (bold, italic, links) is kept as Markdown. */
 	private FLEFRecord noteOf(final Element note){
-		final String text = GrampsXML.childText(note, GRAMPS_TEXT);
+		//the styles are positions in the text as it is written: it is not trimmed before they are applied
+		final String text = GrampsXML.rawText(GrampsXML.child(note, GRAMPS_TEXT));
 		final String markdown = ("1".equals(GrampsXML.attribute(note, "format"))? null: markdown(text, note));
 		final String type = GrampsXML.attribute(note, GRAMPS_TYPE);
 		//the types that only say what the note is about are of no use
@@ -608,6 +663,7 @@ public final class GrampsXMLToFLEFConverter{
 		if(text == null)
 			return null;
 
+		final int length = text.codePointCount(0, text.length());
 		final List<int[]> insertions = new ArrayList<>();
 		final List<String> marks = new ArrayList<>();
 		for(final Element style : GrampsXML.children(note, "style")){
@@ -625,20 +681,30 @@ public final class GrampsXMLToFLEFConverter{
 			}
 			else if("link".equals(name) && value != null){
 				open = "[";
-				close = "](" + value + ")";
+				close = "](" + Strings.CS.replace(Strings.CS.replace(value, StringUtils.SPACE, "%20"), ")", "%29") + ")";
 			}
 			else
 				continue;
 
 			for(final Element range : GrampsXML.children(style, "range"))
 				try{
+					//Gramps counts the characters of the text, not the units of UTF-16
 					final int start = Integer.parseInt(GrampsXML.attribute(range, "start"));
 					final int end = Integer.parseInt(GrampsXML.attribute(range, "end"));
-					if(start >= 0 && end <= text.length() && start < end){
-						marks.add(open);
-						insertions.add(new int[]{start, 1, marks.size() - 1});
-						marks.add(close);
-						insertions.add(new int[]{end, 0, marks.size() - 1});
+					if(start >= 0 && end <= length && start < end){
+						int from = text.offsetByCodePoints(0, start);
+						int to = text.offsetByCodePoints(0, end);
+						//a mark is not valid next to a blank
+						while(from < to && Character.isWhitespace(text.charAt(from)))
+							from ++;
+						while(to > from && Character.isWhitespace(text.charAt(to - 1)))
+							to --;
+						if(from < to){
+							marks.add(open);
+							insertions.add(new int[]{from, 1, marks.size() - 1});
+							marks.add(close);
+							insertions.add(new int[]{to, 0, marks.size() - 1});
+						}
 					}
 				}
 				catch(final NumberFormatException ignored){
@@ -672,7 +738,7 @@ public final class GrampsXMLToFLEFConverter{
 		if(structure != null)
 			parent.addChild(structure);
 		else
-			parent.addChild(note("Date", GrampsDates.text(date), about));
+			parent.addChild(note(t("title.date"), GrampsDates.text(date), about));
 	}
 
 	/** Writes the validity of a fact observed at a date. */
@@ -687,7 +753,7 @@ public final class GrampsXMLToFLEFConverter{
 			parent.addChild(validity[1]);
 		}
 		else
-			parent.addChild(note("Date", GrampsDates.text(date), about));
+			parent.addChild(note(t("title.date"), GrampsDates.text(date), about));
 	}
 
 	private static Element dateOf(final Element parent){
@@ -729,7 +795,7 @@ public final class GrampsXMLToFLEFConverter{
 			final Element source = (citation != null? target(GrampsXML.child(citation, "sourceref"), GRAMPS_SOURCE): null);
 			if(source == null){
 				if(citation != null)
-					discard(ImportReasons.SOURCE_DETAIL, "citation " + Objects.toString(GrampsXML.childText(citation, "page"), "without source"), holder);
+					discard(ImportReasons.SOURCE_DETAIL, tf("discard.citation", Objects.toString(GrampsXML.childText(citation, "page"), t("discard.without_source"))), holder);
 				continue;
 			}
 
@@ -744,7 +810,7 @@ public final class GrampsXMLToFLEFConverter{
 			newYear(dateOf(citation), citation);
 			final String date = GrampsDates.text(dateOf(citation));
 			if(date != null)
-				remarks.add("Date: " + date);
+				remarks.add(tf("text.date", date));
 
 			final List<FLEFRecord> extracts = new ArrayList<>();
 			for(final Element objectReference : GrampsXML.children(citation, GRAMPS_OBJREF)){
@@ -766,10 +832,12 @@ public final class GrampsXMLToFLEFConverter{
 					remarks.add(text);
 			}
 			for(final Element attribute : GrampsXML.children(citation, "srcattribute"))
-				remarks.add(GrampsXML.attribute(attribute, GRAMPS_TYPE) + ": " + GrampsXML.attribute(attribute, GRAMPS_VALUE));
+				if(GrampsXML.attribute(attribute, GRAMPS_TYPE) != null || GrampsXML.attribute(attribute, GRAMPS_VALUE) != null)
+					remarks.add(Objects.toString(GrampsXML.attribute(attribute, GRAMPS_TYPE), "?") + ": "
+						+ Objects.toString(GrampsXML.attribute(attribute, GRAMPS_VALUE), "?"));
 			if(!remarks.isEmpty())
 				if(extracts.isEmpty())
-					parent.addChild(note("Citation of " + sourceId, String.join(StringUtils.LF, remarks), citation));
+					parent.addChild(note(tf("title.citation", sourceId), String.join(StringUtils.LF, remarks), citation));
 				else
 					extracts.getFirst()
 						.addChild(child(SourceCitationReader.TAG_REMARK, String.join(StringUtils.LF, remarks)));
@@ -820,6 +888,7 @@ public final class GrampsXMLToFLEFConverter{
 				continue;
 
 			final String mediaId = id(object);
+			final boolean cropped = (cropOrNull(CropReader.TAG_CROP, object, reference) != null);
 			if(first && (IndividualReader.isOfType(parent) || GroupReader.isOfType(parent)))
 				parent.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_PREFERRED_IMAGE)
 					.addChild(child(CropReader.TAG_MEDIA, mediaId))
@@ -830,7 +899,7 @@ public final class GrampsXMLToFLEFConverter{
 				final String description = GrampsXML.attribute(GrampsXML.child(object, "file"), GRAMPS_DESCRIPTION);
 				final FLEFRecord record = FLEFRecord.createMainRecord(nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
 					.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
-						.addChild(child(NameReader.TAG_VALUE, description != null? description: "Media " + mediaId)))
+						.addChild(child(NameReader.TAG_VALUE, description != null? description: tf("name.media", mediaId))))
 					.addChild(child(SourceReader.TAG_MEDIA, mediaId))
 					.addChild(audit(isoOf(object)));
 				model.addRecord(record);
@@ -847,15 +916,16 @@ public final class GrampsXMLToFLEFConverter{
 				.addChild(child(SourceCitationReader.TAG_SOURCE, source.getId()))
 				.addChild(extract)
 				.addChild(child(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS));
+			privacy(structure, reference);
 			parent.addChild(structure);
 			//the citations of the reference are evidence of the record that has the media
 			citations(parent, reference);
 
-			if(cropOrNull(CropReader.TAG_CROP, object, reference) == null){
+			if(!cropped){
 				final String region = regionOf(reference);
 				if(region != null){
-					parent.addChild(note("Region of " + mediaId, region, holder));
-					discard(ImportReasons.MEDIA_DETAIL, "region of " + mediaId + " " + region, object);
+					parent.addChild(note(tf("title.region", mediaId), region, holder));
+					discard(ImportReasons.MEDIA_DETAIL, tf("discard.region", mediaId, region), object);
 				}
 			}
 		}
@@ -887,7 +957,7 @@ public final class GrampsXMLToFLEFConverter{
 	 * region, in percent, as a note.
 	 *
 	 * @param tag	The tag of the crop.
-	 * @return	The crop, {@code null} if there is no region or it cannot be converted.
+	 * @return	The crop, {@code null} if there is no region, or it cannot be converted.
 	 */
 	private FLEFRecord cropOrNull(final String tag, final Element object, final Element reference){
 		final Element region = GrampsXML.child(reference, "region");
@@ -923,8 +993,8 @@ public final class GrampsXMLToFLEFConverter{
 
 	/** @return	The start and the length in pixels of a span between two percentages of a size, within the size (length at least 1). */
 	private static int[] span(final double first, final double second, final int size){
-		final int start = (int)Math.max(0, Math.min(size - 1, Math.round(Math.min(first, second) * size / 100.)));
-		final int end = (int)Math.max(start + 1, Math.min(size, Math.round(Math.max(first, second) * size / 100.)));
+		final int start = (int)Math.clamp(size - 1, 0, Math.round(Math.min(first, second) * size / 100.));
+		final int end = (int)Math.clamp(size, start + 1, Math.round(Math.max(first, second) * size / 100.));
 		return new int[]{start, end - start};
 	}
 
@@ -971,8 +1041,8 @@ public final class GrampsXMLToFLEFConverter{
 		if(region == null)
 			return null;
 
-		return "from (" + GrampsXML.attribute(region, "corner1_x") + "%, " + GrampsXML.attribute(region, "corner1_y") + "%) to ("
-			+ GrampsXML.attribute(region, "corner2_x") + "%, " + GrampsXML.attribute(region, "corner2_y") + "%)";
+		return tf("text.region", GrampsXML.attribute(region, "corner1_x"), GrampsXML.attribute(region, "corner1_y"),
+			GrampsXML.attribute(region, "corner2_x"), GrampsXML.attribute(region, "corner2_y"));
 	}
 
 
@@ -1041,7 +1111,7 @@ public final class GrampsXMLToFLEFConverter{
 		for(final String part : new String[]{street, locality, city, county})
 			if(part != null)
 				lines.add(part);
-		final String region = StringUtils.trimToNull(StringUtils.defaultString(state) + " " + StringUtils.defaultString(postal));
+		final String region = StringUtils.trimToNull(StringUtils.defaultString(state) + StringUtils.SPACE + StringUtils.defaultString(postal));
 		if(region != null)
 			lines.add(region);
 		if(country != null)
@@ -1071,14 +1141,14 @@ public final class GrampsXMLToFLEFConverter{
 		if(FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME).isEmpty()){
 			final String title = GrampsXML.childText(element, "ptitle");
 			place.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
-				.addChild(child(NameReader.TAG_VALUE, title != null? title: "Place " + id(element))));
+				.addChild(child(NameReader.TAG_VALUE, title != null? title: tf("name.place", id(element)))));
 		}
 
 		final String type = GrampsXML.attribute(element, GRAMPS_TYPE);
 		if(type != null && !TYPE_UNKNOWN.equalsIgnoreCase(type))
 			place.addChild(child(PlaceReader.TAG_TYPE, GEDCOMMapper.toTypeToken(type)));
 		for(final FLEFRecord name : FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME))
-			placeIds.putIfAbsent(placeKey(FLEFRecordHelper.getChildValue(name, NameReader.TAG_VALUE),
+			registerPlace(placeKey(FLEFRecordHelper.getChildValue(name, NameReader.TAG_VALUE),
 				FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE)), place.getId());
 
 		final Element coordinates = GrampsXML.child(element, "coord");
@@ -1087,16 +1157,16 @@ public final class GrampsXMLToFLEFConverter{
 			place.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_LOCATION)
 				.addChild(child(PlaceReader.TAG_COORDINATES, iso)));
 		else if(coordinates != null)
-			discard(ImportReasons.PLACE_DETAIL, "coord " + GrampsXML.attribute(coordinates, "lat") + ", " + GrampsXML.attribute(coordinates, "long"), element);
+			discard(ImportReasons.PLACE_DETAIL, tf("discard.coordinates", GrampsXML.attribute(coordinates, "lat"), GrampsXML.attribute(coordinates, "long")), element);
 
 		citations(place, element);
 		final String code = GrampsXML.childText(element, "code");
 		if(code != null)
-			place.addChild(note("Code", code, element));
+			place.addChild(note(t("title.code"), code, element));
 		for(final Element location : GrampsXML.children(element, "location"))
-			place.addChild(note("Location", locationText(location), element));
+			place.addChild(note(t("title.location"), locationText(location), element));
 		for(final Element url : GrampsXML.children(element, GRAMPS_URL))
-			place.addChild(note("URL", urlText(url), element));
+			place.addChild(note(t("title.url"), urlText(url), element));
 		notes(place, element);
 		media(place, element);
 		privacy(place, element);
@@ -1154,6 +1224,12 @@ public final class GrampsXMLToFLEFConverter{
 			|| PlaceReader.ENUM_TYPE_ARCHDIOCESE.equalsIgnoreCase(type));
 	}
 
+	private void registerPlace(final String key, final String id){
+		final String known = placeIds.putIfAbsent(key, id);
+		if(known != null && !known.equals(id))
+			ambiguousPlaceKeys.add(key);
+	}
+
 	private static String placeKey(final String name, final String type){
 		return StringUtils.defaultString(name).toLowerCase(Locale.ROOT) + "|" + StringUtils.defaultString(type).toLowerCase(Locale.ROOT);
 	}
@@ -1170,7 +1246,8 @@ public final class GrampsXMLToFLEFConverter{
 			return null;
 
 		final String name = Strings.CS.replace(text, StringUtils.LF, ", ");
-		final String known = placeIds.get(placeKey(name, PlaceReader.ENUM_TYPE_ADDRESS));
+		final String addressKey = placeKey(name, PlaceReader.ENUM_TYPE_ADDRESS);
+		final String known = (!ambiguousPlaceKeys.contains(addressKey)? placeIds.get(addressKey): null);
 		if(known != null)
 			return known;
 
@@ -1186,7 +1263,9 @@ public final class GrampsXMLToFLEFConverter{
 			if(container[0] == null || container[0].equalsIgnoreCase(name))
 				continue;
 
-			final String existing = placeIds.get(placeKey(container[0], container[1]));
+			final String containerKey = placeKey(container[0], container[1]);
+			//a name that many places have says nothing of which one it is
+			final String existing = (!ambiguousPlaceKeys.contains(containerKey)? placeIds.get(containerKey): null);
 			final String containerId = (existing != null? existing: newPlace(container[0], container[1]));
 			addPlaceRelationship(contained, containerId);
 			//the container that was there has its own containers
@@ -1205,7 +1284,7 @@ public final class GrampsXMLToFLEFConverter{
 			.addChild(child(PlaceReader.TAG_TYPE, type))
 			.addChild(audit(now));
 		model.addRecord(place);
-		placeIds.put(placeKey(name, type), place.getId());
+		registerPlace(placeKey(name, type), place.getId());
 		return place.getId();
 	}
 
@@ -1223,7 +1302,7 @@ public final class GrampsXMLToFLEFConverter{
 		final FLEFRecord repository = record(element, RepositoryReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(RepositoryReader.TAG_NAME)
 				.addChild(child(NameReader.TAG_VALUE, Objects.toString(GrampsXML.childText(element, "rname"),
-					"Repository " + id(element)))));
+					tf("name.repository", id(element))))));
 
 		for(final Element address : GrampsXML.children(element, GRAMPS_ADDRESS)){
 			repository.addChild(contact(addressText(address), ContactReader.ENUM_TYPE_POSTAL, null, null));
@@ -1280,11 +1359,11 @@ public final class GrampsXMLToFLEFConverter{
 		if(period == null && texts.isEmpty() && GrampsXML.children(address, GRAMPS_CITATIONREF).isEmpty())
 			return null;
 
-		final String text = Strings.CS.replace(Objects.toString(addressText(address), "Address"), StringUtils.LF, ", ")
+		final String text = Strings.CS.replace(Objects.toString(addressText(address), t("title.address")), StringUtils.LF, ", ")
 			+ (period != null? " (" + period + ")": StringUtils.EMPTY);
 		texts.addFirst(text);
 		final FLEFRecord note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE)
-			.addChild(child(NoteReader.TAG_TITLE, "Address"))
+			.addChild(child(NoteReader.TAG_TITLE, t("title.address")))
 			.addChild(child(NoteReader.TAG_TEXT, String.join(StringUtils.LF, texts)));
 		citations(note, address);
 		privacy(note, address);
@@ -1303,7 +1382,7 @@ public final class GrampsXMLToFLEFConverter{
 		date(media, MediaReader.TAG_DATE, dateOf(element), element);
 		final String checksum = GrampsXML.attribute(file, "checksum");
 		if(checksum != null)
-			media.addChild(note("Checksum", checksum, element));
+			media.addChild(note(t("title.checksum"), checksum, element));
 		for(final Element attribute : GrampsXML.children(element, GRAMPS_ATTRIBUTE))
 			media.addChild(note(GrampsXML.attribute(attribute, GRAMPS_TYPE), GrampsXML.attribute(attribute, GRAMPS_VALUE), element));
 		notes(media, element);
@@ -1316,10 +1395,15 @@ public final class GrampsXMLToFLEFConverter{
 	private String location(final String source){
 		final boolean relative = !source.startsWith("/") && !source.contains(":") && !source.startsWith("\\");
 		if(relative && mediaDirectory != null)
-			return mediaDirectory.toAbsolutePath()
-				.resolve(source)
-				.normalize()
-				.toString();
+			try{
+				return mediaDirectory.toAbsolutePath()
+					.resolve(source)
+					.normalize()
+					.toString();
+			}
+			catch(final InvalidPathException ignored){
+				return source;
+			}
 		if(!relative || mediaPath == null || mediaPath.contains("{"))
 			return source;
 
@@ -1332,7 +1416,7 @@ public final class GrampsXMLToFLEFConverter{
 
 		final String title = GrampsXML.childText(element, "stitle");
 		source.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
-			.addChild(child(NameReader.TAG_VALUE, title != null? title: "Source " + id(element))));
+			.addChild(child(NameReader.TAG_VALUE, title != null? title: tf("name.source", id(element)))));
 		final String abbreviation = GrampsXML.childText(element, "sabbrev");
 		if(abbreviation != null)
 			source.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
@@ -1424,7 +1508,7 @@ public final class GrampsXMLToFLEFConverter{
 		citations(individual, element);
 		notes(individual, element);
 		for(final Element url : GrampsXML.children(element, GRAMPS_URL))
-			individual.addChild(note("URL", urlText(url), element));
+			individual.addChild(note(t("title.url"), urlText(url), element));
 		media(individual, element);
 		privacy(individual, element);
 		individual.addChild(audit(isoOf(element)));
@@ -1446,21 +1530,21 @@ public final class GrampsXMLToFLEFConverter{
 		if(type != null && !TYPE_UNKNOWN.equalsIgnoreCase(type) && !"Other Name".equalsIgnoreCase(type))
 			structure.addChild(child(NameReader.TAG_TYPE, NAME_TYPES.getOrDefault(type.toLowerCase(Locale.ROOT), GEDCOMMapper.toTypeToken(type))));
 
-		part(structure, NameReader.ENUM_PART_TYPE_TITLE, GrampsXML.childText(name, NameReader.ENUM_PART_TYPE_TITLE));
+		part(structure, NameReader.ENUM_PART_TYPE_TITLE, GrampsXML.childText(name, GRAMPS_TITLE));
 		part(structure, NameReader.ENUM_PART_TYPE_GIVEN, GrampsXML.childText(name, "first"));
 		part(structure, NameReader.ENUM_PART_TYPE_NICKNAME, GrampsXML.childText(name, "nick"));
 		final List<Element> surnames = GrampsXML.children(name, "surname");
 		for(final Element surname : surnames){
 			final String prefix = StringUtils.trimToNull(GrampsXML.attribute(surname, "prefix"));
 			final String text = StringUtils.trimToNull(GrampsXML.text(surname));
-			final String value = StringUtils.trimToNull(StringUtils.defaultString(prefix) + " " + StringUtils.defaultString(text));
+			final String value = StringUtils.trimToNull(StringUtils.defaultString(prefix) + StringUtils.SPACE + StringUtils.defaultString(text));
 			final String derivation = StringUtils.defaultString(GrampsXML.attribute(surname, "derivation"))
 				.toLowerCase(Locale.ROOT);
 			final String connector = GrampsXML.attribute(surname, "connector");
 			if(StringUtils.isNotBlank(connector))
-				discard(ImportReasons.NAME_DETAIL, "surname connector '" + connector + "' of " + value, name);
+				discard(ImportReasons.NAME_DETAIL, tf("discard.surname_connector", connector, value), name);
 			if(!derivation.isEmpty() && !SURNAME_DERIVATIONS.containsKey(derivation) && !"unknown".equals(derivation) && !"inherited".equals(derivation))
-				discard(ImportReasons.NAME_DETAIL, "surname derivation '" + derivation + "' of " + value, name);
+				discard(ImportReasons.NAME_DETAIL, tf("discard.surname_derivation", derivation, value), name);
 			//the prefix is its own part, just before the surname it belongs to
 			part(structure, NameReader.ENUM_PART_TYPE_FAMILY_PREFIX, prefix);
 			part(structure, SURNAME_DERIVATIONS.getOrDefault(derivation, NameReader.ENUM_PART_TYPE_FAMILY), text);
@@ -1470,16 +1554,16 @@ public final class GrampsXMLToFLEFConverter{
 			final Element surname = surnames.get(i);
 			if(!"0".equals(GrampsXML.attribute(surname, GRAMPS_PRIMARY)) && !"0".equals(GrampsXML.attribute(surname, "primary"))){
 				if(i > 0)
-					discard(ImportReasons.NAME_DETAIL, "primary surname '" + GrampsXML.text(surname) + "'", name);
+					discard(ImportReasons.NAME_DETAIL, tf("discard.primary_surname", GrampsXML.text(surname)), name);
 				break;
 			}
 		}
 		part(structure, NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME, GrampsXML.childText(name, "familynick"));
-		part(structure, NameReader.ENUM_PART_TYPE_SUFFIX, GrampsXML.childText(name, NameReader.ENUM_PART_TYPE_SUFFIX));
+		part(structure, NameReader.ENUM_PART_TYPE_SUFFIX, GrampsXML.childText(name, GRAMPS_SUFFIX));
 		if(FLEFRecordHelper.findChildren(structure, NameReader.TAG_PART).isEmpty()){
 			for(final String detail : List.of("call", "group"))
 				if(GrampsXML.childText(name, detail) != null)
-					discard(ImportReasons.NAME_DETAIL, "name without parts, " + detail + " '" + GrampsXML.childText(name, detail) + "'", name);
+					discard(ImportReasons.NAME_DETAIL, tf("discard.name_without_parts", detail, GrampsXML.childText(name, detail)), name);
 			return null;
 		}
 
@@ -1488,10 +1572,10 @@ public final class GrampsXMLToFLEFConverter{
 		notes(structure, name);
 		final String call = GrampsXML.childText(name, "call");
 		if(call != null)
-			structure.addChild(note("Call name", call, name));
+			structure.addChild(note(t("title.call_name"), call, name));
 		final String group = GrampsXML.childText(name, "group");
 		if(group != null)
-			structure.addChild(note("Grouped as", group, name));
+			structure.addChild(note(t("title.grouped_as"), group, name));
 		return structure;
 	}
 
@@ -1547,7 +1631,7 @@ public final class GrampsXMLToFLEFConverter{
 		citations(record, address);
 		final String phone = GrampsXML.childText(address, GRAMPS_PHONE);
 		if(phone != null)
-			record.addChild(note("Phone", phone, person));
+			record.addChild(note(t("title.phone"), phone, person));
 		notes(record, address);
 		privacy(record, address);
 		record.addChild(audit(isoOf(person)));
@@ -1590,8 +1674,9 @@ public final class GrampsXMLToFLEFConverter{
 		final String fatherName = familyName(father);
 		final String motherName = familyName(mother);
 		final String name = (father == null && mother == null
-			? "Family " + id(element)
-			: (fatherName != null? fatherName: "?") + " and " + (motherName != null? motherName: "?") + " family");
+			? tf("name.family", id(element))
+			: tf("name.family_of", (fatherName != null? fatherName: t("name.unknown_member")),
+				(motherName != null? motherName: t("name.unknown_member"))));
 		group.addChild(FLEFRecord.createChildWithTag(GroupReader.TAG_NAME)
 			.addChild(child(NameReader.TAG_VALUE, name)));
 		group.addChild(child(GroupReader.TAG_TYPE, GroupReader.ENUM_TYPE_FAMILY));
@@ -1667,8 +1752,8 @@ public final class GrampsXMLToFLEFConverter{
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(child(RelationshipReader.TAG_INDIVIDUAL, id(parent))))
 			.addChild(child(RelationshipReader.TAG_TYPE, type));
-		if(RelationshipReader.ENUM_TYPE_CHILD.equals(type) && !CHILD_RELATIONSHIPS.containsKey(key))
-			relationship.addChild(note("Relationship", kind, family));
+		if(RelationshipReader.ENUM_TYPE_CHILD.equals(type) && !CHILD_RELATIONSHIPS.containsKey(key) && !TYPE_UNKNOWN.equals(key))
+			relationship.addChild(note(t("title.relationship"), kind, family));
 		citations(relationship, reference);
 		notes(relationship, reference);
 		privacy(relationship, reference);
@@ -1695,13 +1780,13 @@ public final class GrampsXMLToFLEFConverter{
 		for(final Element reference : GrampsXML.children(family, GRAMPS_EVENTREF)){
 			final Element event = target(reference, GRAMPS_EVENT);
 			final String eventType = (event != null? StringUtils.defaultString(GrampsXML.childText(event, GRAMPS_TYPE)).toLowerCase(Locale.ROOT): "");
-			if(EventReader.ENUM_TYPE_MARRIAGE.equals(eventType) && FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM) == null)
+			if(GRAMPS_EVENT_MARRIAGE.equals(eventType) && FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM) == null)
 				date(relationship, RelationshipReader.TAG_VALID_FROM, dateOf(event), event);
-			else if((EventReader.ENUM_TYPE_DIVORCE.equals(eventType) || EventReader.ENUM_TYPE_ANNULMENT.equals(eventType)) && FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO) == null)
+			else if((GRAMPS_EVENT_DIVORCE.equals(eventType) || GRAMPS_EVENT_ANNULMENT.equals(eventType)) && FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO) == null)
 				date(relationship, RelationshipReader.TAG_VALID_TO, dateOf(event), event);
 		}
 		if(RelationshipReader.ENUM_TYPE_SPOUSE.equals(type) && !List.of("married", TYPE_UNKNOWN).contains(kind.toLowerCase(Locale.ROOT)))
-			relationship.addChild(note("Relationship type", kind, family));
+			relationship.addChild(note(t("title.relationship_type"), kind, family));
 		relationship.addChild(audit(isoOf(family)));
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
 	}
@@ -1762,10 +1847,15 @@ public final class GrampsXMLToFLEFConverter{
 				principals.add(owner);
 		//an attribute of the individuals that have it
 		if(kind.attributeType() != null && !principals.isEmpty()){
+			if(kind.description() == null){
+				discard(ImportReasons.OTHER, tf("discard.attribute_without_value", kind.attributeType()), element);
+				return;
+			}
+
 			if(eventOwners.size() > principals.size())
-				discard(ImportReasons.OTHER, "participants of " + kind.description() + " that are not the principal", element);
+				discard(ImportReasons.OTHER, tf("discard.participants", kind.description()), element);
 			if(GrampsXML.childText(element, "cause") != null || !GrampsXML.children(element, GRAMPS_ATTRIBUTE).isEmpty())
-				discard(ImportReasons.OTHER, "cause or attributes of " + kind.description(), element);
+				discard(ImportReasons.OTHER, tf("discard.cause_attributes", kind.description()), element);
 			for(final Owner owner : principals)
 				individualAttribute(element, kind, owner);
 			return;
@@ -1796,9 +1886,9 @@ public final class GrampsXMLToFLEFConverter{
 		citations(event, element);
 		media(event, element);
 		if(kind.typeNote() != null)
-			event.addChild(note("Type", kind.typeNote(), element));
+			event.addChild(note(t("title.type"), kind.typeNote(), element));
 		if(!notes.isEmpty())
-			event.addChild(note("Attributes", String.join(StringUtils.LF, notes), element));
+			event.addChild(note(t("title.attributes"), String.join(StringUtils.LF, notes), element));
 		notes(event, element);
 		privacy(event, element);
 		event.addChild(audit(isoOf(element)));
@@ -1846,7 +1936,7 @@ public final class GrampsXMLToFLEFConverter{
 			final String participantTag = (owner.isFamily()? EventParticipationReader.TAG_PARTICIPANT_GROUP: EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL);
 			final String role = (owner.isFamily()? ROLE_PRINCIPAL: roleOf(GrampsXML.attribute(owner.reference(), "role")));
 			if(role == null)
-				discard(ImportReasons.OTHER, "role " + GrampsXML.attribute(owner.reference(), "role") + " of " + id(holder), element);
+				discard(ImportReasons.OTHER, tf("discard.role", GrampsXML.attribute(owner.reference(), "role"), id(holder)), element);
 
 			participation(event, participantTag, id(holder), role, owner.reference(), element);
 			if(owner.isFamily())
@@ -1882,7 +1972,7 @@ public final class GrampsXMLToFLEFConverter{
 				//the age of an individual says when it was born, if the individual has no birth with a date; otherwise it is a note
 				if(!(age && EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL.equals(participantTag)
 						&& birthFromAge(event, about, participantId, value)))
-					participation.addChild(note((age? "Age": type), value, about));
+					participation.addChild(note((age? t("title.age"): type), value, about));
 			}
 			notes(participation, reference);
 			privacy(participation, reference);
@@ -1912,7 +2002,7 @@ public final class GrampsXMLToFLEFConverter{
 		citations(birth, eventElement, true);
 		//without a source, where the age comes from is said by a note
 		if(FLEFRecordHelper.findChildren(birth, EventReader.TAG_SOURCE).isEmpty())
-			birth.addChild(noteStructure("Age", "Birth calculated from the age at [" + event.getId() + "](flef:" + event.getId() + ").",
+			birth.addChild(noteStructure(t("title.age"), tf("text.birth_from_age", event.getId()),
 				MIME_MARKDOWN, isoOf(eventElement)));
 		birth.addChild(child(EventReader.TAG_CONFIDENCE, ConfidenceReader.ENUM_LOW))
 			.addChild(audit(isoOf(eventElement)));
@@ -1928,7 +2018,7 @@ public final class GrampsXMLToFLEFConverter{
 		final String tag = LDS_TAGS.get(StringUtils.defaultString(GrampsXML.attribute(lds, GRAMPS_TYPE)).toLowerCase(Locale.ROOT));
 		//the sealing of spouses is told by the family, the other ordinances by the individual
 		if(tag == null || ofFamily != "SLGS".equals(tag)){
-			discard(ImportReasons.OTHER, "LDS ordinance " + GrampsXML.attribute(lds, GRAMPS_TYPE), holder);
+			discard(ImportReasons.OTHER, tf("discard.lds", GrampsXML.attribute(lds, GRAMPS_TYPE)), holder);
 			return;
 		}
 
@@ -1939,13 +2029,13 @@ public final class GrampsXMLToFLEFConverter{
 		citations(event, lds);
 		final String temple = GrampsXML.attribute(GrampsXML.child(lds, "temple"), "val");
 		if(temple != null)
-			event.addChild(note("Temple", temple, holder));
+			event.addChild(note(t("title.temple"), temple, holder));
 		final String status = GrampsXML.attribute(GrampsXML.child(lds, "status"), "val");
 		if(status != null && !"None".equalsIgnoreCase(status))
-			event.addChild(note("Status", status, holder));
+			event.addChild(note(t("title.status"), status, holder));
 		final Element sealed = target(GrampsXML.child(lds, "sealed_to"), GRAMPS_FAMILY);
 		if(sealed != null)
-			event.addChild(noteStructure("Sealed to", "[" + id(sealed) + "](flef:" + id(sealed) + ")", MIME_MARKDOWN, isoOf(holder)));
+			event.addChild(noteStructure(t("title.sealed_to"), "[" + id(sealed) + "](flef:" + id(sealed) + ")", MIME_MARKDOWN, isoOf(holder)));
 		notes(event, lds);
 		privacy(event, lds);
 		event.addChild(audit(isoOf(holder)));

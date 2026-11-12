@@ -105,6 +105,8 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		sexIndex = PreferredSex.indexByIndividual(model);
 
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
+		//the strategy is reused by every search: the events of a previous one (or of another model) must not stay
+		eventsByIndividual.clear();
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
 		for(final FLEFRecord participation : participations){
 			final String participantRef = participation.extractReferencedId(EventParticipationReader.TAG_PARTICIPANT, IndividualReader.TYPE);
@@ -181,7 +183,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		// Place
 		if(StringUtils.isNotEmpty(eventPlace)){
 			final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, PlaceReader.TYPE);
-			if(placeCitation != null){
+			if(placeCitation != null && placeCitation.getTheOnlyChild() != null){
 				final String placeId = placeCitation.getTheOnlyChild().getValue();
 				final FLEFRecord placeRecord = model.getRecordById(placeId);
 				final String place = RecordDisplay.describe(placeRecord, model);

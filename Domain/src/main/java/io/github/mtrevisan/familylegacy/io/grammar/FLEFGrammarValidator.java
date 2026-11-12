@@ -101,6 +101,11 @@ public final class FLEFGrammarValidator{
 		}
 
 		final String context = "file " + fileDef.name();
+		if(fileDef.recordsField() == null){
+			errors.add(context + ": missing 'records' field");
+
+			return;
+		}
 		validateTypeUsage(fileDef.recordsField().type(), context + ".records");
 
 		if(fileDef.headerField() == null){

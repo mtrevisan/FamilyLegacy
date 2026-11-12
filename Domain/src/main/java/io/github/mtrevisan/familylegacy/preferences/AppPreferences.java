@@ -25,14 +25,17 @@
 package io.github.mtrevisan.familylegacy.preferences;
 
 
+import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
@@ -263,12 +266,52 @@ public final class AppPreferences{
 	 */
 	public synchronized Set<String> ignoredFindings(final String scope){
 		final String value = properties.getProperty(KEY_IGNORED_FINDINGS_PREFIX + scope, "");
-		return (value.isEmpty()? Set.of(): Set.copyOf(Arrays.asList(StringUtils.split(value, ','))));
+		return (value.isEmpty()? Set.of(): Set.copyOf(decodeFindings(value)));
 	}
 
 	/** Persists the findings the user ignored for a file (a view preference: they are not stored in the genealogy). */
 	public synchronized void setIgnoredFindings(final String scope, final Set<String> findings){
-		put(KEY_IGNORED_FINDINGS_PREFIX + scope, String.join(",", new TreeSet<>(findings)));
+		put(KEY_IGNORED_FINDINGS_PREFIX + scope, encodeFindings(findings));
+	}
+
+	/**
+	 * Joins the ids with a comma, escaping a backslash and a comma inside an id with a backslash, so that every id round-trips.
+	 * The old format (plain comma-separated, no escapes) is read unchanged by {@link #decodeFindings(String)}.
+	 */
+	static String encodeFindings(final Set<String> findings){
+		final StringBuilder sb = new StringBuilder();
+		for(final String finding : new TreeSet<>(findings)){
+			if(!sb.isEmpty())
+				sb.append(',');
+			for(int i = 0; i < finding.length(); i ++){
+				final char c = finding.charAt(i);
+				if(c == '\\' || c == ',')
+					sb.append('\\');
+				sb.append(c);
+			}
+		}
+		return sb.toString();
+	}
+
+	/** Splits the text written by {@link #encodeFindings(Set)} (or by the old unescaped format) into the ids; empty ids are dropped. */
+	static List<String> decodeFindings(final String value){
+		final List<String> result = new ArrayList<>();
+		final StringBuilder current = new StringBuilder();
+		for(int i = 0; i < value.length(); i ++){
+			final char c = value.charAt(i);
+			if(c == '\\' && i + 1 < value.length())
+				current.append(value.charAt(++ i));
+			else if(c == ','){
+				if(!current.isEmpty())
+					result.add(current.toString());
+				current.setLength(0);
+			}
+			else
+				current.append(c);
+		}
+		if(!current.isEmpty())
+			result.add(current.toString());
+		return result;
 	}
 
 	/** Returns how the location of the media is shown, or the default (the whole location) when unset or unknown. */
@@ -368,12 +411,13 @@ public final class AppPreferences{
 	}
 
 
-	private void save(){
+	private synchronized void save(){
 		try{
 			Files.createDirectories(CONFIG_DIR);
-			try(OutputStream out = Files.newOutputStream(CONFIG_FILE)){
-				properties.store(out, "Family Legacy — user preferences");
-			}
+			//written to a temporary file and moved in place, so that a crash cannot leave a truncated file
+			final ByteArrayOutputStream out = new ByteArrayOutputStream();
+			properties.store(out, "Family Legacy -- user preferences");
+			AtomicFileWriter.write(CONFIG_FILE, out.toString(StandardCharsets.ISO_8859_1), StandardCharsets.ISO_8859_1);
 		}
 		catch(final IOException ignored){
 			// If writing fails (read-only home, disk full), the preference

@@ -45,7 +45,7 @@ import java.util.function.Predicate;
 
 
 /**
- * Builds the {@code question -> activity -> task -> conclusion} tree shown by {@link ResearchBoardDialog}.
+ * Builds the {@code question -> activity -> task -> conclusion} tree shown by {@link io.github.mtrevisan.familylegacy.ui.tools.research.ResearchBoardDialog}.
  * <p>
  * Each research question is a root. Under it are:
  * <ul>
@@ -202,10 +202,6 @@ public final class ResearchTreeBuilder{
 		final List<FLEFRecord> activities = ResearchHelper.listActivities(model);
 		final List<FLEFRecord> tasks = ResearchHelper.listTasks(model);
 		final List<FLEFRecord> conclusions = ResearchHelper.listConclusions(model);
-
-		final Set<String> questionIds = new HashSet<>();
-		for(final FLEFRecord question : questions)
-			questionIds.add(question.getId());
 
 		final Map<String, List<FLEFRecord>> activitiesByQuestion = groupByReferences(activities, ResearchActivityReader.TAG_QUESTION);
 		final Map<String, List<FLEFRecord>> tasksByQuestion = groupByReferences(tasks, ResearchTaskReader.TAG_QUESTION);

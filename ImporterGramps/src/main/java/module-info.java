@@ -28,8 +28,6 @@ open module io.github.mtrevisan.importers.gramps {
 	requires io.github.mtrevisan.familylegacy.domain;
 	requires io.github.mtrevisan.importers.gedcom;
 	requires org.apache.commons.lang3;
-	requires org.apache.commons.io;
-	requires org.slf4j;
 	requires java.xml;
 	requires java.desktop;
 

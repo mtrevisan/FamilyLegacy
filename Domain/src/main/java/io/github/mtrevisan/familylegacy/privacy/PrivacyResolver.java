@@ -175,7 +175,7 @@ public final class PrivacyResolver{
 		if(cached != null)
 			return cached;
 
-		//a cycle of references contributes nothing more than what has been found so far
+		//a cycle of references: compute() skips a source in progress, so this fallback is never merged into a result nor cached
 		if(!inProgress.add(record.getId()))
 			return Effective.PUBLIC;
 		try{
@@ -198,7 +198,8 @@ public final class PrivacyResolver{
 
 		for(final String sourceId : inheritanceSources(record)){
 			final FLEFRecord source = model.getRecordById(sourceId);
-			if(source == null || source == record)
+			//a source whose resolution is in progress is part of a cycle: skip it instead of letting it count as PUBLIC
+			if(source == null || source == record || inProgress.contains(sourceId))
 				continue;
 
 			final Effective inherited = describe(source);
@@ -346,7 +347,7 @@ public final class PrivacyResolver{
 	private static Participant participantOf(final FLEFRecord participation){
 		final FLEFRecord block = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 		final FLEFRecord oneOf = (block != null? block.getTheOnlyChild(): null);
-		if(oneOf == null || !(IndividualReader.isOfType(oneOf) || GroupReader.isOfType(oneOf)))
+		if(!(IndividualReader.isOfType(oneOf) || GroupReader.isOfType(oneOf)))
 			return null;
 
 		final FLEFRecord reference = oneOf.getTheOnlyChild();

@@ -45,10 +45,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
-import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
@@ -118,6 +118,9 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				//the same condition of the Individual menu: anything that refers to the individual, not only what the box shows
 				unlinkItem.setEnabled(hasData && (hasRelations || UnlinkIndividualRelationshipsTool.hasLinks(model, data.getId())));
 				careerItem.setEnabled(hasData);
+				//both read the selected individual: on an empty box there is nothing to show
+				provenanceItem.setEnabled(hasData);
+				loopsItem.setEnabled(hasData);
 			}
 		});
 

@@ -80,14 +80,14 @@ public final class IndividualCareerBuilder{
 	 */
 	public static TemporalProjectionModel build(final FLEFModel model, final String individualId){
 		final FLEFRecord individual = (individualId != null? model.getRecordById(individualId): null);
-		if(individual == null || !IndividualReader.isOfType(individual) || PrivacyService.visible(model, List.of(individual)).isEmpty())
+		if(!IndividualReader.isOfType(individual) || PrivacyService.visible(model, List.of(individual)).isEmpty())
 			return TemporalProjectionModel.empty();
 
 		final Map<String, GroupTimelineBuilder.Membership> groups = new LinkedHashMap<>();
 		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE))){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || !RelationshipReader.isTypeGroupMember(type)
-					|| !individualId.equals(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE)))
+			if(!RelationshipReader.isTypeGroupMember(type)
+				|| !individualId.equals(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE)))
 				continue;
 
 			final String groupId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupReader.TYPE);

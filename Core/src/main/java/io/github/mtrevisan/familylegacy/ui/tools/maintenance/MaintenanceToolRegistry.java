@@ -68,23 +68,23 @@ public final class MaintenanceToolRegistry{
 
 	public static List<ToolOperation> chartPlaceholders(){
 		return List.of(
-			new PlaceholderTool("Ancestor Chart…"),
-			new PlaceholderTool("Descendant Chart…"),
-			new PlaceholderTool("Hourglass Chart…"),
-			new PlaceholderTool("Fan Chart…"),
-			new PlaceholderTool("Bowtie Chart…"),
-			new PlaceholderTool("Relationship Chart…"),
-			new PlaceholderTool("Map Chart…")
+			new PlaceholderTool("menu.tools.chart.ancestor"),
+			new PlaceholderTool("menu.tools.chart.descendant"),
+			new PlaceholderTool("menu.tools.chart.hourglass"),
+			new PlaceholderTool("menu.tools.chart.fan"),
+			new PlaceholderTool("menu.tools.chart.bowtie"),
+			new PlaceholderTool("menu.tools.chart.relationship"),
+			new PlaceholderTool("menu.tools.chart.map")
 		);
 	}
 
 	public static List<ToolOperation> maintenancePlaceholders(){
 		return List.of(
-			new PlaceholderTool("Data Cleanup…"),
-			new PlaceholderTool("Recompute Derived Data"),
-			new PlaceholderTool("Backup…"),
-			new PlaceholderTool("Restore from Backup…"),
-			new PlaceholderTool("Plugins…")
+			new PlaceholderTool("menu.tools.maintenance.data_cleanup"),
+			new PlaceholderTool("menu.tools.maintenance.recompute"),
+			new PlaceholderTool("menu.tools.maintenance.backup"),
+			new PlaceholderTool("menu.tools.maintenance.restore"),
+			new PlaceholderTool("menu.tools.maintenance.plugins")
 		);
 	}
 

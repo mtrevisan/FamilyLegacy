@@ -175,7 +175,12 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	@Override
 	public java.util.List<String> fonts(){
-		return PdfFonts.families();
+		return PdfFonts.families(StringUtils.EMPTY);
+	}
+
+	@Override
+	public java.util.List<String> fonts(final ReportDocument doc){
+		return PdfFonts.families(allText(doc));
 	}
 
 
@@ -190,7 +195,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	@Override
 	public void render(final ReportDocument doc, final Path target, final String font) throws IOException{
-		final PdfFonts fonts = new PdfFonts(font, allText(doc), needsMonospaced(doc));
+		final PdfFonts fonts = new PdfFonts(font, allText(doc), needsMonospaced(doc), doc.language());
 
 		//the table of contents has the page of each heading, that is known only after the layout: the first one finds them (the entries
 		//have a placeholder as wide as a number), the second one writes them; a third one is needed only if the numbers moved something
@@ -229,12 +234,19 @@ public final class PdfReportRenderer implements ReportRenderer{
 	/** @return	All the text of the document, to know which characters the fonts must have. */
 	private static String allText(final ReportDocument doc){
 		final StringBuilder sb = new StringBuilder();
-		sb.append(doc.title()).append(' ').append(doc.subtitle()).append(' ').append(doc.contentsTitle()).append('\n');
+		sb.append(StringUtils.defaultString(doc.title())).append(' ').append(StringUtils.defaultString(doc.subtitle())).append(' ');
+		//the title of the contents is written only when there is a contents
+		if(contentsHeadings(doc).size() >= TOC_MIN_HEADINGS)
+			sb.append(StringUtils.defaultString(doc.contentsTitle()));
+		sb.append('\n');
 		for(final ReportSection section : doc.sections())
 			switch(section){
 				case ReportSection.Heading h -> sb.append(h.text()).append('\n');
 				case ReportSection.Paragraph p -> sb.append(p.text()).append('\n');
-				case ReportSection.BulletList b -> b.items().forEach(item -> sb.append(item).append('\n'));
+				case ReportSection.BulletList b -> {
+					sb.append(BULLET).append(' ');
+					b.items().forEach(item -> sb.append(item).append('\n'));
+				}
 				case ReportSection.Table t -> {
 					t.headers().forEach(cell -> sb.append(cell).append(' '));
 					t.rows().forEach(row -> row.forEach(cell -> sb.append(cell).append(' ')));
@@ -257,7 +269,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	private static boolean needsMonospaced(final ReportDocument doc){
 		for(final ReportSection section : doc.sections())
-			if(section instanceof ReportSection.Paragraph p && p.text().contains(StringUtils.LF))
+			if(section instanceof ReportSection.Paragraph(String text) && text.contains(StringUtils.LF))
 				return true;
 		return allText(doc).indexOf('`') >= 0;
 	}
@@ -306,6 +318,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 					PAGE_MARGIN_VERTICAL)){
 				pdf = document;
 				writer = PdfWriter.getInstance(document, os);
+				fonts.attach(writer);
 				if(rtl)
 					writer.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
 				writer.setPageEvent(new PageDecorations(fonts, doc.title(), rtl, observed));

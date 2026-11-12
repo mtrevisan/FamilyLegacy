@@ -175,6 +175,9 @@ public final class SourceRootSection implements SectionBuilder{
 		final List<String> items = new ArrayList<>(citations.size());
 		for(final FLEFRecord c : citations){
 			final FLEFRecord owner = ctx.ownerOfCitation(c);
+			//what is cited by a hidden record, or is itself hidden, is not told
+			if(!ctx.isVisible(c) || (owner != null && !ctx.isVisible(owner)))
+				continue;
 			final String ownerLabel = (owner != null? ctx.displayText(owner): "?");
 			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			final StringBuilder sb = new StringBuilder(ReportFormatters.escape(ownerLabel));

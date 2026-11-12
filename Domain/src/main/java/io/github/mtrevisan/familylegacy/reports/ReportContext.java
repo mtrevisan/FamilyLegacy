@@ -35,7 +35,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
@@ -52,6 +54,7 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.familylegacy.sources.SourceDerivationTree;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -105,12 +108,13 @@ public final class ReportContext{
 	private final List<FLEFRecord> subjects;
 	/** Who owns each source citation: found once for the contexts of a report, that share it. */
 	private final SharedLookups shared;
-	private Set<String> relatedRecordIds;
-	private PrivacyResolver privacy;
+	//lazily initialised, safe for concurrent use: volatile, published fully built (a race only builds a value twice)
+	private volatile Set<String> relatedRecordIds;
+	private volatile PrivacyResolver privacy;
 
-	private KinshipCalculator kinship;
-	private CitationRenderer citations;
-	private Function<String, String> contextLabelResolver;
+	private volatile KinshipCalculator kinship;
+	private volatile CitationRenderer citations;
+	private volatile Function<String, String> contextLabelResolver;
 
 
 	/**
@@ -336,9 +340,12 @@ public final class ReportContext{
 	}
 
 	private PrivacyResolver privacy(){
-		if(privacy == null)
-			privacy = new PrivacyResolver(model);
-		return privacy;
+		PrivacyResolver result = privacy;
+		if(result == null){
+			result = new PrivacyResolver(model);
+			privacy = result;
+		}
+		return result;
 	}
 
 	public FLEFRecord visible(final FLEFRecord rec){
@@ -367,9 +374,12 @@ public final class ReportContext{
 	 * ====================================================================== */
 
 	public Set<String> relatedRecordIds(){
-		if(relatedRecordIds == null)
-			relatedRecordIds = computeRelatedRecordIds();
-		return relatedRecordIds;
+		Set<String> result = relatedRecordIds;
+		if(result == null){
+			result = Collections.unmodifiableSet(computeRelatedRecordIds());
+			relatedRecordIds = result;
+		}
+		return result;
 	}
 
 	private Set<String> computeRelatedRecordIds(){
@@ -386,6 +396,11 @@ public final class ReportContext{
 			case DOCUMENT -> computeForDocument(ids);
 			case RESEARCH_QUESTION -> computeForResearchQuestion(ids);
 			case CONCLUSION -> computeForConclusion(ids);
+			case RESEARCH_ACTIVITY -> computeForResearchActivity(ids);
+			case RESEARCH_TASK -> computeForResearchTask(ids);
+			case IDENTITY_HYPOTHESIS -> computeForIdentityHypothesis(ids);
+			case CULTURAL_NORM -> computeForPlaceAndSources(ids, CulturalNormReader.TAG_PLACE, CulturalNormReader.TAG_SOURCE);
+			case HISTORIC_EVENT -> computeForPlaceAndSources(ids, HistoricEventReader.TAG_PLACE, HistoricEventReader.TAG_SOURCE);
 			case OTHER -> { /* only the root itself */ }
 		}
 		return ids;
@@ -472,6 +487,66 @@ public final class ReportContext{
 			if(q.getValue() != null) ids.add(q.getValue());
 	}
 
+	private void computeForResearchActivity(final Set<String> ids){
+		addValuesOf(ids, ResearchActivityReader.TAG_QUESTION);
+		addValuesOf(ids, ResearchActivityReader.TAG_PARENT_ACTIVITY);
+		addValuesOf(ids, ResearchActivityReader.TAG_FOLLOW_UP);
+		for(final FLEFRecord t : index.tasksForActivity(root))
+			ids.add(t.getId());
+		for(final FLEFRecord target : FLEFRecordHelper.findChildren(root, ResearchActivityReader.TAG_TARGET))
+			addValue(ids, target.getTheOnlyChild());
+		addSourcesWithRepositories(ids, ResearchActivityReader.TAG_SOURCE);
+	}
+
+	private void computeForResearchTask(final Set<String> ids){
+		addValuesOf(ids, ResearchTaskReader.TAG_QUESTION);
+		final String createdBy = FLEFRecordHelper.getChildValue(root, ResearchTaskReader.TAG_CREATED_BY);
+		if(StringUtils.isNotBlank(createdBy))
+			ids.add(createdBy);
+	}
+
+	private void computeForIdentityHypothesis(final Set<String> ids){
+		for(final FLEFRecord cand : FLEFRecordHelper.findChildren(root, IdentityHypothesisReader.TAG_IDENTITY))
+			addValue(ids, cand.getTheOnlyChild());
+		addSourcesWithRepositories(ids, IdentityHypothesisReader.TAG_SOURCE);
+	}
+
+	private void computeForPlaceAndSources(final Set<String> ids, final String tagPlace, final String tagSource){
+		final String placeId = FLEFRecordHelper.getChildValue(root, FLEFRecordHelper.composePath(tagPlace, PlaceCitationReader.TAG_PLACE));
+		if(StringUtils.isNotBlank(placeId))
+			ids.add(placeId);
+		addSourcesWithRepositories(ids, tagSource);
+	}
+
+	/** Adds the sources cited by the root (the citations are the children with the given tag) and the repositories that hold them. */
+	private void addSourcesWithRepositories(final Set<String> ids, final String tagSource){
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(root, tagSource)){
+			final String sourceId = SourceCitationReader.extractSource(citation);
+			if(StringUtils.isBlank(sourceId))
+				continue;
+
+			ids.add(sourceId);
+			final FLEFRecord source = model.getRecordById(sourceId);
+			if(source != null)
+				for(final FLEFRecord repositoryCitation : index.repositoriesOfSource(source)){
+					final String repositoryId = RepositoryCitationReader.extractRepository(repositoryCitation);
+					if(StringUtils.isNotBlank(repositoryId))
+						ids.add(repositoryId);
+				}
+		}
+	}
+
+	/** Adds the values of the children of the root with the given tag (references to other records). */
+	private void addValuesOf(final Set<String> ids, final String tag){
+		for(final FLEFRecord ref : FLEFRecordHelper.findChildren(root, tag))
+			addValue(ids, ref);
+	}
+
+	private static void addValue(final Set<String> ids, final FLEFRecord ref){
+		if(ref != null && StringUtils.isNotBlank(ref.getValue()))
+			ids.add(ref.getValue());
+	}
+
 	private void addIdentityHypotheses(final Set<String> ids){
 		for(final FLEFRecord h : visibleRecordsByType(IdentityHypothesisReader.TYPE)){
 			for(final FLEFRecord cand : FLEFRecordHelper.findChildren(h, IdentityHypothesisReader.TAG_IDENTITY)){
@@ -488,8 +563,12 @@ public final class ReportContext{
 	 * ====================================================================== */
 
 	public KinshipCalculator kinship(){
-		if(kinship == null) kinship = KinshipCalculator.forModel(model).withVocabulary(labels.kinship());
-		return kinship;
+		KinshipCalculator result = kinship;
+		if(result == null){
+			result = KinshipCalculator.forModel(model).withVocabulary(labels.kinship());
+			kinship = result;
+		}
+		return result;
 	}
 
 	/** @return	The derivations of the sources the report shows. */
@@ -498,13 +577,21 @@ public final class ReportContext{
 	}
 
 	public CitationRenderer citations(){
-		if(citations == null) citations = new CitationRenderer(this);
-		return citations;
+		CitationRenderer result = citations;
+		if(result == null){
+			result = new CitationRenderer(this);
+			citations = result;
+		}
+		return result;
 	}
 
 	public Function<String, String> contextLabelResolver(){
-		if(contextLabelResolver == null) contextLabelResolver = this::resolveContextLabel;
-		return contextLabelResolver;
+		Function<String, String> result = contextLabelResolver;
+		if(result == null){
+			result = this::resolveContextLabel;
+			contextLabelResolver = result;
+		}
+		return result;
 	}
 
 	public String resolveContextLabel(final String id){

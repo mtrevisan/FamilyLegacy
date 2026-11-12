@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.text.Normalizer;
 import java.util.HashMap;
@@ -112,6 +113,7 @@ public final class GEDCOMMapper{
 	public static final String TAG_STATUS = "STAT";
 	public static final String TAG_SEX = "SEX";
 	public static final String TAG_DATA = "DATA";
+	public static final String TAG_BIRTH = "BIRT";
 	public static final String TAG_CHANGE = "CHAN";
 	public static final String TAG_CREATION = "CREA";
 	public static final String TAG_RESTRICTION = "RESN";
@@ -190,21 +192,7 @@ public final class GEDCOMMapper{
 		TAG_SURNAME_PREFIX, TAG_SURNAME, TAG_NAME_SUFFIX, TAG_PHONETIC, TAG_ROMANIZED, TAG_TRANSLATION, TAG_SOURCE, TAG_NOTE);
 
 	/** Custom tags (underscore tags) that never are an event, even with a date: they are about the record itself. */
-	private static final Set<String> CUSTOM_NON_EVENT_TAGS = Set.of("_UID", "_FSFTID", "_CRE", "_UPD");
-
-	/**
-	 * Whether a custom tag (underscore tag) of an individual or of a family is an event: it holds a date or a place.
-	 * <p>
-	 * The custom tags without data (flags, identifiers, creation and update stamps) are not.
-	 */
-	public static boolean isCustomEvent(final GEDCOMNode node){
-		final String tag = node.getTag();
-		if(!StringUtils.startsWith(tag, "_") || CUSTOM_NON_EVENT_TAGS.contains(tag.toUpperCase(Locale.ROOT))
-				|| TAG_TODO.equalsIgnoreCase(tag) || TAG_MARRIED_NAME.equalsIgnoreCase(tag) || TAG_AKA.equalsIgnoreCase(tag))
-			return false;
-
-		return (GEDCOMHelper.findFirstChild(node, TAG_DATE) != null || GEDCOMHelper.findFirstChild(node, TAG_PLACE) != null);
-	}
+	static final Set<String> CUSTOM_NON_EVENT_TAGS = Set.of("_UID", "_FSFTID", "_CRE", "_UPD");
 
 	// ---- Tag degli eventi (INDIVIDUAL_EVENT_STRUCTURE, FAMILY_EVENT_STRUCTURE, LDS ordinances) ----
 	public static final Set<String> INDIVIDUAL_EVENT_TAGS = Set.of("BIRT", "CHR", "DEAT", "BURI", "CREM", TAG_ADOPTION, "BAPM",
@@ -245,6 +233,16 @@ public final class GEDCOMMapper{
 		Map.entry("degree", EventReader.ENUM_TYPE_GRADUATION),
 		Map.entry("probate", EventReader.ENUM_TYPE_PROBATE));
 	// ---- TYPE di EVEN/FACT che FLEF rappresenta altrove ----
+	/** A stay in a retirement home: a residence of the individual. */
+	public static final String FACT_TYPE_RETIREMENT_HOME = "retirement_home";
+	/** The individual was named after somebody: a note of the individual. */
+	public static final String FACT_TYPE_NAMED_AFTER = "named_after";
+	/** The individual belongs to a club, a party, a lodge: a group, and a {@code group_member} relationship to it. */
+	public static final String FACT_TYPE_MEMBERSHIP = "membership";
+	/** The value is the other twin: an {@code associate} relationship with this role. */
+	public static final String FACT_TYPE_TWIN = "twin";
+	/** The value is the midwife of the birth of the individual: a participation in the birth with this role. */
+	public static final String FACT_TYPE_MIDWIFE = "midwife";
 	/** EVEN/FACT types that are names of the individual: they become a {@code PersonalNameStructure} with this name part type. */
 	public static final Map<String, String> NAME_PART_FACT_TYPES = Map.of(
 		NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME, NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME,
@@ -278,7 +276,13 @@ public final class GEDCOMMapper{
 		Map.entry(IndividualAttributeReader.ENUM_TYPE_RELIGION, IndividualAttributeReader.ENUM_TYPE_RELIGION),
 		Map.entry(IndividualAttributeReader.ENUM_TYPE_LANGUAGE, IndividualAttributeReader.ENUM_TYPE_LANGUAGE),
 		Map.entry(IndividualAttributeReader.ENUM_TYPE_LITERACY, IndividualAttributeReader.ENUM_TYPE_LITERACY),
-		Map.entry(IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP, IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP));
+		Map.entry(IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP, IndividualAttributeReader.ENUM_TYPE_APPRENTICESHIP),
+		Map.entry(FACT_TYPE_RETIREMENT_HOME, IndividualAttributeReader.ENUM_TYPE_RESIDENCE));
+	/**
+	 * The EVEN/FACT types of {@link #ATTRIBUTE_FACT_TYPES} that are a kind of the FLEF type, not a synonym of it: the TYPE of the file
+	 * is kept as a note of the attribute.
+	 */
+	public static final Set<String> LABELLED_ATTRIBUTE_FACT_TYPES = Set.of(FACT_TYPE_RETIREMENT_HOME);
 	/** EVEN types of a family that are attributes of the family: they become a {@code GroupAttributeRecord} of this type. */
 	public static final Map<String, String> GROUP_ATTRIBUTE_FACT_TYPES = Map.of(
 		"family_address", IndividualAttributeReader.ENUM_TYPE_RESIDENCE,
@@ -294,80 +298,84 @@ public final class GEDCOMMapper{
 	private static final int MAX_TYPE_WORDS = 4;
 
 	// ---- Eventi individuali e familiari ----
-	public static final Map<String, String> EVENT_MAP = new HashMap<>();
+	public static final Map<String, String> EVENT_MAP;
 	// ---- Attributi individuali ----
-	public static final Map<String, String> ATTRIBUTE_MAP = new HashMap<>();
+	public static final Map<String, String> ATTRIBUTE_MAP;
 	// ---- Sesso ----
 	private static final Map<String, String> SEX_MAP = new HashMap<>();
 	// ---- Tipo di media (SourceRecord.media_type) ----
 	private static final Map<String, String> MEDIA_TYPE_MAP = new HashMap<>();
 	// ---- Ruolo in event_participation ----
-	public static final Map<String, String> ROLE_MAP = new HashMap<>();
+	public static final Map<String, String> ROLE_MAP;
 	// ---- Livello privacy ----
 	private static final Map<String, String> PRIVACY_LEVEL_MAP = new HashMap<>();
 
 	static{
+		final Map<String, String> eventMap = new HashMap<>();
+		final Map<String, String> attributeMap = new HashMap<>();
+		final Map<String, String> roleMap = new HashMap<>();
+
 		// ------------------------------
 		// Eventi (EVENT_MAP)
 		// ------------------------------
 		// religious events have no FLEF type: they are written as custom types
-		EVENT_MAP.put("BIRT", EventReader.ENUM_TYPE_BIRTH);
-		EVENT_MAP.put("CHR", "christening");
-		EVENT_MAP.put("DEAT", EventReader.ENUM_TYPE_DEATH);
-		EVENT_MAP.put("BURI", EventReader.ENUM_TYPE_BURIAL);
-		EVENT_MAP.put("CREM", EventReader.ENUM_TYPE_CREMATION);
-		EVENT_MAP.put(TAG_ADOPTION, EventReader.ENUM_TYPE_ADOPTION);
-		EVENT_MAP.put("BAPM", "baptism");
-		EVENT_MAP.put("BARM", "bar_mitzvah");
-		EVENT_MAP.put("BASM", "bat_mitzvah");
-		EVENT_MAP.put("BLES", "blessing");
-		EVENT_MAP.put("CHRA", "adult_christening");
-		EVENT_MAP.put("CONF", "confirmation");
-		EVENT_MAP.put("FCOM", "first_communion");
-		EVENT_MAP.put("ORDN", "ordination");
-		EVENT_MAP.put("NATU", EventReader.ENUM_TYPE_NATURALIZATION);
-		EVENT_MAP.put("EMIG", EventReader.ENUM_TYPE_EMIGRATION);
-		EVENT_MAP.put("IMMI", EventReader.ENUM_TYPE_IMMIGRATION);
-		EVENT_MAP.put("CENS", EventReader.ENUM_TYPE_CENSUS);
-		EVENT_MAP.put("PROB", EventReader.ENUM_TYPE_PROBATE);
-		EVENT_MAP.put("WILL", EventReader.ENUM_TYPE_WILL);
-		EVENT_MAP.put("GRAD", EventReader.ENUM_TYPE_GRADUATION);
-		EVENT_MAP.put("RETI", EventReader.ENUM_TYPE_RETIREMENT);
-		EVENT_MAP.put("MARR", EventReader.ENUM_TYPE_MARRIAGE);
-		EVENT_MAP.put("DIV", EventReader.ENUM_TYPE_DIVORCE);
-		EVENT_MAP.put("DIVF", EventReader.ENUM_TYPE_DIVORCE_FILED);
-		EVENT_MAP.put("ANUL", EventReader.ENUM_TYPE_ANNULMENT);
-		EVENT_MAP.put("ENGA", EventReader.ENUM_TYPE_ENGAGEMENT);
-		EVENT_MAP.put("MARB", EventReader.ENUM_TYPE_MARRIAGE_BANN);
-		EVENT_MAP.put("MARC", EventReader.ENUM_TYPE_MARRIAGE_CONTRACT);
-		EVENT_MAP.put("MARL", EventReader.ENUM_TYPE_MARRIAGE_LICENSE);
-		EVENT_MAP.put("MARS", EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT);
+		eventMap.put("BIRT", EventReader.ENUM_TYPE_BIRTH);
+		eventMap.put("CHR", "christening");
+		eventMap.put("DEAT", EventReader.ENUM_TYPE_DEATH);
+		eventMap.put("BURI", EventReader.ENUM_TYPE_BURIAL);
+		eventMap.put("CREM", EventReader.ENUM_TYPE_CREMATION);
+		eventMap.put(TAG_ADOPTION, EventReader.ENUM_TYPE_ADOPTION);
+		eventMap.put("BAPM", "baptism");
+		eventMap.put("BARM", "bar_mitzvah");
+		eventMap.put("BASM", "bat_mitzvah");
+		eventMap.put("BLES", "blessing");
+		eventMap.put("CHRA", "adult_christening");
+		eventMap.put("CONF", "confirmation");
+		eventMap.put("FCOM", "first_communion");
+		eventMap.put("ORDN", "ordination");
+		eventMap.put("NATU", EventReader.ENUM_TYPE_NATURALIZATION);
+		eventMap.put("EMIG", EventReader.ENUM_TYPE_EMIGRATION);
+		eventMap.put("IMMI", EventReader.ENUM_TYPE_IMMIGRATION);
+		eventMap.put("CENS", EventReader.ENUM_TYPE_CENSUS);
+		eventMap.put("PROB", EventReader.ENUM_TYPE_PROBATE);
+		eventMap.put("WILL", EventReader.ENUM_TYPE_WILL);
+		eventMap.put("GRAD", EventReader.ENUM_TYPE_GRADUATION);
+		eventMap.put("RETI", EventReader.ENUM_TYPE_RETIREMENT);
+		eventMap.put("MARR", EventReader.ENUM_TYPE_MARRIAGE);
+		eventMap.put("DIV", EventReader.ENUM_TYPE_DIVORCE);
+		eventMap.put("DIVF", EventReader.ENUM_TYPE_DIVORCE_FILED);
+		eventMap.put("ANUL", EventReader.ENUM_TYPE_ANNULMENT);
+		eventMap.put("ENGA", EventReader.ENUM_TYPE_ENGAGEMENT);
+		eventMap.put("MARB", EventReader.ENUM_TYPE_MARRIAGE_BANN);
+		eventMap.put("MARC", EventReader.ENUM_TYPE_MARRIAGE_CONTRACT);
+		eventMap.put("MARL", EventReader.ENUM_TYPE_MARRIAGE_LICENSE);
+		eventMap.put("MARS", EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT);
 		// LDS ordinances
-		EVENT_MAP.put("BAPL", "lds_baptism");
-		EVENT_MAP.put("CONL", "lds_confirmation");
-		EVENT_MAP.put("ENDL", "lds_endowment");
-		EVENT_MAP.put("INIL", "lds_initiatory");
-		EVENT_MAP.put("SLGC", "lds_child_sealing");
-		EVENT_MAP.put("SLGS", "lds_spouse_sealing");
-		EVENT_MAP.put(TAG_GENERIC_EVENT, "event");
+		eventMap.put("BAPL", "lds_baptism");
+		eventMap.put("CONL", "lds_confirmation");
+		eventMap.put("ENDL", "lds_endowment");
+		eventMap.put("INIL", "lds_initiatory");
+		eventMap.put("SLGC", "lds_child_sealing");
+		eventMap.put("SLGS", "lds_spouse_sealing");
+		eventMap.put(TAG_GENERIC_EVENT, "event");
 
 		// ------------------------------
 		// Attributi (ATTRIBUTE_MAP)
 		// ------------------------------
-		ATTRIBUTE_MAP.put("CAST", IndividualAttributeReader.ENUM_TYPE_CASTE);
-		ATTRIBUTE_MAP.put("DSCR", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC);
-		ATTRIBUTE_MAP.put("EDUC", IndividualAttributeReader.ENUM_TYPE_EDUCATION);
-		ATTRIBUTE_MAP.put("IDNO", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
-		ATTRIBUTE_MAP.put("NATI", IndividualAttributeReader.ENUM_TYPE_NATIONALITY);
-		ATTRIBUTE_MAP.put("NCHI", IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT);
-		ATTRIBUTE_MAP.put("NMR", IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT);
-		ATTRIBUTE_MAP.put("OCCU", IndividualAttributeReader.ENUM_TYPE_OCCUPATION);
-		ATTRIBUTE_MAP.put("PROP", IndividualAttributeReader.ENUM_TYPE_POSSESSION);
-		ATTRIBUTE_MAP.put("RELI", IndividualAttributeReader.ENUM_TYPE_RELIGION);
-		ATTRIBUTE_MAP.put("RESI", IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
-		ATTRIBUTE_MAP.put("SSN", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
-		ATTRIBUTE_MAP.put(TAG_TITLE, IndividualAttributeReader.ENUM_TYPE_TITLE);
-		ATTRIBUTE_MAP.put(TAG_GENERIC_FACT, "fact");
+		attributeMap.put("CAST", IndividualAttributeReader.ENUM_TYPE_CASTE);
+		attributeMap.put("DSCR", IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC);
+		attributeMap.put("EDUC", IndividualAttributeReader.ENUM_TYPE_EDUCATION);
+		attributeMap.put("IDNO", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
+		attributeMap.put("NATI", IndividualAttributeReader.ENUM_TYPE_NATIONALITY);
+		attributeMap.put("NCHI", IndividualAttributeReader.ENUM_TYPE_CHILDREN_COUNT);
+		attributeMap.put("NMR", IndividualAttributeReader.ENUM_TYPE_MARRIAGES_COUNT);
+		attributeMap.put("OCCU", IndividualAttributeReader.ENUM_TYPE_OCCUPATION);
+		attributeMap.put("PROP", IndividualAttributeReader.ENUM_TYPE_POSSESSION);
+		attributeMap.put("RELI", IndividualAttributeReader.ENUM_TYPE_RELIGION);
+		attributeMap.put("RESI", IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
+		attributeMap.put("SSN", IndividualAttributeReader.ENUM_TYPE_NATIONAL_ID);
+		attributeMap.put(TAG_TITLE, IndividualAttributeReader.ENUM_TYPE_TITLE);
+		attributeMap.put(TAG_GENERIC_FACT, "fact");
 
 		// ------------------------------
 		// Sesso
@@ -397,38 +405,45 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Roles
 		// ------------------------------
-		ROLE_MAP.put("CHILD", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
-		ROLE_MAP.put("PARENT", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
-		ROLE_MAP.put("SPOUSE", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
-		ROLE_MAP.put("SPONSOR", EventParticipationReader.ENUM_ROLE_SPONSOR);
-		ROLE_MAP.put("POWER_OF_ATTORNEY", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
-		ROLE_MAP.put("PRISONER", EventParticipationReader.ENUM_ROLE_PRISONER);
-		ROLE_MAP.put("WITNESS", EventParticipationReader.ENUM_ROLE_WITNESS);
-		ROLE_MAP.put("OFFICIANT", EventParticipationReader.ENUM_ROLE_OFFICIANT);
-		ROLE_MAP.put("DECLARANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
-		ROLE_MAP.put("INFORMANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
-		ROLE_MAP.put("EXECUTOR", EventParticipationReader.ENUM_ROLE_EXECUTOR);
-		ROLE_MAP.put("GRANTOR", EventParticipationReader.ENUM_ROLE_GRANTOR);
-		ROLE_MAP.put("GRANTEE", EventParticipationReader.ENUM_ROLE_GRANTEE);
-		ROLE_MAP.put("LANDLORD", EventParticipationReader.ENUM_ROLE_LANDLORD);
-		ROLE_MAP.put("TENANT", EventParticipationReader.ENUM_ROLE_TENANT);
-		ROLE_MAP.put("SOLDIER", EventParticipationReader.ENUM_ROLE_SOLDIER);
-		ROLE_MAP.put("COMMANDER", EventParticipationReader.ENUM_ROLE_COMMANDER);
-		ROLE_MAP.put("VICTIM", EventParticipationReader.ENUM_ROLE_VICTIM);
-		ROLE_MAP.put("SURVIVOR", EventParticipationReader.ENUM_ROLE_SURVIVOR);
-		ROLE_MAP.put("ACCUSED", EventParticipationReader.ENUM_ROLE_ACCUSED);
-		ROLE_MAP.put("JUDGE", EventParticipationReader.ENUM_ROLE_JUDGE);
-		ROLE_MAP.put("PROPERTY", EventParticipationReader.ENUM_ROLE_PROPERTY);
+		roleMap.put("CHILD", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		roleMap.put("PARENT", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		roleMap.put("SPOUSE", EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		roleMap.put("SPONSOR", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("POWER_OF_ATTORNEY", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
+		roleMap.put("PRISONER", EventParticipationReader.ENUM_ROLE_PRISONER);
+		roleMap.put("WITNESS", EventParticipationReader.ENUM_ROLE_WITNESS);
+		roleMap.put("OFFICIANT", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("DECLARANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
+		roleMap.put("INFORMANT", EventParticipationReader.ENUM_ROLE_INFORMANT);
+		roleMap.put("EXECUTOR", EventParticipationReader.ENUM_ROLE_EXECUTOR);
+		roleMap.put("GRANTOR", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("GRANTEE", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("LANDLORD", EventParticipationReader.ENUM_ROLE_LANDLORD);
+		roleMap.put("TENANT", EventParticipationReader.ENUM_ROLE_TENANT);
+		roleMap.put("SOLDIER", EventParticipationReader.ENUM_ROLE_SOLDIER);
+		roleMap.put("COMMANDER", EventParticipationReader.ENUM_ROLE_COMMANDER);
+		roleMap.put("VICTIM", EventParticipationReader.ENUM_ROLE_VICTIM);
+		roleMap.put("SURVIVOR", EventParticipationReader.ENUM_ROLE_SURVIVOR);
+		roleMap.put("ACCUSED", EventParticipationReader.ENUM_ROLE_ACCUSED);
+		roleMap.put("JUDGE", EventParticipationReader.ENUM_ROLE_JUDGE);
+		roleMap.put("PROPERTY", EventParticipationReader.ENUM_ROLE_PROPERTY);
 
 		// ------------------------------
 		// Privacy level
 		// ------------------------------
 		PRIVACY_LEVEL_MAP.put("PUBLIC", PrivacyReader.ENUM_LEVEL_PUBLIC);
 		PRIVACY_LEVEL_MAP.put("RESTRICTED", PrivacyReader.ENUM_LEVEL_RESTRICTED);
-		PRIVACY_LEVEL_MAP.put("PRIVACY", PrivacyReader.ENUM_LEVEL_RESTRICTED);         // RESN privacy: dati personali riservati
-		PRIVACY_LEVEL_MAP.put("PRIVATE", PrivacyReader.ENUM_LEVEL_RESTRICTED);         // RESN privacy: dati personali riservati
+		// RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("PRIVACY", PrivacyReader.ENUM_LEVEL_RESTRICTED);
+		// RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("PRIVATE", PrivacyReader.ENUM_LEVEL_RESTRICTED);
 		// RESN locked impedisce le modifiche, non la diffusione: non ha corrispondente in FLEF
 		PRIVACY_LEVEL_MAP.put("CONFIDENTIAL", PrivacyReader.ENUM_LEVEL_CONFIDENTIAL); // RESN confidential (estensione standard GEDCOM)
+
+		//the tables are public: nobody can change them
+		EVENT_MAP = Map.copyOf(eventMap);
+		ATTRIBUTE_MAP = Map.copyOf(attributeMap);
+		ROLE_MAP = Map.copyOf(roleMap);
 	}
 
 	// ---- Metodi pubblici ----
@@ -457,7 +472,7 @@ public final class GEDCOMMapper{
 	 */
 	public static String mapEventType(final String gedcomTag, final String gedcomType){
 		//a custom tag (e.g. _MILT) gives a custom type, without the leading underscore
-		if(StringUtils.startsWith(gedcomTag, "_")){
+		if(Strings.CS.startsWith(gedcomTag, "_")){
 			final String customToken = toTypeToken(gedcomTag);
 			if(customToken != null)
 				return EVENT_TYPE_SYNONYMS.getOrDefault(customToken, customToken);
@@ -573,21 +588,21 @@ public final class GEDCOMMapper{
 			return null;
 
 		return switch(gedcomRole.trim().toUpperCase(Locale.ROOT)){
-			case "CHIL" -> "Child";
-			case "CLERGY" -> "Clergy";
-			case "FATH" -> "Father";
-			case "FRIEND" -> "Friend";
-			case "GODP" -> "Godparent";
-			case TAG_HUSBAND -> "Husband";
-			case "MOTH" -> "Mother";
-			case "MULTIPLE" -> "Multiple";
-			case "NGHBR" -> "Neighbor";
-			case "OFFICIATOR" -> "Officiator";
-			case "PARENT" -> "Parent";
-			case "SPOU" -> "Spouse";
-			case TAG_WIFE -> "Wife";
-			case "WITN" -> "Witness";
-			case "OTHER" -> "Other";
+			case "CHIL" -> GedcomTexts.t("role.child");
+			case "CLERGY" -> GedcomTexts.t("role.clergy");
+			case "FATH" -> GedcomTexts.t("role.father");
+			case "FRIEND" -> GedcomTexts.t("role.friend");
+			case "GODP" -> GedcomTexts.t("role.godparent");
+			case TAG_HUSBAND -> GedcomTexts.t("role.husband");
+			case "MOTH" -> GedcomTexts.t("role.mother");
+			case "MULTIPLE" -> GedcomTexts.t("role.multiple");
+			case "NGHBR" -> GedcomTexts.t("role.neighbor");
+			case "OFFICIATOR" -> GedcomTexts.t("role.officiator");
+			case "PARENT" -> GedcomTexts.t("role.parent");
+			case "SPOU" -> GedcomTexts.t("role.spouse");
+			case TAG_WIFE -> GedcomTexts.t("role.wife");
+			case "WITN" -> GedcomTexts.t("role.witness");
+			case "OTHER" -> GedcomTexts.t("role.other");
 			default -> gedcomRole.trim();
 		};
 	}

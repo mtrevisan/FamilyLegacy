@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -126,8 +127,8 @@ final class MarriageTypeInference{
 
 			final String lower = title.trim()
 				.toLowerCase(Locale.ROOT);
-			religious |= lower.endsWith(" " + RELIGIOUS);
-			civil |= lower.endsWith(" " + CIVIL);
+			religious |= lower.endsWith(StringUtils.SPACE + RELIGIOUS);
+			civil |= lower.endsWith(StringUtils.SPACE + CIVIL);
 		}
 		return (religious == civil? null: (religious? RELIGIOUS: CIVIL));
 	}

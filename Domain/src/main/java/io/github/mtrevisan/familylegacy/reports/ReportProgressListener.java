@@ -53,6 +53,6 @@ public interface ReportProgressListener{
 	 * @param message a short description of the current step; may be
 	 *                {@code null} when the caller has nothing to add
 	 */
-	public void onProgress(int percent, String message);
+	void onProgress(int percent, String message);
 
 }

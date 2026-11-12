@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 
 import java.lang.reflect.RecordComponent;
-import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -110,10 +109,14 @@ public record ReportConfig(
 	public ReportConfig with(final ReportOption option, final Object value){
 		final RecordComponent[] components = ReportConfig.class.getRecordComponents();
 		final Object[] arguments = new Object[components.length];
+		final Class<?>[] types = new Class<?>[components.length];
 		try{
-			for(int i = 0; i < components.length; i ++)
+			for(int i = 0; i < components.length; i ++){
+				types[i] = components[i].getType();
 				arguments[i] = (components[i].getName().equals(option.componentName())? value: components[i].getAccessor().invoke(this));
-			return ReportConfig.class.getDeclaredConstructor(Arrays.stream(components).map(RecordComponent::getType).toArray(Class<?>[]::new))
+			}
+			//the canonical constructor of a record always exists
+			return ReportConfig.class.getDeclaredConstructor(types)
 				.newInstance(arguments);
 		}
 		catch(final ReflectiveOperationException e){
@@ -139,38 +142,38 @@ public record ReportConfig(
 		return new ReportConfig(
 			ReportLanguage.ENGLISH,
 			PrivacyPolicy.HIDE_CONFIDENTIAL,
-			false,  // showPrivacyDetails
-			false,  // audit
-			true,   // header
-			true,   // introduction
-			true,   // paternalAncestry
-			true,   // maternalAncestry
-			true,   // descendants
-			true,   // directRelations
-			false,  // indirectRelations
+			false,
+			false,
+			true,
+			true,
+			true,
+			true,
+			true,
+			true,
+			false,
 			CollateralScope.NONE,
-			0,      // generations (all)
+			0,
 			PersonOrder.ALPHABETICAL,
-			true,   // notes
-			true,   // sources
-			true,   // media
-			false,  // evidence
-			false,  // contextAndResearch
-			false,  // culturalNormIds
-			true,   // groups
-			true,   // groupMembers
-			true,   // groupSubgroups
-			true,   // groupAttributes
-			true,   // historicEvents
-			true,   // repositories
-			true,   // includeOriginalSources
-			false,  // eventFullParticipants
-			false,  // coverageReport
-			false,  // timeline
-			true,   // indexIndividuals
-			true,   // indexPlaces
-			true,   // includeDescriptions
-			true    // includePictures
+			true,
+			true,
+			true,
+			false,
+			false,
+			false,
+			true,
+			true,
+			true,
+			true,
+			true,
+			true,
+			true,
+			false,
+			false,
+			false,
+			true,
+			true,
+			true,
+			true
 		);
 	}
 

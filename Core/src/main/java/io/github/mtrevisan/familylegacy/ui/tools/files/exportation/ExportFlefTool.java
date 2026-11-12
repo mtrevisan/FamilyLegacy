@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -56,7 +57,7 @@ public final class ExportFlefTool implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return "FLEF File…";
+		return I18N.t("menu.file.export.flef");
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public final class ExportFlefTool implements ToolOperation{
 			return;
 
 		File target = chooser.getSelectedFile();
-		if(!target.getName().toLowerCase().endsWith(".flef"))
+		if(!Strings.CI.endsWith(target.getName(), ".flef"))
 			target = new File(target.getParentFile(), target.getName() + ".flef");
 
 		if(target.exists()){

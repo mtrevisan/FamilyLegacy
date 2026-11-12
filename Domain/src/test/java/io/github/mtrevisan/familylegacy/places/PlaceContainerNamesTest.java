@@ -84,6 +84,15 @@ class PlaceContainerNamesTest{
 	}
 
 	@Test
+	void nameLevelsOfANullIdIsEmpty(){
+		final PlaceNameResolver resolver = new PlaceNameResolver(model);
+
+		Assertions.assertTrue(resolver.nameLevels(null).isEmpty());
+		Assertions.assertEquals(List.of(List.of("Borgo"), List.of("Treviso"), List.of("Veneto", "Diocese of Treviso")),
+			resolver.nameLevels("P1"));
+	}
+
+	@Test
 	void placeFoundByTheNameOfAContainer(){
 		final Predicate<FLEFRecord> byVeneto = predicate("Veneto");
 

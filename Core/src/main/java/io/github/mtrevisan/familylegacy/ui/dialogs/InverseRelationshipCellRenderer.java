@@ -56,15 +56,18 @@ public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
 		if(value instanceof FLEFRecord record){
 			final String type = RelationshipReader.extractType(record);
 			final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_SUBJECT, model)
-				.getFirst();
+				.stream()
+				.findFirst()
+				.orElse(null);
 			String subjectDisplayText = "--";
 			if(subject != null){
 				final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
-				subjectDisplayText = subjectHandler.getDisplayText(subject, model);
+				if(subjectHandler != null)
+					subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 			}
 			final String role = RelationshipReader.extractRole(record);
 
-			final String categoryTag = switch(type){
+			final String categoryTag = switch(StringUtils.defaultString(type)){
 				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
 				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
 				case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> "[Custody]";

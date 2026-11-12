@@ -82,12 +82,7 @@ public final class DeleteGroupTool implements ToolOperation{
 			JOptionPane.WARNING_MESSAGE
 		);
 		if(confirm == JOptionPane.YES_OPTION){
-			if(context.dispatcher() != null)
-				context.performRemove(id);
-			else{
-				GroupHelper.deleteGroup(id, model);
-				context.loadRoot(id);
-			}
+			context.performRemove(id);
 		}
 	}
 

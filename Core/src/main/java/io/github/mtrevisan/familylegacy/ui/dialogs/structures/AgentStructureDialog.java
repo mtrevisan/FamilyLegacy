@@ -120,11 +120,13 @@ public class AgentStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(FLEFRecordHelper.findChild(record, AgentReader.TAG_INDIVIDUAL) != null
-				|| FLEFRecordHelper.findChild(record, AgentReader.TAG_GROUP) != null){
+		FLEFRecord agentReference = FLEFRecordHelper.findChild(record, AgentReader.TAG_INDIVIDUAL);
+		if(agentReference == null)
+			agentReference = FLEFRecordHelper.findChild(record, AgentReader.TAG_GROUP);
+		if(agentReference != null){
 			typeCombo.setSelectedItem(ENUM_TYPE_AGENT);
 			cardLayout.show(cardPanel, CARD_NAME_AGENT);
-			final FLEFRecord agent = model.getRecordById(record.getTheOnlyChild().getValue());
+			final FLEFRecord agent = model.getRecordById(agentReference.getValue());
 			agentField.load(agent);
 		}
 		else{

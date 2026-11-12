@@ -130,9 +130,9 @@ final class RelationshipDataLoader{
 	}
 
 	/** @return the {@code value} of the first structure of a record with that tag (a record can have several titles or names), or {@code null} */
-	private static String firstValue(final FLEFRecord record, final String structure){
+	private static String firstValue(final FLEFRecord record, final String structure, final String valueTag){
 		final List<FLEFRecord> structures = FLEFRecordHelper.extractStructures(record, structure);
-		return (structures.isEmpty()? null: FLEFRecordHelper.getChildValue(structures.getFirst(), "value"));
+		return (structures.isEmpty()? null: FLEFRecordHelper.getChildValue(structures.getFirst(), valueTag));
 	}
 
 	/** @return the titles of the sources that cite a record (an event) */
@@ -140,7 +140,7 @@ final class RelationshipDataLoader{
 		final List<String> titles = new ArrayList<>();
 		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_SOURCE)){
 			final FLEFRecord source = model.getRecordById(FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
-			final String title = (source != null? firstValue(source, SourceReader.TAG_TITLE): null);
+			final String title = (source != null? firstValue(source, SourceReader.TAG_TITLE, SourceReader.TAG_TITLE_VALUE): null);
 			if(StringUtils.isNotBlank(title))
 				titles.add(title.trim());
 		}
@@ -155,7 +155,7 @@ final class RelationshipDataLoader{
 		final Map<String, String> names = new LinkedHashMap<>();
 		for(final FLEFRecord place : model.getRecordsByType(PlaceHandler.TYPE))
 			if(place.getId() != null)
-				names.put(place.getId(), StringUtils.lowerCase(StringUtils.trimToEmpty(firstValue(place, "name"))));
+				names.put(place.getId(), StringUtils.lowerCase(StringUtils.trimToEmpty(firstValue(place, PlaceReader.TAG_NAME, PlaceReader.TAG_NAME_VALUE))));
 
 		final Map<String, String> parentOf = new LinkedHashMap<>();
 		for(final FLEFRecord relationship : model.getRecordsByType(PlaceRelationshipHandler.TYPE))

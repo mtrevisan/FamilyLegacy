@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.files;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
 import io.github.mtrevisan.familylegacy.importer.FileImporters;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.files.exportation.ExportFlefTool;
 import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportFileTool;
 import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportUnavailableTool;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.BackupTool;
@@ -70,6 +71,7 @@ public final class FileToolRegistry{
 
 	public static List<ToolOperation> exportTools(){
 		return List.of(
+			new ExportFlefTool()
 			// TODO ?
 //			new ExportGedcom551Tool(),
 //			new ExportGedcom7Tool(),

@@ -21,6 +21,9 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<systemPropertyVariables>
+						<familylegacy.fonts.dir>${project.basedir}/fonts</familylegacy.fonts.dir>
+					</systemPropertyVariables>
 					<argLine>
 						--add-reads io.github.mtrevisan.reports.pdf=org.junit.jupiter.api
 						--add-opens io.github.mtrevisan.reports.pdf/io.github.mtrevisan.reports.pdf=org.junit.platform.commons
@@ -78,6 +81,12 @@
 								<mkdir dir="${project.basedir}/../Core/plugins"/>
 								<copy file="${project.build.directory}/${project.build.finalName}-plugin.jar"
 									tofile="${project.basedir}/../Core/plugins/report-pdf.jar" overwrite="true"/>
+								<!-- the fonts, beside the plugins (the program works without them: they are optional); and the pack of the fonts that a
+									release publishes (as fonts.zip) for the application to download -->
+								<copy todir="${project.basedir}/../Core/fonts" overwrite="true">
+									<fileset dir="${project.basedir}/fonts"/>
+								</copy>
+								<zip destfile="${project.build.directory}/fonts.zip" basedir="${project.basedir}/fonts"/>
 							</target>
 						</configuration>
 					</execution>

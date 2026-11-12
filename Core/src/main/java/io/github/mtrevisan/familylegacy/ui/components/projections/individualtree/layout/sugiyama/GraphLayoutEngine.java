@@ -56,7 +56,7 @@ public class GraphLayoutEngine implements LayoutEngine{
 		final Set<TreeNode> allTreeNodes = new HashSet<>();
 		collectAllTreeNodes(rootNode, allTreeNodes);
 		return GraphLayoutBuilder.buildLayout(canvas, rootNode, allTreeNodes, showPartner, model, genealogyRepository,
-			nodeToPanelMap, treeListener, popupFactory, treeLayout, partnerCycleHandler);
+			nodeToPanelMap, treeListener, popupFactory, treeLayout, partnerCycleHandler, maxAncestors);
 	}
 
 

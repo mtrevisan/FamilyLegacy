@@ -109,10 +109,6 @@ public class IndividualDossierPanel extends JPanel{
 	private static final Color LINK_COLOR = new Color(30, 80, 180);
 	private static final Color EMPTY_COLOR = new Color(140, 130, 120);
 
-	private static final Color BADGE_BACKGROUND = new Color(224, 218, 204);
-	private static final Font BADGE_FONT = new Font("Tahoma", Font.BOLD, 11);
-	private static final int PART_INDENT = 8;
-
 	private static final Font HEADER_FONT = new Font("Tahoma", Font.BOLD, 12);
 	private static final Font LABEL_FONT = new Font("Tahoma", Font.BOLD, 11);
 	private static final Font VALUE_FONT = new Font("Tahoma", Font.PLAIN, 12);
@@ -511,93 +507,10 @@ public class IndividualDossierPanel extends JPanel{
 
 			if(entry.isEditable()){
 				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				addMouseListener(new MouseAdapter(){ /* ... */ });
 				attachRecursively(this, this);
 			}
 		}
 
-
-		/** Renders a NAME_HEADER row: a small badge with the name type. */
-		private void buildNameHeader(){
-			setLayout(new MigLayout("ins 6 10 2 10,gapx 4,fillx", "[]", "[]"));
-			setBackground(baseBackground);
-
-			final JLabel badge = new JLabel(StringUtils.SPACE + entry.value() + StringUtils.SPACE);
-			badge.setFont(BADGE_FONT);
-			badge.setForeground(LABEL_COLOR);
-			badge.setOpaque(true);
-			badge.setBackground(BADGE_BACKGROUND);
-			badge.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
-
-			add(badge);
-
-			if(entry.isEditable()){
-				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				attachRecursively(this, this);
-			}
-		}
-
-
-		/** Renders a NORMAL or NAME_PART row. */
-		private void buildStandardRow(){
-			final String leftInset = (entry.isNamePart()? "ins 2 " + (10 + PART_INDENT) + " 2 10": "ins 4 10 4 10");
-			setLayout(new MigLayout(leftInset + ",gapx 6,fillx",
-				"[" + LABEL_WIDTH + "!][grow,fill][]", "[]0[]"));
-			setBackground(baseBackground);
-
-			final JLabel labelLabel = new JLabel(entry.label());
-			labelLabel.setFont(LABEL_FONT);
-			labelLabel.setForeground(LABEL_COLOR);
-
-			final JLabel valueLabel = new JLabel(entry.value());
-			valueLabel.setFont(VALUE_FONT);
-			valueLabel.setForeground(entry.isEditable()? LINK_COLOR: VALUE_COLOR);
-			if(entry.editRecord() != null){
-				//a padlock signals a restricted or confidential record
-				final PrivacyResolver.Effective privacy = PrivacyService.resolver(model)
-					.describe(entry.editRecord());
-				valueLabel.setIcon(PrivacyBadge.of(privacy));
-				valueLabel.setToolTipText(PrivacyBadge.tooltip(privacy));
-			}
-
-			final JLabel subtitleLabel = new JLabel(entry.subtitle());
-			subtitleLabel.setFont(SUBTITLE_FONT);
-			subtitleLabel.setForeground(SUBTITLE_COLOR);
-			subtitleLabel.setVisible(entry.hasSubtitle());
-
-			final JLabel evidenceLabel = new JLabel(entry.evidenceBadge());
-			evidenceLabel.setFont(EVIDENCE_FONT);
-			evidenceLabel.setForeground(EVIDENCE_COLOR);
-			evidenceLabel.setVisible(entry.hasEvidenceBadge());
-
-			add(labelLabel);
-			add(valueLabel, "growx,wrap");
-			if(entry.hasSubtitle())
-				add(subtitleLabel, "cell 1 1,growx,wrap");
-			add(evidenceLabel, "cell 2 0 1 2,aligny center");
-
-			if(entry.isEditable()){
-				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-				addMouseListener(new MouseAdapter(){
-					@Override
-					public void mouseClicked(final MouseEvent e){
-						if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-							openEditDialog();
-					}
-
-					@Override
-					public void mouseEntered(final MouseEvent e){
-						highlight(ROW_BACKGROUND_HOVER);
-					}
-
-					@Override
-					public void mouseExited(final MouseEvent e){
-						highlight(baseBackground);
-					}
-				});
-				attachRecursively(this, this);
-			}
-		}
 
 		private void highlight(final Color color){
 			setBackground(color);

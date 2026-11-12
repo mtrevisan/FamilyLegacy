@@ -115,7 +115,7 @@ public final class MapWarperTileOverlayPainter implements ChronomapLayer{
 	 * would amplify the number of repaint passes when they finally
 	 * finish.
 	 */
-	private final Set<Tile> listenedTiles = Collections.newSetFromMap(new WeakHashMap<>());
+	private final Set<Tile> listenedTiles = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
 
 	public MapWarperTileOverlayPainter(final HistoricalMapMetaData metaData, final TileFactory tileFactory){

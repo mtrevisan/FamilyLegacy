@@ -54,7 +54,7 @@ public final class AtLeastOneConstraint extends Constraint{
 
 		if(count == 0)
 			errors.add(String.format(
-				"Constraint violation at '%s': expected exactly one of %s, but found %d",
+				"Constraint violation at '%s': expected at least one of %s, but found %d",
 				contextPath, fields, count
 			));
 	}

@@ -48,6 +48,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -100,7 +101,7 @@ class GEDCOMImportReportTest{
 	private static void assertReported(final ImportReport report, final String reason, final String itemStart, final String where){
 		Assertions.assertTrue(issues(report, reason).stream()
 				.anyMatch(issue -> issue.item().startsWith(itemStart) && issue.where().equals(where)),
-			"expected " + reason + " " + itemStart + " @ " + where + " but got " + report.issues());
+			"expected " + reason + StringUtils.SPACE + itemStart + " @ " + where + " but got " + report.issues());
 	}
 
 	/** The text of the note of a record with the given title, {@code null} if none. */

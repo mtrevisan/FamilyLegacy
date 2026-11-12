@@ -183,23 +183,7 @@ public final class CoverageSection implements SectionBuilder{
 	}
 
 
-	private static final class CoverageEntry{
-		final FLEFRecord record;
-		final String kind;
-		final int present;
-		final int total;
-		final boolean hasSource;
-		final boolean hasEvidence;
-
-		CoverageEntry(final FLEFRecord record, final String kind, final int present,
-			final int total, final boolean hasSource, final boolean hasEvidence){
-			this.record = record;
-			this.kind = kind;
-			this.present = present;
-			this.total = total;
-			this.hasSource = hasSource;
-			this.hasEvidence = hasEvidence;
-		}
-	}
+	private record CoverageEntry(FLEFRecord record, String kind, int present, int total, boolean hasSource,
+		boolean hasEvidence){}
 
 }

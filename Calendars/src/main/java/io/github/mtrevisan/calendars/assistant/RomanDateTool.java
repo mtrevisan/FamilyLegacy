@@ -28,6 +28,7 @@ import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -115,7 +116,7 @@ public final class RomanDateTool{
 		if(year < FIRST_REGULAR_LEAP_YEAR)
 			assumptions.add(Message.of("date_assistant.assumption.roman_early_leap"));
 		final List<Message> steps = new ArrayList<>();
-		final Message named = Message.of("date_assistant.roman.named", Message.of(kind.labelKey), java.time.Month.of(month));
+		final Message named = Message.of("date_assistant.roman.named", Message.of(kind.labelKey), Month.of(month));
 		steps.add(Message.of("date_assistant.step.roman_read", written, describeCount(count), named));
 
 		//the Kalends of January of a date of December are those of the following year

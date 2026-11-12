@@ -49,13 +49,13 @@ public sealed interface TemporalProjectionRef
 	 *
 	 * @return the anchor entity, never {@code null}
 	 */
-	public TemporalEntityRef anchorEntity();
+	TemporalEntityRef anchorEntity();
 
 
 	/**
 	 * A reference to an entire row, identified by its row entity.
 	 */
-	public record RowRef(TemporalEntityRef entity) implements TemporalProjectionRef{
+	record RowRef(TemporalEntityRef entity) implements TemporalProjectionRef{
 
 		public RowRef{
 			if(entity == null)
@@ -73,7 +73,7 @@ public sealed interface TemporalProjectionRef
 	/**
 	 * A reference to a specific {@link TemporalEntry} inside a row.
 	 */
-	public record EntryRef(TemporalEntityRef rowEntity, TemporalEntry entry) implements TemporalProjectionRef{
+	record EntryRef(TemporalEntityRef rowEntity, TemporalEntry entry) implements TemporalProjectionRef{
 
 		public EntryRef{
 			if(rowEntity == null)
@@ -93,7 +93,7 @@ public sealed interface TemporalProjectionRef
 	/**
 	 * A reference to a {@link TemporalConnection} between two rows.
 	 */
-	public record ConnectionRef(TemporalConnection connection) implements TemporalProjectionRef{
+	record ConnectionRef(TemporalConnection connection) implements TemporalProjectionRef{
 
 		public ConnectionRef{
 			if(connection == null)
@@ -110,7 +110,7 @@ public sealed interface TemporalProjectionRef
 	 * A reference to a {@link TemporalContextBand}: a historic event or a cultural norm drawn behind the rows. Its anchor is the
 	 * context entity itself.
 	 */
-	public record BandRef(TemporalContextBand band) implements TemporalProjectionRef{
+	record BandRef(TemporalContextBand band) implements TemporalProjectionRef{
 
 		public BandRef{
 			if(band == null)

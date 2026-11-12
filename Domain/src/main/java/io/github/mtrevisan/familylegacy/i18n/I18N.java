@@ -94,6 +94,24 @@ public final class I18N{
 	}
 
 	/**
+	 * Returns every distinct printable character used by the messages of the current language (in code point
+	 * order), i.e. the characters a font must be able to draw to render the whole user interface.
+	 */
+	public static String allCharacters(){
+		final java.util.TreeSet<Integer> codePoints = new java.util.TreeSet<>();
+		final java.util.Enumeration<String> keys = BUNDLE.getKeys();
+		while(keys.hasMoreElements()){
+			final String value = BUNDLE.getString(keys.nextElement());
+			value.codePoints()
+				.filter(cp -> !Character.isISOControl(cp) && !Character.isWhitespace(cp))
+				.forEach(codePoints::add);
+		}
+		final StringBuilder sb = new StringBuilder();
+		codePoints.forEach(sb::appendCodePoint);
+		return sb.toString();
+	}
+
+	/**
 	 * Returns the localized text of {@code key} formatted as the label of a field. The separator is part of the
 	 * translation ({@code format.label}), because it depends on the language (e.g., {@code "Nom :"} in French).
 	 */

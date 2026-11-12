@@ -67,5 +67,17 @@ public enum ProofStatus{
 		return code;
 	}
 
-	/** Color of the indicator dot. */
+	/**
+	 * @param code	The proof status as written in the file (for example {@code conflicting_evidence}), case-insensitive.
+	 * @return	The status, or {@code null} if the code is missing or unknown.
+	 */
+	public static ProofStatus fromCode(final String code){
+		if(code == null)
+			return null;
+
+		for(final ProofStatus status : values())
+			if(status.code.equalsIgnoreCase(code))
+				return status;
+		return null;
+	}
 }

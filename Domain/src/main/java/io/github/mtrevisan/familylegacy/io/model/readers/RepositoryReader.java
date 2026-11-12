@@ -105,11 +105,7 @@ public final class RepositoryReader{
 	 * @return a list of name strings with excluded parts omitted
 	 */
 	public static List<String> extractNames(final FLEFRecord repository){
-		final List<Name> names = NameAnatomyService.extractForGeneric(repository);
-		return names.stream()
-			.map(Name::value)
-			.filter(StringUtils::isNotEmpty)
-			.toList();
+		return GroupReader.extractNames(repository);
 	}
 
 	/** @return	The primary name of the repository, or its id if it has no name, or the empty string. */

@@ -97,7 +97,7 @@ public final class EqualTypeConstraint extends Constraint{
 
 	@Override
 	public String toString(){
-		return "require at_least_one(" + String.join(", ", fields) + ")";
+		return "require type(" + fields.get(0) + ") == type(" + fields.get(1) + ")";
 	}
 
 }

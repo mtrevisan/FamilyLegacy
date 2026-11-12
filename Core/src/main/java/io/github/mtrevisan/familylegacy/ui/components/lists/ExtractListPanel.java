@@ -192,8 +192,9 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TEXT, textArea.getText());
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TYPE, (String)typeCombo.getSelectedItem());
 					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_LOCALE, (String)localeCombo.getSelectedItem());
+					FLEFRecordHelper.removeChildren(record, SourceCitationReader.TAG_REMARK);
 					for(final FLEFRecord note : remark.getItems())
-						FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_REMARK, NoteReader.extractText(note));
+						record.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, NoteReader.extractText(note)));
 				}
 
 				dialog.dispose();

@@ -62,7 +62,7 @@ The export to a FLEF file asks first which privacy policy to apply (the default 
 - The contacts of the submitter are removed unless they are explicitly public.
 - With *Show All* the model is written unchanged.
 
-At the moment the export is not offered in the **File** menu (only Import and Backup are), so this filtering cannot be reached from the menus.
+The export is in the menu **File > Export > FLEF File…**.
 
 ## The confidential marker in notes
 

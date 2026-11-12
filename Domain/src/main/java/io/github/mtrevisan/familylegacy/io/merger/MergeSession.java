@@ -108,7 +108,7 @@ final class MergeSession implements RecordStore{
 		final List<FLEFRecord> copies = new ArrayList<>(incomingModel.getRecordCount());
 		for(final FLEFRecord record : incomingModel.getRecords())
 			copies.add(FieldMerger.copy(record));
-		final Map<String, String> renames = new HashMap<>();
+		final Map<String, String> renames = new LinkedHashMap<>();
 		for(final FLEFRecord copy : copies)
 			if(ids.isTaken(copy.getId()))
 				renames.put(copy.getId(), null);

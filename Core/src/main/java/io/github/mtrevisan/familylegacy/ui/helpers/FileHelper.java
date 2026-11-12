@@ -146,6 +146,8 @@ public final class FileHelper{
 	private static boolean executeDesktopCommand(final Desktop.Action action, final Object parameter){
 		boolean done = false;
 		final Desktop desktop = getDesktopFor(action);
+		if(desktop == null)
+			return false;
 		try{
 			switch(action){
 				case OPEN:
@@ -169,7 +171,7 @@ public final class FileHelper{
 					}
 			}
 		}
-		catch(final IOException | URISyntaxException e){
+		catch(final IOException | URISyntaxException | IllegalArgumentException e){
 			LOGGER.error("Cannot execute {} command", action, e);
 		}
 		return done;
@@ -183,8 +185,15 @@ public final class FileHelper{
 		try{
 			final URL url = new URI(URL_CONNECTIVITY_TEST).toURL();
 			final HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
-			final int responseCode = httpConnection.getResponseCode();
-			return (responseCode == HttpURLConnection.HTTP_OK);
+			httpConnection.setConnectTimeout(3_000);
+			httpConnection.setReadTimeout(3_000);
+			try{
+				final int responseCode = httpConnection.getResponseCode();
+				return (responseCode == HttpURLConnection.HTTP_OK);
+			}
+			finally{
+				httpConnection.disconnect();
+			}
 		}
 		catch(final Exception ignored){
 			return false;

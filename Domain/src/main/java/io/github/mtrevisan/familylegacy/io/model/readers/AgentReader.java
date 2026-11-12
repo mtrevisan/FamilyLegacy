@@ -61,8 +61,7 @@ public final class AgentReader{
 		if(group != null)
 			return group;
 
-		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
-		return text;
+		return FLEFRecordHelper.getChildValue(record, TAG_TEXT);
 	}
 
 }

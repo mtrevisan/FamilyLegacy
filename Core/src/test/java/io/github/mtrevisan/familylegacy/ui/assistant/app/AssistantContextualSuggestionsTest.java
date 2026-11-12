@@ -9,6 +9,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.gap.CreateResearchDraftActi
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
 import io.github.mtrevisan.familylegacy.ui.features.SuggestionKind;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -153,8 +154,8 @@ class AssistantContextualSuggestionsTest{
 	void everyKindHasWordsForEveryLevel(){
 		for(final SuggestionKind kind : SuggestionKind.values()){
 			for(final UxLevel level : UxLevel.values()){
-				Assertions.assertFalse(kind.message(level).startsWith("suggestion."), kind + " " + level);
-				Assertions.assertFalse(kind.actionLabel(level).startsWith("suggestion."), kind + " " + level);
+				Assertions.assertFalse(kind.message(level).startsWith("suggestion."), kind + StringUtils.SPACE + level);
+				Assertions.assertFalse(kind.actionLabel(level).startsWith("suggestion."), kind + StringUtils.SPACE + level);
 			}
 			Assertions.assertFalse(kind.hint().startsWith("suggestion."), kind.name());
 		}

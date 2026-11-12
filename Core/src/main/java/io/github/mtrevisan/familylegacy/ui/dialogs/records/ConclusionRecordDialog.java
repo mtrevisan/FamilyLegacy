@@ -334,7 +334,23 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
+		//require preferred in resolves
+		final FLEFRecord preferred = (FLEFRecord)preferredCombo.getSelectedItem();
+		if(preferred != null && !isAmongResolves(preferred)){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.conclusion.preferred")),
+				tabbedPane, propertiesPanel, preferredCombo);
+			return false;
+		}
+
 		return true;
+	}
+
+	private boolean isAmongResolves(final FLEFRecord preferred){
+		for(final FLEFRecord resolved : resolvesPanel.getItems())
+			if(resolved == preferred || (preferred.getId() != null && preferred.getId().equals(resolved.getId())))
+				return true;
+		return false;
 	}
 
 	@Override
@@ -344,6 +360,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		resolvesPanel.save(record);
 
 		// preferred
+		//clear any previous value, so that the preferred can be removed too
+		FLEFRecordHelper.removeChildren(record, ConclusionReader.TAG_PREFERRED);
 		final FLEFRecord selectedPreferred = (FLEFRecord)preferredCombo.getSelectedItem();
 		if(selectedPreferred != null){
 			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, ConclusionReader.TAG_PREFERRED);

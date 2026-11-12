@@ -309,7 +309,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			return "--";
 
 		final RecordTypeHandler<?> handler = findHandler(record);
-		return handler.getDisplayText(record, model);
+		return (handler != null? handler.getDisplayText(record, model): "--");
 	}
 
 	@Override
@@ -529,6 +529,9 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final RecordTypeHandler<?> citationHandler = findHandler(citation);
 		final String targetId = FLEFRecordHelper.getChildValue(citation, citationHandler.getCitedType());
 		final FLEFRecord target = model.getRecordById(targetId);
+		if(target == null)
+			return;
+
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
 		final RecordDialog dialog = targetHandler.createEditDialog(parent, model, target);
 		getDialogSetup().accept(dialog);
@@ -605,7 +608,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-			references.addAll(handler.findReferences(model, recordId, parentEntity.getTag()));
+			references.addAll(handler.findReferences(model, recordId, (parentEntity != null? parentEntity.getTag(): null)));
 		}
 		setItems(references);
 	}

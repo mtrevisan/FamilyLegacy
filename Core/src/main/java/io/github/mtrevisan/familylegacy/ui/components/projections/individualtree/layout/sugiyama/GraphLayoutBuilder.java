@@ -57,7 +57,7 @@ public final class GraphLayoutBuilder{
 			final GenealogyRepository genealogyRepository, final Map<TreeNode, PartnersPanel> nodeToPanelMap,
 			final IndividualTreeGraphListener treeListener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
-			final PartnerCycleHandler partnerCycleHandler){
+			final PartnerCycleHandler partnerCycleHandler, final int maxAncestors){
 		if(allTreeNodes == null || allTreeNodes.isEmpty())
 			return null;
 
@@ -97,7 +97,7 @@ public final class GraphLayoutBuilder{
 
 		// Step 4: Populate Swing Canvas
 		final SiblingsPanel siblingsPanel = CoordinateAssigner.populateCanvas(canvas, rootNode, layers, model,
-			genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner, partnerCycleHandler);
+			genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout, showPartner, partnerCycleHandler, maxAncestors);
 
 		return siblingsPanel;
 	}

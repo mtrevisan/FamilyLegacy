@@ -116,8 +116,7 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 						break;
 					}
 				}
-				if(!matched)
-					return false;
+				return matched;
 			}
 
 			return true;

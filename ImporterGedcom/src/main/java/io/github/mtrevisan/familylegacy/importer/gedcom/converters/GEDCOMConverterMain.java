@@ -37,7 +37,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -45,30 +44,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class GEDCOMConverterMain{
 
-	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
-	static void main(final String[] args) throws IOException, URISyntaxException{
-		final String inputResource = "Core/src/main/resources/tests/TGMZ.ged";
-		final String outputPath = "Core/src/main/resources/tests/TGMZ.flef";
-//		final String inputResource = "Core/src/main/resources/tests/TGC55C.ged";
-//		final String outputPath = "Core/src/main/resources/tests/TGC55C.flef";
+	private static final String DEFAULT_INPUT = "Core/src/main/resources/tests/TGMZ.ged";
+	private static final String DEFAULT_OUTPUT = "Core/src/main/resources/tests/TGMZ.flef";
 
-		final String gedcomContent;
-		try(final InputStream is = Files.newInputStream(Paths.get(inputResource));
-			final BufferedReader br = GEDCOMHelper.getBufferedReader(is)){
-			gedcomContent = br.lines()
-				.collect(Collectors.joining(System.lineSeparator()));
-		}
+
+	// Usage: java GEDCOMConverterMain [<input.ged> [<output.flef>]]
+	static void main(final String[] args) throws IOException, URISyntaxException{
+		final String inputResource = (args.length > 0? args[0]: DEFAULT_INPUT);
+		final String outputPath = (args.length > 1? args[1]: DEFAULT_OUTPUT);
 
 		// Parse GEDCOM
 		final GEDCOMParser parser = new GEDCOMParser();
 		final List<GEDCOMNode> roots;
-		try(final StringReader reader = new StringReader(gedcomContent)){
-			roots = parser.parse(reader);
+		try(final InputStream is = Files.newInputStream(Paths.get(inputResource));
+				final BufferedReader br = GEDCOMHelper.getBufferedReader(is)){
+			roots = parser.parse(br);
 		}
 
 		// Convert to FLEF
@@ -92,9 +86,10 @@ public class GEDCOMConverterMain{
 	}
 
 	private static void validate(FLEFModel model) throws IOException, URISyntaxException{
-		final var grammarUrl = FLEFGrammar.class.getResource("/gedg/flef_0.2.0.gedg");
+		final String resourceName = "/gedg/flef_0.2.0.gedg";
+		final var grammarUrl = FLEFGrammar.class.getResource(resourceName);
 		if(grammarUrl == null)
-			throw new IllegalStateException("Resource /gedg/flef_0.2.0.gedg non trovato sul module path");
+			throw new IllegalStateException("Resource " + resourceName + " not found on path module");
 
 		final Path path = Paths.get(grammarUrl.toURI());
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);

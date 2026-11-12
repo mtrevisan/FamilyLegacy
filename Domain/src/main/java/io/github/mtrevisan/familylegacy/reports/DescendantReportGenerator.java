@@ -58,7 +58,9 @@ public final class DescendantReportGenerator{
 	}
 
 	public ReportDocument generate(final ReportProgressListener listener){
-		final RelationIndex index = RelationIndex.build(model);
+		//the index hides what the privacy policy hides: a hidden person is not an ancestor (or a descendant) of the report
+		final ReportContext ctx = ReportContext.build(model, root, config);
+		final RelationIndex index = ctx.index;
 
 		final List<FLEFRecord> direct = index.descendantsByGeneration(root, config.generations());
 		final List<FLEFRecord> all;
@@ -73,7 +75,6 @@ public final class DescendantReportGenerator{
 			collaterals.removeAll(direct);
 		}
 
-		final ReportContext ctx = ReportContext.build(model, root, config, index);
 		final String title = String.format(ctx.labels.sections().descendantReportTitle(),
 			ctx.displayText(root));
 

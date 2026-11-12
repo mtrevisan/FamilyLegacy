@@ -116,7 +116,7 @@ public final class PlaceNameResolver{
 	public List<List<String>> nameLevels(final String placeId){
 		final List<List<String>> levels = new ArrayList<>(0);
 		final Set<String> visited = new HashSet<>();
-		List<String> current = List.of(placeId);
+		List<String> current = (placeId != null? List.of(placeId): List.of());
 		while(!current.isEmpty()){
 			final List<String> names = new ArrayList<>(0);
 			final List<String> next = new ArrayList<>(0);

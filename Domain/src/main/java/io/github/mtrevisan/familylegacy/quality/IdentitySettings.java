@@ -66,11 +66,11 @@ public record IdentitySettings(int threshold, int maxPairs, int highScore, int m
 	 * that was typed or read wrongly cannot make the assistant meaningless.
 	 */
 	public IdentitySettings{
-		threshold = clamp(threshold, MIN_THRESHOLD, MAX_THRESHOLD);
-		maxPairs = clamp(maxPairs, MIN_MAX_PAIRS, MAX_MAX_PAIRS);
-		highScore = clamp(highScore, MIN_THRESHOLD, MAX_THRESHOLD);
-		mediumScore = Math.min(clamp(mediumScore, MIN_THRESHOLD, MAX_THRESHOLD), highScore);
-		otherPercent = clamp(otherPercent, MIN_OTHER_PERCENT, MAX_OTHER_PERCENT);
+		threshold = Math.clamp(threshold, MIN_THRESHOLD, MAX_THRESHOLD);
+		maxPairs = Math.clamp(maxPairs, MIN_MAX_PAIRS, MAX_MAX_PAIRS);
+		highScore = Math.clamp(highScore, MIN_THRESHOLD, MAX_THRESHOLD);
+		mediumScore = Math.min(Math.clamp(mediumScore, MIN_THRESHOLD, MAX_THRESHOLD), highScore);
+		otherPercent = Math.clamp(otherPercent, MIN_OTHER_PERCENT, MAX_OTHER_PERCENT);
 	}
 
 
@@ -112,11 +112,6 @@ public record IdentitySettings(int threshold, int maxPairs, int highScore, int m
 	/** @return	The probability, from 0 to 1, from which a pair of the other kinds of record is proposed. */
 	public double otherProbability(){
 		return otherPercent / 100.;
-	}
-
-
-	private static int clamp(final int value, final int min, final int max){
-		return Math.max(min, Math.min(max, value));
 	}
 
 }

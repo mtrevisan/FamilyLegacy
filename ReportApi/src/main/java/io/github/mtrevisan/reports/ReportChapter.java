@@ -61,9 +61,9 @@ public record ReportChapter(String title, boolean titlePage, List<ReportSection>
 		boolean titlePage = true;
 		List<ReportSection> sections = new ArrayList<>();
 		for(final ReportSection section : doc.sections()){
-			if(section instanceof ReportSection.Heading heading && heading.level() <= CHAPTER_LEVEL){
+			if(section instanceof ReportSection.Heading(int level, String text) && level <= CHAPTER_LEVEL){
 				chapters.add(new ReportChapter(title, titlePage, sections));
-				title = ReportMarkup.withoutRecordIds(ReportMarkup.plain(heading.text()));
+				title = ReportMarkup.withoutRecordIds(ReportMarkup.plain(text));
 				titlePage = false;
 				sections = new ArrayList<>();
 			}

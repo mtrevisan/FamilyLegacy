@@ -147,8 +147,6 @@ public class SearchService{
 
 	private final FLEFModel model;
 
-	private SearchStrategy strategy;
-
 
 	public SearchService(final FLEFModel model){
 		this.model = model;
@@ -177,7 +175,7 @@ public class SearchService{
 			return List.of();
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(criteria.recordType());
-		strategy = REGISTRY.get(handler.getClassType());
+		final SearchStrategy strategy = REGISTRY.get(handler.getClassType());
 
 		// Stage 1: structural filters (sex, event type, date range, place, ...).
 		final Predicate<FLEFRecord> structuralFilter = strategy.buildPredicate(criteria, model);
@@ -202,6 +200,7 @@ public class SearchService{
 		final PlaceNameResolver placeNames = (PlaceReader.TYPE.equals(handler.getType())? new PlaceNameResolver(model): null);
 		final List<ScoredRecord> scored = new ArrayList<>();
 		final int totalRecords = records.size();
+		int lastProgress = -1;
 		for(int i = 0; i < totalRecords; i ++){
 			if(Thread.currentThread().isInterrupted())
 				break;
@@ -222,7 +221,11 @@ public class SearchService{
 
 			if(progressCallback != null){
 				final int progressPercent = (int)(((i + 1) / (double)totalRecords) * 100);
-				progressCallback.accept(progressPercent);
+				//notify only when the percentage changes, not at each record
+				if(progressPercent != lastProgress){
+					lastProgress = progressPercent;
+					progressCallback.accept(progressPercent);
+				}
 			}
 		}
 
@@ -251,6 +254,7 @@ public class SearchService{
 			final Predicate<FLEFRecord> predicate, final Consumer<Integer> progressCallback){
 		final List<FLEFRecord> results = new ArrayList<>();
 		final int totalRecords = records.size();
+		int lastProgress = -1;
 		for(int i = 0; i < totalRecords; i ++){
 			if(Thread.currentThread().isInterrupted())
 				break;
@@ -261,7 +265,11 @@ public class SearchService{
 
 			if(progressCallback != null){
 				final int progressPercent = (int)(((i + 1) / (double)totalRecords) * 100);
-				progressCallback.accept(progressPercent);
+				//notify only when the percentage changes, not at each record
+				if(progressPercent != lastProgress){
+					lastProgress = progressPercent;
+					progressCallback.accept(progressPercent);
+				}
 			}
 		}
 

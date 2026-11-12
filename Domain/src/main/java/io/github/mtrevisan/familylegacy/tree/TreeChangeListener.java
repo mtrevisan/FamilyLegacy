@@ -36,6 +36,6 @@ public interface TreeChangeListener{
 	 *
 	 * @param rootIndividualId the ID of the individual to focus as root
 	 */
-	public void onTreeStructureChanged(String rootIndividualId);
+	void onTreeStructureChanged(String rootIndividualId);
 
 }

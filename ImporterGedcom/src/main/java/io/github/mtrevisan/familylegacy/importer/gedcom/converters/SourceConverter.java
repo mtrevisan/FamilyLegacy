@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -162,8 +163,10 @@ public class SourceConverter {
 	 */
 	public void convert(GEDCOMNode sourNode){
 		String xref = sourNode.getXrefId();
-		if(xref == null)
+		if(xref == null){
+			GEDCOMImportContext.discardUnidentified(sourNode);
 			return;
+		}
 
 		IDGenerator.registerExistingId(xref);
 
@@ -295,8 +298,8 @@ public class SourceConverter {
 			GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);
 		}
 		if(!eventsRecorded.isEmpty())
-			source.addChild(GEDCOMRecordBuilder.createNoteStruct("Events recorded", String.join(StringUtils.LF, eventsRecorded), dataNode));
-		source.addChild(GEDCOMRecordBuilder.createNoteStruct("Text from source",
+			source.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.events_recorded"), String.join(StringUtils.LF, eventsRecorded), dataNode));
+		source.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.text_from_source"),
 			GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(sourNode, "TEXT")), sourNode));
 
 		// ---- What has no field in FLEF is kept as notes ----

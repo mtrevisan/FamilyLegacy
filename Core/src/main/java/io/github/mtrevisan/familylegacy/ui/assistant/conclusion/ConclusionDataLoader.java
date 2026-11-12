@@ -68,7 +68,7 @@ final class ConclusionDataLoader{
 
 
 	/** The events an individual has only one of. */
-	private static final Set<String> SINGLE_VALUED_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", EventReader.ENUM_TYPE_DEATH,
+	private static final Set<String> SINGLE_VALUED_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.CUSTOM_TYPE_BAPTISM, EventReader.ENUM_TYPE_DEATH,
 		EventReader.ENUM_TYPE_BURIAL);
 	private static final String PLACE_OF = FLEFRecordHelper.composePath(PlaceHandler.TYPE, PlaceHandler.TYPE);
 
@@ -107,7 +107,7 @@ final class ConclusionDataLoader{
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			final String type = (EventHandler.isOfType(event)? EventReader.extractType(event): null);
-			if(!SINGLE_VALUED_EVENTS.contains(type))
+			if(type == null || !SINGLE_VALUED_EVENTS.contains(type))
 				continue;
 
 			final String key = personId + "|" + eventId;

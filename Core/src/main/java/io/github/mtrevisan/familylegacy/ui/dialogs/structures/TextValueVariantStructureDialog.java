@@ -207,7 +207,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		if(phoneticRadio.isSelected() && phoneticValueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.name.variant.phonetic.value")),
-				tabbedPane, propertiesPanel, phoneticRadio);
+				tabbedPane, propertiesPanel, phoneticValueField);
 
 			return false;
 		}

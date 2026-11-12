@@ -212,7 +212,8 @@ public final class PlaceHierarchyService{
 		final Set<String> reachable = computeReachable(roots, outgoing);
 		final List<String> promoted = new ArrayList<>();
 		for(final String id : places.keySet())
-			if(!reachable.contains(id) && !roots.contains(id))
+			//(the roots are reachable, being the starting points)
+			if(!reachable.contains(id))
 				promoted.add(id);
 		roots.addAll(promoted);
 

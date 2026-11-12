@@ -535,8 +535,8 @@ public final class ChronomapOverlayPainter implements ChronomapLayer{
 	 * for the same person has the same color in both.
 	 */
 	public Color colorFor(final String id){
-		final int h = Math.abs(id.hashCode());
-		return Color.getHSBColor((h % 360) / 360f, 0.70f, 0.75f);
+		final int h = Math.floorMod(id.hashCode(), 360);
+		return Color.getHSBColor(h / 360f, 0.70f, 0.75f);
 	}
 
 	/**

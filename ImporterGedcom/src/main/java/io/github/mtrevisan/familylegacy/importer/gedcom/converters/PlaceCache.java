@@ -312,12 +312,13 @@ public class PlaceCache{
 	 * @return	The coordinates, or {@code null} if absent or malformed.
 	 */
 	public static String toISO6709(final String latitude, final String longitude){
-		final String lat = toSignedDegrees(latitude, 'N', 'S', 2);
-		final String lon = toSignedDegrees(longitude, 'E', 'W', 3);
+		final String lat = toSignedDegrees(latitude, 'N', 'S', 2, 90);
+		final String lon = toSignedDegrees(longitude, 'E', 'W', 3, 180);
 		return (lat != null && lon != null? lat + lon + "/": null);
 	}
 
-	private static String toSignedDegrees(final String value, final char positive, final char negative, final int integerDigits){
+	private static String toSignedDegrees(final String value, final char positive, final char negative, final int integerDigits,
+			final int maxDegrees){
 		if(StringUtils.isBlank(value))
 			return null;
 
@@ -335,7 +336,7 @@ public class PlaceCache{
 			text = text.substring(1)
 				.trim();
 		}
-		if(!DEGREES_PATTERN.matcher(text).matches())
+		if(!DEGREES_PATTERN.matcher(text).matches() || Double.parseDouble(text) > maxDegrees)
 			return null;
 
 		final int dot = text.indexOf('.');

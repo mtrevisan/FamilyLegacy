@@ -111,7 +111,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// original text
-		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_citation.original_text"), originalTextField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.original_text"), originalTextField);
 
 		// confidence
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.confidence"), confidenceCombo);
@@ -157,7 +157,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(placeField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Place is required.",
+				I18N.tf("validation.required", PlaceHandler.getInstance().getLabel()),
 				tabbedPane, propertiesPanel, placeField);
 
 			return false;

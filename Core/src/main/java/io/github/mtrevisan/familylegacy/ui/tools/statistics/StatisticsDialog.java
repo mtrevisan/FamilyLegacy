@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.statistics;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.Statistics;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -48,7 +49,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
@@ -113,12 +113,9 @@ public final class StatisticsDialog extends JDialog{
 		// is no longer visible, so the summary would be misleading.
 		tabs.addChangeListener(e -> selectionSummary.setText(StringUtils.SPACE));
 
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
 		final JPanel footer = new JPanel(new BorderLayout(8, 0));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));
 		footer.add(selectionSummary, BorderLayout.WEST);
-		footer.add(buttons, BorderLayout.EAST);
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
@@ -283,8 +280,12 @@ public final class StatisticsDialog extends JDialog{
 	private void openSource(final Statistics.SourceUse source){
 		if(source == null)
 			return;
-		new MissingRecordsDialog(this, I18N.tf("text.statistics.source", source.sourceId()), model,
-			List.of(model.getRecordById(source.sourceId())))
+		final FLEFRecord record = model.getRecordById(source.sourceId());
+		//(a source that is not in the model any more has nothing to open)
+		if(record == null)
+			return;
+
+		new MissingRecordsDialog(this, I18N.tf("text.statistics.source", source.sourceId()), model, List.of(record))
 			.setVisible(true);
 	}
 
@@ -345,14 +346,10 @@ public final class StatisticsDialog extends JDialog{
 
 		if(total > 0){
 			final double percent = 100. * sum / total;
-			selectionSummary.setText(GUIHelper.format(
-				"%d selected — %,d total occurrences (%.1f%% of %,d)",
-				rows.length, sum, percent, total));
+			selectionSummary.setText(I18N.tf("statistics.selection.with_total", rows.length, sum, percent, total));
 		}
 		else{
-			selectionSummary.setText(GUIHelper.format(
-				"%d selected — %,d total occurrences",
-				rows.length, sum));
+			selectionSummary.setText(I18N.tf("statistics.selection.plain", rows.length, sum));
 		}
 	}
 

@@ -70,6 +70,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -321,6 +322,7 @@ public class PageInputDialog extends JDialog{
 		}
 
 		final int page = (Integer)pageSpinner.getValue();
+		final String requestedUri = documentUri;
 
 		// If the page is already in the cache, show it immediately without a background task
 		if(pageCache.containsKey(page)){
@@ -333,12 +335,13 @@ public class PageInputDialog extends JDialog{
 			@Override
 			protected BufferedImage doInBackground(){
 				// Render the page in an isolated, thread-safe manner
-				return renderPage(documentUri, page);
+				return renderPage(requestedUri, page);
 			}
 
 			@Override
 			protected void done(){
-				if(isCancelled())
+				//the document could have been changed while rendering
+				if(isCancelled() || !requestedUri.equals(documentUri))
 					return;
 
 				try{
@@ -427,7 +430,7 @@ public class PageInputDialog extends JDialog{
 		if(!file.exists())
 			return null;
 
-		final String lowerUri = uri.toLowerCase();
+		final String lowerUri = uri.toLowerCase(Locale.ROOT);
 
 		// --- 1. PDF Rendering (Apache PDFBox 3.x) ---
 		if(lowerUri.endsWith(MediaPartListPanel.EXTENSION_PDF)){

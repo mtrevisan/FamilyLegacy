@@ -78,7 +78,7 @@ public final class MemberOfConstraint extends Constraint{
 			if(!containerTags.contains(fieldTag))
 				errors.add(String.format(
 					"Constraint violation at '%s': tag '%s' of field '%s' must be one of the tags in '%s' %s, record %s",
-					contextPath, field, fieldTag, containerField, containerTags, record));
+					contextPath, fieldTag, field, containerField, containerTags, record));
 		}
 	}
 

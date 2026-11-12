@@ -204,6 +204,12 @@ public final class GUIHelper{
 			final char conv = format.charAt(i);
 			i ++;
 
+			//a line separator does not take an argument
+			if(conv == 'n'){
+				outFormat.append("%n");
+				continue;
+			}
+
 			final int currentArg = (explicitIndex >= 0? explicitIndex: argIndex ++);
 			final Object arg = args[currentArg];
 
@@ -549,15 +555,9 @@ public final class GUIHelper{
 
 	private static <T> void swapItems(final JList<T> list, final DefaultListModel<T> listModel, final int index1,
 			final int index2){
-		// Swap in underlying items list
-		final T tempRecord = listModel.get(index1);
+		final T temp = listModel.get(index1);
 		listModel.set(index1, listModel.get(index2));
-		listModel.set(index2, tempRecord);
-
-		// Swap in GUI model
-		final T tempDisplay = listModel.get(index1);
-		listModel.set(index1, listModel.get(index2));
-		listModel.set(index2, tempDisplay);
+		listModel.set(index2, temp);
 
 		// Keep the moved item selected and visible
 		list.setSelectedIndex(index2);
@@ -656,13 +656,8 @@ public final class GUIHelper{
 		if(fromIndex == toIndex)
 			return;
 
-		// Remove from old position
 		final T item = listModel.remove(fromIndex);
-		final T display = listModel.remove(fromIndex);
-
-		// Insert at new position
 		listModel.add(toIndex, item);
-		listModel.add(toIndex, display);
 	}
 
 

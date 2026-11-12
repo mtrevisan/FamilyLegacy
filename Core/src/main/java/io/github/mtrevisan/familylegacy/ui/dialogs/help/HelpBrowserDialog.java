@@ -105,6 +105,10 @@ public final class HelpBrowserDialog extends JDialog{
 		editor.setContentType("text/html");
 		editor.setEditable(false);
 		editor.addHyperlinkListener(e -> {
+			if(e.getEventType() == HyperlinkEvent.EventType.ENTERED)
+				editor.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			else if(e.getEventType() == HyperlinkEvent.EventType.EXITED)
+				editor.setCursor(java.awt.Cursor.getDefaultCursor());
 			if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
 				follow(e.getDescription());
 		});
@@ -144,7 +148,7 @@ public final class HelpBrowserDialog extends JDialog{
 			current = new HelpBrowserDialog(owner);
 		final HelpBrowserDialog dialog = current;
 
-		dialog.navigate(location, true);
+		dialog.navigate((location != null? location: HelpTopics.INDEX), true);
 		dialog.setVisible(true);
 		dialog.toFront();
 	}

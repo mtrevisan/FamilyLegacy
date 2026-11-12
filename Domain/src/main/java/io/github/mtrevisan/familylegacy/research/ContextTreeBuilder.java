@@ -51,7 +51,7 @@ import java.util.function.Predicate;
 
 
 /**
- * Builds the {@code context -> impact} tree shown by {@link ContextBoardDialog}.
+ * Builds the {@code context -> impact} tree shown by {@link io.github.mtrevisan.familylegacy.ui.tools.context.ContextBoardDialog}.
  * <p>
  * There are two sections, <em>Historic events</em> (in chronological order, those with no date last) and <em>Cultural norms</em>
  * (sorted by title); under each context are the
@@ -254,7 +254,7 @@ public final class ContextTreeBuilder{
 			})
 			.thenComparing((FLEFRecord record) -> StringUtils.defaultString(HistoricEventReader.extractTitle(record))
 				.toLowerCase(Locale.ROOT))
-			.thenComparing(FLEFRecord::getId));
+			.thenComparing(FLEFRecord::getId, Comparator.nullsLast(Comparator.naturalOrder())));
 		return sorted;
 	}
 
@@ -262,7 +262,7 @@ public final class ContextTreeBuilder{
 		final List<FLEFRecord> sorted = new ArrayList<>(records);
 		sorted.sort(Comparator.comparing((FLEFRecord record) -> StringUtils.defaultString(title.apply(record))
 				.toLowerCase(Locale.ROOT))
-			.thenComparing(FLEFRecord::getId));
+			.thenComparing(FLEFRecord::getId, Comparator.nullsLast(Comparator.naturalOrder())));
 		return sorted;
 	}
 

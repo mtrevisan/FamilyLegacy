@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -112,13 +111,9 @@ public class ImageCropDialog extends JDialog{
 
 	public void loadData(final File file, final Rectangle crop) throws IOException{
 		final BufferedImage newImage = ResourceHelper.readBufferedImage(file);
-		if(newImage == null){
-			JOptionPane.showMessageDialog(getParent(),
-				I18N.tf("error.image", file.getAbsolutePath()),
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
+		//the callers show the error, and must not use the previous image
+		if(newImage == null)
+			throw new IOException(I18N.tf("error.image", file.getAbsolutePath()));
 
 		isSaved = false;
 		image = newImage;

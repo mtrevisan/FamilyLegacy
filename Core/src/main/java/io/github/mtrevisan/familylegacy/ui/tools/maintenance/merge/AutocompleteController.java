@@ -90,7 +90,8 @@ public final class AutocompleteController{
 
 	private boolean popupVisible;
 	private PopupMode popupMode;
-	private boolean suppressNextDocumentEvent;
+	/** Set while the controller changes the document by itself. */
+	private boolean suppressDocumentEvents;
 
 	private KeyEventDispatcher popupKeyDispatcher;
 	private final KeyEventDispatcher triggerDispatcher;
@@ -151,15 +152,18 @@ public final class AutocompleteController{
 	}
 
 	private void onDocumentChanged(){
-		if(suppressNextDocumentEvent){
-			suppressNextDocumentEvent = false;
+		//the changes made by the controller itself (an accepted suggestion) are not a reason to open the popup again
+		if(suppressDocumentEvents)
 			return;
-		}
 
 		SwingUtilities.invokeLater(this::refreshOrAutoTrigger);
 	}
 
 	private void refreshOrAutoTrigger(){
+		//the dialog may have been closed in the meantime: a popup opened now would never be released
+		if(!area.isDisplayable())
+			return;
+
 		if(popupVisible){
 			refreshOrClose();
 			return;
@@ -446,10 +450,10 @@ public final class AutocompleteController{
 			caretOffset = insertion.length();
 		}
 
+		suppressDocumentEvents = true;
 		try{
 			area.getDocument().remove(start, prefix.length());
 			area.getDocument().insertString(start, insertion, null);
-			suppressNextDocumentEvent = true;
 			area.setCaretPosition(start + caretOffset);
 
 			// If the inserted tag is a leaf, the caret is now at a value
@@ -462,6 +466,9 @@ public final class AutocompleteController{
 		catch(final BadLocationException ex){
 			LOGGER.debug("Autocomplete insertion failed: {}", ex.getMessage());
 		}
+		finally{
+			suppressDocumentEvents = false;
+		}
 	}
 
 	private void insertValue(final String value){
@@ -472,14 +479,17 @@ public final class AutocompleteController{
 
 		final int c = area.getCaretPosition();
 		final int start = c - prefix.length();
+		suppressDocumentEvents = true;
 		try{
 			area.getDocument().remove(start, prefix.length());
 			area.getDocument().insertString(start, value, null);
-			suppressNextDocumentEvent = true;
 			area.setCaretPosition(start + value.length());
 		}
 		catch(final BadLocationException ex){
 			LOGGER.debug("Value insertion failed: {}", ex.getMessage());
+		}
+		finally{
+			suppressDocumentEvents = false;
 		}
 	}
 

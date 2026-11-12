@@ -46,6 +46,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.function.Supplier;
 
@@ -254,6 +255,11 @@ final class DateCalculatorDialog extends JDialog{
 		}
 		catch(final IllegalArgumentException iae){
 			text = iae.getMessage();
+			color = ToolDialogs.ERROR_COLOR;
+		}
+		catch(final DateTimeException | ArithmeticException e){
+			//extreme years overflow the calendar or the arithmetic: the input is invalid, not a failure
+			text = StringUtils.defaultString(e.getMessage());
 			color = ToolDialogs.ERROR_COLOR;
 		}
 		resultField.setForeground(color);

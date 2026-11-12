@@ -37,10 +37,7 @@ import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionService;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.tree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
@@ -167,14 +164,11 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			//the model is given (a group timeline): the toolbar filter does not apply
 			model = modelSource.get();
 		else{
-			model = service.build();
-
 			// Determine the entity filter from the toolbar.
 			final TemporalProjectionToolbar.EntityFilter filter = toolbar.getEntityFilter();
-			if(filter != TemporalProjectionToolbar.EntityFilter.ALL){
-				// Rebuild with the entity filter applied.
-				model = service.build(entity -> matchesFilter(entity, filter));
-			}
+			model = (filter != TemporalProjectionToolbar.EntityFilter.ALL
+				? service.build(entity -> matchesFilter(entity, filter))
+				: service.build());
 		}
 
 		final Map<TemporalEntityRef, TemporalRow> index = new HashMap<>(model.rows().size() * 2);
@@ -368,10 +362,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	}
 
 	/**
-	 * Opens the edit dialog appropriate for the given entity, and refreshes
-	 * the projection when the dialog is saved.
-	 */
-	/**
 	 * Opens the edit dialog appropriate for the record referenced by the
 	 * given projection element. The record is resolved from the entry or
 	 * connection carried by the reference; if no handler matches the record
@@ -410,19 +400,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	}
 
 	/**
-	 * Returns the singleton handler for the given row entity type, or
-	 * {@code null} if the type cannot be edited.
-	 */
-	private static RecordTypeHandler<?> handlerFor(final TemporalEntityType type){
-		return switch(type){
-			case INDIVIDUAL -> IndividualHandler.getInstance();
-			case GROUP -> GroupHandler.getInstance();
-			case PLACE -> PlaceHandler.getInstance();
-			default -> null;
-		};
-	}
-
-	/**
 	 * Maps a FLEF record tag to the corresponding singleton handler, or
 	 * {@code null} if the record type is not editable through this view.
 	 */
@@ -442,8 +419,12 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			contentCanvas.getHeight());
 		final TemporalProjectionRef ref = TemporalInteractionHandler.hitTest(e.getX(), e.getY(), model, layout, axis,
 			contentBounds);
-		//the bands that are not drawn are not there
-		return (ref instanceof TemporalProjectionRef.BandRef && !toolbar.isShowBands()? null: ref);
+		//the bands and the connections that are not drawn are not there
+		if(ref instanceof TemporalProjectionRef.BandRef && !toolbar.isShowBands())
+			return null;
+		if(ref instanceof TemporalProjectionRef.ConnectionRef && !toolbar.isShowConnections())
+			return null;
+		return ref;
 	}
 
 

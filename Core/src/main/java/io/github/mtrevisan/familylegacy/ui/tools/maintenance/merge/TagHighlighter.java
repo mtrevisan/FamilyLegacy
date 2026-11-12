@@ -89,12 +89,9 @@ public final class TagHighlighter{
 	private static final Highlighter.HighlightPainter MISSING_VALUE_PAINTER =
 		new LineBackgroundPainter(COLOR_MISSING_BG);
 
-	private static final String TOOLTIP_UNKNOWN =
-		"Unknown tag: it is not part of the FLEF grammar and will be ignored.";
-	private static final String TOOLTIP_MISSING =
-		"Missing value: the tag has no value.";
-	private static final String TOOLTIP_INVALID =
-		"Invalid value: it does not match the type declared in the grammar.";
+	private static final String TOOLTIP_UNKNOWN = "tooltip.tag_highlighter.unknown";
+	private static final String TOOLTIP_MISSING = "tooltip.tag_highlighter.missing";
+	private static final String TOOLTIP_INVALID = "tooltip.tag_highlighter.invalid";
 
 
 	private TagHighlighter(){}
@@ -107,6 +104,10 @@ public final class TagHighlighter{
 	public static void install(final List<JTextArea> areas, final TagSuggester suggester,
 		final Function<JTextArea, String> textFor,
 		final Function<JTextArea, Integer> offsetFor){
+		//a field with no instance has no area to mark
+		if(areas.isEmpty())
+			return;
+
 		final DocumentListener shared = new DocumentListener(){
 			@Override public void insertUpdate(final DocumentEvent e){ refreshAll(areas, suggester, textFor, offsetFor); }
 			@Override public void removeUpdate(final DocumentEvent e){ refreshAll(areas, suggester, textFor, offsetFor); }
@@ -277,10 +278,10 @@ public final class TagHighlighter{
 				final Highlighter.HighlightPainter painter = h.getPainter();
 				if(painter instanceof SquigglyUnderlinePainter p){
 					final Color c = p.color();
-					return (c.equals(COLOR_UNKNOWN)? TOOLTIP_UNKNOWN: TOOLTIP_INVALID);
+					return I18N.t(c.equals(COLOR_UNKNOWN)? TOOLTIP_UNKNOWN: TOOLTIP_INVALID);
 				}
 				if(painter instanceof LineBackgroundPainter)
-					return TOOLTIP_MISSING;
+					return I18N.t(TOOLTIP_MISSING);
 			}
 		}
 

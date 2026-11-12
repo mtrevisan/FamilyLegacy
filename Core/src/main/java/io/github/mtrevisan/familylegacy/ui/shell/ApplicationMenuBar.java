@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
-import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
@@ -39,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceMenu;
 import io.github.mtrevisan.familylegacy.ui.preferences.SettingsMenu;
@@ -65,14 +65,12 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOper
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.sources.SourceToolRegistry;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
@@ -203,11 +201,11 @@ final class ApplicationMenuBar{
 			importMenu.add(toolItem(tool, 0));
 		menu.add(importMenu);
 
-//		final JMenu exportMenu = new JMenu("Export");
-//		exportMenu.setMnemonic(KeyEvent.VK_E);
-//		for(final ToolOperation tool : FileToolRegistry.exportTools())
-//			exportMenu.add(toolItem(tool, 0));
-//		menu.add(exportMenu);
+		final JMenu exportMenu = new JMenu(I18N.t("menu.file.export"));
+		exportMenu.setMnemonic(KeyEvent.VK_E);
+		for(final ToolOperation tool : FileToolRegistry.exportTools())
+			exportMenu.add(toolItem(tool, 0));
+		menu.add(exportMenu);
 
 		menu.add(new JSeparator());
 
@@ -899,24 +897,11 @@ final class ApplicationMenuBar{
 
 	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
 
-	/** Creates a menu item with a platform-appropriate accelerator. */
 	/** Creates an Undo/Redo item acting on the application history. */
 	private JMenuItem historyItem(final ShortcutRegistry.ShortcutDefinition shortcut, final Runnable action){
 		final JMenuItem item = new JMenuItem(shortcut.action());
 		item.setAccelerator(shortcut.keyStroke());
 		item.addActionListener(e -> action.run());
-		return item;
-	}
-
-	private JMenuItem accelerated(final String text, final int keyCode){
-		return accelerated(text, keyCode, 0);
-	}
-
-	private JMenuItem accelerated(final String text, final int keyCode, final int modifiers){
-		final JMenuItem item = new JMenuItem(text);
-		final int mask = (modifiers == 0? menuShortcutMask(): modifiers);
-		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, mask));
-		item.addActionListener(e -> showNotImplemented(text.replace("…", StringUtils.EMPTY).trim()));
 		return item;
 	}
 
@@ -926,11 +911,6 @@ final class ApplicationMenuBar{
 		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, menuShortcutMask()));
 		item.addActionListener(e -> frame.switcher().setProjection(projection));
 		return item;
-	}
-
-	private void showNotImplemented(final String feature){
-		JOptionPane.showMessageDialog(frame,
-			I18N.tf("message.not_implemented", feature), I18N.t("title.feature_not_available"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 }

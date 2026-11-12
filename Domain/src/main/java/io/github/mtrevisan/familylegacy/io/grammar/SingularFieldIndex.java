@@ -54,7 +54,7 @@ import java.util.List;
  */
 public final class SingularFieldIndex{
 
-	private static FLEFGrammar grammar;
+	private static volatile FLEFGrammar grammar;
 
 
 	private SingularFieldIndex(){}

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.List;
 
 
 public class EventParticipationHandler extends AbstractRecordTypeHandler<RecordDialog>{
@@ -79,8 +80,8 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<RecordD
 		final StringBuilder sb = new StringBuilder();
 
 		String participantText = null;
-		final FLEFRecord participant = FLEFRecordHelper.extractRecordsFromOneOfReference(record, EventParticipationReader.TAG_PARTICIPANT, model)
-			.getFirst();
+		final List<FLEFRecord> participants = FLEFRecordHelper.extractRecordsFromOneOfReference(record, EventParticipationReader.TAG_PARTICIPANT, model);
+		final FLEFRecord participant = (participants.isEmpty()? null: participants.getFirst());
 		if(participant != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
 			participantText = handler.getDisplayText(participant, model);

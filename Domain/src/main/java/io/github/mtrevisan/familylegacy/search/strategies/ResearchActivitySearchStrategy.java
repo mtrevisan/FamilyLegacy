@@ -123,7 +123,7 @@ public class ResearchActivitySearchStrategy implements SearchStrategy{
 			details.add(I18N.t("dialog.research_activity.result") + ": " + result);
 
 		final String question = ResearchSummary.questionOf(record, model);
-		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + " " + question: StringUtils.EMPTY);
+		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + StringUtils.SPACE + question: StringUtils.EMPTY);
 	}
 
 }

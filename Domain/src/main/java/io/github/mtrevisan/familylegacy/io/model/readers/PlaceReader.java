@@ -63,6 +63,8 @@ public final class PlaceReader{
 	public static final String ID_PREFIX = "P";
 
 	public static final String TAG_NAME = "name";
+	/** The sub-tag holding the text of a name. */
+	public static final String TAG_NAME_VALUE = "value";
 	public static final String TAG_TYPE = "type";
 	public static final String TAG_LOCATION = "location";
 	public static final String TAG_COORDINATES = "coordinates";

@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +54,7 @@ public final class XrefPathIndex{
 	private static final Map<String, Set<String>> XREF_PATHS = new HashMap<>();
 
 
-	private static boolean initialized;
+	private static volatile boolean initialized;
 
 
 	private XrefPathIndex(){}
@@ -81,11 +82,16 @@ public final class XrefPathIndex{
 				TypeDefinition choiceType = choice.getValue();
 
 				// Resolve scalar type aliases if any
-				while(choiceType instanceof ScalarType scalar && grammar.hasType(scalar.getName()))
-					choiceType = grammar.getType(scalar.getName());
+				while(choiceType instanceof ScalarType scalar && grammar.hasType(scalar.getName())){
+					final TypeDefinition next = grammar.getType(scalar.getName());
+					if(next == choiceType)
+						break;
+
+					choiceType = next;
+				}
 
 				// Collect paths starting from this record type wrapper
-				collectPaths(choiceType, grammar, recordWrapperName);
+				collectPaths(choiceType, grammar, recordWrapperName, Collections.newSetFromMap(new IdentityHashMap<>()));
 			}
 		}
 
@@ -106,13 +112,33 @@ public final class XrefPathIndex{
 		return XREF_PATHS.getOrDefault(targetRecordType, Collections.emptySet());
 	}
 
-	private static void collectPaths(TypeDefinition typeDef, final FLEFGrammar grammar, final String currentPath){
+	private static void collectPaths(TypeDefinition typeDef, final FLEFGrammar grammar, final String currentPath,
+			final Set<TypeDefinition> visiting){
 		if(typeDef == null)
 			return;
 
-		// Resolve scalar type aliases
-		while(typeDef instanceof ScalarType scalar && grammar.hasType(scalar.getName()))
-			typeDef = grammar.getType(scalar.getName());
+		// Resolve scalar type aliases (a self-referencing alias stops the resolution)
+		while(typeDef instanceof ScalarType scalar && grammar.hasType(scalar.getName())){
+			final TypeDefinition next = grammar.getType(scalar.getName());
+			if(next == typeDef)
+				break;
+
+			typeDef = next;
+		}
+
+		// Cycle guard: a type already being expanded along the current path is not expanded again
+		if(!(typeDef instanceof ReferenceType) && !visiting.add(typeDef))
+			return;
+		try{
+			collectPathsOf(typeDef, grammar, currentPath, visiting);
+		}
+		finally{
+			visiting.remove(typeDef);
+		}
+	}
+
+	private static void collectPathsOf(final TypeDefinition typeDef, final FLEFGrammar grammar, final String currentPath,
+			final Set<TypeDefinition> visiting){
 
 		// If the terminal type is a ReferenceType, index the path by its target record type
 		if(typeDef instanceof ReferenceType refType){
@@ -134,7 +160,7 @@ public final class XrefPathIndex{
 				final String nextPath = (currentPath.isEmpty()
 					? segment
 					: FLEFRecordHelper.composePath(currentPath, segment));
-				collectPaths(fieldDef.type(), grammar, nextPath);
+				collectPaths(fieldDef.type(), grammar, nextPath, visiting);
 			}
 		}
 		else if(typeDef instanceof UnionType unionType){
@@ -144,13 +170,13 @@ public final class XrefPathIndex{
 				final String nextPath = (currentPath.isEmpty()
 					? choiceName
 					: FLEFRecordHelper.composePath(currentPath, choiceName));
-				collectPaths(choice.getValue(), grammar, nextPath);
+				collectPaths(choice.getValue(), grammar, nextPath, visiting);
 			}
 		}
 		else if(typeDef instanceof AlternationType altType){
 			final List<TypeDefinition> alternatives = altType.getAlternatives();
 			for(final TypeDefinition alt : alternatives)
-				collectPaths(alt, grammar, currentPath);
+				collectPaths(alt, grammar, currentPath, visiting);
 		}
 	}
 

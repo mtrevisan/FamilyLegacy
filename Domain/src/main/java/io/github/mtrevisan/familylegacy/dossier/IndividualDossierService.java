@@ -603,7 +603,7 @@ public final class IndividualDossierService{
 			entries.add(new DossierEntry(I18N.t("text.dossier.conclusion"),
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
 				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
-				ProofStatus.valueOf(proof)));
+				ProofStatus.fromCode(proof)));
 		}
 
 		return entries;
@@ -717,7 +717,7 @@ public final class IndividualDossierService{
 		final Map<String, ProofStatus> index = new HashMap<>();
 		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
 		for(final FLEFRecord conclusion : conclusions){
-			final ProofStatus status = ProofStatus.valueOf(FLEFRecordHelper.getChildValue(conclusion,
+			final ProofStatus status = ProofStatus.fromCode(FLEFRecordHelper.getChildValue(conclusion,
 				ConclusionReader.TAG_PROOF_STATUS));
 
 			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES)){
@@ -759,9 +759,13 @@ public final class IndividualDossierService{
 				continue;
 
 			final FLEFRecord event = model.getRecordById(eventId);
-			if(event != null)
-				result.computeIfAbsent(eventParticipantId, k -> new ArrayList<>())
-					.add(event);
+			if(event == null)
+				continue;
+
+			//the same event is listed once per participant, even with several participations in it
+			final List<FLEFRecord> events = result.computeIfAbsent(eventParticipantId, k -> new ArrayList<>());
+			if(events.stream().noneMatch(known -> known == event))
+				events.add(event);
 		}
 		return result;
 	}
@@ -819,7 +823,7 @@ public final class IndividualDossierService{
 	 * the {@code evidence} child of the given record. Returns an empty
 	 * string when no evidence qualifiers are present.
 	 */
-	private static String buildEvidenceBadge(final FLEFRecord parent){
+	static String buildEvidenceBadge(final FLEFRecord parent){
 		final FLEFRecord evidence = FLEFRecordHelper.findChild(parent, TAG_EVIDENCE);
 		if(evidence == null)
 			return StringUtils.EMPTY;

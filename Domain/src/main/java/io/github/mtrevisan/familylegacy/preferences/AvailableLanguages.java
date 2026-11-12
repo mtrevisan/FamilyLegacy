@@ -92,6 +92,22 @@ public final class AvailableLanguages{
 	}
 
 	/**
+	 * @param directory	The directory (in the classpath) with the internationalization files.
+	 * @param baseName	The base name of the bundle.
+	 * @return	The locales of the files {@code <baseName>_<language>[_<COUNTRY>].properties} found in the directory (the file without
+	 * 	suffix is not included).
+	 */
+	public static List<Locale> findLocales(final String directory, final String baseName){
+		final List<Locale> locales = new ArrayList<>();
+		for(final String fileName : listFiles(directory)){
+			final Locale locale = toLocale(fileName, List.of(baseName));
+			if(locale != null && !locales.contains(locale))
+				locales.add(locale);
+		}
+		return locales;
+	}
+
+	/**
 	 * @param fileNames	The names of the files.
 	 * @param baseNames	The base names of the bundles.
 	 * @param nameOf	The name of a language, written in the language itself.

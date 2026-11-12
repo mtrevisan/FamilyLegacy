@@ -93,8 +93,6 @@ public interface Transport{
 	/** The server answered, but not with the content. */
 	final class HttpStatusException extends IOException{
 
-		private static final long serialVersionUID = 1L;
-
 		private final int status;
 
 

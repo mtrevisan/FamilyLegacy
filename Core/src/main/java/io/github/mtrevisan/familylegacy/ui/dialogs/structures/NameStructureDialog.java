@@ -150,7 +150,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.name"), valueField);
 
 		// type
-		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.type"), typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.type"), typeCombo);
 
 		// locale
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.locale"), localeCombo);

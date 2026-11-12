@@ -469,7 +469,7 @@ public final class MergeRecordsDialog extends JDialog{
 
 		try{
 			final RecordAbsorber.Rejection rejection = merger.reject(source.getId(), target.getId(),
-				(StringUtils.isNotBlank(narrative)? narrative.strip(): "Judged different by the researcher in the merge dialog"));
+				(StringUtils.isNotBlank(narrative)? narrative.strip(): I18N.t("dialog.merge.records.different.note")));
 
 			JOptionPane.showMessageDialog(this,
 				I18N.tf("dialog.merge.records.different.recorded", rejection.hypothesisId(), rejection.conclusionId()), I18N.t("dialog.merge.records.different.title"), JOptionPane.INFORMATION_MESSAGE);

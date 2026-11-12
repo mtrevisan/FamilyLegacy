@@ -62,6 +62,8 @@ final class MapWarperSearch{
 
 	private static final Pattern MAP_START = Pattern.compile("\"id\":\"(\\d+)\",\"type\":\"maps\",\"attributes\":\\{");
 	private static final String RELATIONSHIPS_KEY = "\"relationships\"";
+	/** Compiled once per field name. */
+	private static final java.util.Map<String, Pattern> STRING_FIELD_PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
 	private static final Pattern TOTAL_PAGES = Pattern.compile("\"total_pages\":(\\d+)");
 
 	/**
@@ -229,7 +231,8 @@ final class MapWarperSearch{
 
 	/** @return	The value of a string field of the attributes ({@code null} if missing), with the escapes resolved. */
 	private static String stringField(final String attributes, final String key){
-		final Matcher matcher = Pattern.compile("\"" + Pattern.quote(key) + "\":\"((?:[^\"\\\\]|\\\\.)*)\"").matcher(attributes);
+		final Matcher matcher = STRING_FIELD_PATTERNS.computeIfAbsent(key,
+			k -> Pattern.compile("\"" + Pattern.quote(k) + "\":\"((?:[^\"\\\\]|\\\\.)*)\"")).matcher(attributes);
 		return (matcher.find()? unescape(matcher.group(1)): null);
 	}
 

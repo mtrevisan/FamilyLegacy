@@ -115,7 +115,7 @@ public final class Pseudo3DGlobePanel extends JPanel{
 	private List<GlobeMarker> markers = List.of();
 
 	/** Tiles already subscribed for "loaded" events, to avoid duplicates. */
-	private final Set<Tile> listenedTiles = Collections.newSetFromMap(new WeakHashMap<>());
+	private final Set<Tile> listenedTiles = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
 
 
 	public Pseudo3DGlobePanel(final DefaultTileFactory tileFactory){

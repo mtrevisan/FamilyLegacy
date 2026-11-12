@@ -152,6 +152,14 @@ final class EntityMatcher{
 					for(final TemporalSpan birth : features.births)
 						keys.add("b:" + TextSimilarity.prefix(given, 3) + "|" + decade(birth));
 				}
+				// without a given name the record would have no key: surname and birth decade (given to every record with a surname, so
+				// that it meets the ones with a given name), or the longer surname prefix alone when no birth date is known
+				for(final String family : features.families){
+					if(features.givens.isEmpty() && features.births.isEmpty())
+						keys.add("s:" + TextSimilarity.prefix(family, 4));
+					for(final TemporalSpan birth : features.births)
+						keys.add("s:" + TextSimilarity.prefix(family, 3) + "|" + decade(birth));
+				}
 			}
 			case GroupReader.TYPE -> {
 				for(final String member : index.membersOf(record.getId()))
@@ -402,6 +410,8 @@ final class EntityMatcher{
 	private static double latest(final List<TemporalSpan> spans){
 		double latest = -Double.MAX_VALUE;
 		for(final TemporalSpan span : spans){
+			// deliberately the low bound, as in earliest(): the lifespan veto is meant to fire only on a surely impossible span; the high
+			// bound is open-ended (Double.MAX_VALUE) for "after X" dates and would veto on any vague or approximate death date
 			final double low = interval(span)[0];
 			if(low != -Double.MAX_VALUE)
 				latest = Math.max(latest, low);

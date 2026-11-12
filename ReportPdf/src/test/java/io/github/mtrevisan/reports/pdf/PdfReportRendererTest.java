@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.openpdf.text.pdf.PdfDictionary;
+import org.openpdf.text.pdf.PdfName;
 import org.openpdf.text.pdf.PdfReader;
 import org.openpdf.text.pdf.SimpleBookmark;
 import org.openpdf.text.pdf.parser.PdfTextExtractor;
@@ -241,6 +243,119 @@ class PdfReportRendererTest{
 		Assertions.assertTrue(text(other).contains("Some text"));
 	}
 
+
+	@Test
+	void onlyTheFontsWithEveryCharacterAreOffered(){
+		final ReportDocument arabic = new ReportDocument("عنوان", null, List.of(new ReportSection.Paragraph("نص عربي")), "ar", null);
+		final List<String> arabicFonts = renderer.fonts(arabic);
+		Assertions.assertTrue(arabicFonts.contains("Noto Sans Arabic"), "the font the program carries: " + arabicFonts);
+		Assertions.assertFalse(arabicFonts.contains("Noto Sans"), "it has no Arabic letters: " + arabicFonts);
+
+		final List<String> latinFonts = renderer.fonts(document(new ReportSection.Paragraph("Some text")));
+		Assertions.assertTrue(latinFonts.contains("Noto Sans"), String.valueOf(latinFonts));
+		Assertions.assertFalse(latinFonts.contains("Noto Sans Arabic"), "it has no Latin letters: " + latinFonts);
+		Assertions.assertTrue(renderer.fonts(new ReportDocument("ไทย", null, List.of(new ReportSection.Paragraph("ภาษาไทย")), "th", null))
+			.contains("Noto Sans Thai"));
+	}
+
+	@Test
+	void aFontThatCoversTheReportWritesIt(@TempDir final Path directory) throws IOException{
+		final ReportDocument arabic = new ReportDocument("عنوان", null, List.of(new ReportSection.Paragraph("نص عربي")), "ar", null);
+
+		final Path file = directory.resolve("arabic.pdf");
+		renderer.render(arabic, file, "Noto Sans Arabic");
+
+		Assertions.assertTrue(fontNames(file).stream().anyMatch(name -> name.contains("NotoSansArabic")), "the font is embedded: " + fontNames(file));
+	}
+
+
+	@Test
+	void theWordsOfAShapedScriptAreSplitFromTheRest(){
+		final List<IndicShaper.Run> runs = IndicShaper.split("हिन्दी text বাংলা");
+
+		Assertions.assertEquals(3, runs.size(), String.valueOf(runs));
+		Assertions.assertEquals(IndicShaper.Script.DEVANAGARI, runs.get(0).script());
+		Assertions.assertEquals(" text ", runs.get(1).text());
+		Assertions.assertNull(runs.get(1).script());
+		Assertions.assertEquals(IndicShaper.Script.BENGALI, runs.get(2).script());
+	}
+
+	@Test
+	void hindiAndBengaliAreDrawnWordByWord(@TempDir final Path directory) throws IOException{
+		final Path file = render(directory, new ReportDocument("हिन्दी", null, List.of(
+			new ReportSection.Paragraph("नमस्ते दुनिया **क्षत्रिय** text"),
+			new ReportSection.Paragraph("আমার সোনার বাংলা")), "hi", null));
+
+		final PdfReader reader = new PdfReader(Files.readAllBytes(file));
+		try{
+			final PdfDictionary drawings = reader.getPageN(1).getAsDict(PdfName.RESOURCES).getAsDict(PdfName.XOBJECT);
+			//the title, the two words of the first paragraph, the word in bold and the three of the second one
+			Assertions.assertNotNull(drawings);
+			Assertions.assertTrue(drawings.size() >= 7, "a drawing for each word: " + drawings.size());
+		}
+		finally{
+			reader.close();
+		}
+		Assertions.assertTrue(text(file).contains("text"), "the Latin word is text");
+	}
+
+	@Test
+	void theFontsOfTheProgramWriteChineseJapaneseAndKorean(@TempDir final Path directory) throws IOException{
+		Assertions.assertTrue(renderer.fonts(document(new ReportSection.Paragraph("你好，世界"))).contains("Noto Sans SC"));
+		Assertions.assertTrue(renderer.fonts(document(new ReportSection.Paragraph("こんにちは"))).contains("Noto Sans JP"));
+		Assertions.assertTrue(renderer.fonts(document(new ReportSection.Paragraph("안녕하세요"))).contains("Noto Sans KR"));
+
+		//a font without a bold face (these ones) still writes the words in bold
+		final Path file = directory.resolve("chinese.pdf");
+		renderer.render(new ReportDocument("标题", null, List.of(new ReportSection.Paragraph("你好 **粗体**")), "zh", null), file, "Noto Sans SC");
+		Assertions.assertTrue(fontNames(file).stream().anyMatch(name -> name.contains("NotoSansSC")), String.valueOf(fontNames(file)));
+		final String text = text(file);
+		Assertions.assertTrue(text.contains("粗体") && text.contains("标题"), text);
+	}
+
+	@Test
+	void withoutTheFontsDirectoryTheReportIsStillWritten(@TempDir final Path directory) throws IOException{
+		final String previous = System.getProperty("familylegacy.fonts.dir");
+		System.setProperty("familylegacy.fonts.dir", directory.resolve("missing").toString());
+		IndicShaper.forget();
+		try{
+			final Path file = render(directory, new ReportDocument("हिन्दी", null, List.of(new ReportSection.Paragraph("नमस्ते text 中文")), "hi",
+				null));
+
+			final PdfReader reader = new PdfReader(Files.readAllBytes(file));
+			try{
+				Assertions.assertTrue(reader.getNumberOfPages() >= 1);
+				//there is nothing to draw the Hindi words with: they are left to the fonts, with no error
+				Assertions.assertNull(reader.getPageN(1).getAsDict(PdfName.RESOURCES).getAsDict(PdfName.XOBJECT));
+			}
+			finally{
+				reader.close();
+			}
+			Assertions.assertTrue(text(file).contains("text"));
+		}
+		finally{
+			if(previous != null)
+				System.setProperty("familylegacy.fonts.dir", previous);
+			else
+				System.clearProperty("familylegacy.fonts.dir");
+			IndicShaper.forget();
+		}
+	}
+
+	/** @return	The names of the fonts of the first page. */
+	private static List<String> fontNames(final Path file) throws IOException{
+		final PdfReader reader = new PdfReader(Files.readAllBytes(file));
+		try{
+			final List<String> names = new ArrayList<>();
+			final PdfDictionary fonts = reader.getPageN(1).getAsDict(PdfName.RESOURCES).getAsDict(PdfName.FONT);
+			for(final PdfName key : fonts.getKeys())
+				names.add(String.valueOf(fonts.getAsDict(key).getAsName(PdfName.BASEFONT)));
+			return names;
+		}
+		finally{
+			reader.close();
+		}
+	}
 
 	private static ReportSection PageBreak(){
 		return ReportSection.PageBreak.INSTANCE;

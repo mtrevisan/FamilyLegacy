@@ -30,11 +30,11 @@ package io.github.mtrevisan.familylegacy.preferences;
  * <p>
  * <b>This is a presentation choice, not genealogical data.</b> Genealogical records carry evidence and conclusions; the order in
  * which they are shown is a matter of the view, and different users may legitimately prefer different orders for the same file.
- * The choice is kept in the user preferences (see {@link OrderPreferences}), never in the records, and it is never exported.
+ * The choice is kept in the user preferences (see {@link io.github.mtrevisan.familylegacy.tree.OrderPreferences}), never in the records, and it is never exported.
  */
 public enum PartnerOrder{
 
-	/** Earliest union first (see {@link UnionChronology}); the partners whose union cannot be dated come last. The default. */
+	/** Earliest union first (see {@link io.github.mtrevisan.familylegacy.tree.UnionChronology}); the partners whose union cannot be dated come last. The default. */
 	UNION_CHRONOLOGY,
 	/** By the preferred display name; the partners without a name come last. */
 	ALPHABETICAL,

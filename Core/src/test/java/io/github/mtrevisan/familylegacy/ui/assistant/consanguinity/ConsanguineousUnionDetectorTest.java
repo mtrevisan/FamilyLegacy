@@ -112,7 +112,7 @@ class ConsanguineousUnionDetectorTest{
 
 		Assertions.assertEquals(1, report.unions().size());
 		final ConsanguinityReport.ConsanguineousUnion union = report.unions().getFirst();
-		Assertions.assertEquals(Set.of("Xavier", "Yvonne"), Set.of(StringUtils.substringBefore(union.firstName(), " "), StringUtils.substringBefore(union.secondName(), " ")));
+		Assertions.assertEquals(Set.of("Xavier", "Yvonne"), Set.of(StringUtils.substringBefore(union.firstName(), StringUtils.SPACE), StringUtils.substringBefore(union.secondName(), StringUtils.SPACE)));
 		Assertions.assertEquals(0.0625, union.kinship(), 1e-12);
 		Assertions.assertEquals(0.125, union.relationship(), 1e-12);
 		Assertions.assertEquals("first cousins", union.term());

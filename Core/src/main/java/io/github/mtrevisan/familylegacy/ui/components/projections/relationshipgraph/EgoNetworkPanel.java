@@ -222,8 +222,13 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 	}
 
 	public void load(final String egoId){
-		if(Objects.equals(currentEgoId, egoId))
+		if(Objects.equals(currentEgoId, egoId)){
+			//same ego: the model may have changed meanwhile (an edit, a new relationship), so the network is rebuilt, but it is not a
+			//navigation (no history entry, selection kept)
+			if(egoId != null)
+				refreshNetwork();
 			return;
+		}
 
 		currentEgoId = egoId;
 		selectionController.clearSelection();
@@ -291,6 +296,9 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	private void toggleTimeline(){
 		timelineVisible = !timelineVisible;
+		//the events may have changed while the timeline was hidden
+		if(timelineVisible)
+			timeline.reloadEvents();
 		timeline.setVisible(timelineVisible);
 		toggleBar.setExpanded(timelineVisible);
 
@@ -315,6 +323,8 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 			if(group.getId() != null)
 				ids.add(group.getId());
 		timeline.setParticipantFilter(ids);
+		if(timelineVisible)
+			timeline.reloadEvents();
 	}
 
 	public EgoNetworkPanel withSelectionCallback(final Consumer<String> callback){

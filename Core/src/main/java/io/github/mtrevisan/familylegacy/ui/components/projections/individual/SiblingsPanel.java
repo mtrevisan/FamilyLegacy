@@ -265,7 +265,7 @@ public class SiblingsPanel extends JPanel{
 					.withIndividualData(siblingData);
 				boxContainer.add(siblingBox);
 				final String constraint = (showPartner || i < siblingsCount - 1
-					? (treeLayout == TreeLayout.VERTICAL? "gapright ": "gapbottom " + SIBLING_SEPARATION)
+					? (treeLayout == TreeLayout.VERTICAL? "gapbottom " + SIBLING_SEPARATION: "gapright " + SIBLING_SEPARATION)
 					: StringUtils.EMPTY);
 				add(boxContainer, constraint);
 				siblingBoxes.add(siblingBox);

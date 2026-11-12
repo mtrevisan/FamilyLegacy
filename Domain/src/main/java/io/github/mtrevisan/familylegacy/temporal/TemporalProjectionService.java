@@ -79,7 +79,6 @@ public final class TemporalProjectionService{
 
 	private final FLEFModel model;
 
-	private TemporalIndices indices;
 	private TemporalExtractor extractor;
 	private TemporalProjectionModel cachedModel;
 
@@ -103,7 +102,7 @@ public final class TemporalProjectionService{
 		final Predicate<TemporalEntityRef> effective = (filter != null? filter: entity -> true);
 
 		// Build the indices exactly once per projection build.
-		indices = TemporalIndices.build(model);
+		final TemporalIndices indices = TemporalIndices.build(model);
 		extractor = new TemporalExtractor(model, indices);
 
 		final List<TemporalRow> rows = buildRows(effective);
@@ -222,8 +221,8 @@ public final class TemporalProjectionService{
 
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
 		for(final FLEFRecord relationship : relationships){
-			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
-			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			final String subjectId = participantId(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = participantId(relationship, RelationshipReader.TAG_TARGET);
 			if(subjectId == null || objectId == null)
 				continue;
 			if(!includedIds.contains(subjectId) || !includedIds.contains(objectId))
@@ -245,12 +244,25 @@ public final class TemporalProjectionService{
 
 			final String relType = RelationshipReader.extractType(relationship);
 			final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
-			final TemporalConnectionType connectionType = TemporalConnectionType.of(sourceRef.type(), objectRef.type());
+			final TemporalConnectionType connectionType;
+			try{
+				connectionType = TemporalConnectionType.of(sourceRef.type(), objectRef.type());
+			}
+			catch(final IllegalArgumentException ignored){
+				//a pair the protocol does not allow (e.g. an individual and a place): not drawn
+				continue;
+			}
 
 			connections.add(new TemporalConnection(connectionType, sourceRef, objectRef, relType, span, relationship,
 				role));
 		}
 		return connections;
+	}
+
+	/** The id of the individual or of the group a relationship points to with the given tag, or {@code null}. */
+	private static String participantId(final FLEFRecord relationship, final String tag){
+		final String individualId = relationship.extractReferencedId(tag, IndividualReader.TYPE);
+		return (individualId != null? individualId: relationship.extractReferencedId(tag, GroupReader.TYPE));
 	}
 
 	/**

@@ -173,7 +173,8 @@ public final class ResearchLogDialog extends JDialog{
 			.thenComparing(LogRow::id));
 
 		tableModel.setRows(rows);
-		updateStatus(rows.size());
+		//(the filter stays in place: the count is the one of the rows shown)
+		updateStatus(table.getRowCount());
 	}
 
 	/** The date the activity was created ({@code audit.creation.date}), or {@code null}. */

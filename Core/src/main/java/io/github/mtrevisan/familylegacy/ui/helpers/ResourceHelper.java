@@ -117,12 +117,8 @@ public final class ResourceHelper{
 		BufferedImage image = ResourceHelper.readBufferedImage(new File(filename));
 		if(image != null){
 			image = toARGB(image);
-			if(crop != null){
-				final Rectangle bounds = new Rectangle(0, 0, image.getWidth(), image.getHeight());
-				final Rectangle clamped = bounds.intersection(crop);
-				image = image.getSubimage(clamped.x, clamped.y, clamped.width, clamped.height);
-			}
-			return new ImageIcon(image);
+			image = crop(image, crop);
+			return (image != null? new ImageIcon(image): null);
 		}
 		return null;
 	}

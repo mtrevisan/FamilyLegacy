@@ -341,6 +341,10 @@ public class FLEFWriter{
 
 	/**
 	 * Writes a record header (tag, optional ID, optional value, and opening brace).
+	 * <p>
+	 * The file format cannot hold both an id and a scalar value on the same record: the text between the tag and the opening brace
+	 * is read back as the id. In the model, records with an id are top-level records, which have no value; the other records have a
+	 * value and no id.
 	 *
 	 * @param record      the record to write
 	 * @param writer      the output writer
@@ -367,7 +371,7 @@ public class FLEFWriter{
 		// Record value (supports single-line and multiline formatting)
 		final String value = record.getValue();
 		if(value != null){
-			if(isMultiline(value)){
+			if(isMultiline(value) || needsTextBlock(value, record.hasChildren() && StringUtils.isEmpty(formattedId))){
 				writer.write(StringUtils.SPACE);
 				writer.write(TAG_VALUE_MULTILINE);
 				// Always start the content on a new line
@@ -406,10 +410,60 @@ public class FLEFWriter{
 			final String line = lines[i];
 
 			writeIndent(writer, indentLevel);
-			writer.write(line);
-			if(i < lines.length - 1)
+			final boolean last = (i == lines.length - 1);
+			writer.write(escapeTextBlockLine(line, last));
+			if(!last)
 				writer.write(StringUtils.LF);
 		}
+	}
+
+	/**
+	 * Escapes the bare minimum of a line of a text block: the backslashes (the parser translates the escape sequences), the quotes
+	 * that would form triple quotes (or that would touch the closing ones), and, on the last line only, the leading whitespace (the
+	 * closing triple quotes follow the last line, whose indentation the parser would otherwise take as incidental indentation of the
+	 * whole text). Everything else, spaces and quotes included, is written as is.
+	 *
+	 * @param line	The line.
+	 * @param last	Whether the line is the last one (followed by the closing triple quotes).
+	 * @return	The escaped line.
+	 */
+	private static String escapeTextBlockLine(final String line, final boolean last){
+		final StringBuilder sb = new StringBuilder(line.length() + 4);
+		//as in a Java text block, the trailing whitespace of a line is stripped (so the last one is escaped), and a line made of
+		//whitespace only is blank, so it neither counts for the incidental indentation nor survives (so all of it is escaped)
+		final boolean blank = line.isBlank();
+		int lastNonWhitespace = line.length() - 1;
+		while(lastNonWhitespace >= 0 && Character.isWhitespace(line.charAt(lastNonWhitespace)))
+			lastNonWhitespace --;
+		int runLength = 0;
+		boolean runAtEnd = false;
+		for(int i = 0, length = line.length(); i < length; i ++){
+			final char chr = line.charAt(i);
+			if((chr == ' ' || chr == '\t') && (blank || i == length - 1 && lastNonWhitespace < i || i == 0 && last))
+				sb.append(chr == ' '? "\\s": "\\t");
+			else if(chr == '"'){
+				int start = i;
+				while(start > 0 && line.charAt(start - 1) == '"')
+					start --;
+				if(start == i){
+					runLength = 1;
+					while(i + runLength < length && line.charAt(i + runLength) == '"')
+						runLength ++;
+					runAtEnd = (last && i + runLength == length);
+				}
+				//as in a Java text block, the first quote of every group of three is escaped; the quotes that touch the closing
+				//triple quotes are all escaped
+				if(runAtEnd || runLength >= 3 && (i - start) % 3 == 0)
+					sb.append("\\\"");
+				else
+					sb.append(chr);
+			}
+			else if(chr == '\\')
+				sb.append("\\\\");
+			else
+				sb.append(chr);
+		}
+		return sb.toString();
 	}
 
 	/**
@@ -421,6 +475,26 @@ public class FLEFWriter{
 	 */
 	private boolean isMultiline(final String str){
 		return (str.contains(StringUtils.LF) || str.contains(StringUtils.CR));
+	}
+
+	/**
+	 * Determines if a single-line value cannot be written as is, because the parser would read it differently: an empty value
+	 * (read as no value), a value with leading or trailing whitespace, a value starting with a brace or with triple quotes, a value
+	 * ending in a brace (read as an id followed by a block), or a value followed by a block. Such values are written as a text
+	 * block, where the escape sequences make them unambiguous.
+	 *
+	 * @param value	the value, without line breaks
+	 * @param block	whether the record is written with a block
+	 * @return	{@code true} if the value is to be written as a text block
+	 */
+	private static boolean needsTextBlock(final String value, final boolean block){
+		if(block || value.isEmpty())
+			return true;
+
+		final char first = value.charAt(0);
+		final char last = value.charAt(value.length() - 1);
+		return (first == ' ' || first == '\t' || last == ' ' || last == '\t'
+			|| first == '{' || last == '{' || value.startsWith(TAG_VALUE_MULTILINE));
 	}
 
 	/**

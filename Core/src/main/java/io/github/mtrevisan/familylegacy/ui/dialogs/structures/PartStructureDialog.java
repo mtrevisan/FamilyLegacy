@@ -122,6 +122,14 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
+		if(!typeCombo.isValued()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.name.type")),
+				tabbedPane, propertiesPanel, typeCombo);
+
+			return false;
+		}
+
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.name.value")),

@@ -24,9 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,21 +36,27 @@ import java.util.Deque;
 import java.util.List;
 
 
+/**
+ * Reads a GEDCOM text into a forest of nodes.
+ * <p>
+ * The pointers are left as written: the xrefs are given their final form by {@link XrefNormalizer}.
+ */
 public class GEDCOMParser{
 
-	public List<GEDCOMNode> parse(Reader reader) throws IOException{
-		List<GEDCOMNode> roots = new ArrayList<>();
-		Deque<GEDCOMNode> stack = new ArrayDeque<>();
-		BufferedReader br = new BufferedReader(reader);
+	public List<GEDCOMNode> parse(final Reader reader) throws IOException{
+		final List<GEDCOMNode> roots = new ArrayList<>();
+		final Deque<GEDCOMNode> stack = new ArrayDeque<>();
+		final BufferedReader br = (reader instanceof BufferedReader buffered? buffered: new BufferedReader(reader));
 		String line;
-		GEDCOMNode lastNode = null;
 		boolean gedcom7 = false;
 
 		while((line = br.readLine()) != null){
 			// Rimuove il BOM UTF-8 se presente al primo livello
-			if(!line.isEmpty() && line.charAt(0) == '\uFEFF'){
+			if(!line.isEmpty() && line.charAt(0) == '﻿'){
 				line = line.substring(1);
 			}
+			// a line can be indented
+			line = StringUtils.stripStart(line, null);
 			if(line.isEmpty()){
 				continue;
 			}
@@ -96,7 +101,7 @@ public class GEDCOMParser{
 			if(value != null)
 				value = (gedcom7
 					? (value.startsWith("@@")? value.substring(1): value)
-					: value.replace("@@", "@"));
+					: Strings.CS.replace(value, "@@", "@"));
 
 			// Concatenazione CONC / CONT esatta senza inserire spazi arbitrari
 			if("CONC".equals(tag) || "CONT".equals(tag)){
@@ -104,7 +109,7 @@ public class GEDCOMParser{
 				// sibling sub-structure
 				while(!stack.isEmpty() && stack.peek().getLevel() >= level)
 					stack.pop();
-				final GEDCOMNode target = (!stack.isEmpty()? stack.peek(): lastNode);
+				final GEDCOMNode target = stack.peek();
 				if(target != null){
 					String current = (target.getValue() != null? target.getValue(): StringUtils.EMPTY);
 					String appendVal = (value != null? value: StringUtils.EMPTY);
@@ -117,15 +122,9 @@ public class GEDCOMParser{
 				continue;
 			}
 
-			if(value != null && value.startsWith("@F") && NumberUtils.isParsable(value.substring(2, value.length() - 1))){
-				value = "@G" + value.substring(2);
-			}
 			GEDCOMNode node = new GEDCOMNode(level, tag, value);
-			if(xref != null){
-				if(xref.startsWith("F"))
-					xref = GroupReader.ID_PREFIX + xref.substring(1);
+			if(xref != null)
 				node.setXrefId(xref);
-			}
 
 			if(level == 0){
 				roots.add(node);
@@ -149,7 +148,6 @@ public class GEDCOMParser{
 				}
 				stack.push(node);
 			}
-			lastNode = node;
 		}
 		return roots;
 	}

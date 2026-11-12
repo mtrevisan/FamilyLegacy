@@ -72,7 +72,7 @@ public final class PedigreeCollapseController{
 	public void detect(final TreeNode rootNode){
 		final List<PedigreeCollapse> list = PedigreeCollapseDetector.detect(rootNode, model);
 		collapses = list.stream()
-			.collect(Collectors.toMap(PedigreeCollapse::individualId, Function.identity()));
+			.collect(Collectors.toMap(PedigreeCollapse::individualId, Function.identity(), (first, second) -> first));
 	}
 
 	/** Applies the badge to every panel that shows an affected individual. */
@@ -81,6 +81,9 @@ public final class PedigreeCollapseController{
 		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
 			final TreeNode node = entry.getKey();
 			final PartnersPanel panel = entry.getValue();
+			if(panel == null)
+				continue;
+
 			applyToSlot(panel.getFatherPanel(), node.getFather());
 			applyToSlot(panel.getMotherPanel(), node.getMother());
 		}

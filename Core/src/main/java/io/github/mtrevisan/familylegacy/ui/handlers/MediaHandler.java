@@ -80,7 +80,7 @@ public class MediaHandler extends AbstractRecordTypeHandler<RecordDialog>{
 			// it's a citation, extract URI from true record
 			final String documentId = record.getValue();
 			final FLEFRecord document = model.getRecordById(documentId);
-			uri = MediaReader.extractUri(document);
+			uri = (document != null? MediaReader.extractUri(document): null);
 		}
 
 		final StringBuilder sb = new StringBuilder();

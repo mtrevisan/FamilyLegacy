@@ -34,6 +34,14 @@ import java.util.List;
 
 public final class ComparisonConstraint extends Constraint{
 
+	/** The comparison operators of the grammar, shared with the grammar parser. */
+	public static final String NOT_EQUALS = "!=";
+	public static final String EQUALS = "==";
+	public static final String GREATER_THAN = ">";
+	public static final String LESS_THAN = "<";
+	public static final String GREATER_THAN_OR_EQUALS = ">=";
+	public static final String LESS_THAN_OR_EQUALS = "<=";
+
 	private final String left;
 	private final String operator;
 	private final String right;
@@ -67,15 +75,38 @@ public final class ComparisonConstraint extends Constraint{
 			return;
 		}
 
+		if(isOrdering(operator) && !(isInteger(leftValue) && isInteger(rightValue))){
+			errors.add(String.format("Constraint violation at '%s': '%s %s %s' failed (values: %s, %s): the values are not comparable numerically",
+				contextPath, left, operator, right, leftValue, rightValue));
+
+			return;
+		}
+
 		final boolean valid = compare(leftValue, rightValue, operator);
 		if(!valid)
 			errors.add(String.format("Constraint violation at '%s': '%s %s %s' failed (values: %s, %s)",
 				contextPath, left, operator, right, leftValue, rightValue));
 	}
 
+	private static boolean isOrdering(final String op){
+		return (GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op) || LESS_THAN.equals(op)
+			|| LESS_THAN_OR_EQUALS.equals(op));
+	}
+
+	private static boolean isInteger(final String value){
+		try{
+			Long.parseLong(value);
+
+			return true;
+		}
+		catch(final NumberFormatException ignored){
+			return false;
+		}
+	}
+
 	private boolean isField(final String token){
-		// A field is an identifier (letters, digits, underscores); a literal is a number or string.
-		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9') && !token.startsWith("\""));
+		// A field is an identifier (letters, digits, underscores); a literal is a number.
+		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9'));
 	}
 
 	private String resolveValue(final FLEFRecord record, final String token){
@@ -91,19 +122,19 @@ public final class ComparisonConstraint extends Constraint{
 			long l = Long.parseLong(leftVal);
 			long r = Long.parseLong(rightVal);
 			return switch(op){
-				case ">" -> l > r;
-				case ">=" -> l >= r;
-				case "<" -> l < r;
-				case "<=" -> l <= r;
-				case "==" -> l == r;
-				case "!=" -> l != r;
+				case GREATER_THAN -> l > r;
+				case GREATER_THAN_OR_EQUALS -> l >= r;
+				case LESS_THAN -> l < r;
+				case LESS_THAN_OR_EQUALS -> l <= r;
+				case EQUALS -> l == r;
+				case NOT_EQUALS -> l != r;
 				default -> false;
 			};
 		}
 		catch(final NumberFormatException e){
 			return switch(op){
-				case "==" -> leftVal.equals(rightVal);
-				case "!=" -> !leftVal.equals(rightVal);
+				case EQUALS -> leftVal.equals(rightVal);
+				case NOT_EQUALS -> !leftVal.equals(rightVal);
 				default -> false;
 			};
 		}

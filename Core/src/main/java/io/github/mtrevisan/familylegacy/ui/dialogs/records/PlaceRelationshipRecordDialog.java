@@ -318,6 +318,12 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
+		if(subjectField.equals(targetField)){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required_not_same", I18N.t("dialog.place_relationship.subject"), I18N.t("dialog.place_relationship.target")),
+				tabbedPane, propertiesPanel, subjectField);
+			return false;
+		}
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.place_relationship.part.type")),

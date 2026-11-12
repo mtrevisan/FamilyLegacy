@@ -25,22 +25,28 @@
 package io.github.mtrevisan.reports.pdf;
 
 import org.apache.commons.lang3.StringUtils;
+import org.openpdf.text.Chunk;
 import org.openpdf.text.Font;
 import org.openpdf.text.FontFactory;
 import org.openpdf.text.Phrase;
 import org.openpdf.text.pdf.BaseFont;
 import org.openpdf.text.pdf.FontSelector;
+import org.openpdf.text.pdf.PdfWriter;
 
 import java.awt.Color;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -65,9 +71,26 @@ final class PdfFonts{
 		"noto sans hebrew", "noto sans cjk sc", "noto sans cjk jp", "microsoft yahei", "yu gothic", "ms gothic", "malgun gothic", "simsun",
 		"nirmala ui", "leelawadee ui", "segoe ui historic", "segoe ui symbol", "noto sans symbols", "symbola", "arial", "tahoma");
 
+	/** The families of the fonts of the {@code fonts} directory (Noto, licence in {@code OFL.txt}), the last ones tried; the directory is optional
+	 * (it is downloaded from the application), without it these families are simply not there. */
+	private static final List<String> BUNDLED = List.of("noto sans", "noto sans arabic", "noto sans hebrew", "noto sans thai");
+	/** The Chinese, Japanese and Korean fonts the program carries: the first one that has a character is used, so the one of the language of
+	 * the report comes first (the same ideograph is drawn in a different way in each language). */
+	private static final String CJK_CHINESE = "noto sans sc";
+	private static final String CJK_JAPANESE = "noto sans jp";
+	private static final String CJK_KOREAN = "noto sans kr";
+	/** The words that are written in capitals in the name of a family. */
+	private static final Set<String> ACRONYMS = Set.of("ui", "sc", "tc", "jp", "kr", "hk", "cjk", "mt", "ms", "mdl2");
+	/** System property that sets the directory of the fonts the program carries (the application sets nothing: it is beside the plugins). */
+	private static final String FONTS_DIR_PROPERTY = "familylegacy.fonts.dir";
+	private static final String FONTS_DIR = "fonts";
+	private static final Map<String, Optional<BaseFont>> BASES = new ConcurrentHashMap<>();
+
 	private static boolean registered;
+	private static boolean bundledRegistered;
 
 
+	private PdfWriter writer;
 	private final List<String> bodyChain;
 	private final List<String> monoChain;
 	private final Map<Key, FontSelector> selectors = new HashMap<>();
@@ -98,45 +121,77 @@ final class PdfFonts{
 	 * @param requested	The family the user chose ({@code null} or blank for the default one).
 	 * @param text	All the text of the document, to know which characters the fonts must have.
 	 * @param needsMonospaced	Whether the document has a preformatted block.
+	 * @param language	The language of the document (a code such as {@code "ja"}), that tells which Chinese, Japanese or Korean font comes first.
 	 */
-	PdfFonts(final String requested, final String text, final boolean needsMonospaced){
+	PdfFonts(final String requested, final String text, final boolean needsMonospaced, final String language){
 		final String family = (requested != null && !requested.isBlank()? requested.strip().toLowerCase(Locale.ROOT): null);
 		String chosen = null;
 		if(family != null){
 			registerSystemFonts();
-			if(FontFactory.isRegistered(family) && load(family, 10, false, false, null) != null)
+			if(isKnown(family) && load(family, 10, false, false, null) != null)
 				chosen = family;
 		}
-		bodyChain = chain(chosen, text);
+		bodyChain = chain(chosen, text, language);
 
 		if(needsMonospaced){
 			registerSystemFonts();
 			String mono = COURIER;
 			for(final String candidate : MONOSPACED)
-				if(FontFactory.isRegistered(candidate) && load(candidate, 10, false, false, null) != null){
+				if(isKnown(candidate) && load(candidate, 10, false, false, null) != null){
 					mono = candidate;
 					break;
 				}
-			monoChain = chain(mono, text);
+			monoChain = chain(mono, text, language);
 		}
 		else
 			monoChain = List.of(COURIER);
 	}
 
 
-	/** @return	The families of the system, in alphabetical order, as they are shown to the user. */
-	static List<String> families(){
+	/**
+	 * @param text	All the text of the document.
+	 * @return	The families, in alphabetical order, as they are shown to the user, whose font alone has every character of the text (the
+	 * 	ones of the system and the ones the program carries). It reads each font, the first time: it can take a while.
+	 */
+	static List<String> families(final String text){
 		registerSystemFonts();
 
+		final Set<Integer> required = required(text);
 		return FontFactory.getRegisteredFamilies().stream()
 			.filter(name -> !STANDARD.contains(name))
+			.filter(name -> covers(name, required))
 			.map(PdfFonts::display)
 			.sorted(String.CASE_INSENSITIVE_ORDER)
 			.toList();
 	}
 
+	/** @return	Whether OpenPDF knows the family (a family is not always known as a font: only the full name of each style is). */
+	private static boolean isKnown(final String family){
+		return (FontFactory.getRegisteredFamilies().contains(family) || FontFactory.isRegistered(family));
+	}
+
+	private static boolean covers(final String family, final Set<Integer> required){
+		final BaseFont base = baseOf(family);
+		return (base != null && required.stream().allMatch(base::charExists));
+	}
+
+	/**
+	 * @return	The characters of the text that a font must have (the spaces and the control characters do not need a glyph, the joiners are
+	 * 	invisible, and the scripts that {@link IndicShaper} draws do not need a font of the PDF).
+	 */
+	private static Set<Integer> required(final String text){
+		final Set<Integer> required = new TreeSet<>();
+		text.codePoints()
+			.filter(cp -> !Character.isWhitespace(cp) && !Character.isISOControl(cp) && Character.getType(cp) != Character.FORMAT
+				&& IndicShaper.scriptOf(cp) == null)
+			.forEach(required::add);
+		return required;
+	}
+
 	/** Makes OpenPDF know the fonts of the system (once: it reads every font file). */
 	private static synchronized void registerSystemFonts(){
+		//(the fonts of the program can be downloaded while the application runs: they are looked for until they are found)
+		registerBundledFonts();
 		if(registered)
 			return;
 		registered = true;
@@ -155,14 +210,72 @@ final class PdfFonts{
 			}
 	}
 
+	/** Makes OpenPDF know the fonts of the {@code fonts} directory, if there is one: without it the fonts of the system are all there is. */
+	private static void registerBundledFonts(){
+		if(bundledRegistered)
+			return;
+
+		final Path directory = fontsDirectory();
+		try{
+			if(directory != null && Files.isDirectory(directory)){
+				FontFactory.registerDirectory(directory.toString());
+				bundledRegistered = true;
+			}
+		}
+		catch(final RuntimeException ignored){
+			//a directory that cannot be read is like a missing one
+		}
+	}
+
+	/**
+	 * @return	The directory of the fonts the program carries ({@code fonts}, beside the {@code plugins} directory this plugin is in, or the
+	 * 	one the {@code familylegacy.fonts.dir} system property names); {@code null} if it cannot be told. It may not exist.
+	 */
+	static Path fontsDirectory(){
+		final String explicit = System.getProperty(FONTS_DIR_PROPERTY);
+		if(explicit != null && !explicit.isBlank())
+			return Path.of(explicit);
+
+		try{
+			final Path plugins = Path.of(PdfFonts.class.getProtectionDomain().getCodeSource().getLocation().toURI())
+				.getParent();
+			final Path parent = (plugins != null? plugins.getParent(): null);
+			return (parent != null? parent.resolve(FONTS_DIR): null);
+		}
+		catch(final URISyntaxException | RuntimeException ignored){
+			return null;
+		}
+	}
+
 	private static String display(final String name){
 		final StringBuilder sb = new StringBuilder(name.length());
-		boolean start = true;
-		for(final char c : name.toCharArray()){
-			sb.append(start? Character.toUpperCase(c): c);
-			start = (c == ' ' || c == '-');
+		for(final String word : StringUtils.splitPreserveAllTokens(name, ' ')){
+			if(!sb.isEmpty())
+				sb.append(' ');
+			if(ACRONYMS.contains(word))
+				sb.append(word.toUpperCase(Locale.ROOT));
+			else{
+				boolean start = true;
+				for(final char c : word.toCharArray()){
+					sb.append(start? Character.toUpperCase(c): c);
+					start = (c == '-');
+				}
+			}
 		}
 		return sb.toString();
+	}
+
+	/** @return	The families the program carries, in the order they are tried for a document in the language. */
+	private static List<String> bundled(final String language){
+		final String code = (language != null? language.toLowerCase(Locale.ROOT): StringUtils.EMPTY);
+		final List<String> cjk = new ArrayList<>(Arrays.asList(CJK_CHINESE, CJK_JAPANESE, CJK_KOREAN));
+		final String first = (code.startsWith("ja")? CJK_JAPANESE: (code.startsWith("ko")? CJK_KOREAN: CJK_CHINESE));
+		cjk.remove(first);
+		cjk.addFirst(first);
+
+		final List<String> bundled = new ArrayList<>(BUNDLED);
+		bundled.addAll(cjk);
+		return bundled;
 	}
 
 
@@ -171,17 +284,14 @@ final class PdfFonts{
 	 * @param text	The text to write.
 	 * @return	The families to try in order: the primary, then the ones that supply the characters it lacks.
 	 */
-	private static List<String> chain(final String primary, final String text){
+	private static List<String> chain(final String primary, final String text, final String language){
 		final List<String> chain = new ArrayList<>();
 		if(primary != null)
 			chain.add(primary);
 
 		final BaseFont base = (primary != null? baseOf(primary): defaultFont());
-		final Set<Integer> missing = new TreeSet<>();
-		text.codePoints()
-			.filter(cp -> !Character.isWhitespace(cp) && !Character.isISOControl(cp))
-			.filter(cp -> base == null || !base.charExists(cp))
-			.forEach(missing::add);
+		final Set<Integer> missing = required(text);
+		missing.removeIf(cp -> base != null && base.charExists(cp));
 		if(missing.isEmpty())
 			return chain;
 
@@ -193,10 +303,13 @@ final class PdfFonts{
 			return chain;
 
 		registerSystemFonts();
-		for(final String candidate : FALLBACKS){
+		//the fonts of the program are the last ones: the ones of the system come first
+		final List<String> candidates = new ArrayList<>(FALLBACKS);
+		candidates.addAll(bundled(language));
+		for(final String candidate : candidates){
 			if(missing.isEmpty())
 				break;
-			if(chain.contains(candidate) || !FontFactory.isRegistered(candidate))
+			if(chain.contains(candidate) || !isKnown(candidate))
 				continue;
 
 			final BaseFont candidateBase = baseOf(candidate);
@@ -218,8 +331,10 @@ final class PdfFonts{
 		if(COURIER.equals(family))
 			return new Font(Font.COURIER, 10).getCalculatedBaseFont(false);
 
-		final Font font = load(family, 10, false, false, null);
-		return (font != null? font.getBaseFont(): null);
+		return BASES.computeIfAbsent(family, name -> {
+			final Font font = load(name, 10, false, false, null);
+			return Optional.ofNullable(font != null? font.getBaseFont(): null);
+		}).orElse(null);
 	}
 
 	/** @return	The font, or {@code null} if it cannot be loaded or embedded (a font may forbid its embedding). */
@@ -229,7 +344,19 @@ final class PdfFonts{
 			return new Font(Font.COURIER, size, style(bold, italic), color);
 
 		final Font font = FontFactory.getFont(family, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, size, style(bold, italic), color);
-		return (font.getBaseFont() != null? font: null);
+		if(font.getBaseFont() != null)
+			return font;
+
+		//a family without a bold or italic face (the Chinese, Japanese and Korean fonts the program carries): the regular face is
+		//thickened or slanted by the writer
+		if(bold || italic){
+			final Font plain = FontFactory.getFont(family, BaseFont.IDENTITY_H, BaseFont.EMBEDDED, size, Font.NORMAL, color);
+			if(plain.getBaseFont() != null){
+				plain.setStyle(style(bold, italic));
+				return plain;
+			}
+		}
+		return null;
 	}
 
 	private static int style(final boolean bold, final boolean italic){
@@ -248,7 +375,24 @@ final class PdfFonts{
 	 */
 	Phrase phrase(final String text, final float size, final boolean bold, final boolean italic, final boolean mono, final Color color){
 		final FontSelector selector = selectors.computeIfAbsent(new Key(size, bold, italic, mono, color), this::createSelector);
-		return selector.process(text);
+		if(writer == null || !IndicShaper.containsShaped(text))
+			return selector.process(text);
+
+		//the words that the PDF writer cannot shape are drawn, the rest is written by the fonts
+		final Phrase phrase = new Phrase();
+		for(final IndicShaper.Run run : IndicShaper.split(text)){
+			final Chunk word = (run.script() != null? IndicShaper.chunk(run.text(), run.script(), size, bold, color, writer): null);
+			if(word != null)
+				phrase.add(word);
+			else
+				phrase.addAll(selector.process(run.text()));
+		}
+		return phrase;
+	}
+
+	/** @param writer	The writer of the PDF that is being written: the drawings of the words that are shaped belong to it. */
+	void attach(final PdfWriter writer){
+		this.writer = writer;
 	}
 
 	private FontSelector createSelector(final Key key){

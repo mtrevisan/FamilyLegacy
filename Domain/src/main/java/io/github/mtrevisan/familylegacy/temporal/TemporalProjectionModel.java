@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 
 import java.util.List;
 
@@ -165,13 +166,13 @@ public record TemporalProjectionModel(
 			for(final TemporalRow row : rows)
 				for(final TemporalTrack track : row.tracks())
 					for(final TemporalEntry entry : track.entries())
-						min = minOrNull(min, entry.span().start());
+						min = minOrNull(min, earliest(entry.span()));
 		if(connections != null)
 			for(final TemporalConnection connection : connections)
-				min = minOrNull(min, connection.span().start());
+				min = minOrNull(min, earliest(connection.span()));
 		if(bands != null)
 			for(final TemporalContextBand band : bands)
-				min = minOrNull(min, band.span().start());
+				min = minOrNull(min, earliest(band.span()));
 		return min;
 	}
 
@@ -190,6 +191,11 @@ public record TemporalProjectionModel(
 			for(final TemporalContextBand band : bands)
 				max = maxOrNull(max, band.span().effectiveEnd());
 		return max;
+	}
+
+	/** The first known date of a span: its start, or its end when the span has no start (open-start span). */
+	private static NormalizedDate earliest(final TemporalSpan span){
+		return (span.start() != null? span.start(): span.end());
 	}
 
 	private static NormalizedDate minOrNull(final NormalizedDate current, final NormalizedDate candidate){

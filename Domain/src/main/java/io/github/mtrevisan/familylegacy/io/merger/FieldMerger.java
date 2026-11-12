@@ -292,18 +292,33 @@ final class FieldMerger{
 			if(tag == null || knownTags.contains(tag))
 				continue;
 
-			final String childSignature = signature.of(child, null);
-			boolean present = false;
-			for(final FLEFRecord existing : children(target, tag))
-				if(childSignature.equals(signature.of(existing, null))){
-					present = true;
-					break;
-				}
-			if(!present){
-				if(!children(target, tag).isEmpty())
-					conflicts.add(FLEFRecordHelper.composePath(path, tag) + ": field unknown to the grammar, both occurrences preserved");
-				insertChild(target, copy(child));
+			mergeUnknownOccurrence(target, child, path, conflicts);
+		}
+	}
+
+	/**
+	 * Merges every occurrence, in the source, of a field unknown to the grammar: the ones that the target does not already state are
+	 * added, so that both records keep what they say (the field may be repeated).
+	 */
+	void mergeUnknownTag(final FLEFRecord target, final FLEFRecord source, final String tag, final String path,
+			final List<String> conflicts){
+		for(final FLEFRecord child : children(source, tag))
+			mergeUnknownOccurrence(target, child, path, conflicts);
+	}
+
+	private void mergeUnknownOccurrence(final FLEFRecord target, final FLEFRecord child, final String path, final List<String> conflicts){
+		final String tag = child.getTag();
+		final String childSignature = signature.of(child, null);
+		boolean present = false;
+		for(final FLEFRecord existing : children(target, tag))
+			if(childSignature.equals(signature.of(existing, null))){
+				present = true;
+				break;
 			}
+		if(!present){
+			if(!children(target, tag).isEmpty())
+				conflicts.add(FLEFRecordHelper.composePath(path, tag) + ": field unknown to the grammar, both occurrences preserved");
+			insertChild(target, copy(child));
 		}
 	}
 

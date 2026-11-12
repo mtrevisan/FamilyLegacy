@@ -52,7 +52,8 @@ import java.util.Map;
 public final class TemporalAttributeIndex{
 
 	private final FLEFModel model;
-	private final Map<String, List<AttributeDatum>> attributesByOwner = new HashMap<>();
+	/** Not final: rebuilt (maybe from another thread) after a geocoding pass, and swapped whole. */
+	private volatile Map<String, List<AttributeDatum>> attributesByOwner = Map.of();
 	private final PlaceCoordinateResolver placeResolver;
 
 
@@ -60,7 +61,7 @@ public final class TemporalAttributeIndex{
 		this.model = model;
 		this.placeResolver = placeResolver;
 
-		build();
+		attributesByOwner = build();
 	}
 
 
@@ -73,9 +74,7 @@ public final class TemporalAttributeIndex{
 	}
 
 	public void rebuild(){
-		attributesByOwner.clear();
-
-		build();
+		attributesByOwner = build();
 	}
 
 
@@ -83,7 +82,8 @@ public final class TemporalAttributeIndex{
 	 *                          Build
 	 * ====================================================================== */
 
-	private void build(){
+	private Map<String, List<AttributeDatum>> build(){
+		final Map<String, List<AttributeDatum>> attributesByOwner = new HashMap<>();
 		final List<FLEFRecord> individualAttributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
 		for(final FLEFRecord individualAttribute : individualAttributes){
 			final String ownerId = extractIndividualOwner(individualAttribute);
@@ -110,6 +110,7 @@ public final class TemporalAttributeIndex{
 
 		for(final List<AttributeDatum> list : attributesByOwner.values())
 			list.sort(Comparator.comparingLong(AttributeDatum::fromJdn));
+		return attributesByOwner;
 	}
 
 	private AttributeDatum parse(final FLEFRecord attribute, final String ownerId){

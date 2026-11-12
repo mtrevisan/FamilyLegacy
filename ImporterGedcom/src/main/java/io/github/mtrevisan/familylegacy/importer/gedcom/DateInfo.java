@@ -33,14 +33,21 @@ public class DateInfo{
 	}
 
 	private final Type type;
-	private final String value;       // for POINT
-	private final String notBefore;   // for BOUNDED
-	private final String notAfter;    // for BOUNDED
-	private final String from;        // for SPANNING
-	private final String to;          // for SPANNING
-	private final String qualifier;   // "ABT", "CAL", "EST", etc.
+	// for POINT
+	private final String value;
+	// for BOUNDED
+	private final String notBefore;
+	// for BOUNDED
+	private final String notAfter;
+	// for SPANNING
+	private final String from;
+	// for SPANNING
+	private final String to;
+	// "ABT", "CAL", "EST", etc.
+	private final String qualifier;
 	private final boolean approximate;
-	private final String phrase;      // the text of an INT date, or of a date given only as "(phrase)"
+	// the text of an INT date, or of a date given only as "(phrase)"
+	private final String phrase;
 
 	private DateInfo(Builder builder){
 		this.type = builder.type;

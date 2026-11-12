@@ -41,7 +41,9 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.DateTimeException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +78,7 @@ public final class DateConsistency{
 		EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
 	/** @return	Whether an event of that type can be dated after the death of the person (a burial, a probate, a commemoration). */
 	public static boolean isPosthumous(final String type){
-		return POSTHUMOUS_TYPES.contains(type);
+		return (type != null && POSTHUMOUS_TYPES.contains(type));
 	}
 
 	/** The longest time between the death of the father and the birth of the child, in days. */
@@ -107,11 +109,16 @@ public final class DateConsistency{
 		checkReadable(model, issues);
 
 		final List<LifeEvent> events = loadEvents(model);
+		final Map<String, List<LifeEvent>> eventsByPerson = new HashMap<>();
+		for(final LifeEvent event : events)
+			eventsByPerson.computeIfAbsent(event.personId(), k -> new ArrayList<>())
+				.add(event);
 		final Map<String, Person> persons = new LinkedHashMap<>();
 		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
 		for(final FLEFRecord individual : model.getRecordsByType(IndividualReader.TYPE))
 			if(individual.getId() != null)
-				persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
+				persons.put(individual.getId(), loadPerson(individual, eventsByPerson.getOrDefault(individual.getId(), List.of()),
+					PreferredSex.of(individual, sexes, model)));
 
 		checkLifespans(persons, issues);
 		checkEvents(persons, events, issues);
@@ -265,7 +272,7 @@ public final class DateConsistency{
 		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE)){
 			final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
 			final FLEFRecord reference = (participant != null? participant.getTheOnlyChild(): null);
-			final String personId = (reference != null && IndividualReader.isOfType(reference)? reference.getValue(): null);
+			final String personId = (IndividualReader.isOfType(reference) ? reference.getValue(): null);
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
 			if(personId == null || eventId == null)
 				continue;
@@ -317,7 +324,7 @@ public final class DateConsistency{
 		try{
 			return DateRange.of(DateNormalizer.normalize(dateStructure));
 		}
-		catch(final RuntimeException ignored){
+		catch(final IllegalArgumentException | DateTimeException ignored){
 			return null;
 		}
 	}

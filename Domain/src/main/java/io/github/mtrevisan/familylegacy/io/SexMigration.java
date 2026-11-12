@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +137,7 @@ public final class SexMigration{
 			final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeReader.TYPE);
 			for(final FLEFRecord attribute : attributes){
 				final String id = attribute.getId();
-				if(id != null && StringUtils.startsWithIgnoreCase(id, prefix) && StringUtils.isNumeric(id.substring(prefix.length()))
+				if(id != null && Strings.CI.startsWith(id, prefix) && StringUtils.isNumeric(id.substring(prefix.length()))
 						&& id.length() - prefix.length() < 18)
 					last = Math.max(last, Long.parseLong(id.substring(prefix.length())));
 			}

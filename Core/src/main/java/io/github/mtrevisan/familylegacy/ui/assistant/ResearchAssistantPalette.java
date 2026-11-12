@@ -25,15 +25,17 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
@@ -72,7 +74,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -82,6 +86,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 
 /**
@@ -90,6 +95,8 @@ import java.util.concurrent.CompletableFuture;
  * move, Enter to run, Esc to close.
  */
 final class ResearchAssistantPalette extends JDialog{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchAssistantPalette.class);
 
 	private sealed interface Row permits Header, ActionRow, DiagnosticRow{}
 
@@ -291,6 +298,11 @@ final class ResearchAssistantPalette extends JDialog{
 		detailLabel.setEditable(false);
 		//the records of a finding are links that open them
 		detailLabel.addHyperlinkListener(event -> {
+			//the hand over a link
+			if(event.getEventType() == javax.swing.event.HyperlinkEvent.EventType.ENTERED)
+				detailLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			else if(event.getEventType() == javax.swing.event.HyperlinkEvent.EventType.EXITED)
+				detailLabel.setCursor(Cursor.getDefaultCursor());
 			if(event.getEventType() == javax.swing.event.HyperlinkEvent.EventType.ACTIVATED && event.getDescription() != null
 					&& event.getDescription().startsWith(RECORD_LINK))
 				openRecord(event.getDescription().substring(RECORD_LINK.length()));
@@ -357,7 +369,7 @@ final class ResearchAssistantPalette extends JDialog{
 	private void makeDraggable(final JComponent component){
 		final boolean border = (component == getContentPane());
 		final MouseAdapter drag = new MouseAdapter(){
-			private java.awt.Point pressedAt;
+			private Point pressedAt;
 			private int edges;
 
 			private int edgesAt(final MouseEvent e){
@@ -485,7 +497,10 @@ final class ResearchAssistantPalette extends JDialog{
 		final AssistantContext reading = context.forReading();
 		CompletableFuture
 			.supplyAsync(() -> FindingLevels.visible(service.diagnose(reading, this::showProgress)))
-			.exceptionally(e -> List.of())
+			.exceptionally(e -> {
+				LOGGER.warn("Cannot compute the findings: {}", e.toString());
+				return List.of();
+			})
 			.thenAccept(found -> SwingUtilities.invokeLater(() -> {
 				diagnostics = found;
 				refresh();
@@ -579,7 +594,7 @@ final class ResearchAssistantPalette extends JDialog{
 			? I18N.tf("assistant.ignored.showing", shortcut("I"))
 			: (split.ignored().isEmpty()? "": I18N.tf("assistant.ignored.count", split.ignored().size(), shortcut("I"))));
 		final String exportStatus = (found == null || found.isEmpty()? "": I18N.tf("assistant.export.hint", shortcut("E")));
-		final String status = String.join(" · ", java.util.stream.Stream.of(notice, ignoredStatus, exportStatus)
+		final String status = String.join(" · ", Stream.of(notice, ignoredStatus, exportStatus)
 			.filter(part -> !part.isEmpty())
 			.toList());
 		final boolean loading = (found == null);
@@ -771,7 +786,7 @@ final class ResearchAssistantPalette extends JDialog{
 	/** @return the rows as text, to look at what the palette lists: a heading is {@code [id open title]}, a finding its title */
 	List<String> rows(){
 		final List<String> rows = new ArrayList<>();
-		for(final Object row : java.util.Collections.list(rowsModel.elements()))
+		for(final Object row : Collections.list(rowsModel.elements()))
 			rows.add(switch(row){
 				case Header h -> "[" + h.id() + (h.open()? " open ": " closed ") + h.title() + "]";
 				case DiagnosticRow d -> d.diagnostic().title();
@@ -825,14 +840,25 @@ final class ResearchAssistantPalette extends JDialog{
 				I18N.t("assistant.export"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
 			return;
 
-		try{
-			FindingsExport.write(file.toPath(), entries);
-			SavedFileNotice.show(this, I18N.t("assistant.export"), I18N.tf("assistant.export.done", entries.size(), file.getName()), file);
-		}
-		catch(final IOException ioe){
-			JOptionPane.showMessageDialog(this, I18N.t("assistant.export.error") + "\n" + ioe.getMessage(), I18N.t("assistant.export"),
-				JOptionPane.ERROR_MESSAGE);
-		}
+		//the file is written away from the event dispatch thread; the outcome is reported on it
+		final File target = file;
+		CompletableFuture.runAsync(() -> {
+			try{
+				FindingsExport.write(target.toPath(), entries);
+			}
+			catch(final IOException ioe){
+				throw new UncheckedIOException(ioe);
+			}
+		}).whenComplete((ignored, error) -> SwingUtilities.invokeLater(() -> {
+			if(error == null)
+				SavedFileNotice.show(this, I18N.t("assistant.export"), I18N.tf("assistant.export.done", entries.size(), target.getName()), target);
+			else{
+				final Throwable cause = (error.getCause() != null? error.getCause(): error);
+				LOGGER.warn("Cannot export the findings: {}", cause.toString());
+				JOptionPane.showMessageDialog(this, I18N.t("assistant.export.error") + "\n" + cause.getMessage(), I18N.t("assistant.export"),
+					JOptionPane.ERROR_MESSAGE);
+			}
+		}));
 	}
 
 	/**
@@ -993,6 +1019,8 @@ final class ResearchAssistantPalette extends JDialog{
 	}
 
 	private static String escape(final String text){
+		if(text == null)
+			return "";
 		return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 

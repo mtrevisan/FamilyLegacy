@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 
 class DeltaTUpdaterTest{
@@ -14,7 +15,7 @@ class DeltaTUpdaterTest{
 	private static String table(final int months){
 		final StringBuilder sb = new StringBuilder("# comment\r\n");
 		for(int i = 0; i < months; i ++)
-			sb.append(String.format(java.util.Locale.US, " %d %2d  1  %.4f\r\n", 1973 + i / 12, i % 12 + 1, 43. + i * 0.01));
+			sb.append(String.format(Locale.US, " %d %2d  1  %.4f\r\n", 1973 + i / 12, i % 12 + 1, 43. + i * 0.01));
 		return sb.toString();
 	}
 

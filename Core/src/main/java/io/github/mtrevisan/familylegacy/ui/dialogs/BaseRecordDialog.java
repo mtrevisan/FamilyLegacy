@@ -32,12 +32,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
-import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
@@ -79,6 +79,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -583,13 +585,21 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
-			() -> {
-				if(isNew)
-					FLEFRecord.releaseReservedId(handler.getIdPrefix());
-
-				dispose();
-			});
+			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
+
+		//the reserved ID is released on any close without save (Cancel, ESC, window X, programmatic dispose), once
+		addWindowListener(new WindowAdapter(){
+			private boolean released;
+
+			@Override
+			public void windowClosed(final WindowEvent e){
+				if(!released && isNew && !isSaved){
+					released = true;
+					FLEFRecord.releaseReservedId(handler.getIdPrefix());
+				}
+			}
+		});
 	}
 
 

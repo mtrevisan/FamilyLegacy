@@ -57,7 +57,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
 import java.awt.Window;
-import java.io.IOException;
 import java.util.function.Consumer;
 
 
@@ -287,11 +286,6 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 			model.addRecord(source1);
 		};
 		GUIHelper.launch(ContextImpactRecordDialog::createEdit, modelFiller, contextImpact);
-	}
-
-
-	public static void main2(final String[] args) throws IOException{
-		GUIHelper.launch(ConclusionRecordDialog::createEdit, "/tests/test.flef", "CI1");
 	}
 
 }

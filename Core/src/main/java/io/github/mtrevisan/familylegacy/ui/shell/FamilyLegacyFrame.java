@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -45,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.common.Project
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.FindRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
@@ -190,7 +190,7 @@ public class FamilyLegacyFrame extends JFrame{
 		});
 		setLocationRelativeTo(null);
 
-		GlobalKeyboardController.install(this, switcher);
+		GlobalKeyboardController.install(this, () -> switcher);
 
 		final GenealogyRepository repository = switcher.getRepository();
 		final JMenuBar menuBar = new ApplicationMenuBar(this)
@@ -199,7 +199,7 @@ public class FamilyLegacyFrame extends JFrame{
 		//the level of the interface decides which items the menus offer: they are built again when it changes
 		FeatureVisibilityService.shared()
 			.addListener(() -> SwingUtilities.invokeLater(() -> {
-				setJMenuBar(new ApplicationMenuBar(this).build(repository));
+				setJMenuBar(new ApplicationMenuBar(this).build(switcher.getRepository()));
 				revalidate();
 				repaint();
 			}));
@@ -381,6 +381,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	public void setSidebarVisible(final boolean visible){
 		dossierManager.setSidebarVisible(visible);
+		toolBarBuilder.updateSidebarState(visible);
 
 		revalidate();
 	}

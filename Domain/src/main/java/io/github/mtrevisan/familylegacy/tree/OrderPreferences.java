@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -53,7 +54,7 @@ public final class OrderPreferences{
 	private static volatile PartnerOrder partners = AppPreferences.getInstance()
 		.partnerOrder();
 	/** Incremented at every change, so that the caches of already ordered data can tell they are stale. */
-	private static volatile int version;
+	private static final AtomicInteger VERSION = new AtomicInteger();
 
 
 	private OrderPreferences(){}
@@ -71,7 +72,7 @@ public final class OrderPreferences{
 
 	/** @return	A number that changes every time an order preference changes. */
 	public static int version(){
-		return version;
+		return VERSION.get();
 	}
 
 	/** Changes the order of the children, persists the choice in the user preferences, and notifies the listeners. */
@@ -82,7 +83,7 @@ public final class OrderPreferences{
 			return;
 
 		children = order;
-		version ++;
+		VERSION.incrementAndGet();
 		AppPreferences.getInstance()
 			.setChildrenOrder(order);
 		fireChanged();
@@ -96,7 +97,7 @@ public final class OrderPreferences{
 			return;
 
 		partners = order;
-		version ++;
+		VERSION.incrementAndGet();
 		AppPreferences.getInstance()
 			.setPartnerOrder(order);
 		fireChanged();

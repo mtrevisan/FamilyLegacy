@@ -82,7 +82,8 @@ public final class SourceAndMediaIndex{
 		for(final FLEFRecord record : records){
 			for(final FLEFRecord cit : ReportFormatters.collectDescendantsWithTag(record, SourceCitationReader.TAG_SOURCE)){
 				final String sid = ReportFormatters.extractSourceId(cit);
-				if(sid != null && filter.test(model.getRecordById(sid))){
+				final FLEFRecord sourceRecord = (sid != null? model.getRecordById(sid): null);
+				if(sourceRecord != null && filter.test(sourceRecord)){
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>())
 						.add(cit);
 				}

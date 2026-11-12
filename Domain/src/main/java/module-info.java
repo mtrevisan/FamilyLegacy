@@ -23,11 +23,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 open module io.github.mtrevisan.familylegacy.domain {
-	requires java.base;
 	requires java.desktop;
-	requires java.xml;
 	requires java.net.http;
-	requires java.prefs;
 	requires io.github.mtrevisan.calendars;
 	requires io.github.mtrevisan.reports;
 	requires org.apache.commons.lang3;

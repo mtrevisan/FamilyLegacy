@@ -160,9 +160,8 @@ public final class RecordAbsorber{
 		final List<String> conflicts = new ArrayList<>();
 		final StructType type = grammar.recordType(survivor.getTag());
 		if(type == null || type.getField(tag) == null){
-			if(FieldMerger.first(survivor, tag) == null)
-				for(final FLEFRecord child : FieldMerger.children(absorbed, tag))
-					FieldMerger.insertChild(survivor, FieldMerger.copy(child));
+			//as the automatic merge does: what the survivor already states is not repeated, the rest is kept
+			fields.mergeUnknownTag(survivor, absorbed, tag, survivor.getTag(), conflicts);
 			return conflicts;
 		}
 
@@ -430,7 +429,8 @@ public final class RecordAbsorber{
 			@Override
 			public List<FLEFRecord> select(final List<FLEFRecord> group, final String participants){
 				for(final String participant : StringUtils.split(participants, ','))
-					if(participant.endsWith(":" + survivorId))
+					//with no principal the participants are written with their role (kind:id/role)
+					if(StringUtils.substringBefore(participant, "/").endsWith(":" + survivorId))
 						return group;
 
 				final boolean[] involved = {false};

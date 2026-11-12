@@ -294,7 +294,7 @@ final class ContextChecker{
 			I18N.tf("context.cluster.explanation", String.valueOf(persons), place, years) + StringUtils.SPACE
 				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
 			ids, null, DiagnosticKeys.of("context.cluster", List.of(placeId), years, persons)).withRank(usefulness);
-		return new ContextFinding(diagnostic, null, new ContextFinding.HistoricDraft("epidemic", I18N.tf("context.cluster.draft.title",
+		return new ContextFinding(diagnostic, null, new ContextFinding.HistoricDraft(HistoricEventReader.ENUM_TYPE_EPIDEMIC, I18N.tf("context.cluster.draft.title",
 			place, years)));
 	}
 

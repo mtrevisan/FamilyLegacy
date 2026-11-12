@@ -88,10 +88,10 @@ public final class ToolContexts{
 			@Override
 			public void paste(){
 				if(listener != null){
-					if(listener instanceof IndividualListener indListener)
-						indListener.onIndividualPaste((IndividualPanel)component);
-					else if(listener instanceof GroupListener grpListener)
-						grpListener.onGroupPaste((GroupPanel)component);
+					if(listener instanceof IndividualListener indListener && component instanceof IndividualPanel panel)
+						indListener.onIndividualPaste(panel);
+					else if(listener instanceof GroupListener grpListener && component instanceof GroupPanel panel)
+						grpListener.onGroupPaste(panel);
 				}
 			}
 

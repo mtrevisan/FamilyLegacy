@@ -82,7 +82,7 @@ final class HelpMenu{
 
 		menu.add(new JSeparator());
 
-		final JMenuItem checkUpdates = new JMenuItem(I18N.t("menu.help.chek.updates"), KeyEvent.VK_U);
+		final JMenuItem checkUpdates = new JMenuItem(I18N.t("menu.help.check.updates"), KeyEvent.VK_U);
 		checkUpdates.addActionListener(e -> updateFlow.start());
 		menu.add(checkUpdates);
 

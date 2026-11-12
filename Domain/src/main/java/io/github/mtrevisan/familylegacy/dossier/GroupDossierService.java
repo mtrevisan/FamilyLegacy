@@ -206,7 +206,7 @@ public final class GroupDossierService{
 			}
 
 			entries.add(new DossierEntry(I18N.t("text.dossier.member"), name, subtitle.toString(),
-				evidenceBadge(relationship), model.getRecordById(memberId), DossierEntry.Kind.NORMAL,
+				IndividualDossierService.buildEvidenceBadge(relationship), model.getRecordById(memberId), DossierEntry.Kind.NORMAL,
 				proofStatusFor(relationship)));
 		}
 		return entries;
@@ -246,7 +246,7 @@ public final class GroupDossierService{
 			}
 
 			entries.add(new DossierEntry(label, otherName, subtitle.toString(),
-				evidenceBadge(relationship), model.getRecordById(otherId), DossierEntry.Kind.NORMAL,
+				IndividualDossierService.buildEvidenceBadge(relationship), model.getRecordById(otherId), DossierEntry.Kind.NORMAL,
 				proofStatusFor(relationship)));
 		}
 		return entries;
@@ -284,7 +284,7 @@ public final class GroupDossierService{
 			}
 
 			entries.add(new DossierEntry(label, (value != null? value: StringUtils.EMPTY),
-				subtitle.toString(), evidenceBadge(attribute), attribute,
+				subtitle.toString(), IndividualDossierService.buildEvidenceBadge(attribute), attribute,
 				DossierEntry.Kind.NORMAL, proofStatusFor(attribute)));
 		}
 		return entries;
@@ -338,7 +338,7 @@ public final class GroupDossierService{
 			}
 
 			entries.add(new DossierEntry(label, value.toString(), subtitle.toString(),
-				evidenceBadge(event), event, DossierEntry.Kind.NORMAL,
+				IndividualDossierService.buildEvidenceBadge(event), event, DossierEntry.Kind.NORMAL,
 				proofStatusFor(event)));
 		}
 		return entries;
@@ -408,7 +408,7 @@ public final class GroupDossierService{
 				? "locator: " + locator: StringUtils.EMPTY);
 
 			entries.add(new DossierEntry(label, title, subtitle,
-				evidenceBadge(citation), source, DossierEntry.Kind.NORMAL,
+				IndividualDossierService.buildEvidenceBadge(citation), source, DossierEntry.Kind.NORMAL,
 				proofStatusFor(citation)));
 		}
 	}
@@ -450,7 +450,7 @@ public final class GroupDossierService{
 			entries.add(new DossierEntry(
 				(impactType != null? impactType: "context"),
 				contextTitle, subtitle,
-				evidenceBadge(impact), context, DossierEntry.Kind.NORMAL,
+				IndividualDossierService.buildEvidenceBadge(impact), context, DossierEntry.Kind.NORMAL,
 				proofStatusFor(impact)));
 		}
 		return entries;
@@ -532,7 +532,7 @@ public final class GroupDossierService{
 			entries.add(new DossierEntry(I18N.t("text.dossier.conclusion"),
 				(StringUtils.isNotEmpty(issue)? issue: "?"),
 				(proof != null? proof: StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
-				ProofStatus.valueOf(proof)));
+				ProofStatus.fromCode(proof)));
 		}
 		return entries;
 	}
@@ -629,7 +629,7 @@ public final class GroupDossierService{
 		final Map<String, ProofStatus> index = new HashMap<>();
 		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
 		for(final FLEFRecord conclusion : conclusions){
-			final ProofStatus status = ProofStatus.valueOf(
+			final ProofStatus status = ProofStatus.fromCode(
 				FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS));
 
 			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES)){
@@ -688,12 +688,7 @@ public final class GroupDossierService{
 	}
 
 	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord field = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
-		if(field == null)
-			return null;
-
-		final FLEFRecord ref = field.getTheOnlyChild();
-		return (ref != null? ref.getValue(): null);
+		return EventParticipationReader.extractParticipantRef(participation);
 	}
 
 	private static String extractRef(final FLEFRecord record, final String fieldTag){
@@ -713,31 +708,6 @@ public final class GroupDossierService{
 				return inner.getValue();
 		}
 		return null;
-	}
-
-	private static String evidenceBadge(final FLEFRecord parent){
-		final FLEFRecord evidence = FLEFRecordHelper.findChild(parent, TAG_EVIDENCE);
-		if(evidence == null)
-			return StringUtils.EMPTY;
-
-		final String st = EvidenceQualifiersReader.extractSourceType(evidence);
-		final String it = EvidenceQualifiersReader.extractInformationType(evidence);
-		final String et = EvidenceQualifiersReader.extractEvidenceType(evidence);
-
-		final StringBuilder sb = new StringBuilder();
-		if(st != null)
-			sb.append(st.charAt(0));
-		if(it != null){
-			if(!sb.isEmpty())
-				sb.append('/');
-			sb.append(it.charAt(0));
-		}
-		if(et != null){
-			if(!sb.isEmpty())
-				sb.append('/');
-			sb.append(et.charAt(0));
-		}
-		return sb.toString();
 	}
 
 }

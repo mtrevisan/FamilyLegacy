@@ -42,14 +42,14 @@ public interface ProjectionMutator{
 	 * @param targetId  the target entity id
 	 * @param type      the relationship type
 	 */
-	public void createRelationship(String subjectId, String targetId, String type);
+	void createRelationship(String subjectId, String targetId, String type);
 
 	/**
 	 * Removes a list of relationship records by their IDs.
 	 *
 	 * @param relationshipIds list of relationship record IDs to remove
 	 */
-	public void removeRelationships(List<String> relationshipIds);
+	void removeRelationships(List<String> relationshipIds);
 
 	/**
 	 * Removes an entity record together with every record that references it.
@@ -57,13 +57,13 @@ public interface ProjectionMutator{
 	 * @param record         the entity record to remove
 	 * @param currentFocusId the current root or ego ID
 	 */
-	public void removeEntity(FLEFRecord record, String currentFocusId);
+	void removeEntity(FLEFRecord record, String currentFocusId);
 
 	/**
 	 * Invalidates projection indices and notifies listeners of structural changes.
 	 *
 	 * @param currentFocusId the current root or ego ID
 	 */
-	public void invalidateAndNotifyTreeChanged(String currentFocusId);
+	void invalidateAndNotifyTreeChanged(String currentFocusId);
 
 }

@@ -140,8 +140,10 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 					res.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 					result[0] = res;
 				}
-				else
+				else{
 					FLEFRecordHelper.updateChildValue(record, NoteReader.TAG_TEXT, txt);
+					FLEFRecordHelper.updateChildValue(record, NoteReader.TAG_LOCALE, (String)localeCombo.getSelectedItem());
+				}
 
 				dialog.dispose();
 			},

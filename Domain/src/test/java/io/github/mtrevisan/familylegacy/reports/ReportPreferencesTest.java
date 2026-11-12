@@ -31,12 +31,18 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 
 
 /** What the user chose for a report is offered again, and a damaged preference never breaks a report. */
 class ReportPreferencesTest{
+
+	/** The languages with a bundle, as if their files were there. */
+	private static final List<ReportLanguage> AVAILABLE = List.of(ReportLanguage.ENGLISH, ReportLanguage.of(Locale.forLanguageTag("en-GB")),
+		ReportLanguage.of(Locale.forLanguageTag("en-US")), ReportLanguage.of(Locale.forLanguageTag("it")),
+		ReportLanguage.of(Locale.forLanguageTag("de")));
 
 	private final Map<String, String> values = new HashMap<>();
 	private String interfaceLanguage = "it";
@@ -56,7 +62,7 @@ class ReportPreferencesTest{
 				else
 					values.put(key, value);
 			}
-		}, () -> interfaceLanguage);
+		}, () -> interfaceLanguage, () -> AVAILABLE);
 	}
 
 
@@ -64,13 +70,13 @@ class ReportPreferencesTest{
 	void theLanguageIsTheOneOfTheInterfaceUntilTheUserChoosesAnother(){
 		final ReportPreferences preferences = preferences();
 
-		Assertions.assertEquals(ReportLanguage.ITALIAN, preferences.language());
-		Assertions.assertEquals(ReportLanguage.ITALIAN, preferences.defaultLanguage());
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), preferences.language());
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), preferences.defaultLanguage());
 
-		preferences.setLanguage(ReportLanguage.GERMAN);
+		preferences.setLanguage(ReportLanguage.of(Locale.forLanguageTag("de")));
 
-		Assertions.assertEquals(ReportLanguage.GERMAN, preferences().language());
-		Assertions.assertEquals(ReportLanguage.ITALIAN, preferences().defaultLanguage());
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("de")), preferences().language());
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), preferences().defaultLanguage());
 	}
 
 	@Test
@@ -89,26 +95,26 @@ class ReportPreferencesTest{
 	void anUnknownLanguageFallsBackToTheInterfaceOne(){
 		values.put("reports.language", "KLINGON");
 
-		Assertions.assertEquals(ReportLanguage.ITALIAN, preferences().language());
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), preferences().language());
 	}
 
 	@Test
 	void theLanguageOfAnInterfaceTagIsFound(){
-		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag("en"));
-		Assertions.assertEquals(ReportLanguage.ENGLISH_US, ReportLanguage.forLanguageTag("en-US"));
-		Assertions.assertEquals(ReportLanguage.ENGLISH_GB, ReportLanguage.forLanguageTag("en-GB"));
-		Assertions.assertEquals(ReportLanguage.ITALIAN, ReportLanguage.forLanguageTag("it"));
-		Assertions.assertEquals(ReportLanguage.ITALIAN, ReportLanguage.forLanguageTag("it-CH"));
-		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag("tlh"));
-		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag(""));
-		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag(null));
+		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag("en", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("en-US")), ReportLanguage.forLanguageTag("en-US", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("en-GB")), ReportLanguage.forLanguageTag("en-GB", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), ReportLanguage.forLanguageTag("it", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.of(Locale.forLanguageTag("it")), ReportLanguage.forLanguageTag("it-CH", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag("tlh", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag("", AVAILABLE));
+		Assertions.assertEquals(ReportLanguage.ENGLISH, ReportLanguage.forLanguageTag(null, AVAILABLE));
 	}
 
 	@Test
 	void everyInterfaceLanguageOfTheApplicationHasAReportLanguage(){
-		for(final ReportLanguage language : ReportLanguage.values())
-			Assertions.assertEquals(language.locale().getLanguage(), ReportLanguage.forLanguageTag(language.locale().toLanguageTag())
-				.locale().getLanguage(), language.name());
+		for(final ReportLanguage language : ReportLanguage.available())
+			Assertions.assertEquals(language.locale().getLanguage(), ReportLanguage.forLanguageTag(language.locale().toLanguageTag(), AVAILABLE)
+				.locale().getLanguage(), language.toString());
 	}
 
 	@Test
@@ -163,7 +169,7 @@ class ReportPreferencesTest{
 	@Test
 	void thePrivacyPolicyAndTheLanguageAreNeverTakenFromTheOptions(){
 		final ReportPreferences preferences = preferences();
-		final ReportConfig everything = ReportConfig.uniform(true, ReportLanguage.GERMAN, PrivacyPolicy.SHOW_ALL);
+		final ReportConfig everything = ReportConfig.uniform(true, ReportLanguage.of(Locale.forLanguageTag("de")), PrivacyPolicy.SHOW_ALL);
 
 		preferences.setOptions(ReportType.INDIVIDUAL, everything, List.of(ReportOption.values()));
 

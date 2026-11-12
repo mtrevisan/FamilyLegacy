@@ -85,7 +85,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RecordD
 
 		final String repositoryId = RepositoryCitationReader.extractRepository(record);
 		final FLEFRecord repository = model.getRecordById(repositoryId);
-		return "❝ " + RepositoryHandler.getInstance().getDisplayText(repository, model);
+		return "❝ " + (repository != null? RepositoryHandler.getInstance().getDisplayText(repository, model): "--");
 	}
 
 	@Override

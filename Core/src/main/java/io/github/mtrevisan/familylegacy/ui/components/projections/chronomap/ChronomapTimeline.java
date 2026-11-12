@@ -31,6 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -43,6 +44,7 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
@@ -334,6 +336,13 @@ public final class ChronomapTimeline extends JPanel{
 		if(e.getID() != KeyEvent.KEY_PRESSED || !isShowing())
 			return false;
 
+		//the arrows belong to a text field (e.g. the filter of the agora) and to any other window than the one of the timeline
+		if(e.getSource() instanceof JTextComponent)
+			return false;
+		final Window window = SwingUtilities.getWindowAncestor(this);
+		if(window != null && !window.isActive())
+			return false;
+
 		final int keyCode = e.getKeyCode();
 		final boolean isShift = e.isShiftDown();
 
@@ -374,11 +383,7 @@ public final class ChronomapTimeline extends JPanel{
 				wasDragged = false;
 				dragAnchor = e.getPoint();
 
-				// Direct click on track immediately jumps playhead to cursor position
-				if(!draggingPlayhead){
-					movePlayhead(e.getX());
-					draggingPlayhead = true;
-				}
+				// Pressing away from the playhead pans on drag; a plain click (no drag) jumps the playhead in mouseClicked
 			}
 
 			@Override

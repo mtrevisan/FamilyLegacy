@@ -43,6 +43,7 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -134,6 +135,9 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 		else{
 			// Default to image crop
+			if(uri == null)
+				return;
+
 			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, PreferredImagePanel.TAG_CROP);
 			final Rectangle imageCropRect = CropReader.extractPreferredImageCrop(crop);
 
@@ -245,7 +249,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		if(uri == null)
 			return false;
 
-		final String lowerUri = uri.toLowerCase();
+		final String lowerUri = uri.toLowerCase(Locale.ROOT);
 		return (lowerUri.endsWith(EXTENSION_PDF) || lowerUri.endsWith(".tif") || lowerUri.endsWith(".tiff"));
 	}
 
@@ -253,7 +257,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		if(uri == null)
 			return false;
 
-		final String lowerUri = uri.toLowerCase();
+		final String lowerUri = uri.toLowerCase(Locale.ROOT);
 		return (lowerUri.endsWith(".mp3") || lowerUri.endsWith(".wav") || lowerUri.endsWith(".mp4")
 			|| lowerUri.endsWith(".avi") || lowerUri.endsWith(".mov"));
 	}

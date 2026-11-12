@@ -201,7 +201,7 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 		if(!stanceCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.source_citation.stance")),
-				tabbedPane, propertiesPanel, sourceField);
+				tabbedPane, propertiesPanel, stanceCombo);
 
 			return false;
 		}

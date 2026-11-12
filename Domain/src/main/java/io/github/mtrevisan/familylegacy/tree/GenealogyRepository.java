@@ -429,6 +429,15 @@ public class GenealogyRepository{
 			return;
 		}
 
+		//only a parent-child link is applied as a delta: a partner, an associate, ... is not an ancestry link (and the partner index is
+		//not updated here), so the indices are re-built lazily
+		final FLEFRecord relationship = (relationshipId != null? model.getRecordById(relationshipId): null);
+		final String type = (relationship != null? RelationshipReader.extractType(relationship): null);
+		if(type == null || !relationshipTypeFilter.test(type)){
+			invalidateIndices();
+			return;
+		}
+
 		if(relationshipId != null){
 			if(subjectId != null)
 				individualToRelationshipIdsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
@@ -441,9 +450,12 @@ public class GenealogyRepository{
 		if(subjectId != null && targetId != null){
 			final FLEFRecord parent = model.getRecordById(targetId);
 			final FLEFRecord child = model.getRecordById(subjectId);
-			if(parent != null)
+			if(parent != null){
 				individualToParentsMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(parent);
+				individualToParentLinksMap.computeIfAbsent(subjectId, k -> new ArrayList<>())
+					.add(new ParentLink(parent, type));
+			}
 			if(child != null){
 				parentToChildrenMap.computeIfAbsent(targetId, k -> new ArrayList<>())
 					.add(child);

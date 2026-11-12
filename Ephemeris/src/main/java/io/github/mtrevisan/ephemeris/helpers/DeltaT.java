@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -172,7 +173,7 @@ public final class DeltaT{
 			iers = (in != null? parseIERSFile(in): List.of());
 		}
 		catch(final IOException e){
-			throw new java.io.UncheckedIOException("Cannot read the IERS table", e);
+			throw new UncheckedIOException("Cannot read the IERS table", e);
 		}
 		IERS_SAMPLES = iers;
 		IERS_START = (iers.isEmpty()? 0.: iers.getFirst().decimalYear());
@@ -184,7 +185,7 @@ public final class DeltaT{
 			spline = (in != null? parseSplineFile(in): List.of());
 		}
 		catch(final IOException e){
-			throw new java.io.UncheckedIOException("Cannot read the S/M/H spline", e);
+			throw new UncheckedIOException("Cannot read the S/M/H spline", e);
 		}
 		SPLINE_ROWS = spline;
 		SPLINE_START = (spline.isEmpty()? 0.: spline.getFirst().kStart());

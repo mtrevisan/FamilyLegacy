@@ -84,7 +84,7 @@ public final class RelationClipboard{
 	}
 
 	private void notifyListeners(){
-		for(final ClipboardChangeListener listener : listeners)
+		for(final ClipboardChangeListener listener : new ArrayList<>(listeners))
 			listener.onClipboardChanged(clippedRecord);
 	}
 

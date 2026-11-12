@@ -37,7 +37,7 @@ import java.util.Map;
  * Immutable snapshot of everything FLEF knows about a single individual.
  * <p>
  * The dossier is produced by {@link IndividualDossierService} and consumed
- * by {@link IndividualDossierPanel}. It contains:
+ * by {@link io.github.mtrevisan.familylegacy.ui.components.projections.dossier.IndividualDossierPanel}. It contains:
  * <ul>
  *   <li>the backing {@code FLEFRecord} of the individual, for editing;</li>
  *   <li>the {@link IndividualSummary} used to display name, sex and

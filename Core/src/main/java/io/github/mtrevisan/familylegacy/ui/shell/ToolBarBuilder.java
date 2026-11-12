@@ -116,6 +116,12 @@ public final class ToolBarBuilder{
 		return toolBar;
 	}
 
+	/** Shows the state of the sidebar when it is changed from elsewhere (the View menu). */
+	public void updateSidebarState(final boolean visible){
+		if(btnToggleSidebar != null)
+			btnToggleSidebar.setSelected(visible);
+	}
+
 	public void updateProjectionState(final ProjectionType type){
 		switch(type){
 			case BIOLOGICAL_TREE -> btnTreeLayout.setSelected(true);

@@ -13,12 +13,6 @@ MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `tempora
 
 ### ALTA
 - la ricerca per record con nomi multipli (individual, group, place, repository, source) deve essere fatta su tutti i nomi possibili
-- scansiona il modulo Domain e trova errori o possibili migliorie
-- scansiona il modulo Core e trova errori o possibili migliorie
-- scansiona il modulo ImporterGedcom e trova errori o possibili migliorie
-- scansiona il modulo ImporterGramps e trova errori o possibili migliorie
-- scansiona il modulo ReportEpub e trova errori o possibili migliorie
-- scansiona il modulo ReportSite e trova errori o possibili migliorie
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).

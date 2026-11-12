@@ -209,13 +209,14 @@ public class SingleDatePanel extends JPanel{
 			return;
 
 		final DateType singleDateType = DateType.fromNode(record);
-		singleDateTypeCombo.setSelectedItem(singleDateType);
+		if(singleDateType != null)
+			singleDateTypeCombo.setSelectedItem(singleDateType);
 
 		approxPanel.loadFromRecord(record);
 
 		bindingManager.load(record);
 
-		cardLayout.show(cardPanel, singleDateType.name());
+		cardLayout.show(cardPanel, (singleDateType != null? singleDateType: DateType.FULL_DATE).name());
 	}
 
 	/** @return the calendar code currently selected */

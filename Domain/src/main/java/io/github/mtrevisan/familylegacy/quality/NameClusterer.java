@@ -54,7 +54,7 @@ public final class NameClusterer{
 
 	/**
 	 * Minimum Dice similarity for two names to be considered variants.
-	 * 0.6 is a good balance for Italian names: it merges the common
+	 * 0.71 is a good balance for Italian names: it merges the common
 	 * variations (doubled letters, final vowels, z/s alternation)
 	 * without merging names that only share a short prefix.
 	 */

@@ -54,6 +54,11 @@ class DuplicateFinderRulesTest{
 
 
 	private void person(final String id, final String given, final String family, final Integer birthYear){
+		person(id, given, family, birthYear, IndividualReader.ENUM_SEX_MALE);
+	}
+
+	/** @param sex the sex, or {@code null} for an individual of unknown sex. */
+	private void person(final String id, final String given, final String family, final Integer birthYear, final String sex){
 		model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART)
@@ -62,10 +67,11 @@ class DuplicateFinderRulesTest{
 				.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART)
 					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_TYPE, NameReader.ENUM_PART_TYPE_FAMILY))
 					.addChild(FLEFRecord.createChildWithTagAndValue("value", family)))));
-		model.addRecord(FLEFRecord.createMainRecord("IA" + id, IndividualAttributeReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, id))
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
-			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, IndividualReader.ENUM_SEX_MALE)));
+		if(sex != null)
+			model.addRecord(FLEFRecord.createMainRecord("IA" + id, IndividualAttributeReader.TYPE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, id))
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, IndividualAttributeReader.ENUM_TYPE_SEX))
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, sex)));
 		if(birthYear != null)
 			event(id, EventReader.ENUM_TYPE_BIRTH, birthYear);
 	}
@@ -249,6 +255,22 @@ class DuplicateFinderRulesTest{
 		person("I4", "Ermenegildo", "Quaglia", 1950);
 
 		Assertions.assertEquals(pair("I3", "I4").score(), pair("I1", "I2").score());
+	}
+
+	@Test
+	void anIndividualOfUnknownSexIsComparedWithOneOfKnownSexButKnownSexesStayApart(){
+		person("I1", "Giovanni", "Masutti", 1850, IndividualReader.ENUM_SEX_MALE);
+		person("I2", "Giovanni", "Masutti", 1850, null);
+		person("I3", "Giovanni", "Masutti", 1850, IndividualReader.ENUM_SEX_FEMALE);
+		final DuplicateFinderService.Options options = new DuplicateFinderService.Options();
+		options.threshold = 0;
+		options.requireSameSex = true;
+
+		final List<DuplicateFinderService.Candidate> candidates = DuplicateFinderService.find(model, options);
+
+		Assertions.assertTrue(candidates.stream().anyMatch(c -> List.of(c.left().id(), c.right().id()).containsAll(List.of("I1", "I2"))));
+		Assertions.assertTrue(candidates.stream().anyMatch(c -> List.of(c.left().id(), c.right().id()).containsAll(List.of("I2", "I3"))));
+		Assertions.assertTrue(candidates.stream().noneMatch(c -> List.of(c.left().id(), c.right().id()).containsAll(List.of("I1", "I3"))));
 	}
 
 }

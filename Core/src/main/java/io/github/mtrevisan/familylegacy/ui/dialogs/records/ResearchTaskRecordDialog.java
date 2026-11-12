@@ -39,9 +39,13 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 
@@ -224,7 +228,27 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
+		//the due date is optional, but when given it must be a date (YYYY-MM-DD, as read everywhere else, e.g. by the gap finder)
+		final String dueDate = StringUtils.strip(dueDateField.getText());
+		if(StringUtils.isNotEmpty(dueDate) && !isIsoDate(dueDate)){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("text.date_calculator.invalid_date", dueDate),
+				tabbedPane, propertiesPanel, dueDateField);
+
+			return false;
+		}
+
 		return true;
+	}
+
+	private static boolean isIsoDate(final String text){
+		try{
+			LocalDate.parse(text.substring(0, Math.min(10, text.length())));
+			return true;
+		}
+		catch(final DateTimeParseException ignored){
+			return false;
+		}
 	}
 
 	@Override

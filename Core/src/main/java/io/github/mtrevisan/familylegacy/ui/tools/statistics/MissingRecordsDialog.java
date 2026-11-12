@@ -91,8 +91,7 @@ final class MissingRecordsDialog extends JDialog{
 			}
 		});
 
-		final JLabel count = new JLabel(records.size()
-			+ (records.size() == 1? " record": " records"));
+		final JLabel count = new JLabel(I18N.plural("text.missing_records.count", records.size()));
 
 		final JButton edit = new JButton(I18N.t("button.open_record"));
 		edit.addActionListener(e -> editSelected());

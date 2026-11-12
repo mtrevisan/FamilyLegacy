@@ -26,10 +26,15 @@ package io.github.mtrevisan.familylegacy.io;
 
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FieldDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FileDefinition;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ReferenceType;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
@@ -45,10 +50,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -222,7 +230,7 @@ public class FLEFValidator{
 
 		// Records: the top-level record's id is attached to every issue
 		// produced while validating that record and its descendants.
-		if(fileDef.recordsField() != null){
+		if(fileDef != null && fileDef.recordsField() != null){
 			final TypeDefinition recordsType = grammar.getType(fileDef.recordsField().type().getName());
 			if(recordsType != null){
 				final List<FLEFRecord> records = model.getRecords();
@@ -264,7 +272,10 @@ public class FLEFValidator{
 
 		final Set<String> declaredIds = new HashSet<>();
 		collectDeclaredIdsStructured(model, declaredIds, errors);
-		verifyReferencesStructured(declaredIds, model, errors);
+		for(final String duplicateId : model.getDuplicateIds())
+			errors.add(new ValidationError(String.format("Duplicate record ID '%s' found at parse time: the last one wins", duplicateId),
+				duplicateId));
+		verifyReferencesStructured(model, errors);
 
 		return errors;
 	}
@@ -437,16 +448,78 @@ public class FLEFValidator{
 		}
 	}
 
-	private void verifyReferencesStructured(final Set<String> declaredIds, final FLEFModel model,
-		final List<ValidationError> errors){
-		for(final String declaredId : declaredIds)
-			if(!model.hasRecord(declaredId))
-				// No record to attach: the target does not exist, so the
-				// dialog has nothing to open.
-				errors.add(new ValidationError(
-					String.format("Unresolved cross-reference '%s': target record does not exist",
-						declaredId),
-					null));
+	/**
+	 * Checks every reference (a field whose grammar type is an {@code Xref<...>}, wherever it is: nested, in a oneof, in an
+	 * alternation) of every top-level record against the records of the model. The ids that a nested record declares are not
+	 * references, and are not checked.
+	 */
+	private void verifyReferencesStructured(final FLEFModel model, final List<ValidationError> errors){
+		final FileDefinition fileDef = grammar.getFileDefinition();
+		if(fileDef == null || fileDef.recordsField() == null)
+			return;
+
+		final TypeDefinition recordsType = resolveType(fileDef.recordsField().type());
+		if(recordsType == null)
+			return;
+
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records){
+			final Set<String> unresolved = new LinkedHashSet<>();
+			final String path = FLEFRecordHelper.composePath(FLEFGrammarParser.FIELD_RECORDS, record.getTag());
+			collectUnresolvedReferences(record, recordsType, path, model, unresolved);
+
+			for(final String message : unresolved)
+				errors.add(new ValidationError(message, record.getId()));
+		}
+	}
+
+	private TypeDefinition resolveType(TypeDefinition type){
+		//resolve the symbolic aliases
+		int guard = 0;
+		while(type instanceof ScalarType scalar && grammar.hasType(scalar.getName()) && guard ++ < 32)
+			type = grammar.getType(scalar.getName());
+		return type;
+	}
+
+	private void collectUnresolvedReferences(final FLEFRecord record, final TypeDefinition typeDefinition, final String path,
+			final FLEFModel model, final Set<String> unresolved){
+		final TypeDefinition type = resolveType(typeDefinition);
+		if(type instanceof ReferenceType reference){
+			final String target = record.getValue();
+			if(StringUtils.isEmpty(target)){
+				if(!reference.isVoidable())
+					unresolved.add(String.format("Unresolved cross-reference at '%s': no target id", path));
+			}
+			else if(!model.hasRecord(target))
+				unresolved.add(String.format("Unresolved cross-reference '%s' at '%s': target record does not exist", target, path));
+		}
+		else if(type instanceof StructType struct){
+			for(final FLEFRecord child : record.getChildren()){
+				final FieldDefinition field = struct.getField(child.getTag());
+				if(field != null)
+					collectUnresolvedReferences(child, field.type(), FLEFRecordHelper.composePath(path, field.name()), model,
+						unresolved);
+			}
+		}
+		else if(type instanceof UnionType union){
+			final Map<String, TypeDefinition> choices = union.getChoices();
+			FLEFRecord target = record;
+			String tag = record.getTag();
+			if(!choices.containsKey(tag) && !record.getChildren().isEmpty()){
+				final FLEFRecord firstChild = record.getTheOnlyChild();
+				if(firstChild != null && !firstChild.isEmpty() && choices.containsKey(firstChild.getTag())){
+					target = firstChild;
+					tag = firstChild.getTag();
+				}
+			}
+			final TypeDefinition choice = choices.get(tag);
+			if(choice != null)
+				collectUnresolvedReferences(target, choice, (target == record? path: FLEFRecordHelper.composePath(path, tag)), model,
+					unresolved);
+		}
+		else if(type instanceof AlternationType alternation)
+			for(final TypeDefinition alternative : alternation.getAlternatives())
+				collectUnresolvedReferences(record, alternative, path, model, unresolved);
 	}
 
 
@@ -505,7 +578,27 @@ public class FLEFValidator{
 
 	private void validateEventParticipation(final FLEFRecord participation, final String contextPath,
 			final FLEFModel model, final List<String> errors){
-		// Additional semantic checks can be added here.
+		//the grammar does not enforce: the role `property` is for the place that is the object of the event, so the participant MUST be
+		//a place; every other (known) role is for an individual or a group
+		final FLEFRecord role = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_ROLE);
+		final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
+		if(role == null || participant == null || participant.getChildren().size() != 1)
+			return;
+
+		final String roleValue = role.getValue();
+		final String kind = participant.getTheOnlyChild().getTag();
+		if(StringUtils.isEmpty(roleValue) || kind == null)
+			return;
+
+		final boolean placeParticipant = EventParticipationReader.TAG_PARTICIPANT_PLACE.equalsIgnoreCase(kind);
+		final boolean propertyRole = EventParticipationReader.ENUM_ROLE_PROPERTY.equalsIgnoreCase(roleValue);
+		if(propertyRole && !placeParticipant)
+			errors.add(String.format("Constraint violation at '%s': role '%s' requires the participant to be a place (found '%s')",
+				contextPath, roleValue, kind));
+		else if(!propertyRole && placeParticipant && Arrays.stream(EventParticipationReader.ROLES)
+				.anyMatch(r -> r.equalsIgnoreCase(roleValue)))
+			errors.add(String.format("Constraint violation at '%s': a place can only have the role '%s' (found '%s')", contextPath,
+				EventParticipationReader.ENUM_ROLE_PROPERTY, roleValue));
 	}
 
 
@@ -513,7 +606,7 @@ public class FLEFValidator{
 	 *                          Bootstrap
 	 * ====================================================================== */
 
-	public static void main(final String[] args) throws Exception{
+	static void main(final String[] args) throws Exception{
 		final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 

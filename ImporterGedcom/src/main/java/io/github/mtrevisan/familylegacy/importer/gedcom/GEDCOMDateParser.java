@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  * and produces a {@link DateInfo} object that describes the intended FLEF structure.
  * <p>
  * The single dates inside the result keep their calendar escape (e.g. "@#DJULIAN@ 1 MAR 1700"); see
- * {@link GEDCOMDateConverter} for their normalization.
+ * {@link io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMDateConverter} for their normalization.
  */
 public final class GEDCOMDateParser{
 

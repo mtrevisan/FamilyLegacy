@@ -121,9 +121,9 @@ class ReportGenerationTest{
 
 	@Test
 	void everyLanguageIsGenerated(){
-		for(final ReportLanguage language : ReportLanguage.values())
+		for(final ReportLanguage language : ReportLanguage.available())
 			Assertions.assertDoesNotThrow(() -> build(ReportType.INDIVIDUAL, "I1", config(true, language, PrivacyPolicy.SHOW_ALL)),
-				language.name());
+				language.toString());
 	}
 
 	@Test

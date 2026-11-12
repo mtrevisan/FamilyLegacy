@@ -70,7 +70,7 @@ public final class WorkspaceSelection{
 			return;
 
 		selectedId = id;
-		for(final Consumer<String> l : listeners)
+		for(final Consumer<String> l : new ArrayList<>(listeners))
 			l.accept(id);
 	}
 

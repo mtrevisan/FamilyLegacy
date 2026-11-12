@@ -32,6 +32,7 @@ import io.github.mtrevisan.calendars.assistant.RelativeDateTool;
 import io.github.mtrevisan.calendars.assistant.RomanDateTool;
 import io.github.mtrevisan.calendars.assistant.SunTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -132,7 +133,7 @@ class AssistantReviewFixesTest{
 		//the Hebrew year 5786 is the Gregorian 2025/26: a person aged 30 was born in 1995 or 1996, not in the year 5756
 		final DateSuggestion birth = AgeEstimator.birthFromAge("hebrew", "5786", 30, null, null, false, "death").getFirst();
 
-		final String range = birth.notBefore() + " " + birth.notAfter();
+		final String range = birth.notBefore() + StringUtils.SPACE + birth.notAfter();
 		Assertions.assertTrue(range.contains("1995") || range.contains("1996"), range);
 		Assertions.assertFalse(range.contains("5756"), range);
 	}

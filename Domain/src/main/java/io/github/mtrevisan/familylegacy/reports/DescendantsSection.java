@@ -29,7 +29,9 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -50,19 +52,23 @@ public final class DescendantsSection implements SectionBuilder{
 		if(!ctx.config.descendants())
 			return List.of();
 		final StringBuilder sb = new StringBuilder();
-		write(sb, ctx.root, 0);
+		write(sb, ctx.root, 0, new HashSet<>());
 		return List.of(
 			new ReportSection.Heading(1, ctx.labels.descendants()),
 			new ReportSection.Paragraph(sb.toString()));
 	}
 
 
-	private void write(final StringBuilder sb, final FLEFRecord parent, final int depth){
+	private void write(final StringBuilder sb, final FLEFRecord parent, final int depth, final Set<String> path){
 		sb.repeat("  ", depth)
 			.append(ReportFormatters.escape(ctx.displayText(parent)))
 			.append(StringUtils.LF);
+		//a circle of parentage (an error of the file) must not be followed forever
+		if(!path.add(parent.getId()))
+			return;
 		for(final FLEFRecord child : ctx.index.childrenOf(parent))
-			write(sb, child, depth + 1);
+			write(sb, child, depth + 1, path);
+		path.remove(parent.getId());
 	}
 
 }
