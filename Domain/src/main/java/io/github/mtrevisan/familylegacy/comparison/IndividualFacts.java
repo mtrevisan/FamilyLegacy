@@ -123,7 +123,7 @@ public final class IndividualFacts{
 		final Set<String> seen = new LinkedHashSet<>();
 		for(final String id : individualIds){
 			final FLEFRecord person = (id != null? model.getRecordById(id): null);
-			if(person != null && IndividualReader.isOfType(person) && seen.add(id))
+			if(IndividualReader.isOfType(person) && seen.add(id))
 				people.add(person);
 		}
 		if(people.size() < 2)

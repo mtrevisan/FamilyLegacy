@@ -36,11 +36,9 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /** The importer of GEDCOM files (5.5.x and 7.0): the character set is detected, the file is parsed and converted into a FLEF model. */
@@ -84,17 +82,11 @@ public final class GedcomFileImporter implements FileImporter{
 	@Override
 	public FLEFModel read(final Path file, final ProgressListener progress, final ImportReport report) throws IOException{
 		progress.onProgress(-1, I18N.t("progress.reading_file"));
-		final String gedcomContent;
-		try(final InputStream in = Files.newInputStream(file);
-				final BufferedReader br = GEDCOMHelper.getBufferedReader(in)){
-			gedcomContent = br.lines()
-				.collect(Collectors.joining(System.lineSeparator()));
-		}
-
 		progress.onProgress(-1, I18N.t("progress.parsing_gedcom"));
 		final List<GEDCOMNode> roots;
-		try(final StringReader reader = new StringReader(gedcomContent)){
-			roots = new GEDCOMParser().parse(reader);
+		try(final InputStream in = Files.newInputStream(file);
+				final BufferedReader br = GEDCOMHelper.getBufferedReader(in)){
+			roots = new GEDCOMParser().parse(br);
 		}
 
 		return new GEDCOMToFLEFConverter()

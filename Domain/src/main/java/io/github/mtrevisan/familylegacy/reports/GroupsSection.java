@@ -349,7 +349,7 @@ public final class GroupsSection implements SectionBuilder{
 				FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE));
 			final String date = ReportFormatters.orEmpty(
 				GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels));
-			final String heading = (type.isEmpty()? "Event": type)
+			final String heading = (type.isEmpty()? ctx.labels.sections().eventGeneric(): type)
 				+ (date.isEmpty()? StringUtils.EMPTY: " — " + date);
 			out.add(new ReportSection.Heading(4, ReportFormatters.escape(heading)));
 

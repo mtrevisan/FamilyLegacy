@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -172,6 +173,127 @@ class EpubReportRendererTest{
 		try(final ZipFile zip = new ZipFile(target.toFile())){
 			Assertions.assertTrue(read(zip, "OEBPS/content.opf").contains("<dc:language>en</dc:language>"));
 			Assertions.assertTrue(read(zip, "OEBPS/nav.xhtml").contains("<h1>Contents</h1>"));
+		}
+	}
+
+	private static String identifier(final String opf){
+		final int start = opf.indexOf("<dc:identifier id=\"book-id\">") + "<dc:identifier id=\"book-id\">".length();
+		return opf.substring(start, opf.indexOf("</dc:identifier>", start));
+	}
+
+	@Test
+	void webpAndUnreadableImagesAreNotInTheBookButTheirCaptionStays(@TempDir final Path directory) throws Exception{
+		final Path webp = directory.resolve("photo.webp");
+		Files.write(webp, new byte[]{1, 2, 3});
+		//a directory with the name of an image cannot be read
+		final Path unreadable = Files.createDirectory(directory.resolve("broken.png"));
+		final Path target = directory.resolve("book.epub");
+
+		epub().render(new ReportDocument("T", "", List.of(
+			new ReportSection.Image(webp, "Web picture"),
+			new ReportSection.Image(unreadable, "Broken"),
+			new ReportSection.Image(unreadable, "Broken again"))), target);
+
+		try(final ZipFile zip = new ZipFile(target.toFile())){
+			Assertions.assertTrue(zip.stream().noneMatch(entry -> entry.getName().startsWith("OEBPS/images/")));
+			final String page = read(zip, "OEBPS/chapter-001.xhtml");
+			Assertions.assertTrue(page.contains("<p>Web picture</p>") && page.contains("<p>Broken</p>")
+				&& page.contains("<p>Broken again</p>") && !page.contains("<img"), page);
+			Assertions.assertFalse(read(zip, "OEBPS/content.opf").contains("image/webp"));
+		}
+	}
+
+	@Test
+	void sameImageContentIsInTheBookOnceAndWithoutCaptionTheFileNameIsTheAlternativeText(@TempDir final Path directory) throws Exception{
+		final BufferedImage picture = new BufferedImage(4, 4, BufferedImage.TYPE_INT_RGB);
+		final Path first = directory.resolve("first.png");
+		final Path copy = directory.resolve("copy.png");
+		ImageIO.write(picture, "png", first.toFile());
+		Files.copy(first, copy);
+		final Path target = directory.resolve("book.epub");
+
+		epub().render(new ReportDocument("T", "", List.of(
+			new ReportSection.Image(first, null),
+			new ReportSection.Image(copy, "Same"),
+			new ReportSection.Image(first, "Again"))), target);
+
+		try(final ZipFile zip = new ZipFile(target.toFile())){
+			Assertions.assertNotNull(zip.getEntry("OEBPS/images/image-1.png"));
+			Assertions.assertNull(zip.getEntry("OEBPS/images/image-2.png"));
+			final String page = read(zip, "OEBPS/chapter-001.xhtml");
+			Assertions.assertTrue(page.contains("alt=\"first.png\""), page);
+			Assertions.assertEquals(3, StringUtils.countMatches(page, "src=\"images/image-1.png\""), page);
+			Assertions.assertEquals(1, StringUtils.countMatches(read(zip, "OEBPS/content.opf"), "<item id=\"image-"));
+		}
+	}
+
+	@Test
+	void theSubtitleIsOnTheTitlePageAndTheContentsNestTheSections(@TempDir final Path directory) throws Exception{
+		final Path target = directory.resolve("book.epub");
+
+		epub().render(new ReportDocument("Title", "A *sub* title", List.of(
+			new ReportSection.Heading(1, "People"),
+			new ReportSection.Heading(2, "Anna [I1]"),
+			new ReportSection.Heading(2, "Anna [I2]"),
+			new ReportSection.Heading(3, "Too deep"),
+			new ReportSection.Heading(1, "Sources")), "en", "Contents"), target);
+
+		try(final ZipFile zip = new ZipFile(target.toFile())){
+			final String titlePage = read(zip, "OEBPS/chapter-001.xhtml");
+			Assertions.assertTrue(titlePage.contains("<p class=\"subtitle\">A sub title</p>"), titlePage);
+
+			final String people = read(zip, "OEBPS/chapter-002.xhtml");
+			Assertions.assertTrue(people.contains("<h3 id=\"section-2-1\">") && people.contains("<h3 id=\"section-2-2\">"), people);
+			Assertions.assertFalse(people.contains("id=\"section-2-3\""), "only the second level is listed: " + people);
+
+			final String nav = read(zip, "OEBPS/nav.xhtml");
+			assertWellFormed(nav, "nav");
+			Assertions.assertTrue(nav.contains("<a href=\"chapter-002.xhtml\">People</a><ol>"
+				+ "<li><a href=\"chapter-002.xhtml#section-2-1\">Anna</a></li>"
+				+ "<li><a href=\"chapter-002.xhtml#section-2-2\">Anna</a></li></ol></li>"), nav);
+			Assertions.assertTrue(nav.contains("<a href=\"chapter-003.xhtml\">Sources</a></li>"), nav);
+			//landmarks: the contents and the first chapter after the title page
+			Assertions.assertTrue(nav.contains("epub:type=\"landmarks\"") && nav.contains("href=\"nav.xhtml#toc\"")
+				&& nav.contains("<a epub:type=\"bodymatter\" href=\"chapter-002.xhtml\">People</a>"), nav);
+		}
+	}
+
+	@Test
+	void theMetadataHasAStableIdentifierAPublisherAndADate(@TempDir final Path directory) throws Exception{
+		final ReportDocument document = new ReportDocument("Same", "Sub", List.of(new ReportSection.Heading(1, "One")));
+		final ReportDocument other = new ReportDocument("Other", "Sub", List.of(new ReportSection.Heading(1, "One")));
+		final Path first = directory.resolve("a.epub");
+		final Path second = directory.resolve("b.epub");
+		final Path third = directory.resolve("c.epub");
+
+		epub().render(document, first);
+		epub().render(document, second);
+		epub().render(other, third);
+
+		try(final ZipFile a = new ZipFile(first.toFile()); final ZipFile b = new ZipFile(second.toFile());
+				final ZipFile c = new ZipFile(third.toFile())){
+			final String opf = read(a, "OEBPS/content.opf");
+			Assertions.assertTrue(identifier(opf).startsWith("urn:uuid:"), opf);
+			Assertions.assertEquals(identifier(opf), identifier(read(b, "OEBPS/content.opf")), "the same report is the same book");
+			Assertions.assertNotEquals(identifier(opf), identifier(read(c, "OEBPS/content.opf")));
+			Assertions.assertTrue(opf.contains("<dc:publisher>FamilyLegacy</dc:publisher>"), opf);
+			Assertions.assertTrue(opf.contains("<dc:date>20"), opf);
+			assertWellFormed(opf, "opf");
+		}
+	}
+
+	@Test
+	void anExistingBookIsReplacedAndNoTemporaryFileIsLeft(@TempDir final Path directory) throws Exception{
+		final Path target = directory.resolve("book.epub");
+		Files.writeString(target, "old content");
+
+		epub().render(new ReportDocument("T", "", List.of(new ReportSection.Paragraph("text"))), target);
+
+		try(final ZipFile zip = new ZipFile(target.toFile())){
+			Assertions.assertEquals("application/epub+zip", read(zip, "mimetype"));
+		}
+		try(final var files = Files.list(directory)){
+			Assertions.assertEquals(List.of("book.epub"), files.map(file -> file.getFileName().toString()).toList());
 		}
 	}
 

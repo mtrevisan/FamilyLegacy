@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +127,7 @@ public final class ToVerifyFinder{
 		openTasks(model, visible, out);
 
 		//the kinds in their order, stable inside each
-		out.sort((a, b) -> a.kind().compareTo(b.kind()));
+		out.sort(Comparator.comparing(Finding::kind));
 		return out;
 	}
 

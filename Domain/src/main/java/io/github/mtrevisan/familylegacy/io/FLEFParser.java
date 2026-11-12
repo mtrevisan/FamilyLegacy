@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
@@ -68,6 +69,7 @@ public class FLEFParser{
 
 	private ProgressListener progressListener = ProgressListener.NOOP;
 	private int lastReportedPercent = -1;
+	private final List<String> warnings = new ArrayList<>();
 
 
 	/**
@@ -123,7 +125,8 @@ public class FLEFParser{
 		// Read the first few bytes to test for GZIP magic
 		final byte[] header = new byte[2];
 		final PushbackInputStream pushback = new PushbackInputStream(inputStream, 2);
-		final int read = pushback.read(header, 0, 2);
+		//(readNBytes does not stop at a short read; an empty stream gives 0, not -1)
+		final int read = pushback.readNBytes(header, 0, 2);
 		if(read == 2 && isGzipMagic(header)){
 			pushback.unread(header, 0, 2);
 
@@ -165,6 +168,7 @@ public class FLEFParser{
 		length = text.length();
 		position = 0;
 
+		warnings.clear();
 		final FLEFModel root = new FLEFModel();
 
 		// A byte order mark at the start of the file may be present, and is ignored
@@ -185,14 +189,20 @@ public class FLEFParser{
 				// legacy layout, with every record inside a `records { … }` block
 				final List<FLEFRecord> children = record.getChildren();
 				for(final FLEFRecord child : children){
+					if(child.getId() == null){
+						warnings.add("Record '" + child.getTag() + "' without an id inside `records { }` at position " + recordPosition
+							+ " skipped");
+						continue;
+					}
+
 					SingularFieldIndex.mergeSingularBlocks(child);
-					root.addRecord(child);
+					addParsedRecord(root, child);
 				}
 			}
 			else if(record.getId() != null){
 				// `<record_kind> <Id> { … }`, as defined by the protocol
 				SingularFieldIndex.mergeSingularBlocks(record);
-				root.addRecord(record);
+				addParsedRecord(root, record);
 			}
 			else
 				throw new RuntimeException("Unexpected tag: " + tag + " at position " + recordPosition);
@@ -202,8 +212,26 @@ public class FLEFParser{
 
 		//the files written before the sex became an individual attribute
 		SexMigration.migrate(root);
+		//the files written with the enum values that the grammar renamed or removed
+		EnumValuesMigration.migrate(root);
 
 		return root;
+	}
+
+	/**
+	 * The problems found by the last parse that do not stop it (a record without an id skipped, an id found twice), in order.
+	 */
+	public List<String> getWarnings(){
+		return List.copyOf(warnings);
+	}
+
+	private void addParsedRecord(final FLEFModel model, final FLEFRecord record){
+		final String id = record.getId();
+		if(model.hasRecord(id)){
+			model.markDuplicateId(id);
+			warnings.add("Duplicate record ID '" + id + "': the last one replaces the previous");
+		}
+		model.addRecord(record);
 	}
 
 	private FLEFRecord parseRecord(){
@@ -371,6 +399,24 @@ public class FLEFParser{
 	}
 
 	/**
+	 * Finds the triple quotes that close the text block: the first ones that are not escaped, as in a Java text block (an escaped quote
+	 * that comes right before the closing ones is part of the text).
+	 *
+	 * @return	The index of the closing triple quotes, or {@code -1} if there are none.
+	 */
+	private int indexOfClosingTripleQuotes(){
+		for(int i = position, length = text.length(); i < length; i ++){
+			final char chr = text.charAt(i);
+			if(chr == '\\')
+				//the escaped character is never a delimiter
+				i ++;
+			else if(text.startsWith(TAG_VALUE_MULTILINE, i))
+				return i;
+		}
+		return -1;
+	}
+
+	/**
 	 * Reads a string delimited by triple quotes.
 	 */
 	private String readMultilineString(){
@@ -378,7 +424,7 @@ public class FLEFParser{
 		advanceBy(3);
 
 		// Find the closing triple quotes
-		final int end = text.indexOf(TAG_VALUE_MULTILINE, position);
+		final int end = indexOfClosingTripleQuotes();
 		if(end < 0)
 			throw error("Unterminated multiline string");
 
@@ -454,11 +500,9 @@ public class FLEFParser{
 			if(i > 0)
 				result.append(StringUtils.LF);
 			// Remove the minIndent only if the line is long enough
-			if(!line.isEmpty() && line.length() >= minIndent)
-				// Ensure we don't remove partial whitespace; strip exactly minIndent characters
-				result.append(line, minIndent, line.length());
-			else
-				result.append(line);
+			final String stripped = (!line.isEmpty() && line.length() >= minIndent? line.substring(minIndent): line);
+			// As in a Java text block, the trailing whitespace of each line is removed (before the escapes are translated)
+			result.append(StringUtils.stripEnd(stripped, null));
 		}
 
 		// Step 6: Translate escape sequences (handle \", \\, \n, \r, \t, \s)
@@ -515,6 +559,34 @@ public class FLEFParser{
 					case 's' -> {
 						sb.append(' ');
 						i ++;
+					}
+					case 'b' -> {
+						sb.append('\b');
+						i ++;
+					}
+					case 'f' -> {
+						sb.append('\f');
+						i ++;
+					}
+					case '\'' -> {
+						sb.append('\'');
+						i ++;
+					}
+					//line continuation: the escaped line break is removed
+					case '\n' ->
+						i ++;
+					//octal escapes, \0 to \377
+					case '0', '1', '2', '3', '4', '5', '6', '7' -> {
+						int value = next - '0';
+						int digits = 1;
+						final int maxDigits = (next <= '3'? 3: 2);
+						while(digits < maxDigits && i + 1 + digits < length && input.charAt(i + 1 + digits) >= '0'
+								&& input.charAt(i + 1 + digits) <= '7'){
+							value = value * 8 + (input.charAt(i + 1 + digits) - '0');
+							digits ++;
+						}
+						sb.append((char)value);
+						i += digits;
 					}
 					case '"' -> {
 						sb.append('"');
@@ -609,7 +681,7 @@ public class FLEFParser{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		//with errors
 		String text2 = """
 			header {

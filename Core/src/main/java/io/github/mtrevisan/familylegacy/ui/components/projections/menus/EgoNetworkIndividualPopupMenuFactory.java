@@ -39,10 +39,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
-import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
@@ -113,8 +113,13 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 
 				// Enable/disable menu options depending on entity existence and capabilities
 				editItem.setEnabled(hasData);
-				unlinkItem.setEnabled(hasData);
+				//the same condition of the tree menu: anything that refers to the individual, not only what the box shows
+				unlinkItem.setEnabled(hasData && (data.hasParents() || data.hasPartner() || data.hasChildren()
+					|| UnlinkIndividualRelationshipsTool.hasLinks(model, data.getId())));
 				careerItem.setEnabled(hasData);
+				//both read the selected individual: on an empty box there is nothing to show
+				provenanceItem.setEnabled(hasData);
+				loopsItem.setEnabled(hasData);
 				if(isEgo){
 					addChildItem.setEnabled(hasData && panel.isEnableAddChildMenu());
 					connectChildItem.setEnabled(hasData && hasIndividuals && panel.isEnableAddChildMenu());

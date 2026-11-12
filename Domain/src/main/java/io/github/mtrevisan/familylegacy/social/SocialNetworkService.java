@@ -44,11 +44,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 /**
@@ -130,7 +130,6 @@ public final class SocialNetworkService{
 		// BFS over the social graph.
 		final Map<String, Integer> degreeById = new HashMap<>();
 		final Map<String, SocialNodeRef> nodeById = new HashMap<>();
-		final Map<String, Set<String>> edgesByRecordId = new HashMap<>();
 
 		final SocialNodeRef centerNode = new SocialNodeRef(centerEntity, 0,
 			SocialRelationCategory.OTHER);
@@ -158,14 +157,6 @@ public final class SocialNetworkService{
 					continue;
 				final String otherId = otherEntity.id();
 
-				// Register the edge once.
-				final String edgeKey = edge.sourceRecord()
-					.getId();
-				edgesByRecordId.computeIfAbsent(edgeKey, k -> new LinkedHashSet<>())
-					.add(edge.source()
-						.id() + "\u0000" + edge.target()
-						.id());
-
 				// Register the neighbour.
 				final int nextDegree = currentDegree + 1;
 				final Integer existingDegree = degreeById.get(otherId);
@@ -187,12 +178,27 @@ public final class SocialNetworkService{
 		final Set<String> presentIds = new HashSet<>(nodeById.keySet());
 		final List<SocialEdgeRef> edges = new ArrayList<>();
 		final Set<String> seenEdges = new HashSet<>();
-		for(final SocialNodeRef node : nodeById.values())
+		//sorted by id, so that which of the two views of a pair of participants is kept does not depend on the hash order
+		for(final SocialNodeRef node : new TreeMap<>(nodeById).values())
 			for(final SocialEdgeRef edge : edgesIncidentTo(node.entity(), filters)){
+				//the edges of the participations of an event share the participation record: the pair tells them apart
 				final String edgeKey = edge.sourceRecord()
-					.getId();
+					.getId() + "\u0000" + edge.source()
+					.id() + "\u0000" + edge.target()
+					.id();
 				if(!seenEdges.add(edgeKey))
 					continue;
+				//the edges of the participations are undirected: A-B seen from A and B-A seen from B are the same connection, and
+				//drawing and counting it twice would inflate edgeCount() and edgesBetween() (the role is that of the node it was seen from)
+				if(!edge.isDirected() && EventParticipationReader.isOfType(edge.sourceRecord())){
+					final String eventId = FLEFRecordHelper.getChildValue(edge.sourceRecord(), EventParticipationReader.TAG_EVENT);
+					final String sourceId = edge.source().id();
+					final String targetId = edge.target().id();
+					final String pairKey = "pair\u0000" + eventId + "\u0000" + (sourceId.compareTo(targetId) <= 0?
+						sourceId + "\u0000" + targetId: targetId + "\u0000" + sourceId);
+					if(!seenEdges.add(pairKey))
+						continue;
+				}
 				if(!presentIds.contains(edge.source()
 					.id()) || !presentIds.contains(edge.target()
 					.id()))
@@ -243,7 +249,7 @@ public final class SocialNetworkService{
 
 	private SocialEdgeRef buildRelationshipEdge(final FLEFRecord relationship){
 		final String type = RelationshipReader.extractType(relationship);
-		if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
+		if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase(Locale.ROOT)))
 			return null;
 
 		final TemporalEntityRef subject = resolveParticipant(relationship, RelationshipReader.TAG_SUBJECT);
@@ -255,7 +261,7 @@ public final class SocialNetworkService{
 		final SocialRelationCategory category = classifyRelationship(type, role);
 		final SocialEdgeDirection direction = directionOf(type);
 		final TemporalSpan span = buildSpan(relationship);
-		return new SocialEdgeRef(subject, target, type.toLowerCase(), role, category, direction, span, relationship);
+		return new SocialEdgeRef(subject, target, type.toLowerCase(Locale.ROOT), role, category, direction, span, relationship);
 	}
 
 	private void collectParticipationEdges(final FLEFRecord participation, final TemporalEntityRef perspective,
@@ -308,17 +314,16 @@ public final class SocialNetworkService{
 	 * ====================================================================== */
 
 	private static SocialRelationCategory classifyRelationship(final String type, final String role){
-		final String normalizedType = type.toLowerCase();
+		final String normalizedType = type.toLowerCase(Locale.ROOT);
 		final SocialRelationCategory emptyRoleFallback = switch(normalizedType){
-			case RelationshipReader.ENUM_TYPE_GROUP_MEMBER -> SocialRelationCategory.COMMUNITY;
-			case RelationshipReader.ENUM_TYPE_PART_OF -> SocialRelationCategory.COMMUNITY;
+			case RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.ENUM_TYPE_PART_OF -> SocialRelationCategory.COMMUNITY;
 			default -> SocialRelationCategory.OTHER;
 		};
 		return SocialRoleClassifier.classify(role, emptyRoleFallback);
 	}
 
 	private static SocialEdgeDirection directionOf(final String type){
-		return switch(type.toLowerCase()){
+		return switch(type.toLowerCase(Locale.ROOT)){
 			case RelationshipReader.ENUM_TYPE_GROUP_MEMBER, RelationshipReader.ENUM_TYPE_PART_OF -> SocialEdgeDirection.DIRECTED;
 			default -> SocialEdgeDirection.UNDIRECTED;
 		};
@@ -329,7 +334,7 @@ public final class SocialNetworkService{
 			return false;
 
 		return EventParticipationReader.RELATIONAL_EVENT_ROLES.contains(role.trim()
-			.toLowerCase());
+			.toLowerCase(Locale.ROOT));
 	}
 
 
@@ -387,7 +392,7 @@ public final class SocialNetworkService{
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
 		for(final FLEFRecord relationship : relationships){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase()))
+			if(type == null || !RelationshipReader.SOCIAL_RELATIONSHIP_TYPES.contains(type.toLowerCase(Locale.ROOT)))
 				continue;
 
 			final String subjectId = extractParticipantId(relationship, RelationshipReader.TAG_SUBJECT);
@@ -464,11 +469,7 @@ public final class SocialNetworkService{
 	}
 
 	private static String extractParticipantId(final FLEFRecord participation){
-		final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
-		if(participant == null)
-			return null;
-		final FLEFRecord ref = participant.getTheOnlyChild();
-		return (ref != null? ref.getValue(): null);
+		return EventParticipationReader.extractParticipantRef(participation);
 	}
 
 	private static String eventTagOf(final FLEFRecord participation){
@@ -481,7 +482,7 @@ public final class SocialNetworkService{
 	}
 
 	private static String safeLower(final String s){
-		return (s != null? s.toLowerCase(): StringUtils.EMPTY);
+		return (s != null? s.toLowerCase(Locale.ROOT): StringUtils.EMPTY);
 	}
 
 }

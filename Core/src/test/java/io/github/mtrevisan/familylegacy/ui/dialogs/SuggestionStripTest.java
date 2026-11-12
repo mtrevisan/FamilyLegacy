@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
 import io.github.mtrevisan.familylegacy.ui.features.SuggestionKind;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +23,7 @@ class SuggestionStripTest{
 				strip.show(List.of(Suggestion.forLevel(kind, level, "explanation", () -> {})));
 
 				Assertions.assertTrue(strip.getPreferredSize().width <= NARROW_EDITOR,
-					kind + " " + level + ": " + strip.getPreferredSize().width);
+					kind + StringUtils.SPACE + level + ": " + strip.getPreferredSize().width);
 				Assertions.assertTrue(strip.isVisible());
 			}
 	}

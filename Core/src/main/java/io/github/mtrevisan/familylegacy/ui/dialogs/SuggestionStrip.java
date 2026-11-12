@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
-
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -41,6 +40,7 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.util.List;
 import java.util.Objects;
 
@@ -113,6 +113,7 @@ final class SuggestionStrip extends JPanel{
 		final JButton action = new JButton("<html><u>" + escape(suggestion.kind().actionLabel(level)) + "</u></html>");
 		action.setBorder(BorderFactory.createEmptyBorder(1, 0, 1, 0));
 		action.setFocusPainted(false);
+		action.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		action.setContentAreaFilled(false);
 		action.setForeground(linkColor());
 		action.setAlignmentX(LEFT_ALIGNMENT);

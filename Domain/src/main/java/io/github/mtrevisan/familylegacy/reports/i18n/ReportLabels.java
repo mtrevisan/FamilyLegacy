@@ -27,14 +27,8 @@ package io.github.mtrevisan.familylegacy.reports.i18n;
 import com.ibm.icu.text.MessageFormat;
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipVocabulary;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 
@@ -57,13 +51,24 @@ public final class ReportLabels{
 
 	public ReportLabels(final ReportLanguage language){
 		this.language = Objects.requireNonNull(language, "language");
-		this.bundle = ResourceBundle.getBundle(BUNDLE_BASE, language.locale());
+		this.bundle = loadBundle(language.locale());
 
 		this.sectionLabels = new SectionLabelProvider(this);
 		this.narrativeFormatter = new NarrativeFormatter(this);
 		this.dateLabels = new DateLabelProvider(this);
 	}
 
+
+	/**
+	 * Loads the bundle of the locale; a language without a bundle gets the root (English) one, not the one of the default locale
+	 * of the JVM (that {@link ResourceBundle#getBundle(String, Locale)} would silently prefer).
+	 */
+	private static ResourceBundle loadBundle(final Locale locale){
+		final ResourceBundle candidate = ResourceBundle.getBundle(BUNDLE_BASE, locale);
+		if(candidate.getLocale().getLanguage().equals(locale.getLanguage()))
+			return candidate;
+		return ResourceBundle.getBundle(BUNDLE_BASE, Locale.ROOT);
+	}
 
 	public ReportLanguage language(){
 		return language;
@@ -306,36 +311,6 @@ public final class ReportLabels{
 
 	public String relationsCount(final int parents, final int spouses, final int children){
 		return dateLabels.relationsCount(parents, spouses, children);
-	}
-
-
-	/* ======================================================================
-	 *                          UTF-8 loader
-	 * ====================================================================== */
-
-	/**
-	 * {@link ResourceBundle.Control} that loads {@code .properties} files as
-	 * UTF-8 instead of the ISO-8859-1 default.
-	 */
-	private static final class Utf8Control extends ResourceBundle.Control{
-		@Override
-		public ResourceBundle newBundle(final String baseName, final Locale locale, final String format,
-				final ClassLoader loader, final boolean reload) throws IOException, IllegalAccessException,
-				InstantiationException{
-			if(!"java.properties".equals(format))
-				return super.newBundle(baseName, locale, format, loader, reload);
-
-			final String bundleName = toBundleName(baseName, locale);
-			final String resourceName = toResourceName(bundleName, "properties");
-			try(final InputStream is = loader.getResourceAsStream(resourceName)){
-				if(is == null)
-					return null;
-
-				try(final Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)){
-					return new PropertyResourceBundle(reader);
-				}
-			}
-		}
 	}
 
 }

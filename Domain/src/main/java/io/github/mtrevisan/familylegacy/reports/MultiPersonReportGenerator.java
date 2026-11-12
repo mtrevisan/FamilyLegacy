@@ -91,10 +91,9 @@ public final class MultiPersonReportGenerator{
 		if(persons.isEmpty() && groups.isEmpty())
 			return placeholder();
 
-		final RelationIndex sharedIndex = RelationIndex.build(model, r -> true);
-
-		final ReportContext first = ReportContext.build(model, (persons.isEmpty()? groups.getFirst(): persons.getFirst()),
-			config, sharedIndex);
+		//the index is built by a context, so that it hides what the privacy policy hides (the events of a person, ...)
+		final ReportContext first = ReportContext.build(model, (persons.isEmpty()? groups.getFirst(): persons.getFirst()), config);
+		final RelationIndex sharedIndex = first.index;
 		final List<ReportSection> sections = new ArrayList<>();
 
 		sections.addAll(new HeaderSection(first).build());
@@ -175,10 +174,8 @@ public final class MultiPersonReportGenerator{
 	private ReportDocument placeholder(){
 		final List<ReportSection> sections = new ArrayList<>();
 		sections.add(new ReportSection.Heading(1, title));
-		sections.add(new ReportSection.Paragraph(
-			"No individual is available for this report. "
-				+ "Select a person in the editor and try again."));
 		final ReportLabels labels = new ReportLabels(config.language());
+		sections.add(new ReportSection.Paragraph(labels.narrative().noIndividualAvailable()));
 		return new ReportDocument(title, null, sections, labels.language().locale().toLanguageTag(), labels.sections().contents());
 	}
 

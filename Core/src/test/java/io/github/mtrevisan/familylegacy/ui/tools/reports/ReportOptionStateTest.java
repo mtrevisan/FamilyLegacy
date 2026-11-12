@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -232,9 +233,9 @@ class ReportOptionStateTest{
 
 			for(final ReportOption option : List.of(ReportOption.INTRODUCTION, ReportOption.PATERNAL_ANCESTRY, ReportOption.DESCENDANTS,
 					ReportOption.DIRECT_RELATIONS, ReportOption.GROUP_MEMBERS, ReportOption.COLLATERAL_SCOPE, ReportOption.GENERATIONS))
-				Assertions.assertEquals(OptionState.HIDDEN, ReportBuilder.optionState(type, root, option), type + " " + option);
+				Assertions.assertEquals(OptionState.HIDDEN, ReportBuilder.optionState(type, root, option), type + StringUtils.SPACE + option);
 			for(final ReportOption option : List.of(ReportOption.NOTES, ReportOption.SOURCES, ReportOption.MEDIA, ReportOption.INDEX_PLACES))
-				Assertions.assertEquals(OptionState.EDITABLE, ReportBuilder.optionState(type, root, option), type + " " + option);
+				Assertions.assertEquals(OptionState.EDITABLE, ReportBuilder.optionState(type, root, option), type + StringUtils.SPACE + option);
 		}
 	}
 

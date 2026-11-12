@@ -54,9 +54,9 @@ Right-click a box:
 - **Add Child...**, **Connect Child...**
 - **Relocate**, **Paste**, **Delete**
 - **Unlink Relationships...**
-- **Memberships Over Time...**
+- **Memberships Over Time...**, **Provenance...** (from the *Standard* level of features), **Consanguinity Loops...**
 
-The entries are enabled or disabled according to the box: *Add Individual*, *Connect Individual* and *Paste* work on an empty box, and *Add Child* and *Connect Child* on a box that has a person. What they do is explained in [Relationships](relationships.md).
+The entries are enabled or disabled according to the box: *Add Individual*, *Connect Individual* and *Paste* work on an empty box, and all the others (*Add Child* and *Connect Child* too) on a box that has a person; on an empty box they are grayed out. What they do is explained in [Relationships](relationships.md).
 
 ## Ego network
 
@@ -67,7 +67,7 @@ The **Ego Network** is a hub with spokes around one individual or group, the *eg
 - All the lines are drawn dotted in this version.
 - **Jump to** also finds groups in this view.
 
-Context menu of a **person**: *Edit Individual...*, *Add Child...* and *Connect Child...* (only for the ego), *Delete*, *Paste*, *Unlink Relationships...*, *Memberships Over Time...*. Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
+Context menu of a **person**: *Edit Individual...*, *Add Child...* and *Connect Child...* (only for the ego), *Delete*, *Paste*, *Unlink Relationships...*, *Memberships Over Time...*, *Provenance...*, *Consanguinity Loops...*. Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
 
 ## The sidebar
 

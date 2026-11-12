@@ -160,7 +160,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 			itemLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 			// Double-click to edit individual
-			addMouseListener(new MouseAdapter(){
+			itemLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2 && listener != null){
@@ -188,7 +188,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		add(scrollPane, "grow,wrap,gapbottom 10");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
-			"Confirm", this::onOk,
+			I18N.t("button.ok"), this::onOk,
 			this::onCancel);
 		add(buttonPanel, BorderLayout.SOUTH);
 

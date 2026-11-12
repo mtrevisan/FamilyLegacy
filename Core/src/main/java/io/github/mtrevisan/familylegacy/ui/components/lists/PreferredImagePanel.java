@@ -246,6 +246,9 @@ public class PreferredImagePanel extends JPanel{
 					documentId = record.getId();
 					cropRect = null; // Reset crop when a new document is selected
 					editCrop(); // Immediately prompt the user to select the crop
+					//the crop could have been canceled: the preview is still to be shown
+					if(imageButton.getIcon() == PLACEHOLDER_ICON)
+						updatePreferredImage();
 				}
 			},
 			MediaHandler.class);

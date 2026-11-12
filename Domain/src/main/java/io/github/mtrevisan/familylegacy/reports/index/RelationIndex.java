@@ -64,7 +64,7 @@ public final class RelationIndex{
 		this.groupIndex = new GroupIndex(model, filter);
 		this.sourceAndDocumentIndex = new SourceAndMediaIndex(model, filter);
 		this.researchIndex = new ResearchIndex(model, filter);
-		this.kinshipResolver = new KinshipResolver(this.pedigreeIndex, this.relationshipIndex);
+		this.kinshipResolver = new KinshipResolver(this.pedigreeIndex, this.relationshipIndex, model);
 	}
 
 
@@ -347,16 +347,8 @@ public final class RelationIndex{
 	}
 
 	public List<EventIndex.Participant> participantsOf(final FLEFRecord event){
-		final List<EventIndex.Participant> list = eventIndex.participantsOf(event);
-		if(list.isEmpty())
-			return List.of();
-
-		final List<EventIndex.Participant> out = new ArrayList<>(list.size());
-		for(int i = 0, size = list.size(); i < size; i ++){
-			final EventIndex.Participant p = list.get(i);
-			out.add(new EventIndex.Participant(p.record(), p.kind(), p.role(), p.participation()));
-		}
-		return out;
+		//the participants are immutable records, in a list built at each call: no defensive copy is needed
+		return eventIndex.participantsOf(event);
 	}
 
 	public List<FLEFRecord> participationsOfParticipant(final FLEFRecord p){

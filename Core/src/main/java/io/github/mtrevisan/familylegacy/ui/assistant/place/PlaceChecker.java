@@ -444,7 +444,6 @@ final class PlaceChecker{
 		final PlaceData.Place proposed = (dioceses.size() == 1? dioceses.getFirst()
 			: (dioceses.isEmpty() && archdioceses.size() == 1? archdioceses.getFirst(): null));
 
-		final Map<String, Set<String>> parents = parents(data);
 		final Set<String> subjectsOfEcclesiastical = new HashSet<>();
 		for(final PlaceData.Relation relation : data.relations()){
 			final PlaceData.Place target = byId.get(relation.targetId());

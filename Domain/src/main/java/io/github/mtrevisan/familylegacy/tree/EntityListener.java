@@ -29,13 +29,13 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 public interface EntityListener{
 
-	public void onRootEntitySelected(String recordId);
+	void onRootEntitySelected(String recordId);
 
-	public void onEntityEdit(FLEFRecord individual);
+	void onEntityEdit(FLEFRecord individual);
 
-	public void onEntityRemove(FLEFRecord individual);
+	void onEntityRemove(FLEFRecord individual);
 
-	public void onEntityRelocate(FLEFRecord individual);
+	void onEntityRelocate(FLEFRecord individual);
 
 
 	/**
@@ -51,7 +51,7 @@ public interface EntityListener{
 	 *
 	 * @return the mutator, or {@code null}
 	 */
-	public default ProjectionMutator getMutator(){
+	default ProjectionMutator getMutator(){
 		return null;
 	}
 

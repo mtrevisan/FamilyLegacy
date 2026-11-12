@@ -167,6 +167,10 @@ final class CitationAnalysisDialog extends JDialog{
 
 	/** Reads the model again and builds the tabs, keeping the one in view (and the list of the uncited, if it is open). */
 	private void reload(){
+		//a search still running would show the records of the previous analysis
+		if(searchWorker != null && !searchWorker.isDone())
+			searchWorker.cancel(true);
+
 		final CitationAnalysisTool.Analysis analysis = CitationAnalysisTool.analyze(model);
 
 		final int selectedTab = Math.max(tabs.getSelectedIndex(), 0);
@@ -538,7 +542,7 @@ final class CitationAnalysisDialog extends JDialog{
 
 		try{
 			//the byte order mark makes Excel read the accents right
-			Files.writeString(target.toPath(), '﻿' + CsvFormat.format(rows), StandardCharsets.UTF_8);
+			Files.writeString(target.toPath(), "﻿" + CsvFormat.format(rows), StandardCharsets.UTF_8);
 		}
 		catch(final IOException e){
 			JOptionPane.showMessageDialog(this, I18N.tf("error.csv.export", target.getAbsolutePath(), e.getMessage()),

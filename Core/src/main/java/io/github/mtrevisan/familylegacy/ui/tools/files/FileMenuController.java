@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -504,7 +505,7 @@ public final class FileMenuController{
 
 		File target = chooser.getSelectedFile();
 		// Append the FLEF extension when the user did not type one.
-		if(!target.getName().toLowerCase().endsWith("." + FLEF_EXTENSION))
+		if(!Strings.CI.endsWith(target.getName(), "." + FLEF_EXTENSION))
 			target = new File(target.getParentFile(), target.getName() + "." + FLEF_EXTENSION);
 
 		if(target.exists()){

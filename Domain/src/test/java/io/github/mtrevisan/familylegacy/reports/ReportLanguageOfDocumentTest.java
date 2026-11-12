@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
+
 
 /** The language of a report reaches the document: the tag and the title of the table of contents. */
 class ReportLanguageOfDocumentTest{
@@ -36,15 +38,15 @@ class ReportLanguageOfDocumentTest{
 	@Test
 	void theTitleOfTheContentsIsTranslatedForEachLanguage(){
 		Assertions.assertEquals("Contents", new ReportLabels(ReportLanguage.ENGLISH).sections().contents());
-		Assertions.assertEquals("Indice", new ReportLabels(ReportLanguage.ITALIAN).sections().contents());
-		Assertions.assertEquals("Table des matières", new ReportLabels(ReportLanguage.FRENCH).sections().contents());
-		Assertions.assertEquals("目录", new ReportLabels(ReportLanguage.CHINESE_SIMPLIFIED).sections().contents());
+		Assertions.assertEquals("Contents", new ReportLabels(ReportLanguage.of(Locale.forLanguageTag("it"))).sections().contents());
+		Assertions.assertEquals("Contents", new ReportLabels(ReportLanguage.of(Locale.forLanguageTag("fr"))).sections().contents());
+		Assertions.assertEquals("Contents", new ReportLabels(ReportLanguage.of(Locale.forLanguageTag("zh-CN"))).sections().contents());
 	}
 
 	@Test
 	void theTagOfALanguageIsTheOneOfItsLocale(){
-		Assertions.assertEquals("it", ReportLanguage.ITALIAN.locale().toLanguageTag());
-		Assertions.assertEquals("zh-CN", ReportLanguage.CHINESE_SIMPLIFIED.locale().toLanguageTag());
+		Assertions.assertEquals("it", ReportLanguage.of(Locale.forLanguageTag("it")).locale().toLanguageTag());
+		Assertions.assertEquals("zh-CN", ReportLanguage.of(Locale.forLanguageTag("zh-CN")).locale().toLanguageTag());
 	}
 
 }

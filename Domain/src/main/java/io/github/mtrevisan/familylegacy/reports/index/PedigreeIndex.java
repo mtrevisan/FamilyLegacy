@@ -66,7 +66,8 @@ public final class PedigreeIndex{
 			if(subjectId == null || objectId == null || type == null)
 				continue;
 
-			final boolean childRel = type.endsWith("_child");
+			//the generic type "child" is a parent link too, as in AncestryGraph
+			final boolean childRel = (type.endsWith("_child") || RelationshipReader.ENUM_TYPE_CHILD.equals(type));
 			final boolean parentRel = type.endsWith("_parent");
 
 			if(childRel || parentRel){

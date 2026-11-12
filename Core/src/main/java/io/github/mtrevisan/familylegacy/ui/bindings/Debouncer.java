@@ -107,7 +107,8 @@ public class Debouncer<T>{
 				SwingUtilities.invokeLater(() -> callback.accept(key));
 		}
 		finally{
-			delayedMap.remove(key);
+			//remove only the entry of the task that just ran: a re-armed (newer) future must survive
+			delayedMap.computeIfPresent(key, (k, future) -> (future.isDone() || future.getDelay(TimeUnit.MILLISECONDS) <= 0? null: future));
 		}
 	}
 

@@ -44,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -101,10 +102,10 @@ public final class ConsistencyService{
 		PlaceRelationshipReader.ENUM_TYPE_JUDICIAL_PART_OF, PlaceRelationshipReader.ENUM_TYPE_CADASTRAL_PART_OF);
 	private static final Set<String> PLACE_SUCCESSION = Set.of(PlaceRelationshipReader.ENUM_TYPE_SUCCESSOR_OF, PlaceRelationshipReader.ENUM_TYPE_MERGED_FROM, PlaceRelationshipReader.ENUM_TYPE_SPLIT_FROM,
 		PlaceRelationshipReader.ENUM_TYPE_RECEIVED_TERRITORY_FROM);
-	/** The types that can link an individual to an individual: the ones the editor offers. */
 	/** The relationships that are a marriage (an engagement or a cohabitation is not). */
 	private static final Set<String> MARRIAGE_TYPES = Set.of(RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE,
 		RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE, RelationshipReader.ENUM_TYPE_CUSTOMARY_SPOUSE);
+	/** The types that can link an individual to an individual: the ones the editor offers. */
 	private static final Set<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = Set.of(RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_TYPES);
 	/** The events of the life of a person: they are about one of the participants, the principal. */
 	private static final Set<String> PRINCIPAL_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
@@ -471,7 +472,7 @@ public final class ConsistencyService{
 			//a couple, or two associates, written from both sides are one relationship
 			final boolean symmetric = (RelationshipReader.isTypePartner(type) || RelationshipReader.isTypeAssociate(type));
 			final String first = (symmetric && subject.compareTo(target) > 0? target: subject);
-			final String second = (first == subject? target: subject);
+			final String second = (first.equals(subject) ? target: subject);
 			//the role tells what each one is to the other: "guardian" and "ward", "birth witness" and "birth", are two things, not one written twice
 			final String role = StringUtils.lowerCase(StringUtils.trimToEmpty(RelationshipReader.extractRole(relationship)));
 			byKey.computeIfAbsent("r|" + type + "|" + first + "|" + second + "|" + role, k -> new ArrayList<>())
@@ -640,7 +641,7 @@ public final class ConsistencyService{
 				}
 			}
 		}
-		circles.sort((a, b) -> a.getFirst().compareTo(b.getFirst()));
+		circles.sort(Comparator.comparing(List::getFirst));
 		return circles;
 	}
 

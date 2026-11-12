@@ -261,7 +261,7 @@ public class EgoNetworkService{
 			if(subjectId != null)
 				relationshipsByEntityId.computeIfAbsent(subjectId, k -> new ArrayList<>())
 					.add(relationship);
-			if(objectId != null)
+			if(objectId != null && !objectId.equals(subjectId))
 				relationshipsByEntityId.computeIfAbsent(objectId, k -> new ArrayList<>())
 					.add(relationship);
 		}

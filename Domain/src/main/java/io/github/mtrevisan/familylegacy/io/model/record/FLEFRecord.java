@@ -33,6 +33,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -304,7 +305,7 @@ public class FLEFRecord{
 	 * @return {@code true} if the child was found and removed, {@code false} otherwise
 	 */
 	public boolean removeChild(final FLEFRecord child){
-		return children.remove(child);
+		return children.removeIf(c -> c == child);
 	}
 
 	/**
@@ -353,7 +354,7 @@ public class FLEFRecord{
 	 */
 	public void deepCopyTo(final FLEFRecord destination){
 		// Map original nodes to their copies to handle shared references
-		final Map<FLEFRecord, FLEFRecord> map = new HashMap<>();
+		final Map<FLEFRecord, FLEFRecord> map = new IdentityHashMap<>();
 		final Deque<FLEFRecord> stack = new ArrayDeque<>();
 
 		// Create copy of the root
@@ -406,9 +407,6 @@ public class FLEFRecord{
 			return true;
 		if(a.size() != b.size())
 			return false;
-
-		if(a.size() <= 3)
-			return (a.containsAll(b) && b.containsAll(a));
 
 		final Map<FLEFRecord, Integer> counts = new HashMap<>();
 		for(final FLEFRecord child : a)

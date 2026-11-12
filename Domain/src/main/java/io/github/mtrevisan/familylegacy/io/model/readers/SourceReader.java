@@ -70,6 +70,8 @@ public final class SourceReader{
 	public static final String ID_PREFIX = "S";
 
 	public static final String TAG_TITLE = "title";
+	/** The sub-tag holding the text of a title. */
+	public static final String TAG_TITLE_VALUE = "value";
 	public static final String TAG_AUTHOR = "author";
 	public static final String TAG_PUBLISHER = "publisher";
 	public static final String TAG_DATE = "date";

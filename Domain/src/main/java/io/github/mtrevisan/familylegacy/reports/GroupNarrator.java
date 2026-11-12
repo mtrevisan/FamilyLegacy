@@ -94,19 +94,9 @@ public final class GroupNarrator{
 				final String d = DateService.getDateDisplayText(unionEvt);
 				final String p = PlaceCitationReader.extractPlace(unionEvt, model);
 
-				final String typeLabel = (type != null? type.replace('_', ' '): "union");
-				if(d != null || p != null){
-					final StringBuilder sb = new StringBuilder();
-					sb.append(displayName).append(" was established through ").append(typeLabel);
-					if(d != null)
-						sb.append(" on ")
-							.append(d);
-					if(p != null)
-						sb.append(" in ")
-							.append(p);
-					sb.append('.');
-					sentences.add(sb.toString());
-				}
+				final String typeLabel = (type != null? type.replace('_', ' '): labels.narrative().groupUnionDefaultType());
+				if(d != null || p != null)
+					sentences.add(labels.narrative().groupNarrativeUnion(displayName, typeLabel, d, p));
 			}
 		}
 		else

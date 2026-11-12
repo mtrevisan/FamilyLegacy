@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -68,7 +69,7 @@ final class FindingsExport{
 		for(final Entry entry : entries){
 			final Diagnostic diagnostic = entry.diagnostic();
 			csv.append(line(diagnostic.severity().name().toLowerCase(Locale.ROOT), diagnostic.category().title(), diagnostic.kind(),
-				diagnostic.title(), diagnostic.explanation(), String.join(" ", diagnostic.recordIds()),
+				diagnostic.title(), diagnostic.explanation(), String.join(StringUtils.SPACE, diagnostic.recordIds()),
 				(entry.ignored()? I18N.t("assistant.export.yes"): "")));
 		}
 		return csv.toString();

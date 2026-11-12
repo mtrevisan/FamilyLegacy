@@ -41,8 +41,8 @@ public interface SearchStrategy {
 	 * @param criteria the search criteria
 	 * @return a predicate for filtering records
 	 */
-	public Predicate<FLEFRecord> buildPredicate(SearchCriteria criteria, FLEFModel model);
+	Predicate<FLEFRecord> buildPredicate(SearchCriteria criteria, FLEFModel model);
 
-	public String getDisplayText(FLEFRecord record, FLEFModel model);
+	String getDisplayText(FLEFRecord record, FLEFModel model);
 
 }

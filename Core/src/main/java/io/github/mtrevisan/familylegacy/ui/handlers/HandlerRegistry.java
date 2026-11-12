@@ -118,7 +118,7 @@ public final class HandlerRegistry{
 	 * @return	The handler, or {@code null} if not able to return a class.
 	 */
 	public static RecordTypeHandler<?> getHandler(final String type){
-		return HANDLERS.get(type.toUpperCase(Locale.ROOT));
+		return (type != null? HANDLERS.get(type.toUpperCase(Locale.ROOT)): null);
 	}
 
 

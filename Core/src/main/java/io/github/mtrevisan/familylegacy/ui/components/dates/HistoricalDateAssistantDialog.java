@@ -72,9 +72,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
@@ -133,9 +133,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			boolean approximate){
 
 		String describe(){
-			return shortLabel + (approximate? " (approximate)": StringUtils.EMPTY)
-				+ (minJdn == maxJdn? StringUtils.EMPTY: " (from Julian Day Number " + minJdn + " to " + maxJdn
-				+ "; reduced precisions use nominal lengths: month 31 days, year 366)");
+			return shortLabel + (approximate? " (" + I18N.t("dialog.date_assistant.event.approximate") + ")": StringUtils.EMPTY)
+				+ (minJdn == maxJdn? StringUtils.EMPTY: " (" + I18N.tf("dialog.date_assistant.event.range", String.valueOf(minJdn), String.valueOf(maxJdn)) + ")");
 		}
 
 	}

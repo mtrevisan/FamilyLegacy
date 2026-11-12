@@ -28,17 +28,25 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.common.Spatial
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JRootPane;
+import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.function.Supplier;
 
 
 /**
@@ -51,7 +59,7 @@ public final class GlobalKeyboardController{
 	private static final String ACTION_EDIT_SELECTION = "editSelection";
 
 
-	public static void install(final JFrame frame, final ProjectionSwitcherPanel switcher){
+	public static void install(final JFrame frame, final Supplier<ProjectionSwitcherPanel> switcherSupplier){
 		final JRootPane rootPane = frame.getRootPane();
 		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = rootPane.getActionMap();
@@ -61,8 +69,8 @@ public final class GlobalKeyboardController{
 		actionMap.put(ACTION_NAVIGATE_BACK, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				if(switcher.canGoBack())
-					switcher.navigateBack();
+				if(switcherSupplier.get().canGoBack())
+					switcherSupplier.get().navigateBack();
 			}
 		});
 
@@ -70,8 +78,8 @@ public final class GlobalKeyboardController{
 		actionMap.put(ACTION_NAVIGATE_FORWARD, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				if(switcher.canGoForward())
-					switcher.navigateForward();
+				if(switcherSupplier.get().canGoForward())
+					switcherSupplier.get().navigateForward();
 			}
 		});
 
@@ -80,7 +88,7 @@ public final class GlobalKeyboardController{
 		actionMap.put(ACTION_EDIT_SELECTION, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				switcher.editEntity(switcher.getSelectedEntityId());
+				switcherSupplier.get().editEntity(switcherSupplier.get().getSelectedEntityId());
 			}
 		});
 
@@ -96,28 +104,31 @@ public final class GlobalKeyboardController{
 				return false;
 
 			final Component focusOwner = currentKeyboardFocusManager.getFocusOwner();
-			if(focusOwner instanceof JTextComponent)
+			//components that use the arrows and Enter themselves must keep them
+			if(focusOwner instanceof JTextComponent || focusOwner instanceof JTable || focusOwner instanceof JList<?>
+					|| focusOwner instanceof JTree || focusOwner instanceof JComboBox<?> || focusOwner instanceof JSlider
+					|| focusOwner instanceof JTabbedPane || focusOwner instanceof AbstractButton)
 				return false;
 
 			return switch(e.getKeyCode()){
 				case KeyEvent.VK_UP -> {
-					switcher.moveSelection(SpatialNavigation.Direction.UP);
+					switcherSupplier.get().moveSelection(SpatialNavigation.Direction.UP);
 					yield true;
 				}
 				case KeyEvent.VK_DOWN -> {
-					switcher.moveSelection(SpatialNavigation.Direction.DOWN);
+					switcherSupplier.get().moveSelection(SpatialNavigation.Direction.DOWN);
 					yield true;
 				}
 				case KeyEvent.VK_LEFT -> {
-					switcher.moveSelection(SpatialNavigation.Direction.LEFT);
+					switcherSupplier.get().moveSelection(SpatialNavigation.Direction.LEFT);
 					yield true;
 				}
 				case KeyEvent.VK_RIGHT -> {
-					switcher.moveSelection(SpatialNavigation.Direction.RIGHT);
+					switcherSupplier.get().moveSelection(SpatialNavigation.Direction.RIGHT);
 					yield true;
 				}
 				case KeyEvent.VK_ENTER -> {
-					switcher.confirmSelection();
+					switcherSupplier.get().confirmSelection();
 					yield true;
 				}
 				default -> false;

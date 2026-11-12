@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.components.dates;
 import io.github.mtrevisan.calendars.assistant.DateSuggestion;
 import io.github.mtrevisan.calendars.assistant.Message;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.DayOfWeek;

@@ -57,6 +57,8 @@ import java.util.function.Supplier;
 public final class TemporalZoomController{
 
 	private static final int DRAG_DEAD_ZONE_PX = 3;
+	/** The widest visible window, in days (about 5 million years). */
+	private static final long MAX_SPAN_DAYS = 2_000_000_000L;
 
 
 	/**
@@ -180,6 +182,9 @@ public final class TemporalZoomController{
 
 		final long span = axis.visibleEndJdn() - axis.visibleStartJdn();
 		if(zoomIn && span <= 2L)
+			return;
+		//zooming out without end would overflow the span
+		if(!zoomIn && span > MAX_SPAN_DAYS)
 			return;
 
 		final long anchorJdn = axis.xToJdn(cursorX);

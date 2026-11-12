@@ -245,7 +245,7 @@ public final class ResearchBoardDialog extends JDialog{
 		if(selectedId != null)
 			select(root, selectedId);
 
-		statusLabel.setText(questions + (questions == 1? " question": " questions"));
+		statusLabel.setText(I18N.plural("text.research.questions", questions));
 		showDetails(selectedNode());
 	}
 

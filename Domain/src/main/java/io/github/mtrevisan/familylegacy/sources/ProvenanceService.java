@@ -186,6 +186,10 @@ public final class ProvenanceService{
 	}
 
 
+	/**
+	 * Collects the citations of a record once. The record id is a sufficient key: the citations depend only on the record, not on the
+	 * path through which it was reached (participation, event, attribute, relationship), so reaching it again adds nothing.
+	 */
 	private static void visit(final FLEFModel model, final FLEFRecord record, final List<Row> rows, final Set<String> done){
 		if(done.add(record.getId()))
 			collect(model, record, rows);

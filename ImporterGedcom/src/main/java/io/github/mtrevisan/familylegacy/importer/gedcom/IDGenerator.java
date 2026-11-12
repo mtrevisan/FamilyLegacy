@@ -82,15 +82,6 @@ public final class IDGenerator{
 	}
 
 	/**
-	 * Convenience method to get the next ID for a prefix,
-	 * but also registers the ID if it's an existing one.
-	 * Used when we want to assign a specific ID and ensure the counter is updated.
-	 */
-	public static void registerAndUseId(String id){
-		registerExistingId(id);
-	}
-
-	/**
 	 * Returns the current maximum number for a prefix without incrementing.
 	 */
 	public static int getCurrentMax(String prefix){

@@ -70,12 +70,12 @@ public interface RecordDialog{
 	 * @param after   how it is
 	 * @param refresh refreshes the list that shows the nested record
 	 */
+	default void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){}
+
 	/** Presets the sex of a new individual, and keeps it (the editors of the other records ignore it). */
 	default void presetSex(final SexType sex){}
 
 	/** Shows the relationships in which the record is the object (where a child or a member is added). */
 	default void showRelationshipsAsObject(){}
-
-	default void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){}
 
 }

@@ -37,7 +37,7 @@ import java.util.HexFormat;
 import java.util.function.BooleanSupplier;
 
 
-/** Downloads the installer of a release and checks it. */
+/** Downloads the installer of a release, or another file attached to it, and checks it. */
 public final class InstallerDownloader{
 
 	private static final int BUFFER_SIZE = 64 * 1024;
@@ -58,9 +58,6 @@ public final class InstallerDownloader{
 
 	/** The user canceled the download. */
 	public static final class DownloadCancelledException extends IOException{
-
-		private static final long serialVersionUID = 1L;
-
 
 		public DownloadCancelledException(){
 			super("Download cancelled");
@@ -91,33 +88,52 @@ public final class InstallerDownloader{
 			throws IOException{
 		if(!release.hasInstaller())
 			throw new IOException("The release " + release.tag() + " has no installer for this system");
-		if(!"https".equalsIgnoreCase(release.installerUrl().getScheme()))
-			throw new IOException("The installer is not served over HTTPS: " + release.installerUrl());
-
 		//(the digest comes with the release, never from the downloaded file: without it nothing tells a good installer from a bad one)
 		if(release.sha256() == null)
 			throw new IOException("The release " + release.tag() + " does not publish the SHA-256 of its installer");
 
-		final String fileName = release.installerName();
+		return download(new ReleaseAsset(release.installerName(), release.installerUrl(), release.installerSize(), release.sha256()),
+			directory, progress, cancelled);
+	}
+
+	/**
+	 * Downloads a file of a release into a file, that exists only if the download is complete and matches the published size and SHA-256.
+	 *
+	 * @param asset	The file of the release, with its SHA-256.
+	 * @param directory	Where to put the file.
+	 * @param progress	Told how far the download is (called from this thread); may be {@code null}.
+	 * @param cancelled	Tells whether to give up; may be {@code null}.
+	 * @return	The downloaded file.
+	 * @throws DownloadCancelledException	If {@code cancelled} says so.
+	 * @throws IOException	If the download fails or the file is not the published one.
+	 */
+	public Path download(final ReleaseAsset asset, final Path directory, final Progress progress, final BooleanSupplier cancelled)
+			throws IOException{
+		if(!"https".equalsIgnoreCase(asset.url().getScheme()))
+			throw new IOException("The file is not served over HTTPS: " + asset.url());
+		if(asset.sha256() == null)
+			throw new IOException("The SHA-256 of " + asset.name() + " is not published");
+
+		final String fileName = asset.name();
 		//(the name comes from the network: it must not lead outside the directory)
 		if(!isPlainFileName(fileName))
-			throw new IOException("Unexpected name of the installer: " + fileName);
+			throw new IOException("Unexpected name of the file: " + fileName);
 
 		Files.createDirectories(directory);
 		final Path target = directory.resolve(fileName);
 		//(a name of its own: two instances of the application must not write the same file)
 		final Path partial = Files.createTempFile(directory, "installer-", ".part");
-
 		final MessageDigest digest = newDigest();
 		long done = 0;
-		try(final InputStream in = transport.open(release.installerUrl());
+		try(final InputStream in = transport.open(asset.url());
 				final OutputStream out = Files.newOutputStream(partial)){
-			final long total = release.installerSize();
+			final long total = asset.size();
 			final byte[] buffer = new byte[BUFFER_SIZE];
 			int read;
 			while(true){
 				if((cancelled != null && cancelled.getAsBoolean()) || Thread.currentThread().isInterrupted())
 					throw new DownloadCancelledException();
+
 				if((read = in.read(buffer)) < 0)
 					break;
 
@@ -125,7 +141,8 @@ public final class InstallerDownloader{
 				digest.update(buffer, 0, read);
 				done += read;
 				if(total >= 0 && done > total)
-					throw new IOException("The installer is bigger than the published " + total + " bytes");
+					throw new IOException("The file is bigger than the published " + total + " bytes");
+
 				if(progress != null)
 					progress.update(done, total);
 			}
@@ -136,10 +153,10 @@ public final class InstallerDownloader{
 		}
 
 		try{
-			if(release.installerSize() >= 0 && done != release.installerSize())
-				throw new IOException("Incomplete download: " + done + " bytes of " + release.installerSize());
-			if(!release.sha256().equalsIgnoreCase(HexFormat.of().formatHex(digest.digest())))
-				throw new IOException("The downloaded installer does not match its published SHA-256");
+			if(asset.size() >= 0 && done != asset.size())
+				throw new IOException("Incomplete download: " + done + " bytes of " + asset.size());
+			if(!asset.sha256().equalsIgnoreCase(HexFormat.of().formatHex(digest.digest())))
+				throw new IOException("The downloaded file does not match its published SHA-256");
 
 			Files.move(partial, target, StandardCopyOption.REPLACE_EXISTING);
 			return target;

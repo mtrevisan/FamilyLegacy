@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -99,6 +100,7 @@ import java.io.IOException;
 public class EventRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
+	private JPanel causePanel;
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextArea descriptionArea;
@@ -123,7 +125,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]");
 
-		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
+		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, null));
 		typeCombo.setI18NPrefix("enum.event.type");
 		typeCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(EventReader.TAG_DESCRIPTION, 3, 25);
@@ -188,6 +190,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createCausePanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+		causePanel = panel;
 
 		GUIHelper.addLabeledComponent(panel, GUIHelper.requiredLabel("dialog.event.cause.reason"), causeReasonField);
 
@@ -293,6 +296,16 @@ public class EventRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.event.description")),
 				tabbedPane, propertiesPanel, descriptionArea);
+
+			return false;
+		}
+
+		//the reason of the cause is required only when a cause is given (its sources or its confidence)
+		final EntityListPanel causeSourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE_FOR_CAUSE);
+		if(causeReasonField.isEmpty() && (causeConfidenceCombo.isValued() || (causeSourcePanel != null && causeSourcePanel.hasData()))){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.event.cause.reason")),
+				tabbedPane, causePanel, causeReasonField);
 
 			return false;
 		}

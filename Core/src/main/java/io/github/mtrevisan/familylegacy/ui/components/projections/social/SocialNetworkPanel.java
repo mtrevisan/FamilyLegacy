@@ -304,8 +304,11 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	}
 
 	private void onMouseWheel(final MouseWheelEvent e){
-		if(!e.isControlDown() && !e.isMetaDown())
+		if(!e.isControlDown() && !e.isMetaDown()){
+			//Swing does not bubble a wheel event from a component that has a wheel listener: hand it to the scroll pane
+			scrollPane.dispatchEvent(SwingUtilities.convertMouseEvent(canvas, e, scrollPane));
 			return;
+		}
 		e.consume();
 
 		final int rotations = e.getWheelRotation();
@@ -421,7 +424,14 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 	}
 
 	private void fitToView(){
+		//scale the whole graph so that it fits the viewport (never enlarging it beyond 1:1)
 		scale = 1.;
+		final Rectangle content = layout.contentBounds();
+		final Dimension viewport = scrollPane.getViewport()
+			.getExtentSize();
+		if(content != null && content.width > 0 && content.height > 0 && viewport.width > 0 && viewport.height > 0)
+			scale = Math.clamp(Math.min((double)viewport.width / content.width, (double)viewport.height / content.height),
+				MIN_SCALE, 1.);
 		offsetX = 0.;
 		offsetY = 0.;
 		updateCanvasSize();
@@ -443,6 +453,8 @@ public final class SocialNetworkPanel extends JPanel implements TreeChangeListen
 			return;
 
 		final RecordTypeHandler<?> handler = handlerForTag(record.getTag());
+		if(handler == null)
+			return;
 		final Window parent = SwingUtilities.getWindowAncestor(this);
 		final RecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);

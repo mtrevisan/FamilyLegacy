@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -101,7 +102,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// locator
-		GUIHelper.addLabeledComponent(propertiesPanel, "Locator:", locatorField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.source_citation.locator"), locatorField);
 
 		return propertiesPanel;
 	}
@@ -171,7 +172,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 	protected boolean validData(){
 		if(repositoryField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Repository is required.",
+				I18N.tf("validation.required", RepositoryHandler.getInstance().getLabel()),
 				tabbedPane, propertiesPanel, repositoryField);
 
 			return false;

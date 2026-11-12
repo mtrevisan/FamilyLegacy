@@ -175,8 +175,7 @@ public final class ContactReader{
 			final char c = text.charAt(i);
 			if(c >= '0' && c <= '9')
 				digits ++;
-			else if(c == '+' && i == 0 || c == ' ' || c == '-' || c == '(' || c == ')' || c == '.' && international)
-				continue;
+			else if(c == '+' && i == 0 || c == ' ' || c == '-' || c == '(' || c == ')' || c == '.' && international){}
 			else
 				return false;
 		}

@@ -35,8 +35,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,6 +68,8 @@ public final class FLEFRecordHelper{
 			final String tag = segment.substring(0, startArrayIndex)
 				.toLowerCase(Locale.ROOT);
 			final int endArrayIndex = segment.indexOf(']', startArrayIndex);
+			if(endArrayIndex < 0)
+				return null;
 			final String indexStr = segment.substring(startArrayIndex + 1, endArrayIndex)
 				.trim();
 			if(ANY.equals(indexStr))
@@ -313,7 +315,7 @@ public final class FLEFRecordHelper{
 				continue;
 
 			if(size > 1){
-				LOGGER.debug("Record with more than one " + referencePath + ": " + record);
+				LOGGER.debug("Record with more than one {}: {}", referencePath, record);
 
 				continue;
 			}
@@ -322,7 +324,7 @@ public final class FLEFRecordHelper{
 
 			final String referencedId = reference.getValue();
 			if(StringUtils.isEmpty(referencedId)){
-				LOGGER.debug("No referenced ID found from reference " + reference + " from record " + record);
+				LOGGER.debug("No referenced ID found from reference {} from record {}", reference, record);
 
 				continue;
 			}
@@ -331,7 +333,7 @@ public final class FLEFRecordHelper{
 			if(referencedRecord != null){
 				final String referencedTag = reference.getTag();
 				if(!Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
-					LOGGER.debug("Referenced tag differs from reference " + reference + " from record " + record);
+					LOGGER.debug("Referenced tag differs from reference {} from record {}", reference, record);
 
 					continue;
 				}
@@ -359,7 +361,8 @@ public final class FLEFRecordHelper{
 			return result;
 
 		// Build map: targetParent → set of expected tags
-		final Map<FLEFRecord, Set<String>> targetMap = new HashMap<>();
+		//(by identity: records that are equal are still different nodes of the tree)
+		final Map<FLEFRecord, Set<String>> targetMap = new IdentityHashMap<>();
 		for(int i = 0, size = paths.length; i < size; i ++){
 			final String path = paths[i];
 
@@ -383,7 +386,7 @@ public final class FLEFRecordHelper{
 			return result;
 
 		// Iterative pre‑order traversal (stack), tracking the parent of each node
-		final Set<FLEFRecord> visited = new HashSet<>();
+		final Set<FLEFRecord> visited = Collections.newSetFromMap(new IdentityHashMap<>());
 		final Deque<AbstractMap.SimpleEntry<FLEFRecord, FLEFRecord>> stack = new ArrayDeque<>();
 		stack.push(new AbstractMap.SimpleEntry<>(parent, null));
 		while(!stack.isEmpty()){
@@ -576,7 +579,7 @@ public final class FLEFRecordHelper{
 		final FLEFRecord target = getNthChild(targetParent, seg);
 		if(target != null){
 			targetParent.getChildren()
-				.remove(target);
+				.removeIf(child -> child == target);
 
 			return target;
 		}

@@ -57,7 +57,7 @@ public final class GEDCOM7Normalizer{
 	private static final String ENUM_OTHER = "OTHER";
 
 	/** A calendar of a GEDCOM 7 date, and the name of its GEDCOM 5.5.1 escape. */
-	private static final Pattern CALENDAR_KEYWORD = Pattern.compile("(?<=^|\s)(GREGORIAN|JULIAN|HEBREW|FRENCH_R)(?=\s)");
+	private static final Pattern CALENDAR_KEYWORD = Pattern.compile("(?<=^|\\s)(GREGORIAN|JULIAN|HEBREW|FRENCH_R)(?=\\s)");
 
 
 	private GEDCOM7Normalizer(){}

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +81,7 @@ final class EmbeddedFiles{
 			}
 			catch(final IOException | RuntimeException e){
 				LOGGER.error("Cannot write the embedded file {}", pending.suggestedName(), e);
-				report.discard(ImportReasons.MEDIA_DETAIL, REPORT_ITEM + " " + pending.suggestedName(), pending.mediaId());
+				report.discard(ImportReasons.MEDIA_DETAIL, REPORT_ITEM + StringUtils.SPACE + pending.suggestedName(), pending.mediaId());
 			}
 		}
 		report.clearPendingFiles();
@@ -90,7 +91,7 @@ final class EmbeddedFiles{
 	/** The user did not choose a folder: the media keep the placeholder uri, and each embedded file is reported as discarded. */
 	static void decline(final ImportReport report){
 		for(final PendingFile pending : report.pendingFiles())
-			report.discard(ImportReasons.MEDIA_DETAIL, REPORT_ITEM + " " + pending.suggestedName(), pending.mediaId());
+			report.discard(ImportReasons.MEDIA_DETAIL, REPORT_ITEM + StringUtils.SPACE + pending.suggestedName(), pending.mediaId());
 		report.clearPendingFiles();
 	}
 

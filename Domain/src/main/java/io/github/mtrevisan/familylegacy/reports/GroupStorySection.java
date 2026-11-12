@@ -327,7 +327,7 @@ public final class GroupStorySection implements SectionBuilder{
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
-			(type.isEmpty()? "Event": type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
+			(type.isEmpty()? ctx.labels.sections().eventGeneric(): type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
 		final String place = PlaceCitationReader.extractPlace(evt, ctx.model);
 		if(place != null)

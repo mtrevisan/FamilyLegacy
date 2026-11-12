@@ -48,6 +48,8 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -87,6 +89,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -124,6 +127,8 @@ import java.util.function.Consumer;
  * {@link #getSelectedPlaceRecord()}.
  */
 public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyView{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(PlaceHierarchyPanel.class);
 
 	/** Property fired with the percentage (0-100) of the tree rebuild. */
 	public static final String PROPERTY_FILTERING_PROGRESS = PlaceHierarchyView.PROPERTY_FILTERING_PROGRESS;
@@ -197,6 +202,8 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 
 	/** The active worker that rebuilds the tree, if any. */
 	private SwingWorker<DefaultMutableTreeNode, Integer> rebuildWorker;
+	/** The place to select again when the tree being rebuilt is ready, {@code null} for none. */
+	private String pendingSelectionId;
 
 
 	public PlaceHierarchyPanel(final FLEFModel model){
@@ -230,9 +237,9 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 
 		this.hierarchy = PlaceHierarchyService.load(model);
 
+		//the tree is rebuilt in the background: the selection is restored when the new tree is in place
+		pendingSelectionId = previousSelection;
 		rebuildTree();
-
-		restoreSelection(previousSelection);
 	}
 
 	/**
@@ -337,7 +344,12 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 		final String currentSearch = searchFilter;
 		final String currentType = relationTypeFilter;
 		final Set<SearchMode> currentModes = searchModes;
-		final int totalNodes = hierarchy.places().size();
+		//a snapshot, because the worker thread must not read the field that a reload can replace
+		final PlaceHierarchyService.Hierarchy snapshot = hierarchy;
+		final int totalNodes = snapshot.places().size();
+		//the selection to give back to the new tree: the one asked by a reload, or the current one
+		final String keepSelection = (pendingSelectionId != null? pendingSelectionId: selectedPlaceId());
+		pendingSelectionId = null;
 		final AtomicInteger visited = new AtomicInteger(0);
 		final AtomicInteger lastPercent = new AtomicInteger(-1);
 
@@ -349,7 +361,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			@Override
 			protected DefaultMutableTreeNode doInBackground(){
 				final DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(I18N.t("text.places"));
-				for(final String rootId : hierarchy.rootIds()){
+				for(final String rootId : snapshot.rootIds()){
 					if(isCancelled()) return newRoot;
 
 					final Consumer<Integer> throttledPublisher = percent -> {
@@ -357,7 +369,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 							publish(percent);
 					};
 
-					final DefaultMutableTreeNode node = buildNode(rootId, null, new HashSet<>(),
+					final DefaultMutableTreeNode node = buildNode(snapshot, rootId, null, new HashSet<>(),
 						currentSearch, currentType, currentModes, visited, totalNodes, throttledPublisher);
 					if(node != null)
 						newRoot.add(node);
@@ -383,6 +395,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 					treeModel.setRoot(treeRoot);
 
 					tree.expandPath(new TreePath(treeRoot));
+					restoreSelection(keepSelection);
 
 					// Final progress (100%) and completion event. Firing
 					// 100 explicitly covers the case where filtering
@@ -391,10 +404,11 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_PROGRESS, null, 100);
 					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_DONE, false, true);
 				}
-				catch(final Exception ignored){
-					// Ignore exceptions from canceled workers, but
-					// ensure the progress bar is closed anyway to avoid
+				catch(final Exception e){
+					// Ensure the progress bar is closed anyway to avoid
 					// leaving the host in a "loading" state.
+					if(!(e instanceof CancellationException))
+						LOGGER.error("Cannot rebuild the place hierarchy tree", e);
 					PlaceHierarchyPanel.this.firePropertyChange(PROPERTY_FILTERING_DONE, false, true);
 				}
 			}
@@ -423,7 +437,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 	 * current path from the root, so a cycle is broken at the first
 	 * repeated node and the node is marked as a cycle for the renderer.
 	 */
-	private DefaultMutableTreeNode buildNode(final String placeId, final PlaceHierarchyService.PlaceRelation incoming,
+	private DefaultMutableTreeNode buildNode(final PlaceHierarchyService.Hierarchy hierarchy, final String placeId, final PlaceHierarchyService.PlaceRelation incoming,
 			final Set<String> path, final String currentSearch, final String currentType,
 			final Set<SearchMode> currentModes, final AtomicInteger visited, final int totalNodes,
 			final Consumer<Integer> progressPublisher){
@@ -470,7 +484,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			if(hasTypeFilter && !currentType.equals(rel.relationType()))
 				continue;
 
-			final DefaultMutableTreeNode child = buildNode(rel.childId(), rel, newPath, currentSearch, currentType,
+			final DefaultMutableTreeNode child = buildNode(hierarchy, rel.childId(), rel, newPath, currentSearch, currentType,
 				currentModes, visited, totalNodes, progressPublisher);
 			if(child != null)
 				node.add(child);
@@ -574,6 +588,8 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			return;
 
 		final FLEFRecord record = model.getRecordById(payload.place().id());
+		if(record == null)
+			return;
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		final Window owner = SwingUtilities.getWindowAncestor(this);
 		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
@@ -773,22 +789,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			content.setEditable(false);
 			content.setContentType("text/html");
 
-			// Listener to open links in the system browser
-			content.addHyperlinkListener(e -> {
-				if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
-					if(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)){
-						try{
-							Desktop.getDesktop()
-								.browse(e.getURL().toURI());
-						}
-						catch(final Exception ignored){
-							// Log or ignore
-						}
-					}
-				}
-			});
-
-			// Listener to change the cursor to a hand when hovering over a link
+			// Listener to open links in the system browser (once) and to change the cursor to a hand when hovering over a link
 			content.addHyperlinkListener(e -> {
 				if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED){
 					if(Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)){
@@ -949,19 +950,6 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			sb.append("</div>");
 		}
 
-		private static void appendRelationInfo(final StringBuilder sb, final PlaceHierarchyService.PlaceRelation rel){
-			if(rel.relationType() != null && !rel.relationType().isBlank())
-				sb.append(" <i>— ").append(escape(formatRelationType(rel.relationType()))).append("</i>");
-			final String from = rel.validFrom();
-			final String to = rel.validTo();
-			if(from != null || to != null)
-				sb.append(" <font color='#666'>[")
-					.append(from != null? escape(from): "?")
-					.append(" – ")
-					.append(to != null? escape(to): "?")
-					.append("]</font>");
-		}
-
 		private static String escape(final String s){
 			return ReportDialog.escape(s);
 		}
@@ -1036,7 +1024,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 						.append("]</font>");
 			}
 			if(payload.cycle())
-				sb.append(" <font color='#b00020'>(cycle)</font>");
+				sb.append(" <font color='#b00020'>").append(escape(I18N.t("place.hierarchy.cycle"))).append("</font>");
 			sb.append("</html>");
 			return sb.toString();
 		}

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.model;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -100,7 +101,7 @@ public final class RecordChangeSummary{
 				else if(newChild == null)
 					changes.add(REMOVED + path + describeValue(oldChild));
 				else{
-					if(!StringUtils.equals(oldChild.getValue(), newChild.getValue()))
+					if(!Strings.CS.equals(oldChild.getValue(), newChild.getValue()))
 						changes.add(CHANGED + path + ": " + abbreviate(oldChild.getValue()) + ARROW + abbreviate(newChild.getValue()));
 
 					compare(path + ".", oldChild, newChild, changes);

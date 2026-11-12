@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.features;
 
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -66,7 +67,7 @@ public record Suggestion(SuggestionKind kind, String message, String explanation
 	 */
 	public static Suggestion forLevel(final SuggestionKind kind, final UxLevel level, final String explanation, final Runnable action,
 			final Runnable dismiss){
-		final String hint = (level == UxLevel.ADVANCED? kind.hint() + " ": "");
+		final String hint = (level == UxLevel.ADVANCED? kind.hint() + StringUtils.SPACE: StringUtils.EMPTY);
 		return new Suggestion(kind, kind.message(level), (level == UxLevel.BASIC? null: hint + explanation), action, dismiss);
 	}
 

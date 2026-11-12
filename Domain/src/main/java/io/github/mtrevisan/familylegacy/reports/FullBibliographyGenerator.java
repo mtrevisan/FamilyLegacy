@@ -76,8 +76,8 @@ public final class FullBibliographyGenerator{
 			return new ReportDocument(title, null, List.of(new ReportSection.Heading(1, title),
 				new ReportSection.Paragraph(labels.sections().empty())), language, labels.sections().contents());
 
-		final RelationIndex index = RelationIndex.build(model, r -> true);
-		final ReportContext first = ReportContext.build(model, all.getFirst(), config, index);
+		final ReportContext first = ReportContext.build(model, all.getFirst(), config);
+		final RelationIndex index = first.index;
 		final List<FLEFRecord> sources = new ArrayList<>();
 		for(final FLEFRecord source : all)
 			if(first.isVisible(source))
@@ -120,8 +120,8 @@ public final class FullBibliographyGenerator{
 
 	/** A heading one level lower, because each source is a part of the bibliography. */
 	private static ReportSection demoted(final ReportSection section){
-		return (section instanceof final ReportSection.Heading heading
-			? new ReportSection.Heading(Math.min(heading.level() + 1, MAX_HEADING_LEVEL), heading.text()): section);
+		return (section instanceof ReportSection.Heading(int level, String text)
+			? new ReportSection.Heading(Math.min(level + 1, MAX_HEADING_LEVEL), text): section);
 	}
 
 }

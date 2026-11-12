@@ -228,7 +228,7 @@ final class ConclusionChecker{
 				final SexType second = data.persons().get(parents.keySet().stream().skip(1).findFirst().orElseThrow()).sex();
 				if(first == second && first != SexType.UNKNOWN)
 					findings.add(finding(Diagnostic.Severity.WARNING, "same_sex_parents", ids, "parentage", competing, child.name(),
-						(first == SexType.FEMALE? "mothers": "fathers"), names));
+						I18N.t(first == SexType.FEMALE? "conclusion.parents.mothers": "conclusion.parents.fathers"), names));
 			}
 		}
 

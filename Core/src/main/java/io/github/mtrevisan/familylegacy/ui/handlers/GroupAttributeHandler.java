@@ -80,7 +80,7 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<RecordDialo
 				for(final FLEFRecord group : groups){
 					final String resolveTag = group.getTag();
 					final String resolveXRef = group.getValue();
-					if(Strings.CI.equals(resolveTag, parentEntityType) && resolveXRef.equals(recordId))
+					if(Strings.CI.equals(resolveTag, parentEntityType) && recordId != null && recordId.equals(resolveXRef))
 						return true;
 
 					break;

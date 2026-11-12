@@ -28,15 +28,15 @@ import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex;
 import io.github.mtrevisan.familylegacy.chronomap.ChronomapIndex.GeoAnchor;
 import io.github.mtrevisan.familylegacy.chronomap.PlaceCoordinateResolver;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.search.SearchMode;
-import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -612,24 +612,6 @@ public final class AgoraPanel extends JPanel{
 		}
 
 		return new AgoraRow(id, resolveName(id), place, lat, lon, reason, age);
-	}
-
-	/**
-	 * Returns the JDN of the birth event, or, when no birth event is
-	 * recorded, the JDN of the earliest anchor. Returns {@code null}
-	 * when the anchor list is empty or contains only anchors with an
-	 * open start date ({@link Long#MIN_VALUE}).
-	 */
-	private static Long earliestBirthJdn(final List<GeoAnchor> anchors){
-		Long earliest = null;
-		for(final GeoAnchor a : anchors){
-			if("event:birth".equals(a.kind()))
-				return a.startJdn();
-
-			if(a.startJdn() != Long.MIN_VALUE && (earliest == null || a.startJdn() < earliest))
-				earliest = a.startJdn();
-		}
-		return earliest;
 	}
 
 	/** @return	Whether the row has a finite latitude in [-90, 90] and a finite longitude in [-180, 180]. */

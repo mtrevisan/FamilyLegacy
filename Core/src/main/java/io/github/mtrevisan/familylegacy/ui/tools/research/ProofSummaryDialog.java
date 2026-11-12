@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -82,7 +81,6 @@ final class ProofSummaryDialog extends JDialog{
 	private final JTable conclusionsTable;
 	private final JComboBox<String> statusFilter = new JComboBox<>();
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
-	private final JLabel summary = new JLabel();
 	private final JPanel distributionTab = new JPanel(new BorderLayout());
 
 
@@ -96,6 +94,8 @@ final class ProofSummaryDialog extends JDialog{
 		distributionTable = ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.status"), I18N.t("column.conclusions")}, List.of()),
 			null);
 		distributionTable.setAutoCreateRowSorter(false);
+		//the sorter made with the empty model would be kept, and would show no rows once the model is replaced
+		distributionTable.setRowSorter(null);
 		conclusionsTable = ToolDialogs.createTable(new RowTableModel(columns(), List.of()), row -> openRow(row));
 		conclusionsTable.getSelectionModel()
 			.addListSelectionListener(e -> updateOpenButton());
@@ -126,7 +126,7 @@ final class ProofSummaryDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringSpace.EMPTY, openRecord, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter("", openRecord, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);
@@ -190,7 +190,6 @@ final class ProofSummaryDialog extends JDialog{
 		statusFilter.setModel(new DefaultComboBoxModel<>(options.toArray(new String[0])));
 		verdict.setText(total == 0? I18N.t("text.proof_summary.empty"): I18N.tf("text.proof_summary.verdict", total));
 		tabs.setTitleAt(1, I18N.t("tab.title.conclusions") + " (" + total + ")");
-		summary.setText(GUIHelper.format(I18N.t("text.proof_summary.summary"), total));
 		updateOpenButton();
 	}
 
@@ -212,14 +211,6 @@ final class ProofSummaryDialog extends JDialog{
 		ToolDialogs.openRecordEditor(this, model, model.getRecordById(id));
 
 		reload();
-	}
-
-
-	/** The empty text of a footer. */
-	private static final class StringSpace{
-
-		static final String EMPTY = " ";
-
 	}
 
 }

@@ -12,6 +12,7 @@ None of these preferences is stored in the genealogy: they change how the data i
 
 **Appearance > Font...** opens a dialog to choose the font of the whole interface.
 
+- The list contains only the installed fonts that can draw every character used by the interface in the current language, so no label ends up with missing glyphs.
 - Type in the search box to narrow the list of installed fonts (word by word, with the *whole words* and *fuzzy* options as in the record selection); each font is drawn in its own face.
 - Set the **size** next to the filter.
 - The preview at the bottom shows a sample sentence in the chosen font and size.

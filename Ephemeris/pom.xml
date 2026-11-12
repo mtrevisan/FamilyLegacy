@@ -82,6 +82,10 @@
 										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
 										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
+										<!-- the fonts of the PDF reports, beside the plugins (the application can download them too, if they are missing) -->
+										<copy todir="${package.coreTarget}/jpackage-input/fonts" overwrite="true">
+											<fileset dir="${project.basedir}/../ReportPdf/fonts"/>
+										</copy>
 										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
 										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"
@@ -206,6 +210,10 @@
 										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
 										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
+										<!-- the fonts of the PDF reports, beside the plugins (the application can download them too, if they are missing) -->
+										<copy todir="${package.coreTarget}/jpackage-input/fonts" overwrite="true">
+											<fileset dir="${project.basedir}/../ReportPdf/fonts"/>
+										</copy>
 										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
 										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"

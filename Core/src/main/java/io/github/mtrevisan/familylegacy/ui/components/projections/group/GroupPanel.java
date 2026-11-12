@@ -368,7 +368,7 @@ public class GroupPanel extends JPanel{
 					listener.onGroupSelected(this, record);
 			})
 			.onEdit(record -> {
-				if(record.getId() != null)
+				if(listener != null && record.getId() != null)
 					listener.onEntityEdit(record);
 			})
 			.onHoverChanged(h -> {

@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -74,7 +75,7 @@ public final class TextSearchHelper{
 		final String decomposed = Normalizer.normalize(text, Normalizer.Form.NFD);
 		final String withoutMarks = DIACRITICS.matcher(decomposed)
 			.replaceAll(StringUtils.EMPTY);
-		return withoutMarks.toLowerCase();
+		return withoutMarks.toLowerCase(Locale.ROOT);
 	}
 
 	/**
@@ -135,7 +136,8 @@ public final class TextSearchHelper{
 		final boolean wholeWord = (modes != null && modes.contains(SearchMode.WHOLE_WORD));
 
 		final String normalizedSearch = normalize(searchText);
-		final String normalizedDisplay = normalize(displayText);
+		//a record without that text (e.g. no cause) cannot contain the search text
+		final String normalizedDisplay = (displayText != null? normalize(displayText): StringUtils.EMPTY);
 
 		if(wholeWord){
 			// Token-level comparison: the search text is split into words,
@@ -147,11 +149,15 @@ public final class TextSearchHelper{
 			// Pattern.compile("\\b" + quote + "\\b") avoids recompiling
 			// the regex on every call, and avoids the trap of Java's
 			// \b not being Unicode-aware by default.
-			final String[] searchTokens = StringUtils.split(normalizedSearch);
+			//both sides are tokenized the same way, so that a query with punctuation ("o'brien") can equal a token
+			final String[] searchTokens = DISPLAY_TOKEN_SEPARATOR.split(normalizedSearch);
 			final String[] displayTokens = DISPLAY_TOKEN_SEPARATOR.split(normalizedDisplay);
 
 			for(final String searchToken : searchTokens)
 				for(final String displayToken : displayTokens){
+					//a leading separator gives an empty token, that is no word
+					if(searchToken.isEmpty() || displayToken.isEmpty())
+						continue;
 					if(fuzzy){
 						final double sim = jaccardSimilarity(
 							getTrigrams(searchToken), getTrigrams(displayToken));

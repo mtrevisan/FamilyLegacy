@@ -178,7 +178,6 @@ public final class TemporalExtractor{
 		return switch(entity.type()){
 			case INDIVIDUAL -> extractIndividualAttributeEntries(entity);
 			case GROUP -> extractGroupAttributeEntries(entity);
-			case PLACE -> List.of();
 			default -> List.of();
 		};
 	}
@@ -307,28 +306,6 @@ public final class TemporalExtractor{
 			final String label = (title != null? title: ruleType != null? ruleType: I18N.t("text.temporal.cultural_norm"));
 			output.add(new TemporalEntry(span, label, ruleType, StringUtils.EMPTY, record, evidenceOf(record)));
 		}
-	}
-
-	/**
-	 * Returns whether the given record carries a {@code place} citation whose
-	 * inner reference points to the given place id.
-	 */
-	private static boolean referencesPlace(final FLEFRecord record, final String placeId){
-		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(record, PlaceReader.TYPE);
-		if(placeCitation == null)
-			return false;
-		final FLEFRecord ref = FLEFRecordHelper.findChild(placeCitation, PlaceReader.TYPE);
-		return (ref != null && placeId.equals(ref.getValue()));
-	}
-
-	private static boolean isImpactTarget(final FLEFRecord impact, final TemporalEntityRef entity){
-		final FLEFRecord targetRef = FLEFRecordHelper.findChild(impact, ContextImpactReader.TAG_TARGET);
-		if(targetRef == null)
-			return false;
-		final FLEFRecord ref = targetRef.getTheOnlyChild();
-		if(ref == null || ref.getValue() == null)
-			return false;
-		return entity.id().equals(ref.getValue());
 	}
 
 	private TemporalSpan contextSpan(final FLEFRecord context){

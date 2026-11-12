@@ -34,7 +34,6 @@ import io.github.mtrevisan.updater.ReleaseInfo;
 import io.github.mtrevisan.updater.Transport;
 import io.github.mtrevisan.updater.UpdateCheck;
 import io.github.mtrevisan.updater.UpdateChecker;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

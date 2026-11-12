@@ -91,21 +91,27 @@ public final class TemporalContextRenderer{
 		if(g == null || bands == null || bands.isEmpty() || axis == null || contentBounds == null)
 			return;
 
-		int index = 0;
-		for(final TemporalContextBand band : bands){
-			final Rectangle rect = axis.spanToRect(band.span(), contentBounds.y, contentBounds.height);
-			if(rect == null)
-				continue;
-			rect.x += contentBounds.x;
+		final Stroke originalStroke = g.getStroke();
+		try{
+			int index = 0;
+			for(final TemporalContextBand band : bands){
+				final Rectangle rect = axis.spanToRect(band.span(), contentBounds.y, contentBounds.height);
+				if(rect == null)
+					continue;
+				rect.x += contentBounds.x;
 
-			g.setColor(colorForBand(band));
-			g.fillRect(rect.x, rect.y, rect.width, rect.height);
+				g.setColor(colorForBand(band));
+				g.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-			g.setColor(COLOR_BAND_BORDER);
-			g.setStroke(new BasicStroke(1f));
-			g.drawRect(rect.x, rect.y, rect.width, rect.height);
+				g.setColor(COLOR_BAND_BORDER);
+				g.setStroke(new BasicStroke(1f));
+				g.drawRect(rect.x, rect.y, rect.width, rect.height);
 
-			drawLabel(g, band, rect, index ++);
+				drawLabel(g, band, rect, index ++);
+			}
+		}
+		finally{
+			g.setStroke(originalStroke);
 		}
 	}
 

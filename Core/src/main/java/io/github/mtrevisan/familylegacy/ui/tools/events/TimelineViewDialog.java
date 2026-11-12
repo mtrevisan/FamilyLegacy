@@ -311,6 +311,9 @@ public final class TimelineViewDialog extends JDialog{
 
 	private FLEFRecord selectedIndividual(){
 		final String id = context.selectedEntityId();
+		if(id == null)
+			return null;
+
 		final FLEFRecord record = context.model()
 			.getRecordById(id);
 		return (IndividualHandler.isOfType(record)? record: null);

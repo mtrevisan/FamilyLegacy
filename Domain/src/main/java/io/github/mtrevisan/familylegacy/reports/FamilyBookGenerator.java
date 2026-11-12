@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.reports.ReportDocument;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -125,8 +126,8 @@ public final class FamilyBookGenerator{
 		if(names.isEmpty())
 			return "\uffff";
 
-		final StringJoiner family = new StringJoiner(" ");
-		final StringJoiner others = new StringJoiner(" ");
+		final StringJoiner family = new StringJoiner(StringUtils.SPACE);
+		final StringJoiner others = new StringJoiner(StringUtils.SPACE);
 		for(final NamePart part : names.getFirst().parts()){
 			final String value = part.value();
 			if(value == null || value.isBlank())
@@ -136,7 +137,7 @@ public final class FamilyBookGenerator{
 			else
 				others.add(value.strip());
 		}
-		final String name = (family + " " + others).strip().toLowerCase(locale);
+		final String name = (family + StringUtils.SPACE + others).strip().toLowerCase(locale);
 		return (name.isEmpty()? "\uffff": name);
 	}
 

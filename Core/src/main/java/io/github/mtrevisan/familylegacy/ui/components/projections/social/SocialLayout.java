@@ -38,9 +38,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 
@@ -426,19 +428,30 @@ public final class SocialLayout{
 
 	private static Map<SocialNodeRef, Integer> computeSubtreeWeights(final SocialNodeRef root,
 		final Map<SocialNodeRef, List<SocialNodeRef>> childrenByParent){
-		final Map<SocialNodeRef, Integer> weights = new HashMap<>();
-		computeWeight(root, childrenByParent, weights);
-		return weights;
-	}
+		//iterative (so deep chains cannot overflow the stack) with a visited guard against cycles
+		final List<SocialNodeRef> preOrder = new ArrayList<>();
+		final Deque<SocialNodeRef> stack = new ArrayDeque<>();
+		final Set<SocialNodeRef> visited = new HashSet<>();
+		stack.push(root);
+		visited.add(root);
+		while(!stack.isEmpty()){
+			final SocialNodeRef node = stack.pop();
+			preOrder.add(node);
+			for(final SocialNodeRef child : childrenByParent.getOrDefault(node, List.of()))
+				if(visited.add(child))
+					stack.push(child);
+		}
 
-	private static int computeWeight(final SocialNodeRef node,
-		final Map<SocialNodeRef, List<SocialNodeRef>> childrenByParent, final Map<SocialNodeRef, Integer> weights){
-		final List<SocialNodeRef> children = childrenByParent.getOrDefault(node, List.of());
-		int weight = 1;
-		for(final SocialNodeRef child : children)
-			weight += computeWeight(child, childrenByParent, weights);
-		weights.put(node, weight);
-		return weight;
+		//children always come after their parent in pre-order, so walking it backwards sees every child first
+		final Map<SocialNodeRef, Integer> weights = new HashMap<>();
+		for(int i = preOrder.size() - 1; i >= 0; i --){
+			final SocialNodeRef node = preOrder.get(i);
+			int weight = 1;
+			for(final SocialNodeRef child : childrenByParent.getOrDefault(node, List.of()))
+				weight += weights.getOrDefault(child, 0);
+			weights.put(node, weight);
+		}
+		return weights;
 	}
 
 

@@ -67,7 +67,7 @@ final class FontChooserDialog extends JDialog{
 	private FontChooserDialog(final Window owner, final Font current){
 		super(owner, I18N.t("menu.appearance.font"), ModalityType.APPLICATION_MODAL);
 
-		families = AppearanceManager.availableFontFamilies();
+		families = AppearanceManager.fontFamiliesCoveringMessages();
 		size = new JSpinner(new SpinnerNumberModel(current != null? current.getSize(): 12, 8, 48, 1));
 
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -121,11 +121,17 @@ final class FontChooserDialog extends JDialog{
 
 	/** Shows the dialog; the chosen font is applied and persisted, if any. */
 	static void show(final Window owner){
-		final FontChooserDialog dialog = new FontChooserDialog(owner, AppearanceManager.savedFont());
+		final FontChooserDialog dialog = new FontChooserDialog(owner, effectiveFont());
 		dialog.filter.field().requestFocusInWindow();
 		dialog.setVisible(true);
 	}
 
+
+	/** The font in use now: the saved one or, with none saved (Default), the one of the look-and-feel. */
+	private static Font effectiveFont(){
+		final Font saved = AppearanceManager.savedFont();
+		return saved != null? saved: javax.swing.UIManager.getFont("Label.font");
+	}
 
 	private void refill(final String toSelect){
 		final String text = filter.query();

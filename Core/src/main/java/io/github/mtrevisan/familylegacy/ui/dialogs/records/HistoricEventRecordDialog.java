@@ -97,7 +97,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		typeCombo.setI18NPrefix("enum.historic_event.type");
 		typeCombo.setEditable(true);
 		titleField = new BoundTextField(HistoricEventReader.TAG_TITLE);
-		dateField = DateField.createWithWrapperTag(HistoricEventReader.TAG_DATE, this, "Date", model);
+		dateField = DateField.createWithWrapperTag(HistoricEventReader.TAG_DATE, this, I18N.t("dialog.historic_event.date"), model);
 		placeField = EntityField.createForStructureWithReference(HistoricEventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		confidenceCombo = new BoundComboBox<>(HistoricEventReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");

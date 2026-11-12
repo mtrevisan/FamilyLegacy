@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ReportText;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -44,6 +45,7 @@ import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -163,11 +165,11 @@ public final class DiagnosticsDialog extends JDialog{
 		ReportText.line(sb, "text.diagnostics.os_version", System.getProperty("os.version"));
 		ReportText.line(sb, "text.diagnostics.os_arch", System.getProperty("os.arch"));
 		ReportText.line(sb, "text.diagnostics.locale", Locale.getDefault());
-		ReportText.line(sb, "text.diagnostics.file_encoding", System.getProperty("file.encoding"));
+		ReportText.line(sb, "text.diagnostics.file_encoding", Charset.defaultCharset().displayName());
 		ReportText.line(sb, "text.diagnostics.processors", Runtime.getRuntime().availableProcessors());
 		ReportText.line(sb, "text.diagnostics.uptime", formatDuration(ManagementFactory.getRuntimeMXBean().getUptime()));
 		ReportText.line(sb, "text.diagnostics.threads", ManagementFactory.getThreadMXBean().getThreadCount());
-		ReportText.line(sb, "text.diagnostics.jvm_arguments", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
+		ReportText.line(sb, "text.diagnostics.jvm_arguments", String.join(StringUtils.SPACE, ManagementFactory.getRuntimeMXBean().getInputArguments()));
 		ReportText.blank(sb);
 	}
 

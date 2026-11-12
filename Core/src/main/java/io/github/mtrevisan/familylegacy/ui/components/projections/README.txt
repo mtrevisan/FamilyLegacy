@@ -12,12 +12,6 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### ALTA
-- scansiona il modulo Domain e trova errori o possibili migliorie
-- scansiona il modulo Core e trova errori o possibili migliorie
-- scansiona il modulo ImporterGedcom e trova errori o possibili migliorie
-- scansiona il modulo ImporterGramps e trova errori o possibili migliorie
-- scansiona il modulo ReportEpub e trova errori o possibili migliorie
-- scansiona il modulo ReportSite e trova errori o possibili migliorie
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).

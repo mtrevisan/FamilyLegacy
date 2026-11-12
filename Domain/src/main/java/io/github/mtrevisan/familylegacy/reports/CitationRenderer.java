@@ -242,12 +242,8 @@ public final class CitationRenderer{
 		if(participation == null)
 			return out;
 
-		// Participation can carry its own note, independent from the event.
-		final String note = FLEFRecordHelper.getChildValue(participation, TAG_NOTE);
-		if(note != null && !note.isBlank())
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().note() + ":** " + ReportFormatters.escape(note)));
-
+		//the notes of the participation, independent from the event, are shown once, as every other note (the ones hidden by the privacy
+		//policy are not)
 		if(ctx.config.notes())
 			out.addAll(notes(participation));
 		if(ctx.config.sources())

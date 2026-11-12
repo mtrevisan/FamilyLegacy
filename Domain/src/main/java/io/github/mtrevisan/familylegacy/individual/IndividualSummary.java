@@ -172,7 +172,8 @@ public final class IndividualSummary{
 					hasPartner = true;
 			}
 
-			if(hasPartner && hasChildren)
+			//everything is known (stopping earlier would miss the parents that come later in the file)
+			if(hasPartner && hasChildren && hasFather && hasMother)
 				break;
 		}
 
@@ -212,6 +213,14 @@ public final class IndividualSummary{
 		if(age != null)
 			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + I18N.t("dialog.individual.years_old.abbreviation") + CLOSE_PARENTHESIS);
 
+		final StringJoiner tooltip = createTooltip(birthInfo, deathInfo);
+		infoText = sj.toString();
+		infoTooltip = tooltip.toString();
+		this.birthDate = normalizedBirthDate;
+
+	}
+
+	private static StringJoiner createTooltip(final EventInfo birthInfo, final EventInfo deathInfo){
 		final StringJoiner tooltip = new StringJoiner(StringUtils.EMPTY);
 		final String birthPlace = (birthInfo != null? birthInfo.place(): null);
 		final String deathPlace = (deathInfo != null? deathInfo.place(): null);
@@ -234,10 +243,7 @@ public final class IndividualSummary{
 			tooltip.add(StringUtils.SPACE + TAG_FIGURE_DASH + StringUtils.SPACE);
 			tooltip.add(deathInfo != null? deathInfo.date(): NO_DATA);
 		}
-		infoText = sj.toString();
-		infoTooltip = tooltip.toString();
-		this.birthDate = normalizedBirthDate;
-
+		return tooltip;
 	}
 
 

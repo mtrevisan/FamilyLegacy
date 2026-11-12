@@ -173,11 +173,11 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		}
 
 		w.write("<h");
-		w.write(String.valueOf(level));
+		w.write(level);
 		w.write('>');
 		w.write(inline(h.text()));
 		w.write("</h");
-		w.write(String.valueOf(level));
+		w.write(level);
 		w.write('>');
 	}
 
@@ -322,14 +322,24 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		m.appendTail(sb);
 		t = sb.toString();
 
-		// **bold**
-		t = BOLD.matcher(t).replaceAll("<b>$1</b>");
-		// *italic* — single asterisk not adjacent to another asterisk
-		t = ITALIC.matcher(t).replaceAll("<i>$1</i>");
-		// `code`
-		t = INLINE_CODE.matcher(t).replaceAll("<code>$1</code>");
+		//`code` spans are set apart first, so that a `*` inside them is not taken as an emphasis marker
+		final Matcher code = INLINE_CODE.matcher(t);
+		final StringBuilder out = new StringBuilder();
+		int last = 0;
+		while(code.find()){
+			out.append(emphasis(t.substring(last, code.start())))
+				.append("<code>").append(code.group(1)).append("</code>");
+			last = code.end();
+		}
+		out.append(emphasis(t.substring(last)));
+		return out.toString();
+	}
 
-		return t;
+	private static String emphasis(final String text){
+		// **bold**
+		final String bold = BOLD.matcher(text).replaceAll("<b>$1</b>");
+		// *italic* — single asterisk not adjacent to another asterisk
+		return ITALIC.matcher(bold).replaceAll("<i>$1</i>");
 	}
 
 

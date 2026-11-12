@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +83,7 @@ public class CoordinateAssigner{
 			final List<List<Graph.Node>> layers, final FLEFModel model, final GenealogyRepository genealogyRepository,
 			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final IndividualTreeGraphListener treeListener,
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
-			final boolean showPartner, final PartnerCycleHandler partnerCycleHandler){
+			final boolean showPartner, final PartnerCycleHandler partnerCycleHandler, final int maxAncestors){
 		final Map<TreeNode, PartnersPanel> existingPanels = new HashMap<>(nodeToPanelMap);
 		canvas.removeAll();
 
@@ -94,6 +95,8 @@ public class CoordinateAssigner{
 
 		final Map<String, TreeNode> treeNodeById = buildTreeNodeIndex(layers);
 		final List<List<TreeNode[]>> couplesPerLayer = CoupleGrouper.groupAll(layers, treeNodeById, genealogyRepository);
+		final Map<TreeNode[], TreeNode> placeholderOwners = new IdentityHashMap<>();
+		final int placeholderLayerOffset = addParentPlaceholders(couplesPerLayer, placeholderOwners, maxAncestors);
 		// Vertical layout: oldest ancestors on top, root generation at the
 		// bottom. Horizontal layout: children of the root couple on the left,
 		// oldest ancestors on the right. The layer order is reversed for the
@@ -118,7 +121,8 @@ public class CoordinateAssigner{
 		}
 
 		gridRow = buildLayerPanels(canvas, couplesInCanvasOrder, panelFactory, parentIndex, isVertical, gridRow,
-			existingPanels, treeLayout, genealogyRepository, partnerCycleHandler);
+			existingPanels, treeLayout, genealogyRepository, partnerCycleHandler, placeholderOwners, placeholderLayerOffset,
+			nodeToPanelMap);
 
 		if(isVertical && hasChildren)
 			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical, treeLayout);
@@ -146,6 +150,43 @@ public class CoordinateAssigner{
 		return treeNodeById;
 	}
 
+	/**
+	 * Adds, for every individual without known parents, an empty couple in the layer above, mirroring the
+	 * placeholders of the ancestor tree. An individual whose parents exist but are not loaded gets none (the
+	 * ancestors arrow is shown instead).
+	 *
+	 * @return	1 if a new top layer was prepended, 0 otherwise.
+	 */
+	private static int addParentPlaceholders(final List<List<TreeNode[]>> couplesPerLayer,
+			final Map<TreeNode[], TreeNode> placeholderOwners, final int maxAncestors){
+		if(couplesPerLayer.isEmpty())
+			return 0;
+
+		final List<List<TreeNode[]>> additions = new ArrayList<>(couplesPerLayer.size());
+		for(int i = 0; i < couplesPerLayer.size(); i ++)
+			additions.add(new ArrayList<>());
+		final List<TreeNode[]> newTop = new ArrayList<>();
+		for(int layerIndex = 0; layerIndex < couplesPerLayer.size(); layerIndex ++)
+			for(final TreeNode[] couple : couplesPerLayer.get(layerIndex))
+				for(final TreeNode member : couple){
+					if(member == null || member.getGeneration() >= maxAncestors || member.getFather() != null || member.getMother() != null
+							|| member.getIndividualData() == null || member.getIndividualData().hasParents())
+						continue;
+
+					final TreeNode[] placeholder = new TreeNode[2];
+					placeholderOwners.put(placeholder, member);
+					(layerIndex == 0? newTop: additions.get(layerIndex - 1)).add(placeholder);
+				}
+
+		for(int i = 0; i < couplesPerLayer.size(); i ++)
+			couplesPerLayer.get(i).addAll(additions.get(i));
+		if(newTop.isEmpty())
+			return 0;
+
+		couplesPerLayer.add(0, newTop);
+		return 1;
+	}
+
 	/** Returns a new list with the elements of the source in reverse order. */
 	private static <T> List<T> reverse(final List<T> source){
 		final List<T> reversed = new ArrayList<>(source.size());
@@ -165,7 +206,9 @@ public class CoordinateAssigner{
 	private static int buildLayerPanels(final JPanel canvas, final List<List<TreeNode[]>> couplesPerLayer,
 			final PartnersPanelFactory panelFactory, final ParentPanelIndex parentIndex, final boolean isVertical,
 			final int startGridRow, final Map<TreeNode, PartnersPanel> existingPanels, final TreeLayout treeLayout,
-			final GenealogyRepository genealogyRepository, final PartnerCycleHandler partnerCycleHandler){
+			final GenealogyRepository genealogyRepository, final PartnerCycleHandler partnerCycleHandler,
+			final Map<TreeNode[], TreeNode> placeholderOwners, final int placeholderLayerOffset,
+			final Map<TreeNode, PartnersPanel> nodeToPanelMap){
 		final String layerLayout = (isVertical? "ins 0,gapx 40,flowx": "ins 0,gapy 40,flowy");
 		final Map<String, PartnersPanel> byCoupleKey = new HashMap<>();
 
@@ -186,6 +229,18 @@ public class CoordinateAssigner{
 
 			for(int i = 0; i < couples.size(); i ++){
 				final TreeNode[] couple = couples.get(i);
+				final TreeNode placeholderOwner = placeholderOwners.get(couple);
+				if(placeholderOwner != null){
+					//empty couple standing for the unknown parents of the owner: lets the user add them
+					final int placeholderLayerIndex = (isVertical? layerIndex: layerCouples - layerIndex - 1)
+						- placeholderLayerOffset;
+					final PartnersPanel placeholder = panelFactory.create(null, null, placeholderLayerIndex,
+						genealogyRepository, partnerCycleHandler, false);
+					nodeToPanelMap.put(placeholderOwner, placeholder);
+					layerPanel.add(placeholder);
+					continue;
+				}
+
 				final String key = CoupleGrouper.coupleKey(couple[0], couple[1]);
 
 				PartnersPanel panel = byCoupleKey.get(key);
@@ -194,7 +249,8 @@ public class CoordinateAssigner{
 					if(matchNode != null && existingPanels.containsKey(matchNode))
 						panel = existingPanels.get(matchNode).withTreeLayout(treeLayout);
 					else{
-						final int trueLayerIndex = (isVertical? layerIndex: layerCouples - layerIndex - 1);
+						final int trueLayerIndex = (isVertical? layerIndex: layerCouples - layerIndex - 1)
+								- placeholderLayerOffset;
 						final boolean isRootCouple = ((couple[0] != null && couple[0].getGeneration() == 0)
 							|| (couple[1] != null && couple[1].getGeneration() == 0));
 						panel = panelFactory.create(couple[0], couple[1], trueLayerIndex, genealogyRepository,

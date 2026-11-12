@@ -70,6 +70,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -166,6 +167,8 @@ public class GlobalEventTimelinePanel extends JPanel{
 	 * {@link #typeOrder}.
 	 */
 	private Map<String, Integer> typeRow = Map.of();
+	/** Display label of each type key. */
+	private Map<String, String> typeLabels = Map.of();
 
 	/**
 	 * Temporal axis. Rebuilt by {@link #rebuildView()} from the domain of
@@ -242,6 +245,16 @@ public class GlobalEventTimelinePanel extends JPanel{
 		rebuildView();
 	}
 
+	/**
+	 * Rebuilds the event index from the model (the events may have been added, edited or removed since the index was built) and
+	 * re-applies the current filter.
+	 */
+	public void reloadEvents(){
+		index = EventIndex.build(model);
+
+		rebuildView();
+	}
+
 
 	/* ======================================================================
 	 *                          View rebuild
@@ -262,15 +275,19 @@ public class GlobalEventTimelinePanel extends JPanel{
 
 		// Rebuild the type rows from the visible events.
 		final Map<String, Integer> counts = new LinkedHashMap<>();
-		for(final EventIndex.EventDatum e : visible)
-			counts.merge(e.type(), 1, Integer::sum);
+		final Map<String, String> labels = new LinkedHashMap<>();
+		for(final EventIndex.EventDatum e : visible){
+			counts.merge(typeKey(e.type()), 1, Integer::sum);
+			labels.putIfAbsent(typeKey(e.type()), (e.type() == null? "?": e.type()));
+		}
 		final List<String> order = new ArrayList<>(counts.keySet());
-		order.sort(String::compareToIgnoreCase);
+		order.sort(String::compareTo);
 		final Map<String, Integer> rowMap = new LinkedHashMap<>();
 		for(int i = 0; i < order.size(); i ++)
 			rowMap.put(order.get(i), i);
 		this.typeOrder = List.copyOf(order);
 		this.typeRow = Map.copyOf(rowMap);
+		this.typeLabels = Map.copyOf(labels);
 
 		// Recompute the axis domain from the dated visible events
 		NormalizedDate min = null;
@@ -484,6 +501,12 @@ public class GlobalEventTimelinePanel extends JPanel{
 	 * Only events of the row that contains the point are considered, and
 	 * the point must be inside the content area (not in the header).
 	 */
+	/** Case-insensitive, null-safe row key of an event type. */
+	private static String typeKey(final String type){
+		return (type == null? "": type.toLowerCase(Locale.ROOT));
+	}
+
+
 	private EventIndex.EventDatum eventAt(final int x, final int y){
 		final Rectangle contentBounds = new Rectangle(HEADER_WIDTH, AXIS_HEIGHT,
 			canvas.getWidth() - HEADER_WIDTH, canvas.getHeight() - AXIS_HEIGHT);
@@ -499,7 +522,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 		EventIndex.EventDatum nearest = null;
 		int nearestDist = MARKER_RADIUS + 4;
 		for(final EventIndex.EventDatum e : visibleEvents){
-			if(!e.hasDate() || !type.equalsIgnoreCase(e.type()))
+			if(!e.hasDate() || !type.equals(typeKey(e.type())))
 				continue;
 
 			final int ex = contentBounds.x + axis.jdnToX(e.date().jdn());
@@ -649,7 +672,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 
 				g2.setColor(LABEL);
 				final FontMetrics fm = g2.getFontMetrics();
-				g2.drawString(type, 16, y + (ROW_HEIGHT + fm.getAscent()) / 2 - 2);
+				g2.drawString(typeLabels.getOrDefault(type, type), 16, y + (ROW_HEIGHT + fm.getAscent()) / 2 - 2);
 			}
 		}
 
@@ -665,7 +688,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 			for(final EventIndex.EventDatum event : visibleEvents){
 				if(!event.hasDate())
 					continue;
-				final Integer row = typeRow.get(event.type());
+				final Integer row = typeRow.get(typeKey(event.type()));
 				if(row == null)
 					continue;
 				final int x = contentBounds.x + axis.jdnToX(event.date().jdn());
@@ -698,7 +721,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 		if(type == null)
 			return new Color(120, 120, 120);
 
-		final int h = Math.abs(type.hashCode());
+		final int h = Math.abs(typeKey(type).hashCode());
 		return Color.getHSBColor((h % 360) / 360f, 0.55f, 0.85f);
 	}
 

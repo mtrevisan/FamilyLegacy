@@ -252,7 +252,10 @@ public final class BookmarkStore{
 		}
 
 		try{
-			Files.createDirectories(file.getParent());
+			final Path parent = file.toAbsolutePath()
+				.getParent();
+			if(parent != null)
+				Files.createDirectories(parent);
 			//written through a temporary file, so that a crash does not leave half of the bookmarks
 			final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 			props.store(bytes, "FamilyLegacy bookmarks");

@@ -59,7 +59,7 @@ public interface ReportRenderer{
 	 * <p>
 	 * The target is the path of the output: the parent directory exists, the target itself may exist. A renderer that writes a file replaces
 	 * it; one that writes a directory ({@link #isDirectory()}) creates it if needed and overwrites the files it writes, without removing
-	 * the others. On failure it may leave a partial output, and throws.
+	 * the others. On failure, it may leave a partial output, and throws.
 	 *
 	 * @param doc	The document.
 	 * @param target	The file, or the directory, to write.
@@ -67,7 +67,7 @@ public interface ReportRenderer{
 	 */
 	void render(ReportDocument doc, Path target) throws IOException;
 
-	/** @return	Whether the format lets the user choose the font ({@link #fonts()}); it is cheap, unlike {@link #fonts()}. By default it does not. */
+	/** @return	Whether the format lets the user choose the font ({@link #fonts()}); it is cheap, unlike {@link #fonts()}. By default, it does not. */
 	default boolean choosesFont(){
 		return false;
 	}
@@ -78,6 +78,15 @@ public interface ReportRenderer{
 	 */
 	default List<String> fonts(){
 		return List.of();
+	}
+
+	/**
+	 * @param doc	The document.
+	 * @return	The names of the fonts that have every character of the document, for a format that lets the user choose one; by default
+	 * 	all the {@link #fonts()}. It can take a while, so it must not be called on the thread of the user interface.
+	 */
+	default List<String> fonts(final ReportDocument doc){
+		return fonts();
 	}
 
 	/**

@@ -686,7 +686,7 @@ public final class TagSuggester{
 	private String resolveTypeFromPath(final List<String> path){
 		if(path.isEmpty())
 			return recordType;
-		if(!fieldTag.equals(path.get(0)))
+		if(!fieldTag.equals(path.getFirst()))
 			return recordType;
 
 		String currentType = fieldType;
@@ -880,8 +880,8 @@ public final class TagSuggester{
 				if(f.block && f.typeName != null){
 					final List<FieldInfo> children = types.get(f.typeName);
 					if(children != null && children.size() == 1
-						&& children.get(0).cardinality.mandatory())
-						f.prefill = children.get(0).name;
+						&& children.getFirst().cardinality.mandatory())
+						f.prefill = children.getFirst().name;
 				}
 	}
 

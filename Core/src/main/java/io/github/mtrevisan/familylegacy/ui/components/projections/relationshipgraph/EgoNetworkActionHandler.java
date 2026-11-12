@@ -97,9 +97,6 @@ public class EgoNetworkActionHandler{
 		if(egoRecord == null)
 			return;
 
-		if(isPaste)
-			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
-
 		final Window parent = SwingUtilities.getWindowAncestor(parentComponent);
 		final String label = (GroupHandler.isOfType(targetRecord)
 			? GroupHandler.getInstance().getDisplayText(targetRecord, model)
@@ -113,6 +110,10 @@ public class EgoNetworkActionHandler{
 			allowedTypes, listener, model);
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
+
+		//replace the existing relationship only once the user has confirmed the new one (cancelling must not lose it)
+		if(isPaste)
+			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
 		final String selectedType = selectedTypes.getFirst();
 		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);

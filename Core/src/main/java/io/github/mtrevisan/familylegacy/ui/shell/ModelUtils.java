@@ -48,7 +48,8 @@ public final class ModelUtils{
 				continue;
 
 			final long number = numericSuffix(id);
-			if(number < bestNumber){
+			//an identifier with no number still is an individual (it is the first one met, if there is no other)
+			if(bestId == null || number < bestNumber){
 				bestNumber = number;
 				bestId = id;
 			}

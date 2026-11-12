@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Locale;
 
 
 /** The coefficient of relationship of the kinship calculator is the exact one, with the inbreeding of the ancestors. */
@@ -147,20 +148,20 @@ class KinshipCalculatorTest{
 		final String dino = idOf(model, "Dino");
 		final String carlo = idOf(model, "Carlo");
 
-		final KinshipCalculator italian = inLanguageOf(model, ReportLanguage.ITALIAN);
-		Assertions.assertEquals("zio", italian.shortTerm(aldo, dino));
-		Assertions.assertEquals("zia", italian.shortTerm(berta, dino));
-		Assertions.assertEquals("nipote", italian.shortTerm(dino, aldo));
-		Assertions.assertEquals("fratello", italian.shortTerm(aldo, elio));
-		Assertions.assertEquals("cugino di primo grado", italian.shortTerm(dino, carlo));
-
-		Assertions.assertEquals("Onkel", inLanguageOf(model, ReportLanguage.GERMAN).shortTerm(aldo, dino));
-		Assertions.assertEquals("oncle", inLanguageOf(model, ReportLanguage.FRENCH).shortTerm(aldo, dino));
-		Assertions.assertEquals("t\u00edo", inLanguageOf(model, ReportLanguage.SPANISH).shortTerm(aldo, dino));
-		Assertions.assertEquals("tio", inLanguageOf(model, ReportLanguage.PORTUGUESE).shortTerm(aldo, dino));
+		//the languages without messages of their own say the terms in English, as the rest of the report does
+		final KinshipCalculator english = KinshipCalculator.forModel(model);
+		for(final ReportLanguage language : new ReportLanguage[]{ReportLanguage.of(Locale.forLanguageTag("it")), ReportLanguage.of(Locale.forLanguageTag("de")), ReportLanguage.of(Locale.forLanguageTag("fr")),
+				ReportLanguage.of(Locale.forLanguageTag("es")), ReportLanguage.of(Locale.forLanguageTag("pt"))}){
+			final KinshipCalculator calculator = inLanguageOf(model, language);
+			Assertions.assertEquals(english.shortTerm(aldo, dino), calculator.shortTerm(aldo, dino), language.toString());
+			Assertions.assertEquals(english.shortTerm(berta, dino), calculator.shortTerm(berta, dino), language.toString());
+			Assertions.assertEquals(english.shortTerm(dino, aldo), calculator.shortTerm(dino, aldo), language.toString());
+			Assertions.assertEquals(english.shortTerm(aldo, elio), calculator.shortTerm(aldo, elio), language.toString());
+			Assertions.assertEquals(english.shortTerm(dino, carlo), calculator.shortTerm(dino, carlo), language.toString());
+		}
 
 		//a language with no words of its own says them in English, as the rest of the report does
-		Assertions.assertEquals("uncle", inLanguageOf(model, ReportLanguage.JAPANESE).shortTerm(aldo, dino));
+		Assertions.assertEquals("uncle", inLanguageOf(model, ReportLanguage.of(Locale.forLanguageTag("ja"))).shortTerm(aldo, dino));
 		//and the calculator of the interface is not changed by the report
 		Assertions.assertEquals("uncle", KinshipCalculator.forModel(model).shortTerm(aldo, dino));
 	}

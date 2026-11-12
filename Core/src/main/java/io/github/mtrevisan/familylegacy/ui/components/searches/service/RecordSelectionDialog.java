@@ -212,8 +212,6 @@ public class RecordSelectionDialog extends JDialog{
 	//the dialog manages the records instead of picking one
 	private final boolean manageMode;
 
-	private SearchCriteria criteria;
-
 
 	@SuppressWarnings("unchecked")
 	public static RecordSelectionDialog create(final Window parent, final FLEFModel model,
@@ -669,14 +667,14 @@ public class RecordSelectionDialog extends JDialog{
 		SourceUsage.invalidate();
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		criteria = new SearchCriteria(handler.getType(), searchField.getText().trim(), currentMode());
+		final SearchCriteria searchCriteria = new SearchCriteria(handler.getType(), searchField.getText().trim(), currentMode());
 
-		initialFilters.forEach(criteria::withFilter);
+		initialFilters.forEach(searchCriteria::withFilter);
 
 		if(filterPanelHolder.getComponentCount() > 0
 				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
 			filterPanel.getFilters()
-				.forEach(criteria::withFilter);
+				.forEach(searchCriteria::withFilter);
 
 		statusLabel.setText(I18N.t("search.searching"));
 		progressBar.setValue(0);
@@ -692,7 +690,7 @@ public class RecordSelectionDialog extends JDialog{
 				// ordered by match quality: number of matched query tokens
 				// first, sum of per-token fuzzy scores second, display text
 				// third.
-				final List<FLEFRecord> records = searchService.search(criteria,
+				final List<FLEFRecord> records = searchService.search(searchCriteria,
 					progress -> publish(progress / 2));
 				if(isCancelled())
 					return null;
@@ -935,6 +933,8 @@ public class RecordSelectionDialog extends JDialog{
 		if(isPlaceRelationshipHandler()){
 			record = placeHierarchyPanel.getSelectedPlaceRecord();
 			displayText = searchService.getDisplayText(record);
+			if(record == null)
+				return;
 		}
 		else {
 			final DisplayItem selectedItem = resultList.getSelectedValue();
@@ -974,6 +974,8 @@ public class RecordSelectionDialog extends JDialog{
 		if(isPlaceRelationshipHandler()){
 			record = placeHierarchyPanel.getSelectedPlaceRecord();
 			displayText = searchService.getDisplayText(record);
+			if(record == null)
+				return;
 		}
 		else {
 			final DisplayItem selectedItem = resultList.getSelectedValue();
@@ -1020,6 +1022,16 @@ public class RecordSelectionDialog extends JDialog{
 			placeHierarchyPanel.reload();
 		else
 			performSearch();
+	}
+
+	@Override
+	public void dispose(){
+		//no search is left running, or scheduled, for a dialog that is gone
+		searchDebouncer.terminate();
+		if(currentWorker != null)
+			currentWorker.cancel(true);
+
+		super.dispose();
 	}
 
 	public boolean isConfirmed(){

@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +66,7 @@ class ToolGroupsByLevelTest{
 		Assertions.assertTrue(ApplicationMenuBar.visibleGroups(research, FeatureVisibilityService.inMemory(UxLevel.BASIC), true).isEmpty());
 		for(final UxLevel level : List.of(UxLevel.STANDARD, UxLevel.ADVANCED))
 			for(final List<ToolOperation> group : ApplicationMenuBar.visibleGroups(research, FeatureVisibilityService.inMemory(level), true))
-				Assertions.assertTrue(group.size() > 1, level + " " + names(List.of(group)));
+				Assertions.assertTrue(group.size() > 1, level + StringUtils.SPACE + names(List.of(group)));
 	}
 
 }

@@ -513,7 +513,7 @@ public class IndividualPanel extends JPanel{
 					listener.onIndividualSelected(this, record);
 			})
 			.onEdit(record -> {
-				if(record.getId() != null)
+				if(listener != null && record.getId() != null)
 					listener.onEntityEdit(record);
 			})
 			.onHoverChanged(h -> {

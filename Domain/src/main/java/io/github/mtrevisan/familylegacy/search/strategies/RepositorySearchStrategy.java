@@ -90,7 +90,7 @@ public class RepositorySearchStrategy implements SearchStrategy{
 			// Place filter
 			if(StringUtils.isNotEmpty(place)){
 				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(repository, PlaceReader.TYPE);
-				if(placeCitation != null){
+				if(placeCitation != null && placeCitation.getTheOnlyChild() != null){
 					final String placeId = placeCitation.getTheOnlyChild().getValue();
 					final FLEFRecord placeRecord = model.getRecordById(placeId);
 					final String place = RecordDisplay.describe(placeRecord, model);

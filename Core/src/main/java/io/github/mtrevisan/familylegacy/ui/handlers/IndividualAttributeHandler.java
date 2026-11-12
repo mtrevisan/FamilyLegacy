@@ -84,7 +84,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Record
 				for(final FLEFRecord individual : individuals){
 					final String resolveTag = individual.getTag();
 					final String resolveXRef = individual.getValue();
-					if(Strings.CI.equals(resolveTag, parentEntityType) && resolveXRef.equals(recordId))
+					if(Strings.CI.equals(resolveTag, parentEntityType) && recordId != null && recordId.equals(resolveXRef))
 						return true;
 
 					break;

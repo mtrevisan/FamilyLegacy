@@ -147,18 +147,17 @@ public final class TemporalProjectionLayout{
 	private TrackLayout computeTrack(final TemporalTrack track, final int yStart){
 		// Sort by start date, then by end date; point spans have start == end.
 		final List<TemporalEntry> sorted = new ArrayList<>(track.entries());
-		sorted.sort((a, b) -> {
-			int cmp = Long.compare(a.span().minJdn(), b.span().minJdn());
-			if(cmp == 0)
-				cmp = Long.compare(a.span().maxJdn(), b.span().maxJdn());
-			return cmp;
-		});
+		sorted.sort(Comparator.comparingLong((TemporalEntry a) -> a.span().minJdn()).thenComparingLong(a -> a.span().maxJdn()));
 
 		// Greedy interval‑coloring: assign each entry to the first lane whose
 		// last entry ends strictly before the new entry starts.
 		final List<Long> laneEnds = new ArrayList<>();
 		final Map<TemporalEntry, Integer> entryLane = new LinkedHashMap<>();
 		for(final TemporalEntry entry : sorted){
+			//identical entries (equal records) share the same slot, do not waste a lane on them
+			if(entryLane.containsKey(entry))
+				continue;
+
 			final long start = entry.span().minJdn();
 			final long end = entry.span().maxJdn();
 

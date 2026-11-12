@@ -32,16 +32,17 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Duration;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -131,6 +132,31 @@ class UpdaterTest{
 			.latest().orElseThrow();
 
 		Assertions.assertFalse(release.hasInstaller());
+	}
+
+	@Test
+	void anAssetOfTheLatestReleaseIsFoundAndDownloaded(@TempDir final Path directory) throws Exception{
+		final byte[] fonts = "the fonts, more or less".getBytes(StandardCharsets.UTF_8);
+		final String url = "https://github.com/mtrevisan/FamilyLegacy/releases/download/v1.2.0/fonts.zip";
+		final String json = releaseJson(asset("fonts.zip", url, fonts.length, sha256(fonts)));
+		final Transport transport = answering(Map.of("https://api.github.com/repos/mtrevisan/FamilyLegacy/releases/latest",
+			json.getBytes(StandardCharsets.UTF_8), url, fonts));
+
+		final ReleaseAsset found = releases(transport).latestAsset("fonts.zip").orElseThrow();
+		Assertions.assertTrue(found.isDownloadable());
+		Assertions.assertEquals(fonts.length, found.size());
+		Assertions.assertArrayEquals(fonts, Files.readAllBytes(new InstallerDownloader(transport).download(found, directory, null, null)));
+		Assertions.assertTrue(releases(transport).latestAsset("other.zip").isEmpty());
+	}
+
+	@Test
+	void anAssetWithoutAChecksumIsNotDownloaded(@TempDir final Path directory) throws Exception{
+		final String url = "https://example.org/fonts.zip";
+		final ReleaseAsset found = releases(withLatest(releaseJson(asset("fonts.zip", url, 3, null)))).latestAsset("fonts.zip").orElseThrow();
+
+		Assertions.assertFalse(found.isDownloadable());
+		Assertions.assertThrows(IOException.class, () -> new InstallerDownloader(answering(Map.of(url, new byte[3])))
+			.download(found, directory, null, null));
 	}
 
 	@Test
@@ -319,8 +345,8 @@ class UpdaterTest{
 	}
 
 	@Test
-	void aStalledReadFailsInsteadOfBlockingForever() throws Exception{
-		final java.util.concurrent.CountDownLatch closed = new java.util.concurrent.CountDownLatch(1);
+	void aStalledReadFailsInsteadOfBlockingForever(){
+		final CountDownLatch closed = new CountDownLatch(1);
 		final InputStream blocking = new InputStream(){
 			@Override
 			public int read() throws IOException{

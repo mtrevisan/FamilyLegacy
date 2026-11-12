@@ -106,7 +106,7 @@ public final class GroupTimelineBuilder{
 	 */
 	public static TemporalProjectionModel build(final FLEFModel model, final String groupId){
 		final FLEFRecord group = (groupId != null? model.getRecordById(groupId): null);
-		if(group == null || !GroupReader.isOfType(group) || PrivacyService.visible(model, List.of(group)).isEmpty())
+		if(!GroupReader.isOfType(group) || PrivacyService.visible(model, List.of(group)).isEmpty())
 			return TemporalProjectionModel.empty();
 
 		final TemporalExtractor extractor = new TemporalExtractor(model, TemporalIndices.build(model));
@@ -130,7 +130,7 @@ public final class GroupTimelineBuilder{
 			if(RelationshipReader.isTypePartOf(type) && targetGroupId != null && !groupId.equals(targetGroupId)
 					&& groupId.equals(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, GroupReader.TYPE))){
 				final FLEFRecord parent = model.getRecordById(targetGroupId);
-				if(parent != null && GroupReader.isOfType(parent) && !PrivacyService.visible(model, List.of(parent)).isEmpty())
+				if(GroupReader.isOfType(parent) && !PrivacyService.visible(model, List.of(parent)).isEmpty())
 					parents.computeIfAbsent(targetGroupId, id -> new Membership(
 							TemporalEntityRef.of(TemporalEntityType.GROUP, parent, RecordDisplay.describe(parent, model)),
 							new ArrayList<>()))

@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -101,7 +102,7 @@ final class IdentityOtherKinds{
 			final FLEFRecord first = model.getRecordById(pair.firstId());
 			final FLEFRecord second = model.getRecordById(pair.secondId());
 			if(first == null || second == null || PrivacyService.isHidden(model, first) || PrivacyService.isHidden(model, second)
-					|| hypotheses.contains(pair.firstId() + "|" + pair.secondId()))
+					|| hypotheses.contains(pairKey(pair.firstId(), pair.secondId())))
 				continue;
 
 			findings.add(finding(model, pair, first, second));
@@ -116,7 +117,7 @@ final class IdentityOtherKinds{
 		final String right = RecordDisplay.describe(second, model);
 		final int percent = (int)Math.round(pair.probability() * 100.);
 		final String confidence = confidence(pair.probability());
-		final List<String> evidence = List.of(pair.rationale().split("; "));
+		final List<String> evidence = List.of(StringUtils.splitByWholeSeparator(pair.rationale(), "; "));
 
 		final Diagnostic diagnostic = new Diagnostic((pair.probability() >= HIGH_PROBABILITY? Diagnostic.Severity.WARNING
 			: Diagnostic.Severity.INFORMATION), AssistantCategory.IDENTITY,
@@ -147,9 +148,14 @@ final class IdentityOtherKinds{
 					ids.add(reference.getValue());
 			}
 			if(ids.size() >= 2)
-				pairs.add(ids.get(0).compareTo(ids.get(1)) <= 0? ids.get(0) + "|" + ids.get(1): ids.get(1) + "|" + ids.get(0));
+				pairs.add(pairKey(ids.get(0), ids.get(1)));
 		}
 		return pairs;
+	}
+
+	//the pair is the same whatever the order of its two records
+	private static String pairKey(final String first, final String second){
+		return (first.compareTo(second) <= 0? first + "|" + second: second + "|" + first);
 	}
 
 }

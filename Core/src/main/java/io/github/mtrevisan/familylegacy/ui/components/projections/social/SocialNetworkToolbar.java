@@ -38,6 +38,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeListener;
 import java.awt.BorderLayout;
 import java.util.Calendar;
 import java.util.Date;
@@ -110,6 +111,9 @@ public final class SocialNetworkToolbar extends JPanel{
 	private final JSpinner fromDateSpinner = createDateSpinner(defaultFromDate());
 	private final JSpinner toDateSpinner = createDateSpinner(defaultToDate());
 
+
+	/** {@code true} while the dates are set by the panel, so that it is not told about its own changes. */
+	private boolean updating;
 
 	public SocialNetworkToolbar(final Listener listener){
 		initComponents();
@@ -201,6 +205,24 @@ public final class SocialNetworkToolbar extends JPanel{
 		categoriesBtn.addActionListener(e -> listener.onCategoriesRequested());
 		pathFinderBtn.addActionListener(e -> listener.onPathFinderRequested());
 		fitBtn.addActionListener(e -> listener.onFitRequested());
+
+		//the temporal window: the checkbox turns it on and off, the dates move it (the panel sets them too, silently)
+		temporalFilterCheck.addActionListener(e -> {
+			final boolean enabled = temporalFilterCheck.isSelected();
+			fromDateSpinner.setEnabled(enabled);
+			toDateSpinner.setEnabled(enabled);
+			notifyTemporalWindow(listener);
+		});
+		final ChangeListener dateListener = e -> {
+			if(!updating && temporalFilterCheck.isSelected())
+				notifyTemporalWindow(listener);
+		};
+		fromDateSpinner.addChangeListener(dateListener);
+		toDateSpinner.addChangeListener(dateListener);
+	}
+
+	private void notifyTemporalWindow(final Listener listener){
+		listener.onTemporalWindowChanged(isTemporalFilterEnabled(), getFromDate(), getToDate());
 	}
 
 	private static JSpinner createDateSpinner(final Date initial){
@@ -260,10 +282,16 @@ public final class SocialNetworkToolbar extends JPanel{
 	 * @param to   the upper bound; may be {@code null} to leave the default
 	 */
 	public void setTemporalWindow(final Date from, final Date to){
-		if(from != null)
-			fromDateSpinner.setValue(from);
-		if(to != null)
-			toDateSpinner.setValue(to);
+		updating = true;
+		try{
+			if(from != null)
+				fromDateSpinner.setValue(from);
+			if(to != null)
+				toDateSpinner.setValue(to);
+		}
+		finally{
+			updating = false;
+		}
 		temporalFilterCheck.setSelected(true);
 		fromDateSpinner.setEnabled(true);
 		toDateSpinner.setEnabled(true);

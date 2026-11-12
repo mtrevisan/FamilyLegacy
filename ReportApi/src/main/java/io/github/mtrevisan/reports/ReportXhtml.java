@@ -27,6 +27,7 @@ package io.github.mtrevisan.reports;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -56,7 +57,7 @@ public final class ReportXhtml{
 	}
 
 	/**
-	 * Writes a section, with the anchors of the records written only once in a page.
+	 * Writes a section, with the anchors of the records written only once on a page.
 	 *
 	 * @param sb	Where the markup goes.
 	 * @param section	The section.
@@ -68,13 +69,33 @@ public final class ReportXhtml{
 	 */
 	public static void writeSection(final StringBuilder sb, final ReportSection section, final UnaryOperator<String> linkTarget,
 			final Function<Path, String> imageHref, final Set<String> writtenAnchors){
+		writeSection(sb, section, linkTarget, imageHref, writtenAnchors, Map.of());
+	}
+
+	/**
+	 * Writes a section, giving an {@code id} to the headings that have one.
+	 *
+	 * @param sb	Where the markup goes.
+	 * @param section	The section.
+	 * @param linkTarget	Gives the address of the page that has a record (see {@link ReportMarkup#inline(String, UnaryOperator)}).
+	 * @param imageHref	Gives the address of an image inside the output, after having put it there; {@code null} if it cannot be used.
+	 * @param writtenAnchors	The identifiers of the records whose anchor is already in the page.
+	 * @param headingIds	The {@code id} attribute of a heading (compared by identity, since two headings can have the same text), for
+	 * 	the headings that must be the target of a link (a table of contents); the others have none.
+	 */
+	public static void writeSection(final StringBuilder sb, final ReportSection section, final UnaryOperator<String> linkTarget,
+			final Function<Path, String> imageHref, final Set<String> writtenAnchors, final Map<ReportSection, String> headingIds){
 		switch(section){
 			case ReportSection.Heading heading -> {
 				for(final String id : ReportMarkup.recordIds(heading.text()))
 					if(writtenAnchors.add(id))
 						sb.append("<a id=\"").append(ReportMarkup.escape(id)).append("\"></a>");
 				final int level = Math.clamp(heading.level() + 1, 1, 6);
-				sb.append("<h").append(level).append('>').append(ReportMarkup.inline(heading.text(), linkTarget))
+				final String headingId = headingIds.get(heading);
+				sb.append("<h").append(level);
+				if(headingId != null)
+					sb.append(" id=\"").append(ReportMarkup.escape(headingId)).append('"');
+				sb.append('>').append(ReportMarkup.inline(heading.text(), linkTarget))
 					.append("</h").append(level).append(">\n");
 			}
 			case ReportSection.Paragraph paragraph -> {
@@ -134,7 +155,10 @@ public final class ReportXhtml{
 			return;
 		}
 
-		sb.append("<figure><img src=\"").append(ReportMarkup.escape(href)).append("\" alt=\"").append(ReportMarkup.escape(caption))
+		//without a caption the name of the file is the alternative text
+		final String alt = (!caption.isBlank() || section.file() == null || section.file().getFileName() == null? caption:
+			section.file().getFileName().toString());
+		sb.append("<figure><img src=\"").append(ReportMarkup.escape(href)).append("\" alt=\"").append(ReportMarkup.escape(alt))
 			.append("\"/>");
 		if(!caption.isBlank())
 			sb.append("<figcaption>").append(ReportMarkup.escape(caption)).append("</figcaption>");

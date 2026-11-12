@@ -174,9 +174,12 @@ class DialogsEscapeTest{
 		target.requestFocusInWindow();
 		flushEventQueue();
 		//the focus is the dialog's own (it may take a moment to be granted)
-		final long deadline = System.currentTimeMillis() + 2_000L;
+		final long deadline = System.currentTimeMillis() + 5_000L;
 		while(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() != target && System.currentTimeMillis() < deadline){
-			Thread.sleep(20L);
+			//the window may not be active yet (another application can hold the OS focus): ask again
+			dialog.toFront();
+			target.requestFocusInWindow();
+			Thread.sleep(50L);
 			flushEventQueue();
 		}
 		Assertions.assertSame(target, KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner(),

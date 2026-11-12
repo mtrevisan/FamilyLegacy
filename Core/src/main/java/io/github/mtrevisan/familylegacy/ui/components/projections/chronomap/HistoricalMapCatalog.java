@@ -187,7 +187,8 @@ final class HistoricalMapCatalog{
 
 			LOGGER.debug("Historical maps of the cell {} searched: {} maps known", cell, maps.size());
 		}
-		catch(final IOException ioe){
+		catch(final IOException | RuntimeException ioe){
+			//a malformed answer is a failure too, otherwise the same cell would be searched again at every panning
 			offline = true;
 			failedAt.put(cell, System.currentTimeMillis());
 

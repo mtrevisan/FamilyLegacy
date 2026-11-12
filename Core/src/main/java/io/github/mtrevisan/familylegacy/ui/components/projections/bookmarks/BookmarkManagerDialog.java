@@ -39,6 +39,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -108,6 +110,31 @@ public final class BookmarkManagerDialog extends JDialog{
 
 		rename.addActionListener(e -> onRename());
 		delete.addActionListener(e -> onDelete());
+
+		//the buttons act on the selected bookmark: disabled when nothing is selected (including an empty list)
+		final Runnable updateButtons = () -> {
+			final boolean selected = (list.getSelectedValue() != null);
+			rename.setEnabled(selected);
+			delete.setEnabled(selected);
+		};
+		list.addListSelectionListener(e -> updateButtons.run());
+		model.addListDataListener(new ListDataListener(){
+			@Override
+			public void intervalAdded(final ListDataEvent e){
+				updateButtons.run();
+			}
+
+			@Override
+			public void intervalRemoved(final ListDataEvent e){
+				updateButtons.run();
+			}
+
+			@Override
+			public void contentsChanged(final ListDataEvent e){
+				updateButtons.run();
+			}
+		});
+		updateButtons.run();
 
 		buttons.add(rename);
 		buttons.add(delete);

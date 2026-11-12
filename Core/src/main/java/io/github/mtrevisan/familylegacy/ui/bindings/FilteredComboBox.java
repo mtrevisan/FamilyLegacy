@@ -48,8 +48,9 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -191,35 +192,39 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 			return;
 
 		isFiltering = true;
+		try{
+			final int caretPosition = editorComponent.getCaretPosition();
+			final String searchText = (textToMatch == null? StringUtils.EMPTY: textToMatch.trim().toLowerCase());
 
-		final int caretPosition = editorComponent.getCaretPosition();
-		final String searchText = (textToMatch == null? StringUtils.EMPTY: textToMatch.trim().toLowerCase());
-
-		final List<E> matches = new ArrayList<>();
-		if(searchText.isEmpty()){
-			for(final FilterItem<E> wrapper : filterCache)
-				matches.add(wrapper.item());
-		}
-		else{
-			for(final FilterItem<E> wrapper : filterCache)
-				if(SearchMatcher.score(searchText, wrapper.displayLower(), NO_MODES).passes())
+			final List<E> matches = new ArrayList<>();
+			if(searchText.isEmpty()){
+				for(final FilterItem<E> wrapper : filterCache)
 					matches.add(wrapper.item());
+			}
+			else{
+				for(final FilterItem<E> wrapper : filterCache)
+					if(SearchMatcher.score(searchText, wrapper.displayLower(), NO_MODES).passes())
+						matches.add(wrapper.item());
+			}
+
+			model.removeAllElements();
+			if(!matches.isEmpty())
+				model.addAll(matches);
+
+			if(matches.isEmpty() || searchText.isEmpty())
+				hidePopup();
+			else if(!isPopupVisible())
+				showPopup();
+
+			// Restore editor text and cursor position without resetting user input (rewriting an unchanged text would
+			// fire document events again and keep re-triggering the debounced filter)
+			if(!Objects.equals(editorComponent.getText(), textToMatch))
+				editorComponent.setText(textToMatch);
+			editorComponent.setCaretPosition(Math.min(caretPosition, editorComponent.getText().length()));
 		}
-
-		model.removeAllElements();
-		if(!matches.isEmpty())
-			model.addAll(matches);
-
-		if(matches.isEmpty() || searchText.isEmpty())
-			hidePopup();
-		else if(!isPopupVisible())
-			showPopup();
-
-		// Restore editor text and cursor position without resetting user input
-		editorComponent.setText(textToMatch);
-		editorComponent.setCaretPosition(Math.min(caretPosition, editorComponent.getText().length()));
-
-		isFiltering = false;
+		finally{
+			isFiltering = false;
+		}
 	}
 
 	private String getText(){

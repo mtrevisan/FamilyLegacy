@@ -53,6 +53,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
@@ -70,6 +71,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -228,9 +230,12 @@ public final class MediaManagementDialog extends JDialog{
 		return model.getRecordById(rowId);
 	}
 
+	private long previewTicket;
+
 	private void updatePreview(){
 		final FLEFRecord document = selectedDocument();
 		if(document == null){
+			previewTicket ++;
 			previewLabel.setIcon(null);
 			previewLabel.setText(I18N.t("label.select_document"));
 
@@ -238,16 +243,43 @@ public final class MediaManagementDialog extends JDialog{
 		}
 
 		final String uri = SourceHelper.documentUri(document);
-		final ImageIcon icon = tryLoadImage(uri);
-		if(icon != null){
-			previewLabel.setText(StringUtils.EMPTY);
-			previewLabel.setIcon(scaleIcon(icon, PREVIEW_WIDTH, PREVIEW_HEIGHT));
-		}
-		else{
-			previewLabel.setIcon(null);
-			previewLabel.setText(uri != null? "<html><center>" + escape(MediaPathDisplay.display(uri)) + "</center></html>"
-				: "<html><center>No URI</center></html>");
-		}
+		//the image is read off the EDT; a result that is no longer the current one is discarded
+		final long ticket = ++previewTicket;
+		previewLabel.setIcon(null);
+		previewLabel.setText(StringUtils.EMPTY);
+		new SwingWorker<ImageIcon, Void>(){
+			@Override
+			protected ImageIcon doInBackground(){
+				final ImageIcon icon = tryLoadImage(uri);
+				return (icon != null? scaleIcon(icon, PREVIEW_WIDTH, PREVIEW_HEIGHT): null);
+			}
+
+			@Override
+			protected void done(){
+				if(ticket != previewTicket)
+					return;
+
+				ImageIcon icon = null;
+				try{
+					icon = get();
+				}
+				catch(final InterruptedException ie){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ignored){
+					//no preview
+				}
+				if(icon != null){
+					previewLabel.setText(StringUtils.EMPTY);
+					previewLabel.setIcon(icon);
+				}
+				else{
+					previewLabel.setIcon(null);
+					previewLabel.setText(uri != null? "<html><center>" + escape(MediaPathDisplay.display(uri)) + "</center></html>"
+						: "<html><center>" + I18N.t("label.no_uri") + "</center></html>");
+				}
+			}
+		}.execute();
 	}
 
 	/**
@@ -356,6 +388,8 @@ public final class MediaManagementDialog extends JDialog{
 		@Override public int getRowCount(){ return rows.size(); }
 		@Override public int getColumnCount(){ return COLUMNS.length; }
 		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
+		//(the references are numbers: the sorter must not sort them as text, "10" before "2")
+		@Override public Class<?> getColumnClass(final int column){ return (column == 3? Integer.class: String.class); }
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex){

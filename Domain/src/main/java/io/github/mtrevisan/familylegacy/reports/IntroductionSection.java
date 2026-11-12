@@ -47,7 +47,7 @@ import java.util.List;
  * month and day are lost.</p>
  *
  * <p>Plural-sensitive lines (age, relation counts) go through
- * {@link ReportLabels} plural helpers, which use ICU4J to select the correct
+ * {@link io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels} plural helpers, which use ICU4J to select the correct
  * form for the target language.</p>
  */
 public final class IntroductionSection implements SectionBuilder{

@@ -16,7 +16,7 @@ Open it with **Event > New Event...**, or from **Event > Manage Events...**, or 
 | **Place** | Where it happened (a place with its citations). |
 | **Confidence** | See [The record editors](editors.md#confidence). |
 
-**Cause** (for an event that has one, such as a death): **Reason** (text), the **Sources with Citations** that support the cause, and **Evidence**, a rating of low, medium or high for the cause. **Participations** lists the *Event Participations*; **Research** lists the conclusions and questions.
+**Cause** (for an event that has one, such as a death): **Reason** (text; required as soon as sources or an evidence rating are given for the cause), the **Sources with Citations** that support the cause, and **Evidence**, a rating of low, medium or high for the cause. **Participations** lists the *Event Participations*; **Research** lists the conclusions and questions.
 
 On OK, the type and the description are required.
 

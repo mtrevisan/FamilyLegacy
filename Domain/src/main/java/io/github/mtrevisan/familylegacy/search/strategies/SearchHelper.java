@@ -33,8 +33,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
@@ -165,16 +163,11 @@ public class SearchHelper{
 			return true;
 
 		final Integer year = SearchHelper.extractYear(date, calendar);
+		if(year == null)
+			return false;
+
+		//the year (not a JDN) must be inside the years the event may stand for
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
-		final TemporalSpan temporalSpan = DateReader.extractTemporalSpan(dateRecord);
-		final NormalizedDate start = (temporalSpan != null? temporalSpan.start(): null);
-		if(start != null)
-			return (year != null && year >= start.jdn());
-
-		final NormalizedDate end = (temporalSpan != null? temporalSpan.end(): null);
-		if(end != null)
-			return (year != null && year <= end.jdn());
-
 		return SearchHelper.isDateInRange(dateRecord, null, null, year, year);
 	}
 
@@ -197,7 +190,7 @@ public class SearchHelper{
 			return true;
 
 		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, PlaceReader.TYPE);
-		if(placeCitation == null)
+		if(placeCitation == null || placeCitation.getTheOnlyChild() == null)
 			return true;
 
 		final String placeId = placeCitation.getTheOnlyChild().getValue();
@@ -351,8 +344,11 @@ public class SearchHelper{
 		if(StringUtils.isEmpty(dateStr))
 			return null;
 
-		final CalendarType calendarType = (calendarStr != null? CalendarType.valueOf(calendarStr.toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
 		try{
+			//an empty or unknown calendar is the same as none
+			final CalendarType calendarType = (StringUtils.isNotBlank(calendarStr)
+				? CalendarType.valueOf(calendarStr.strip().toUpperCase(Locale.ROOT))
+				: CalendarType.GREGORIAN);
 			final long dateJdn = calendarType.parseToJdn(dateStr);
 			final LocalDate prolepticDate = CalendarType.jdnToProlepticGregorianLocalDate(dateJdn);
 			return prolepticDate.getYear();

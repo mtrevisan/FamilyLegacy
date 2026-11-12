@@ -82,6 +82,19 @@ public final class AsyncResourceLoader<T>{
 	 * @param callback invoked on the EDT with the cached/computed value, or {@code fallback}
 	 */
 	public void load(final String key, final Callable<T[]> task, final Consumer<T[]> callback){
+		load(key, task, null, callback);
+	}
+
+	/**
+	 * Loads (or retrieves from cache) the value for {@code key}, calling {@code callback} on the
+	 * EDT with the result; if the task fails (or yields nothing), {@code fallback} is passed instead and nothing is cached.
+	 *
+	 * @param key      cache key; a cache hit skips {@code task} entirely
+	 * @param task     work to run off the EDT if {@code key} is not already cached
+	 * @param fallback value handed to the callback when the task fails
+	 * @param callback invoked on the EDT with the cached/computed value, or {@code fallback}
+	 */
+	public void load(final String key, final Callable<T[]> task, final T[] fallback, final Consumer<T[]> callback){
 		final T[] cached = cache.get(key);
 		if(cached != null){
 			SwingUtilities.invokeLater(() -> callback.accept(cached));
@@ -115,7 +128,7 @@ public final class AsyncResourceLoader<T>{
 				}
 			}.execute();
 			return future;
-		}).thenAccept(result -> SwingUtilities.invokeLater(() -> callback.accept(result)));
+		}).thenAccept(result -> SwingUtilities.invokeLater(() -> callback.accept(result != null? result: fallback)));
 	}
 
 	/**

@@ -107,7 +107,8 @@ public record SocialPath(List<SocialEdgeRef> edges){
 	 * @return the first endpoint
 	 */
 	public TemporalEntityRef start(){
-		return edges.getFirst().source();
+		//the first edge may have been walked from its target
+		return nodes().getFirst();
 	}
 
 	/**
@@ -116,7 +117,7 @@ public record SocialPath(List<SocialEdgeRef> edges){
 	 * @return the last endpoint
 	 */
 	public TemporalEntityRef end(){
-		return edges.getLast().target();
+		return nodes().getLast();
 	}
 
 	/**

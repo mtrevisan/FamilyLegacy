@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 
 import java.awt.Window;
+import java.util.List;
 
 
 public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<RecordDialog>{
@@ -71,16 +72,16 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<RecordDi
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_SUBJECT, model)
-			.getFirst();
+		final List<FLEFRecord> subjects = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_SUBJECT, model);
+		final FLEFRecord subject = (subjects.isEmpty()? null: subjects.getFirst());
 		String subjectDisplayText = "--";
 		if(subject != null){
 			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_TARGET, model)
-			.getFirst();
+		final List<FLEFRecord> targets = FLEFRecordHelper.extractRecordsFromOneOfReference(record, PlaceRelationshipReader.TAG_TARGET, model);
+		final FLEFRecord target = (targets.isEmpty()? null: targets.getFirst());
 		String objectDisplayText = "--";
 		if(target != null){
 			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());

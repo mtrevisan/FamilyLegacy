@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JComboBox;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -62,7 +63,7 @@ public class EditableComboAdapter extends FocusAdapter implements ActionListener
 		this.undoController = undoController;
 		baseValue = getCurrentValue();
 
-		undoDebouncer = new Debouncer<>(key -> commitEdit(), DEBOUNCE_TIME);
+		undoDebouncer = new Debouncer<>(key -> SwingUtilities.invokeLater(this::commitEdit), DEBOUNCE_TIME);
 	}
 
 

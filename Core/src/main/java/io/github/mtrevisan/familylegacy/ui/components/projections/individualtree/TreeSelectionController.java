@@ -101,12 +101,12 @@ public final class TreeSelectionController{
 				continue;
 
 			final IndividualPanel father = partners.getFatherPanel();
-			final IndividualSummary fatherData = father.getData();
+			final IndividualSummary fatherData = (father != null? father.getData(): null);
 			if(fatherData != null && selectedId.equals(fatherData.getId()))
 				return father;
 
 			final IndividualPanel mother = partners.getMotherPanel();
-			final IndividualSummary motherData = mother.getData();
+			final IndividualSummary motherData = (mother != null? mother.getData(): null);
 			if(motherData != null && selectedId.equals(motherData.getId()))
 				return mother;
 		}
@@ -167,6 +167,9 @@ public final class TreeSelectionController{
 	public void apply(){
 		for(final Map.Entry<TreeNode, PartnersPanel> entry : nodeToPanelMap.entrySet()){
 			final PartnersPanel partners = entry.getValue();
+			if(partners == null)
+				continue;
+
 			applyToSlot(partners.getFatherPanel());
 			applyToSlot(partners.getMotherPanel());
 		}

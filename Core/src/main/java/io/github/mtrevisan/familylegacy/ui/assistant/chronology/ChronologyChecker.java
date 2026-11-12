@@ -76,7 +76,7 @@ final class ChronologyChecker{
 
 	private static final Set<String> MARRIAGE_TYPES = Set.of(EventReader.ENUM_TYPE_MARRIAGE, EventReader.ENUM_TYPE_MARRIAGE_BANN,
 		EventReader.ENUM_TYPE_MARRIAGE_CONTRACT, EventReader.ENUM_TYPE_MARRIAGE_LICENSE, EventReader.ENUM_TYPE_MARRIAGE_SETTLEMENT,
-		"engagement");
+		EventReader.ENUM_TYPE_ENGAGEMENT);
 
 	/** Years are counted with 365 days for the lower limits and 366 for the upper ones, so that a limit is never exceeded by rounding. */
 	private static final int DAYS_IN_YEAR_SHORT = 365;
@@ -154,7 +154,7 @@ final class ChronologyChecker{
 					&& isTooYoung(person, event.date(), rules)){
 				reported.add(person.id());
 				findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young", List.of(person.id(), event.eventId()),
-					person.name(), minMarriageAge(person, rules), person.birthText(), event.dateText() + ", event [" + event.eventId() + "]"));
+					person.name(), minMarriageAge(person, rules), person.birthText(), I18N.tf("chronology.location.event", event.dateText(), event.eventId())));
 			}
 		}
 		for(final ChronologyData.Union union : data.unions()){
@@ -166,7 +166,7 @@ final class ChronologyChecker{
 				if(partner != null && isTooYoung(partner, union.from(), rules) && reported.add(partner.id()))
 					findings.add(finding(Diagnostic.Severity.WARNING, "marriage_too_young",
 						List.of(partner.id(), union.relationshipId()), partner.name(), minMarriageAge(partner, rules),
-						partner.birthText(), union.fromText() + ", relationship [" + union.relationshipId() + "]"));
+						partner.birthText(), I18N.tf("chronology.location.relationship", union.fromText(), union.relationshipId())));
 			}
 		}
 	}
@@ -210,9 +210,9 @@ final class ChronologyChecker{
 
 			final String type = event.type();
 			if(person.birth() != null && !EventReader.ENUM_TYPE_BIRTH.equals(type) && event.date().isBefore(person.birth()))
-				findings.add(finding(Diagnostic.Severity.ERROR, (MARRIAGE_TYPES.contains(type)? "marriage_before_birth": "event_before_birth"),
+				findings.add(finding(Diagnostic.Severity.ERROR, (type != null && MARRIAGE_TYPES.contains(type)? "marriage_before_birth": "event_before_birth"),
 					List.of(person.id(), event.eventId()), person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.birthText()));
-			if(person.death() != null && !DateConsistency.isPosthumous(type) && person.death().isBefore(event.date()))
+			if(person.death() != null && !(type != null && DateConsistency.isPosthumous(type)) && person.death().isBefore(event.date()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "event_after_death", List.of(person.id(), event.eventId()),
 					person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.deathText()));
 		}

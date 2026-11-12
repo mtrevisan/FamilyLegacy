@@ -106,13 +106,25 @@ final class GrampsXML{
 
 	/** @return	The first child element with the name, or {@code null}. */
 	static Element child(final Element parent, final String name){
-		final List<Element> children = children(parent, name);
-		return (!children.isEmpty()? children.getFirst(): null);
+		if(parent == null)
+			return null;
+
+		final NodeList nodes = parent.getChildNodes();
+		for(int i = 0; i < nodes.getLength(); i ++)
+			if(nodes.item(i) instanceof Element child && name.equals(name(child)))
+				return child;
+		return null;
 	}
 
 	/** @return	The text of the element, or {@code null} if missing or empty. */
 	static String text(final Element element){
 		return (element != null? StringUtils.trimToNull(element.getTextContent()): null);
+	}
+
+	/** @return	The text of the element exactly as it is written (no trimming), or {@code null} if missing or blank. */
+	static String rawText(final Element element){
+		final String text = (element != null? element.getTextContent(): null);
+		return (StringUtils.isNotBlank(text)? text: null);
 	}
 
 	/** @return	The text of the first child element with the name, or {@code null}. */

@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
 
 
 /** Day-of-month validation, season anchors and tables of the non-Gregorian calendars. */
@@ -175,7 +176,7 @@ class NonGregorianStrategiesTest{
 	@Test
 	void bikramSambatIsAnchoredToThePublishedNewYears() throws IOException{
 		//the accumulation of the month lengths from 1970 BS agrees with every published 1 Baisakh
-		Assertions.assertEquals(java.util.List.of(), NepaliCalendarStrategy.anchorMismatches());
+		Assertions.assertEquals(List.of(), NepaliCalendarStrategy.anchorMismatches());
 
 		int anchors = 0;
 		for(final String line : readTable(NepaliCalendarStrategy.class, "bikram-sambat-new-years.csv")){

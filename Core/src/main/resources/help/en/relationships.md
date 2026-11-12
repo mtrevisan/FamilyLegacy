@@ -109,4 +109,4 @@ Places have their own relationships, edited the same way (subject, target, type,
 | **Part of** | administrative, geographic, ecclesiastical, judicial, cadastral |
 | **Succession** | successor of, merged from, split from, received territory from |
 
-For example, *administrative part of* with Treviso as subject and Veneto as target. For the succession types the subject is always the later place. The type is an editable list, so a type of your own can be typed. Subject, target and type are required, and both places must be places.
+For example, *administrative part of* with Treviso as subject and Veneto as target. For the succession types the subject is always the later place. The type is an editable list, so a type of your own can be typed. Subject, target and type are required, and both places must be places. A place cannot be related to itself: the editor refuses it.

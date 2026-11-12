@@ -188,22 +188,27 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 	 */
 	private enum Category{
 		// Individual focus
-		PARENT(I18N.t("dialog.unlink.relationship.parents")),
-		PARTNER(I18N.t("dialog.unlink.relationship.partners")),
-		GROUP(I18N.t("dialog.unlink.relationship.groups")),
-		ASSOCIATE(I18N.t("dialog.unlink.relationship.associates")),
-		CHILD(I18N.t("dialog.unlink.relationship.children")),
+		PARENT("dialog.unlink.relationship.parents"),
+		PARTNER("dialog.unlink.relationship.partners"),
+		GROUP("dialog.unlink.relationship.groups"),
+		ASSOCIATE("dialog.unlink.relationship.associates"),
+		CHILD("dialog.unlink.relationship.children"),
 		// Group focus
-		MEMBER(I18N.t("dialog.unlink.relationship.members")),
-		SUBGROUP(I18N.t("dialog.unlink.relationship.subgroups")),
-		SUPERGROUP(I18N.t("dialog.unlink.relationship.supergroups"));
+		MEMBER("dialog.unlink.relationship.members"),
+		SUBGROUP("dialog.unlink.relationship.subgroups"),
+		SUPERGROUP("dialog.unlink.relationship.supergroups");
 
 
-		private final String label;
+		private final String labelKey;
 
 
-		Category(final String label){
-			this.label = label;
+		Category(final String labelKey){
+			this.labelKey = labelKey;
+		}
+
+		/** @return the label in the current language (resolved at each call, not at class load) */
+		String label(){
+			return I18N.t(labelKey);
 		}
 	}
 
@@ -360,11 +365,12 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 			final FLEFRecord other = model.getRecordById(otherId);
 
 			final Category category = classify(type, focusIsGroup, isDirect);
-			if(category == null)
+			if(category == null || other == null)
 				continue;
 
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(other.getTag());
-			final String baseDescription = handler.getDisplayText(record, model);
+			//the description is that of the other end of the relationship, not that of the focus
+			final String baseDescription = handler.getDisplayText(other, model);
 			final RelationshipInfo info = byCategory.get(category)
 				.computeIfAbsent(otherId, id -> new RelationshipInfo(id, baseDescription));
 			info.addRelationship(relationship.getId(), isDirect);
@@ -379,8 +385,8 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 			final List<RelationshipInfo> infos = new ArrayList<>(map.values());
 			final boolean scrollable = (cat == Category.CHILD || cat == Category.MEMBER);
 			final JPanel groupPanel = (scrollable
-				? createScrollableGroupPanel(cat.label, infos)
-				: createGroupPanel(cat.label, infos));
+				? createScrollableGroupPanel(cat.label(), infos)
+				: createGroupPanel(cat.label(), infos));
 			contentPanel.add(groupPanel, "growx");
 		}
 

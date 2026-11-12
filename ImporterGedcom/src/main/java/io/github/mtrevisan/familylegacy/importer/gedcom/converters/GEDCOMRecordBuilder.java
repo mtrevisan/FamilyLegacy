@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.PendingFile;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -119,7 +120,7 @@ public final class GEDCOMRecordBuilder{
 		if(noteNode == null)
 			return;
 
-		final FLEFRecord note = createNoteStruct(title, GEDCOMHelper.extractFullText(noteNode), noteNode);
+		final FLEFRecord note = NoteBuilder.createNoteStruct(title, GEDCOMHelper.extractFullText(noteNode), noteNode);
 		if(note == null)
 			return;
 
@@ -214,32 +215,6 @@ public final class GEDCOMRecordBuilder{
 			.addAll(note.getChildren().size() - 1, format);
 	}
 
-	public static FLEFRecord createNoteStruct(String title, String text, GEDCOMNode node){
-		if(StringUtils.isBlank(text))
-			return null;
-
-		final FLEFRecord note = FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE);
-		if(StringUtils.isNotBlank(title))
-			note.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TITLE, title));
-		return note.addChild(FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_TEXT, text.trim()))
-			.addChild(AuditBuilder.build(node));
-	}
-
-	/**
-	 * Creates a note whose text has links to the records of the file ({@code flef:<Id>}), so it is a markdown one.
-	 *
-	 * @return	The note, or {@code null} if the text is blank.
-	 */
-	public static FLEFRecord createLinkNote(final String title, final String text, final GEDCOMNode node){
-		final FLEFRecord note = createNoteStruct(title, text, node);
-		if(note != null)
-			//the media type goes before the audit, the last field of a note
-			note.getChildren()
-				.add(note.getChildren().size() - 1, FLEFRecord.createChildWithTagAndValue(NoteReader.TAG_MIME, GEDCOMMapper.MIME_MARKDOWN));
-		return note;
-	}
-
-
 	/*
 	PERSONAL_NAME_STRUCTURE :=
 	n NAME <NAME_PERSONAL>    {1:1}
@@ -272,12 +247,12 @@ public final class GEDCOMRecordBuilder{
 			return;
 
 		for(GEDCOMNode foneNode : GEDCOMHelper.findChildren(nameNode, "FONE"))
-			attachNameVariant(name, foneNode, TextValueVariantReader.TAG_PHONETIC, "Phonetic variation");
+			attachNameVariant(name, foneNode, TextValueVariantReader.TAG_PHONETIC, GedcomTexts.t("title.variation_phonetic"));
 		for(GEDCOMNode romnNode : GEDCOMHelper.findChildren(nameNode, "ROMN"))
-			attachNameVariant(name, romnNode, TextValueVariantReader.TAG_TRANSCRIPTION, "Romanized variation");
+			attachNameVariant(name, romnNode, TextValueVariantReader.TAG_TRANSCRIPTION, GedcomTexts.t("title.variation_romanized"));
 		// GEDCOM 7 replaces FONE and ROMN with translations, distinguished by their language
 		for(GEDCOMNode tranNode : GEDCOMHelper.findChildren(nameNode, GEDCOMMapper.TAG_TRANSLATION))
-			attachNameVariant(name, tranNode, TextValueVariantReader.TAG_TRANSCRIPTION, "Translated name");
+			attachNameVariant(name, tranNode, TextValueVariantReader.TAG_TRANSCRIPTION, GedcomTexts.t("title.variation_translated"));
 
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(nameNode, GEDCOMMapper.TAG_SOURCE))
 			attachSource(name, model, sourNode, noteRawMap);
@@ -357,8 +332,13 @@ public final class GEDCOMRecordBuilder{
 				surname = value.substring(slash1 + 1, slash2);
 				suffix = value.substring(slash2 + 1);
 			}
+			else if(slash1 >= 0){
+				//the closing slash is missing: the surname is what follows the opening one
+				given = value.substring(0, slash1);
+				surname = value.substring(slash1 + 1);
+			}
 			else
-				given = value.replace("/", StringUtils.SPACE);
+				given = value;
 		}
 
 		final Map<String, List<String>> pieces = new LinkedHashMap<>();
@@ -438,7 +418,7 @@ public final class GEDCOMRecordBuilder{
 				}
 			}
 		if(!attached)
-			name.addChild(createNoteStruct(noteTitle + (typeValue != null? " (" + typeValue + ")": StringUtils.EMPTY),
+			name.addChild(NoteBuilder.createNoteStruct(noteTitle + (typeValue != null? " (" + typeValue + ")": StringUtils.EMPTY),
 				variantNode.getValue(), variantNode));
 	}
 
@@ -498,7 +478,7 @@ public final class GEDCOMRecordBuilder{
 		}
 		else{
 			// a source description: the text is the title of an unrecorded source (GEDCOM 7 cites it as @VOID@, without text)
-			final String description = ObjectUtils.firstNonNull(StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)), "Unspecified source");
+			final String description = ObjectUtils.firstNonNull(StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)), GedcomTexts.t("text.unspecified_source"));
 			source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
 				.addChild(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
 					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, description)))
@@ -563,7 +543,7 @@ public final class GEDCOMRecordBuilder{
 			citation.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCATOR, String.join(", ", locator)));
 		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_NOTE)){
 			if(extracts.isEmpty())
-				attachNote(parent, model, noteNode, noteRawMap, "Citation of " + sourceId);
+				attachNote(parent, model, noteNode, noteRawMap, GedcomTexts.tf("text.citation_of", sourceId));
 			else{
 				final String noteId = GEDCOMHelper.pointer(noteNode.getValue());
 				final String text = GEDCOMHelper.extractFullText(noteId != null && noteRawMap != null? noteRawMap.get(noteId): noteNode);
@@ -903,17 +883,17 @@ public final class GEDCOMRecordBuilder{
 
 		//the custom date is the one the media was created (a date that cannot be normalized is kept as a note)
 		attachDate(media, MediaReader.TAG_DATE, GEDCOMHelper.findFirstValue(objeNode, "_DATE"));
-		media.addChild(createNoteStruct("Format", format, objeNode))
-			.addChild(createNoteStruct("Media type", mediaType, objeNode));
+		media.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.format"), format, objeNode))
+			.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.media_type"), mediaType, objeNode));
 		final String publisher = GEDCOMHelper.findFirstValue(objeNode, "_PUBL");
 		if(publisher != null && !GEDCOMHelper.isFlag(publisher))
-			media.addChild(createNoteStruct("Published by", publisher, objeNode));
+			media.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.published_by"), publisher, objeNode));
 		// GEDCOM 7 alternative versions of the file (e.g. a thumbnail, a transcription)
 		for(final GEDCOMNode tranNode : GEDCOMHelper.findChildren(fileNode, GEDCOMMapper.TAG_TRANSLATION)){
 			final String tranUri = StringUtils.trimToNull(tranNode.getValue());
 			final String tranFormat = GEDCOMHelper.findFirstValue(tranNode, "FORM");
 			if(tranUri != null)
-				media.addChild(createNoteStruct("Alternative file",
+				media.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.alternative_file"),
 					tranUri + (tranFormat != null? " (" + tranFormat + ")": StringUtils.EMPTY), objeNode));
 		}
 		for(final GEDCOMNode noteNode : GEDCOMHelper.findChildren(objeNode, GEDCOMMapper.TAG_NOTE))
@@ -1015,7 +995,7 @@ public final class GEDCOMRecordBuilder{
 			if(description == null)
 				description = typeValue;
 			else
-				event.addChild(createNoteStruct("Type", typeValue, node));
+				event.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.type"), typeValue, node));
 		}
 		if(description != null)
 			event.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_DESCRIPTION, description));
@@ -1103,7 +1083,7 @@ public final class GEDCOMRecordBuilder{
 			if(value == null)
 				value = typeValue;
 			else
-				attribute.addChild(createNoteStruct("Type", typeValue, node));
+				attribute.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.type"), typeValue, node));
 		}
 		if(value != null)
 			attribute.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, value));
@@ -1113,8 +1093,8 @@ public final class GEDCOMRecordBuilder{
 			GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_ADDRESS), noteRawMap, placeCache);
 
 		// Cause and age have no place in an attribute
-		attribute.addChild(createNoteStruct("Cause", GEDCOMHelper.findFirstValue(node, "CAUS"), node));
-		attribute.addChild(createNoteStruct(AgeBirthConverter.AGE_NOTE_TITLE, GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_AGE), node));
+		attribute.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.cause"), GEDCOMHelper.findFirstValue(node, "CAUS"), node));
+		attribute.addChild(NoteBuilder.createNoteStruct(NoteBuilder.AGE_NOTE_TITLE, GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_AGE), node));
 
 		attachEventDetail(attribute, place, model, node, noteRawMap);
 		return attribute;
@@ -1149,17 +1129,16 @@ public final class GEDCOMRecordBuilder{
 	/** Attaches the details shared by events and attributes, the audit, and adds the record to the model. */
 	private static void attachEventDetail(FLEFRecord record, FLEFRecord place, FLEFModel model, GEDCOMNode node,
 			Map<String, GEDCOMNode> noteRawMap){
-		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "AGNC"), noteRawMap, "Agency");
-		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "RELI"), noteRawMap, "Religion");
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "AGNC"), noteRawMap, GedcomTexts.t("title.agency"));
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "RELI"), noteRawMap, GedcomTexts.t("title.religion"));
 		// LDS ordinances
-		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "TEMP"), noteRawMap, "Temple");
-		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "STAT"), noteRawMap, "Status");
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "TEMP"), noteRawMap, GedcomTexts.t("title.temple"));
+		attachNote(record, model, GEDCOMHelper.findFirstChild(node, "STAT"), noteRawMap, GedcomTexts.t("title.status"));
 		// the family a child was sealed to (LDS ordinance): the group has the same id as the FAM record, converted or not yet
 		if(GEDCOMMapper.TAG_SEALING_CHILD.equalsIgnoreCase(node.getTag())){
 			final String familyId = GEDCOMHelper.pointer(GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_FAMILY_CHILD));
 			if(familyId != null)
-				record.addChild(createLinkNote("Sealed to family", "Sealed to the family [" + familyId + "](" + GEDCOMMapper.FLEF_LINK_PREFIX
-					+ familyId + ")", node));
+				record.addChild(NoteBuilder.createLinkNote(GedcomTexts.t("title.sealed_to_family"), GedcomTexts.tf("text.sealed_to_family", familyId, GEDCOMMapper.FLEF_LINK_PREFIX), node));
 		}
 
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_SOURCE))
@@ -1194,7 +1173,7 @@ public final class GEDCOMRecordBuilder{
 			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, eventId));
 		if(role != null)
 			participation.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_ROLE, role));
-		participation.addChild(createNoteStruct(AgeBirthConverter.AGE_NOTE_TITLE, age, node))
+		participation.addChild(NoteBuilder.createNoteStruct(NoteBuilder.AGE_NOTE_TITLE, age, node))
 			.addChild(AuditBuilder.build(node));
 
 		return Deduplicator.getDeduplicatedRecordId(model, participation);
@@ -1223,8 +1202,10 @@ public final class GEDCOMRecordBuilder{
 		for(GEDCOMNode assoNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_ASSOCIATION)){
 			final String associateId = GEDCOMHelper.pointer(assoNode.getValue());
 			final GEDCOMNode associate = recordsById.get(associateId);
-			if(associate == null || !GEDCOMMapper.TAG_INDIVIDUAL.equals(associate.getTag()))
+			if(associate == null || !GEDCOMMapper.TAG_INDIVIDUAL.equals(associate.getTag())){
+				GEDCOMImportContext.discard(ImportReasons.OTHER, assoNode, eventNode.getTag());
 				continue;
+			}
 
 			final String gedcomRole = GEDCOMHelper.findFirstValue(assoNode, GEDCOMMapper.TAG_ROLE);
 			final String role = GEDCOMMapper.mapEventRole(gedcomRole);
@@ -1238,7 +1219,7 @@ public final class GEDCOMRecordBuilder{
 			for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(assoNode, GEDCOMMapper.TAG_SOURCE))
 				attachSource(participation, model, sourNode, noteRawMap);
 			if(role == null)
-				participation.addChild(createNoteStruct("Role", GEDCOMMapper.mapAssociationRoleLabel(gedcomRole), assoNode));
+				participation.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.role"), GEDCOMMapper.mapAssociationRoleLabel(gedcomRole), assoNode));
 			for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(assoNode, GEDCOMMapper.TAG_NOTE))
 				attachNote(participation, model, noteNode, noteRawMap);
 			participation.addChild(AuditBuilder.build(eventNode));
@@ -1290,7 +1271,7 @@ public final class GEDCOMRecordBuilder{
 				ResearchActivityReader.ENUM_ACTIVITY_TYPE_REVIEW))
 			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_STATUS, ResearchActivityReader.ENUM_STATUS_COMPLETED))
 			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_ACTION,
-				"Checked that no " + eventType + " is recorded"))
+				GedcomTexts.tf("text.no_event_recorded", eventType)))
 			.addChild(FLEFRecord.createChildWithTag(ResearchActivityReader.TAG_TARGET)
 				.addChild(FLEFRecord.createChildWithTagAndValue(targetTag, targetId)))
 			.addChild(FLEFRecord.createChildWithTagAndValue(ResearchActivityReader.TAG_RESULT, ResearchActivityReader.ENUM_RESULT_NEGATIVE));
@@ -1417,14 +1398,14 @@ public final class GEDCOMRecordBuilder{
 
 		final List<FLEFRecord> dateStructures = GEDCOMDateConverter.buildDateStructures(tag, date);
 		if(dateStructures.isEmpty()){
-			parent.addChild(createNoteStruct("Date", date, null));
+			parent.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.date"), date, null));
 			return;
 		}
 
 		//a structure has a single date: with alternatives, the first is the date and each other one is kept as a note
-		parent.addChild(dateStructures.get(0));
+		parent.addChild(dateStructures.getFirst());
 		for(final String alternative : GEDCOMDateConverter.buildAlternativeTexts(date))
-			parent.addChild(createNoteStruct("Date (alternative)", alternative, null));
+			parent.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.date_alternative"), alternative, null));
 	}
 
 	/**
@@ -1443,10 +1424,10 @@ public final class GEDCOMRecordBuilder{
 			parent.addChild(validity[1]);
 			//the validity keeps the first alternative: each other one is kept as a note
 			for(final String alternative : GEDCOMDateConverter.buildAlternativeTexts(date))
-				parent.addChild(createNoteStruct("Date (alternative)", alternative, null));
+				parent.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.date_alternative"), alternative, null));
 		}
 		else
-			parent.addChild(createNoteStruct("Date", date, null));
+			parent.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.date"), date, null));
 	}
 
 
@@ -1519,7 +1500,8 @@ public final class GEDCOMRecordBuilder{
 				finalPlaceName = streetStr + ", " + basePlaceName;
 			}
 			else{
-				finalPlaceName = streetStr;
+				//the place already holds the street address
+				finalPlaceName = basePlaceName;
 			}
 			targetPlacNode = createSyntheticPlacNode(placNode, finalPlaceName);
 			form = shiftPlaceForm(placNode, placeCache, StringUtils.countMatches(finalPlaceName, ',') - StringUtils.countMatches(basePlaceName, ','));

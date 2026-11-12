@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
@@ -111,8 +112,7 @@ public class AgeBirthConverter{
 				cited = true;
 			}
 			if(!cited)
-				event.addChild(GEDCOMRecordBuilder.createLinkNote("Age", "Calculated from the age stated by [" + pending.source().getId()
-					+ "](" + GEDCOMMapper.FLEF_LINK_PREFIX + pending.source().getId() + ")", pending.node()));
+				event.addChild(NoteBuilder.createLinkNote(NoteBuilder.AGE_NOTE_TITLE, GedcomTexts.tf("text.age_calculated", pending.source().getId(), GEDCOMMapper.FLEF_LINK_PREFIX), pending.node()));
 			event.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_CONFIDENCE, ConfidenceReader.ENUM_LOW))
 				.addChild(AuditBuilder.build(pending.node()));
 			model.addRecord(event);
@@ -154,15 +154,12 @@ public class AgeBirthConverter{
 			return;
 
 		for(final FLEFRecord note : FLEFRecordHelper.findChildren(holder, NoteReader.TAG_NOTE))
-			if(AGE_NOTE_TITLE.equals(FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE))){
+			if(NoteBuilder.AGE_NOTE_TITLE.equals(FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE))){
 				final FLEFRecord text = FLEFRecordHelper.findChild(note, NoteReader.TAG_TEXT);
 				if(text != null)
 					text.setValue(text.getValue() + " (converted to the birth " + birthId + ")");
 				return;
 			}
 	}
-
-	/** The title of the note of an age. */
-	static final String AGE_NOTE_TITLE = "Age";
 
 }

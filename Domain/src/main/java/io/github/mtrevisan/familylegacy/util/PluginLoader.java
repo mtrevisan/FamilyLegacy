@@ -56,6 +56,9 @@ public final class PluginLoader{
 	/** System property that sets the location of the plugins' directory (the one the packaged application sets for the other plugins). */
 	private static final String PLUGINS_DIR_PROPERTY = "calendars.plugins.dir";
 	private static final String PLUGIN_SUFFIX = ".jar";
+	private static final String FONTS_DIR = "fonts";
+	/** System property that sets the location of the fonts' directory (the PDF report format reads the same one). */
+	public static final String FONTS_DIR_PROPERTY = "familylegacy.fonts.dir";
 
 
 	private PluginLoader(){}
@@ -97,6 +100,21 @@ public final class PluginLoader{
 		catch(final MalformedURLException mue){
 			throw new IllegalStateException(mue);
 		}
+	}
+
+	/**
+	 * @return	The directory of the fonts that the PDF reports use: {@code fonts}, beside the {@code plugins} directory (or the one the
+	 * 	{@code familylegacy.fonts.dir} system property names); it may not exist, the fonts are optional. {@code null} if the application cannot tell
+	 * 	where the plugins are.
+	 */
+	public static Path fontsDirectory(){
+		final String explicit = System.getProperty(FONTS_DIR_PROPERTY);
+		if(explicit != null && !explicit.isBlank())
+			return Paths.get(explicit);
+
+		final Path plugins = resolvePluginsDirectory();
+		final Path parent = (plugins != null? plugins.toAbsolutePath().getParent(): null);
+		return (parent != null? parent.resolve(FONTS_DIR): null);
 	}
 
 	/** Looks where the other plugins are: the property of the packaged application, beside the jar, the development folders. */

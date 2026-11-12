@@ -246,7 +246,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
 		out.add(new ReportSection.Heading(3,
-			(type.isEmpty()? "Event": type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
+			(type.isEmpty()? ctx.labels.sections().eventGeneric(): type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
 		final List<String> details = new ArrayList<>();
 

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
@@ -381,7 +382,7 @@ public final class ResearchAssistantService{
 			? focusManager.getActiveWindow()
 			: (focusOwner != null? SwingUtilities.getWindowAncestor(focusOwner): null));
 		//only a window of the main window has a selection: from an editor the selection is not what the user is working on...
-		final boolean inEditor = (window instanceof java.awt.Dialog);
+		final boolean inEditor = (window instanceof Dialog);
 		//...but the record the editor shows is what the user is working on: the findings are about it
 		final String selected = (window instanceof RecordDialog editor && editor.getRecord() != null
 			? editor.getRecord().getId()
@@ -454,7 +455,14 @@ public final class ResearchAssistantService{
 		final AssistantContext reading = context.forReading();
 		CompletableFuture
 			.supplyAsync(() -> recalculate(reading, before, FindingLevels::visible))
+			.exceptionally(e -> {
+				LOGGER.warn("Cannot recalculate the findings: {}", e.toString());
+				return null;
+			})
 			.thenAccept(recalculation -> {
+				if(recalculation == null)
+					return;
+
 				if(recalculation.isChanged())
 					SwingUtilities.invokeLater(() -> new ResearchAssistantPalette(this, context, recalculation, state).setVisible(true));
 			});

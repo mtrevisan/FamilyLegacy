@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
@@ -32,6 +33,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
+import io.github.mtrevisan.familylegacy.importer.gedcom.XrefNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
@@ -78,6 +80,10 @@ public class GEDCOMToFLEFConverter {
 	private static final Set<String> REFERRING_RECORD_TAGS = Set.of(GEDCOMMapper.TAG_INDIVIDUAL, "FAM");
 
 
+	/** The converters keep their state in statics (identifiers, deduplication, report): one conversion at a time. */
+	private static final Object CONVERSION_LOCK = new Object();
+
+
 	private final FLEFModel model = new FLEFModel();
 
 	// Shared context maps
@@ -117,12 +123,14 @@ public class GEDCOMToFLEFConverter {
 	 * @return a fully converted and validated FLEF model
 	 */
 	public FLEFModel convert(final List<GEDCOMNode> roots, final ProgressListener listener, final ImportReport report){
-		GEDCOMImportContext.begin(report);
-		try{
-			return convertRecords(roots, listener);
-		}
-		finally{
-			GEDCOMImportContext.end();
+		synchronized(CONVERSION_LOCK){
+			GEDCOMImportContext.begin(report);
+			try{
+				return convertRecords(roots, listener);
+			}
+			finally{
+				GEDCOMImportContext.end();
+			}
 		}
 	}
 
@@ -132,10 +140,12 @@ public class GEDCOMToFLEFConverter {
 			GEDCOM7Normalizer.normalize(roots);
 
 		// ---- 1. Register all existing IDs (for IDGenerator) ----
-		listener.onProgress(0, "Registering identifiers…");
+		listener.onProgress(0, I18N.t("progress.gedcom.registering_ids"));
 		Deduplicator.reset();
 		GEDCOMRecordBuilder.resetSourceEventTypes();
 		IDGenerator.reset();
+		//the records get identifiers of the form of FLEF, and the pointers follow
+		XrefNormalizer.normalize(roots);
 		registerIds(roots);
 
 		// the elements of a record without a date of its own are as old as the record, or as the file
@@ -174,9 +184,12 @@ public class GEDCOMToFLEFConverter {
 		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, noteRawMap, recordsById,
 			childFamilyLinks, placeCache, ageBirthConverter);
 
-		listener.onProgress(10, "Parsing records…");
+		listener.onProgress(10, I18N.t("progress.gedcom.parsing_records"));
 
-		final int total = roots.size();
+		//the records that are converted one by one (the others are inlined or ignored)
+		final int total = Math.max(1, (int)roots.stream()
+			.filter(node -> REFERENCED_RECORD_TAGS.contains(node.getTag()) || REFERRING_RECORD_TAGS.contains(node.getTag()))
+			.count());
 		int done = 0;
 
 		// ---- 3. Header and the records referred to by other records ----
@@ -186,6 +199,9 @@ public class GEDCOMToFLEFConverter {
 		for(GEDCOMNode node : roots)
 			if("HEAD".equals(node.getTag()))
 				headerConverter.convert(node, submitterMap);
+		//a file without a header still gets one, with the data of the application
+		if(roots.stream().noneMatch(node -> "HEAD".equals(node.getTag())))
+			headerConverter.convert(new GEDCOMNode(0, "HEAD", null), submitterMap);
 		for(final String tag : REFERENCED_RECORD_TAGS)
 			for(GEDCOMNode node : roots){
 				if(!tag.equals(node.getTag()))
@@ -198,7 +214,7 @@ public class GEDCOMToFLEFConverter {
 				}
 
 				done ++;
-				listener.onProgress(10 + (int)(done * 60. / total), "Parsing " + tag + "…");
+				listener.onProgress(10 + (int)(done * 60. / total), I18N.t("progress.gedcom.parsing_records"));
 			}
 
 		// the NOTE records are inlined where referred
@@ -221,13 +237,14 @@ public class GEDCOMToFLEFConverter {
 			}
 
 			done ++;
-			listener.onProgress(10 + (int)(done * 60. / total), "Parsing " + node.getTag() + "…");
+			listener.onProgress(10 + (int)(done * 60. / total), I18N.t("progress.gedcom.parsing_records"));
 		}
 
-		listener.onProgress(75, "Resolving family links…");
+		listener.onProgress(75, I18N.t("progress.gedcom.resolving_links"));
 
 		// ---- 5. Second pass: resolve family links and the sources of the multimedia ----
 		individualConverter.resolveEventAssociations();
+		individualConverter.resolveFacts();
 		familyConverter.resolveLinks();
 		familyConverter.deriveStepRelationships();
 		familyConverter.reportChildLinksWithoutChild();
@@ -241,7 +258,7 @@ public class GEDCOMToFLEFConverter {
 		SourceMerger.merge(model, sourceMap);
 
 		// ---- 6. Add the records not yet in the model ----
-		listener.onProgress(95, "Building model…");
+		listener.onProgress(95, I18N.t("progress.gedcom.building_model"));
 		addMissingRecords(individualMap);
 		addMissingRecords(familyMap);
 		addMissingRecords(sourceMap);
@@ -249,7 +266,7 @@ public class GEDCOMToFLEFConverter {
 		addMissingRecords(multimediaMap);
 		// Submitters are not added as top‑level records; they are included in the header.
 
-		listener.onProgress(100, "Done");
+		listener.onProgress(100, I18N.t("progress.gedcom.done"));
 
 		return model;
 	}

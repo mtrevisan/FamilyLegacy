@@ -149,13 +149,15 @@ public class EntityField extends BoundTextField{
 		String value = null;
 		if(entityRef != null && !entityRef.isEmpty()){
 			if(type == EntityType.CITATION_WRAPPER){
-				final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
+				final RecordTypeHandler<?> handler = Objects.requireNonNullElseGet(findHandler(entityRef.getTag()),
+					() -> HandlerRegistry.getHandler(entityRef.getTag()));
 				value = handler.getDisplayText(entityRef, model);
 			}
 			else{
 				final FLEFRecord entity = model.getRecordById(entityRef.getId());
 				if(entity != null){
-					final RecordTypeHandler<?> handler = findHandler(entity.getTag());
+					final RecordTypeHandler<?> handler = Objects.requireNonNullElseGet(findHandler(entity.getTag()),
+						() -> HandlerRegistry.getHandler(entity.getTag()));
 					value = handler.getDisplayText(entity, model);
 				}
 				else{
@@ -291,7 +293,7 @@ public class EntityField extends BoundTextField{
 			entity = FLEFRecordHelper.extractRecordFromReference(record, path, model);
 		else if(type == EntityType.ONEOF_REFERENCE){
 			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
-			if(!entities.isEmpty())
+			if(index >= 0 && index < entities.size())
 				entity = entities.get(index);
 			else if(isInHandlerTypes(record))
 				entity = record;
@@ -394,7 +396,8 @@ public class EntityField extends BoundTextField{
 			return;
 		}
 
-		final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
+		final RecordTypeHandler<?> handler = Objects.requireNonNullElseGet(findHandler(entityRef.getTag()),
+			() -> HandlerRegistry.getHandler(entityRef.getTag()));
 		final RecordDialog dialog = handler.createEditDialog(parent, model, entityRef);
 		dialog.setVisible(true);
 
@@ -457,6 +460,9 @@ public class EntityField extends BoundTextField{
 		final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
 		final String citedRecordId = FLEFRecordHelper.getChildValue(entityRef, handler.getCitedType());
 		final FLEFRecord citedRecord = model.getRecordById(citedRecordId);
+		if(citedRecord == null)
+			return;
+
 		final RecordTypeHandler<?> citedRecordHandler = HandlerRegistry.getHandler(citedRecord.getTag());
 		final RecordDialog dialog = citedRecordHandler.createEditDialog(parent, model, citedRecord);
 		dialog.setVisible(true);

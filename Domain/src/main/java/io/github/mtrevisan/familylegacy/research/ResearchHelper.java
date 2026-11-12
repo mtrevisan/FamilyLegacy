@@ -35,9 +35,11 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -213,7 +215,23 @@ public final class ResearchHelper{
 	 */
 	public static Map<String, Integer> countReferences(
 		final List<FLEFRecord> records, final String tag){
-		return countByTag(records, tag);
+		//a record may reference several ids through a repeated tag (an activity can contribute to several questions): each one counts
+		final Map<String, Integer> result = new LinkedHashMap<>();
+		for(final FLEFRecord r : records){
+			final Set<String> ids = new HashSet<>();
+			for(final FLEFRecord child : FLEFRecordHelper.findChildren(r, tag)){
+				String id = child.getValue();
+				if(id == null || id.isBlank()){
+					final FLEFRecord onlyChild = child.getTheOnlyChild();
+					id = (onlyChild != null? onlyChild.getValue(): null);
+				}
+				if(id != null && !id.isBlank())
+					ids.add(id);
+			}
+			for(final String id : ids)
+				result.merge(id, 1, Integer::sum);
+		}
+		return result;
 	}
 
 

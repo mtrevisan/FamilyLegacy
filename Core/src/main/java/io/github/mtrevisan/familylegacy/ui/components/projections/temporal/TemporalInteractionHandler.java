@@ -144,12 +144,12 @@ public final class TemporalInteractionHandler{
 		final StringBuilder sb = new StringBuilder("<html>");
 		if(ref instanceof TemporalProjectionRef.EntryRef entryRef){
 			final TemporalEntry entry = entryRef.entry();
-			sb.append("<b>").append(entry.label()).append("</b>");
+			sb.append("<b>").append(escape(entry.label())).append("</b>");
 			if(!entry.type().isEmpty())
-				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(entry.type());
+				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(entry.type()));
 			if(entry.hasRole())
-				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(entry.role());
-			sb.append("<br>").append(describeSpan(entry.span()));
+				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(entry.role()));
+			sb.append("<br>").append(escape(describeSpan(entry.span())));
 			if(entry.hasNegativeEvidence())
 				sb.append("<br><i>").append(I18N.t("text.tip.negative_evidence")).append("</i>");
 			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
@@ -157,25 +157,25 @@ public final class TemporalInteractionHandler{
 		}
 		if(ref instanceof TemporalProjectionRef.ConnectionRef connectionRef){
 			final TemporalConnection connection = connectionRef.connection();
-			sb.append("<b>").append(connection.relationshipType()).append("</b>");
+			sb.append("<b>").append(escape(connection.relationshipType())).append("</b>");
 			if(connection.hasRole())
-				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(connection.role());
-			sb.append("<br>").append(I18N.l("tooltip.field.status")).append(StringUtils.SPACE).append(connection.span().status());
-			sb.append("<br>").append(describeSpan(connection.span()));
+				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(connection.role()));
+			sb.append("<br>").append(I18N.l("tooltip.field.status")).append(StringUtils.SPACE).append(escape(connection.span().status()));
+			sb.append("<br>").append(escape(describeSpan(connection.span())));
 			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
 		if(ref instanceof TemporalProjectionRef.BandRef bandRef){
 			final TemporalContextBand band = bandRef.band();
-			sb.append("<b>").append(band.label().isEmpty()? band.kind(): band.label()).append("</b>");
+			sb.append("<b>").append(escape(band.label().isEmpty()? band.kind(): band.label())).append("</b>");
 			if(!band.kind().isEmpty() && !band.kind().equals(band.label()))
-				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(band.kind());
-			sb.append("<br>").append(describeSpan(band.span()));
+				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(band.kind()));
+			sb.append("<br>").append(escape(describeSpan(band.span())));
 			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
 		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
-			return "<html><b>" + rowRef.entity().displayLabel() + "</b></html>";
+			return "<html><b>" + escape(rowRef.entity().displayLabel()) + "</b></html>";
 
 		return null;
 	}
@@ -206,12 +206,29 @@ public final class TemporalInteractionHandler{
 			: contentBounds.x + axis.jdnToX(maxJdn));
 		final int midX = (startX + endX) / 2;
 
-		// Bounding box of the three-segment polyline, expanded by tolerance.
-		final int minX = Math.min(startX, Math.min(midX, endX)) - CONNECTION_HIT_TOLERANCE;
-		final int maxX = Math.max(startX, Math.max(midX, endX)) + CONNECTION_HIT_TOLERANCE;
-		final int minY = Math.min(screenSourceY, screenTargetY) - CONNECTION_HIT_TOLERANCE;
-		final int maxY = Math.max(screenSourceY, screenTargetY) + CONNECTION_HIT_TOLERANCE;
-		return (x >= minX && x <= maxX && y >= minY && y <= maxY);
+		//the three segments of the polyline (the same drawn by the renderer), each expanded by the tolerance
+		return (isNearHorizontal(x, y, startX, midX, screenSourceY)
+			|| isNearVertical(x, y, midX, screenSourceY, screenTargetY)
+			|| isNearHorizontal(x, y, midX, endX, screenTargetY));
+	}
+
+	private static boolean isNearHorizontal(final int x, final int y, final int x1, final int x2, final int lineY){
+		return (Math.abs(y - lineY) <= CONNECTION_HIT_TOLERANCE
+			&& x >= Math.min(x1, x2) - CONNECTION_HIT_TOLERANCE && x <= Math.max(x1, x2) + CONNECTION_HIT_TOLERANCE);
+	}
+
+	private static boolean isNearVertical(final int x, final int y, final int lineX, final int y1, final int y2){
+		return (Math.abs(x - lineX) <= CONNECTION_HIT_TOLERANCE
+			&& y >= Math.min(y1, y2) - CONNECTION_HIT_TOLERANCE && y <= Math.max(y1, y2) + CONNECTION_HIT_TOLERANCE);
+	}
+
+	private static String escape(final String text){
+		if(text == null)
+			return StringUtils.EMPTY;
+
+		return text.replace("&", "&amp;")
+			.replace("<", "&lt;")
+			.replace(">", "&gt;");
 	}
 
 	private static String describeSpan(final TemporalSpan span){

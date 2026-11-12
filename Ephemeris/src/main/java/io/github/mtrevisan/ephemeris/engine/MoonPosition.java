@@ -425,9 +425,9 @@ public final class MoonPosition{
 		final double perigee = MathHelper.mod2pi(MathHelper.polynomial(t, perigeeCorr) * SEC);
 
 		// ----- Delaunay arguments (eqs. 10–13) --------------------------
-		a[ARG_D]  = MathHelper.mod2pi(w1 - ea + StrictMath.PI);
-		a[ARG_F]  = MathHelper.mod2pi(w1 - w3);
-		a[ARG_L]  = MathHelper.mod2pi(w1 - w2);
+		a[ARG_D] = MathHelper.mod2pi(w1 - ea + StrictMath.PI);
+		a[ARG_F] = MathHelper.mod2pi(w1 - w3);
+		a[ARG_L] = MathHelper.mod2pi(w1 - w2);
 		a[ARG_LP] = MathHelper.mod2pi(ea - perigee);
 
 		// ----- Planetary mean longitudes --------------------------------

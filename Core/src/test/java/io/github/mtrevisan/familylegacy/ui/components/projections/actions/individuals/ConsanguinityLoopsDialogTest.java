@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.awt.GraphicsEnvironment;
 import java.util.List;
 
 
@@ -87,6 +88,23 @@ class ConsanguinityLoopsDialogTest{
 		Assertions.assertTrue(summary.contains("6.25 %"), summary);
 		Assertions.assertTrue(summary.contains("2 loop(s)"), summary);
 		Assertions.assertFalse(summary.contains("Only the"), summary);
+	}
+
+	@Test
+	void theWindowOpensWithTheLoopsAndIsClosed() throws Exception{
+		org.junit.jupiter.api.Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = model("X", "Y", "G1", "Z");
+		final ConsanguinityLoops.Loop loop = new ConsanguinityLoops.Loop("G1", List.of("X", "G1"), List.of("Y", "G1"), 1. / 8.);
+		final ConsanguinityLoops.Result result = new ConsanguinityLoops.Result("Z", "X", "Y", 0.125, List.of(loop), false);
+		final int[] components = new int[1];
+
+		javax.swing.SwingUtilities.invokeAndWait(() -> {
+			final ConsanguinityLoopsDialog dialog = new ConsanguinityLoopsDialog(null, model, result);
+			components[0] = dialog.getContentPane().getComponentCount();
+			dialog.dispose();
+		});
+
+		Assertions.assertTrue(components[0] > 0);
 	}
 
 }

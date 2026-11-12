@@ -79,6 +79,37 @@ public final class GitHubReleases{
 	 * @throws IOException	If GitHub cannot be reached or its answer cannot be understood.
 	 */
 	public Optional<ReleaseInfo> latest() throws IOException{
+		final Optional<Map<String, Object>> release = latestRelease();
+		return (release.isPresent()? parse(release.get()): Optional.empty());
+	}
+
+	/**
+	 * @param name	The file name of the asset.
+	 * @return	The asset of the latest published release with that name, or empty if there is no release, or it has no such asset.
+	 * @throws IOException	If GitHub cannot be reached or its answer cannot be understood.
+	 */
+	public Optional<ReleaseAsset> latestAsset(final String name) throws IOException{
+		final Optional<Map<String, Object>> release = latestRelease();
+		if(release.isEmpty() || Boolean.TRUE.equals(release.get().get("draft")))
+			return Optional.empty();
+
+		final List<Object> assets = Json.asArray(release.get().get("assets"));
+		for(final Object asset : assets){
+			final Map<String, Object> candidate = Json.asObject(asset);
+			final String url = Json.asString(candidate.get("browser_download_url"));
+			if(!name.equals(Json.asString(candidate.get("name"))) || !isHttps(url))
+				continue;
+
+			String sha256 = digestOf(candidate);
+			if(sha256 == null)
+				sha256 = checksumFile(assets, name);
+			final long size = (candidate.get("size") instanceof final Double value? value.longValue(): -1);
+			return Optional.of(new ReleaseAsset(name, URI.create(url), size, sha256));
+		}
+		return Optional.empty();
+	}
+
+	private Optional<Map<String, Object>> latestRelease() throws IOException{
 		final URI uri = URI.create(API + repository + "/releases/latest");
 		final String body;
 		try{
@@ -93,14 +124,12 @@ public final class GitHubReleases{
 			throw e;
 		}
 
-		final Map<String, Object> release;
 		try{
-			release = Json.asObject(Json.parse(body));
+			return Optional.of(Json.asObject(Json.parse(body)));
 		}
 		catch(final IllegalArgumentException e){
 			throw new IOException("Unreadable answer from GitHub: " + e.getMessage(), e);
 		}
-		return parse(release);
 	}
 
 	private Optional<ReleaseInfo> parse(final Map<String, Object> release) throws IOException{

@@ -99,9 +99,14 @@ public class MultiLineLabel extends JTextArea{
 		updateFormattedText();
 	}
 
+	private void setTextIfChanged(final String text){
+		if(!text.equals(getText()))
+			setText(text);
+	}
+
 	private void updateFormattedText(){
 		if(rawText.isBlank()){
-			setText(StringUtils.EMPTY);
+			setTextIfChanged(StringUtils.EMPTY);
 
 			return;
 		}
@@ -109,14 +114,14 @@ public class MultiLineLabel extends JTextArea{
 		// Determine available width: use maxWidth if set, otherwise component width minus insets
 		final int availWidth = (maxWidth > 0? maxWidth: getWidth() - getInsets().left - getInsets().right);
 		if(availWidth <= 0){
-			setText(rawText);
+			setTextIfChanged(rawText);
 
 			return;
 		}
 
 		final Font font = getFont();
 		if(font == null){
-			setText(rawText);
+			setTextIfChanged(rawText);
 
 			return;
 		}
@@ -124,7 +129,7 @@ public class MultiLineLabel extends JTextArea{
 
 		final String[] words = StringUtils.split(rawText);
 		if(words == null || words.length == 0){
-			setText(StringUtils.EMPTY);
+			setTextIfChanged(StringUtils.EMPTY);
 
 			return;
 		}
@@ -177,7 +182,7 @@ public class MultiLineLabel extends JTextArea{
 			result.append(currentLine);
 		}
 
-		setText(result.toString());
+		setTextIfChanged(result.toString());
 	}
 
 	@Override

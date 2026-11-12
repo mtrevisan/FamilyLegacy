@@ -123,7 +123,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(NameReader.TAG_CULTURAL_NORM, parent, I18N.t("dialog.name.cultural.norms"),
+		culturalNormPanel = EntityListPanel.createForEntityReference(NameReader.TAG_CULTURAL_NORM, this, I18N.t("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder

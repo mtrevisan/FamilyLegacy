@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -60,6 +62,8 @@ import java.util.function.Supplier;
  * </ul>
  */
 public final class AssistantIndicator{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AssistantIndicator.class);
 
 	/** How long after the last change of the model the findings are computed again. */
 	static final int DEBOUNCE_MILLIS = 2_000;
@@ -180,7 +184,17 @@ public final class AssistantIndicator{
 		final AssistantContext reading = context.forReading();
 		executor.execute(() -> {
 			final long start = clock.getAsLong();
-			final List<Diagnostic> found = FindingLevels.visible(service.diagnose(reading));
+			final List<Diagnostic> found;
+			try{
+				found = FindingLevels.visible(service.diagnose(reading));
+			}
+			catch(final RuntimeException re){
+				//without this the indicator would stay "checking" for ever
+				LOGGER.warn("Cannot compute the findings: {}", re.toString());
+				LOGGER.debug("Findings failure", re);
+				onEventThread.accept(() -> finish(findings != null? findings: List.of(), MIN_INTERVAL_MILLIS));
+				return;
+			}
 			final long elapsed = clock.getAsLong() - start;
 			onEventThread.accept(() -> finish(found, elapsed));
 		});

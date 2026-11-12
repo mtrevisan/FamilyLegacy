@@ -230,9 +230,7 @@ public final class EventIndex{
 			return null;
 
 		final boolean isIndividual = IndividualReader.isOfType(ref);
-		final String name = (isIndividual
-			? RecordDisplay.describe(record, model)
-			: RecordDisplay.describe(record, model));
+		final String name = RecordDisplay.describe(record, model);
 		return new Participant(id, name != null? name: id, isIndividual);
 	}
 

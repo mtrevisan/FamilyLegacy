@@ -98,7 +98,7 @@ public final class GroupNetworkBuilder{
 	public static GroupNetwork build(final FLEFModel model, final String centerId, final int maxDepth, final Integer year,
 			final Set<GroupNetwork.Kind> kinds, final boolean includeSubgroupMembers){
 		final FLEFRecord center = (centerId != null? model.getRecordById(centerId): null);
-		if(center == null || !GroupReader.isOfType(center) || PrivacyService.visible(model, List.of(center)).isEmpty())
+		if(!GroupReader.isOfType(center) || PrivacyService.visible(model, List.of(center)).isEmpty())
 			return GroupNetwork.empty();
 
 		final long[] yearJdns = (year != null? GroupYearFilter.yearRange(year): null);
@@ -177,7 +177,7 @@ public final class GroupNetworkBuilder{
 
 	private static boolean isVisibleGroup(final FLEFModel model, final String id){
 		final FLEFRecord group = model.getRecordById(id);
-		return (group != null && GroupReader.isOfType(group) && !PrivacyService.visible(model, List.of(group)).isEmpty());
+		return (GroupReader.isOfType(group) && !PrivacyService.visible(model, List.of(group)).isEmpty());
 	}
 
 	/** The individuals that are members of each group, with a membership in effect (with no date, or covering the year). */
@@ -185,7 +185,7 @@ public final class GroupNetworkBuilder{
 		final Map<String, Set<String>> individualsByGroup = new HashMap<>();
 		for(final FLEFRecord relationship : PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE))){
 			final String type = RelationshipReader.extractType(relationship);
-			if(type == null || !RelationshipReader.isTypeGroupMember(type))
+			if(!RelationshipReader.isTypeGroupMember(type))
 				continue;
 
 			final String groupId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, GroupReader.TYPE);

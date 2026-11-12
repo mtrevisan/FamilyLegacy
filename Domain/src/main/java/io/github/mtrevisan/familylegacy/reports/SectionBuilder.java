@@ -39,6 +39,6 @@ import java.util.List;
  */
 public interface SectionBuilder{
 
-	public List<ReportSection> build();
+	List<ReportSection> build();
 
 }

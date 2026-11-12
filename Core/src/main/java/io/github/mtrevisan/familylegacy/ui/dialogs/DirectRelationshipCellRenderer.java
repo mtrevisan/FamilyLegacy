@@ -56,15 +56,18 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 		if(value instanceof FLEFRecord record){
 			final String type = RelationshipReader.extractType(record);
 			final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_TARGET, model)
-				.getFirst();
+				.stream()
+				.findFirst()
+				.orElse(null);
 			String targetDisplayText = "--";
 			if(target != null){
 				final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
-				targetDisplayText = objectHandler.getDisplayText(target, model);
+				if(objectHandler != null)
+					targetDisplayText = objectHandler.getDisplayText(target, model);
 			}
 			final String role = RelationshipReader.extractRole(record);
 
-			final String categoryTag = switch(type){
+			final String categoryTag = switch(StringUtils.defaultString(type)){
 				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
 				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
 				case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> "[Custody]";

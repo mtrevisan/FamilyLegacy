@@ -94,6 +94,7 @@ public final class DuplicateFinderService{
 
 	private static final Pattern PUNCTUATION_RUN = Pattern.compile("[\\p{Punct}]+");
 	private static final Pattern COMBINING_MARKS = Pattern.compile("\\p{M}+");
+	private static final Pattern YEAR = Pattern.compile("(\\d{3,4})");
 	public static final int DEFAULT_THRESHOLD = 55;
 	public static final int DEFAULT_MAX_RESULTS = 500;
 
@@ -642,22 +643,22 @@ public final class DuplicateFinderService{
 				if(StringUtils.isEmpty(value))
 					continue;
 				final String norm = normalize(value);
-				if(fullName.length() > 0)
+				if(!fullName.isEmpty())
 					fullName.append(' ');
 				fullName.append(norm);
 				if(type != null){
 					final String t = type.toLowerCase(Locale.ROOT);
-					if(NameReader.ENUM_PART_TYPE_GIVEN.equals(t))
-						given.add(norm);
-					else if(NameReader.ENUM_PART_TYPE_FAMILY_PREFIX.equals(t))
-						familyPrefix = norm + ' ';
-					else if(NameReader.ENUM_PART_TYPE_FAMILY.equals(t)){
-						family.add(familyPrefix + norm);
-						familyPrefix = StringUtils.EMPTY;
+					switch(t){
+						case NameReader.ENUM_PART_TYPE_GIVEN -> given.add(norm);
+						case NameReader.ENUM_PART_TYPE_FAMILY_PREFIX -> familyPrefix = norm + ' ';
+						case NameReader.ENUM_PART_TYPE_FAMILY -> {
+							family.add(familyPrefix + norm);
+							familyPrefix = StringUtils.EMPTY;
+						}
 					}
 				}
 			}
-			if(fullName.length() > 0)
+			if(!fullName.isEmpty())
 				full.add(fullName.toString());
 		}
 		return new NameTokens(given, family, full);
@@ -733,7 +734,7 @@ public final class DuplicateFinderService{
 			return null;
 		final String s = raw.trim();
 		// Accept "1894", "1894-03", "1894-03-01", or "17 JUN 1894".
-		final Matcher m = Pattern.compile("(\\d{3,4})").matcher(s);
+		final Matcher m = YEAR.matcher(s);
 		if(!m.find())
 			return null;
 		try{
@@ -777,7 +778,7 @@ public final class DuplicateFinderService{
 	/**
 	 * Builds the blocking index. Each profile is placed under one block
 	 * for its given-name prefix and one for its family-name prefix,
-	 * together with its sex (only if {@code separateBySex}). Profiles that share neither a given-name
+	 * together with its sex (only if {@code separateBySex}; a profile of unknown sex is put in the blocks of every known sex). Profiles that share neither a given-name
 	 * prefix nor a family-name prefix are never compared.
 	 * <p>
 	 * Blocks are sets, not lists, because a profile can legitimately
@@ -791,26 +792,39 @@ public final class DuplicateFinderService{
 	private static Map<String, Set<Profile>> buildBlocks(
 		final Collection<Profile> profiles, final boolean separateBySex){
 		final Map<String, Set<Profile>> blocks = new LinkedHashMap<>();
+		//the sexes known in the file: a profile of unknown sex goes in the block of each of them, so it is compared with all of the
+		//known ones (the filter in compare() decides) and with the other unknown ones, while the known sexes stay apart
+		final Set<String> knownSexes = new LinkedHashSet<>();
+		if(separateBySex)
+			for(final Profile p : profiles)
+				if(p.sex() != null)
+					knownSexes.add(p.sex().toLowerCase(Locale.ROOT));
 		for(final Profile p : profiles){
 			//the sex is part of the key only when the pairs of different sex are not wanted: otherwise they would never be compared
-			final String sex = (!separateBySex? "": (p.sex() != null? p.sex().toLowerCase(Locale.ROOT): "?"));
-			for(final String given : p.givenTokens()){
-				final String prefix = (given.length() >= 2? given.substring(0, 2): given);
-				blocks.computeIfAbsent("g:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
-					.add(p);
-			}
-			for(final String family : p.familyTokens()){
-				final String prefix = (family.length() >= 2? family.substring(0, 2): family);
-				blocks.computeIfAbsent("f:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
-					.add(p);
-			}
-			//the spellings that differ in the first letter or in the vowels (Catarina, Katarina) meet by the consonants
-			for(final String name : p.givenTokens())
-				addSkeletonBlock(blocks, "sg:" + sex + ":", name, p);
-			for(final String name : p.familyTokens())
-				addSkeletonBlock(blocks, "sf:" + sex + ":", name, p);
+			final List<String> sexes = (!separateBySex? List.of(""): (p.sex() != null? List.of(p.sex().toLowerCase(Locale.ROOT))
+				: (knownSexes.isEmpty()? List.of("?"): List.copyOf(knownSexes))));
+			for(final String sex : sexes)
+				addToBlocks(blocks, p, sex);
 		}
 		return blocks;
+	}
+
+	private static void addToBlocks(final Map<String, Set<Profile>> blocks, final Profile p, final String sex){
+		for(final String given : p.givenTokens()){
+			final String prefix = (given.length() >= 2? given.substring(0, 2): given);
+			blocks.computeIfAbsent("g:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
+				.add(p);
+		}
+		for(final String family : p.familyTokens()){
+			final String prefix = (family.length() >= 2? family.substring(0, 2): family);
+			blocks.computeIfAbsent("f:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
+				.add(p);
+		}
+		//the spellings that differ in the first letter or in the vowels (Catarina, Katarina) meet by the consonants
+		for(final String name : p.givenTokens())
+			addSkeletonBlock(blocks, "sg:" + sex + ":", name, p);
+		for(final String name : p.familyTokens())
+			addSkeletonBlock(blocks, "sf:" + sex + ":", name, p);
 	}
 
 	private static void addSkeletonBlock(final Map<String, Set<Profile>> blocks, final String prefix, final String name,
@@ -1213,7 +1227,7 @@ public final class DuplicateFinderService{
 				return 1.;
 
 			final double rarity = Math.log((double)individuals / Math.max(1, count)) / Math.log(individuals);
-			return FACTOR_MIN + FACTOR_RANGE * Math.max(0., Math.min(1., rarity));
+			return FACTOR_MIN + FACTOR_RANGE * Math.clamp(rarity, 0., 1.);
 		}
 
 	}

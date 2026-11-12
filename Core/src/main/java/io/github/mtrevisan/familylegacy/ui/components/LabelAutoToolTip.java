@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JToolTip;
 import java.awt.FontMetrics;
 import java.awt.SystemColor;
+import java.util.Locale;
 
 
 /**
@@ -82,11 +83,14 @@ public class LabelAutoToolTip extends JLabel{
 			// text fits, no tooltip needed
 			return null;
 
-		if(text.toLowerCase().startsWith(TAG_HTML_OPEN))
+		if(text.toLowerCase(Locale.ROOT).startsWith(TAG_HTML_OPEN))
 			return text;
 
-		// Convert newlines to <br> and wrap in HTML
-		final String htmlText = text.replace(StringUtils.LF, TAG_BR)
+		// Escape HTML-significant characters, convert newlines to <br> and wrap in HTML
+		final String htmlText = text.replace("&", "&amp;")
+			.replace("<", "&lt;")
+			.replace(">", "&gt;")
+			.replace(StringUtils.LF, TAG_BR)
 			.replace(StringUtils.CR, StringUtils.EMPTY);
 		return TAG_HTML_OPEN + htmlText + TAG_HTML_CLOSE;
 	}

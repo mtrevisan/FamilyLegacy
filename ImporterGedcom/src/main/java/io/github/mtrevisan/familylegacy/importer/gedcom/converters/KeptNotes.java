@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.UnconsumedTags;
@@ -54,21 +55,21 @@ import java.util.Set;
 final class KeptNotes{
 
 	/** The title of the note of an unmapped tag is this prefix followed by the tag. */
-	static final String TITLE_UNMAPPED_PREFIX = "GEDCOM ";
-	static final String TITLE_CONTACT = "Contact";
-	static final String TITLE_OTHER_PLACE = "Other place";
-	static final String TITLE_OTHER_COORDINATES = "Other coordinates";
-	static final String TITLE_TRANSLATION = "Translation";
-	static final String TITLE_NAME_TYPE = "Name type";
-	static final String TITLE_SEX = "Sex";
-	static final String SEX_X_TEXT = "Sex: X (neither male nor female)";
-	static final String TITLE_STATUS_DATE = "Status date";
+	static final String TITLE_UNMAPPED_PREFIX = GedcomTexts.t("title.unmapped_prefix");
+	static final String TITLE_CONTACT = GedcomTexts.t("title.contact");
+	static final String TITLE_OTHER_PLACE = GedcomTexts.t("title.other_place");
+	static final String TITLE_OTHER_COORDINATES = GedcomTexts.t("title.other_coordinates");
+	static final String TITLE_TRANSLATION = GedcomTexts.t("title.translation");
+	static final String TITLE_NAME_TYPE = GedcomTexts.t("title.name_type");
+	static final String TITLE_SEX = GedcomTexts.t("title.sex");
+	static final String SEX_X_TEXT = GedcomTexts.t("text.sex_x");
+	static final String TITLE_STATUS_DATE = GedcomTexts.t("title.status_date");
 
-	private static final String LABEL_PHONE = "Phone";
-	private static final String LABEL_EMAIL = "E-mail";
-	private static final String LABEL_FAX = "Fax";
-	private static final String LABEL_WEB = "Web";
-	private static final String LABEL_POSTAL_CODE = "Postal code";
+	private static final String LABEL_PHONE = GedcomTexts.t("label.phone");
+	private static final String LABEL_EMAIL = GedcomTexts.t("label.email");
+	private static final String LABEL_FAX = GedcomTexts.t("label.fax");
+	private static final String LABEL_WEB = GedcomTexts.t("label.web");
+	private static final String LABEL_POSTAL_CODE = GedcomTexts.t("label.postal_code");
 	private static final String SEPARATOR = ": ";
 	private static final String INDENT = "  ";
 
@@ -110,7 +111,7 @@ final class KeptNotes{
 					&& trimmedText.equals(FLEFRecordHelper.getChildValue(child, NoteReader.TAG_TEXT)))
 				return true;
 
-		final FLEFRecord note = GEDCOMRecordBuilder.createNoteStruct(title, text, auditNode);
+		final FLEFRecord note = NoteBuilder.createNoteStruct(title, text, auditNode);
 		if(note == null)
 			return false;
 

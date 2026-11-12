@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -128,7 +127,6 @@ final class RelationshipChecker{
 		checkEngagements(data, index, findings);
 		checkPartnersOfParents(data, index, findings);
 		checkBirthInformants(data, index, findings);
-		checkSiblingRoles(data, index, findings);
 		checkAssociates(data, index, findings);
 		return findings;
 	}
@@ -749,51 +747,8 @@ final class RelationshipChecker{
 	}
 
 	/**
-	 * A relationship of association whose role says that the two are siblings, that the parents do not support. The protocol has no
-	 * type for the siblings, so the association with the role is how they are written; the biological parents of the two, when both
-	 * have some, tell whether they are full siblings (both in common) or half-siblings (one). Nothing is said if either has no parent.
-	 */
-	private static void checkSiblingRoles(final RelationshipData data, final Index index, final List<RelationshipFinding> findings){
-		for(final RelationshipData.Relationship relationship : data.relationships()){
-			if(!ASSOCIATE.equals(relationship.type()) || relationship.subjectKind() != RelationshipData.Kind.INDIVIDUAL
-					|| relationship.targetKind() != RelationshipData.Kind.INDIVIDUAL
-					|| relationship.subjectId().equals(relationship.targetId()))
-				continue;
-
-			final RoleKind kind = RoleKind.of(relationship.role());
-			if(kind != RoleKind.SIBLING && kind != RoleKind.HALF_SIBLING)
-				continue;
-
-			final Set<String> first = index.biologicalParents(relationship.subjectId());
-			final Set<String> second = index.biologicalParents(relationship.targetId());
-			if(first.isEmpty() || second.isEmpty())
-				continue;
-
-			final Set<String> shared = new LinkedHashSet<>(first);
-			shared.retainAll(second);
-			final boolean bothKnown = (first.size() == 2 && second.size() == 2);
-			final String reason;
-			if(shared.isEmpty())
-				reason = "relationship.sibling.no_common_parent";
-			else if(kind == RoleKind.HALF_SIBLING && shared.size() == 2 && bothKnown)
-				reason = "relationship.sibling.both_parents";
-			else if(kind == RoleKind.SIBLING && shared.size() == 1 && bothKnown)
-				reason = "relationship.sibling.one_parent";
-			else
-				continue;
-
-			final List<String> ids = new ArrayList<>(List.of(relationship.subjectId(), relationship.targetId(), relationship.id()));
-			ids.addAll(first);
-			ids.addAll(second);
-			findings.add(finding(Diagnostic.Severity.WARNING, "sibling_role_inconsistent", ids.stream().distinct().toList(), null,
-				name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.role(), I18N.t(reason), relationship.id()));
-		}
-	}
-
-	/**
-	 * The associations of two individuals that say nothing or say it wrongly: one whose role is a tie that the protocol has a type for
-	 * (a parent, a child, a spouse: the association is for the ties that the list of types does not have), and one between two
-	 * individuals already linked by a relationship of the family.
+	 * The associations of two individuals that say nothing: one without a role between two individuals already linked by a
+	 * relationship of the family. The role is free text, in any language, and is never interpreted.
 	 */
 	private static void checkAssociates(final RelationshipData data, final Index index, final List<RelationshipFinding> findings){
 		for(final RelationshipData.Relationship relationship : data.relationships()){
@@ -802,14 +757,6 @@ final class RelationshipChecker{
 					|| relationship.subjectId().equals(relationship.targetId()))
 				continue;
 
-			final List<String> ids = List.of(relationship.subjectId(), relationship.targetId(), relationship.id());
-			final RoleKind kind = RoleKind.of(relationship.role());
-			if(kind == RoleKind.PARENT_OR_CHILD || kind == RoleKind.SPOUSE){
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_kinship_role", ids, null,
-					name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.role(),
-					(kind == RoleKind.SPOUSE? SPOUSE: CHILD), relationship.id()));
-				continue;
-			}
 
 			final Group families = group(index.between(relationship.subjectId(), relationship.targetId()).stream()
 				.filter(r -> CHILD_TYPES.contains(r.type()) || PARTNER_TYPES.contains(r.type())));
@@ -824,52 +771,6 @@ final class RelationshipChecker{
 			}
 		}
 	}
-
-	/** What a role written on an association says about the two: the ties of the family that the protocol has a type for, or siblings. */
-	private enum RoleKind{
-		PARENT_OR_CHILD,
-		SPOUSE,
-		SIBLING,
-		HALF_SIBLING,
-		OTHER;
-
-		/** The words that make a role about a step, in-law, god or adoptive tie, or a grandparent: not the plain tie. */
-		private static final Set<String> NOT_PLAIN = Set.of("step", "law", "god", "foster", "adoptive", "adopted", "grand", "great",
-			"patrigno", "matrigna", "suocero", "suocera", "cognato", "cognata", "genero", "nuora", "padrino", "madrina", "nonno", "nonna");
-		private static final Set<String> PARENT_OR_CHILD_WORDS = Set.of("father", "mother", "parent", "son", "daughter", "child",
-			"padre", "madre", "genitore", "figlio", "figlia");
-		private static final Set<String> SPOUSE_WORDS = Set.of("husband", "wife", "spouse", "marito", "moglie", "coniuge");
-		private static final Set<String> SIBLING_WORDS = Set.of("brother", "sister", "sibling", "fratello", "sorella");
-		private static final Set<String> HALF_WORDS = Set.of("half", "halfbrother", "halfsister", "fratellastro", "sorellastra", "mezzo",
-			"mezza", "mezzofratello", "mezzasorella");
-
-
-		static RoleKind of(final String role){
-			if(role == null || role.isBlank())
-				return OTHER;
-
-			final Set<String> words = new LinkedHashSet<>();
-			for(final String word : StringUtils.split(role.toLowerCase(Locale.ROOT), " _-/,;.()"))
-				words.add(word);
-			if(words.stream().anyMatch(NOT_PLAIN::contains))
-				return OTHER;
-
-			final boolean half = words.stream().anyMatch(HALF_WORDS::contains);
-			final boolean sibling = words.stream().anyMatch(SIBLING_WORDS::contains)
-				|| words.contains("fratellastro") || words.contains("sorellastra") || words.contains("halfbrother")
-				|| words.contains("halfsister");
-			if(half && (sibling || words.contains("fratello") || words.contains("sorella")))
-				return HALF_SIBLING;
-			if(sibling)
-				return SIBLING;
-			if(words.stream().anyMatch(PARENT_OR_CHILD_WORDS::contains))
-				return PARENT_OR_CHILD;
-			if(words.stream().anyMatch(SPOUSE_WORDS::contains))
-				return SPOUSE;
-			return OTHER;
-		}
-	}
-
 
 	private static String name(final RelationshipData data, final String id){
 		final RelationshipData.Person person = data.persons().get(id);

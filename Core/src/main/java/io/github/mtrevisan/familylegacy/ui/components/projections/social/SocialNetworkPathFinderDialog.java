@@ -98,14 +98,14 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 	 * Returns the chosen source entity, or {@code null}.
 	 */
 	public String getFromEntityId(){
-		return fromEntity.getId();
+		return (fromEntity != null? fromEntity.getId(): null);
 	}
 
 	/**
 	 * Returns the chosen target entity, or {@code null}.
 	 */
 	public String getToEntityId(){
-		return toEntity.getId();
+		return (toEntity != null? toEntity.getId(): null);
 	}
 
 	/**
@@ -176,9 +176,8 @@ public final class SocialNetworkPathFinderDialog extends JDialog{
 
 	private FLEFRecord pickEntity(){
 		final FLEFRecord[] result = {null};
-		final Window owner = (getOwner() instanceof Window w? w: null);
 		@SuppressWarnings("unchecked")
-		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(owner, model,
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(this, model,
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		dialog.setVisible(true);

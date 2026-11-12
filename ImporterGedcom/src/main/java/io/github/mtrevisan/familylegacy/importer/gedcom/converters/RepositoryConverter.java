@@ -78,8 +78,10 @@ public class RepositoryConverter{
 	 */
 	public void convert(GEDCOMNode repoNode){
 		String xref = repoNode.getXrefId();
-		if(xref == null)
+		if(xref == null){
+			GEDCOMImportContext.discardUnidentified(repoNode);
 			return;
+		}
 
 		IDGenerator.registerExistingId(xref);
 

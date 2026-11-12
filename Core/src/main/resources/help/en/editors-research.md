@@ -59,7 +59,7 @@ A to-do item that follows from the research, for example *Check the 1871 census 
 | **Created By** | The research activity that gave rise to it. |
 | **Status** | *open* (not yet started), *in progress*, *completed* (note the result in the outcome), *abandoned* (say why in the outcome, so it is not repeated by mistake). |
 | **Priority** | blank, *low* (can wait), *normal*, *high* (do it first: other work depends on it, or the opportunity may be lost, for example an archive closing). |
-| **Due Date** | Free text. |
+| **Due Date** | Optional; when given, a date written as YYYY-MM-DD. |
 | **Outcome** | What came out of the task once completed. |
 
 On OK, the description and the status are required.

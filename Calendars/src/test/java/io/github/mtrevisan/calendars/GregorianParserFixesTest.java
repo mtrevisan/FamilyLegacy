@@ -26,6 +26,7 @@ package io.github.mtrevisan.calendars;
 
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.calendars.text.DateFormulas;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -127,7 +128,7 @@ class GregorianParserFixesTest{
 				"her 1500", "pro 1500", "1500", "xyz 1500"})
 			for(final CalendarType type : new CalendarType[]{CalendarType.GREGORIAN, CalendarType.JULIAN, CalendarType.SWEDISH,
 					CalendarType.EASTER_STYLE, CalendarType.FLORENTINE, CalendarType.VENETAN, CalendarType.BERBER})
-				Assertions.assertDoesNotThrow(() -> type.getInterpretations(date, Locale.ITALIAN), date + " " + type);
+				Assertions.assertDoesNotThrow(() -> type.getInterpretations(date, Locale.ITALIAN), date + StringUtils.SPACE + type);
 	}
 
 	@Test

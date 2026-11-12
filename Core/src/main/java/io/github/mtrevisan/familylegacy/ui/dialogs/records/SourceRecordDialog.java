@@ -95,6 +95,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final DateField dateField;
 	private final EntityField placeField;
 	private final BoundComboBox<String> mediaTypeCombo;
+	private JPanel propertiesPanel;
 	private JPanel sourcesPanel;
 	/** The tree of the derivations, shown only when there are enough related sources. */
 	private SourceDerivationPanel derivationPanel;
@@ -146,6 +147,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]5[]5[]10[]");
+		propertiesPanel = panel;
 
 		// title
 		GUIHelper.addComponent(panel, titlePanel);
@@ -249,6 +251,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	/** A source cannot be derived from itself, directly or through other sources (the derivations MUST be acyclic). */
 	@Override
 	protected boolean validData(){
+		if(!titlePanel.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.source.title")),
+				tabbedPane, propertiesPanel, titlePanel.getList());
+
+			return false;
+		}
+
 		final EntityListPanel derivedFromPanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
 		final ListModel<FLEFRecord> citations = derivedFromPanel.getList()
 			.getModel();

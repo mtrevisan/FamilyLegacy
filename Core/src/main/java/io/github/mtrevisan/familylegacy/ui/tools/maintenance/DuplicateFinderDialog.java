@@ -262,8 +262,7 @@ public final class DuplicateFinderDialog extends JDialog{
 					allCandidates = get();
 					tableModel.setRows(allCandidates);
 					applyFilter();
-					statusLabel.setText(allCandidates.size()
-						+ (allCandidates.size() == 1? " candidate": " candidates"));
+					statusLabel.setText(I18N.plural("text.duplicates.candidates", allCandidates.size()));
 				}
 				catch(final Exception ex){
 					statusLabel.setText(I18N.tf("text.search.failed", ex.getMessage()));
@@ -305,8 +304,7 @@ public final class DuplicateFinderDialog extends JDialog{
 				}
 			});
 		}
-		statusLabel.setText(table.getRowCount() + " shown, "
-			+ allCandidates.size() + " total");
+		statusLabel.setText(I18N.tf("text.duplicates.shown", table.getRowCount(), allCandidates.size()));
 	}
 
 	private static boolean matchesAnyFeature(final DuplicateFinderService.Candidate c,

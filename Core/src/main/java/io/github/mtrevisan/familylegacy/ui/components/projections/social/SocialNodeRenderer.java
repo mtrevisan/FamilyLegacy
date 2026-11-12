@@ -34,6 +34,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 
@@ -134,6 +135,7 @@ public final class SocialNodeRenderer{
 
 		// Border.
 		g.setColor(borderColor);
+		final Stroke originalStroke = g.getStroke();
 		g.setStroke(new BasicStroke(selected? SELECTED_BORDER_THICKNESS: (focus? 1.8f: 1f)));
 		g.draw(shape);
 
@@ -152,6 +154,7 @@ public final class SocialNodeRenderer{
 		// Degree badge (only for non-focus nodes).
 		if(!focus && node.degree() > 0)
 			drawDegreeBadge(g, bounds, node.degree());
+		g.setStroke(originalStroke);
 	}
 
 

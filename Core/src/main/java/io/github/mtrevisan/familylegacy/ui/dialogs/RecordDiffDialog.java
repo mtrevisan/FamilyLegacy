@@ -221,9 +221,6 @@ public class RecordDiffDialog extends JDialog{
 			buttonPanel.add(acceptLeftBtn);
 			buttonPanel.add(acceptRightBtn);
 		}
-		if(!readOnly){
-		}
-
 		setLayout(new BorderLayout(10, 10));
 		add(headerPanel, BorderLayout.NORTH);
 		add(centerPanel, BorderLayout.CENTER);

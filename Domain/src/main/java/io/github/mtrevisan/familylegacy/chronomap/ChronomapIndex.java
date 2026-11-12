@@ -64,13 +64,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class ChronomapIndex{
 
+	/** The prefix of the kind of an anchor that comes from an event: {@code event:birth}. */
+	private static final String KIND_EVENT_PREFIX = EventReader.TYPE.toLowerCase(Locale.ROOT) + ":";
 	/**
 	 * Maximum plausible human lifespan, used when no death record exists.
 	 * Once a person would be older than this, the person is considered no
 	 * longer alive.
 	 */
-	/** The prefix of the kind of an anchor that comes from an event: {@code event:birth}. */
-	private static final String KIND_EVENT_PREFIX = EventReader.TYPE.toLowerCase(Locale.ROOT) + ":";
 	private static final int MAX_PLAUSIBLE_AGE_YEARS = 120;
 
 	/** Same cap, expressed as a JDN offset from the birth date. */
@@ -84,7 +84,7 @@ public final class ChronomapIndex{
 	private final PlaceCoordinateResolver placeResolver;
 
 	/** Not final: rebuilt after a background geocoding pass. */
-	private Map<String, List<GeoAnchor>> anchorsByOwner;
+	private volatile Map<String, List<GeoAnchor>> anchorsByOwner;
 	private final List<Runnable> rebuildListeners = new CopyOnWriteArrayList<>();
 
 	/**
@@ -94,10 +94,10 @@ public final class ChronomapIndex{
 	 * the anchor list only contains events with a geographic position, so
 	 * a birth without coordinates would be invisible to it.
 	 */
-	private final Map<String, Long> birthJdnByOwner = new HashMap<>();
+	private volatile Map<String, Long> birthJdnByOwner = new HashMap<>();
 
 	/** Earliest death event per owner, or absent. Populated at build time. */
-	private final Map<String, Long> deathJdnByOwner = new HashMap<>();
+	private volatile Map<String, Long> deathJdnByOwner = new HashMap<>();
 
 
 	public ChronomapIndex(final FLEFModel model, final PlaceCoordinateResolver placeResolver){
@@ -347,8 +347,9 @@ public final class ChronomapIndex{
 	 * event carries a geographic position.
 	 */
 	private void buildLifeEventIndex(){
-		birthJdnByOwner.clear();
-		deathJdnByOwner.clear();
+		//built aside and swapped at the end: the readers (another thread) never see a half-filled index
+		final Map<String, Long> births = new HashMap<>();
+		final Map<String, Long> deaths = new HashMap<>();
 
 		final List<FLEFRecord> eventParticipations =
 			PrivacyService.visible(model, model.getRecordsByType(EventParticipationReader.TYPE));
@@ -383,11 +384,13 @@ public final class ChronomapIndex{
 			final long jdn = date.jdn();
 			if(isBirth)
 				// Keep the earliest birth if multiple records exist.
-				birthJdnByOwner.merge(ownerId, jdn, Math::min);
+				births.merge(ownerId, jdn, Math::min);
 			else
 				// Keep the earliest death if multiple records exist.
-				deathJdnByOwner.merge(ownerId, jdn, Math::min);
+				deaths.merge(ownerId, jdn, Math::min);
 		}
+		birthJdnByOwner = births;
+		deathJdnByOwner = deaths;
 	}
 
 	private void addAttributeAnchors(final Map<String, List<GeoAnchor>> result, final String recordType){
@@ -469,12 +472,7 @@ public final class ChronomapIndex{
 	}
 
 	private static String extractParticipantId(final FLEFRecord eventParticipation){
-		final FLEFRecord field = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
-		if(field == null)
-			return null;
-
-		final FLEFRecord ref = field.getTheOnlyChild();
-		return (ref != null? ref.getValue(): null);
+		return EventParticipationReader.extractParticipantRef(eventParticipation);
 	}
 
 	private static String extractOwner(final FLEFRecord record, final String ownerTag){

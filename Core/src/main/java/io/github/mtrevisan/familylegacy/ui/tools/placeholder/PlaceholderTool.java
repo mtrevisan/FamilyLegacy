@@ -43,23 +43,23 @@ import javax.swing.JOptionPane;
  */
 public final class PlaceholderTool implements ToolOperation{
 
-	private final String name;
+	private final String nameKey;
 
 
-	public PlaceholderTool(final String name){
-		this.name = name;
+	public PlaceholderTool(final String nameKey){
+		this.nameKey = nameKey;
 	}
 
 
 	@Override
 	public String getName(){
-		return name;
+		return I18N.t(nameKey);
 	}
 
 	@Override
 	public void run(final ToolContext context){
 		JOptionPane.showMessageDialog(context.owner(),
-			I18N.tf("message.not_implemented", name.replace("…", StringUtils.EMPTY).trim()), I18N.t("title.feature_not_available"),
+			I18N.tf("message.not_implemented", getName().replace("…", StringUtils.EMPTY).trim()), I18N.t("title.feature_not_available"),
 			JOptionPane.INFORMATION_MESSAGE);
 	}
 

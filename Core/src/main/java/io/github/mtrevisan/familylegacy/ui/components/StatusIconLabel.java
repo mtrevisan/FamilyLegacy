@@ -97,8 +97,8 @@ class StatusIconLabel extends JLabel{
 				g2.setColor(Color.WHITE);
 				final int lineWidth = drawSize >> 2;
 				final int lineHeight = drawSize >> 1;
-				final int lineX = drawX + drawSize >> 1 - lineWidth >> 1;
-				final int lineY = drawY + drawSize >> 1 - lineHeight >> 1;
+				final int lineX = drawX + ((drawSize - lineWidth) >> 1);
+				final int lineY = drawY + ((drawSize - lineHeight) >> 1);
 				g2.fillRect(lineX, lineY, lineWidth, lineHeight);
 			}
 			case ResearchQuestionReader.ENUM_STATUS_RESOLVED -> {
@@ -110,12 +110,12 @@ class StatusIconLabel extends JLabel{
 				// White checkmark inside
 				g2.setColor(Color.WHITE);
 				g2.setStroke(new BasicStroke(2.f));
-				final int cx = drawX + drawSize >> 1;
-				final int cy = drawY + drawSize >> 1;
-				g2.drawLine(cx - drawSize >> 2, cy,
-					cx - drawSize >> 3, cy + drawSize >> 2);
-				g2.drawLine(cx - drawSize >> 3, cy + drawSize >> 2,
-					cx + drawSize / 3, cy - drawSize >> 2);
+				final int cx = drawX + (drawSize >> 1);
+				final int cy = drawY + (drawSize >> 1);
+				g2.drawLine(cx - (drawSize >> 2), cy,
+					cx - (drawSize >> 3), cy + (drawSize >> 2));
+				g2.drawLine(cx - (drawSize >> 3), cy + (drawSize >> 2),
+					cx + drawSize / 3, cy - (drawSize >> 2));
 			}
 			case ResearchQuestionReader.ENUM_STATUS_ABANDONED -> {
 				// White square with red X

@@ -63,7 +63,7 @@ public final class DeltaTUpdater{
 	private DeltaTUpdater(){}
 
 
-	public static void main(final String[] args) throws IOException{
+	static void main(final String[] args) throws IOException{
 		final List<Path> targets = new ArrayList<>();
 		boolean strict = false;
 		for(final String arg : args)

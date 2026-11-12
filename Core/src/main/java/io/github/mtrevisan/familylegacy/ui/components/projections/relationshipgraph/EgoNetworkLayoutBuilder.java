@@ -63,8 +63,8 @@ class EgoNetworkLayoutBuilder{
 		canvas.setLayout(new MigLayout("ins " + padding + ",align center center", "[grow,center]", "[grow,center]"));
 
 		final JPanel centerGrid = new JPanel(new MigLayout("ins 10",
-			"[grow 100,sg col,fill][center][grow 100,sg col,fill]",
-			"[bottom][center][top]"));
+			"[sg col,fill][center][sg col,fill]",
+			"[grow 100,bottom][center][grow 100,top]"));
 		centerGrid.setOpaque(false);
 
 		// Center
@@ -93,7 +93,7 @@ class EgoNetworkLayoutBuilder{
 		// Right: Groups
 		if(!groups.isEmpty()){
 			final JPanel groupsContainer = createGroupsContainer(rootEgoNode, groups, model, groupListener, groupToPanelMap);
-			centerGrid.add(groupsContainer, "cell 2 1,align left center,gapleft 15");
+			centerGrid.add(groupsContainer, "cell 2 0,spany 3,align left center,gapleft 15");
 		}
 
 		// Bottom: Children
@@ -102,7 +102,7 @@ class EgoNetworkLayoutBuilder{
 			centerGrid.add(childrenContainer, "cell 1 2,align center top,gaptop 15");
 		}
 
-		canvas.add(centerGrid, "grow");
+		canvas.add(centerGrid, "align center center");
 		canvas.revalidate();
 		final Dimension contentPref = centerGrid.getPreferredSize();
 		canvas.setPreferredSize(new Dimension(contentPref.width + 2 * padding, contentPref.height + 2 * padding));

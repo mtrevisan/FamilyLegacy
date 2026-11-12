@@ -73,10 +73,10 @@ public final class CropReader{
 					final int cropY = Integer.parseInt(y);
 					final int cropWidth = Integer.parseInt(width);
 					final int cropHeight = Integer.parseInt(height);
-					if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
+					if(cropX >= 0 && cropY >= 0 && cropWidth > 0 && cropHeight > 0)
 						return new Rectangle(cropX, cropY, cropWidth, cropHeight);
 				}
-				catch(final Exception ignored){}
+				catch(final NumberFormatException ignored){}
 			}
 		}
 		return null;

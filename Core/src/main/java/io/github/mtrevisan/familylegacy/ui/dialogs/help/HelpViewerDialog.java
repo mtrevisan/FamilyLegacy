@@ -68,6 +68,10 @@ public final class HelpViewerDialog extends JDialog{
 		editor.setCaretPosition(0);
 
 		editor.addHyperlinkListener(e -> {
+			if(e.getEventType() == HyperlinkEvent.EventType.ENTERED)
+				editor.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			else if(e.getEventType() == HyperlinkEvent.EventType.EXITED)
+				editor.setCursor(java.awt.Cursor.getDefaultCursor());
 			if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
 				openExternal(e.getURL() != null? e.getURL().toString(): null);
 		});

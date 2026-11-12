@@ -50,6 +50,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Window;
+import java.util.List;
 import java.util.function.Supplier;
 
 
@@ -172,23 +173,23 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 			return;
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord value = FLEFRecordHelper.extractStructures(record, DateReader.TAG_VALUE)
-			.getFirst();
-		final FLEFRecord point = FLEFRecordHelper.findChild(value, DateReader.TAG_POINT);
+		final List<FLEFRecord> values = FLEFRecordHelper.extractStructures(record, DateReader.TAG_VALUE);
+		final FLEFRecord value = (values.isEmpty()? null: values.getFirst());
+		final FLEFRecord point = (value != null? FLEFRecordHelper.findChild(value, DateReader.TAG_POINT): null);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);
 
 			pointDateValuePanel.load(point);
 		}
 		else{
-			final FLEFRecord bounded = FLEFRecordHelper.findChild(value, DateReader.TAG_BOUNDED);
+			final FLEFRecord bounded = (value != null? FLEFRecordHelper.findChild(value, DateReader.TAG_BOUNDED): null);
 			if(bounded != null){
 				tabbedPane.setSelectedIndex(1);
 
 				boundedDateValuePanel.load(bounded);
 			}
 			else{
-				final FLEFRecord spanning = FLEFRecordHelper.findChild(value, DateReader.TAG_SPANNING);
+				final FLEFRecord spanning = (value != null? FLEFRecordHelper.findChild(value, DateReader.TAG_SPANNING): null);
 				if(spanning != null){
 					tabbedPane.setSelectedIndex(2);
 

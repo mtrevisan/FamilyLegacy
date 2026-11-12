@@ -118,12 +118,12 @@ public final class FLEFGrammarParser{
 	private static final String TAG_CARDINALITY_ZERO_OR_ONE = "?";
 	private static final String TAG_CARDINALITY_ZERO_OR_MORE = "*";
 	private static final String TAG_CARDINALITY_ONE_OR_MORE = "+";
-	private static final String NOT_EQUALS = "!=";
-	private static final String EQUALS = "==";
-	private static final String GREATER_THAN = ">";
-	private static final String LESS_THAN = "<";
-	private static final String GREATER_THAN_OR_EQUALS = ">=";
-	private static final String LESS_THAN_OR_EQUALS = "<=";
+	private static final String NOT_EQUALS = ComparisonConstraint.NOT_EQUALS;
+	private static final String EQUALS = ComparisonConstraint.EQUALS;
+	private static final String GREATER_THAN = ComparisonConstraint.GREATER_THAN;
+	private static final String LESS_THAN = ComparisonConstraint.LESS_THAN;
+	private static final String GREATER_THAN_OR_EQUALS = ComparisonConstraint.GREATER_THAN_OR_EQUALS;
+	private static final String LESS_THAN_OR_EQUALS = ComparisonConstraint.LESS_THAN_OR_EQUALS;
 
 	private static final String TAG_FILE = "file";
 	private static final String TAG_ALIAS = "alias";
@@ -223,7 +223,8 @@ public final class FLEFGrammarParser{
 	private static List<Token> tokenize(final String content){
 		final String normalized = content.replace("\r\n", StringUtils.LF)
 			.replace('\r', '\n');
-		final String[] lines = StringUtils.split(normalized, '\n');
+		//(the empty lines are kept, so that the line numbers of the tokens are the ones of the file)
+		final String[] lines = StringUtils.splitPreserveAllTokens(normalized, '\n');
 
 
 		final List<Token> result = new ArrayList<>();
@@ -607,7 +608,7 @@ public final class FLEFGrammarParser{
 			expect(TAG_CLOSE_PARENTHESIS);
 			expect(EQUALS);
 			final String value = next();
-			if(!NumberUtils.isParsable(value)){
+			if(!NumberUtils.isDigits(value)){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected an integer field, found [" + value + "]",
@@ -652,7 +653,8 @@ public final class FLEFGrammarParser{
 
 			final String conditionField = next();
 			if(!peekIs(EQUALS))
-				throw new FLEFGrammarParseException("Expected '==' after field in 'require if'", peekToken().line());
+				throw new FLEFGrammarParseException("Expected '==' after field in 'require if'",
+						(peekToken() != null? peekToken().line(): tokens.getLast().line()));
 
 			next();
 
@@ -731,7 +733,7 @@ public final class FLEFGrammarParser{
 			next();
 
 			final String index = next();
-			if(!NumberUtils.isParsable(index)){
+			if(!NumberUtils.isDigits(index)){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected an integer index in '" + name + "[…]', found [" + index + "]",
@@ -895,7 +897,7 @@ public final class FLEFGrammarParser{
 	}
 
 
-	public static void main(final String[] args) throws Exception{
+	static void main(final String[] args) throws Exception{
 		final Path path = Paths.get("src/main/resources/gedg/flef_0.2.0.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 

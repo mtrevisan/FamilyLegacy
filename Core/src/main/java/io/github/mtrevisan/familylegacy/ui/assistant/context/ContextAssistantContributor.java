@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;

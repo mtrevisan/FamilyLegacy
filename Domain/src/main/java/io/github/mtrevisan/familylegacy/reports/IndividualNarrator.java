@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -39,6 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
+import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
 import io.github.mtrevisan.familylegacy.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
@@ -170,7 +170,7 @@ public final class IndividualNarrator{
 			for(final FLEFRecord a : findAttrs(attrs, type)){
 				final String v = FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
-				sentences.add(labels.narrativeAttribute(name, I18N.t("enum.individual_attribute.type." + (StringUtils.isNotEmpty(type)? type: "none")), v.trim()));
+				   sentences.add(labels.narrativeAttribute(name, I18N.t("enum.individual_attribute.type." + (StringUtils.isNotEmpty(type)? type: "none")), v.trim()));
 			}
 		}
 
@@ -265,7 +265,7 @@ public final class IndividualNarrator{
 					valueBuilder.append(')');
 				}
 
-				final String eventLabel = (type != null? type.replace('_', ' '): "event");
+				final String eventLabel = (type != null? type.replace('_', ' '): labels.sections().eventGenericLower());
 				sentences.add(labels.narrativeAttribute(name, eventLabel, valueBuilder.toString()));
 			}
 		}
@@ -438,12 +438,12 @@ public final class IndividualNarrator{
 		final String decade = FLEFRecordHelper.getChildValue(attr,
 			fieldTag + ".value.point.decade.start_year");
 		if(decade != null && !decade.isBlank())
-			return decade + "s";
+			return String.format(labels.dates().dateDecade(), decade.trim());
 
 		final String century = FLEFRecordHelper.getChildValue(attr,
 			fieldTag + ".value.point.century.ordinal");
 		if(century != null && !century.isBlank())
-			return century + "th century";
+			return String.format(labels.dates().dateCentury(), century.trim());
 
 		return null;
 	}
@@ -514,30 +514,10 @@ public final class IndividualNarrator{
 	 * ====================================================================== */
 
 	private FLEFRecord spouseFromEvent(final FLEFRecord person, final FLEFRecord event){
-		final String eventId = event.getId();
-		if(eventId == null)
-			return null;
-
-		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationReader.TYPE);
-		for(final FLEFRecord eventParticipation : eventParticipations){
-			final String eid = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
-			if(!Objects.equals(eventId, eid))
-				continue;
-
-			final FLEFRecord pf = FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT);
-			if(pf == null)
-				continue;
-
-			final FLEFRecord ref = pf.getTheOnlyChild();
-			if(ref == null)
-				continue;
-
-			final String pid = ref.getValue();
-			if(pid == null || pid.equals(person.getId()))
-				continue;
-
-			return model.getRecordById(pid);
-		}
+		//only an individual can be the spouse (not a place or a group that takes part in the event)
+		for(final EventIndex.Participant participant : idx.participantsOf(event))
+			if(IndividualReader.TYPE.equalsIgnoreCase(participant.kind()) && !Objects.equals(participant.record().getId(), person.getId()))
+				return participant.record();
 		return null;
 	}
 

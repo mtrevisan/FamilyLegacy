@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.DateTimeException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -551,7 +552,7 @@ final class ModelIndex{
 		try{
 			return DateNormalizer.normalize(dateStructure);
 		}
-		catch(final IllegalArgumentException ignored){
+		catch(final IllegalArgumentException | DateTimeException ignored){
 			return null;
 		}
 	}

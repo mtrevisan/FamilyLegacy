@@ -85,7 +85,7 @@ Open it from the **Personal Names** list of an individual. **Tabs:** Properties,
 
 | Field | Meaning |
 |---|---|
-| **Type** | Editable. One of: given, generation, patronymic, matronymic, kunya, family, family nickname, lineage, house, clan, tribal, caste, toponymic, title, occupational, prefix, suffix, nickname, regnal, religious, posthumous. |
+| **Type** | Editable (required). One of: given, generation, patronymic, matronymic, kunya, family, family nickname, lineage, house, clan, tribal, caste, toponymic, title, occupational, prefix, suffix, nickname, regnal, religious, posthumous. |
 | **Value** | The text of the part (required). |
 | **Variant** | Alternative forms of the part, see [Name variants](#name-variants). |
 

@@ -138,16 +138,33 @@ public final class KinshipCalculator{
 
 
 	/**
-	 * Builds a calculator from a plain model by indexing its relationship
-	 * records once. The indexing honours the "_child" / "_parent" suffixes
-	 * used by the protocol and skips relationships whose endpoints do not
-	 * reference an {@code individual}.
+	 * Builds a calculator of the <em>blood</em> kinship from a plain model by indexing its relationship records once.
+	 * <p>
+	 * Only the biological parent links count, with the very same definition of {@link AncestryGraph}
+	 * ({@link AncestryGraph#isBiologicalChildLink(String)}: {@code biological_child} and the generic {@code child}), so that the
+	 * degrees and the coefficient of relationship agree with the consanguinity of the same people. Adoptive, foster, guarded and step
+	 * links are ignored; use {@link #forModelWithLegalParents(FLEFModel)} for the legal/social kinship. Relationships whose endpoints
+	 * do not reference an {@code individual} are skipped.
+	 * </p>
 	 *
 	 * @param model the model to index (must not be {@code null})
 	 * @return a calculator ready to use
 	 */
 	public static KinshipCalculator forModel(final FLEFModel model){
-		final Map<String, List<FLEFRecord>> index = buildParentIndex(model);
+		final Map<String, List<FLEFRecord>> index = buildParentIndex(model, true);
+		return new KinshipCalculator(model, id -> index.getOrDefault(id, List.of()));
+	}
+
+	/**
+	 * Like {@link #forModel(FLEFModel)}, but every parent link counts, whatever its kind (adoptive, foster, guarded and step
+	 * parents too, and the {@code *_parent} types): the legal/social kinship, not the blood one. The coefficient of relationship is
+	 * still computed on the parents of this calculator, so it is not a measure of shared blood.
+	 *
+	 * @param model the model to index (must not be {@code null})
+	 * @return a calculator ready to use
+	 */
+	public static KinshipCalculator forModelWithLegalParents(final FLEFModel model){
+		final Map<String, List<FLEFRecord>> index = buildParentIndex(model, false);
 		return new KinshipCalculator(model, id -> index.getOrDefault(id, List.of()));
 	}
 
@@ -565,8 +582,11 @@ public final class KinshipCalculator{
 	/**
 	 * Builds a {@code childId -> [parents]} index from the model's
 	 * relationship records.
+	 *
+	 * @param biologicalOnly	Whether only the biological links count ({@link AncestryGraph#isBiologicalChildLink(String)}), or every
+	 * 	child/parent link whatever its kind.
 	 */
-	private static Map<String, List<FLEFRecord>> buildParentIndex(final FLEFModel model){
+	private static Map<String, List<FLEFRecord>> buildParentIndex(final FLEFModel model, final boolean biologicalOnly){
 		final Map<String, List<FLEFRecord>> index = new HashMap<>();
 		List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
 		for(final FLEFRecord relationship : relationships){
@@ -580,8 +600,10 @@ public final class KinshipCalculator{
 			if(subject == null || object == null)
 				continue;
 
-			final boolean childRel = t.equals(RelationshipReader.ENUM_TYPE_CHILD) || t.endsWith("_child");
-			final boolean parentRel = t.endsWith("_parent");
+			final boolean childRel = (biologicalOnly
+				? AncestryGraph.isBiologicalChildLink(t)
+				: t.equals(RelationshipReader.ENUM_TYPE_CHILD) || t.endsWith("_child"));
+			final boolean parentRel = (!biologicalOnly && t.endsWith("_parent"));
 			if(!childRel && !parentRel)
 				continue;
 

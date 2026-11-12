@@ -82,7 +82,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<RecordDia
 					if(resolveCitation != null && !resolveCitation.isEmpty()){
 						final String resolveTag = resolveCitation.getTag();
 						final String resolveXRef = resolveCitation.getValue();
-						if(Strings.CI.equals(resolveTag, parentEntityType) && resolveXRef.equals(recordId))
+						if(Strings.CI.equals(resolveTag, parentEntityType) && recordId != null && recordId.equals(resolveXRef))
 							return true;
 					}
 				}

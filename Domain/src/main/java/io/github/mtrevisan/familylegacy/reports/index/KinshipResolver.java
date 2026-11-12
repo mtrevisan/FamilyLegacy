@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.reports.index;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -52,10 +55,12 @@ public final class KinshipResolver{
 
 	private final PedigreeIndex pedigreeIndex;
 	private final RelationshipIndex relationshipIndex;
+	private final RecordLookup model;
 
-	public KinshipResolver(final PedigreeIndex pedigreeIndex, final RelationshipIndex relationshipIndex){
+	public KinshipResolver(final PedigreeIndex pedigreeIndex, final RelationshipIndex relationshipIndex, final RecordLookup model){
 		this.pedigreeIndex = pedigreeIndex;
 		this.relationshipIndex = relationshipIndex;
+		this.model = model;
 	}
 
 	public String relationshipTypeFrom(final FLEFRecord parent, final FLEFRecord child){
@@ -91,7 +96,7 @@ public final class KinshipResolver{
 		if(relationshipType == null)
 			return 90;
 		return switch(relationshipType.toLowerCase(Locale.ROOT)){
-			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> 10;
+			case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_CHILD -> 10;
 			case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> 20;
 			case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> 30;
 			case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> 40;
@@ -100,20 +105,69 @@ public final class KinshipResolver{
 		};
 	}
 
+	/** @return	The father of the root and all his ancestors (empty if the father cannot be determined, see {@link #parentsBySex}). */
 	public List<FLEFRecord> paternalAncestors(final FLEFRecord root){
 		final List<FLEFRecord> out = new ArrayList<>();
-		final List<FLEFRecord> parents = pedigreeIndex.parentsOf(root);
-		if(!parents.isEmpty())
-			collectAncestors(parents.getFirst(), out, new HashSet<>());
+		final FLEFRecord father = parentsBySex(root)[0];
+		if(father != null)
+			collectAncestors(father, out, new HashSet<>());
 		return out;
 	}
 
+	/** @return	The mother of the root and all her ancestors (empty if the mother cannot be determined, see {@link #parentsBySex}). */
 	public List<FLEFRecord> maternalAncestors(final FLEFRecord root){
 		final List<FLEFRecord> out = new ArrayList<>();
-		final List<FLEFRecord> parents = pedigreeIndex.parentsOf(root);
-		if(parents.size() > 1)
-			collectAncestors(parents.get(1), out, new HashSet<>());
+		final FLEFRecord mother = parentsBySex(root)[1];
+		if(mother != null)
+			collectAncestors(mother, out, new HashSet<>());
 		return out;
+	}
+
+	/**
+	 * Tells the father from the mother by the preferred sex of the parents, never by the order of the relationships in the file.
+	 * <ul>
+	 *   <li>The father is the male parent, the mother the female one; if there are several of the same sex, the one with the
+	 *   closest kind of link wins (see {@link #rankOf(String)}: biological before adoptive, foster, ...), then the first in the
+	 *   order of the model.</li>
+	 *   <li>A parent of unknown sex is never guessed: it is assigned only to the side that the other parent of known sex leaves
+	 *   free, and only if it is the single parent of unknown sex; otherwise (no parent of known sex, or several unknown ones) it is
+	 *   assigned to neither side.</li>
+	 * </ul>
+	 *
+	 * @return	An array of two elements: the father and the mother, each one {@code null} if it cannot be determined.
+	 */
+	private FLEFRecord[] parentsBySex(final FLEFRecord root){
+		FLEFRecord father = null;
+		FLEFRecord mother = null;
+		int fatherRank = Integer.MAX_VALUE;
+		int motherRank = Integer.MAX_VALUE;
+		final List<FLEFRecord> unknown = new ArrayList<>(2);
+		for(final PedigreeIndex.ParentEdge edge : pedigreeIndex.parentEdgesOf(root)){
+			final FLEFRecord parent = edge.parent();
+			final SexType sex = PreferredSex.of(parent, model);
+			final int rank = rankOf(edge.relationshipType());
+			if(sex == SexType.MALE){
+				if(rank < fatherRank){
+					father = parent;
+					fatherRank = rank;
+				}
+			}
+			else if(sex == SexType.FEMALE){
+				if(rank < motherRank){
+					mother = parent;
+					motherRank = rank;
+				}
+			}
+			else
+				unknown.add(parent);
+		}
+		if(unknown.size() == 1){
+			if(father == null && mother != null)
+				father = unknown.getFirst();
+			else if(mother == null && father != null)
+				mother = unknown.getFirst();
+		}
+		return new FLEFRecord[]{father, mother};
 	}
 
 	private void collectAncestors(final FLEFRecord start, final List<FLEFRecord> out, final Set<String> seen){

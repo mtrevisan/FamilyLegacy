@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -152,7 +153,7 @@ class PaletteCollapseTest{
 			//a record with an editor is a link, a record that is not there is plain text; the identifier appears once
 			Assertions.assertTrue(detail.contains("<a href=\"record:I1\">"), detail);
 			Assertions.assertFalse(detail.contains("record:X9"), detail);
-			Assertions.assertEquals(1, org.apache.commons.lang3.StringUtils.countMatches(detail, "[I1]"), detail);
+			Assertions.assertEquals(1, StringUtils.countMatches(detail, "[I1]"), detail);
 		});
 	}
 

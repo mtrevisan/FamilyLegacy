@@ -115,7 +115,7 @@ public class ResearchTaskSearchStrategy implements SearchStrategy{
 		if(StringUtils.isNotEmpty(due))
 			details.add(I18N.tf("text.research.due", due));
 		final String question = ResearchSummary.questionOf(record, model);
-		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + " " + question: StringUtils.EMPTY);
+		return baseDisplayText + details + (question != null? " \u2013 " + I18N.l("text.research.question") + StringUtils.SPACE + question: StringUtils.EMPTY);
 	}
 
 }

@@ -184,6 +184,9 @@ public class PartnersPanel extends JPanel{
 	}
 
 
+	private boolean collapsedChildless;
+
+
 	private void initComponents(){
 		// When no model is provided, use empty individual panels for both
 		// partners. The rest of the layout is built identically, so the
@@ -446,7 +449,7 @@ public class PartnersPanel extends JPanel{
 	}
 
 	public IndividualSummary getFatherData(){
-		return fatherPanel.getData();
+		return (fatherPanel != null? fatherPanel.getData(): null);
 	}
 
 	public final IndividualPanel getMotherPanel(){
@@ -454,7 +457,7 @@ public class PartnersPanel extends JPanel{
 	}
 
 	public IndividualSummary getMotherData(){
-		return motherPanel.getData();
+		return (motherPanel != null? motherPanel.getData(): null);
 	}
 
 
@@ -543,8 +546,11 @@ public class PartnersPanel extends JPanel{
 	 * @return this panel, for chaining
 	 */
 	public PartnersPanel withSuppressCollapseBadge(final boolean suppressCollapseBadge){
-		fatherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
-		motherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+		//a placeholder has no partner panels
+		if(fatherPanel != null)
+			fatherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
+		if(motherPanel != null)
+			motherPanel.withSuppressCollapseBadge(suppressCollapseBadge);
 
 		revalidate();
 		repaint();
@@ -595,6 +601,18 @@ public class PartnersPanel extends JPanel{
 		if(model == null)
 			return;
 
+		//undo the collapse applied to a childless couple, in case this panel is reused
+		if(collapsedChildless){
+			collapsedChildless = false;
+
+			fatherPanel.setVisible(true);
+			motherPanel.setVisible(true);
+			arrowFatherPanel.setVisible(true);
+			arrowMotherPanel.setVisible(true);
+			groupPanel.setVisible(true);
+			applyLayoutConstraints();
+		}
+
 		fatherPanel.withIndividualData(father);
 		motherPanel.withIndividualData(mother);
 
@@ -616,6 +634,7 @@ public class PartnersPanel extends JPanel{
 			final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
 				|| hasMother && motherPanel.getData().hasChildren());
 			if(!hasChildren){
+				collapsedChildless = true;
 				if(!hasFather)
 					fatherPanel.setVisible(false);
 				if(!hasMother)

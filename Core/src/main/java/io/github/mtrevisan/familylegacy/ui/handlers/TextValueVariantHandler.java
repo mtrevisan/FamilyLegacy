@@ -70,6 +70,8 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<RecordDia
 			return "--";
 
 		final FLEFRecord variant = record.getTheOnlyChild();
+		if(variant == null)
+			return "[--]";
 		String tag = variant.getTag();
 		if(TextValueVariantReader.isPhonetic(tag)){
 			final String system = TextValueVariantReader.extractPhoneticSystem(variant);

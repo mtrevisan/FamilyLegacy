@@ -58,6 +58,7 @@ public final class EventIndex{
 	}
 
 	private final FLEFModel model;
+	private final Predicate<FLEFRecord> filter;
 	private final Map<String, List<FLEFRecord>> personToEventsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> participantToParticipationsMap = new HashMap<>();
 	private final Map<String, List<FLEFRecord>> eventToParticipationsMap = new HashMap<>();
@@ -65,6 +66,7 @@ public final class EventIndex{
 
 	public EventIndex(final FLEFModel model, final Predicate<FLEFRecord> filter){
 		this.model = model;
+		this.filter = filter;
 		if(model == null)
 			return;
 
@@ -87,15 +89,21 @@ public final class EventIndex{
 
 			final FLEFRecord event = model.getRecordById(eventId);
 			if(event != null && filter.test(event)){
-				personToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
-					.add(event);
+				addDistinct(personToEventsMap, participantId, event);
 
-				if(GroupReader.TYPE.equalsIgnoreCase(participantRef.tag())){
-					groupToEventsMap.computeIfAbsent(participantId, k -> new ArrayList<>())
-						.add(event);
-				}
+				if(GroupReader.TYPE.equalsIgnoreCase(participantRef.tag()))
+					addDistinct(groupToEventsMap, participantId, event);
 			}
 		}
+	}
+
+	/** Adds the event once per participant, even when the participant has several participations in it. */
+	private static void addDistinct(final Map<String, List<FLEFRecord>> map, final String participantId, final FLEFRecord event){
+		final List<FLEFRecord> events = map.computeIfAbsent(participantId, k -> new ArrayList<>());
+		for(final FLEFRecord known : events)
+			if(known == event)
+				return;
+		events.add(event);
 	}
 
 	public List<FLEFRecord> eventsOf(final FLEFRecord person){
@@ -142,7 +150,8 @@ public final class EventIndex{
 				continue;
 
 			final FLEFRecord rec = model.getRecordById(ref.id());
-			if(rec == null)
+			//a hidden participant (private, living, ...) must not appear
+			if(rec == null || !filter.test(rec))
 				continue;
 
 			final String role = FLEFRecordHelper.getChildValue(ep, TAG_ROLE);

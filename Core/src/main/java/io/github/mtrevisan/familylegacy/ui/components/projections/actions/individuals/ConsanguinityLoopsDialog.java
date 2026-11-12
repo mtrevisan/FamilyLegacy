@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -73,7 +74,8 @@ final class ConsanguinityLoopsDialog extends JDialog{
 		final RowTableModel tableModel = new RowTableModel(new String[]{I18N.t("column.loops.ancestor"),
 			I18N.t("column.loops.first"), I18N.t("column.loops.second"), I18N.t("column.loops.generations"),
 			I18N.t("column.loops.contribution")}, rows);
-		table = ToolDialogs.createTable(tableModel, this::openAncestorAt);
+		//the double-click gives the row of the model, the button the one on the screen (the table can be sorted)
+		table = ToolDialogs.createTable(tableModel, this::openAncestorOfModelRow);
 		table.setAutoCreateRowSorter(false);
 		final int[] widths = {170, 300, 300, 90, 90};
 		for(int column = 0; column < widths.length; column ++)
@@ -105,7 +107,7 @@ final class ConsanguinityLoopsDialog extends JDialog{
 			return I18N.t("text.loops.unrelated");
 
 		final String summary = I18N.tf("text.loops.summary", percent(result.inbreeding()), result.loops().size());
-		return (result.truncated()? summary + " " + I18N.tf("text.loops.truncated", ConsanguinityLoops.MAX_LOOPS): summary);
+		return (result.truncated()? summary + StringUtils.SPACE + I18N.tf("text.loops.truncated", ConsanguinityLoops.MAX_LOOPS): summary);
 	}
 
 	/** @return	The value as a percentage, with the digits that tell the small ones apart (a child of third cousins has F of 0.39 %). */
@@ -140,11 +142,15 @@ final class ConsanguinityLoopsDialog extends JDialog{
 		return (record != null? RecordDisplay.describe(record, model): id);
 	}
 
+	/** @param row	The row on the screen: the table can be sorted. */
 	private void openAncestorAt(final int row){
-		if(row < 0)
-			return;
+		if(row >= 0)
+			openAncestorOfModelRow(table.convertRowIndexToModel(row));
+	}
 
-		ToolDialogs.openRecordEditor(this, model, model.getRecordById(ancestorIds.get(table.convertRowIndexToModel(row))));
+	/** @param row	The row in the model, as given by the double-click. */
+	private void openAncestorOfModelRow(final int row){
+		ToolDialogs.openRecordEditor(this, model, model.getRecordById(ancestorIds.get(row)));
 	}
 
 }

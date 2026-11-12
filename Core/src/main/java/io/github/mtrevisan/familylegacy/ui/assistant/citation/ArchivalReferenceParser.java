@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.citation;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -137,6 +138,23 @@ final class ArchivalReferenceParser{
 
 	private record Keyword(int start, int end, Spec spec, String word){}
 
+	private record KeywordPattern(Spec spec, String word, Pattern pattern){}
+
+	/** The patterns of the labels, compiled once (the text is interpreted at every keystroke). */
+	private static final List<KeywordPattern> KEYWORD_PATTERNS = compileKeywords();
+
+	private static List<KeywordPattern> compileKeywords(){
+		final List<KeywordPattern> patterns = new ArrayList<>();
+		for(final Spec spec : SPECS)
+			for(final String word : spec.words()){
+				final String escaped = Pattern.quote(word).replace(StringUtils.SPACE, "\\E\\s*\\Q");
+				final String pattern = (word.length() == SINGLE_LETTER
+					? "(?<![\\p{L}\\p{N}])" + escaped + "(?:\\s*[.:]\\s*|\\s*(?=\\d))"
+					: "(?<![\\p{L}\\p{N}])" + escaped + "(?![\\p{L}])\\s*[.:]?\\s*");
+				patterns.add(new KeywordPattern(spec, word, Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE)));
+			}
+		return patterns;
+	}
 
 	private ArchivalReferenceParser(){}
 
@@ -170,16 +188,11 @@ final class ArchivalReferenceParser{
 	/** The labels in the text, in the order they are written; where two overlap the longest one wins. */
 	private static List<Keyword> keywords(final String input){
 		final List<Keyword> all = new ArrayList<>();
-		for(final Spec spec : SPECS)
-			for(final String word : spec.words()){
-				final String escaped = Pattern.quote(word).replace(StringUtils.SPACE, "\\E\\s*\\Q");
-				final String pattern = (word.length() == SINGLE_LETTER
-					? "(?<![\\p{L}\\p{N}])" + escaped + "(?:\\s*[.:]\\s*|\\s*(?=\\d))"
-					: "(?<![\\p{L}\\p{N}])" + escaped + "(?![\\p{L}])\\s*[.:]?\\s*");
-				final Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE).matcher(input);
-				while(matcher.find())
-					all.add(new Keyword(matcher.start(), matcher.end(), spec, word));
-			}
+		for(final KeywordPattern keywordPattern : KEYWORD_PATTERNS){
+			final Matcher matcher = keywordPattern.pattern().matcher(input);
+			while(matcher.find())
+				all.add(new Keyword(matcher.start(), matcher.end(), keywordPattern.spec(), keywordPattern.word()));
+		}
 
 		all.sort(Comparator.comparingInt(Keyword::start).thenComparing(k -> -k.end()));
 		final List<Keyword> keywords = new ArrayList<>();
@@ -309,21 +322,19 @@ final class ArchivalReferenceParser{
 		private I18Nless(){}
 
 		static String noValue(final String label){
-			return label + ": no value after the label";
+			return I18N.tf("citation.note.no_value", label);
 		}
 
 		static String circa(final String year){
-			return "\"c. " + year + "\" is read as circa " + year + ", not as the folio " + year;
+			return I18N.tf("citation.note.circa", year);
 		}
 
 		static String abbreviation(final String word, final String label){
-			return "\"" + word + ".\" is read as " + label.toLowerCase(Locale.ROOT) + (("c".equalsIgnoreCase(word))
-				? " (carta): it can also be \"circa\""
-				: " (foglio, folio): it can also be a file or a following");
+			return I18N.tf("c".equalsIgnoreCase(word)? "citation.note.abbreviation_carta": "citation.note.abbreviation_folio", word, label.toLowerCase(Locale.ROOT));
 		}
 
 		static String twice(final String label, final String value){
-			return label + " is written twice: the first is kept, \"" + value + "\" is left out";
+			return I18N.tf("citation.note.twice", label, value);
 		}
 
 	}

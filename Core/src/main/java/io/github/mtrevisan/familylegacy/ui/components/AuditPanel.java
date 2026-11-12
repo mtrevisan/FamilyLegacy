@@ -156,6 +156,8 @@ public class AuditPanel extends JPanel{
 	}
 
 	public void clear(){
+		creationDate = null;
+		creationPanel.setBorder(new TitledBorder(I18N.tf("dialog.audit.creation.comment", false, StringUtils.EMPTY)));
 		creationCommentArea.setText(StringUtils.EMPTY);
 		updateListPanel.clear();
 	}

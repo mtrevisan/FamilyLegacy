@@ -109,7 +109,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
-		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.individual.personal_name"), model, PersonalNameHandler.class);
+		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name"), model, PersonalNameHandler.class);
 
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
@@ -288,14 +288,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		savePresetSex();
 
 		components.save(record);
-//		try{
-//			FLEFWriter.createCompact().write(model,
-//				new File("C://Users/mauro/IdeaProjects/FamilyLegacy/src/main/resources/tests/out.flef").toPath(),
-//				false);
-//		}
-//		catch(IOException e){
-//			throw new RuntimeException(e);
-//		}
 	}
 
 

@@ -254,6 +254,14 @@ public final class MultiLifespanStripPanel extends JPanel{
 	public void setIndividuals(final Collection<String> ids){
 		currentIds = (ids != null? List.copyOf(new LinkedHashSet<>(ids)): List.of());
 
+		//a hidden strip is not computed: it is when it is shown (the model may be edited in the meantime, so the indices are rebuilt then)
+		if(!isVisible())
+			return;
+
+		//the model may have been edited since the indices were built (by the tree, for example)
+		eventIndex = EventIndex.build(model);
+		attributeIndex.rebuild();
+
 		final List<Row> newRows = new ArrayList<>(currentIds.size());
 		NormalizedDate min = null;
 		NormalizedDate max = null;
@@ -283,7 +291,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 					rowMax = Math.max(rowMax, a.toJdn());
 			}
 
-			if(dated.isEmpty() && attributes.isEmpty())
+			//nothing to place on the axis (attributes without any date, for example)
+			if(rowMin > rowMax)
 				continue;
 
 			dated.sort(Comparator.comparing(EventIndex.EventDatum::date));
@@ -307,6 +316,16 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 		canvas.revalidate();
 		canvas.repaint();
+	}
+
+
+	@Override
+	public void setVisible(final boolean visible){
+		final boolean shown = (visible && !isVisible());
+		super.setVisible(visible);
+
+		if(shown)
+			setIndividuals(currentIds);
 	}
 
 
@@ -673,8 +692,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 	/** Rebuilds both indices and re-applies the current individuals. */
 	private void rebuildAndRefresh(){
-		this.eventIndex = EventIndex.build(model);
-		attributeIndex.rebuild();
+		//setIndividuals rebuilds the indices
 		setIndividuals(currentIds);
 	}
 
@@ -984,8 +1002,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 		if(type == null)
 			return new Color(120, 120, 120);
 
-		final int h = Math.abs(type.hashCode());
-		return Color.getHSBColor((h % 360) / 360f, 0.55f, 0.80f);
+		final int h = Math.floorMod(type.hashCode(), 360);
+		return Color.getHSBColor(h / 360f, 0.55f, 0.80f);
 	}
 
 	private static Color attributeColor(final String type){

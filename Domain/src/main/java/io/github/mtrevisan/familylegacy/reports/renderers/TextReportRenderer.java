@@ -93,12 +93,12 @@ public final class TextReportRenderer implements ReportRenderer{
 			}
 		}
 		else if(s instanceof ReportSection.Table(List<String> headers, List<List<String>> rows)){
-			w.write(String.join(" | ", headers));
+			w.write(stripInline(String.join(" | ", headers)));
 			w.newLine();
 			w.write("-".repeat(60));
 			w.newLine();
 			for(final var row : rows){
-				w.write(String.join(" | ", row));
+				w.write(stripInline(String.join(" | ", row)));
 				w.newLine();
 			}
 		}

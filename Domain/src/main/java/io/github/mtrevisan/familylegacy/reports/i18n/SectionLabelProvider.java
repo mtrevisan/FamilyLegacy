@@ -694,6 +694,21 @@ public final class SectionLabelProvider{
 		return labels.getString("EVENT_OF");
 	}
 
+	/** @return	The kinship term of a person from the report subject, as in "uncle of John": the pattern takes the term and the name. */
+	public String collateralOf(final String kinship, final String person){
+		return String.format(labels.getString("COLLATERAL_OF"), kinship, person);
+	}
+
+	/** @return	The heading of an event without a type (capitalised). */
+	public String eventGeneric(){
+		return labels.getString("EVENT_GENERIC");
+	}
+
+	/** @return	The name of an event without a type, in the middle of a sentence. */
+	public String eventGenericLower(){
+		return labels.getString("EVENT_GENERIC_LOWER");
+	}
+
 	public String eventParticipants(){
 		return labels.getString("EVENT_PARTICIPANTS");
 	}
