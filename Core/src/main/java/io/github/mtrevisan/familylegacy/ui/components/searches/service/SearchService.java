@@ -25,7 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.places.PlaceNameResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -210,6 +214,10 @@ public class SearchService{
 				final String displayText = handler.getDisplayText(record, model);
 				//with the notes included, the text of the notes is matched together with the display text
 				String target = displayText;
+				//a record with several names is found by any of them, not only by the one shown
+				final List<String> names = allNames(handler.getType(), record);
+				if(!names.isEmpty())
+					target += '\n' + String.join("\n", names);
 				if(placeNames != null)
 					target += '\n' + String.join("\n", placeNames.containerNames(record.getId()));
 				if(inNotes)
@@ -244,6 +252,18 @@ public class SearchService{
 		for(final ScoredRecord sr : scored)
 			results.add(sr.record());
 		return results;
+	}
+
+	/** @return	All the names (titles for a source) of a record that can have several of them, otherwise an empty list. */
+	private static List<String> allNames(final String type, final FLEFRecord record){
+		return switch(type){
+			case IndividualReader.TYPE -> IndividualReader.extractFullNames(record);
+			case GroupReader.TYPE -> GroupReader.extractNames(record);
+			case PlaceReader.TYPE -> PlaceReader.extractNames(record);
+			case RepositoryReader.TYPE -> RepositoryReader.extractNames(record);
+			case SourceReader.TYPE -> SourceReader.extractTitles(record);
+			default -> List.of();
+		};
 	}
 
 	/**

@@ -109,6 +109,57 @@ class FindRecordTest{
 	}
 
 	@Test
+	void aRecordWithSeveralNamesIsFoundByAnyOfThem(){
+		final String flef = """
+			header {
+				protocol {
+					name Family LEgacy Format
+					version 0.2.0
+				}
+				date 2026-01-01T00:00:00Z
+			}
+			individual I1 {
+				name {
+					type birth
+					part {
+						type given
+						value Giovanni
+					}
+				}
+				name {
+					type aka
+					part {
+						type given
+						value Zuanne
+					}
+				}
+			}
+			place P1 {
+				name {
+					value Treviso
+				}
+				name {
+					value Tarvisium
+				}
+			}
+			source S1 {
+				title.value Registro dei battesimi
+				title.value Baptism register
+			}
+			""";
+		final FLEFModel model = new FLEFParser().parse(flef);
+		final SearchService service = new SearchService(model);
+		final Set<SearchMode> modes = Set.of(SearchMode.WHOLE_WORD);
+
+		Assertions.assertEquals(List.of("I1"), service.search(new SearchCriteria(IndividualHandler.getInstance().getType(), "Zuanne", modes))
+			.stream().map(FLEFRecord::getId).toList());
+		Assertions.assertEquals(List.of("P1"), service.search(new SearchCriteria(PlaceHandler.getInstance().getType(), "Tarvisium", modes))
+			.stream().map(FLEFRecord::getId).toList());
+		Assertions.assertEquals(List.of("S1"), service.search(new SearchCriteria(SourceHandler.getInstance().getType(), "Baptism", modes))
+			.stream().map(FLEFRecord::getId).toList());
+	}
+
+	@Test
 	void theTextOfTheNotesIsSearchedOnlyWhenAsked(){
 		final String flef = """
 			header {
