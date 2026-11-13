@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.strategies.IndividualSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -51,8 +52,8 @@ import java.util.function.Consumer;
  */
 public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> sexCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any")));
-	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> sexCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
 	private final JTextField dateFromField = new JTextField(10);
 	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);

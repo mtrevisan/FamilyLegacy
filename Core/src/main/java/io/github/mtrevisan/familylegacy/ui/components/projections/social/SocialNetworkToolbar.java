@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.social.SocialLayoutMode;
 import net.miginfocom.swing.MigLayout;
@@ -100,7 +101,7 @@ public final class SocialNetworkToolbar extends JPanel{
 	private final JButton focusBtn = new JButton(I18N.t("button.pick_focus"));
 	private final JLabel focusLabel = new JLabel(I18N.t("text.none"));
 	private final JSpinner maxDegreeSpinner = new JSpinner(new SpinnerNumberModel(1, 0, 6, 1));
-	private final JComboBox<SocialLayoutMode> layoutCombo = new JComboBox<>(SocialLayoutMode.values());
+	private final JComboBox<SocialLayoutMode> layoutCombo = ComboBoxSearch.searchable(new JComboBox<>(SocialLayoutMode.values()));
 	private final JCheckBox includeInactiveCheck = new JCheckBox(I18N.t("checkbox.ended"));
 	private final JCheckBox includeEmptyRoleCheck = new JCheckBox(I18N.t("checkbox.empty_role"), true);
 	private final JButton categoriesBtn = new JButton(I18N.t("button.categories"));

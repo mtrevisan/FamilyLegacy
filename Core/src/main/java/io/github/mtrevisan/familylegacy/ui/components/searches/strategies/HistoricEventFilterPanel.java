@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -49,7 +50,7 @@ import java.util.function.Consumer;
  */
 public class HistoricEventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(HistoricEventReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(HistoricEventReader.TYPES, I18N.t("search.combo.any"))));
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
 	private final BoundComboBox<String> calendarCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);

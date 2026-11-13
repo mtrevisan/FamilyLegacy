@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -48,8 +49,8 @@ import java.util.function.Consumer;
 public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.STATUSES, I18N.t("search.combo.any")));
-	private final JComboBox<String> priorityCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.STATUSES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> priorityCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, I18N.t("search.combo.any"))));
 	private final JTextField outcomeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

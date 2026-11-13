@@ -71,6 +71,9 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound, Compose
 
 	private boolean readOnly;
 
+	/** Filters the items by what the user types, if the combo has many items (null if read-only). */
+	private SearchableComboBoxModel<E> searchModel;
+
 	private boolean isUpdatingItems;
 	private Object lastSelectedValue;
 	private final UndoableEditSupport undoSupport = new UndoableEditSupport();
@@ -101,8 +104,12 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound, Compose
 		if(readOnly)
 			super.setSelectedItem(readOnlyItem);
 
-		if(!readOnly)
+		if(!readOnly){
+			//with many items, typing narrows the list down
+			searchModel = ComboBoxSearch.install(this, item -> (item instanceof String str? localize(str): String.valueOf(item)));
+
 			clear();
+		}
 
 		installRenderer();
 
@@ -315,6 +322,10 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound, Compose
 		if(readOnly)
 			throw new IllegalStateException("Cannot set item on a read-only BoundComboBox");
 
+		//the whole list is needed to find the item
+		if(searchModel != null)
+			searchModel.clearSearch();
+
 		if(value == null){
 			setSelectedItem(null);
 
@@ -351,6 +362,10 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound, Compose
 	public void setSelectedItem(final Object item){
 		if(readOnly)
 			throw new IllegalStateException("Cannot set item on a read-only BoundComboBox");
+
+		//the whole list is needed to find the item
+		if(searchModel != null)
+			searchModel.clearSearch();
 
 		super.setSelectedItem(item);
 	}

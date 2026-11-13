@@ -103,3 +103,6 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.maintenance=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.maintenance=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.tools.maintenance=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.bindings=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.bindings=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.bindings=org.junit.jupiter.api

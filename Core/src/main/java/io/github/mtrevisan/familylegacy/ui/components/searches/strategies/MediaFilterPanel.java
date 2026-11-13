@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -48,7 +49,7 @@ import java.util.function.Consumer;
 public class MediaFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> mappingCombo = new JComboBox<>(GUIHelper.fillCombo(MediaReader.MAPPINGS, I18N.t("search.combo.any")));
+	private final JComboBox<String> mappingCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(MediaReader.MAPPINGS, I18N.t("search.combo.any"))));
 	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

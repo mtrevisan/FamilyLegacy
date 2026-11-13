@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.strategies.CulturalNormSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -51,7 +52,7 @@ import java.util.function.Consumer;
 public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField titleField = new JTextField(20);
-	private final JComboBox<String> ruleTypeCombo = new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> ruleTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any"))));
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
 	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -49,10 +50,11 @@ import java.util.function.Consumer;
  */
 public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
 	private final JTextField descriptionField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
-	private final JComboBox<String> calendarCombo = new JComboBox<>(DateReader.CALENDARS);
+	private final JComboBox<String> calendarCombo = ComboBoxSearch.searchable(new JComboBox<>(DateReader.CALENDARS),
+		item -> I18N.t("enum.date.calendar." + item, String.valueOf(item)));
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField causeReasonField = new JTextField(20);
 

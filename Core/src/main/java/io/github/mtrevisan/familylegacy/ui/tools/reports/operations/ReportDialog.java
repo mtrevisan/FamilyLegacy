@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
@@ -111,7 +112,7 @@ public final class ReportDialog extends JDialog{
 
 	private final Map<ReportRenderer, JCheckBox> formatBoxes = new LinkedHashMap<>();
 
-	private final JComboBox<ReportLanguage> language = new JComboBox<>(ReportLanguage.available().toArray(ReportLanguage[]::new));
+	private final JComboBox<ReportLanguage> language = ComboBoxSearch.searchable(new JComboBox<>(ReportLanguage.available().toArray(ReportLanguage[]::new)));
 	/** The font the user chose the last time ({@code null} for the automatic one): it is offered again when the report needs one. */
 	private String rememberedFont;
 	/** What the user chose the last time: the language, the formats, the options and the folder. */

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.events.EventTimeline;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
@@ -87,7 +88,7 @@ public final class TimelineViewDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final JTextField fromField = dateField();
 	private final JTextField toField = dateField();
-	private final JComboBox<String> typeCombo = new JComboBox<>();
+	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JTextField participantField = new JTextField(StringUtils.EMPTY, 22);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JButton openButton = new JButton(I18N.t("button.open_record"));

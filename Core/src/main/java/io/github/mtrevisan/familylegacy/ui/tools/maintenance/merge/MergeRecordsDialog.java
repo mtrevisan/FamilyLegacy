@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.merger.manual.MergePlan;
 import io.github.mtrevisan.familylegacy.io.merger.manual.RecordMerger;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -244,7 +245,7 @@ public final class MergeRecordsDialog extends JDialog{
 		columnModel.getColumn(4).setMaxWidth(40);
 
 		// a field holding a single value cannot keep both
-		final JComboBox<MergeDecision> decisionCombo = new JComboBox<>(MergeDecision.values());
+		final JComboBox<MergeDecision> decisionCombo = ComboBoxSearch.searchable(new JComboBox<>(MergeDecision.values()));
 		decisionCombo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,

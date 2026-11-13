@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeRead
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
@@ -151,7 +152,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		components.bind(typeCombo);
 		components.bind(valueField);
 
-		sexValueCombo = new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, null));
+		sexValueCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, null)));
 		sexValueCombo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,

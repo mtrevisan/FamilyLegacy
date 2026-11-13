@@ -11,6 +11,9 @@ l'aiuto in `Core/src/main/resources/help`). Per le viste specializzate vedere an
 Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO" sono nelle sezioni sotto). Priorità: ALTA,
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
+### ALTA
+- nella detect duplicates il bottone 'compare records' non fa niente, il bottone 'compare facts' blocca tutto e non fa niente
+
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
 - ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).

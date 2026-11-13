@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -85,7 +86,7 @@ public final class AddCitationDialog extends JDialog{
 	private final JTextField sourceField = new JTextField(28);
 	private final JTextField locatorField = new JTextField(28);
 
-	private final JComboBox<String> stanceCombo = new JComboBox<>(SourceCitationReader.STANCES);
+	private final JComboBox<String> stanceCombo = ComboBoxSearch.searchable(new JComboBox<>(SourceCitationReader.STANCES));
 
 	private FLEFRecord targetRecord;
 	private FLEFRecord sourceRecord;

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -86,7 +87,7 @@ final class RecentChangesDialog extends JDialog{
 	private final ChangesTableModel tableModel = new ChangesTableModel();
 	private final JTable table = new JTable(tableModel);
 	private final JLabel summary = new JLabel();
-	private final JComboBox<TypeItem> typeFilter = new JComboBox<>();
+	private final JComboBox<TypeItem> typeFilter = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JButton openRecord = new JButton(I18N.t("recent_changes.open_record"));
 	private final JButton showDiff = new JButton(I18N.t("recent_changes.show_diff"));
 

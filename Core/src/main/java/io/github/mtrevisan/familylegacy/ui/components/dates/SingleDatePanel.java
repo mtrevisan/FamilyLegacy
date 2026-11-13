@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -83,7 +84,7 @@ public class SingleDatePanel extends JPanel{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JComboBox<DateType> singleDateTypeCombo = new JComboBox<>(DateType.values());
+	private final JComboBox<DateType> singleDateTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(DateType.values()));
 	private final BoundTextField fullDateValueField;
 	private final BoundTextField decadeStartYearField;
 	private final BoundTextField centuryOrdinalField;

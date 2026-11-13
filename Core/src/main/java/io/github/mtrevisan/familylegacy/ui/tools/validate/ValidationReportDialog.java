@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -128,7 +129,7 @@ public final class ValidationReportDialog extends JDialog{
 	private final JTable table;
 	private final JTextArea detail = new JTextArea();
 	private final JLabel summary = new JLabel();
-	private final JComboBox<Filter> filter = new JComboBox<>(Filter.values());
+	private final JComboBox<Filter> filter = ComboBoxSearch.searchable(new JComboBox<>(Filter.values()));
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton copy = new JButton(I18N.t("button.copy_all"));
 

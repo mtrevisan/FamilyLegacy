@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 
@@ -79,7 +80,7 @@ final class ProofSummaryDialog extends JDialog{
 	private final JLabel verdict = new JLabel();
 	private final JTable distributionTable;
 	private final JTable conclusionsTable;
-	private final JComboBox<String> statusFilter = new JComboBox<>();
+	private final JComboBox<String> statusFilter = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JPanel distributionTab = new JPanel(new BorderLayout());
 

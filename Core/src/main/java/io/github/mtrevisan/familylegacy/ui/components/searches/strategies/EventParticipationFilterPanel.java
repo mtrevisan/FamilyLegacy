@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.strategies.EventParticipationSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -51,11 +52,11 @@ public class EventParticipationFilterPanel extends JPanel implements RecordFilte
 		EventParticipationReader.TAG_PARTICIPANT_PLACE};
 
 
-	private final JComboBox<String> roleCombo = new JComboBox<>(GUIHelper.fillCombo(EventParticipationReader.ROLES,
-		I18N.t("search.combo.any")));
-	private final JComboBox<String> eventTypeCombo = new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any")));
-	private final JComboBox<String> participantTypeCombo = new JComboBox<>(GUIHelper.fillCombo(PARTICIPANT_TYPES,
-		I18N.t("search.combo.any")));
+	private final JComboBox<String> roleCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventParticipationReader.ROLES,
+		I18N.t("search.combo.any"))));
+	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> participantTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(PARTICIPANT_TYPES,
+		I18N.t("search.combo.any"))));
 
 	private final Consumer<SearchCriteria> onChanged;
 

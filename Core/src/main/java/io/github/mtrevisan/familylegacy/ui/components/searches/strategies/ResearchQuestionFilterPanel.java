@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -50,8 +51,8 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField questionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any")));
-	private final JComboBox<String> confidenceCombo = new JComboBox<>(GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, I18N.t("search.combo.any")));
+	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> confidenceCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, I18N.t("search.combo.any"))));
 
 	private final Consumer<SearchCriteria> onChanged;
 

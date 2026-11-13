@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -47,10 +48,10 @@ import java.util.function.Consumer;
  */
 public class ResearchActivityFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> activityTypeCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.TYPES, I18N.t("search.combo.any")));
-	private final JComboBox<String> statusCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.STATUSES, I18N.t("search.combo.any")));
+	private final JComboBox<String> activityTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.STATUSES, I18N.t("search.combo.any"))));
 	private final JTextField actionField = new JTextField(20);
-	private final JComboBox<String> resultCombo = new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.RESULTS, I18N.t("search.combo.any")));
+	private final JComboBox<String> resultCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.RESULTS, I18N.t("search.combo.any"))));
 	private final JTextField observationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

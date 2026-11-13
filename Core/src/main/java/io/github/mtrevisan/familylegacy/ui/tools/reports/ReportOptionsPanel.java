@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
@@ -301,7 +302,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** The orders of the persons of a book, by name ("alphabetical", "birth_date"), in the language of the user. */
 	private static JComboBox<PersonOrder> createPersonOrderCombo(){
-		final JComboBox<PersonOrder> combo = new JComboBox<>(PersonOrder.values());
+		final JComboBox<PersonOrder> combo = ComboBoxSearch.searchable(new JComboBox<>(PersonOrder.values()));
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -315,7 +316,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** The numbers of generations to follow: all of them (0), or up to the number. */
 	private static JComboBox<Integer> createGenerationsCombo(){
-		final JComboBox<Integer> combo = new JComboBox<>(new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20});
+		final JComboBox<Integer> combo = ComboBoxSearch.searchable(new JComboBox<>(new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20}));
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -341,7 +342,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** The collateral scopes by name ("none", "spouses", ...), in the language of the user. */
 	private static JComboBox<CollateralScope> createCollateralCombo(){
-		final JComboBox<CollateralScope> combo = new JComboBox<>(CollateralScope.values());
+		final JComboBox<CollateralScope> combo = ComboBoxSearch.searchable(new JComboBox<>(CollateralScope.values()));
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
@@ -356,7 +357,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** The list of the privacy policies, shown with the same names as the View > Privacy menu. */
 	private static JComboBox<PrivacyPolicy> createPrivacyPolicyCombo(){
-		final JComboBox<PrivacyPolicy> combo = new JComboBox<>(PrivacyPolicy.values());
+		final JComboBox<PrivacyPolicy> combo = ComboBoxSearch.searchable(new JComboBox<>(PrivacyPolicy.values()));
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,

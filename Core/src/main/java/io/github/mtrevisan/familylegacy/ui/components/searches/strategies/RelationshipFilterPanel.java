@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -47,7 +48,7 @@ import java.util.function.Consumer;
  */
 public class RelationshipFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(GUIHelper.fillCombo(RelationshipReader.TYPES, I18N.t("search.combo.any")));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(RelationshipReader.TYPES, I18N.t("search.combo.any"))));
 	private final JTextField roleField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

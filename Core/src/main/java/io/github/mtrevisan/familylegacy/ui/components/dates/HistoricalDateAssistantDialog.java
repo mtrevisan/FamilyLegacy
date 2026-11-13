@@ -42,6 +42,7 @@ import io.github.mtrevisan.calendars.assistant.SunTool;
 import io.github.mtrevisan.calendars.assistant.WeekdayTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.CalendarReforms;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
@@ -339,7 +340,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	private JPanel createLiturgicalPanel(final List<PlaceChoice> places, final CalendarReform initialReform){
 		final JSpinner year = createYearSpinner();
 		final JComboBox<String> reform = createReformCombo();
-		final JComboBox<PlaceChoice> placeCombo = new JComboBox<>(places.toArray(new PlaceChoice[0]));
+		final JComboBox<PlaceChoice> placeCombo = ComboBoxSearch.searchable(new JComboBox<>(places.toArray(new PlaceChoice[0])));
 		placeCombo.setToolTipText(I18N.t("dialog.date_assistant.reform.place.tooltip"));
 		//choosing a place selects the reform of the historical jurisdiction the place belongs to
 		placeCombo.addActionListener(e -> {
@@ -360,8 +361,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		resolve.addActionListener(e -> compute(() -> List.of(LiturgicalTool.resolveFeast(expression.getText(), selectedReform(reform)))));
 
 		final JSpinner days = new JSpinner(new SpinnerNumberModel(3, 0, 400, 1));
-		final JComboBox<String> direction = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
-			I18N.t("dialog.date_assistant.before")});
+		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
+			I18N.t("dialog.date_assistant.before")}));
 		final JButton relative = new JButton(I18N.t("dialog.date_assistant.run"));
 		relative.addActionListener(e -> compute(() -> List.of(LiturgicalTool.relativeToEaster((int)year.getValue(),
 			(direction.getSelectedIndex() == 0? 1: -1) * (long)(int)days.getValue(), selectedReform(reform)))));
@@ -398,8 +399,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		mapButton.setToolTipText(I18N.t("dialog.date_assistant.sun.map.tooltip"));
 		mapButton.addActionListener(e -> pickOnMap((String)calendar.getSelectedItem(), date.getText(), latitude, longitude));
 		final JTextField hours = new JTextField(6);
-		final JComboBox<String> hourSystem = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.sun.hours.equal"),
-			I18N.t("dialog.date_assistant.sun.hours.unequal")});
+		final JComboBox<String> hourSystem = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.sun.hours.equal"),
+			I18N.t("dialog.date_assistant.sun.hours.unequal")}));
 		hours.setToolTipText(I18N.t("dialog.date_assistant.sun.hours.tooltip"));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
 		run.addActionListener(e -> compute(() -> SunTool.analyze((String)calendar.getSelectedItem(), date.getText(),
@@ -459,8 +460,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 20);
 		final JSpinner amount = new JSpinner(new SpinnerNumberModel(40, 0, 100_000, 1));
 		final JComboBox<RelativeDateTool.Unit> unit = createUnitCombo();
-		final JComboBox<String> direction = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
-			I18N.t("dialog.date_assistant.before")});
+		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
+			I18N.t("dialog.date_assistant.before")}));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
 		run.addActionListener(e -> compute(() -> RelativeDateTool.offset((String)calendar.getSelectedItem(), date.getText(),
 			(int)amount.getValue(), (RelativeDateTool.Unit)unit.getSelectedItem(), direction.getSelectedIndex() == 0)));
@@ -483,8 +484,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JComboBox<EventChoice> event = createEventCombo(events, false);
 		final JSpinner amount = new JSpinner(new SpinnerNumberModel(3, 0, 100_000, 1));
 		final JComboBox<RelativeDateTool.Unit> unit = createUnitCombo();
-		final JComboBox<String> direction = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
-			I18N.t("dialog.date_assistant.before")});
+		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
+			I18N.t("dialog.date_assistant.before")}));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
 		run.addActionListener(e -> compute(() -> {
 			final EventChoice choice = (EventChoice)event.getSelectedItem();
@@ -532,8 +533,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JSpinner years = new JSpinner(new SpinnerNumberModel(72, 0, 150, 1));
 		final JTextField months = new JTextField(4);
 		final JTextField days = new JTextField(4);
-		final JComboBox<String> reading = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.age.completed"),
-			I18N.t("dialog.date_assistant.age.ordinal")});
+		final JComboBox<String> reading = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.age.completed"),
+			I18N.t("dialog.date_assistant.age.ordinal")}));
 		reading.setToolTipText(I18N.t("dialog.date_assistant.age.ordinal.tooltip"));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
 		run.addActionListener(e -> compute(() -> {
@@ -642,8 +643,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JSpinner years = new JSpinner(new SpinnerNumberModel(72, 0, 150, 1));
 		final JTextField months = new JTextField(4);
 		final JTextField days = new JTextField(4);
-		final JComboBox<String> reading = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.age.completed"),
-			I18N.t("dialog.date_assistant.age.ordinal")});
+		final JComboBox<String> reading = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.age.completed"),
+			I18N.t("dialog.date_assistant.age.ordinal")}));
 		reading.setToolTipText(I18N.t("dialog.date_assistant.age.ordinal.tooltip"));
 
 		final DefaultListModel<ClueEntry> clues = new DefaultListModel<>();
@@ -708,13 +709,13 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 20);
 		date.setToolTipText(I18N.t("dialog.date_assistant.age.date.tooltip"));
 
-		final JComboBox<DayOfWeek> weekday = new JComboBox<>();
+		final JComboBox<DayOfWeek> weekday = ComboBoxSearch.searchable(new JComboBox<>());
 		weekday.addItem(null);
 		for(final DayOfWeek day : DayOfWeek.values())
 			weekday.addItem(day);
 		weekday.setRenderer((list, value, index, selected, focus) -> optionalLabel(list, selected,
 			value != null? value.getDisplayName(TextStyle.FULL, Locale.getDefault()): I18N.t("dialog.date_assistant.verify.weekday.none")));
-		final JComboBox<Integer> indiction = new JComboBox<>();
+		final JComboBox<Integer> indiction = ComboBoxSearch.searchable(new JComboBox<>());
 		indiction.addItem(null);
 		for(int i = 1; i <= 15; i ++)
 			indiction.addItem(i);
@@ -791,7 +792,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 
 	/** A combo of the events of the model that have a date; the first item is empty if the event is optional. */
 	private static JComboBox<EventChoice> createEventCombo(final List<EventChoice> events, final boolean optional){
-		final JComboBox<EventChoice> combo = new JComboBox<>();
+		final JComboBox<EventChoice> combo = ComboBoxSearch.searchable(new JComboBox<>());
 		if(optional)
 			combo.addItem(null);
 		events.forEach(combo::addItem);
@@ -902,7 +903,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 
 
 	private static JComboBox<String> createCalendarCombo(final String calendarCode){
-		final JComboBox<String> combo = new JComboBox<>(DateReader.CALENDARS);
+		final JComboBox<String> combo = ComboBoxSearch.searchable(new JComboBox<>(DateReader.CALENDARS));
 		combo.setSelectedItem(StringUtils.isNotEmpty(calendarCode)? calendarCode: DateReader.ENUM_CALENDAR_GREGORIAN);
 		//the items stay the calendar codes, the labels are localized
 		final ListCellRenderer<? super String> base = combo.getRenderer();
@@ -913,7 +914,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 
 	/** The units of a distance; the items stay the enum constants, the labels are localized. */
 	private static JComboBox<RelativeDateTool.Unit> createUnitCombo(){
-		final JComboBox<RelativeDateTool.Unit> combo = new JComboBox<>(RelativeDateTool.Unit.values());
+		final JComboBox<RelativeDateTool.Unit> combo = ComboBoxSearch.searchable(new JComboBox<>(RelativeDateTool.Unit.values()));
 		final ListCellRenderer<? super RelativeDateTool.Unit> base = combo.getRenderer();
 		combo.setRenderer((list, value, index, selected, focus) -> {
 			final Component component = base.getListCellRendererComponent(list, value, index, selected, focus);
@@ -938,7 +939,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		//the historical jurisdictions (lands, provinces, cantons) follow the general choices
 		for(int i = 0; i < jurisdictions.size(); i ++)
 			labels[REFORM_KEYS.length + i] = jurisdictions.get(i);
-		return new JComboBox<>(labels);
+		return ComboBoxSearch.searchable(new JComboBox<>(labels));
 	}
 
 	private static CalendarReform selectedReform(final JComboBox<String> combo){

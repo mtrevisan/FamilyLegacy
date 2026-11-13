@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.sources.SourceUsage;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
@@ -305,7 +306,7 @@ public class RecordSelectionDialog extends JDialog{
 		for(int i = 0, length = handlerTypes.length; i < length; i ++)
 			handlers[i] = HandlerRegistry.getHandler(handlerTypes[i]);
 
-		final JComboBox<RecordTypeHandler<?>> combo = new JComboBox<>(handlers);
+		final JComboBox<RecordTypeHandler<?>> combo = ComboBoxSearch.searchable(new JComboBox<>(handlers));
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
