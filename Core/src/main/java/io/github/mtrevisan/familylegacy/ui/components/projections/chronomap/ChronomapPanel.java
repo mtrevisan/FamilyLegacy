@@ -35,12 +35,9 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
-import org.jxmapviewer.cache.FileBasedLocalCache;
 import org.jxmapviewer.input.PanMouseInputListener;
 import org.jxmapviewer.input.ZoomMouseWheelListenerCursor;
-import org.jxmapviewer.viewer.DefaultTileFactory;
 import org.jxmapviewer.viewer.GeoPosition;
-import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -53,7 +50,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -69,15 +65,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -120,8 +113,6 @@ public class ChronomapPanel extends JPanel{
 	// Global view constants
 	private static final GeoPosition WORLD_CENTER = new GeoPosition(0., 0.);
 	private static final int WORLD_ZOOM = 18;
-	/** The maps of an area are searched only when the zoom is this one or a closer one (the lower the zoom, the closer the view). */
-	private static final int HISTORICAL_SEARCH_ZOOM = 12;
 
 	/** Radius in pixels within which a click is considered a marker hit. */
 	private static final int MARKER_HIT_RADIUS_PX = 10;
@@ -129,9 +120,6 @@ public class ChronomapPanel extends JPanel{
 	private static final int FOCUS_ZOOM = 4;
 	/** Minimum globe radius, as a fraction of the smaller side of the viewport, used to center on an individual. */
 	private static final double FOCUS_GLOBE_RADIUS_FACTOR = 1.5;
-
-	/** Opacity of the historical map overlay on top of the modern base map. */
-	private static final float HISTORICAL_OVERLAY_ALPHA = 0.85f;
 
 	/** Action key for the {@code Ctrl+2} shortcut (show the 2D map). */
 	private static final String ACTION_SHOW_2D = "show2D";
@@ -146,22 +134,8 @@ public class ChronomapPanel extends JPanel{
 
 	private final JXMapViewer mapViewer = new JXMapViewer();
 
-	private DefaultTileFactory osmTileFactory;
-	private boolean autoSelectMapEnabled = true;
-
-	/**
-	 * Overlays currently displayed, ordered from the largest to the
-	 * smallest. The first element is painted first (bottom of the stack),
-	 * the last element is painted last (top of the stack). This ordering
-	 * makes the smaller, more detailed maps cover the larger, coarser
-	 * ones in their overlap region.
-	 */
-	private final List<MapWarperTileOverlayPainter> historicalMapOverlays = new ArrayList<>();
-	/** Metadata of the maps currently shown, parallel to {@link #historicalMapOverlays}. */
-	private final List<HistoricalMapMetaData> activeHistoricalMaps = new ArrayList<>();
-	private final Map<Integer, DefaultTileFactory> mapWarperCache = new LinkedHashMap<>();
-	private final HistoricalMapCatalog historicalMapCatalog = new HistoricalMapCatalog(
-		Path.of(System.getProperty("user.home"), ".familylegacy", "historical-maps.properties"));
+	private CancellableTileFactory osmTileFactory;
+	private HistoricalMapOverlays historicalMaps;
 
 
 	private final ChronomapLayerManager layerManager = new ChronomapLayerManager();
@@ -271,17 +245,15 @@ public class ChronomapPanel extends JPanel{
 
 		setupViewButtons();
 
-		buildUI();
 		configureTileFactory();
+		buildUI();
 		configureInteraction();
 		wireSelection();
 		setupViewShortcuts();
 
 		this.timeline.withTimeListener(jdn -> {
 			markerLayer.setCurrentTime(jdn);
-			for(final MapWarperTileOverlayPainter overlay : historicalMapOverlays)
-				overlay.setCurrentTime(jdn);
-			autoSelectBaseMap(jdn);
+			historicalMaps.setCurrentTime(jdn);
 
 			if(globeModeActive)
 				refreshGlobeMarkers();
@@ -339,8 +311,7 @@ public class ChronomapPanel extends JPanel{
 	private void releaseTileFactories(){
 		if(osmTileFactory != null)
 			osmTileFactory.dispose();
-		for(final DefaultTileFactory factory : mapWarperCache.values())
-			factory.dispose();
+		historicalMaps.dispose();
 	}
 
 
@@ -755,7 +726,7 @@ public class ChronomapPanel extends JPanel{
 
 		toolbar.add(button2D);
 		toolbar.add(button3D);
-		toolbar.add(createHistoricalMapButton());
+		toolbar.add(historicalMaps.createButton());
 		toolbar.add(createLayersButton());
 		toolbar.add(createEventsButton());
 		toolbar.add(showUncertaintyCheckBox);
@@ -769,185 +740,6 @@ public class ChronomapPanel extends JPanel{
 		add(north, BorderLayout.NORTH);
 	}
 
-
-	/**
-	 * Chooses the historical map overlays to display based on the current
-	 * timeline position and map viewport center. When
-	 * {@link #autoSelectMapEnabled} is on, this is called automatically on
-	 * time changes and viewport panning.
-	 * <p>
-	 * All matching maps are shown simultaneously as a mosaic. They are
-	 * sorted by area descending, so the smaller, more detailed maps are
-	 * painted on top of the larger, coarser ones.
-	 */
-	private void autoSelectBaseMap(final double currentJdn){
-		if(!autoSelectMapEnabled){
-			// Manual mode: keep only the maps that are still valid at the
-			// current time. Nothing else changes.
-			final List<HistoricalMapMetaData> stillValid = activeHistoricalMaps.stream()
-				.filter(map -> map.isAvailableAt(currentJdn))
-				.toList();
-			if(stillValid.size() != activeHistoricalMaps.size())
-				setHistoricalOverlays(stillValid);
-
-			return;
-		}
-
-		final GeoPosition currentCenter = mapViewer.getCenterPosition();
-		//the maps of the area are searched only when the area is looked at closely, not at the zoom of the whole world
-		if(mapViewer.getZoom() <= HISTORICAL_SEARCH_ZOOM)
-			historicalMapCatalog.requestArea(currentCenter, () -> autoSelectBaseMap(timeline.getCurrentTime()));
-
-		setHistoricalOverlays(mapsAt(currentJdn, currentCenter));
-	}
-
-	/**
-	 * The maps that depict the time and the place, from the largest to the smallest. Without a network, only the maps that have
-	 * some tiles already downloaded.
-	 */
-	private List<HistoricalMapMetaData> mapsAt(final double currentJdn, final GeoPosition center){
-		final boolean offline = historicalMapCatalog.isOffline();
-		return historicalMapCatalog.maps().stream()
-			.filter(map -> map.isMatching(currentJdn, center))
-			.filter(map -> !offline || HistoricalMapCatalog.hasLocalTiles(map.mapId()))
-			.sorted(Comparator.comparingDouble(ChronomapPanel::areaOf).reversed())
-			.toList();
-	}
-
-	/**
-	 * Computes the area of the bounding box of the given historical map,
-	 * expressed in square degrees. Only used to compare maps against each
-	 * other, so absolute units are irrelevant.
-	 */
-	private static double areaOf(final HistoricalMapMetaData map){
-		final GeoPosition nw = map.northWest();
-		final GeoPosition se = map.southEast();
-		final double latSpan = Math.abs(nw.getLatitude() - se.getLatitude());
-		final double lonSpan = Math.abs(nw.getLongitude() - se.getLongitude());
-		return latSpan * lonSpan;
-	}
-
-	/**
-	 * Replaces the current set of historical overlays with the given list.
-	 * The list must already be sorted by area descending. Maps already
-	 * active are kept as-is, maps no longer active are removed, and new
-	 * maps are created and inserted at the bottom of the layer stack.
-	 * <p>
-	 * The method is a no-op when the new set is identical to the current
-	 * one, so that panning does not cause flicker.
-	 */
-	private void setHistoricalOverlays(final List<HistoricalMapMetaData> maps){
-		// Fast path: same set, same order.
-		if(activeHistoricalMaps.equals(maps))
-			return;
-
-		// 1. Remove overlays that are no longer needed.
-		final Iterator<MapWarperTileOverlayPainter> it = historicalMapOverlays.iterator();
-		while(it.hasNext()){
-			final MapWarperTileOverlayPainter overlay = it.next();
-			final boolean stillNeeded = maps.stream()
-				.anyMatch(m -> m.mapId() == overlay.mapId());
-			if(!stillNeeded){
-				layerManager.removeLayer(overlay);
-				it.remove();
-			}
-		}
-
-		// 2. Insert the new maps at the bottom of the stack, largest first.
-		// addLayer(0, ...) pushes everything else up, so iterating the list
-		// in reverse order leaves the smallest map on top of the stack and
-		// the largest just above the base map.
-		for(int i = maps.size() - 1; i >= 0; i --){
-			final HistoricalMapMetaData map = maps.get(i);
-			final boolean alreadyActive = historicalMapOverlays.stream()
-				.anyMatch(o -> o.mapId() == map.mapId());
-			if(alreadyActive)
-				continue;
-
-			final DefaultTileFactory factory = getOrCreateMapWarperFactory(map.mapId());
-			final MapWarperTileOverlayPainter overlay = new MapWarperTileOverlayPainter(map, factory);
-			overlay.setAlpha(HISTORICAL_OVERLAY_ALPHA);
-			overlay.setCurrentTime(timeline.getCurrentTime());
-			layerManager.addLayer(0, overlay);
-
-			historicalMapOverlays.add(overlay);
-		}
-
-		// 3. Rebuild the metadata list from the overlay order so the two
-		// stay in sync. The overlay list is ordered bottom-to-top, i.e.
-		// largest to smallest, which matches the sort applied by
-		// autoSelectBaseMap.
-		activeHistoricalMaps.clear();
-		for(final MapWarperTileOverlayPainter overlay : historicalMapOverlays)
-			activeHistoricalMaps.add(overlay.metadata());
-
-		mapViewer.repaint();
-	}
-
-
-	private JButton createHistoricalMapButton(){
-		final JButton button = new JButton(I18N.t("button.historical_map"));
-		final JPopupMenu menu = new JPopupMenu();
-
-		button.addActionListener(e -> {
-			menu.removeAll();
-
-			// Option 1: auto-selection toggle.
-			final JCheckBoxMenuItem autoItem = new JCheckBoxMenuItem(I18N.t("checkbox.map_auto_select"), autoSelectMapEnabled);
-			autoItem.addActionListener(ev -> {
-				autoSelectMapEnabled = autoItem.isSelected();
-				if(autoSelectMapEnabled)
-					autoSelectBaseMap(timeline.getCurrentTime());
-			});
-			menu.add(autoItem);
-			menu.addSeparator();
-
-			// Option 2: manual "None" (modern map only).
-			final boolean noneActive = (!autoSelectMapEnabled && activeHistoricalMaps.isEmpty());
-			final JRadioButtonMenuItem noneItem = new JRadioButtonMenuItem(I18N.t("checkbox.map_none"), noneActive);
-			noneItem.addActionListener(ev -> {
-				autoSelectMapEnabled = false;
-				setHistoricalOverlays(List.of());
-			});
-			menu.add(noneItem);
-
-			// Option 3: manual override for available historical maps.
-			// Selecting one disables auto-selection and replaces the whole
-			// overlay set with just that map.
-			//only the maps of the time and place displayed: the catalog holds all the maps ever found
-			for(final HistoricalMapMetaData map : mapsAt(timeline.getCurrentTime(), mapViewer.getCenterPosition())){
-				final boolean isCurrent = !autoSelectMapEnabled
-					&& activeHistoricalMaps.size() == 1
-					&& activeHistoricalMaps.getFirst().mapId() == map.mapId();
-				final JRadioButtonMenuItem mapItem = new JRadioButtonMenuItem(map.name(), isCurrent);
-				mapItem.addActionListener(ev -> {
-					autoSelectMapEnabled = false;
-					setHistoricalOverlays(List.of(map));
-				});
-				menu.add(mapItem);
-			}
-
-			menu.show(button, 0, button.getHeight());
-		});
-
-		return button;
-	}
-
-	/**
-	 * Returns the MapWarper tile factory for the given map identifier,
-	 * creating it on first use. The factory is built with the same
-	 * {@code totalMapZoom} as the OSM base map factory, so that
-	 * world-pixel coordinates coincide and the overlay aligns with the
-	 * modern base map.
-	 */
-	private DefaultTileFactory getOrCreateMapWarperFactory(final int mapId){
-		return mapWarperCache.computeIfAbsent(mapId, id -> {
-			final int totalMapZoom = osmTileFactory.getInfo()
-				.getTotalMapZoom();
-			final MapWarperTileFactoryInfo info = new MapWarperTileFactoryInfo(id, totalMapZoom);
-			return createTileFactory(info);
-		});
-	}
 
 	private JButton createLayersButton(){
 		final JButton button = new JButton(I18N.t("button.layers"));
@@ -1019,27 +811,17 @@ public class ChronomapPanel extends JPanel{
 		// OpenStreetMap is the permanent base map: it is never replaced by
 		// a historical map, which is instead drawn as an overlay on top.
 		final OSMTileFactoryInfo osmInfo = new OSMTileFactoryInfo("OpenStreetMap", "https://tile.openstreetmap.org");
-		osmTileFactory = createTileFactory(osmInfo);
+		osmTileFactory = HistoricalMapOverlays.createTileFactory(osmInfo);
 		final int totalMapZoom = osmTileFactory.getInfo()
 			.getTotalMapZoom();
 		markerLayer.setTotalMapZoom(totalMapZoom);
+		historicalMaps = new HistoricalMapOverlays(mapViewer, layerManager, osmTileFactory, timeline::getCurrentTime);
 
 
 		mapViewer.setTileFactory(osmTileFactory);
 		mapViewer.setAddressLocation(WORLD_CENTER);
 		mapViewer.setZoom(WORLD_ZOOM);
 		mapViewer.setOverlayPainter(layerManager);
-	}
-
-	private static DefaultTileFactory createTileFactory(final TileFactoryInfo info){
-		final DefaultTileFactory factory = new DefaultTileFactory(info);
-		factory.setThreadPoolSize(8);
-		factory.setUserAgent("FamilyLegacy/1.0 (genealogy research)");
-
-		final File cacheDir = new File(System.getProperty("user.home")
-			+ File.separator + ".familylegacy" + File.separator + "tiles" + File.separator + info.getName().toLowerCase());
-		factory.setLocalCache(new FileBasedLocalCache(cacheDir, false));
-		return factory;
 	}
 
 	private void configureInteraction(){
@@ -1049,7 +831,6 @@ public class ChronomapPanel extends JPanel{
 		mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCursor(mapViewer));
 
 		// Trigger auto map selection passing current timeline JDN when viewport center changes
-		mapViewer.addPropertyChangeListener("center", evt -> autoSelectBaseMap(timeline.getCurrentTime()));
 	}
 
 

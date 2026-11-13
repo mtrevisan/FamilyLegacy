@@ -70,6 +70,10 @@ final class HistoricalMapCatalog{
 	/** The centuries searched (the years are in the title of the maps more often than in their date field). */
 	private static final List<String> TITLE_PREFIXES = List.of("14", "15", "16", "17", "18", "19");
 
+	private static final long LOCAL_TILES_VALIDITY_MS = Duration.ofSeconds(30).toMillis();
+	private static final Map<Integer, Boolean> LOCAL_TILES = new ConcurrentHashMap<>();
+	private static final Map<Integer, Long> LOCAL_TILES_CHECKED_AT = new ConcurrentHashMap<>();
+
 	private static final String KEY_MAP = "map.";
 	private static final String KEY_CELL = "cell.";
 	private static final char SEPARATOR = '\t';
@@ -116,6 +120,19 @@ final class HistoricalMapCatalog{
 	 * @param mapId	The identifier of the map.
 	 */
 	static boolean hasLocalTiles(final int mapId){
+		//asked for every map at every movement of the view, and it reads the disk: the answer is kept for a while
+		final long now = System.currentTimeMillis();
+		final Long checkedAt = LOCAL_TILES_CHECKED_AT.get(mapId);
+		if(checkedAt != null && now - checkedAt < LOCAL_TILES_VALIDITY_MS)
+			return LOCAL_TILES.getOrDefault(mapId, false);
+
+		final boolean present = readLocalTiles(mapId);
+		LOCAL_TILES.put(mapId, present);
+		LOCAL_TILES_CHECKED_AT.put(mapId, now);
+		return present;
+	}
+
+	private static boolean readLocalTiles(final int mapId){
 		final Path directory = Path.of(System.getProperty("user.home"), ".familylegacy", "tiles", "mapwarper-" + mapId);
 		if(!Files.isDirectory(directory))
 			return false;

@@ -30,10 +30,13 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.viewer.GeoPosition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -95,6 +98,48 @@ class AssistantDialogsEscapeTest{
 		//and then the editor closes with its own ESC
 		pressEscape(editor);
 		Assertions.assertFalse(editor.isDisplayable());
+	}
+
+	@Test
+	void theMapToPickAPlaceClosesOverTheAssistant() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final HistoricalDateAssistantDialog assistant = new HistoricalDateAssistantDialog(null,
+			HistoricalDateAssistantDialog.Tool.SUN, "gregorian", "12 January 1400", model, null);
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(assistant, Double.NaN, null);
+		pressEscape(picker);
+
+		Assertions.assertFalse(picker.isDisplayable());
+		Assertions.assertNull(picker.selectedPosition(), "closing without confirming must choose nothing");
+		Assertions.assertTrue(assistant.isDisplayable(), "ESC in the map closed the assistant below it");
+		assistant.dispose();
+	}
+
+	@Test
+	void theMapToPickAPlaceOpensCenteredOnTheCoordinates(){
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final GeoPosition venice = new GeoPosition(45.44, 12.33);
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(null, 2_000_000., venice);
+		final JXMapViewer viewer = findViewer(picker);
+
+		Assertions.assertEquals(venice.getLatitude(), viewer.getCenterPosition().getLatitude(), 0.01);
+		Assertions.assertEquals(venice.getLongitude(), viewer.getCenterPosition().getLongitude(), 0.01);
+		picker.dispose();
+	}
+
+	private static JXMapViewer findViewer(final java.awt.Container container){
+		for(final java.awt.Component component : container.getComponents()){
+			if(component instanceof JXMapViewer viewer)
+				return viewer;
+			if(component instanceof java.awt.Container child){
+				final JXMapViewer found = findViewer(child);
+				if(found != null)
+					return found;
+			}
+		}
+		return null;
 	}
 
 	@Test

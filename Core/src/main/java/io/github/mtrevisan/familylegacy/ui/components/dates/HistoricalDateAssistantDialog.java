@@ -37,6 +37,8 @@ import io.github.mtrevisan.calendars.assistant.RomanDateTool;
 import io.github.mtrevisan.calendars.assistant.SunTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.CalendarReforms;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
+import org.jxmapviewer.viewer.GeoPosition;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -336,6 +338,9 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		latitude.setToolTipText(I18N.t("dialog.date_assistant.sun.coordinates.tooltip"));
 		final JTextField longitude = new JTextField("12.33", 8);
 		longitude.setToolTipText(I18N.t("dialog.date_assistant.sun.coordinates.tooltip"));
+		final JButton mapButton = new JButton(I18N.t("dialog.date_assistant.sun.map"));
+		mapButton.setToolTipText(I18N.t("dialog.date_assistant.sun.map.tooltip"));
+		mapButton.addActionListener(e -> pickOnMap((String)calendar.getSelectedItem(), date.getText(), latitude, longitude));
 		final JTextField hours = new JTextField(6);
 		final JComboBox<String> hourSystem = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.sun.hours.equal"),
 			I18N.t("dialog.date_assistant.sun.hours.unequal")});
@@ -354,12 +359,43 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.latitude")));
 		panel.add(latitude, "w 110!");
 		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.longitude")));
-		panel.add(longitude, "w 110!,wrap");
+		panel.add(longitude, "w 110!");
+		panel.add(mapButton, "wrap");
 		panel.add(new JLabel(I18N.l("dialog.date_assistant.sun.hours")));
 		panel.add(hours, "w 110!");
 		panel.add(hourSystem, "span 2");
 		panel.add(run);
 		return panel;
+	}
+
+	/**
+	 * Lets the user choose the place on the map of the chronomap, with the historical maps of the day entered, and writes its
+	 * coordinates in the fields.
+	 */
+	private void pickOnMap(final String calendarCode, final String dateText, final JTextField latitude, final JTextField longitude){
+		double jdn = Double.NaN;
+		try{
+			jdn = CalendarType.fromCode(calendarCode).parseToJdn(dateText);
+		}
+		catch(final RuntimeException ignored){
+			//the date is not (yet) readable: only the modern map is shown
+		}
+		GeoPosition initial = null;
+		try{
+			initial = new GeoPosition(Double.parseDouble(latitude.getText().trim().replace(',', '.')),
+				Double.parseDouble(longitude.getText().trim().replace(',', '.')));
+		}
+		catch(final RuntimeException ignored){
+			//the coordinates are not (yet) readable: the map opens on the whole world
+		}
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(this, jdn, initial);
+		picker.setVisible(true);
+		final GeoPosition position = picker.selectedPosition();
+		if(position != null){
+			latitude.setText(PlaceMapPickerDialog.format(position.getLatitude()));
+			longitude.setText(PlaceMapPickerDialog.format(position.getLongitude()));
+		}
 	}
 
 	private JPanel createRelativePanel(final String calendarCode, final String dateText){
