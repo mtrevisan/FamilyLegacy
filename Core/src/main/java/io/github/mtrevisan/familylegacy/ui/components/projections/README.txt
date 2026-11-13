@@ -12,6 +12,14 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### ALTA
+uno non può essere "figlio di un gruppo", deve essere "figlio degli individui che sono membri del gruppo", ma questo è da controllare se viene già creato, in ogni caso questo non può essere, da protocollo (attento che uno o più dei legami possono essere "adoptive")
+relationship RL5139 {
+	subject.individual I2400
+	target.group G577
+	type group_member
+	role child
+	audit.creation.date 2021-11-07T19:40:31Z
+}
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
