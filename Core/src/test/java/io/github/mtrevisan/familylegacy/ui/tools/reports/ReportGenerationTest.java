@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
@@ -95,7 +96,7 @@ class ReportGenerationTest{
 
 	@Test
 	void everyReportIsGeneratedForEveryRecordWithAnyOptions(){
-		final Map<String, ReportConfig> configs = Map.of("defaults", ReportConfig.defaults(),
+		final Map<String, ReportConfig> configs = Map.of("defaults", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW),
 			"all on", config(true, ReportLanguage.ENGLISH, PrivacyPolicy.SHOW_ALL),
 			"all off", config(false, ReportLanguage.ENGLISH, PrivacyPolicy.HIDE_CONFIDENTIAL));
 		final List<String> failures = new ArrayList<>();
@@ -129,7 +130,7 @@ class ReportGenerationTest{
 	@Test
 	void everyReportIsWrittenInEveryFormat(@TempDir final Path directory) throws IOException{
 		for(final ReportType type : ReportType.values()){
-			final ReportDocument document = build(type, rootOf(type), ReportConfig.defaults());
+			final ReportDocument document = build(type, rootOf(type), ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 			for(final ReportRenderer renderer : ReportRenderers.available()){
 				final Path target = directory.resolve(type.name() + renderer.extension());
@@ -145,18 +146,18 @@ class ReportGenerationTest{
 
 	@Test
 	void theIndividualSummaryTellsTheLifeOfTheIndividual(){
-		final List<String> headings = headings(build(ReportType.INDIVIDUAL, "I1", ReportConfig.defaults()));
+		final List<String> headings = headings(build(ReportType.INDIVIDUAL, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(headings.contains("Introduction"), headings.toString());
 		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Life of")), headings.toString());
 		Assertions.assertTrue(headings.contains("Paternal Ancestry"), headings.toString());
 		Assertions.assertTrue(headings.contains("Descendants"), headings.toString());
-		Assertions.assertTrue(headings.contains("Direct Relations"), headings.toString());
+		Assertions.assertFalse(headings.contains("Direct Relations"), headings.toString());
 	}
 
 	@Test
 	void theRelationshipReportHasTheRelationsAndNotTheLines(){
-		final List<String> headings = headings(build(ReportType.RELATIONSHIP, "I1", ReportConfig.defaults()));
+		final List<String> headings = headings(build(ReportType.RELATIONSHIP, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(headings.contains("Direct Relations"), headings.toString());
 		Assertions.assertTrue(headings.contains("Indirect Relations"), headings.toString());
@@ -166,21 +167,21 @@ class ReportGenerationTest{
 
 	@Test
 	void theAncestorAndDescendantReportsHaveTheirOwnTitle(){
-		Assertions.assertTrue(build(ReportType.ANCESTOR, "I1", ReportConfig.defaults()).title().startsWith("Ancestors of"));
-		Assertions.assertTrue(build(ReportType.DESCENDANT, "I1", ReportConfig.defaults()).title().startsWith("Descendants of"));
+		Assertions.assertTrue(build(ReportType.ANCESTOR, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)).title().startsWith("Ancestors of"));
+		Assertions.assertTrue(build(ReportType.DESCENDANT, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)).title().startsWith("Descendants of"));
 	}
 
 	@Test
 	void theGroupSheetIsAboutTheGroup(){
-		final List<String> headings = headings(build(ReportType.GROUP, "G1", ReportConfig.defaults()));
+		final List<String> headings = headings(build(ReportType.GROUP, "G1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(headings.contains("Members"), headings.toString());
 	}
 
 	@Test
 	void theBibliographyListsTheSourcesAndTheResearchReportTheResearch(){
-		final List<String> bibliography = headings(build(ReportType.BIBLIOGRAPHY, "I1", ReportConfig.defaults()));
-		final List<String> research = headings(build(ReportType.RESEARCH_PROGRESS, "I1", ReportConfig.defaults()));
+		final List<String> bibliography = headings(build(ReportType.BIBLIOGRAPHY, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
+		final List<String> research = headings(build(ReportType.RESEARCH_PROGRESS, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(bibliography.contains("Sources"), bibliography.toString());
 		Assertions.assertTrue(research.contains("Research"), research.toString());
@@ -189,7 +190,7 @@ class ReportGenerationTest{
 
 	@Test
 	void thePlaceReportIsAboutThePlace(){
-		final ReportDocument document = build(ReportType.PLACE, "P1", ReportConfig.defaults());
+		final ReportDocument document = build(ReportType.PLACE, "P1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 		final List<String> headings = headings(document);
 
 		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Place: a certain place")), headings.toString());
@@ -201,7 +202,7 @@ class ReportGenerationTest{
 
 	@Test
 	void theSourceReportIsAboutTheSource(){
-		final List<String> headings = headings(build(ReportType.SOURCE, "S1", ReportConfig.defaults()));
+		final List<String> headings = headings(build(ReportType.SOURCE, "S1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Source: src title")), headings.toString());
 		Assertions.assertTrue(headings.contains("Repository"), headings.toString());
@@ -210,7 +211,7 @@ class ReportGenerationTest{
 
 	@Test
 	void theResearchQuestionReportIsAboutTheQuestion(){
-		final List<String> headings = headings(build(ReportType.RESEARCH_QUESTION, "RQ1", ReportConfig.defaults()));
+		final List<String> headings = headings(build(ReportType.RESEARCH_QUESTION, "RQ1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Research question: rq title")), headings.toString());
 		for(final String heading : List.of("Targets", "Activities", "Tasks", "Conclusions"))

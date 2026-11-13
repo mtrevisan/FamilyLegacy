@@ -86,7 +86,7 @@ public final class FullBibliographyGenerator{
 			.thenComparing(FLEFRecord::getId));
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(first).build());
-		sections.add(new ReportSection.Heading(1, title));
+		sections.add(new ReportSection.Heading(1, first.labels.sections().overview()));
 		sections.add(new ReportSection.Paragraph(String.format(first.labels.sections().sourcesCount(), first.formatInt(sources.size()))));
 		sections.add(summary(first, index, sources));
 		listener.onProgress(5, null);

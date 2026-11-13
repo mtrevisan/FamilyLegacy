@@ -99,13 +99,11 @@ public final class CitationRenderer{
 
 			final String text = ReportFormatters.noteText(n);
 			final String suffix = noteMetadataSuffix(n);
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().note() + ":** " + ReportFormatters.escape(text) + suffix));
-
+			//the title of a note is its label ("Agency: Ospedale ..."), not a separate line after the text
 			final String title = ReportFormatters.noteTitle(n);
-			if(title != null)
-				out.add(new ReportSection.Paragraph(
-					"*" + ctx.labels.sections().noteTitle() + ":* " + ReportFormatters.escape(title)));
+			final String label = (title != null && !title.isBlank()
+				? ReportFormatters.escape(title): ctx.labels.sections().note());
+			out.add(new ReportSection.Paragraph("**" + label + ":** " + ReportFormatters.escape(text) + suffix));
 
 			for(final String tr : ReportFormatters.noteTranslations(n, ctx.labels))
 				out.add(new ReportSection.Paragraph(tr));
@@ -147,6 +145,7 @@ public final class CitationRenderer{
 	 */
 	public List<ReportSection> citations(final FLEFRecord rec){
 		final List<ReportSection> out = new ArrayList<>();
+		final List<String> items = new ArrayList<>();
 		final List<FLEFRecord> cites = ctx.visibleChildren(rec, TAG_SOURCE);
 		if(cites.isEmpty())
 			return out;
@@ -162,14 +161,14 @@ public final class CitationRenderer{
 			if(!ctx.isVisible(ctx.model.getRecordById(sid)))
 				continue;
 
-			final StringBuilder sb = new StringBuilder("• ");
+			final StringBuilder sb = new StringBuilder();
 			if(SourceCitationReader.isContradicting(c))
 				sb.append("**[").append(ctx.labels.sections().stanceContradicts()).append("]** ");
 			sb.append(ReportFormatters.escape(ctx.sourceTitle(sid)));
 
 			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
 			if(locator != null)
-				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
+				sb.append(" — *").append(ctx.labels.sections().sourceLocator()).append(":* ").append(ReportFormatters.escape(locator));
 
 			final String extractText = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TEXT);
 			if(extractText != null){
@@ -201,13 +200,27 @@ public final class CitationRenderer{
 				sb.append(" — *").append(ctx.labels.sections().extractCrop()).append(":* ")
 					.append(ReportFormatters.escape(crop));
 
-			out.add(new ReportSection.Paragraph(sb.toString()));
+			items.add(sb.toString());
 
-			if(ctx.config.evidence())
+			//the evidence of a citation comes right after it: the citations before it make a list of their own
+			if(ctx.config.evidence()){
+				flush(out, items);
 				addEvidence(c, out);
+			}
 		}
+		flush(out, items);
 		return out;
 	}
+
+	/** Writes the citations collected so far as one list, and starts another. */
+	private static void flush(final List<ReportSection> out, final List<String> items){
+		if(items.isEmpty())
+			return;
+
+		out.add(new ReportSection.BulletList(List.copyOf(items)));
+		items.clear();
+	}
+
 
 
 	/* ======================================================================
@@ -288,7 +301,7 @@ public final class CitationRenderer{
 	 * ====================================================================== */
 
 	public List<ReportSection> audit(final FLEFRecord rec){
-		if(!ctx.config.audit())
+		if(!ctx.config.audit() || ctx.isRedacted(rec))
 			return List.of();
 
 		final FLEFRecord auditNode = FLEFRecordHelper.findChild(rec, TAG_AUDIT);

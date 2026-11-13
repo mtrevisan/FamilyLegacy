@@ -39,10 +39,12 @@ import java.util.List;
 public final class AncestrySection implements SectionBuilder{
 
 	private final ReportContext ctx;
+	private final TreeText text;
 
 
 	public AncestrySection(final ReportContext ctx){
 		this.ctx = ctx;
+		this.text = new TreeText(ctx);
 	}
 
 
@@ -62,10 +64,14 @@ public final class AncestrySection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(ctx.labels.sections().noAncestors()));
 			return;
 		}
+		//a list, each ancestor with the years and the kinship term from the subject ("paternal grandfather")
+		final List<String> items = new ArrayList<>(ancestors.size());
 		for(final FLEFRecord a : ancestors){
-			out.add(new ReportSection.Paragraph(
-				"  " + ReportFormatters.escape(ctx.displayText(a))));
+			final String kinship = ctx.kinship().shortTerm(a.getId(), ctx.root.getId());
+			items.add(ReportFormatters.escape(text.label(a))
+				+ (ReportFormatters.isUsefulKinshipTerm(kinship)? " — *" + ReportFormatters.escape(kinship) + "*": ""));
 		}
+		out.add(new ReportSection.BulletList(items));
 	}
 
 }

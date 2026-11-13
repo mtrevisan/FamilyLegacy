@@ -52,6 +52,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
@@ -66,6 +67,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -100,22 +102,14 @@ import java.util.function.Consumer;
 public final class GUIHelper{
 
 	/**
-	 * Number formats used across the dialog. A space separates the
-	 * groups of three digits, a dot separates the decimal part.
-	 * <p>
-	 * The space is a non-breaking space ({@code U+00A0}) rather than a
-	 * regular space, so the value stays on one line when the cell is
-	 * rendered by Swing. If a regular space is preferred, change
-	 * {@code '\u00A0'} to {@code ' '}.
+	 * Number formats used across the dialogs: the groups of three digits and the decimal part are separated as the language of the
+	 * application does it (a comma and a dot in English, a dot and a comma in Italian), the same as every number in a message.
 	 * <p>
 	 * {@link java.text.DecimalFormat} is not thread-safe, but every call to these
 	 * formatters happens on the EDT, so the instances can be shared.
 	 */
-	private static final DecimalFormatSymbols SYMBOLS = new DecimalFormatSymbols(Locale.ROOT);
-	static{
-		SYMBOLS.setGroupingSeparator('\u00A0');
-		SYMBOLS.setDecimalSeparator('.');
-	}
+	private static final DecimalFormatSymbols SYMBOLS = DecimalFormatSymbols.getInstance(Locale.getDefault());
+
 	private static final DecimalFormat INTEGER_FORMAT = new DecimalFormat("#,##0", SYMBOLS);
 	private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("#,##0.0'%'", SYMBOLS);
 
@@ -233,6 +227,25 @@ public final class GUIHelper{
 		}
 
 		return String.format(Locale.ROOT, outFormat.toString(), outArgs.toArray());
+	}
+
+	/**
+	 * The bar at the bottom of a window with a table or a list, the same in all of them: what the window shows (how many rows, how far
+	 * a search is, what is selected) at the <b>left</b>, and the buttons at the right.
+	 *
+	 * @param status	What is shown at the left: a label, or a panel with a label and a progress bar.
+	 * @param buttons	The buttons at the right, in order.
+	 */
+	public static JPanel createStatusFooter(final Component status, final Component... buttons){
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		for(final Component button : buttons)
+			buttonPanel.add(button);
+
+		final JPanel footer = new JPanel(new BorderLayout(8, 0));
+		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));
+		footer.add(status, BorderLayout.WEST);
+		footer.add(buttonPanel, BorderLayout.EAST);
+		return footer;
 	}
 
 	public static String formatDouble(final double value, final int decimals, final boolean grouping){

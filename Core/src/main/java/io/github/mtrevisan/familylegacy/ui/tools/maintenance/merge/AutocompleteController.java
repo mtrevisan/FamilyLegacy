@@ -168,22 +168,39 @@ public final class AutocompleteController{
 			refreshOrClose();
 			return;
 		}
-		maybeAutoTriggerValue();
+		//what is written by the program (a side taken with an arrow) is not a reason to suggest anything: only what is being typed
+		if(area.isFocusOwner())
+			maybeAutoTrigger();
 	}
 
-	private void maybeAutoTriggerValue(){
+	/**
+	 * Opens the popup by itself where the user is writing: the values that a field allows when the caret is where a value goes, and the
+	 * tags when some letters of one have been typed (and what is typed is not already the only tag that matches).
+	 */
+	private void maybeAutoTrigger(){
 		final String fullText = textFor.apply(area);
 		final int caret = caretInFullText();
 
-		if(!TagSuggester.isValuePosition(fullText, caret))
+		if(TagSuggester.isValuePosition(fullText, caret)){
+			final List<String> values = suggester.valueSuggestionsFor(fullText, caret);
+			if(values.isEmpty())
+				return;
+
+			LOGGER.info("Autocomplete: auto-triggered {} value suggestions", values.size());
+			showValuePopup(values);
+			return;
+		}
+
+		final TagSuggester.Context context = suggester.resolveContext(fullText, caret);
+		if(context == null || context.suppressed() || context.prefix() == null || context.prefix().isEmpty())
 			return;
 
-		final List<String> values = suggester.valueSuggestionsFor(fullText, caret);
-		if(values.isEmpty())
+		final List<Suggestion> suggestions = suggester.suggestionsFor(fullText, caret);
+		if(suggestions.isEmpty() || (suggestions.size() == 1 && suggestions.get(0).tag().equals(context.prefix())))
 			return;
 
-		LOGGER.info("Autocomplete: auto-triggered {} value suggestions", values.size());
-		showValuePopup(values);
+		LOGGER.info("Autocomplete: auto-triggered {} tag suggestions", suggestions.size());
+		showTagPopup(suggestions);
 	}
 
 	private boolean handleTriggerKey(final KeyEvent e){
@@ -461,7 +478,7 @@ public final class AutocompleteController{
 			// of options, open the value popup right away, so accepting
 			// a tag leads seamlessly to accepting its value.
 			if(!s.block())
-				SwingUtilities.invokeLater(this::maybeAutoTriggerValue);
+				SwingUtilities.invokeLater(this::maybeAutoTrigger);
 		}
 		catch(final BadLocationException ex){
 			LOGGER.debug("Autocomplete insertion failed: {}", ex.getMessage());

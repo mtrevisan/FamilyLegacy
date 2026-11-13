@@ -128,6 +128,8 @@ public final class PrivacyResolver{
 	private final Map<String, List<String>> participantsByEvent = new HashMap<>();
 	/** Media id -> ids of the individuals and groups that use it as preferred image. */
 	private final Map<String, List<String>> ownersByMedia = new HashMap<>();
+	/** Event id -> ids of the individuals that are principals of it. */
+	private final Map<String, List<String>> principalsByEvent = new HashMap<>();
 	/** Individuals that are certainly not living. */
 	private final Set<String> notLiving = new HashSet<>();
 
@@ -159,6 +161,34 @@ public final class PrivacyResolver{
 		final PrivacyLevel inherited = effectiveLevel(container);
 		final Effective declared = declared(nested);
 		return (declared != null? PrivacyLevel.mostRestrictive(inherited, declared.level()): inherited);
+	}
+
+	/**
+	 * Whether the record is about an individual that may be living: the individual itself, or a record that inherits the restriction
+	 * from it (an attribute, a relationship, a media, ...).
+	 * <p>
+	 * An event is about the individuals that are its <em>principals</em>: a living midwife, witness or declarant does not make the
+	 * birth or the death of somebody who died long ago an event about a living person.
+	 * </p>
+	 *
+	 * @param record	A record.
+	 * @return	Whether it is about an individual that may be living.
+	 */
+	public synchronized boolean concernsLiving(final FLEFRecord record){
+		final Effective effective = describe(record);
+		if(!effective.isRestricted() || !PrivacyReader.ENUM_REASON_LIVING_PERSON.equals(effective.reason())
+				|| (effective.origin() != Origin.LIVING_PERSON && effective.origin() != Origin.INHERITED))
+			return false;
+		if(record == null || !EventReader.isOfType(record))
+			return true;
+
+		ensureIndexed();
+		for(final String principalId : principalsByEvent.getOrDefault(record.getId(), List.of())){
+			final FLEFRecord principal = model.getRecordById(principalId);
+			if(principal != null && describe(principal).origin() == Origin.LIVING_PERSON)
+				return true;
+		}
+		return false;
 	}
 
 	/** The effective privacy of the record, with its origin. */
@@ -322,6 +352,9 @@ public final class PrivacyResolver{
 			participantsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
 				.add(participantId);
 
+			if(participant.individual() && isPrincipal(participation))
+				principalsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
+					.add(participantId);
 			if(participant.individual() && isPrincipal(participation)
 					&& isCertainlyDead(filteredEvents.get(eventId)))
 				notLiving.add(participantId);

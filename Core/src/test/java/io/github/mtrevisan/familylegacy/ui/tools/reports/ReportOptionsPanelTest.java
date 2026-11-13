@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
@@ -41,6 +42,7 @@ class ReportOptionsPanelTest{
 		return new ReportConfig(
 			defaults.language(),
 			defaults.privacyPolicy(),
+			LivingPrivacy.HIDE,
 			!defaults.showPrivacyDetails(),
 			!defaults.audit(),
 			!defaults.header(),

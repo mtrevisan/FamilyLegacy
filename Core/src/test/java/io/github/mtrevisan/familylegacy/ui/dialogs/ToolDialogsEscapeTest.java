@@ -28,8 +28,10 @@ import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityLoops;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeDecision;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeField;
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergePlan;
+import io.github.mtrevisan.familylegacy.io.merger.manual.RecordMerger;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -44,6 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.jxmapviewer.viewer.GeoPosition;
 
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -124,8 +127,12 @@ class ToolDialogsEscapeTest{
 			return new IndividualFacts.Comparison(List.of(), List.of(), List.of());
 		if(type == TreeService.class)
 			return new TreeService(new GenealogyRepository(RelationshipReader.BIOLOGICAL, model), model);
-		if(type == MergeField.class)
-			return mergeField(model);
+		if(type == MergePlan.class)
+			return mergePlan(model);
+		if(type == GeoPosition.class)
+			return new GeoPosition(45., 12.);
+		if(type == double.class)
+			return 2451545.;
 		if(type == Statistics.class)
 			return new StatisticsCalculator(model).compute(null);
 		if(type == Supplier.class){
@@ -165,18 +172,33 @@ class ToolDialogsEscapeTest{
 		return null;
 	}
 
-	/** The constructor of a merge field is not public: a field with no instances on either side is enough for a dialog. */
-	private static MergeField mergeField(final FLEFModel model){
-		try{
-			final Constructor<MergeField> constructor = MergeField.class.getDeclaredConstructor(String.class, List.class, List.class,
-				MergeDecision.class, boolean.class);
-			constructor.setAccessible(true);
-			return constructor.newInstance("x", List.of(model.getRecords().getFirst()), List.of(model.getRecords().getFirst()),
-				MergeDecision.values()[0], false);
-		}
-		catch(final ReflectiveOperationException e){
+	/** The plan of all the fields of the merge of two individuals, for the review of a merge: they are in a small file of its own. */
+	private static MergePlan mergePlan(final FLEFModel ignored){
+		if(MergeGrammar.instance() == null)
 			return null;
-		}
+
+		final FLEFModel two = new FLEFParser().parse("""
+			header {
+				protocol {
+					name Family LEgacy Format
+					version 0.2.0
+				}
+				date 2026-01-01T00:00:00Z
+			}
+			individual I1 {
+				name.part {
+					type given
+					value Anna
+				}
+			}
+			individual I2 {
+				name.part {
+					type given
+					value Bianca
+				}
+			}
+			""");
+		return new RecordMerger(two, MergeGrammar.instance()).planAllFields("I2", "I1");
 	}
 
 	private static JDialog build(final Class<?> type, final JDialog owner, final JPanel inOwner, final FLEFModel model) throws Exception{

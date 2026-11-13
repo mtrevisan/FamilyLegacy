@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 
 /**
@@ -36,6 +37,10 @@ import java.util.Locale;
  * and group histories.
  */
 public final class NarrativeFormatter{
+
+	/** A date with a day: {@code 31 JAN 1633}, or {@code 1633-01-31}. */
+	private static final Pattern FULL_DATE = Pattern.compile("^(\\d{1,2} \\p{L}{3} \\d+|\\d+-\\d{2}-\\d{2}).*");
+
 
 	private final ReportLabels labels;
 
@@ -96,6 +101,10 @@ public final class NarrativeFormatter{
 
 	public String move(final String name, final String place, final String from, final String to){
 		return tidy(String.format(labels.getString("NARRATIVE_MOVE_BASE"), name, place, periodFrag(from, to)));
+	}
+
+	public String relocation(final String name, final String place, final String date){
+		return tidy(String.format(labels.getString("NARRATIVE_RELOCATION_BASE"), name, place, dateFrag(date)));
 	}
 
 	public String death(final String name, final String date, final String place, final String cause){
@@ -201,7 +210,13 @@ public final class NarrativeFormatter{
 	}
 
 	public String groupCounts(final int members, final int subgroups, final int attributes){
-		return labels.pluralKey("GROUP_COUNTS", members, members, subgroups, attributes);
+		//what is zero is not told ("10 members", not "10 members, 0 subgroups, 0 attributes")
+		final StringBuilder sb = new StringBuilder(labels.pluralKey("GROUP_COUNTS", members));
+		if(subgroups > 0)
+			sb.append(", ").append(labels.pluralKey("GROUP_COUNTS_SUBGROUPS", subgroups));
+		if(attributes > 0)
+			sb.append(", ").append(labels.pluralKey("GROUP_COUNTS_ATTRIBUTES", attributes));
+		return sb.toString();
 	}
 
 	/* ======================================================================
@@ -230,8 +245,22 @@ public final class NarrativeFormatter{
 		return Strings.CS.replace(StringUtils.normalizeSpace(sentence), " .", ".");
 	}
 
+	/**
+	 * The date of an event in a sentence: "on 31 JAN 1633" for a day, "in 1611" for a year, a month, a decade or a century, and no
+	 * preposition for a phrase that has its own ("before 16 DEC 1662", "between 1600 and 1610").
+	 */
 	private String dateFrag(final String date){
-		return (date != null? String.format(labels.getString("DATE_FRAGMENT"), date): StringUtils.EMPTY);
+		if(date == null)
+			return StringUtils.EMPTY;
+
+		final String key;
+		if(Character.isLowerCase(date.charAt(0)))
+			key = "DATE_FRAGMENT_BARE";
+		else if(FULL_DATE.matcher(date).matches())
+			key = "DATE_FRAGMENT";
+		else
+			key = "DATE_FRAGMENT_IN";
+		return String.format(labels.getString(key), date);
 	}
 
 	private String placeFrag(final String place){

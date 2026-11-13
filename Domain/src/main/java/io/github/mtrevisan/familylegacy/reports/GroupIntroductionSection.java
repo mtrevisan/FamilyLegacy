@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -69,7 +70,7 @@ public final class GroupIntroductionSection implements SectionBuilder{
 
 		final List<FLEFRecord> events = ctx.index.eventsOfGroup(ctx.root);
 
-		out.add(new ReportSection.Paragraph(ctx.labels.statistics()));
+		out.add(new ReportSection.Paragraph("**" + ctx.labels.statistics() + "**"));
 		out.add(new ReportSection.BulletList(List.of(
 			String.format(ctx.labels.narrative().groupLifespan(), groupLifespanOf(events)),
 			String.format(ctx.labels.sections().eventsCount(), ctx.formatInt(events.size())),
@@ -94,11 +95,14 @@ public final class GroupIntroductionSection implements SectionBuilder{
 			final Integer y = GenealogicalDateHelper.yearOrNull(evt);
 			if(y == null)
 				continue;
-			switch(t.toLowerCase(Locale.ROOT)){
-				case TYPE_FOUNDING -> fromYear = y;
-				case TYPE_DISSOLVED -> toYear = y;
-				default -> { /* ignore */ }
+			final String type = t.toLowerCase(Locale.ROOT);
+			//the group starts with its founding or with the marriage, and ends with its dissolution or with a divorce
+			if(TYPE_FOUNDING.equals(type) || EventReader.ENUM_TYPE_MARRIAGE.equals(type)){
+				if(fromYear == null || y < fromYear)
+					fromYear = y;
 			}
+			else if(TYPE_DISSOLVED.equals(type) || Arrays.asList(EventReader.DIVORCE_TYPES).contains(type))
+				toYear = y;
 		}
 
 		if(fromYear == null && toYear == null)

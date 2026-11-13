@@ -74,7 +74,7 @@ public final class MediaSection implements SectionBuilder{
 
 	private void appendPreferredImage(final List<ReportSection> out){
 		//(in a multi-person report each person shows the own image)
-		if(!ctx.config.includePictures() || ctx.subjects().size() > 1)
+		if(!ctx.config.includePictures() || ctx.subjects().size() > 1 || ctx.isRedacted(ctx.root))
 			return;
 
 		final FLEFRecord preferred = FLEFRecordHelper.findChild(ctx.root, IndividualReader.TAG_PREFERRED_IMAGE);
@@ -106,7 +106,7 @@ public final class MediaSection implements SectionBuilder{
 			final String mapping = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_MAPPING);
 
 			//without pictures, the document is listed as a link to its file
-			final String link = "[" + ReportFormatters.escape(docId) + "](" + uri + ")";
+			final String link = "[" + ReportFormatters.escape(docId) + "](" + ReportFormatters.linkTarget(uri) + ")";
 			if(ctx.config.includePictures()){
 				try{
 					out.add(new ReportSection.Image(Path.of(uri),
@@ -121,7 +121,10 @@ public final class MediaSection implements SectionBuilder{
 
 			if(ctx.config.includeDescriptions() && (description != null || mapping != null)){
 				final List<String> rows = new ArrayList<>();
-				ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(), uri);
+				//(the name of the file is not told if the description is that name already)
+				final String fileName = ReportFormatters.fileNameOf(uri);
+				if(!ReportFormatters.isDescribedBy(description, fileName))
+					ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(), fileName);
 				ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentDescription(), description);
 				ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentMapping(),
 					ReportFormatters.enumLabel(mapping));
@@ -144,12 +147,17 @@ public final class MediaSection implements SectionBuilder{
 					docIds.add(docRef.getValue());
 		}
 
-		for(final FLEFRecord individual : individualRecords())
+		for(final FLEFRecord individual : individualRecords()){
+			//(an individual that may be living, shown with the name only, has no documents)
+			if(ctx.isRedacted(individual))
+				continue;
+
 			for(final FLEFRecord sourceCitation : FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_SOURCE))
 				for(final FLEFRecord extract : FLEFRecordHelper.findChildren(sourceCitation, SourceCitationReader.TAG_EXTRACT))
 					for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_MEDIA_PART_MEDIA))
 						if(docRef.getValue() != null)
 							docIds.add(docRef.getValue());
+		}
 		return docIds;
 	}
 

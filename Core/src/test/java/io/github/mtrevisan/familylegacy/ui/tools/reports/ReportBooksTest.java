@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
@@ -113,7 +114,7 @@ class ReportBooksTest{
 
 	@Test
 	void theFamilyBookHasEverybodyInAlphabeticalOrderByFamilyName(){
-		final ReportDocument book = build(ReportType.FAMILY_BOOK, family, ReportConfig.defaults());
+		final ReportDocument book = build(ReportType.FAMILY_BOOK, family, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertEquals("Family Book", book.title());
 		Assertions.assertEquals(List.of("I3", "I1", "I2", "I4", "I5"), personsOf(book));
@@ -121,7 +122,7 @@ class ReportBooksTest{
 
 	@Test
 	void theFamilyBookCanBeInOrderOfBirth(){
-		final ReportConfig config = ReportConfig.defaults().with(ReportOption.PERSON_ORDER, PersonOrder.BIRTH_DATE);
+		final ReportConfig config = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW).with(ReportOption.PERSON_ORDER, PersonOrder.BIRTH_DATE);
 
 		//whoever has no birth year comes last
 		Assertions.assertEquals(List.of("I4", "I2", "I3", "I1", "I5"), personsOf(build(ReportType.FAMILY_BOOK, family, config)));
@@ -129,7 +130,7 @@ class ReportBooksTest{
 
 	@Test
 	void theFamilyBookHasAPageForEachPersonAndWhatTheyCiteTogether(){
-		final ReportDocument book = build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults());
+		final ReportDocument book = build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 		final List<String> texts = headings(book).stream().map(ReportSection.Heading::text).toList();
 
 		Assertions.assertEquals(3, headings(book).stream()
@@ -143,10 +144,10 @@ class ReportBooksTest{
 
 	@Test
 	void theFamilyBookHasAPageForEachGroupAndTheSourcesTheyCite(){
-		final List<String> with = headings(build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults())).stream()
+		final List<String> with = headings(build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW))).stream()
 			.map(ReportSection.Heading::text)
 			.toList();
-		final List<String> without = headings(build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults().with(ReportOption.GROUPS, false)))
+		final List<String> without = headings(build(ReportType.FAMILY_BOOK, sample, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW).with(ReportOption.GROUPS, false)))
 			.stream()
 			.map(ReportSection.Heading::text)
 			.toList();
@@ -161,7 +162,7 @@ class ReportBooksTest{
 
 	@Test
 	void theFamilyBookHasAnIndexOfTheGroupsWhenItHasGroupsAndTheIndexIsOn(){
-		final ReportConfig defaults = ReportConfig.defaults();
+		final ReportConfig defaults = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW);
 		final ReportDocument book = build(ReportType.FAMILY_BOOK, sample, defaults);
 
 		Assertions.assertEquals(List.of("Index of Individuals", "Index of Groups"), headings(book).stream()
@@ -190,20 +191,20 @@ class ReportBooksTest{
 		groups.addRecord(io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord.createMainRecord("G1",
 			io.github.mtrevisan.familylegacy.io.model.readers.GroupReader.TYPE));
 
-		Assertions.assertDoesNotThrow(() -> build(ReportType.FAMILY_BOOK, groups, ReportConfig.defaults()));
+		Assertions.assertDoesNotThrow(() -> build(ReportType.FAMILY_BOOK, groups, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 	}
 
 	@Test
 	void anEmptyFileGivesAnEmptyBookAndAnEmptyBibliography(){
 		final FLEFModel empty = new FLEFModel();
 
-		Assertions.assertFalse(build(ReportType.FAMILY_BOOK, empty, ReportConfig.defaults()).sections().isEmpty());
-		Assertions.assertFalse(build(ReportType.FULL_BIBLIOGRAPHY, empty, ReportConfig.defaults()).sections().isEmpty());
+		Assertions.assertFalse(build(ReportType.FAMILY_BOOK, empty, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)).sections().isEmpty());
+		Assertions.assertFalse(build(ReportType.FULL_BIBLIOGRAPHY, empty, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)).sections().isEmpty());
 	}
 
 	@Test
 	void theFullBibliographyListsEverySourceOnce(){
-		final ReportDocument bibliography = build(ReportType.FULL_BIBLIOGRAPHY, sample, ReportConfig.defaults());
+		final ReportDocument bibliography = build(ReportType.FULL_BIBLIOGRAPHY, sample, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertEquals("Bibliography", bibliography.title());
 		final ReportSection.Table table = bibliography.sections().stream()
@@ -220,7 +221,7 @@ class ReportBooksTest{
 
 	@Test
 	void eachSourceOfTheFullBibliographyIsOneLevelDown(){
-		final List<ReportSection.Heading> headings = headings(build(ReportType.FULL_BIBLIOGRAPHY, sample, ReportConfig.defaults()));
+		final List<ReportSection.Heading> headings = headings(build(ReportType.FULL_BIBLIOGRAPHY, sample, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
 
 		final ReportSection.Heading first = headings.stream()
 			.filter(heading -> heading.text().startsWith("Source: src title [S1]"))

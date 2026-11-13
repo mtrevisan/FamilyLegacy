@@ -26,15 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance.merge;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
-import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeDecision;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeField;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
-import io.github.mtrevisan.familylegacy.io.merger.manual.MergePlan;
-import io.github.mtrevisan.familylegacy.io.merger.manual.RecordMerger;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
@@ -44,104 +37,68 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumnModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 
 /**
  * Generic dialog that merges two records of the same type.
  * <p>
- * The dialog is not tied to a specific record type: it is opened with a
- * {@link RecordTypeHandler} and works on whatever tags and values the
- * FLEF records contain. The actual merge logic lives in
- * {@link RecordMerger}; the dialog only collects the two records, shows
- * the collisions in a table, and lets the user pick a decision per row.
+ * The dialog is not tied to a specific record type: it is opened with a {@link RecordTypeHandler} and works on whatever tags and
+ * values the FLEF records contain. It only collects the two records: the merge is decided in the review of the whole record
+ * ({@link MergeRecordReviewDialog}), where source, result and target are side by side, as {@link RecordMergeWorkflow} does.
  * <p>
- * Source and target are picked through an {@link EntityField}, which
- * already renders the record using the handler's display text and
- * provides the standard "Set… / Edit… / Clear" context menu used
- * everywhere else in the application. The dialog therefore does not need
- * a separate preview label.
+ * Source and target are picked through an {@link EntityField}, which already renders the record using the handler's display text and
+ * provides the standard "Set… / Edit… / Clear" context menu used everywhere else in the application. The dialog therefore does not
+ * need a separate preview label.
  */
 public final class MergeRecordsDialog extends JDialog{
 
-	private static final int ACTION_COLUMN = 3;
-	private static final int RESET_COLUMN = 4;
-
-
 	private final ToolContext context;
-	private final RecordMerger merger;
 
 	private final EntityField sourceField;
 	private final EntityField targetField;
 
 	private final JButton differentButton = new JButton(I18N.t("button.different_records"));
+	private final JButton mergeButton = new JButton(I18N.t("button.merge_review"));
 
-	private final CollisionsTableModel tableModel = new CollisionsTableModel();
-	private final JTable collisionsTable = new JTable(tableModel);
-
-	private MergePlan plan;
 	private boolean confirmed;
+	private boolean rejected;
 
 
 	public MergeRecordsDialog(final ToolContext context, final Class<? extends RecordTypeHandler<?>> handlerType){
 		super(context.owner(), I18N.t("dialog.merge.title"), ModalityType.APPLICATION_MODAL);
 
 		this.context = context;
-		// without the grammar references and cardinalities are unknown, and a merge would break the file
-		this.merger = (MergeGrammar.instance() != null? new RecordMerger(context.model(), MergeGrammar.instance()): null);
 
-		// The two fields own their own popup menu (Set/Edit/Clear) and
-		// render the record through the handler's display text. The
-		// property change listener keeps the plan in sync with whatever
-		// the user chooses, whether through the field menu or through a
-		// programmatic call to setSource/setTarget.
+		// The two fields own their own popup menu (Set/Edit/Clear) and render the record through the handler's display text. The
+		// property change listener keeps the buttons in sync with whatever the user chooses, whether through the field menu or
+		// through a programmatic call to withSource/withTarget.
 		final FLEFModel model = context.model();
 		sourceField = EntityField.createForRecordFromReference(null, this, model, handlerType);
 		targetField = EntityField.createForRecordFromReference(null, this, model, handlerType);
-		sourceField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED,
-			e -> rebuildPlan());
-		targetField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED,
-			e -> rebuildPlan());
+		sourceField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> onRecordsChanged());
+		targetField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> onRecordsChanged());
 
 		setLayout(new BorderLayout(8, 8));
 		add(createForm(), BorderLayout.CENTER);
 		add(createButtons(), BorderLayout.SOUTH);
+		onRecordsChanged();
 
-		setPreferredSize(new Dimension(880, 520));
+		setPreferredSize(new Dimension(760, 230));
 
 		ToolDialogs.installEscapeToClose(this);
 
@@ -155,12 +112,10 @@ public final class MergeRecordsDialog extends JDialog{
 	 * ====================================================================== */
 
 	/**
-	 * Sets the source record programmatically. Equivalent to picking a
-	 * record through the field's context menu, but skips the selection
-	 * dialog. The plan is rebuilt as a side effect.
+	 * Sets the source record programmatically. Equivalent to picking a record through the field's context menu, but skips the
+	 * selection dialog.
 	 *
-	 * @param source the record that will be deleted; may be {@code null}
-	 *               to clear the current selection
+	 * @param source the record that will be deleted; may be {@code null} to clear the current selection
 	 * @return this dialog, for chaining
 	 */
 	public MergeRecordsDialog withSource(final FLEFRecord source){
@@ -170,12 +125,10 @@ public final class MergeRecordsDialog extends JDialog{
 	}
 
 	/**
-	 * Sets the target record programmatically. Equivalent to picking a
-	 * record through the field's context menu, but skips the selection
-	 * dialog. The plan is rebuilt as a side effect.
+	 * Sets the target record programmatically. Equivalent to picking a record through the field's context menu, but skips the
+	 * selection dialog.
 	 *
-	 * @param target the record that will be kept; may be {@code null} to
-	 *               clear the current selection
+	 * @param target the record that will be kept; may be {@code null} to clear the current selection
 	 * @return this dialog, for chaining
 	 */
 	public MergeRecordsDialog withTarget(final FLEFRecord target){
@@ -205,27 +158,32 @@ public final class MergeRecordsDialog extends JDialog{
 		return confirmed;
 	}
 
+	/**
+	 * Returns whether the user recorded the pair as different records.
+	 */
+	public boolean isRejected(){
+		return rejected;
+	}
+
+	/**
+	 * Returns whether the file was changed by this dialog, that is the pair was merged or recorded as different.
+	 */
+	public boolean isResolved(){
+		return (confirmed || rejected);
+	}
+
 
 	/* ======================================================================
 	 *                          UI construction
 	 * ====================================================================== */
 
 	private JPanel createForm(){
-		// MigLayout handles the growing column better than GridBagLayout:
-		// the two columns are declared once ("[][grow,fill]"), and every
-		// field in the second column grows with the dialog. Rows are
-		// declared as "[]8[]16[grow,fill]" so the table takes all the
-		// remaining vertical space and the two label/field rows stay at
-		// their natural height. "wrap 2" makes the layout start a new row
-		// after every two components, so the label+field pairs line up
-		// without any grid arithmetic.
-		final JPanel form = new JPanel(new MigLayout(
-			"ins 10,fillx,wrap 2",
-			"[][grow,fill]",
-			"[]8[]16[grow,fill]"));
+		// MigLayout handles the growing column better than GridBagLayout: the two columns are declared once ("[][grow,fill]"), and
+		// every field in the second column grows with the dialog. "wrap 2" makes the layout start a new row after every two
+		// components, so the label+field pairs line up without any grid arithmetic.
+		final JPanel form = new JPanel(new MigLayout("ins 10,fillx,wrap 2", "[][grow,fill]", "[]8[]16[]"));
 
-		// Source row: label + EntityField. The field's own popup menu
-		// (Set…, Edit…, Clear) is the only way to change the selection,
+		// Source row: label + EntityField. The field's own popup menu (Set…, Edit…, Clear) is the only way to change the selection,
 		// so no extra "Choose…" button is needed.
 		form.add(new JLabel(I18N.l("dialog.merge.source")));
 		form.add(sourceField, "growx");
@@ -234,88 +192,9 @@ public final class MergeRecordsDialog extends JDialog{
 		form.add(new JLabel(I18N.l("dialog.merge.target")));
 		form.add(targetField, "growx");
 
-		// Collisions table.
-		collisionsTable.setRowHeight(24);
-		final TableColumnModel columnModel = collisionsTable.getColumnModel();
-		columnModel.getColumn(0).setPreferredWidth(120);
-		columnModel.getColumn(1).setPreferredWidth(260);
-		columnModel.getColumn(2).setPreferredWidth(260);
-		columnModel.getColumn(3).setPreferredWidth(140);
-		columnModel.getColumn(4).setPreferredWidth(28);
-		columnModel.getColumn(4).setMaxWidth(40);
-
-		// a field holding a single value cannot keep both
-		final JComboBox<MergeDecision> decisionCombo = ComboBoxSearch.searchable(new JComboBox<>(MergeDecision.values()));
-		decisionCombo.setRenderer(new DefaultListCellRenderer(){
-			@Override
-			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
-					final boolean isSelected, final boolean cellHasFocus){
-				return super.getListCellRendererComponent(list, (value instanceof MergeDecision decision? decision.label(): value),
-					index, isSelected, cellHasFocus);
-			}
-		});
-		columnModel.getColumn(ACTION_COLUMN).setCellEditor(new DefaultCellEditor(decisionCombo){
-			@Override
-			public Component getTableCellEditorComponent(final JTable table, final Object value, final boolean isSelected,
-					final int row, final int column){
-				final MergeField field = tableModel.fieldAt(row);
-				decisionCombo.removeAllItems();
-				for(final MergeDecision decision : MergeDecision.values())
-					if(decision != MergeDecision.KEEP_BOTH || field == null || field.isRepeated())
-						decisionCombo.addItem(decision);
-				return super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			}
-		});
-		collisionsTable.setDefaultRenderer(Object.class, new ResolvedAwareRenderer(tableModel));
-
-		// Mouse listener: double-click opens the comparison, single-click on
-		// the reset column resets the row.
-		collisionsTable.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent e){
-				if(!SwingUtilities.isLeftMouseButton(e))
-					return;
-
-				final int row = collisionsTable.rowAtPoint(e.getPoint());
-				final int col = collisionsTable.columnAtPoint(e.getPoint());
-				if(row < 0)
-					return;
-
-				if(e.getClickCount() == 2 && col != RESET_COLUMN){
-					openComparison(row);
-					return;
-				}
-
-				if(col == RESET_COLUMN){
-					final MergeField f = tableModel.fieldAt(row);
-					if(f != null && f.isResolved())
-						tableModel.resetRow(row);
-				}
-			}
-		});
-
-		// Keyboard shortcut: Delete on the selected row resets it.
-		final InputMap inputMap = collisionsTable.getInputMap();
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "reset-row");
-		final ActionMap actionMap = collisionsTable.getActionMap();
-		actionMap.put("reset-row", new AbstractAction(){
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				final int row = collisionsTable.getSelectedRow();
-				if(row >= 0){
-					final MergeField f = tableModel.fieldAt(row);
-					if(f != null && f.isResolved())
-						tableModel.resetRow(row);
-				}
-			}
-		});
-
-		final JScrollPane tableScroll = new JScrollPane(collisionsTable);
-		tableScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.collisions")));
-		// "span 2" spans both columns; "grow,push" takes the remaining
-		// horizontal and vertical space, so the table stretches with the
-		// dialog instead of staying at its preferred size.
-		form.add(tableScroll, "span 2,grow,push");
+		final JLabel hint = new JLabel(I18N.t("dialog.merge.hint"));
+		hint.setForeground(new Color(0x757575));
+		form.add(hint, "span 2,growx");
 
 		return form;
 	}
@@ -326,78 +205,29 @@ public final class MergeRecordsDialog extends JDialog{
 
 		// the alternative to merging: the judgment that they are not the same, kept in the file
 		differentButton.setToolTipText(I18N.t("tooltip.merge_different"));
-		differentButton.setEnabled(false);
 		differentButton.addActionListener(e -> onReject());
 		buttons.add(differentButton);
 
-		final JButton ok = new JButton(I18N.t("button.merge"));
-		ok.addActionListener(e -> onConfirm());
-		buttons.add(ok);
-
+		mergeButton.setToolTipText(I18N.t("tooltip.merge_review"));
+		mergeButton.addActionListener(e -> onConfirm());
+		buttons.add(mergeButton);
+		getRootPane().setDefaultButton(mergeButton);
 
 		return buttons;
 	}
 
 
 	/* ======================================================================
-	 *                          Plan management
+	 *                          Selection
 	 * ====================================================================== */
 
-	/**
-	 * Rebuilds the merge plan from the current source and target and
-	 * refreshes the collisions table. Called whenever either field
-	 * changes.
-	 */
-	private void rebuildPlan(){
+	/** The buttons need two different records of one kind: without them they do nothing but warn. */
+	private void onRecordsChanged(){
 		final FLEFRecord source = sourceField.getEntity();
 		final FLEFRecord target = targetField.getEntity();
 
-		differentButton.setEnabled(merger != null && merger.canReject(source, target));
-
-		if(merger == null || source == null || target == null || source.getId() == null || target.getId() == null){
-			plan = null;
-			tableModel.setFields(List.of());
-			return;
-		}
-		if(source.getId().equals(target.getId())){
-			plan = null;
-			tableModel.setFields(List.of());
-			return;
-		}
-
-		try{
-			plan = merger.plan(source.getId(), target.getId());
-			tableModel.setFields(plan.collisions());
-		}
-		catch(final IllegalArgumentException ex){
-			plan = null;
-			tableModel.setFields(List.of());
-		}
-	}
-
-
-	/* ======================================================================
-	 *                          Comparison
-	 * ====================================================================== */
-
-	/**
-	 * Opens the side-by-side comparison dialog for the given collision
-	 * row. If the user accepts a choice, the choice is written back into
-	 * the table model and the row summary is refreshed.
-	 */
-	private void openComparison(final int row){
-		final MergeField field = tableModel.fieldAt(row);
-		if(field == null)
-			return;
-
-		final FLEFRecord target = targetField.getEntity();
-		final FLEFModel model = context.model();
-
-		final MergeFieldComparisonDialog dialog = new MergeFieldComparisonDialog(this, field,
-			target, model);
-		dialog.setVisible(true);
-
-		tableModel.refreshRow(row);
+		differentButton.setEnabled(RecordMergeWorkflow.canRecordAsDifferent(context.model(), source, target));
+		mergeButton.setEnabled(RecordMergeWorkflow.canMerge(source, target));
 	}
 
 
@@ -405,330 +235,20 @@ public final class MergeRecordsDialog extends JDialog{
 	 *                          Confirm
 	 * ====================================================================== */
 
+	/** Reviews the whole record, side by side, and merges it (see {@link RecordMergeWorkflow#merge}). */
 	private void onConfirm(){
-		final FLEFRecord source = sourceField.getEntity();
-		final FLEFRecord target = targetField.getEntity();
-
-		if(merger == null){
-			warn(I18N.t("dialog.merge.records.warn.no_grammar"));
-			return;
-		}
-		if(source == null || target == null){
-			warn(I18N.t("dialog.merge.records.warn.choose_both"));
-			return;
-		}
-		if(source.getId().equals(target.getId())){
-			warn(I18N.t("dialog.merge.records.warn.same"));
-			return;
-		}
-		if(plan == null){
-			warn(I18N.tf("dialog.merge.records.warn.plan_failed", source.getTag(), target.getTag()));
-			return;
-		}
-
-		if(!confirm())
-			return;
-
-		try{
-			final RecordMerger.MergeResult result = merger.apply(plan);
+		if(RecordMergeWorkflow.merge(this, context.model(), sourceField.getEntity(), targetField.getEntity())){
 			confirmed = true;
-
-			final StringBuilder summary = new StringBuilder(I18N.t("dialog.merge.records.completed"))
-				.append(StringUtils.LF).append(I18N.t("dialog.merge.records.fields.taken")).append(':').append(StringUtils.SPACE).append(result.fieldsTakenFromSource())
-				.append(StringUtils.LF).append(I18N.t("dialog.merge.records.references.repointed")).append(':').append(StringUtils.SPACE).append(result.referencesRepointed());
-			if(!result.collapsedIds().isEmpty())
-				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.collapsed")).append(':').append(StringUtils.SPACE).append(String.join(", ", result.collapsedIds()));
-			if(!result.deletedIds().isEmpty())
-				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.deleted")).append(':').append(StringUtils.SPACE)
-					.append(String.join(", ", result.deletedIds()));
-			if(!result.conflicts().isEmpty())
-				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.conflicts")).append(':').append(StringUtils.LF)
-					.append(String.join(StringUtils.LF, result.conflicts()));
-			JOptionPane.showMessageDialog(this, summary.toString(), I18N.t("dialog.merge.records.title"), JOptionPane.INFORMATION_MESSAGE);
-
 			dispose();
-		}
-		catch(final IllegalArgumentException ex){
-			warn(ex.getMessage());
 		}
 	}
 
-	/**
-	 * Records that source and target are different entities, as an identity hypothesis disproven by a conclusion, instead of
-	 * merging them.
-	 */
+	/** Records that the two are different entities, instead of merging them (see {@link RecordMergeWorkflow#recordAsDifferent}). */
 	private void onReject(){
-		final FLEFRecord source = sourceField.getEntity();
-		final FLEFRecord target = targetField.getEntity();
-		if(merger == null || !merger.canReject(source, target))
-			return;
-
-		final String narrative = JOptionPane.showInputDialog(this,
-			I18N.tf("dialog.merge.records.different.prompt", displayOf(source), displayOf(target)), I18N.t("dialog.merge.records.different.title"), JOptionPane.QUESTION_MESSAGE);
-		if(narrative == null)
-			return;
-
-		try{
-			final RecordAbsorber.Rejection rejection = merger.reject(source.getId(), target.getId(),
-				(StringUtils.isNotBlank(narrative)? narrative.strip(): I18N.t("dialog.merge.records.different.note")));
-
-			JOptionPane.showMessageDialog(this,
-				I18N.tf("dialog.merge.records.different.recorded", rejection.hypothesisId(), rejection.conclusionId()), I18N.t("dialog.merge.records.different.title"), JOptionPane.INFORMATION_MESSAGE);
-
+		if(RecordMergeWorkflow.recordAsDifferent(this, context.model(), sourceField.getEntity(), targetField.getEntity())){
+			rejected = true;
 			dispose();
 		}
-		catch(final IllegalArgumentException ex){
-			warn(ex.getMessage());
-		}
-	}
-
-	private boolean confirm(){
-		final FLEFRecord source = sourceField.getEntity();
-		final FLEFRecord target = targetField.getEntity();
-		final String message = I18N.tf("dialog.merge.records.confirm.message", displayOf(source), displayOf(target));
-		final int choice = JOptionPane.showConfirmDialog(this, message,
-			I18N.t("dialog.merge.records.confirm.title"),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-		return (choice == JOptionPane.YES_OPTION);
-	}
-
-	private void warn(final String message){
-		JOptionPane.showMessageDialog(this, message,
-			I18N.t("dialog.merge.records.title"), JOptionPane.WARNING_MESSAGE);
-	}
-
-	/**
-	 * Short human-readable identifier of a record, used in confirmation
-	 * and error messages. The {@link EntityField} already shows the full
-	 * display text; this is only for text that ends up inside a
-	 * {@link JOptionPane}.
-	 */
-	private static String displayOf(final FLEFRecord record){
-		if(record == null)
-			return I18N.t("dialog.merge.record.none");
-
-		final String id = record.getId();
-		return (id != null? "[" + id + "] ": StringUtils.EMPTY) + record.getTag();
-	}
-
-
-	/* ======================================================================
-	 *                          Table model
-	 * ====================================================================== */
-
-	private static final class CollisionsTableModel extends AbstractTableModel{
-
-		private static final String[] COLUMNS = {I18N.t("dialog.merge.table.field"),
-			I18N.t("dialog.merge.table.target"), I18N.t("dialog.merge.table.source"),
-			I18N.t("dialog.merge.table.action"), StringUtils.EMPTY};
-
-		private final List<MergeField> fields = new ArrayList<>();
-		private final List<MergeDecision> chosen = new ArrayList<>();
-
-		void setFields(final List<MergeField> newFields){
-			fields.clear();
-			chosen.clear();
-			for(final MergeField f : newFields){
-				fields.add(f);
-				chosen.add(f.chosen());
-			}
-			fireTableDataChanged();
-		}
-
-		MergeField fieldAt(final int row){
-			return (row >= 0 && row < fields.size()? fields.get(row): null);
-		}
-
-		void setChoice(final int row, final MergeDecision decision){
-			if(row < 0 || row >= fields.size())
-				return;
-
-			chosen.set(row, decision);
-			fields.get(row).choose(decision);
-			fireTableCellUpdated(row, 3);
-		}
-
-		/**
-		 * Refreshes the summary of a row after its {@link MergeField} has
-		 * been recomposed by the comparison dialog. The decision column
-		 * is left untouched: the comparison dialog updates the field's
-		 * result instances, not its coarse decision.
-		 */
-		void refreshRow(final int row){
-			if(row >= 0 && row < fields.size())
-				fireTableRowsUpdated(row, row);
-		}
-
-		@Override
-		public int getRowCount(){
-			return fields.size();
-		}
-
-		@Override
-		public int getColumnCount(){
-			return COLUMNS.length;
-		}
-
-		@Override
-		public String getColumnName(final int column){
-			return COLUMNS[column];
-		}
-
-		@Override
-		public Object getValueAt(final int rowIndex, final int columnIndex){
-			final MergeField field = fields.get(rowIndex);
-			return switch(columnIndex){
-				case 0 -> field.tag();
-				case 1 -> summarize(field.targetInstances());
-				case 2 -> summarize(field.sourceInstances());
-				case 3 -> chosen.get(rowIndex);
-				case 4 -> StringUtils.EMPTY;
-				default -> null;
-			};
-		}
-
-		@Override
-		public boolean isCellEditable(final int rowIndex, final int columnIndex){
-			return (columnIndex == ACTION_COLUMN);
-		}
-
-		@Override
-		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex){
-			if(columnIndex == ACTION_COLUMN && aValue instanceof MergeDecision decision){
-				// Guard against spurious commits from the cell editor: when the
-				// user simply selects the cell and then leaves it, Swing calls
-				// setValueAt with the current value. Marking the field as
-				// resolved in that case would tint the row green even though the
-				// user never made a choice.
-				final MergeDecision current = chosen.get(rowIndex);
-				if(decision == current)
-					return;
-
-				chosen.set(rowIndex, decision);
-				fields.get(rowIndex).choose(decision);
-				fireTableCellUpdated(rowIndex, columnIndex);
-			}
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int columnIndex){
-			return (columnIndex == 3? MergeDecision.class: String.class);
-		}
-
-		private static String summarize(final List<FLEFRecord> instances){
-			if(instances.isEmpty())
-				return "—";
-			if(instances.size() == 1)
-				return abbreviate(serialize(instances.get(0)));
-			final StringBuilder sb = new StringBuilder();
-			sb.append(instances.size()).append(" items: ");
-			for(int i = 0; i < instances.size() && i < 3; i ++){
-				if(i > 0)
-					sb.append(" | ");
-				sb.append(abbreviate(serialize(instances.get(i))));
-			}
-			if(instances.size() > 3)
-				sb.append(" …");
-			return sb.toString();
-		}
-
-		private static String serialize(final FLEFRecord record){
-			if(!record.hasChildren())
-				return record.getTag() + (record.getValue() != null? StringUtils.SPACE + record.getValue(): StringUtils.EMPTY);
-			final StringBuilder sb = new StringBuilder();
-			sb.append(record.getTag());
-			if(record.getValue() != null)
-				sb.append(' ').append(record.getValue());
-			sb.append(" {…}");
-			return sb.toString();
-		}
-
-		private static String abbreviate(final String text){
-			final int max = 60;
-			return (text.length() <= max? text: text.substring(0, max - 1) + "…");
-		}
-
-		/**
-		 * Restores the given row to its initial state. Clears the resolved
-		 * flag, drops any fine-grained composition from the comparison dialog,
-		 * and reverts the action column to the suggested decision.
-		 *
-		 * @param row the row to reset
-		 */
-		void resetRow(final int row){
-			if(row < 0 || row >= fields.size())
-				return;
-			fields.get(row).reset();
-			chosen.set(row, fields.get(row).chosen());
-			fireTableRowsUpdated(row, row);
-		}
-
-	}
-
-
-	/**
-	 * Renders the collision table. When a field has been explicitly
-	 * resolved by the user (either by opening the comparison dialog and
-	 * clicking OK, or by picking a decision from the combo), the row is
-	 * tinted in pale green, the action cell is prefixed with a checkmark,
-	 * and the reset cell shows a small undo arrow. The user can click the
-	 * arrow (or press Delete on a selected row) to bring the row back to
-	 * its initial state.
-	 * <p>
-	 * The selection state wins over the resolved tint: a selected row uses
-	 * the standard selection colours, and the tint reappears when the
-	 * selection moves away.
-	 */
-	private static final class ResolvedAwareRenderer extends DefaultTableCellRenderer{
-
-		private static final Color COLOR_RESOLVED_BG = new Color(0xE8F5E9);
-		private static final Color COLOR_RESOLVED_FG = new Color(0x2E7D32);
-
-		private final CollisionsTableModel model;
-
-		ResolvedAwareRenderer(final CollisionsTableModel model){
-			this.model = model;
-		}
-
-		@Override
-		public Component getTableCellRendererComponent(final JTable table, final Object value,
-			final boolean isSelected, final boolean hasFocus, final int row, final int column){
-			super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-			final int modelColumn = table.convertColumnIndexToModel(column);
-			final MergeField field = model.fieldAt(row);
-			final boolean resolved = (field != null && field.isResolved());
-
-			// Alignment: every column sets its own, no exceptions. The
-			// renderer is shared between cells, so leaving a value from a
-			// previous cell would leak to the next one.
-			if(modelColumn == RESET_COLUMN)
-				setHorizontalAlignment(CENTER);
-			else
-				setHorizontalAlignment(LEFT);
-
-			// Text: override whatever super set (value.toString()) with the
-			// human-readable label, in both the selected and the unselected
-			// state.
-			if(modelColumn == ACTION_COLUMN && value instanceof MergeDecision d)
-				setText(resolved? "\u2713 " + d.label(): d.label());
-			else if(modelColumn == RESET_COLUMN)
-				setText(resolved? "\u21BA": StringUtils.EMPTY);
-
-			// Colors: selection wins over the resolved tint.
-			if(isSelected){
-				setBackground(table.getSelectionBackground());
-				setForeground(table.getSelectionForeground());
-			}
-			else{
-				setBackground(resolved? COLOR_RESOLVED_BG: table.getBackground());
-				setForeground(resolved? COLOR_RESOLVED_FG: table.getForeground());
-			}
-
-			return this;
-		}
-
 	}
 
 

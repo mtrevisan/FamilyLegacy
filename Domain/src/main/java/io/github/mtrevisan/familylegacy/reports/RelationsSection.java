@@ -24,11 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
-import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
-import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.KinshipResolver;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
@@ -36,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -44,18 +41,20 @@ import java.util.Set;
 /**
  * Builds the direct-relations and indirect-relations sections.
  *
- * <p>Direct relations walk the descendant graph from the root, annotating
- * every individual with its kinship term and explicit roles. Indirect relations
- * list spouse/associate connections of direct relations, together with the kinship
- * term of the direct relation they hang off and relevant context impacts.</p>
+ * <p>Direct relations are the root and its descendants, one table for each generation (the eldest first), each person with the years
+ * of birth and death, the kinship term from the root and the parents. A person who descends from the root through more than one line
+ * is listed once, in the first generation he or she is reached. Indirect relations list the spouses and the associates of the direct
+ * relations, together with the kinship term of the direct relation they hang off.</p>
  */
 public final class RelationsSection implements SectionBuilder{
 
 	private final ReportContext ctx;
+	private final TreeText text;
 
 
 	public RelationsSection(final ReportContext ctx){
 		this.ctx = ctx;
+		this.text = new TreeText(ctx);
 	}
 
 
@@ -74,49 +73,50 @@ public final class RelationsSection implements SectionBuilder{
 	private List<ReportSection> direct(){
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, ctx.labels.directRelations()));
+		out.add(new ReportSection.Paragraph(ctx.labels.sections().directRelationsNote()));
 
-		int counter = 0;
-		for(final FLEFRecord ind : ctx.index.reachable(ctx.root)){
-			counter ++;
-			out.addAll(directEntry(counter, ind));
+		final Set<String> seen = new HashSet<>(Set.of(ctx.root.getId()));
+		List<FLEFRecord> generation = List.of(ctx.root);
+		for(int level = 0; !generation.isEmpty(); level ++){
+			out.add(new ReportSection.Heading(2, (level == 0
+				? StringUtils.capitalize(StringUtils.strip(ctx.labels.sections().subject(), "()"))
+				: ctx.labels.sections().generationN(ctx.formatInt(level)) + " (" + ctx.formatInt(generation.size()) + ")")));
+			out.add(generationTable(generation));
+
+			final List<FLEFRecord> next = new ArrayList<>();
+			for(final FLEFRecord person : generation)
+				for(final FLEFRecord child : text.childrenOf(person))
+					if(seen.add(child.getId()))
+						next.add(child);
+			generation = next;
 		}
 		return out;
 	}
 
-	private List<ReportSection> directEntry(final int counter, final FLEFRecord ind){
-		final List<ReportSection> out = new ArrayList<>();
-		final boolean isRoot = Objects.equals(ind.getId(), ctx.root.getId());
-		final String kinTerm = (isRoot? null: ctx.kinship().shortTerm(ind.getId(), ctx.root.getId()));
-		final String suffix = (isRoot
-			? " — *" + ctx.labels.sections().subject() + "*"
-			: (ReportFormatters.isUsefulKinshipTerm(kinTerm)
-				? " — *" + ReportFormatters.escape(kinTerm) + "*": StringUtils.EMPTY));
-
-		out.add(new ReportSection.Heading(2,
-			counter + ". " + ReportFormatters.escape(ctx.displayText(ind)) + suffix));
-
-		final List<String> meta = new ArrayList<>();
-		final SexType preferredSex = PreferredSex.of(ind, ctx.model);
-		final String sex = (preferredSex != SexType.UNKNOWN? preferredSex.getRawSex(): ctx.labels.sections().sexUnknown());
-		meta.add("**" + ctx.labels.sections().sex() + ":** " + ReportFormatters.escape(sex));
-
-		final List<FLEFRecord> parents = ctx.index.parentsOf(ind);
-		if(!parents.isEmpty()){
-			final List<String> p = new ArrayList<>(parents.size());
-			for(final FLEFRecord parent : parents)
-				p.add(ReportFormatters.escape(ctx.displayText(parent)));
-			meta.add("**" + ctx.labels.sections().roleChild() + StringUtils.SPACE + ctx.labels.sections().of() + ":** " + String.join(", ", p));
+	private ReportSection generationTable(final List<FLEFRecord> generation){
+		final List<List<String>> rows = new ArrayList<>(generation.size());
+		for(final FLEFRecord person : generation){
+			final boolean isRoot = Objects.equals(person.getId(), ctx.root.getId());
+			final List<String> parents = new ArrayList<>();
+			for(final FLEFRecord parent : ctx.index.parentsOf(person))
+				parents.add(ReportFormatters.escape(text.label(parent)));
+			rows.add(List.of(
+				ReportFormatters.escape(text.label(person)),
+				(isRoot? StringUtils.EMPTY: ReportFormatters.escape(ReportFormatters.orEmpty(kinshipOf(person)))),
+				String.join(", ", parents)));
 		}
-		out.add(new ReportSection.BulletList(meta));
+		return new ReportSection.Table(List.of(ctx.labels.sections().person(), ctx.labels.sections().relation(),
+			ctx.labels.sections().roleChild() + StringUtils.SPACE + ctx.labels.sections().of()), rows);
+	}
 
-		// Render contextual impacts attached to this specific direct relation
-		appendContextImpactsForRecord(out, ind);
+	/** @return	The kinship term of the person from the root; a descendant through an adoptive, foster or other legal link is not a blood relative: the legal term is shown, marked as such; {@code null} if there is none. */
+	private String kinshipOf(final FLEFRecord person){
+		final String blood = ctx.kinship().shortTerm(person.getId(), ctx.root.getId());
+		if(ReportFormatters.isUsefulKinshipTerm(blood))
+			return blood;
 
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ind));
-		if(ctx.config.sources())
-			out.addAll(ctx.citations().citations(ind));
-		return out;
+		final String legal = ctx.legalKinship().shortTerm(person.getId(), ctx.root.getId());
+		return (ReportFormatters.isUsefulKinshipTerm(legal)? ctx.labels.sections().kinshipLegal(legal): null);
 	}
 
 	/* ----- Indirect relations --------------------------------------------- */
@@ -142,10 +142,10 @@ public final class RelationsSection implements SectionBuilder{
 				? ctx.labels.sections().relationSpouseOf()
 				: ctx.labels.sections().relationAssociateOf());
 			final String viaKin = ctx.kinship().shortTerm(ir.via().getId(), ctx.root.getId());
-			final String viaLabel = ReportFormatters.esc(ctx.displayText(ir.via()))
+			final String viaLabel = ReportFormatters.esc(text.label(ir.via()))
 				+ (ReportFormatters.isUsefulKinshipTerm(viaKin)? " (" + viaKin + ")": StringUtils.EMPTY);
 			rows.add(List.of(
-				ReportFormatters.esc(ctx.displayText(ir.individual())),
+				ReportFormatters.esc(text.label(ir.individual())),
 				kind,
 				viaLabel));
 		}
@@ -153,28 +153,6 @@ public final class RelationsSection implements SectionBuilder{
 		out.add(new ReportSection.Table(
 			List.of(ctx.labels.sections().person(), ctx.labels.sections().relation(), ctx.labels.sections().of()), rows));
 		return out;
-	}
-
-	/* ----- Context Impacts Helper ------------------------------------------ */
-
-	/**
-	 * Renders contextual historical or legal impacts linked to an individual record.
-	 */
-	private void appendContextImpactsForRecord(final List<ReportSection> out, final FLEFRecord ind){
-		if(ind.getId() == null)
-			return;
-		final List<FLEFRecord> impacts = ctx.index.contextImpactsFor(Set.of(ind.getId()));
-		if(impacts.isEmpty())
-			return;
-
-		for(final FLEFRecord imp : impacts){
-			final String rationale = FLEFRecordHelper.getChildValue(imp, ContextImpactReader.TAG_RATIONALE);
-			if(rationale != null && !rationale.isBlank()){
-				out.add(new ReportSection.Paragraph(
-					"**" + ctx.labels.sections().contextImpact() + ":** "
-						+ ReportFormatters.escape(rationale.trim())));
-			}
-		}
 	}
 
 }

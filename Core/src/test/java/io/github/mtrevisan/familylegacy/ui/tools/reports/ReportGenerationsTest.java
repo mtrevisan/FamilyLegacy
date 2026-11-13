@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
@@ -106,7 +107,7 @@ class ReportGenerationsTest{
 
 	/** @return	How many persons the report covers: the rows of its index of the individuals. */
 	private static int persons(final ReportType type, final String root, final int generations){
-		final ReportConfig config = ReportConfig.defaults()
+		final ReportConfig config = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)
 			.with(ReportOption.GENERATIONS, generations)
 			.with(ReportOption.INDEX_INDIVIDUALS, true);
 		final ReportDocument document = ReportBuilder.build(type, model, model.getRecordById(root), config, ReportProgressListener.NOOP);
@@ -142,8 +143,8 @@ class ReportGenerationsTest{
 
 	@Test
 	void theGenerationsOfAReportThatHasNoLinesAreIgnored(){
-		final ReportConfig all = ReportConfig.defaults().with(ReportOption.GENERATIONS, 0);
-		final ReportConfig one = ReportConfig.defaults().with(ReportOption.GENERATIONS, 1);
+		final ReportConfig all = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW).with(ReportOption.GENERATIONS, 0);
+		final ReportConfig one = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW).with(ReportOption.GENERATIONS, 1);
 
 		Assertions.assertEquals(
 			ReportBuilder.build(ReportType.INDIVIDUAL, model, model.getRecordById("I1"), all, ReportProgressListener.NOOP).sections().toString(),

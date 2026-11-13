@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
@@ -139,13 +140,9 @@ public final class ResearchLogDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 		openRecord.setEnabled(false);
 		openRecord.addActionListener(e -> openSelected());
-		footer.add(statusLabel);
-		footer.add(openRecord);
-		return footer;
+		return GUIHelper.createStatusFooter(statusLabel, openRecord);
 	}
 
 

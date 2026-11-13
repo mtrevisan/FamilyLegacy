@@ -48,13 +48,14 @@ Images are not copied next to the file in every format: Markdown and HTML refer 
 **Privacy**
 
 - **Privacy policy**: *Show All*, *Hide Confidential* or *Hide Restricted and Confidential*, as in **View > Privacy**. It is independent of that menu and **always starts at Hide Confidential**. See [Privacy](privacy.md#reports).
+- **Living persons**: what the report says of the persons who **may be living** (the ones with no death, and not born more than 110 years ago), and of everything about them. *Hide everything*: they are left out as if they were not in the file, with their events, attributes, media, notes, citations and relationships. *Name and role only* (the default): they are listed with their name and their role in the family (child of, spouse of, member of a group), and nothing else: no dates, places, sex, notes, citations or picture. *Show everything*: they are shown like anybody else, as the privacy policy says. It applies to **every** report, and **always starts at Name and role only**, like the privacy policy: it is not remembered. It has no effect (and is greyed out) when the privacy policy is *Show All*. A person with a privacy setting of their own (a declared level) follows that setting, not this choice. The names of the living persons can still appear in the title of a source or of a photo (*Trevisan Emilio + Trevisan Mauro 1990*): rename those if they must not be seen.
 - **Show privacy details**: under each record that has a privacy setting, prints its level, reason and expiry.
 - **Audit trail**: adds the creation and update comments of each record.
 - **Document header**: adds a *Document information* section, if the file has a header.
 
 **Narrative**
 
-- **Introduction**, **Descendants**, **Paternal ancestry**, **Maternal ancestry**, **Direct relations** (on by default) and **Indirect relations** (off).
+- **Introduction**, **Descendants**, **Paternal ancestry**, **Maternal ancestry**, **Direct relations** (off by default: the *Relationship Report* is made for them) and **Indirect relations** (off). The descendants are drawn as a tree, each person with the years of birth and death and the spouses, the children from the eldest to the youngest; a person already drawn is marked *(see above)* and not repeated with the branch.
 - **Collaterals** decides who is included besides the direct line, for the ancestor and descendant reports only:
   - *none* (default): the direct line only.
   - *spouses*: plus the spouses.
@@ -74,15 +75,15 @@ In every report that describes a source (the *Source Report*, the *Sources* sect
 
 **Diagnostics** (all off): **Full event participants** (adds *Other participants* to each event), **Coverage report** (a table of how complete and how sourced each record is, and the number of records without a source citation) and **Chronological timeline** (a table of the events of the root, with the related historic events; for individual, group and place roots).
 
-**Indexes**: **Index of individuals** and **Index of places** (on). In the *Family Book*, **Index of individuals** also adds the index of the groups.
+**Indexes**: **Index of individuals** and **Index of places** (on). In the *Family Book*, **Index of individuals** also adds the index of the groups. The index of the individuals is in order of family name, then of the other names, with the years of birth and death; in a report with a chapter for each person (*Ancestor*, *Descendant*, *Family Book*) each name is a link to the chapter of the person. When a report has more than 40 chapters (a chapter for each person), the *Contents* lists only the chapters that are not about a person: the index leads to those.
 
 **Style**: **Include descriptions** (on): in the Media section, adds the location, description and mapping of each media item. **Include pictures** (on): shows the preferred image of a person or group and the images of the Media section; with it off, the media are listed as links to their files.
 
 ## What each report contains
 
-**Individual Summary** is the full report on one person. In order: the *Document information* (if on); the **Introduction** (a line saying who it is about, the lifespan, and the number of events, sources and relatives); the **Life of** the person, with the preferred image, the *Personal data*, the *Life events* (one heading each), the *Attributes*, the *Relationships* (with the *Group memberships*), the *Notes*, the *Citations* and the *Audit trail* if on; then the paternal and maternal ancestry, the descendants and the relations if on; the timeline; the historic context and research (with identity hypotheses and conclusions); the cultural norms; the historic events; the repositories; the sources; the media; the places; the coverage report; and the indexes.
+**Individual Summary** is the full report on one person. In order: the *Document information* (if on); the **Introduction** (a line saying who it is about, the lifespan, and the number of events, sources and relatives); the **Life of** the person, with the preferred image, the *Personal data*, the *Life events* (one heading each), the *Attributes*, the *Relationships* (with the *Group memberships*), the *Notes*, the *Citations* and the *Audit trail* if on; then the paternal and maternal ancestry, the descendants and the relations (off by default) if on; the timeline; the historic context and research (with identity hypotheses and conclusions); the cultural norms; the historic events; the repositories; the sources; the media; the places; the coverage report; and the indexes.
 
-**Group Sheet** has the *Introduction* and the **History of** the group: the group data, the members (a table), the attributes, the groups it belongs to and contains, the events involving the group, the notes and citations; then the same closing sections as above.
+**Group Sheet** has the *Introduction* and the **History of** the group: the group data, the members (a table with the years, the role and, if any has them, the period of the membership: the parents first, then the children from the eldest to the youngest), the attributes, the groups it belongs to and contains, the events involving the group, the notes and citations; then the same closing sections as above.
 
 **Place Report** is about one place: the *Place:* section with its names (with type, language and variants), type and coordinates, the **historical jurisdictions** (the places that contained it and the ones it contained, with their dates), the **contained places**, the **events at this place** and the events in which the place is a participant, the attributes recorded at the place, and its notes, citations and audit trail; then the common closing sections (the sources, media, places, and so on, as the options say). It has no *Introduction*, and no ancestry, descendants or group options.
 
@@ -102,10 +103,10 @@ In every report that describes a source (the *Source Report*, the *Sources* sect
 
 1. the *Document information* and the title (*Ancestors of ...*, *Descendants of ...*);
 2. how many individuals the report covers;
-3. the **Ancestor tree** (or **Descendant tree**), drawn in text, direct line only;
+3. the **Ancestor tree** (or **Descendant tree**), drawn in text, direct line only; Every person is written with the years of birth and death, as in *Antonia Pastrelo (1633–?)*, and the children from the eldest to the youngest. A person who is already in the tree (two branches that meet again) is not drawn a second time with the whole branch: the line says *(see above)*.
 4. the **Collateral relatives**, if *Collaterals* is not *none*, each with its kinship and path;
 5. the **Index of individuals**, if on;
-6. then, for each person, on a new page, the introduction and the life story;
+6. then, for each person, on a new page, a chapter with the name of the person, and in it, as sections, the introduction and the life story (the personal data, the events, the attributes, the relationships, ...);
 7. then, once for all the persons, what they cite together: the **Repositories** and the **Sources** (if on), the **Media** (if on), the **Places** and the **Index of places** (if on).
 
 The per-person pages contain only what is written inside the life story (notes and citations, with the sources written out in the Sources section at the end). The timeline, the coverage report, the historic context and research, the cultural norms and the historic events are not part of these two reports, and the options about ancestry, descendants and relations do not apply to them: the dialog does not show these options.
@@ -114,7 +115,7 @@ The per-person pages contain only what is written inside the life story (notes a
 
 ### Things to know about these reports
 
-- **The Relationship Report** is the Individual Summary with the ancestry and the descendants switched off, so that it concentrates on the **direct and indirect relations** of the person.
+- **The Relationship Report** is about the **direct and indirect relations** of the person, and nothing of the life: the *Document information*, the *Introduction*, the **direct relations** (the person and the descendants, one table for each generation, the eldest first; each with the years of birth and death, the kinship term and the parents; a descendant through an adoptive, foster or other legal link has the term marked *(legal)*; a person who descends through more than one line is listed once), the **indirect relations** (the spouses and associates of those) and the *Index of individuals*. It has no events, attributes, sources, places or media; the only options it uses are the ones for those sections.
 - **Bibliography** and **Research Progress** work on the **selected record**, not on the whole file: for an individual, the bibliography lists the sources cited by that person, their events, attributes and relationships. With an individual selected, the document also begins with that person's life story.
 
 ## Language
@@ -130,8 +131,8 @@ The titles *Family Book* and *Bibliography* of the two whole-file reports are tr
 ## The formats
 
 Plain text, Markdown and HTML are always available. **Word, PDF, EPUB and Static Website are plugins**: they are the files `report-docx.jar`, `report-pdf.jar`, `report-epub.jar` and `report-site.jar` in the `plugins` folder of the installation. If one is not there, the format is still listed but greyed out, with a tooltip like *Not available: the plugin report-pdf.jar is not installed in the plugins folder*; copying the file there makes it available the next time the application starts.
-
-- **Markdown**: UTF-8. The images are `![caption](path)`. Headings with a record identifier get an anchor, and the internal links work.
+ When the report has more than one chapter (a heading of the first level), a **Contents** list with a link to each chapter follows the title.
+- **Markdown**: UTF-8. The images are `![caption](path)`, with the path written so that every viewer follows it (spaces, parentheses and accents encoded). The documents of a source are listed by name, not by the whole path of the disk; the citations are bullet lists, and the cropped part of an image is written *x=…, y=…, width×height*. Headings with a record identifier get an anchor, and the internal links work.
 - **Plain text**: titles underlined, bullets as `-`, tables as rows separated by `|`, images as `[image: path]`. The bold, italic and code marks are removed.
 - **HTML**: one file with its style inside. The images are **linked**, not embedded. The internal links work. The page is declared as English whatever the language.
 - **Word**: the headings use the Word heading styles (so the navigation pane works), the tables have a shaded header, the images are embedded and scaled to fit, and the trees are in a monospaced font.

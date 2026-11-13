@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 
 import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
@@ -33,7 +34,7 @@ import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
-import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
+import io.github.mtrevisan.familylegacy.ui.tools.maintenance.merge.RecordMergeWorkflow;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ import javax.swing.RowFilter;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
@@ -98,7 +100,8 @@ public final class DuplicateFinderDialog extends JDialog{
 	private final JCheckBox sameSexCheck = new JCheckBox(I18N.t("checkbox.same_sex_only"), true);
 	private final JCheckBox skipExistingCheck = new JCheckBox(I18N.t("checkbox.skip_existing"), true);
 	private final JButton compareFacts = new JButton(I18N.t("button.compare_facts"));
-	private final JButton compareRecords = new JButton(I18N.t("button.compare_records"));
+	private final JButton mergeButton = new JButton(I18N.t("button.merge_records"));
+	private final JButton differentButton = new JButton(I18N.t("button.different_records"));
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	/** How far the search is, so that the user knows when the data will be there: shown only while it runs. */
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
@@ -106,6 +109,17 @@ public final class DuplicateFinderDialog extends JDialog{
 
 	private List<DuplicateFinderService.Candidate> allCandidates = List.of();
 	private SwingWorker<List<DuplicateFinderService.Candidate>, Void> searchWorker;
+	/**
+	 * What the last search returned (the best candidates first), and what it was asked: a threshold that is not lower than the one it
+	 * was asked, with the same other settings, only chooses among them, and does not need the search to be made again.
+	 */
+	private List<DuplicateFinderService.Candidate> computed = List.of();
+	private DuplicateFinderService.Options computedWith;
+	/** The pause, after the last change of a setting that needs a search, before the search is made, in milliseconds. */
+	private static final int SETTINGS_DELAY = 600;
+	private final Timer settingsTimer = new Timer(SETTINGS_DELAY, e -> runSearch());
+	/** How many times the candidates were really searched for (and not chosen among the ones found already): for the tests. */
+	private int computations;
 
 
 	public DuplicateFinderDialog(final ToolContext context){
@@ -151,9 +165,16 @@ public final class DuplicateFinderDialog extends JDialog{
 		gbc.gridx = 5;
 		toolbar.add(skipExistingCheck, gbc);
 
+		settingsTimer.setRepeats(false);
+		thresholdSpinner.addChangeListener(e -> onSettingsChanged());
+		maxResultsSpinner.addChangeListener(e -> onSettingsChanged());
+		sameSexCheck.addActionListener(e -> onSettingsChanged());
+		skipExistingCheck.addActionListener(e -> onSettingsChanged());
+
 		gbc.gridx = 6;
 		final JButton searchButton = new JButton(I18N.t("button.search"));
 		searchButton.addActionListener(e -> runSearch());
+		searchButton.setToolTipText(I18N.t("tooltip.duplicates_search"));
 		toolbar.add(searchButton, gbc);
 
 		gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 6;
@@ -187,7 +208,7 @@ public final class DuplicateFinderDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-					compareSelected();
+					openMerge(false);
 			}
 		});
 
@@ -209,23 +230,24 @@ public final class DuplicateFinderDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
-
 		compareFacts.addActionListener(e -> compareFactsOfSelected());
-		footer.add(compareFacts);
 
-		compareRecords.addActionListener(e -> compareSelected());
-		footer.add(compareRecords);
+		//the two ways out of a candidate: they are the same (merge) or they are not (recorded, and not proposed again)
+		mergeButton.setToolTipText(I18N.t("tooltip.duplicates_merge"));
+		mergeButton.addActionListener(e -> openMerge(false));
+
+		differentButton.setToolTipText(I18N.t("tooltip.merge_different"));
+		differentButton.addActionListener(e -> openMerge(true));
 		updateButtons();
 
 		progressBar.setStringPainted(true);
 		progressBar.setVisible(false);
-		footer.add(progressBar);
-		footer.add(statusLabel);
+		//how many candidates are shown, or how far the search is, at the left as in every window with a table
+		final JPanel status = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		status.add(statusLabel);
+		status.add(progressBar);
 
-
-		return footer;
+		return GUIHelper.createStatusFooter(status, compareFacts, mergeButton, differentButton);
 	}
 
 
@@ -233,12 +255,78 @@ public final class DuplicateFinderDialog extends JDialog{
 	 *                          Search
 	 * ====================================================================== */
 
-	private void runSearch(){
+	/** The settings of the window, as the options of a search. */
+	private DuplicateFinderService.Options currentOptions(){
 		final DuplicateFinderService.Options options = new DuplicateFinderService.Options();
 		options.threshold = (Integer)thresholdSpinner.getValue();
 		options.maxResults = (Integer)maxResultsSpinner.getValue();
 		options.requireSameSex = sameSexCheck.isSelected();
 		options.skipExistingHypotheses = skipExistingCheck.isSelected();
+		return options;
+	}
+
+	/**
+	 * Whether the candidates found already are the ones the options ask for, so that the search need not be made again: the settings
+	 * that decide which pairs are compared are the same, the threshold is not lower (a pair that scored less than the first one was
+	 * not kept), and the list is complete for it: it was not cut at the most results, or the best of it fill the most results asked, or
+	 * the last of it scores less than the threshold (all the pairs that reach it are there).
+	 */
+	private boolean canReuse(final DuplicateFinderService.Options options){
+		if(computedWith == null || options.requireSameSex != computedWith.requireSameSex
+				|| options.skipExistingHypotheses != computedWith.skipExistingHypotheses || options.threshold < computedWith.threshold)
+			return false;
+
+		int reaching = 0;
+		for(final DuplicateFinderService.Candidate candidate : computed)
+			if(candidate.score() >= options.threshold)
+				reaching ++;
+		return (computed.size() < computedWith.maxResults || reaching >= options.maxResults
+			|| (!computed.isEmpty() && computed.get(computed.size() - 1).score() < options.threshold));
+	}
+
+	/** Shows, among the candidates found, the ones that reach the threshold, the best first, up to the most results. */
+	private void showComputed(final DuplicateFinderService.Options options){
+		final List<DuplicateFinderService.Candidate> shown = new ArrayList<>();
+		for(final DuplicateFinderService.Candidate candidate : computed)
+			if(candidate.score() >= options.threshold && shown.size() < options.maxResults)
+				shown.add(candidate);
+		allCandidates = shown;
+		tableModel.setRows(allCandidates);
+		applyFilter();
+		if(table.getRowCount() > 0)
+			table.setRowSelectionInterval(0, 0);
+		statusLabel.setText(I18N.plural("text.duplicates.candidates", allCandidates.size()));
+	}
+
+	/**
+	 * A setting changed: the candidates found are chosen among at once if they are enough; otherwise the search is made again by itself,
+	 * after a short pause so that a change made of many steps is one search, and a search that is running is replaced by the new one.
+	 */
+	private void onSettingsChanged(){
+		//the settings are changed in steps (the arrows of a spinner, a number typed): what is asked is the last one
+		settingsTimer.stop();
+		final DuplicateFinderService.Options options = currentOptions();
+		if(canReuse(options)){
+			showComputed(options);
+			return;
+		}
+
+		//the new settings need a search: it starts by itself a moment after the last change, and the window says so
+		progressBar.setVisible(false);
+		statusLabel.setText(I18N.t("text.duplicates.settings_changed"));
+		settingsTimer.restart();
+	}
+
+	private void runSearch(){
+		settingsTimer.stop();
+		final DuplicateFinderService.Options options = currentOptions();
+		if(canReuse(options)){
+			showComputed(options);
+			return;
+		}
+
+		computedWith = null;
+		computations ++;
 
 		//the bar says it, with its percentage: the status line has nothing to add while the search runs
 		statusLabel.setText(StringUtils.SPACE);
@@ -264,12 +352,9 @@ public final class DuplicateFinderDialog extends JDialog{
 
 				progressBar.setVisible(false);
 				try{
-					allCandidates = get();
-					tableModel.setRows(allCandidates);
-					applyFilter();
-					if(table.getRowCount() > 0)
-						table.setRowSelectionInterval(0, 0);
-					statusLabel.setText(I18N.plural("text.duplicates.candidates", allCandidates.size()));
+					computed = get();
+					computedWith = options;
+					showComputed(options);
 				}
 				catch(final Exception ex){
 					statusLabel.setText(I18N.tf("text.search.failed", ex.getMessage()));
@@ -284,8 +369,15 @@ public final class DuplicateFinderDialog extends JDialog{
 		searchWorker.execute();
 	}
 
+	/** How many times the candidates were really searched for, and not chosen among the ones found already: for the tests. */
+	int computations(){
+		return computations;
+	}
+
 	@Override
 	public void dispose(){
+		settingsTimer.stop();
+
 		if(searchWorker != null)
 			searchWorker.cancel(true);
 
@@ -331,7 +423,10 @@ public final class DuplicateFinderDialog extends JDialog{
 	private void updateButtons(){
 		final boolean selected = (table.getSelectedRowCount() > 0);
 		compareFacts.setEnabled(selected);
-		compareRecords.setEnabled(selected);
+		//a merge is about one pair: with several rows selected (to compare them) it is not clear which one
+		final boolean single = (table.getSelectedRowCount() == 1);
+		mergeButton.setEnabled(single);
+		differentButton.setEnabled(single);
 	}
 
 	private void updateDetails(){
@@ -441,7 +536,20 @@ public final class DuplicateFinderDialog extends JDialog{
 		}.execute();
 	}
 
-	private void compareSelected(){
+	/**
+	 * Opens the review of the merge of the selected pair, with the two individuals already set, so that the candidate found does not
+	 * have to be chosen again, and without the window that picks two records: this one already has the button that records them as
+	 * different. The record with fewer data is proposed as the source (to be deleted).
+	 * <p>
+	 * When the pair was merged or recorded as different it is no more a candidate, so the search is run again.
+	 *
+	 * @param asDifferent whether the pair is to be recorded as different records instead: the question (why they are different) is
+	 *                    asked at once
+	 */
+	private void openMerge(final boolean asDifferent){
+		if(table.getSelectedRowCount() != 1)
+			return;
+
 		final DuplicateFinderService.Candidate c = selectedCandidate();
 		if(c == null)
 			return;
@@ -451,11 +559,18 @@ public final class DuplicateFinderDialog extends JDialog{
 		final FLEFRecord right = model.getRecordById(c.right().id());
 		if(left == null || right == null)
 			return;
-		RecordDiffDialog.showComparison(this,
-			I18N.tf("text.duplicates.compare", c.left().displayName(), c.right().displayName()),
-			left, right, model);
-	}
 
+		final boolean leftIsTarget = (left.getChildren().size() >= right.getChildren().size());
+		final FLEFRecord target = (leftIsTarget? left: right);
+		final FLEFRecord source = (leftIsTarget? right: left);
+
+		//the pair is already chosen: the review of the merge opens at once, over this window, and so does the question of why they differ
+		final boolean resolved = (asDifferent
+			? RecordMergeWorkflow.recordAsDifferent(this, model, source, target)
+			: RecordMergeWorkflow.merge(this, model, source, target));
+		if(resolved)
+			runSearch();
+	}
 
 	/* ======================================================================
 	 *                          Table model

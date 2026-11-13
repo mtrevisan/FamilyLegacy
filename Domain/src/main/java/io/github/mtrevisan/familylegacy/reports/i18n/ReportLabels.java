@@ -253,6 +253,10 @@ public final class ReportLabels{
 		return narrativeFormatter.residence(name, place, from, to);
 	}
 
+	public String narrativeRelocation(final String name, final String place, final String date){
+		return narrativeFormatter.relocation(name, place, date);
+	}
+
 	public String narrativeMove(final String name, final String place, final String from, final String to){
 		return narrativeFormatter.move(name, place, from, to);
 	}

@@ -71,8 +71,12 @@ public final class IntroductionSection implements SectionBuilder{
 			ctx.labels.narrative().introductionBody(),
 			"**" + ReportFormatters.escape(ctx.displayText(ctx.root)) + "**")));
 
+		//the statistics (lifespan, events, sources) would say that there is nothing: they are not told of an individual shown with the name only
+		if(ctx.isRedacted(ctx.root))
+			return out;
+
 		final List<FLEFRecord> events = ctx.index.eventsOf(ctx.root);
-		out.add(new ReportSection.Paragraph(ctx.labels.statistics()));
+		out.add(new ReportSection.Paragraph("**" + ctx.labels.statistics() + "**"));
 		out.add(new ReportSection.BulletList(List.of(
 			String.format(ctx.labels.sections().lifespan(), lifespanOf(events)),
 			String.format(ctx.labels.sections().eventsCount(), ctx.formatInt(events.size())),

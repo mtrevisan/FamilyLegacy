@@ -146,6 +146,27 @@ class PrivacyResolverTest{
 	}
 
 	@Test
+	void anEventIsAboutTheLivingOnlyIfAPrincipalMayBeLiving(){
+		//the birth of somebody long dead, with a midwife that may be living (no date): it is not about a living person
+		final FLEFModel model = parse(individual("I1", "")
+			+ individual("I2", "")
+			+ individual("I3", "")
+			+ event("E1", EventReader.ENUM_TYPE_BIRTH, "\tdate.value.point.value.full_date 1850-03-04\n")
+			+ event("E2", EventReader.ENUM_TYPE_BIRTH, "\tdate.value.point.value.full_date 1990-03-04\n")
+			+ participation("EP1", "E1", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL)
+			+ participation("EP2", "E1", "I3", EventParticipationReader.ENUM_ROLE_WITNESS)
+			+ participation("EP3", "E2", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		final PrivacyResolver resolver = new PrivacyResolver(model, TODAY);
+
+		Assertions.assertFalse(resolver.concernsLiving(model.getRecordById("I1")));
+		Assertions.assertTrue(resolver.concernsLiving(model.getRecordById("I3")));
+		//the level of the event is still the one inherited, as the policy says
+		Assertions.assertEquals(PrivacyLevel.RESTRICTED, resolver.effectiveLevel(model.getRecordById("E1")));
+		Assertions.assertFalse(resolver.concernsLiving(model.getRecordById("E1")));
+		Assertions.assertTrue(resolver.concernsLiving(model.getRecordById("E2")));
+	}
+
+	@Test
 	void onlyThePrincipalCountsAsBornOrDead(){
 		final FLEFModel model = parse(individual("I1", "")
 			+ event("E1", "death", "")

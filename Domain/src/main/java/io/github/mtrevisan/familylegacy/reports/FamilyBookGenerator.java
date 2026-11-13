@@ -121,7 +121,7 @@ public final class FamilyBookGenerator{
 	}
 
 	/** @return	The family name, then the other names, in lower case; whoever has no name sorts after everybody else. */
-	private static String sortName(final FLEFRecord person, final Locale locale){
+	static String sortName(final FLEFRecord person, final Locale locale){
 		final List<Name> names = NameAnatomyService.extractForIndividual(person);
 		if(names.isEmpty())
 			return "\uffff";

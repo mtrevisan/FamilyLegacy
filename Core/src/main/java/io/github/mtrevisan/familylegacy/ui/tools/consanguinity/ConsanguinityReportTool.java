@@ -86,11 +86,11 @@ public final class ConsanguinityReportTool implements ToolOperation{
 					Thread.currentThread().interrupt();
 				}
 				catch(final ExecutionException ee){
-					LOGGER.error("Consanguinity report failed", ee);
-					final Throwable cause = (ee.getCause() != null? ee.getCause(): ee);
-					JOptionPane.showMessageDialog(context.owner(),
-						I18N.t("dialog.consanguinity_report.error") + StringUtils.LF + cause.getMessage(),
-						I18N.t("dialog.consanguinity_report.title"), JOptionPane.ERROR_MESSAGE);
+					report(context, ee.getCause() != null? ee.getCause(): ee);
+				}
+				catch(final RuntimeException | Error ex){
+					//the dialog itself failed to be made or shown: said, not left in the log of the thread of the events
+					report(context, ex);
 				}
 			}
 		};
@@ -98,6 +98,14 @@ public final class ConsanguinityReportTool implements ToolOperation{
 		worker.execute();
 		//modal: it blocks the caller until done() disposes the dialog
 		progress.setVisible(true);
+	}
+
+	/** Tells that the report could not be made or shown, and why: a tool that does something and then shows nothing is the worst answer. */
+	private static void report(final ToolContext context, final Throwable cause){
+		LOGGER.error("Consanguinity report failed", cause);
+		JOptionPane.showMessageDialog(context.owner(),
+			I18N.t("dialog.consanguinity_report.error") + StringUtils.LF + (cause.getMessage() != null? cause.getMessage(): cause.toString()),
+			I18N.t("dialog.consanguinity_report.title"), JOptionPane.ERROR_MESSAGE);
 	}
 
 	@Override

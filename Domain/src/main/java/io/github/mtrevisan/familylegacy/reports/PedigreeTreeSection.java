@@ -83,6 +83,7 @@ public final class PedigreeTreeSection implements SectionBuilder{
 	private final List<FLEFRecord> directLine;
 	private final List<FLEFRecord> collaterals;
 	private final Direction direction;
+	private final TreeText text;
 
 
 	PedigreeTreeSection(final ReportContext ctx,
@@ -93,6 +94,7 @@ public final class PedigreeTreeSection implements SectionBuilder{
 		this.directLine = List.copyOf(directLine);
 		this.collaterals = List.copyOf(collaterals);
 		this.direction = direction;
+		this.text = new TreeText(ctx);
 	}
 
 
@@ -124,17 +126,18 @@ public final class PedigreeTreeSection implements SectionBuilder{
 	private String renderTree(){
 		final StringBuilder sb = new StringBuilder();
 		final FLEFRecord root = directLine.getFirst();
-		sb.append(ReportFormatters.escape(ctx.displayText(root)))
+		sb.append(ReportFormatters.escape(text.label(root)))
 			.append(StringUtils.LF);
-		renderChildren(sb, root, StringUtils.EMPTY, new HashSet<>(Set.of(root.getId())));
+		final Set<String> drawn = new HashSet<>(Set.of(root.getId()));
+		renderChildren(sb, root, StringUtils.EMPTY, new HashSet<>(Set.of(root.getId())), drawn);
 		return sb.toString();
 	}
 
 	private void renderChildren(final StringBuilder sb, final FLEFRecord node,
-		final String prefix, final Set<String> path){
+		final String prefix, final Set<String> path, final Set<String> drawn){
 		final List<FLEFRecord> next = (direction == Direction.ANCESTORS
 			? ctx.index.parentsOf(node)
-			: ctx.index.childrenOf(node));
+			: text.childrenOf(node));
 
 		final List<FLEFRecord> inLine = new ArrayList<>(next.size());
 		for(final FLEFRecord r : next)
@@ -142,18 +145,26 @@ public final class PedigreeTreeSection implements SectionBuilder{
 				inLine.add(r);
 
 		for(int i = 0; i < inLine.size(); i ++){
+			final FLEFRecord person = inLine.get(i);
 			final boolean last = (i == inLine.size() - 1);
 			sb.append(prefix)
 				.append(last? LAST_BRANCH: BRANCH)
-				.append(ReportFormatters.escape(ctx.displayText(inLine.get(i))))
-				.append(StringUtils.LF);
+				.append(ReportFormatters.escape(text.label(person)));
+
+			//a person that is drawn already (two branches that meet again) is not drawn a second time with the whole branch
+			if(!drawn.add(person.getId())){
+				sb.append(" (").append(ctx.labels.sections().treeSeeAbove()).append(')')
+					.append(StringUtils.LF);
+				continue;
+			}
+			sb.append(StringUtils.LF);
+
 			//a circle of parentage (an error of the file) must not be followed forever
-			path.add(inLine.get(i).getId());
-			renderChildren(sb, inLine.get(i), prefix + (last? SPACE: VERTICAL), path);
-			path.remove(inLine.get(i).getId());
+			path.add(person.getId());
+			renderChildren(sb, person, prefix + (last? SPACE: VERTICAL), path, drawn);
+			path.remove(person.getId());
 		}
 	}
-
 
 	/* ======================================================================
 	 *                          Collateral rendering

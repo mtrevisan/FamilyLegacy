@@ -111,20 +111,15 @@ public class DateService{
 			final String basis = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_BASIS);
 			final String margin = FLEFRecordHelper.getChildValue(approx, DateReader.TAG_MARGIN);
 			if(basis != null || margin != null){
+				//"[approx., calculated, ±2 years]"
 				dateStr.append(StringUtils.SPACE)
 					.append('[')
 					.append(I18N.t("dialog.date.description.approximate.abbreviation"));
 				if(basis != null)
-					dateStr.append(StringUtils.SPACE)
-						.append(I18N.t("dialog.date.description.basis"))
-						.append(':')
-						.append(StringUtils.SPACE)
+					dateStr.append(", ")
 						.append(basis);
 				if(margin != null)
-					dateStr.append(StringUtils.SPACE)
-						.append(I18N.t("dialog.date.description.margin"))
-						.append(':')
-						.append(StringUtils.SPACE)
+					dateStr.append(", ")
 						.append(margin);
 				dateStr.append(']');
 			}
@@ -135,6 +130,11 @@ public class DateService{
 					.append(']');
 		}
 		return dateStr.toString();
+	}
+
+	/** @return	The calendar in brackets, unless it is the Gregorian one (the default, that is not worth saying after every date). */
+	private static String calendarSuffix(final String calendar){
+		return (calendar != null && !"gregorian".equalsIgnoreCase(calendar)? StringUtils.SPACE + "(" + calendar + ")": StringUtils.EMPTY);
 	}
 
 	/**
@@ -152,14 +152,14 @@ public class DateService{
 		final FLEFRecord fullDate = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE);
 		if(fullDate != null){
 			final String value = fullDate.getValue();
-			return value + (calendar != null? StringUtils.SPACE + "(" + calendar + ")": StringUtils.EMPTY);
+			return value + calendarSuffix(calendar);
 		}
 
 		final FLEFRecord decade = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_DECADE);
 		if(decade != null){
 			final String startYear = decade.getValue();
 			return I18N.tf("dialog.date.description.decade", startYear)
-				+ (calendar != null? StringUtils.SPACE + "(" + calendar + ")": StringUtils.EMPTY);
+				+ calendarSuffix(calendar);
 		}
 
 		final FLEFRecord century = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_CENTURY);
@@ -169,8 +169,7 @@ public class DateService{
 			String centuryStr = I18N.tf("dialog.date.description.century", ordinal);
 			if(part != null)
 				centuryStr += " (" + part + ")";
-			if(calendar != null)
-				centuryStr += StringUtils.SPACE + "(" + calendar + ")";
+			centuryStr += calendarSuffix(calendar);
 			return centuryStr;
 		}
 

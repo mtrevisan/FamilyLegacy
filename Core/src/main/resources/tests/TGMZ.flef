@@ -294044,7 +294044,7 @@ individual_attribute IA2334 {
 }
 
 place P692 {
-	name.value Prengaziol 194
+	name.value Preganziol 194
 	audit.creation.date 2021-05-30T15:31:42Z
 	location.coordinates +45.60139+012.23722/
 }
@@ -638605,7 +638605,7 @@ group_attribute GA13 {
 }
 
 place P1506 {
-	name.value Sannt'Angelo 29
+	name.value Sant'Angelo 29
 	audit.creation.date 2021-02-27T10:29:31Z
 	location.coordinates +45.65056+012.21333/
 }

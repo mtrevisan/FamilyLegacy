@@ -34,9 +34,11 @@ import io.github.mtrevisan.reports.ReportSection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -75,13 +77,40 @@ public final class IndexSection implements SectionBuilder{
 	public List<ReportSection> build(){
 		final List<ReportSection> out = new ArrayList<>();
 		if(ctx.config.indexIndividuals())
-			out.addAll(indexOf(ctx.labels.indexOfIndividuals(),
-				ctx.labels.sections().columnIndividual(),
-				relatedIndividuals(), ctx::displayText));
+			out.addAll(individualsIndex());
 		if(ctx.config.indexPlaces())
 			out.addAll(indexOf(ctx.labels.indexOfPlaces(),
 				ctx.labels.sections().columnPlace(),
 				individualPlaces(), s -> s));
+		return out;
+	}
+
+
+	/**
+	 * The index of the individuals: by family name, then by the other names (as a book is), with the years of birth and death.
+	 */
+	private List<ReportSection> individualsIndex(){
+		final List<ReportSection> out = new ArrayList<>();
+		out.add(new ReportSection.Heading(1, ctx.labels.indexOfIndividuals()));
+
+		final List<FLEFRecord> individuals = relatedIndividuals();
+		if(individuals.isEmpty()){
+			out.add(new ReportSection.Paragraph(ctx.labels.sections().empty()));
+			return out;
+		}
+
+		final Locale locale = ctx.labels.language().locale();
+		final Map<FLEFRecord, String> keys = new IdentityHashMap<>();
+		for(final FLEFRecord individual : individuals)
+			keys.put(individual, FamilyBookGenerator.sortName(individual, locale));
+		individuals.sort(Comparator.comparing((final FLEFRecord individual) -> keys.get(individual))
+			.thenComparing(FLEFRecord::getId));
+
+		final TreeText text = new TreeText(ctx);
+		final List<List<String>> rows = new ArrayList<>(individuals.size());
+		for(final FLEFRecord individual : individuals)
+			rows.add(List.of(ReportFormatters.escape(ctx.displayText(individual)), ReportFormatters.orEmpty(text.years(individual))));
+		out.add(new ReportSection.Table(List.of(ctx.labels.sections().columnIndividual(), ctx.labels.sections().columnYears()), rows));
 		return out;
 	}
 
@@ -133,6 +162,14 @@ public final class IndexSection implements SectionBuilder{
 				byId.putIfAbsent(r.getId(), r);
 		for(final FLEFRecord r : ctx.index.indirectRelations(ctx.root))
 			byId.putIfAbsent(r.getId(), r);
+		//the members of a group
+		if(ReportContext.rootKindOf(ctx.root) == ReportContext.RootKind.GROUP)
+			for(final FLEFRecord membership : ctx.index.membersOf(ctx.root)){
+				final String memberId = GroupStorySection.memberIndividualId(membership);
+				final FLEFRecord member = (memberId != null? ctx.visible(ctx.model.getRecordById(memberId)): null);
+				if(member != null)
+					byId.putIfAbsent(member.getId(), member);
+			}
 
 		final List<FLEFRecord> out = new ArrayList<>(byId.values());
 		out.sort(Comparator.comparing(

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
@@ -40,6 +41,8 @@ public record ReportConfig(
 	ReportLanguage language,
 	// Privacy
 	PrivacyPolicy privacyPolicy,
+	/** What is done with the individuals that may be living (it has no effect if the privacy policy shows everything). */
+	LivingPrivacy livingPrivacy,
 	boolean showPrivacyDetails,
 	boolean audit,
 	// Presentation
@@ -85,6 +88,7 @@ public record ReportConfig(
 	public ReportConfig{
 		Objects.requireNonNull(language, "language");
 		Objects.requireNonNull(privacyPolicy, "privacyPolicy");
+		Objects.requireNonNull(livingPrivacy, "livingPrivacy");
 		Objects.requireNonNull(personOrder, "personOrder");
 		generations = Math.max(0, generations);
 	}
@@ -107,13 +111,22 @@ public record ReportConfig(
 	 * @return	A copy of this configuration with the option changed.
 	 */
 	public ReportConfig with(final ReportOption option, final Object value){
+		return withComponent(option.componentName(), value);
+	}
+
+	/** @return	A copy of this configuration with what is done with the individuals that may be living changed. */
+	public ReportConfig withLivingPrivacy(final LivingPrivacy value){
+		return withComponent("livingPrivacy", value);
+	}
+
+	private ReportConfig withComponent(final String name, final Object value){
 		final RecordComponent[] components = ReportConfig.class.getRecordComponents();
 		final Object[] arguments = new Object[components.length];
 		final Class<?>[] types = new Class<?>[components.length];
 		try{
 			for(int i = 0; i < components.length; i ++){
 				types[i] = components[i].getType();
-				arguments[i] = (components[i].getName().equals(option.componentName())? value: components[i].getAccessor().invoke(this));
+				arguments[i] = (components[i].getName().equals(name)? value: components[i].getAccessor().invoke(this));
 			}
 			//the canonical constructor of a record always exists
 			return ReportConfig.class.getDeclaredConstructor(types)
@@ -132,7 +145,7 @@ public record ReportConfig(
 	 */
 	public static ReportConfig uniform(final boolean value, final ReportLanguage language, final PrivacyPolicy privacyPolicy){
 		final CollateralScope[] scopes = CollateralScope.values();
-		return new ReportConfig(language, privacyPolicy, value, value, value, value, value, value, value, value, value,
+		return new ReportConfig(language, privacyPolicy, LivingPrivacy.NAME_AND_ROLE, value, value, value, value, value, value, value, value, value,
 			(value? scopes[scopes.length - 1]: CollateralScope.NONE), 0, (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL), value, value,
 			value, value, value, value, value, value, value,
 			value, value, value, value, value, value, value, value, value, value, value);
@@ -142,6 +155,7 @@ public record ReportConfig(
 		return new ReportConfig(
 			ReportLanguage.ENGLISH,
 			PrivacyPolicy.HIDE_CONFIDENTIAL,
+			LivingPrivacy.NAME_AND_ROLE,
 			false,
 			false,
 			true,
@@ -149,7 +163,7 @@ public record ReportConfig(
 			true,
 			true,
 			true,
-			true,
+			false,
 			false,
 			CollateralScope.NONE,
 			0,

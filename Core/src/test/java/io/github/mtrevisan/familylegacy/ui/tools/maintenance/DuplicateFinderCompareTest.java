@@ -21,11 +21,21 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 
-/** The two compare buttons of the duplicates dialog open their windows. */
+/**
+ * The button that compares the facts of the duplicates dialog opens its window (the comparison of the records is the review of the
+ * merge, that the other buttons open).
+ * <p>
+ * Only the notable selections are tried (the first row, the last, one in the middle, all of them), on a small file made here: every
+ * window that is opened and closed costs a moment, and the rows of a large file add nothing the few ones do not already show.
+ */
 class DuplicateFinderCompareTest{
 
+	/** The individuals of the file: more than the six that the comparison of the facts can show, in pairs of the same name. */
+	private static final int PAIRS = 5;
+
+
 	private static FLEFModel model(){
-		return new FLEFParser().parse("""
+		final StringBuilder text = new StringBuilder("""
 			header {
 				protocol {
 					name Family LEgacy Format
@@ -33,30 +43,15 @@ class DuplicateFinderCompareTest{
 				}
 				date 2026-01-01T00:00:00Z
 			}
-			individual I1 {
-				name {
-					part {
-						type given
-						value Anna
-					}
-				}
-			}
-			individual I2 {
-				name {
-					part {
-						type given
-						value Anna
-					}
-				}
-			}
 			""");
-	}
-
-	private static FLEFModel big() throws Exception{
-		final long t = System.currentTimeMillis();
-		final FLEFModel m = new FLEFParser().parse(java.nio.file.Files.readString(java.nio.file.Path.of("C:/Users/MAUROS~1/AppData/Local/Temp/tmp-27888-Vhe7Y8n27Nre-TGMZ.flef")));
-		System.out.println("PARSED ms " + (System.currentTimeMillis() - t));
-		return m;
+		final String[] names = {"Anna", "Bianca", "Carla", "Dora", "Elena"};
+		for(int pair = 0; pair < PAIRS; pair ++)
+			for(int copy = 0; copy < 2; copy ++)
+				text.append("individual I").append(pair * 2 + copy + 1).append(" {\n")
+					.append("name {\npart {\ntype given\nvalue ").append(names[pair]).append("\n}\n")
+					.append("part {\ntype family\nvalue Masutti\n}\n}\n")
+					.append("}\n");
+		return new FLEFParser().parse(text.toString());
 	}
 
 	private static JTable findTable(final Container container){
@@ -72,6 +67,11 @@ class DuplicateFinderCompareTest{
 		return null;
 	}
 
+	/** The rows to select, as the first and the last of each selection: the first, the last, one in the middle, all of them. */
+	private static List<int[]> notableSelections(final int rows){
+		return List.of(new int[]{0, 0}, new int[]{rows - 1, rows - 1}, new int[]{rows / 2, rows / 2}, new int[]{0, rows - 1});
+	}
+
 	private void check(final String method, final Class<?> expected) throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "needs a display");
 		final JPanel panel = new JPanel();
@@ -79,7 +79,7 @@ class DuplicateFinderCompareTest{
 		frame.add(panel);
 		frame.setSize(800, 600);
 		frame.setVisible(true);
-		final ToolContext context = new ToolContext(big(), "I1", panel, null);
+		final ToolContext context = new ToolContext(model(), "I1", panel, null);
 		final AtomicReference<DuplicateFinderDialog> holder = new AtomicReference<>();
 		final List<String> shown = new ArrayList<>();
 		final List<Throwable> errors = new ArrayList<>();
@@ -93,7 +93,6 @@ class DuplicateFinderCompareTest{
 		for(int i = 0; i < 100 && (holder.get() == null || !holder.get().isVisible()); i ++)
 			Thread.sleep(50);
 		final DuplicateFinderDialog dialog = holder.get();
-		System.out.println("PARENT VISIBLE " + dialog.isVisible());
 		final JTable table = findTable(dialog.getContentPane());
 		SwingUtilities.invokeAndWait(() -> {
 			try{
@@ -110,9 +109,8 @@ class DuplicateFinderCompareTest{
 				throw new RuntimeException(e);
 			}
 		});
-		for(int i = 0; i < 2400 && table.getRowCount() == 0; i ++)
+		for(int i = 0; i < 200 && table.getRowCount() == 0; i ++)
 			Thread.sleep(50);
-		System.out.println("ROWS " + table.getRowCount());
 		Assertions.assertTrue(table.getRowCount() > 0);
 
 		final Timer closer = new Timer(100, e -> {
@@ -124,12 +122,10 @@ class DuplicateFinderCompareTest{
 		});
 		closer.start();
 		try{
-			for(int row = 0; row < Math.min(table.getRowCount(), 400); row ++){
-				final int r = row;
-				final long t0 = System.currentTimeMillis();
+			for(final int[] selection : notableSelections(table.getRowCount())){
 				SwingUtilities.invokeAndWait(() -> {
 					try{
-						table.setRowSelectionInterval(r, r);
+						table.setRowSelectionInterval(selection[0], selection[1]);
 						final Method m = DuplicateFinderDialog.class.getDeclaredMethod(method);
 						m.setAccessible(true);
 						m.invoke(dialog);
@@ -138,25 +134,19 @@ class DuplicateFinderCompareTest{
 						errors.add(e);
 					}
 				});
-				Thread.sleep(120);
-				System.out.println("ROW " + r + " " + (System.currentTimeMillis() - t0) + " ms, shown " + shown.size());
+				Thread.sleep(150);
 			}
-			Thread.sleep(1500);
+			Thread.sleep(300);
 		}
 		finally{
 			closer.stop();
 			frame.dispose();
 			SwingUtilities.invokeAndWait(dialog::dispose);
 		}
-		System.out.println("SHOWN " + shown + " ERRORS " + errors);
+
 		errors.forEach(Throwable::printStackTrace);
 		Assertions.assertTrue(errors.isEmpty(), errors.toString());
 		Assertions.assertTrue(shown.stream().anyMatch(s -> s.endsWith(expected.getSimpleName())), shown.toString());
-	}
-
-	@Test
-	void compareRecords() throws Exception{
-		check("compareSelected", io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog.class);
 	}
 
 	@Test

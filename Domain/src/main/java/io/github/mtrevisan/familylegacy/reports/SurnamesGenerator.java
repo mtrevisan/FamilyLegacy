@@ -81,7 +81,7 @@ public final class SurnamesGenerator{
 		listener.onProgress(80, null);
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(ctx).build());
-		sections.add(new ReportSection.Heading(1, title));
+		sections.add(new ReportSection.Heading(1, ctx.labels.sections().overview()));
 		if(distribution.individuals() == 0)
 			sections.add(new ReportSection.Paragraph(ctx.labels.sections().surnamesEmpty()));
 		else{

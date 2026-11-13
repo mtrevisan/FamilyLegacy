@@ -65,7 +65,7 @@ public final class ReportBuilder{
 
 		return switch(type){
 			case INDIVIDUAL, GROUP, RELATIONSHIP, PLACE, SOURCE, RESEARCH_QUESTION, BIBLIOGRAPHY, RESEARCH_PROGRESS ->
-				new ReportGenerator(model, root, tailored)
+				new ReportGenerator(model, root, tailored, type)
 				.generate(listener);
 			case FULL_BIBLIOGRAPHY -> new FullBibliographyGenerator(model, tailored).generate(listener);
 			case FAMILY_BOOK -> new FamilyBookGenerator(model, tailored).generate(listener);
@@ -106,7 +106,8 @@ public final class ReportBuilder{
 			//one self-contained sub-report per person: the introduction and the life story, no ancestry, descendants or relations (the
 			//persons are the ancestors or the descendants)
 			case ANCESTOR, DESCENDANT, FAMILY_BOOK -> withNarrative(base, true, false, false, false, false, false);
-			case RELATIONSHIP -> withNarrative(base, base.introduction(), false, false, false, true, true);
+			case RELATIONSHIP -> withNarrative(base, base.introduction(), false, false, false, true, true)
+				.with(ReportOption.INDEX_PLACES, false);
 			case BIBLIOGRAPHY -> withSourcesFocus(base);
 			case RESEARCH_PROGRESS -> withResearchFocus(base);
 		};
@@ -153,6 +154,12 @@ public final class ReportBuilder{
 			//a catalogue of the sources: the front matter, the notes, the citations and the evidence of the sources
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.SHOW_PRIVACY_DETAILS, ReportOption.AUDIT, ReportOption.HEADER,
 				ReportOption.NOTES, ReportOption.SOURCES, ReportOption.EVIDENCE)));
+			return out;
+		}
+		if(type == ReportType.RELATIONSHIP && (root == null || ReportContext.rootKindOf(root) == ReportContext.RootKind.INDIVIDUAL)){
+			//the relations of a person, with the front matter and the index of the individuals: nothing of the life
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.INTRODUCTION, ReportOption.DIRECT_RELATIONS,
+				ReportOption.INDIRECT_RELATIONS, ReportOption.INDEX_INDIVIDUALS)));
 			return out;
 		}
 		if(type == ReportType.TO_VERIFY || type == ReportType.SURNAMES){

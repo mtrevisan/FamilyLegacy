@@ -44,7 +44,7 @@ class ReportDocumentTest{
 		for(final String language : List.of("en", "it", "zh-CN", "he-Latn", "pa"))
 			Assertions.assertFalse(rightToLeft(language), language);
 		Assertions.assertFalse(rightToLeft(null));
-		Assertions.assertFalse(rightToLeft(StringUtils.SPACE));
+		Assertions.assertFalse(rightToLeft(" "));
 	}
 
 	@Test

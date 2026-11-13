@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.reports.renderers;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
+import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -35,7 +36,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +93,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 
 	/** Matches the protocol's internal-link syntax {@code [text](@id@)}. */
 	private static final Pattern INTERNAL_LINK_PATTERN = Pattern.compile(
-		"\\[([^\\]]+?)\\]\\(@([A-Za-z]+\\d+)@\\)");
+		"\\[((?:[^\\[\\]]|\\[[^\\]]*\\])+?)\\]\\(@([A-Za-z]+\\d+)@\\)");
 
 
 	@Override
@@ -125,8 +128,34 @@ public final class HtmlReportRenderer implements ReportRenderer{
 			w.write("</em></p>");
 		}
 
-		for(final ReportSection s : doc.sections())
+		//the table of contents lists the chapters (the headings of the first level), each reached by an anchor of its own
+		final List<ReportSection.Heading> allChapters = doc.sections().stream()
+			.filter(s -> s instanceof ReportSection.Heading h && h.level() == 1)
+			.map(ReportSection.Heading.class::cast)
+			.toList();
+		final List<ReportSection.Heading> chapters = ReportFormatters.contentsOf(allChapters);
+		final boolean contents = (chapters.size() > 1);
+		//(the anchors are of the chapters listed only: the others are the identity of the heading)
+		final Map<ReportSection.Heading, Integer> anchors = new IdentityHashMap<>();
+		for(int i = 0; i < chapters.size(); i ++)
+			anchors.put(chapters.get(i), i + 1);
+		if(contents){
+			w.write("<nav><p><strong>");
+			w.write(html(doc.contentsTitle()));
+			w.write("</strong></p><ul>");
+			for(int i = 0; i < chapters.size(); i ++){
+				w.write("<li><a href=\"#toc-" + (i + 1) + "\">");
+				w.write(html(chapters.get(i).text()));
+				w.write("</a></li>");
+			}
+			w.write("</ul></nav>");
+		}
+
+		for(final ReportSection s : doc.sections()){
+			if(contents && s instanceof ReportSection.Heading h && anchors.containsKey(h))
+				w.write("<a id=\"toc-" + anchors.get(h) + "\"></a>");
 			writeSection(w, s, baseDir);
+		}
 
 		w.write("</body></html>");
 	}
@@ -163,7 +192,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 
 		// Anchor emission: for level >= 2 headings, extract any [Xxx] record
 		// references from the heading text and emit one anchor per ID.
-		if(h.level() >= 2){
+		if(h.level() >= 1){
 			final List<String> ids = extractRecordIds(h.text());
 			for(final String id : ids){
 				w.write("<a id=\"");
@@ -172,13 +201,9 @@ public final class HtmlReportRenderer implements ReportRenderer{
 			}
 		}
 
-		w.write("<h");
-		w.write(level);
-		w.write('>');
+		w.write("<h" + level + '>');
 		w.write(inline(h.text()));
-		w.write("</h");
-		w.write(level);
-		w.write('>');
+		w.write("</h" + level + '>');
 	}
 
 
@@ -266,7 +291,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 		}
 
 		w.write("<figure><img src=\"");
-		w.write(html(href));
+		w.write(html(ReportFormatters.linkTarget(href)));
 		w.write("\" alt=\"");
 		w.write(html(img.caption() == null? StringUtils.EMPTY: img.caption()));
 		w.write("\" style=\"max-width:100%\">");

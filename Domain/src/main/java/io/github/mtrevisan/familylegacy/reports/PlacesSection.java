@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -33,14 +35,17 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 
@@ -72,6 +77,8 @@ public final class PlacesSection implements SectionBuilder{
 
 	private final ReportContext ctx;
 	private final Function<String, String> contextLabels;
+	/** The places of the report: a place lists, among the places it contains, only these (not every address of a town). */
+	private Set<String> reportedPlaceIds = Set.of();
 
 
 	public PlacesSection(final ReportContext ctx){
@@ -95,6 +102,7 @@ public final class PlacesSection implements SectionBuilder{
 			return out;
 		}
 
+		reportedPlaceIds = entries.keySet();
 		for(final PlaceEntry entry : entries.values())
 			appendPlace(out, entry);
 		return out;
@@ -175,7 +183,7 @@ public final class PlacesSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
-			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_LOCATION_COORDINATES));
+			ReportFormatters.coordinates(FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_LOCATION_COORDINATES)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -233,8 +241,19 @@ public final class PlacesSection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(3, ctx.labels.sections().placeJurisdictions()));
-		for(final FLEFRecord rel : rels)
-			appendJurisdiction(out, rel);
+		//the same jurisdiction, stated more than once, is told once
+		final Set<String> told = new HashSet<>();
+		for(final FLEFRecord rel : rels){
+			final String targetId = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TARGET_PLACE);
+			final FLEFRecord target = (targetId != null? ctx.visible(ctx.model.getRecordById(targetId)): null);
+			//(two records of the same place, with the same name, are told once)
+			final String key = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE)
+				+ "|" + (target != null? nameValue(primaryNameNode(target), target): targetId)
+				+ "|" + GenealogicalDateHelper.formatDateStructure(rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels)
+				+ "|" + GenealogicalDateHelper.formatDateStructure(rel, PlaceRelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
+			if(told.add(key))
+				appendJurisdiction(out, rel);
+		}
 	}
 
 	private void appendJurisdiction(final List<ReportSection> out, final FLEFRecord rel){
@@ -280,7 +299,11 @@ public final class PlacesSection implements SectionBuilder{
 	 * parishes in a diocese, and so on. Mirrors {@link #appendJurisdictions}.
 	 */
 	private void appendContainedPlaces(final List<ReportSection> out, final FLEFRecord place){
-		final List<FLEFRecord> rels = ctx.index.placeRelationshipsAsTarget(place);
+		//only the contained places that the report is about
+		final List<FLEFRecord> rels = new ArrayList<>();
+		for(final FLEFRecord rel : ctx.index.placeRelationshipsAsTarget(place))
+			if(reportedPlaceIds.contains(FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_SUBJECT_PLACE)))
+				rels.add(rel);
 		if(rels.isEmpty())
 			return;
 
@@ -290,19 +313,14 @@ public final class PlacesSection implements SectionBuilder{
 	}
 
 	private void appendContainedPlace(final List<ReportSection> out, final FLEFRecord rel){
-		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
 		final String subjectId = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_SUBJECT_PLACE);
 		final FLEFRecord subject = (subjectId != null
 			? ctx.visible(ctx.model.getRecordById(subjectId)): null);
 		final String subjectName = (subject != null
 			? nameValue(primaryNameNode(subject), subject): subjectId);
 
-		final StringBuilder heading = new StringBuilder();
-		final String relLabel = ReportFormatters.orEmpty(ReportFormatters.enumLabel(type));
-		heading.append(relLabel);
-		if(subjectName != null && !subjectName.isBlank())
-			heading.append(' ').append(subjectName);
-		out.add(new ReportSection.Heading(4, ReportFormatters.escape(heading.toString())));
+		//(the section says that the place contains it: "administrative part of" before its name would read the other way round)
+		out.add(new ReportSection.Heading(4, ReportFormatters.escape(ReportFormatters.orEmpty(subjectName))));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
 			rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
@@ -384,14 +402,35 @@ public final class PlacesSection implements SectionBuilder{
 				owner, TAG_VALID_FROM, ctx.labels, contextLabels);
 
 		final StringBuilder sb = new StringBuilder();
-		if(type != null && !type.isBlank())
-			sb.append(type);
+		if(type != null && !type.isBlank()){
+			//"birth of Antonia Pastrelo": in a report about several persons, the type alone does not say whose it is
+			final String whose = whoseIs(owner);
+			sb.append(whose != null? ctx.labels.sections().collateralOf(type, whose): type);
+		}
 		if(date != null && !date.isBlank()){
 			if(!sb.isEmpty())
 				sb.append(" — ");
 			sb.append(date);
 		}
 		return (!sb.isEmpty()? sb.toString(): null);
+	}
+
+	/** @return	The names of the individuals the event (the principals) or the attribute is about, {@code null} if there are none. */
+	private String whoseIs(final FLEFRecord owner){
+		final List<String> names = new ArrayList<>();
+		if(EventReader.isOfType(owner)){
+			for(final EventIndex.Participant participant : ctx.index.participantsOf(owner))
+				if(IndividualReader.TYPE.equalsIgnoreCase(participant.kind())
+						&& EventParticipationReader.ENUM_ROLE_PRINCIPAL.equalsIgnoreCase(participant.role()))
+					names.add(ctx.displayText(participant.record()));
+		}
+		else{
+			final String individualId = FLEFRecordHelper.getChildValue(owner, IndividualAttributeReader.TAG_INDIVIDUAL);
+			final FLEFRecord individual = (individualId != null? ctx.visible(ctx.model.getRecordById(individualId)): null);
+			if(individual != null)
+				names.add(ctx.displayText(individual));
+		}
+		return (names.isEmpty()? null: String.join(", ", names));
 	}
 
 

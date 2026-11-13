@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
@@ -106,7 +107,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void aDerivedSourceTellsWhatItIsMadeFromAndTheOriginal() throws IOException{
-		final String markdown = markdown(ReportType.SOURCE, "S3", ReportConfig.defaults());
+		final String markdown = markdown(ReportType.SOURCE, "S3", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		//the copy is made from the transcription, which is made from the register
 		Assertions.assertTrue(markdown.contains("**Derived from:** Transcription"), markdown);
@@ -115,7 +116,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void aSourceTellsWhichSourcesAreMadeFromIt() throws IOException{
-		final String markdown = markdown(ReportType.SOURCE, "S1", ReportConfig.defaults());
+		final String markdown = markdown(ReportType.SOURCE, "S1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertTrue(markdown.contains("Derived sources"), markdown);
 		Assertions.assertTrue(markdown.contains("Transcription [S2] — p. 12 (Contradicts)"), markdown);
@@ -123,7 +124,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void theLocatorAndTheDisagreementAreToldWhereTheDerivationIs() throws IOException{
-		final String markdown = markdown(ReportType.SOURCE, "S2", ReportConfig.defaults());
+		final String markdown = markdown(ReportType.SOURCE, "S2", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertTrue(markdown.contains("**Derived from:** Parish register [S1] — p. 12 (Contradicts)"), markdown);
 		//the register is the only source above: it is not told again as the original
@@ -132,7 +133,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void theBibliographyOfAPersonListsTheOriginalsOfTheCitedSources() throws IOException{
-		final String markdown = markdown(ReportType.INDIVIDUAL, "I1", ReportConfig.defaults());
+		final String markdown = markdown(ReportType.INDIVIDUAL, "I1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertTrue(markdown.contains("Copy"), markdown);
 		Assertions.assertTrue(markdown.contains("Transcription"), markdown);
@@ -143,7 +144,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void theOriginalsAreLeftOutWhenTheOptionIsOff() throws IOException{
-		final ReportConfig config = ReportConfig.defaults().with(ReportOption.INCLUDE_ORIGINAL_SOURCES, false);
+		final ReportConfig config = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW).with(ReportOption.INCLUDE_ORIGINAL_SOURCES, false);
 
 		final String markdown = markdown(ReportType.INDIVIDUAL, "I1", config);
 
@@ -155,7 +156,7 @@ class ReportDerivedSourcesTest{
 
 	@Test
 	void theFullBibliographyHasEverySourceWithItsDerivation() throws IOException{
-		final String markdown = markdown(ReportType.FULL_BIBLIOGRAPHY, null, ReportConfig.defaults());
+		final String markdown = markdown(ReportType.FULL_BIBLIOGRAPHY, null, ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
 
 		Assertions.assertTrue(markdown.contains("**Derived from:** Transcription"), markdown);
 		Assertions.assertTrue(markdown.contains("Derived sources"), markdown);

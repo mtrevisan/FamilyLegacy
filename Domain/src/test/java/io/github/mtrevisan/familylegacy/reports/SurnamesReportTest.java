@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -46,6 +47,12 @@ import java.util.Locale;
 
 /** The "Surnames by Place" report: how the surnames are counted by place and period, and how the report writes them. */
 class SurnamesReportTest{
+
+	/** The defaults, showing the individuals that may be living (the fixtures have no death and no birth long ago). */
+	private static ReportConfig everything(){
+		return ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW);
+	}
+
 
 	private FLEFModel model;
 	private int sequence;
@@ -189,7 +196,7 @@ class SurnamesReportTest{
 
 	@Test
 	void theReportHasAGroupForEachPlaceAndATableOfSurnames(){
-		final ReportDocument document = new SurnamesGenerator(model, ReportConfig.defaults()).generate();
+		final ReportDocument document = new SurnamesGenerator(model, everything()).generate();
 
 		Assertions.assertEquals("Surnames by Place", document.title());
 		final List<String> headings = document.sections().stream()
@@ -215,11 +222,11 @@ class SurnamesReportTest{
 
 	@Test
 	void anEmptyFileAndAFileWithoutSurnamesGiveAReport(){
-		Assertions.assertFalse(new SurnamesGenerator(new FLEFModel(), ReportConfig.defaults()).generate().sections().isEmpty());
+		Assertions.assertFalse(new SurnamesGenerator(new FLEFModel(), everything()).generate().sections().isEmpty());
 
 		final FLEFModel nobody = new FLEFModel();
 		nobody.addRecord(person("I1", null, "Elena", null));
-		final ReportDocument document = new SurnamesGenerator(nobody, ReportConfig.defaults()).generate();
+		final ReportDocument document = new SurnamesGenerator(nobody, everything()).generate();
 		Assertions.assertTrue(document.sections().stream()
 			.anyMatch(section -> section instanceof final ReportSection.Paragraph paragraph && paragraph.text().startsWith("No individual has a surname")),
 			document.sections().toString());

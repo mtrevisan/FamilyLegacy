@@ -694,6 +694,26 @@ public final class SectionLabelProvider{
 		return labels.getString("EVENT_OF");
 	}
 
+	/** @return	The heading of a generation of the direct relations ("Generation 2"). */
+	public String generationN(final String number){
+		return String.format(labels.getString("GENERATION"), number);
+	}
+
+	/** @return	What the direct relations are: who is in them and how they are ordered. */
+	public String directRelationsNote(){
+		return labels.getString("DIRECT_RELATIONS_NOTE");
+	}
+
+	/** @return	What a tree says of a person that is drawn already, with the children: they are not drawn again. */
+	public String treeSeeAbove(){
+		return labels.getString("TREE_SEE_ABOVE");
+	}
+
+	/** @return	A kinship term that holds through an adoptive, foster or other legal link, not by blood. */
+	public String kinshipLegal(final String kinship){
+		return String.format(labels.getString("KINSHIP_LEGAL"), kinship);
+	}
+
 	/** @return	The kinship term of a person from the report subject, as in "uncle of John": the pattern takes the term and the name. */
 	public String collateralOf(final String kinship, final String person){
 		return String.format(labels.getString("COLLATERAL_OF"), kinship, person);
@@ -991,9 +1011,24 @@ public final class SectionLabelProvider{
 		return labels.getString("TO_VERIFY_" + kindKey);
 	}
 
+	/** @return	The title of what cites a name ("Sources of the name: Antonia Pastrelo"): the records where the name is written. */
+	public String nameSources(){
+		return labels.getString("NAME_SOURCES");
+	}
+
+	/** @return	The title of the chapter that opens a report, after the front matter: it is not the title of the report, that is already above. */
+	public String overview(){
+		return labels.getString("OVERVIEW");
+	}
+
 	/** @param count	How many individuals the report covers (the message is plural-aware: it is not a {@link String#format} pattern). */
 	public String multiPersonCover(final int count){
 		return labels.pluralKey("MULTI_PERSON_COVER", count);
+	}
+
+	/** @return	The header of the column with the years of birth and death of an individual. */
+	public String columnYears(){
+		return labels.getString("COLUMN_YEARS");
 	}
 
 	public String columnIndividual(){

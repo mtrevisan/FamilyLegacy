@@ -153,9 +153,11 @@ public final class ResearchActivityRootSection implements SectionBuilder{
 		if(tasks.isEmpty())
 			return;
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchTasks()));
+		final List<String> items = new ArrayList<>(tasks.size());
 		for(final FLEFRecord t : tasks)
-			out.add(new ReportSection.Paragraph("• " + ReportFormatters.escape(
-				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION)))));
+			items.add(ReportFormatters.escape(
+				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION))));
+		out.add(new ReportSection.BulletList(items));
 	}
 
 

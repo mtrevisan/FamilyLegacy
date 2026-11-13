@@ -202,14 +202,9 @@ public final class GroupsSection implements SectionBuilder{
 			ReportFormatters.appendIfPresent(meta, ctx.labels.sections().role(),
 				FLEFRecordHelper.getChildValue(membership, RelationshipReader.TAG_ROLE));
 
-			final String from = GenealogicalDateHelper.formatDateStructure(
-				membership, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
-			if(from != null)
-				meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
-			final String to = GenealogicalDateHelper.formatDateStructure(
-				membership, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
-			if(to != null)
-				meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
+			ReportFormatters.appendValidity(meta, ctx.labels,
+				GenealogicalDateHelper.formatDateStructure(membership, RelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels),
+				GenealogicalDateHelper.formatDateStructure(membership, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels));
 
 			if(!meta.isEmpty())
 				out.add(new ReportSection.BulletList(meta));
@@ -318,10 +313,7 @@ public final class GroupsSection implements SectionBuilder{
 		final String to = GenealogicalDateHelper.formatDateStructure(
 			rel, RelationshipReader.TAG_VALID_TO, ctx.labels, contextLabels);
 		final List<String> meta = new ArrayList<>();
-		if(from != null)
-			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
-		if(to != null)
-			meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
+		ReportFormatters.appendValidity(meta, ctx.labels, from, to);
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 

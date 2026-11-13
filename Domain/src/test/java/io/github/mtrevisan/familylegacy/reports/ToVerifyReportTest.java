@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -47,6 +48,12 @@ import java.util.stream.Collectors;
 
 /** The "To Verify" report: what the finder collects and how the report writes it. */
 class ToVerifyReportTest{
+
+	/** The defaults, showing the individuals that may be living (the fixtures have no death and no birth long ago). */
+	private static ReportConfig everything(){
+		return ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW);
+	}
+
 
 	private FLEFModel model;
 
@@ -176,7 +183,7 @@ class ToVerifyReportTest{
 
 	@Test
 	void theReportHasAGroupForEachKindOfFinding(){
-		final ReportDocument document = new ToVerifyGenerator(model, ReportConfig.defaults(), null).generate();
+		final ReportDocument document = new ToVerifyGenerator(model, everything(), null).generate();
 
 		Assertions.assertEquals("To Verify", document.title());
 		final List<String> headings = document.sections().stream()
@@ -194,7 +201,7 @@ class ToVerifyReportTest{
 
 	@Test
 	void theTableOfAGroupListsItsRecordsAndTheDetail(){
-		final ReportDocument document = new ToVerifyGenerator(model, ReportConfig.defaults(), null).generate();
+		final ReportDocument document = new ToVerifyGenerator(model, everything(), null).generate();
 
 		final List<List<String>> tasks = tableAfter(document, "Research tasks to do (1)");
 		Assertions.assertEquals(1, tasks.size());
@@ -220,7 +227,7 @@ class ToVerifyReportTest{
 		clean.addRecord(named("P1", PlaceReader.TYPE, IndividualReader.TAG_NAME, "Treviso"));
 		clean.addRecord(named("S1", SourceReader.TYPE, SourceReader.TAG_TITLE, "Register"));
 
-		final ReportDocument document = new ToVerifyGenerator(clean, ReportConfig.defaults(), null).generate();
+		final ReportDocument document = new ToVerifyGenerator(clean, everything(), null).generate();
 
 		Assertions.assertTrue(document.sections().stream()
 			.anyMatch(section -> section instanceof final ReportSection.Paragraph paragraph && paragraph.text().startsWith("Nothing to verify")),
@@ -229,7 +236,7 @@ class ToVerifyReportTest{
 
 	@Test
 	void anEmptyFileGivesAnEmptyReport(){
-		Assertions.assertFalse(new ToVerifyGenerator(new FLEFModel(), ReportConfig.defaults(), null).generate().sections().isEmpty());
+		Assertions.assertFalse(new ToVerifyGenerator(new FLEFModel(), everything(), null).generate().sections().isEmpty());
 	}
 
 	@Test

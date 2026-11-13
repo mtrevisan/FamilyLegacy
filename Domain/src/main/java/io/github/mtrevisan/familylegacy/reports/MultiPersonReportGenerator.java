@@ -97,7 +97,7 @@ public final class MultiPersonReportGenerator{
 		final List<ReportSection> sections = new ArrayList<>();
 
 		sections.addAll(new HeaderSection(first).build());
-		sections.add(new ReportSection.Heading(1, title));
+		sections.add(new ReportSection.Heading(1, first.labels.sections().overview()));
 		sections.add(new ReportSection.Paragraph(first.labels.sections().multiPersonCover(persons.size())));
 
 		for(final SectionBuilder b : opening)
@@ -105,11 +105,14 @@ public final class MultiPersonReportGenerator{
 
 		if(config.indexIndividuals()){
 			sections.add(new ReportSection.Heading(1, first.labels.sections().indexOfIndividuals()));
+			//each person is a link to the chapter of the person, with the years of birth and death
+			final TreeText text = new TreeText(first);
 			final List<List<String>> rows = new ArrayList<>(persons.size());
 			for(final FLEFRecord person : persons)
-				rows.add(List.of(ReportFormatters.escape(first.displayText(person))));
+				rows.add(List.of("[" + ReportFormatters.escape(first.displayText(person)) + "](@" + person.getId() + "@)",
+					ReportFormatters.orEmpty(text.years(person))));
 			sections.add(new ReportSection.Table(
-				List.of(first.labels.sections().columnIndividual()), rows));
+				List.of(first.labels.sections().columnIndividual(), first.labels.sections().columnYears()), rows));
 		}
 
 		//the groups have an index of their own, after the one of the persons (the same option decides both)
@@ -134,8 +137,8 @@ public final class MultiPersonReportGenerator{
 			final ReportContext ctx = ReportContext.build(model, person, config, sharedIndex);
 			sections.add(ReportSection.PageBreak.INSTANCE);
 			sections.add(new ReportSection.Heading(1, ctx.displayText(person)));
-			sections.addAll(new IntroductionSection(ctx).build());
-			sections.addAll(new IndividualLifeStorySection(ctx).build());
+			sections.addAll(demoted(new IntroductionSection(ctx).build()));
+			sections.addAll(demoted(new IndividualLifeStorySection(ctx).build()));
 
 			listener.onProgress(coverPercent + (i + 1) * perPerson,
 				ctx.displayText(person));
@@ -149,8 +152,8 @@ public final class MultiPersonReportGenerator{
 			final ReportContext ctx = ReportContext.build(model, group, config, sharedIndex);
 			sections.add(ReportSection.PageBreak.INSTANCE);
 			sections.add(new ReportSection.Heading(1, ctx.displayText(group)));
-			sections.addAll(new GroupIntroductionSection(ctx).build());
-			sections.addAll(new GroupStorySection(ctx).build());
+			sections.addAll(demoted(new GroupIntroductionSection(ctx).build()));
+			sections.addAll(demoted(new GroupStorySection(ctx).build()));
 
 			listener.onProgress(coverPercent + (persons.size() + i + 1) * perPerson, ctx.displayText(group));
 		}
@@ -168,6 +171,19 @@ public final class MultiPersonReportGenerator{
 
 		return new ReportDocument(title, null, sections, first.labels.language().locale().toLanguageTag(),
 			first.labels.sections().contents());
+	}
+
+
+	/**
+	 * The sections of a person (or of a group) one level down: the person is a chapter of the report, and what is told about the
+	 * person (the introduction, the life, the relationships, ...) is a section of that chapter, not a chapter on its own.
+	 */
+	private static List<ReportSection> demoted(final List<ReportSection> sections){
+		final List<ReportSection> out = new ArrayList<>(sections.size());
+		for(final ReportSection section : sections)
+			out.add(section instanceof ReportSection.Heading heading
+				? new ReportSection.Heading(Math.min(6, heading.level() + 1), heading.text()): section);
+		return out;
 	}
 
 

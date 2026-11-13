@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.RecordAbsorber;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -51,6 +52,76 @@ class RecordMergerTest{
 		}
 	}
 
+
+	private static final String TWO_NAMES = """
+		header {
+			date 2026-01-01T00:00:00Z
+		}
+		individual I1 {
+			name.part {
+				type given
+				value Giovanni
+			}
+			audit.creation.date 2026-01-01T00:00:00Z
+		}
+		individual I2 {
+			name.part {
+				type given
+				value Giuseppe
+			}
+			audit.creation.date 2026-01-01T00:00:00Z
+		}
+		""";
+
+	@Test
+	void thePlanOfAllTheFieldsHasTheCollisionsAndGivesTheSameResultWhenLeftUntouched(){
+		final FLEFModel plain = new FLEFParser().parse(TWO_NAMES);
+		final RecordMerger plainMerger = new RecordMerger(plain, grammar);
+		final MergePlan plainPlan = plainMerger.plan("I2", "I1");
+		plainMerger.apply(plainPlan);
+
+		final FLEFModel full = new FLEFParser().parse(TWO_NAMES);
+		final RecordMerger fullMerger = new RecordMerger(full, grammar);
+		final MergePlan fullPlan = fullMerger.planAllFields("I2", "I1");
+
+		Assertions.assertTrue(fullPlan.fields().containsAll(fullPlan.collisions()));
+		Assertions.assertEquals(plainPlan.collisions().stream().map(MergeField::tag).toList(),
+			fullPlan.collisions().stream().map(MergeField::tag).toList());
+		Assertions.assertEquals(plainPlan.collisions().size(), fullPlan.collisions().size());
+
+		fullMerger.apply(fullPlan);
+
+		Assertions.assertNull(full.getRecordById("I2"));
+		Assertions.assertEquals(plain.getRecordById("I1").getChildren().size(), full.getRecordById("I1").getChildren().size());
+		Assertions.assertEquals(plain.getRecordById("I1").countChildrenWithTag("name"),
+			full.getRecordById("I1").countChildrenWithTag("name"));
+	}
+
+	private static boolean hasValue(final FLEFRecord record, final String value){
+		if(value.equals(record.getValue()))
+			return true;
+		for(final FLEFRecord child : record.getChildren())
+			if(hasValue(child, value))
+				return true;
+		return false;
+	}
+
+	@Test
+	void aFieldTheUserDecidesInThePlanOfAllTheFieldsIsApplied(){
+		final FLEFModel model = new FLEFParser().parse(TWO_NAMES);
+		final RecordMerger merger = new RecordMerger(model, grammar);
+		final MergePlan plan = merger.planAllFields("I2", "I1");
+
+		//the user takes only the source's name
+		for(final MergeField field : plan.fields())
+			if("name".equals(field.tag()))
+				field.choose(MergeDecision.KEEP_SOURCE);
+		merger.apply(plan);
+
+		Assertions.assertEquals(1, model.getRecordById("I1").countChildrenWithTag("name"));
+		Assertions.assertTrue(hasValue(model.getRecordById("I1"), "Giuseppe"));
+		Assertions.assertFalse(hasValue(model.getRecordById("I1"), "Giovanni"));
+	}
 
 	@Test
 	void twoIndividualsCanBeRecordedAsDifferent(){

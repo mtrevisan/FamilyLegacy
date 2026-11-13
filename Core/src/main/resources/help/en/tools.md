@@ -4,7 +4,7 @@ The **Tools** menu holds the commands that look after the quality of the file as
 
 ## Duplicates and merging
 
-**Detect Duplicates...** finds individuals that may be the same person, and **Merge Individuals...** merges two of them. Both are explained, with the scoring and the rules of the merge, in [Finding duplicates and merging people](merging.md).
+**Detect Duplicates...** finds individuals that may be the same person, and **Merge Individuals...** merges two of them (the list of candidates has its own **Merge...** button, that opens it with the pair already set). Both are explained, with the scoring and the rules of the merge, in [Finding duplicates and merging people](merging.md).
 
 ## Validate File
 

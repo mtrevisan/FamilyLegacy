@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
@@ -218,7 +219,7 @@ class ReportOptionStateTest{
 
 	@Test
 	void theSourcesOfAnAncestorReportAreThoseOfAllThePersons(){
-		final ReportConfig config = ReportConfig.defaults();
+		final ReportConfig config = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW);
 		final long ofTheRoot = headings(ReportType.INDIVIDUAL, "I1", config).stream().filter("src title [S1]"::equals).count();
 		final long ofTheLine = headings(ReportType.ANCESTOR, "I1", config).stream().filter("src title [S1]"::equals).count();
 

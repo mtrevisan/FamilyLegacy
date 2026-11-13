@@ -51,10 +51,17 @@ import java.util.Objects;
 public final class ReportGenerator{
 
 	private final ReportContext ctx;
+	/** The type of the report, if it is chosen: the relationship report is made of the relations only. */
+	private final ReportType type;
 
 
-	public ReportGenerator(final FLEFModel model, final FLEFRecord root,
-		final ReportConfig config){
+	public ReportGenerator(final FLEFModel model, final FLEFRecord root, final ReportConfig config){
+		this(model, root, config, null);
+	}
+
+	/** @param type	The type of the report, or {@code null} if it does not matter. */
+	public ReportGenerator(final FLEFModel model, final FLEFRecord root, final ReportConfig config, final ReportType type){
+		this.type = type;
 		this.ctx = ReportContext.build(
 			Objects.requireNonNull(model),
 			Objects.requireNonNull(root),
@@ -72,6 +79,12 @@ public final class ReportGenerator{
 	 * {@link javax.swing.SwingWorker}, that thread is the worker thread.
 	 */
 	public ReportDocument generate(final ReportProgressListener listener){
+		//an individual that may be living, hidden by the report, has nothing to be told about
+		if(ctx.rootKind() == ReportContext.RootKind.INDIVIDUAL && !ctx.isVisible(ctx.root))
+			return new ReportDocument(ctx.labels.sections().subtitle(), null,
+				List.of(new ReportSection.Paragraph(ctx.labels.narrative().noIndividualAvailable())),
+				ctx.labels.language().locale().toLanguageTag(), ctx.labels.sections().contents());
+
 		final List<SectionBuilder> builders = builders();
 		final int total = builders.size();
 		final List<ReportSection> out = new ArrayList<>();
@@ -92,6 +105,14 @@ public final class ReportGenerator{
 	private List<SectionBuilder> builders(){
 		final List<SectionBuilder> out = new ArrayList<>();
 		out.add(new HeaderSection(ctx));
+
+		//the relationship report is about the relations of a person: not its life, nor what the life cites (sources, places, ...)
+		if(type == ReportType.RELATIONSHIP && ctx.rootKind() == ReportContext.RootKind.INDIVIDUAL){
+			out.add(new IntroductionSection(ctx));
+			out.add(new RelationsSection(ctx));
+			out.add(new IndexSection(ctx));
+			return out;
+		}
 
 		switch(ctx.rootKind()){
 			case INDIVIDUAL -> {

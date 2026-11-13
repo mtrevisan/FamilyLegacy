@@ -34,6 +34,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
@@ -43,7 +46,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -71,6 +78,9 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 
 	@Override
 	public List<ReportSection> build(){
+		if(ctx.isRedacted(ctx.root))
+			return buildRedacted();
+
 		final List<ReportSection> out = new ArrayList<>();
 		final String who = ReportFormatters.escape(ctx.displayText(ctx.root));
 
@@ -86,6 +96,26 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		writeCitedSourceTitles(out);
 		writeAudit(out);
 
+		return out;
+	}
+
+
+	/** The life of an individual that may be living, when the report shows nothing but the name and the role in the family. */
+	private List<ReportSection> buildRedacted(){
+		final List<ReportSection> out = new ArrayList<>();
+		out.add(new ReportSection.Heading(1, String.format(ctx.labels.lifeOf(), ReportFormatters.escape(ctx.displayText(ctx.root)))));
+
+		out.add(new ReportSection.Heading(2, ctx.labels.personalData()));
+		final List<String> personal = new ArrayList<>();
+		personal.add("**" + ctx.labels.sections().id() + ":** " + ReportFormatters.escape(ReportFormatters.orEmpty(ctx.root.getId())));
+		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, IndividualReader.TAG_NAME)){
+			final String name = ReportFormatters.buildName(nameRec);
+			if(!name.isBlank())
+				personal.add("**" + ctx.labels.sections().name() + ":** " + ReportFormatters.escape(name));
+		}
+		out.add(new ReportSection.BulletList(personal));
+
+		writeRelationships(out);
 		return out;
 	}
 
@@ -164,11 +194,12 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 					.append(":* ")
 					.append(ReportFormatters.escape(String.join(", ", norms)));
 
-			personal.add(line.toString());
+			//phonetic and transcription variants of each part, on the line of the name (not as lines of their own)
+			final List<String> variants = partVariants(nameRec);
+			if(!variants.isEmpty())
+				line.append(" — ").append(String.join("; ", variants));
 
-			// Phonetic and transcription variants of each part.
-			for(final String variant : partVariants(nameRec))
-				personal.add("  " + variant);
+			personal.add(line.toString());
 		}
 		out.add(new ReportSection.BulletList(personal));
 
@@ -185,7 +216,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 				//the name the provenance is about
 				final String name = ReportFormatters.buildName(nameRec);
 				out.add(new ReportSection.Heading(3,
-					ctx.labels.sections().name() + (nameType != null? " (" + nameType + ")": StringUtils.EMPTY)
+					ctx.labels.sections().nameSources() + (nameType != null? " (" + nameType + ")": StringUtils.EMPTY)
 						+ (name.isBlank()? StringUtils.EMPTY: ": " + ReportFormatters.escape(name))));
 				out.addAll(provenance);
 			}
@@ -206,7 +237,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			if(vs.isEmpty())
 				continue;
 			final String partType = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
-			final String sb = "  *" + ReportFormatters.escape(ReportFormatters.orEmpty(partType)) +
+			final String sb = "*" + ReportFormatters.escape(ReportFormatters.orEmpty(ReportFormatters.enumLabel(partType))) +
 				":* " + ReportFormatters.escape(String.join(", ", vs));
 			out.add(sb);
 		}
@@ -236,8 +267,56 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(ctx.labels.sections().empty()));
 			return;
 		}
-		for(final FLEFRecord evt : events)
+		for(final FLEFRecord evt : chronological(events))
 			writeEvent(out, evt);
+	}
+
+	/**
+	 * Sorts the events by date: the undated birth first, then the dated events (earliest first), then the other undated ones, and
+	 * the undated death, burial and cremation last. The sort is stable, so the events with the same date keep their order.
+	 */
+	static List<FLEFRecord> chronological(final Collection<FLEFRecord> events){
+		final Map<FLEFRecord, NormalizedDate> dates = new IdentityHashMap<>();
+		for(final FLEFRecord evt : events){
+			final TemporalSpan span = DateReader.extractTemporalSpan(FLEFRecordHelper.findChild(evt, EventReader.TAG_DATE));
+			dates.put(evt, (span != null? span.start(): null));
+		}
+
+		final List<FLEFRecord> sorted = new ArrayList<>(events);
+		sorted.sort(Comparator.<FLEFRecord>comparingInt(evt -> undatedRank(evt, dates.get(evt) != null))
+			.thenComparing(dates::get, Comparator.nullsLast(Comparator.naturalOrder())));
+		return sorted;
+	}
+
+	private static int undatedRank(final FLEFRecord evt, final boolean dated){
+		if(dated)
+			return 1;
+
+		final String type = FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE);
+		if(EventReader.ENUM_TYPE_BIRTH.equalsIgnoreCase(type))
+			return 0;
+		return (EventReader.ENUM_TYPE_DEATH.equalsIgnoreCase(type) || EventReader.ENUM_TYPE_BURIAL.equalsIgnoreCase(type)
+			|| EventReader.ENUM_TYPE_CREMATION.equalsIgnoreCase(type)? 3: 2);
+	}
+
+	/**
+	 * The title of an event of the individual: the type, and for an event in which the individual is not the principal (a witness, a
+	 * godparent, ...) whose event it is and the role: {@code birth of Antonio Cesare Gallinaro (witness)}. The role of the principal is
+	 * not told: it is the usual one.
+	 */
+	private String eventTitle(final FLEFRecord evt, final String type){
+		final String role = roleOfInEvent(ctx.root, evt);
+		if(role == null || role.isBlank() || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equalsIgnoreCase(role))
+			return type;
+
+		final List<String> principals = new ArrayList<>();
+		for(final EventIndex.Participant participant : ctx.index.participantsOf(evt))
+			if(IndividualReader.TYPE.equalsIgnoreCase(participant.kind())
+					&& EventParticipationReader.ENUM_ROLE_PRINCIPAL.equalsIgnoreCase(participant.role())
+					&& !Objects.equals(participant.record().getId(), ctx.root.getId()))
+				principals.add(ReportFormatters.escape(ctx.displayText(participant.record())));
+		return (principals.isEmpty()? type: ctx.labels.sections().collateralOf(type, String.join(", ", principals)))
+			+ " (" + ReportFormatters.escape(role) + ")";
 	}
 
 	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt){
@@ -245,8 +324,9 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE)));
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
 			GenealogicalDateHelper.formatEventDate(evt, ctx.labels, contextLabels)));
-		out.add(new ReportSection.Heading(3,
-			(type.isEmpty()? ctx.labels.sections().eventGeneric(): type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
+		final List<ReportSection> block = new ArrayList<>();
+		block.add(new ReportSection.Heading(3, eventTitle(evt, (type.isEmpty()? ctx.labels.sections().eventGeneric(): type))
+			+ (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
 		final List<String> details = new ArrayList<>();
 
@@ -262,23 +342,26 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		if(cause != null && !cause.isBlank())
 			details.add("**" + ctx.labels.sections().cause() + ":** " + ReportFormatters.escape(cause));
 
-		final String role = roleOfInEvent(ctx.root, evt);
-		if(role != null && !role.isBlank())
-			details.add("**" + ctx.labels.sections().role() + ":** " + ReportFormatters.escape(role));
+		//an event with nothing but the role of the individual (no date, place, description, cause, note, source, ...) says nothing
+		final boolean hasData = (!date.isEmpty() || !details.isEmpty());
 
 		if(!details.isEmpty())
-			out.add(new ReportSection.BulletList(details));
+			block.add(new ReportSection.BulletList(details));
 
+		final int sizeBeforeExtras = block.size();
 		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(evt));
+			block.addAll(ctx.citations().notes(evt));
 		if(ctx.config.sources())
-			out.addAll(ctx.citations().citations(evt));
+			block.addAll(ctx.citations().citations(evt));
 		if(ctx.config.evidence())
 			ctx.citations()
-				.addEvidence(evt, out);
-		out.addAll(ctx.citations().audit(evt));
+				.addEvidence(evt, block);
+		block.addAll(ctx.citations().audit(evt));
 		if(ctx.config.eventFullParticipants())
-			appendOtherParticipants(out, evt);
+			appendOtherParticipants(block, evt);
+
+		if(hasData || block.size() > sizeBeforeExtras)
+			out.addAll(block);
 	}
 
 	private void appendOtherParticipants(final List<ReportSection> out, final FLEFRecord evt){
@@ -343,9 +426,24 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(2, ctx.labels.attributes()));
+		//an attribute with nothing but its type and value ("sex: female") is a line of a list, not a heading with nothing under it
+		final List<String> plain = new ArrayList<>();
 		for(final FLEFRecord attr : attrs){
-			writeAttributeDetails(out, attr);
+			final List<ReportSection> block = new ArrayList<>();
+			writeAttributeDetails(block, attr);
+			if(block.size() == 1 && block.getFirst() instanceof final ReportSection.Heading heading){
+				plain.add(heading.text());
+				continue;
+			}
+
+			if(!plain.isEmpty()){
+				out.add(new ReportSection.BulletList(List.copyOf(plain)));
+				plain.clear();
+			}
+			out.addAll(block);
 		}
+		if(!plain.isEmpty())
+			out.add(new ReportSection.BulletList(List.copyOf(plain)));
 	}
 
 	private void writeAttributeDetails(final List<ReportSection> out, final FLEFRecord attr){
@@ -374,12 +472,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		// 3. Time Span (valid_from - valid_to)
 		final String from = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_FROM, ctx.labels, contextLabels);
 		final String to = GenealogicalDateHelper.formatDateStructure(attr, IndividualAttributeReader.TAG_VALID_TO, ctx.labels, contextLabels);
-		if(from != null && !from.isBlank()){
-			details.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
-		}
-		if(to != null && !to.isBlank()){
-			details.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
-		}
+		ReportFormatters.appendValidity(details, ctx.labels, from, to);
 
 		if(!details.isEmpty()){
 			out.add(new ReportSection.BulletList(details));
@@ -408,7 +501,9 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		final List<FLEFRecord> declared = new ArrayList<>();
 		for(final FLEFRecord rel : ctx.visibleRecordsByType(RelationshipReader.TYPE)){
 			final String subj = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
-			if(Objects.equals(ctx.root.getId(), subj))
+			//(the memberships of a group are told only if the report has the groups)
+			if(Objects.equals(ctx.root.getId(), subj)
+					&& (ctx.config.groups() || !RelationshipReader.isTypeGroupMember(RelationshipReader.extractType(rel))))
 				declared.add(rel);
 		}
 		if(declared.isEmpty()){
@@ -418,28 +513,6 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 
 		for(final FLEFRecord rel : declared)
 			writeRelationship(out, rel);
-
-		final List<FLEFRecord> memberships = (ctx.config.groups()
-			? ctx.index.groupMembershipsOf(ctx.root)
-			: List.of());
-		if(!memberships.isEmpty()){
-			out.add(new ReportSection.Heading(3, ctx.labels.sections().groupMemberships()));
-			final List<String> items = new ArrayList<>();
-			for(final FLEFRecord m : memberships){
-				final String groupId = memberGroupId(m);
-				final FLEFRecord group = (groupId != null
-					? ctx.visible(ctx.model.getRecordById(groupId)): null);
-				if(group == null)
-					continue;
-				final String name = ctx.displayText(group);
-				final String role = FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_ROLE);
-				items.add(ReportFormatters.escape(name)
-					+ (role != null && !role.isBlank()
-					? " — *" + ReportFormatters.escape(role) + "*": StringUtils.EMPTY));
-			}
-			if(!items.isEmpty())
-				out.add(new ReportSection.BulletList(items));
-		}
 	}
 
 	private static String memberGroupId(final FLEFRecord rel){
@@ -471,21 +544,34 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		final String objectLabel = (object != null? ctx.displayText(object)
 			: (group != null? ctx.displayText(group): ReportFormatters.orEmpty(StringUtils.defaultIfBlank(objectId, groupId))));
 
-		out.add(new ReportSection.Heading(3,
-			ReportFormatters.escape(relType)
-				+ (role != null? " / " + ReportFormatters.escape(role): StringUtils.EMPTY)
-				+ (objectLabel.isEmpty()? StringUtils.EMPTY: ": " + ReportFormatters.escape(objectLabel))));
+		//"Biological child of Hieronimo Pastrelo (father)": the subject is the child, the other end is the parent (with its role)
+		final String typeLabel = StringUtils.capitalize(StringUtils.defaultString(ReportFormatters.enumLabel(relType)));
+		//the kinship term of the other end ("father"): in the title, when the relationship has no role of its own
+		String kinTerm = null;
+		if(ctx.isVisible(object)){
+			final String term = ctx.kinship().shortTerm(object.getId(), ctx.root.getId());
+			if(ReportFormatters.isUsefulKinshipTerm(term))
+				kinTerm = term;
+		}
+		final boolean hasRole = (role != null && !role.isBlank());
+		final String roleLabel = (hasRole? " (" + ReportFormatters.escape(role.trim()) + ")"
+			: (kinTerm != null? " (" + ReportFormatters.escape(kinTerm) + ")": StringUtils.EMPTY));
+		if(RelationshipReader.isTypeChild(relType) && !objectLabel.isEmpty())
+			out.add(new ReportSection.Heading(3,
+				ctx.labels.sections().collateralOf(ReportFormatters.escape(typeLabel), ReportFormatters.escape(objectLabel)) + roleLabel));
+		else
+			out.add(new ReportSection.Heading(3,
+				ReportFormatters.escape(typeLabel)
+					+ (objectLabel.isEmpty()? StringUtils.EMPTY: ": " + ReportFormatters.escape(objectLabel))
+					+ roleLabel));
 
 		final List<String> meta = new ArrayList<>();
-		if(from != null)
-			meta.add("**" + ctx.labels.sections().validFrom() + ":** " + ReportFormatters.escape(from));
-		if(to != null)
-			meta.add("**" + ctx.labels.sections().validTo() + ":** " + ReportFormatters.escape(to));
-		if(ctx.isVisible(object)){
-			final String kinTerm = ctx.kinship().shortTerm(object.getId(), ctx.root.getId());
-			if(ReportFormatters.isUsefulKinshipTerm(kinTerm))
-				meta.add("*" + ReportFormatters.escape(kinTerm) + "*");
-		}
+		//(the dates of a relationship of an individual that may be living are not told)
+		if(!ctx.isRedacted(rel))
+			ReportFormatters.appendValidity(meta, ctx.labels, from, to);
+		//(with a role of its own, the kinship term is a line under the title)
+		if(hasRole && kinTerm != null && !kinTerm.equalsIgnoreCase(role.trim()))
+			meta.add("*" + ReportFormatters.escape(kinTerm) + "*");
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
@@ -493,7 +579,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
-		if(ctx.config.evidence())
+		if(ctx.config.evidence() && !ctx.isRedacted(rel))
 			ctx.citations()
 				.addEvidence(rel, out);
 		out.addAll(ctx.citations().audit(rel));

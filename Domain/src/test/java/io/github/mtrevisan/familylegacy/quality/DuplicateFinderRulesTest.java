@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.quality;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -131,6 +132,18 @@ class DuplicateFinderRulesTest{
 
 
 	@Test
+	void aYearIsWrittenWithoutAThousandsSeparatorInAnyLanguage(){
+		//a year is not a quantity: the messages that give one format it as a number with no grouping, or English would write 1,850
+		for(final String key : List.of("text.duplicates.diff.birth_year", "text.duplicates.diff.death_year",
+				"text.duplicates.penalty.birth_year", "text.duplicates.penalty.death_year")){
+			final String text = new com.ibm.icu.text.MessageFormat(I18N.t(key), java.util.Locale.ENGLISH).format(new Object[]{1850, 1862, 20});
+
+			Assertions.assertTrue(text.contains("1850") && text.contains("1862"), key + ": " + text);
+			Assertions.assertFalse(text.contains("1,850") || text.contains("1,862"), key + ": " + text);
+		}
+	}
+
+	@Test
 	void twoRecordsOfTheSameNameAndYearAreCandidates(){
 		person("I1", "Giovanni", "Masutti", 1850);
 		person("I2", "Giovanni", "Masutti", 1851);
@@ -168,6 +181,101 @@ class DuplicateFinderRulesTest{
 		childOf("I3", "I2");
 
 		Assertions.assertNull(pair("I1", "I3"));
+	}
+
+	private static boolean hasMatch(final DuplicateFinderService.Candidate candidate, final String feature){
+		return candidate.matches().stream().anyMatch(match -> match.feature().equals(feature));
+	}
+
+	private static boolean hasDifference(final DuplicateFinderService.Candidate candidate, final String fragment){
+		return candidate.differences().stream().anyMatch(difference -> difference.contains(fragment));
+	}
+
+	@Test
+	void twoIndividualsInTreesThatAreNotConnectedGetPointsForIt(){
+		//the same person in two trees that were imported apart: each has a relative, none in common
+		person("I1", "Giovanni", "Masutti", 1850);
+		person("I2", "Antonio", "Masutti", 1820);
+		childOf("I1", "I2");
+		person("I3", "Giovanni", "Masutti", 1850);
+		person("I4", "Bortolo", "Masutti", 1820);
+		childOf("I3", "I4");
+
+		final DuplicateFinderService.Candidate candidate = pair("I1", "I3");
+
+		Assertions.assertNotNull(candidate);
+		Assertions.assertTrue(hasMatch(candidate, "Different trees"), candidate.matches().toString());
+	}
+
+	@Test
+	void anIndividualWithNoRelativeTellsNothingAboutTheTree(){
+		person("I1", "Giovanni", "Masutti", 1850);
+		person("I2", "Giovanni", "Masutti", 1850);
+		person("I3", "Antonio", "Masutti", 1820);
+		childOf("I2", "I3");
+
+		final DuplicateFinderService.Candidate candidate = pair("I1", "I2");
+
+		Assertions.assertNotNull(candidate);
+		Assertions.assertFalse(hasMatch(candidate, "Different trees"), candidate.matches().toString());
+		Assertions.assertFalse(hasDifference(candidate, "steps apart"), candidate.differences().toString());
+	}
+
+	@Test
+	void twoCousinsOfTheSameNameInOneTreeLoseSomePoints(){
+		//I1 and I5 are two steps up and two down: four steps, and they share no parent, child or spouse
+		person("I10", "Pietro", "Masutti", 1760);
+		person("I2", "Antonio", "Masutti", 1790);
+		person("I3", "Bortolo", "Masutti", 1795);
+		person("I1", "Giovanni", "Masutti", 1820);
+		person("I5", "Giovanni", "Masutti", 1821);
+		childOf("I2", "I10");
+		childOf("I3", "I10");
+		childOf("I1", "I2");
+		childOf("I5", "I3");
+
+		final DuplicateFinderService.Candidate candidate = pair("I1", "I5");
+
+		Assertions.assertNotNull(candidate);
+		Assertions.assertTrue(hasDifference(candidate, "4 steps apart"), candidate.differences().toString());
+		Assertions.assertFalse(hasMatch(candidate, "Different trees"));
+	}
+
+	@Test
+	void relativesFartherThanTheLimitAreNotPenalized(){
+		//a line of descent: I1 and I7 are six steps apart, but are no relatives of the near kind
+		person("I20", "Pietro", "Masutti", 1700);
+		person("I21", "Antonio", "Masutti", 1730);
+		person("I22", "Bortolo", "Masutti", 1760);
+		person("I1", "Giovanni", "Masutti", 1790);
+		person("I23", "Domenico", "Masutti", 1731);
+		person("I24", "Valentino", "Masutti", 1761);
+		person("I7", "Giovanni", "Masutti", 1791);
+		childOf("I21", "I20");
+		childOf("I22", "I21");
+		childOf("I1", "I22");
+		childOf("I23", "I20");
+		childOf("I24", "I23");
+		childOf("I7", "I24");
+
+		final DuplicateFinderService.Candidate candidate = pair("I1", "I7");
+
+		Assertions.assertNotNull(candidate);
+		Assertions.assertFalse(hasDifference(candidate, "steps apart"), candidate.differences().toString());
+	}
+
+	@Test
+	void theSamePersonWrittenTwiceUnderTheSameParentsIsNotNearRelatives(){
+		person("I1", "Antonio", "Masutti", 1790);
+		person("I2", "Beatrice", "Trevisan", 1820);
+		person("I3", "Beatrice", "Trevisan", 1820);
+		childOf("I2", "I1");
+		childOf("I3", "I1");
+
+		final DuplicateFinderService.Candidate candidate = pair("I2", "I3");
+
+		Assertions.assertNotNull(candidate);
+		Assertions.assertFalse(hasDifference(candidate, "steps apart"), candidate.differences().toString());
 	}
 
 	@Test

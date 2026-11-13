@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
@@ -69,11 +70,16 @@ class ReportMarkdownTest{
 	}
 
 
-	/** The report of the type about the record {@code id}, as Markdown (with its default options). */
+	/** The report of the type about the record {@code id}, as Markdown (with its default options, and the individuals that may be living shown). */
 	private static String markdown(final ReportType type, final String id) throws IOException{
-		final ReportDocument document = ReportBuilder.build(type, model, (id != null? model.getRecordById(id): null), ReportConfig.defaults(),
-			ReportProgressListener.NOOP);
-		final Path target = directory.resolve(type.name() + "-" + id + ".md");
+		return markdown(type, id, LivingPrivacy.SHOW);
+	}
+
+	/** The same, with the given treatment of the individuals that may be living. */
+	private static String markdown(final ReportType type, final String id, final LivingPrivacy living) throws IOException{
+		final ReportDocument document = ReportBuilder.build(type, model, (id != null? model.getRecordById(id): null),
+			ReportConfig.defaults().withLivingPrivacy(living), ReportProgressListener.NOOP);
+		final Path target = directory.resolve(type.name() + "-" + id + "-" + living + ".md");
 		ReportRenderers.available().stream()
 			.filter(renderer -> "markdown".equals(renderer.id()))
 			.findFirst()
@@ -157,10 +163,32 @@ class ReportMarkdownTest{
 		Assertions.assertEquals("# Ancestors of first name [I1]", firstLine(markdown));
 		assertContains(markdown, "This report covers one individual.", "# Ancestor tree", "# Index of Individuals",
 			"Little is known about the birth of first name.");
-		Assertions.assertEquals(List.of("| Individual |", "| --- |", "| first name [I1] |"), sectionOf(markdown, "# Index of Individuals").stream()
+		Assertions.assertEquals(List.of("| Individual | Years |", "| --- | --- |", "| [first name [I1]](#I1) |  |"), sectionOf(markdown, "# Index of Individuals").stream()
 			.filter(line -> line.startsWith("|"))
 			.toList());
 		assertDoesNotContain(markdown, "# Descendant tree");
+	}
+
+	@Test
+	void aReportWithSeveralChaptersHasTheirContentsWithTheAnchorsOfTheViewers() throws IOException{
+		final String markdown = markdown(ReportType.ANCESTOR, "I1");
+
+		assertContains(markdown, "**Contents**", "- [Document information](#document-information)", "- [Ancestor tree](#ancestor-tree)",
+			"- [Index of Individuals](#index-of-individuals)");
+		//the title of the report is written once: the chapter after the front matter is the overview
+		assertContains(markdown, "- [Overview](#overview)");
+		Assertions.assertEquals(1, markdown.lines().filter(line -> line.equals("# Ancestors of first name [I1]")).count());
+	}
+
+	@Test
+	void theSectionsOfAPersonAreSectionsOfThePersonNotChaptersOfTheReport() throws IOException{
+		final String markdown = markdown(ReportType.ANCESTOR, "I1");
+
+		final List<String> lines = markdown.lines().toList();
+		for(final String heading : List.of("# first name [I1]", "## Introduction", "## Life of first name [I1]", "### Personal data"))
+			Assertions.assertTrue(lines.contains(heading), heading + " is missing\n" + markdown);
+		for(final String heading : List.of("# Introduction", "# Life of first name [I1]"))
+			Assertions.assertFalse(lines.contains(heading), heading + " is a chapter");
 	}
 
 	@Test
@@ -178,8 +206,8 @@ class ReportMarkdownTest{
 
 		Assertions.assertEquals("# first name [I1]", firstLine(markdown));
 		assertContains(markdown, "# Introduction", "# Life of first name [I1]", "## Personal data", "- **ID:** I1", "- **Sex:** female",
-			"## Life events", "### epidemic — late 19th century", "- **Place:** a certain place", "- **Description:** cholera",
-			"## Attributes", "### residence: attr", "# Paternal Ancestry", "# Maternal Ancestry", "# Descendants", "# Direct Relations",
+			"## Life events", "### epidemic (spouse) — late 19th century", "- **Place:** a certain place", "- **Description:** cholera",
+			"## Attributes", "### residence: attr", "# Paternal Ancestry", "# Maternal Ancestry", "# Descendants",
 			"# Sources", "## src title [S1]", "# Places", "# Index of Individuals", "# Index of Places");
 		//the narrative tells what is known
 		assertContains(markdown, "Little is known about the birth of first name.", "first name had epidemic: cholera");
@@ -189,28 +217,65 @@ class ReportMarkdownTest{
 	void theProvenanceOfANameSaysWhichNameItIs() throws IOException{
 		final String markdown = markdown(ReportType.INDIVIDUAL, "I1");
 
-		assertContains(markdown, "### Name (maiden): nòme");
-		assertDoesNotContain(markdown, "### Name (maiden)\n");
+		assertContains(markdown, "### Sources of the name (maiden): nòme");
+		assertDoesNotContain(markdown, "### Sources of the name (maiden)\n");
 	}
 
 	@Test
 	void groupReport() throws IOException{
 		final String markdown = markdown(ReportType.GROUP, "G1");
 
-		Assertions.assertEquals("# household group (household) [G1]", firstLine(markdown));
-		assertContains(markdown, "# History of household group (household) [G1]", "## Group data", "## Members",
-			"| Person | Role | From | To |", "| first name [I1] | president | original text | original text |",
+		Assertions.assertEquals("# household group [G1]", firstLine(markdown));
+		assertContains(markdown, "# History of household group [G1]", "## Group data", "## Members",
+			"| Person | Years | Role | From | To |", "| first name [I1] |  | president | original text | original text |",
 			"## Group attributes", "| residence | group attr value | original text | original text | a certain place |",
 			"## Events involving the group", "### deed");
+	}
+
+	@Test
+	void anIndividualThatMayBeLivingHasOnlyTheNameAndTheRoleWhenTheReportSaysSo() throws IOException{
+		final String markdown = markdown(ReportType.INDIVIDUAL, "I1", LivingPrivacy.NAME_AND_ROLE);
+
+		//the name and the role in the family
+		assertContains(markdown, "# first name [I1]", "# Life of first name [I1]", "## Personal data", "- **ID:** I1",
+			"### Group member: household group [G1] (president)");
+		//nothing else: no events, attributes, narrative, sex, sources, places, notes
+		assertDoesNotContain(markdown, "## Life events", "epidemic", "cholera", "## Attributes", "- **Sex:**", "# Sources",
+			"had epidemic");
+	}
+
+	@Test
+	void anIndividualThatMayBeLivingIsNotInTheReportWhenTheReportHidesThem() throws IOException{
+		final String markdown = markdown(ReportType.INDIVIDUAL, "I1", LivingPrivacy.HIDE);
+
+		assertContains(markdown, "No individual is available for this report");
+		assertDoesNotContain(markdown, "first name", "Life of", "epidemic");
+	}
+
+	@Test
+	void everyReportAboutTheWholeFileKeepsTheLivingHiddenToo() throws IOException{
+		for(final ReportType type : new ReportType[]{ReportType.SURNAMES, ReportType.FAMILY_BOOK, ReportType.TO_VERIFY}){
+			final String markdown = markdown(type, rootOf(type), LivingPrivacy.HIDE);
+
+			assertDoesNotContain(markdown, "epidemic", "cholera");
+		}
+	}
+
+	@Test
+	void theIndexOfIndividualsOfAGroupListsItsMembers() throws IOException{
+		final String markdown = markdown(ReportType.GROUP, "G1");
+
+		Assertions.assertTrue(sectionOf(markdown, "# Index of Individuals").contains("| first name [I1] |  |"), markdown);
 	}
 
 	@Test
 	void relationshipReport() throws IOException{
 		final String markdown = markdown(ReportType.RELATIONSHIP, "I1");
 
-		assertContains(markdown, "# Direct Relations", "## 1. first name [I1] — *(subject)*", "# Indirect Relations",
-			"(no indirect relations reported)");
-		assertDoesNotContain(markdown, "# Paternal Ancestry", "# Descendants");
+		assertContains(markdown, "# Direct Relations", "## Subject", "| first name [I1] |", "# Indirect Relations",
+			"(no indirect relations reported)", "# Index of Individuals");
+		//the relations only: not the life of the person, nor what the life cites
+		assertDoesNotContain(markdown, "# Paternal Ancestry", "# Descendants", "Life of", "# Sources", "# Places", "# Index of Places");
 	}
 
 	@Test
@@ -227,7 +292,7 @@ class ReportMarkdownTest{
 	void sourceReport() throws IOException{
 		final String markdown = markdown(ReportType.SOURCE, "S1");
 
-		assertContains(markdown, "# Source: src title [S1]", "- **Publisher:** pub", "- **Date:** 2001-01-01 (gregorian)",
+		assertContains(markdown, "# Source: src title [S1]", "- **Publisher:** pub", "- **Record date:** 2001-01-01",
 			"- **Place:** a certain place", "- **Media type:** book", "## Repository", "## Documents", "## Cited by");
 	}
 
@@ -260,7 +325,7 @@ class ReportMarkdownTest{
 	void aRelationshipOfAnIndividualWithAGroupSaysWhichGroup() throws IOException{
 		final String markdown = markdown(ReportType.INDIVIDUAL, "I1");
 
-		assertContains(markdown, "### group_member / president: household group (household) [G1]");
+		assertContains(markdown, "### Group member: household group [G1] (president)");
 		Assertions.assertTrue(markdown.lines().noneMatch(line -> line.startsWith("#") && line.endsWith(": ")), "a title ends with a colon");
 	}
 
@@ -298,9 +363,9 @@ class ReportMarkdownTest{
 		final String markdown = markdown(ReportType.FULL_BIBLIOGRAPHY, null);
 
 		Assertions.assertEquals("# Bibliography", firstLine(markdown));
-		assertContains(markdown, "Sources cited: 2", "| Title | Author | Date | Citations |", "## Source: src title [S1]",
+		assertContains(markdown, "Sources cited: 2", "| Title | Author | Record date | Citations |", "## Source: src title [S1]",
 			"## Source: src title for group [S2]", "### Cited by");
-		Assertions.assertTrue(markdown.lines().anyMatch(line -> line.startsWith("| src title [S1] |  | 2001-01-01 (gregorian) | ")), markdown);
+		Assertions.assertTrue(markdown.lines().anyMatch(line -> line.startsWith("| src title [S1] |  | 2001-01-01 | ")), markdown);
 		Assertions.assertTrue(markdown.lines().anyMatch(line -> line.startsWith("| src title for group [S2] |  |  | ")), markdown);
 	}
 
@@ -327,9 +392,10 @@ class ReportMarkdownTest{
 
 		Assertions.assertEquals("# Family Book", firstLine(markdown));
 		assertContains(markdown, "This report covers 3 individuals.", "# Index of Individuals", "| first name [I1] |", "# Index of Groups",
-			"| household group (household) [G1] |", "# first name [I1]", "# household group (household) [G1]", "# Sources", "# Places");
-		//the persons come one after the other, each with its own life
-		Assertions.assertEquals(3, markdown.lines().filter(line -> line.startsWith("# Life of ")).count());
+			"| household group [G1] |", "# first name [I1]", "# household group [G1]", "# Sources", "# Places");
+		//the persons come one after the other, each with its own life (a section of the chapter of the person)
+		Assertions.assertEquals(3, markdown.lines().filter(line -> line.startsWith("## Life of ")).count());
+		Assertions.assertEquals(0, markdown.lines().filter(line -> line.startsWith("# Life of ")).count());
 		Assertions.assertTrue(StringUtils.countMatches(markdown, "## Personal data") >= 3);
 	}
 

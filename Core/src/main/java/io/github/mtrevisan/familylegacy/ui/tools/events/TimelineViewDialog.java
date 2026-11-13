@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.events.EventHelper;
 import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.events.EventTimeline;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
@@ -198,12 +199,7 @@ public final class TimelineViewDialog extends JDialog{
 		openButton.setEnabled(false);
 		openButton.addActionListener(e -> openSelected());
 
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
-		footer.add(statusLabel);
-		footer.add(openButton);
-		footer.add(ToolDialogs.createCopyButton(tableModel::toText));
-		return footer;
+		return GUIHelper.createStatusFooter(statusLabel, openButton, ToolDialogs.createCopyButton(tableModel::toText));
 	}
 
 

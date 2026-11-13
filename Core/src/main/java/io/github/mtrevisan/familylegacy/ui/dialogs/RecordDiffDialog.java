@@ -25,17 +25,21 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.comparison.DiffKind;
+import io.github.mtrevisan.familylegacy.ui.components.comparison.DiffPainters;
+import io.github.mtrevisan.familylegacy.ui.components.comparison.RecordAlignment;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.util.DiffUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -43,12 +47,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -58,41 +61,38 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Shape;
+import java.awt.Rectangle;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 /**
- * Dialog that compares two FLEFRecord objects side-by-side with
- * difference highlighting and synchronized scrolling. Allows the user
+ * Dialog that compares two FLEFRecord objects side-by-side with difference highlighting and synchronized scrolling. Allows the user
  * to choose which record to keep.
  * <p>
- * <b>Aligned rows.</b> Both text areas are rebuilt from the diff, so
- * each logical position occupies the same row on both sides. When a
- * line exists only on one side, the other side receives an empty
- * placeholder row at the same position, so line N on the left and line
- * N on the right always refer to the same content.
+ * It compares the two records as the review of a merge does ({@link RecordAlignment}): the columns are aligned <b>a sub-record at a
+ * time</b>, so a block of one column faces at most one block of the other and is never interrupted by a second one; the sub-records
+ * are shown in the same order in both columns, whatever order they had; blocks that cite the same record face each other, and ones
+ * that cite different records do not; a reference to another record is a stronger difference than another text. The colours are of
+ * the line ({@link DiffPainters}), the lines that cite a record say, after their text, the name of the record, and the buttons (and
+ * the keys <em>F7</em> and <em>F8</em>) go to the previous and the next difference.
  * <p>
- * <b>Placeholder rendering.</b> Placeholder rows are drawn with a
- * diagonal hatch pattern, in the style of Beyond Compare, so a missing
- * line is visually distinct from a genuinely empty line in the source.
- * The hatch is painted by a custom {@link JTextArea} subclass after the
- * normal text rendering, and is clipped to the exact bounds of the
- * placeholder rows.
+ * Where a column has no line it has an empty one, in grey, so that line N on the left and line N on the right always refer to the
+ * same place. The window opens on the first line, and stays there until the user moves it.
  */
 public class RecordDiffDialog extends JDialog{
 
@@ -100,16 +100,10 @@ public class RecordDiffDialog extends JDialog{
 	private static final String OPEN_PARENTHESIS = "(";
 	private static final String CLOSE_PARENTHESIS = ")";
 
-	private static final Color COLOR_DELETE = new Color(255, 214, 214);
-	private static final Color COLOR_INSERT = new Color(214, 255, 220);
-	private static final Color COLOR_MODIFIED = new Color(255, 244, 199);
 	private static final Color COLOR_SELECTION = new Color(197, 220, 255);
 	private static final Color COLOR_SELECTED_TEXT = Color.BLACK;
-
-	/** Color of the diagonal hatch drawn on placeholder rows. */
-	private static final Color COLOR_HATCH = new Color(140, 140, 140);
-	/** Distance between two hatch lines, in pixels. */
-	private static final int HATCH_SPACING = 9;
+	/** The frame of the difference the window is on. */
+	private static final Color COLOR_CURRENT = new Color(0x1565C0);
 
 	/** What an identifier of a record looks like: letters and a number (I12, IH3, S1). Only the ones that are records of the model are links. */
 	private static final Pattern IDENTIFIER = Pattern.compile("\\b[A-Za-z]{1,4}\\d+\\b");
@@ -118,11 +112,22 @@ public class RecordDiffDialog extends JDialog{
 
 	private final DiffTextArea leftArea;
 	private final DiffTextArea rightArea;
+	private final JScrollPane leftScroll;
+	private final JScrollPane rightScroll;
+	private final JButton previousButton = new JButton("\u25B2 " + I18N.t("dialog.record_diff.nav.previous"));
+	private final JButton nextButton = new JButton("\u25BC " + I18N.t("dialog.record_diff.nav.next"));
+	private final JLabel summary = new JLabel(StringUtils.SPACE);
 
 	/** The model the references are records of ({@code null}: there are no links). */
 	private final FLEFModel model;
 	private final FLEFRecord before;
 	private final FLEFRecord after;
+
+	/** The places where the two records differ, as the first row and the last: one after the other. */
+	private List<int[]> differences = List.of();
+	private int current = -1;
+	/** The window has just opened: the view stays at the first line until the user moves it, whatever the layout does meanwhile. */
+	private boolean opening = true;
 
 	private boolean accepted;
 	// true = keep right (after), false = keep left (before)
@@ -171,16 +176,17 @@ public class RecordDiffDialog extends JDialog{
 
 		leftArea = createTextArea();
 		rightArea = createTextArea();
+		leftScroll = new JScrollPane(leftArea);
+		rightScroll = new JScrollPane(rightArea);
 
-		// Compute the diff and rebuild both text areas with aligned rows.
+		// Align the two records and fill both text areas.
 		showDiff();
 		enableLinks(leftArea);
 		enableLinks(rightArea);
 
 		// Setup synchronized scrolling.
-		final JScrollPane leftScroll = new JScrollPane(leftArea);
-		final JScrollPane rightScroll = new JScrollPane(rightArea);
 		syncScrolling(leftScroll, rightScroll);
+		keepAtTopWhileOpening();
 
 		// Header labels showing record info.
 		final String leftLabel = (before != null
@@ -199,12 +205,17 @@ public class RecordDiffDialog extends JDialog{
 		headerPanel.add(leftHeader);
 		headerPanel.add(rightHeader);
 
+		final JPanel top = new JPanel(new BorderLayout(0, 4));
+		top.setBorder(BorderFactory.createEmptyBorder(6, 6, 0, 6));
+		top.add(createToolbar(), BorderLayout.NORTH);
+		top.add(headerPanel, BorderLayout.CENTER);
+
 		final JPanel centerPanel = new JPanel(new GridLayout(1, 2, 5, 5));
 		centerPanel.add(leftScroll);
 		centerPanel.add(rightScroll);
 
 		// Buttons.
-		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final List<JButton> accept = new ArrayList<>();
 		if(!readOnly){
 			final JButton acceptLeftBtn = new JButton(I18N.t("button.revert_to_previous"));
 			final JButton acceptRightBtn = new JButton(I18N.t("button.keep_current"));
@@ -218,17 +229,30 @@ public class RecordDiffDialog extends JDialog{
 				keepRight = true;
 				dispose();
 			});
-			buttonPanel.add(acceptLeftBtn);
-			buttonPanel.add(acceptRightBtn);
+			accept.add(acceptLeftBtn);
+			accept.add(acceptRightBtn);
 		}
 		setLayout(new BorderLayout(10, 10));
-		add(headerPanel, BorderLayout.NORTH);
+		add(top, BorderLayout.NORTH);
 		add(centerPanel, BorderLayout.CENTER);
-		add(buttonPanel, BorderLayout.SOUTH);
+		//how many differences there are, and which one the window is on, at the left as in every window with a table
+		summary.setForeground(DiffPainters.COLOR_MUTED);
+		add(GUIHelper.createStatusFooter(summary, accept.toArray(new JButton[0])), BorderLayout.SOUTH);
+
+		installKeys();
+		updateNavigation();
 
 		setPreferredSize(new Dimension(900, 600));
 		pack();
 		setLocationRelativeTo(owner);
+
+		//the first line is the one that is shown, not a difference: the buttons go to the differences
+		addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowOpened(final WindowEvent e){
+				SwingUtilities.invokeLater(() -> showTop());
+			}
+		});
 	}
 
 
@@ -256,23 +280,215 @@ public class RecordDiffDialog extends JDialog{
 
 
 	/* ======================================================================
+	 *                          Toolbar and keys
+	 * ====================================================================== */
+
+	private JPanel createToolbar(){
+		final JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+
+		previousButton.setToolTipText(I18N.t("dialog.record_diff.nav.previous.tooltip"));
+		previousButton.addActionListener(e -> goToPrevious());
+		toolbar.add(previousButton);
+		nextButton.setToolTipText(I18N.t("dialog.record_diff.nav.next.tooltip"));
+		nextButton.addActionListener(e -> goToNext());
+		toolbar.add(nextButton);
+		toolbar.add(createChip(I18N.t("dialog.record_diff.legend.left"), DiffPainters.COLOR_FROM_SOURCE));
+		toolbar.add(createChip(I18N.t("dialog.record_diff.legend.right"), DiffPainters.COLOR_FROM_TARGET));
+		toolbar.add(createChip(I18N.t("dialog.record_diff.legend.different"), DiffPainters.COLOR_CONFLICT));
+		toolbar.add(createChip(I18N.t("dialog.record_diff.legend.reference"), DiffPainters.COLOR_REFERENCE));
+		return toolbar;
+	}
+
+	private static JLabel createChip(final String text, final Color color){
+		final JLabel chip = new JLabel(text);
+		chip.setOpaque(true);
+		chip.setBackground(color);
+		chip.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(0xD0D0D0)),
+			BorderFactory.createEmptyBorder(1, 6, 1, 6)));
+		return chip;
+	}
+
+	private void installKeys(){
+		bind(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0), "next-difference", this::goToNext);
+		bind(KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0), "previous-difference", this::goToPrevious);
+	}
+
+	private void bind(final KeyStroke key, final String name, final Runnable action){
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(key, name);
+		getRootPane().getActionMap().put(name, new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				action.run();
+			}
+		});
+	}
+
+
+	/* ======================================================================
+	 *                          Differences
+	 * ====================================================================== */
+
+	/** Whether a line is a difference: it only one side has, or that is not the same in the two, as opposed to the shape of the text. */
+	private static boolean isDifference(final DiffKind kind){
+		return (kind == DiffKind.FROM_SOURCE || kind == DiffKind.FROM_TARGET || kind == DiffKind.CONFLICT || kind == DiffKind.REFERENCE);
+	}
+
+	/** The places where the two columns differ: the rows that are a difference, one after the other, are one place. */
+	private static List<int[]> differencesOf(final RecordAlignment.Rows rows){
+		final List<int[]> found = new ArrayList<>();
+		int start = -1;
+		for(int row = 0; row <= rows.size(); row ++){
+			final boolean different = (row < rows.size()
+				&& (isDifference(rows.sourceKind.get(row)) || isDifference(rows.targetKind.get(row))));
+			if(different && start < 0)
+				start = row;
+			else if(!different && start >= 0){
+				found.add(new int[]{start, row - 1});
+				start = -1;
+			}
+		}
+		return found;
+	}
+
+	private void updateNavigation(){
+		nextButton.setEnabled(current < differences.size() - 1);
+		previousButton.setEnabled(!differences.isEmpty() && current != 0);
+		summary.setText(current >= 0
+			? I18N.tf("dialog.record_diff.position", current + 1, differences.size())
+			: I18N.tf("dialog.record_diff.summary", differences.size()));
+	}
+
+	void goToNext(){
+		if(current < differences.size() - 1)
+			goTo(current + 1);
+	}
+
+	void goToPrevious(){
+		if(!differences.isEmpty() && current != 0)
+			goTo(current < 0? differences.size() - 1: current - 1);
+	}
+
+	/** Shows the difference a third of the way down the window, framed, in both columns. */
+	private void goTo(final int index){
+		opening = false;
+		current = index;
+		final int[] rows = differences.get(index);
+		leftArea.setCurrentRows(rows);
+		rightArea.setCurrentRows(rows);
+		updateNavigation();
+		SwingUtilities.invokeLater(() -> {
+			try{
+				final Rectangle2D top = leftArea.modelToView2D(leftArea.getLineStartOffset(rows[0]));
+				if(top != null)
+					leftScroll.getVerticalScrollBar().setValue(Math.max(0, (int)top.getY() - leftScroll.getViewport().getHeight() / 3));
+			}
+			catch(final BadLocationException ignored){
+				//the rows are the ones of the text just written: it cannot happen
+			}
+		});
+	}
+
+	/** The index of the difference the window is on, from 0, or -1: for the tests. */
+	int currentDifference(){
+		return current;
+	}
+
+	/** How many places the two records differ in: for the tests. */
+	int differenceCount(){
+		return differences.size();
+	}
+
+	/** The text of the left and of the right column, with the empty lines of the alignment: for the tests. */
+	String leftText(){
+		return leftArea.getText();
+	}
+
+	String rightText(){
+		return rightArea.getText();
+	}
+
+	/** Where the vertical scroll bar is: for the tests. */
+	int verticalScrollPosition(){
+		return leftScroll.getVerticalScrollBar().getValue();
+	}
+
+	/** Shows the record from its first line: the scroll bars and the carets at the top. */
+	void showTop(){
+		leftArea.setCaretPosition(0);
+		rightArea.setCaretPosition(0);
+		leftScroll.getVerticalScrollBar().setValue(0);
+		leftScroll.getHorizontalScrollBar().setValue(0);
+		rightScroll.getVerticalScrollBar().setValue(0);
+		rightScroll.getHorizontalScrollBar().setValue(0);
+	}
+
+	/** The view stays at the first line until the user moves it (the wheel, a scroll bar, the buttons), whatever the layout does. */
+	private void keepAtTopWhileOpening(){
+		for(final JScrollPane scroll : List.of(leftScroll, rightScroll)){
+			scroll.getViewport().addChangeListener(e -> {
+				if(opening && scroll.getVerticalScrollBar().getValue() != 0)
+					SwingUtilities.invokeLater(this::keepAtTop);
+			});
+			final MouseAdapter userScrolls = new MouseAdapter(){
+				@Override
+				public void mousePressed(final MouseEvent e){
+					opening = false;
+				}
+
+				@Override
+				public void mouseWheelMoved(final MouseWheelEvent e){
+					opening = false;
+				}
+			};
+			scroll.addMouseWheelListener(userScrolls);
+			scroll.getVerticalScrollBar().addMouseListener(userScrolls);
+			scroll.getHorizontalScrollBar().addMouseListener(userScrolls);
+		}
+	}
+
+	private void keepAtTop(){
+		//the user is on the text (to select it, to follow a link): the view follows them
+		if(opening && !(KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() instanceof JTextArea))
+			showTop();
+	}
+
+
+	/* ======================================================================
 	 *                          Links
 	 * ====================================================================== */
 
-	/** Writes the two records and compares them. */
+	/** Aligns the two records and writes them in the two text areas, coloured and with the names of the records they cite. */
 	private void showDiff(){
-		final FLEFWriter writer = FLEFWriter.createCompact();
-
-		// Normalize both records before serializing them. Without this,
-		// two records that carry the same information but list their
-		// children in different orders would be shown as different: a
-		// diff line would appear for every block whose position changed,
-		// even though the content is unchanged.
-		final String leftText = (before != null? writer.writeToString(RecordNormalizer.normalize(before)): StringUtils.EMPTY);
-		final String rightText = (after != null? writer.writeToString(RecordNormalizer.normalize(after)): StringUtils.EMPTY);
-		applyDiff(leftText, rightText);
+		final RecordAlignment.Rows rows = RecordAlignment.align(before, after, model);
+		display(leftArea, rows.source, rows.sourceKind);
+		display(rightArea, rows.target, rows.targetKind);
 		findLinks(leftArea);
 		findLinks(rightArea);
+
+		differences = differencesOf(rows);
+		current = -1;
+		leftArea.setCurrentRows(null);
+		rightArea.setCurrentRows(null);
+		updateNavigation();
+	}
+
+	private void display(final JTextArea area, final List<String> lines, final List<DiffKind> kinds){
+		final StringBuilder text = new StringBuilder();
+		for(final String line : lines){
+			if(line != null)
+				text.append(line);
+			text.append(StringUtils.LF);
+		}
+		area.setText(text.toString());
+		//the text is read from its first line: a caret at the end would make the view follow it there
+		area.setCaretPosition(0);
+		DiffPainters.paint(area, kinds.toArray(new DiffKind[0]), line -> DiffPainters.nameOfReference(line, model, this::displayNameOf));
+	}
+
+	/** How the application names a record: through the handler of its kind. */
+	private String displayNameOf(final FLEFRecord record){
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+		return (handler != null? handler.getDisplayText(record, model): null);
 	}
 
 	/**
@@ -379,196 +595,19 @@ public class RecordDiffDialog extends JDialog{
 
 
 	/* ======================================================================
-	 *                          Diff application
-	 * ====================================================================== */
-
-	/**
-	 * Computes the line-based diff between the two texts and rebuilds
-	 * both text areas so that they are visually aligned.
-	 * <p>
-	 * For each diff entry, one row is emitted on the left and one on the
-	 * right. When a line exists only on one side, the other side
-	 * receives an empty placeholder row at the same position, marked so
-	 * that the renderer draws a diagonal hatch on it. In this way the
-	 * two text areas always have the same number of rows, line N on the
-	 * left and line N on the right refer to the same logical position,
-	 * and a missing line is visually distinct from an empty line in the
-	 * source.
-	 */
-	private void applyDiff(final String leftText, final String rightText){
-		final String[] leftLines = splitLines(leftText);
-		final String[] rightLines = splitLines(rightText);
-
-		final List<DiffUtils.DiffEntry> diffs = DiffUtils.computeDiff(
-			List.of(leftLines),
-			List.of(rightLines));
-
-		final List<StyledLine> leftStyled = new ArrayList<>();
-		final List<StyledLine> rightStyled = new ArrayList<>();
-
-		for(final DiffUtils.DiffEntry entry : diffs){
-			switch(entry.operation()){
-				case EQUAL -> {
-					leftStyled.add(new StyledLine(nullToEmpty(entry.leftLine()), null, false));
-					rightStyled.add(new StyledLine(nullToEmpty(entry.rightLine()), null, false));
-				}
-				case DELETE -> {
-					leftStyled.add(new StyledLine(nullToEmpty(entry.leftLine()), COLOR_DELETE, false));
-					rightStyled.add(new StyledLine(StringUtils.EMPTY, COLOR_DELETE, true));
-				}
-				case INSERT -> {
-					leftStyled.add(new StyledLine(StringUtils.EMPTY, COLOR_INSERT, true));
-					rightStyled.add(new StyledLine(nullToEmpty(entry.rightLine()), COLOR_INSERT, false));
-				}
-				case MODIFIED -> {
-					leftStyled.add(new StyledLine(nullToEmpty(entry.leftLine()), COLOR_MODIFIED, false));
-					rightStyled.add(new StyledLine(nullToEmpty(entry.rightLine()), COLOR_MODIFIED, false));
-				}
-			}
-		}
-
-		final String alignedLeftText = joinLines(leftStyled);
-		final String alignedRightText = joinLines(rightStyled);
-		leftArea.setText(alignedLeftText);
-		rightArea.setText(alignedRightText);
-
-		final DefaultHighlighter leftHighlighter = (DefaultHighlighter)leftArea.getHighlighter();
-		final DefaultHighlighter rightHighlighter = (DefaultHighlighter)rightArea.getHighlighter();
-		leftHighlighter.removeAllHighlights();
-		rightHighlighter.removeAllHighlights();
-
-		final List<Integer> leftOffsets = computeLineOffsets(alignedLeftText);
-		final List<Integer> rightOffsets = computeLineOffsets(alignedRightText);
-
-		// Collect the placeholder row indices, so the custom text area
-		// can draw the hatch on them.
-		final Set<Integer> leftPlaceholders = new HashSet<>();
-		final Set<Integer> rightPlaceholders = new HashSet<>();
-
-		for(int i = 0; i < leftStyled.size(); i ++){
-			final Color leftColor = leftStyled.get(i).color();
-			if(leftColor != null)
-				highlightLine(leftHighlighter, leftOffsets, alignedLeftText, i, leftColor);
-			if(leftStyled.get(i).placeholder())
-				leftPlaceholders.add(i);
-
-			final Color rightColor = rightStyled.get(i).color();
-			if(rightColor != null)
-				highlightLine(rightHighlighter, rightOffsets, alignedRightText, i, rightColor);
-			if(rightStyled.get(i).placeholder())
-				rightPlaceholders.add(i);
-		}
-
-		leftArea.setPlaceholderLines(leftPlaceholders);
-		rightArea.setPlaceholderLines(rightPlaceholders);
-
-		// Both areas start showing the first line.
-		leftArea.setCaretPosition(0);
-		rightArea.setCaretPosition(0);
-	}
-
-
-	/* ======================================================================
-	 *                          Alignment helpers
-	 * ====================================================================== */
-
-	/** A line of the aligned content, with its highlight color and placeholder flag. */
-	private record StyledLine(String text, Color color, boolean placeholder){}
-
-	/**
-	 * Splits a text into lines. A single trailing empty element,
-	 * produced by {@code StringUtils.split} when the text ends with a
-	 * newline, is dropped: it is not a real line, only an artifact of
-	 * the split.
-	 */
-	private static String[] splitLines(final String text){
-		final String[] raw = StringUtils.split(text, StringUtils.LF, -1);
-		if(raw.length > 0 && raw[raw.length - 1].isEmpty())
-			return Arrays.copyOf(raw, raw.length - 1);
-		return raw;
-	}
-
-	/**
-	 * Joins the styled lines into a single string, separated by a
-	 * newline and terminated by a newline. The trailing newline is
-	 * required so that {@link #computeLineOffsets(String)} produces
-	 * exactly {@code lines.size() + 1} offsets.
-	 */
-	private static String joinLines(final List<StyledLine> lines){
-		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < lines.size(); i ++){
-			if(i > 0)
-				sb.append(StringUtils.LF);
-			sb.append(lines.get(i).text());
-		}
-		sb.append(StringUtils.LF);
-		return sb.toString();
-	}
-
-	private static String nullToEmpty(final String s){
-		return (s != null? s: StringUtils.EMPTY);
-	}
-
-	private void highlightLine(final DefaultHighlighter highlighter, final List<Integer> offsets,
-		final String text, final int lineIdx, final Color color){
-		final int start = offsets.get(lineIdx);
-		final int end = (lineIdx + 1 < offsets.size())
-			? offsets.get(lineIdx + 1)
-			: text.length();
-		addHighlight(highlighter, start, end, color);
-	}
-
-	private List<Integer> computeLineOffsets(final String text){
-		final List<Integer> offsets = new ArrayList<>();
-		offsets.add(0);
-		int pos = 0;
-		while(pos < text.length()){
-			final int next = text.indexOf('\n', pos);
-			if(next == -1)
-				break;
-
-			pos = next + 1;
-			offsets.add(pos);
-		}
-		// If text doesn't end with newline, we add a final offset to the end.
-		if(!text.isEmpty() && !text.endsWith(StringUtils.LF))
-			offsets.add(text.length());
-		return offsets;
-	}
-
-	private void addHighlight(final DefaultHighlighter highlighter, final int start, final int end,
-		final Color color){
-		try{
-			highlighter.addHighlight(start, end, new DefaultHighlighter.DefaultHighlightPainter(color));
-		}
-		catch(final BadLocationException ignored){
-		}
-	}
-
-
-	/* ======================================================================
 	 *                          Custom text area
 	 * ====================================================================== */
 
 	/**
-	 * A {@link JTextArea} that draws a diagonal hatch over the rows
-	 * marked as placeholders, in the style of Beyond Compare.
-	 * <p>
-	 * Consecutive placeholder rows are merged into a single block, and the
-	 * hatch is drawn across the whole block with a single continuous
-	 * pattern. Without this grouping, each row would restart the pattern at
-	 * the same X offset, producing a visible discontinuity at every row
-	 * boundary.
-	 * <p>
-	 * The hatch is painted after the normal text rendering, is clipped to
-	 * the exact bounds of each block, and does not affect the text content
-	 * or the selection.
+	 * A {@link JTextArea} that underlines the links and frames the rows of the difference the window is on. It scrolls the record to its
+	 * caret only while it has the focus (the user is on it): the program moving the caret does not move the view.
 	 */
 	private static final class DiffTextArea extends JTextArea{
 
-		private final Set<Integer> placeholderLines = new HashSet<>();
 		/** The links: {start, end (excluded)} in the text. */
 		private List<int[]> links = List.of();
+		/** The first and the last row of the difference the window is on, {@code null} for none. */
+		private int[] currentRows;
 
 		DiffTextArea(){
 			super();
@@ -579,6 +618,17 @@ public class RecordDiffDialog extends JDialog{
 			repaint();
 		}
 
+		void setCurrentRows(final int[] rows){
+			currentRows = rows;
+			repaint();
+		}
+
+		@Override
+		public void scrollRectToVisible(final Rectangle rectangle){
+			if(isFocusOwner())
+				super.scrollRectToVisible(rectangle);
+		}
+
 		/** @return	The identifier of the record that the text at the point is a link to; {@code null} if it is not a link. */
 		String recordIdAt(final Point point){
 			final int offset = viewToModel2D(point);
@@ -586,14 +636,6 @@ public class RecordDiffDialog extends JDialog{
 				if(offset >= link[0] && offset < link[1])
 					return getText().substring(link[0], link[1]);
 			return null;
-		}
-
-		void setPlaceholderLines(final Set<Integer> lines){
-			this.placeholderLines.clear();
-			if(lines != null)
-				this.placeholderLines.addAll(lines);
-
-			repaint();
 		}
 
 		/** Underlines the links in the color of a link: a text area has one color for all its text. */
@@ -621,113 +663,36 @@ public class RecordDiffDialog extends JDialog{
 			}
 		}
 
-		@Override
-		protected void paintComponent(final Graphics g){
-			super.paintComponent(g);
-
-			paintLinks(g);
-			if(placeholderLines.isEmpty())
+		/** Frames the rows of the difference the window is on. */
+		private void paintCurrent(final Graphics g){
+			if(currentRows == null)
 				return;
 
 			final Graphics2D g2 = (Graphics2D)g.create();
 			try{
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-				g2.setColor(COLOR_HATCH);
-				g2.setStroke(new BasicStroke(1f));
+				final Rectangle2D first = modelToView2D(getLineStartOffset(currentRows[0]));
+				final Rectangle2D last = modelToView2D(getLineStartOffset(currentRows[1]));
+				if(first == null || last == null)
+					return;
 
-				final int insetsLeft = getInsets().left;
-				final int visibleWidth = getWidth() - insetsLeft - getInsets().right;
-
-				for(final int[] range : placeholderRanges()){
-					drawHatchOverRange(g2, range[0], range[1], insetsLeft, visibleWidth);
-				}
+				g2.setColor(COLOR_CURRENT);
+				g2.drawRect(0, (int)first.getY(), getWidth() - 1, (int)(last.getMaxY() - first.getY()) - 1);
+				g2.drawRect(1, (int)first.getY() + 1, getWidth() - 3, (int)(last.getMaxY() - first.getY()) - 3);
+			}
+			catch(final BadLocationException ignored){
+				//the rows are the ones of the text just written: it cannot happen
 			}
 			finally{
 				g2.dispose();
 			}
 		}
 
-		/**
-		 * Groups the placeholder line indices into maximal ranges of
-		 * consecutive lines. Each range is returned as
-		 * {@code {startLine, endLineExclusive}}.
-		 */
-		private List<int[]> placeholderRanges(){
-			final List<Integer> sorted = new ArrayList<>(placeholderLines);
-			Collections.sort(sorted);
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
 
-			final List<int[]> ranges = new ArrayList<>();
-			int start = -1;
-			int prev = -2;
-			for(final int idx : sorted){
-				if(idx == prev + 1){
-					prev = idx;
-					continue;
-				}
-				if(start >= 0)
-					ranges.add(new int[]{start, prev + 1});
-				start = idx;
-				prev = idx;
-			}
-			if(start >= 0)
-				ranges.add(new int[]{start, prev + 1});
-			return ranges;
-		}
-
-		/**
-		 * Draws a single continuous hatch over the block of lines from
-		 * {@code startLine} (inclusive) to {@code endLineExclusive}
-		 * (exclusive).
-		 * <p>
-		 * The block is measured with {@link #modelToView2D(int)}, so the
-		 * hatch follows the exact geometry produced by the look-and-feel.
-		 * The pattern is computed once over the whole block: the offset
-		 * between consecutive diagonals is {@link #HATCH_SPACING}, and each
-		 * diagonal spans the full block height, so the pattern is continuous
-		 * across row boundaries.
-		 */
-		private void drawHatchOverRange(final Graphics2D g2, final int startLine,
-			final int endLineExclusive, final int insetsLeft, final int visibleWidth){
-			if(startLine < 0 || endLineExclusive > getLineCount())
-				return;
-
-			try{
-				final int startOffset = getLineStartOffset(startLine);
-				final int endOffset = getLineStartOffset(endLineExclusive - 1);
-
-				final Rectangle2D startRect = modelToView2D(startOffset);
-				final Rectangle2D endRect = modelToView2D(endOffset);
-				if(startRect == null || endRect == null)
-					return;
-
-				final int y = (int)startRect.getY();
-				final int yBottom = (int)(endRect.getY() + endRect.getHeight());
-				final int h = yBottom - y;
-				if(h <= 0)
-					return;
-				if(yBottom < 0 || y > getHeight())
-					return;
-
-				final Shape oldClip = g2.getClip();
-				g2.clipRect(insetsLeft, y, visibleWidth, h);
-
-				// One single loop over the whole block. The diagonals go from
-				// bottom-left to top-right: (x, y + h) -> (x + h, y). The X
-				// start is offset by h to the left, so the top-left corner of
-				// the block is fully covered.
-				final int xStart = insetsLeft - h;
-				final int xEnd = insetsLeft + visibleWidth + h;
-				for(int x = xStart; x < xEnd; x += HATCH_SPACING)
-					g2.drawLine(x, y + h,
-						x + h, y);
-
-				g2.setClip(oldClip);
-			}
-			catch(final BadLocationException ignored){
-				// The model changed between the collection of the indices and
-				// the paint. Skip the block silently.
-			}
+			paintLinks(g);
+			paintCurrent(g);
 		}
 
 	}

@@ -97,12 +97,8 @@ public final class RepositorySection implements SectionBuilder{
 		for(final String sid : SourceCollector.collect(ctx))
 			collectFromSource(sid, ids);
 
-		// Sources cited by the root's relationships too (SourceCollector
-		// already covers individual/group roots, but relationships are not
-		// part of the default traversal for group roots).
-		for(final FLEFRecord r : ctx.visibleRecordsByType(RelationshipReader.TYPE))
-			for(final FLEFRecord rc : FLEFRecordHelper.findChildren(r, RelationshipReader.TAG_SOURCE))
-				collectFromSource(ReportFormatters.extractSourceId(rc), ids);
+		//(the sources cited by the relationships of the subjects, and by the memberships of a group, are already collected: those of
+		//the other relationships of the file have nothing to do with the report)
 
 		final List<FLEFRecord> out = new ArrayList<>(ids.size());
 		for(final String id : ids){

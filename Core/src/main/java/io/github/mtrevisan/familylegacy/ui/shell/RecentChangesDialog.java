@@ -142,14 +142,7 @@ final class RecentChangesDialog extends JDialog{
 		filterPanel.add(new JLabel(I18N.l("recent_changes.filter.type")));
 		filterPanel.add(typeFilter);
 
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(showDiff);
-		buttons.add(openRecord);
-		buttons.add(refresh);
-
-		final JPanel south = new JPanel(new BorderLayout());
-		south.add(summary, BorderLayout.NORTH);
-		south.add(buttons, BorderLayout.SOUTH);
+		final JPanel south = GUIHelper.createStatusFooter(summary, showDiff, openRecord, refresh);
 
 		setLayout(new BorderLayout(8, 8));
 		add(filterPanel, BorderLayout.NORTH);

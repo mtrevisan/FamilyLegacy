@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.reports.renderers;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
+import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -35,7 +36,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,8 +112,55 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 			w.newLine();
 		}
 
+		//the table of contents lists the chapters (the headings of the first level)
+		final List<ReportSection.Heading> headings = doc.sections().stream()
+			.filter(ReportSection.Heading.class::isInstance)
+			.map(ReportSection.Heading.class::cast)
+			.toList();
+		final List<ReportSection.Heading> chapters = ReportFormatters.contentsOf(headings.stream()
+			.filter(h -> h.level() == 1)
+			.toList());
+		if(chapters.size() > 1){
+			//(the title of the document, written above, is a heading too: it takes the first slug)
+			final Map<ReportSection.Heading, String> slugs = new IdentityHashMap<>();
+			final Map<String, Integer> used = new HashMap<>();
+			slug(doc.title(), used);
+			for(final ReportSection.Heading heading : headings)
+				slugs.put(heading, slug(heading.text(), used));
+
+			w.write("**");
+			w.write(doc.contentsTitle());
+			w.write("**");
+			w.newLine();
+			w.newLine();
+			for(final ReportSection.Heading chapter : chapters){
+				w.write("- [");
+				w.write(chapter.text());
+				w.write("](#" + slugs.get(chapter) + ")");
+				w.newLine();
+			}
+			w.newLine();
+		}
+
 		for(final ReportSection s : doc.sections())
 			writeSection(w, s, baseDir);
+	}
+
+
+	/**
+	 * The anchor that Markdown viewers give to a heading: the text in lower case, without the punctuation, the spaces made hyphens;
+	 * the second heading with the same text gets {@code -1}, the third {@code -2}, and so on.
+	 */
+	private static String slug(final String text, final Map<String, Integer> used){
+		final StringBuilder sb = new StringBuilder();
+		for(final char c : linkify(text).toLowerCase(Locale.ROOT).toCharArray())
+			if(Character.isLetterOrDigit(c) || c == '-' || c == '_')
+				sb.append(c);
+			else if(c == ' ')
+				sb.append('-');
+		final String base = sb.toString();
+		final int count = used.merge(base, 1, Integer::sum) - 1;
+		return (count == 0? base: base + "-" + count);
 	}
 
 
@@ -144,7 +196,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 		// Anchor emission: for level >= 2 headings, extract any [Xxx] record
 		// references from the heading text and emit one HTML anchor per ID on
 		// a separate line before the heading itself.
-		if(level >= 2){
+		if(level >= 1){
 			final List<String> ids = extractRecordIds(h.text());
 			for(final String id : ids){
 				w.write("<a id=\"");
@@ -264,7 +316,7 @@ public final class MarkdownReportRenderer implements ReportRenderer{
 		w.write("![");
 		w.write(img.caption() == null? StringUtils.EMPTY: img.caption());
 		w.write("](");
-		w.write(href);
+		w.write(ReportFormatters.linkTarget(href));
 		w.write(")");
 		w.newLine();
 		w.newLine();

@@ -188,32 +188,33 @@ public final class SourcesSection implements SectionBuilder{
 			: rid);
 		final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 
-		final StringBuilder line = new StringBuilder("**")
-			.append(ctx.labels.sections().sourceRepository()).append(":** ")
-			.append(ReportFormatters.escape(ReportFormatters.orEmpty(name)));
+		//one list: the repository (the heading above says what it is), the note of the citation and the contacts
+		final List<String> items = new ArrayList<>();
+		final StringBuilder line = new StringBuilder(ReportFormatters.escape(ReportFormatters.orEmpty(name)));
 		if(locator != null && !locator.isBlank())
 			line.append(" — *").append(ReportFormatters.escape(locator)).append('*');
-		out.add(new ReportSection.Paragraph(line.toString()));
+		items.add(line.toString());
 
 		// Repository citation note.
 		final String repoNote = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_REMARK);
 		if(repoNote != null && !repoNote.isBlank())
-			out.add(new ReportSection.Paragraph(
-				"  *" + ctx.labels.sections().sourceRepositoryNote() + ":* "
-					+ ReportFormatters.escape(repoNote)));
+			items.add("*" + ctx.labels.sections().sourceRepositoryNote() + ":* " + ReportFormatters.escape(repoNote));
 
 		// Repository contacts.
+		final List<ReportSection> privacy = new ArrayList<>();
 		if(repo != null){
 			for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
 				final String rendered = ReportFormatters.renderContact(contact);
 				if(rendered != null)
-					out.add(new ReportSection.Paragraph("  " + rendered));
+					items.add(rendered);
 
 				// Contact privacy, when the flag is on.
 				if(ctx.config.showPrivacyDetails())
-					out.addAll(ctx.citations().privacyInfo(contact));
+					privacy.addAll(ctx.citations().privacyInfo(contact));
 			}
 		}
+		out.add(new ReportSection.BulletList(items));
+		out.addAll(privacy);
 
 		// Repository citation evidence.
 		if(ctx.config.evidence())
@@ -230,11 +231,14 @@ public final class SourcesSection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(3, ctx.labels.sections().sourceDocuments()));
+		final List<String> labels = new ArrayList<>(docRefs.size());
 		for(final FLEFRecord docRef : docRefs){
 			final String label = documentSummary(docRef.getValue());
 			if(label != null)
-				out.add(new ReportSection.Paragraph("- " + label));
+				labels.add(label);
 		}
+		if(!labels.isEmpty())
+			out.add(new ReportSection.BulletList(labels));
 	}
 
 	/**
@@ -256,10 +260,12 @@ public final class SourcesSection implements SectionBuilder{
 		final StringBuilder sb = new StringBuilder();
 		if(desc != null && !desc.isBlank())
 			sb.append(ReportFormatters.escape(desc));
-		if(uri != null && !uri.isBlank()){
+		//the name of the file, not the path of the disk of who made the report; and nothing if the description says it already
+		final String location = ReportFormatters.fileNameOf(uri);
+		if(location != null && !ReportFormatters.isDescribedBy(desc, location)){
 			if(!sb.isEmpty())
 				sb.append(" — ");
-			sb.append(ReportFormatters.escape(uri));
+			sb.append(ReportFormatters.escape(location));
 		}
 		if(mapping != null && !mapping.isBlank()){
 			if(!sb.isEmpty())

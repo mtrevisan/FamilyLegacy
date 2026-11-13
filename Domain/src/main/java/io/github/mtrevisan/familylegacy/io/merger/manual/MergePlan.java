@@ -44,14 +44,21 @@ public final class MergePlan{
 	private final FLEFRecord source;
 	private final FLEFRecord target;
 	private final List<MergeField> collisions;
+	private final List<MergeField> fields;
 	private final List<String> referenceIdsToRepoint;
 
 
 	MergePlan(final FLEFRecord source, final FLEFRecord target,
 			final List<MergeField> collisions, final List<String> referenceIdsToRepoint){
+		this(source, target, collisions, collisions, referenceIdsToRepoint);
+	}
+
+	MergePlan(final FLEFRecord source, final FLEFRecord target, final List<MergeField> collisions, final List<MergeField> fields,
+			final List<String> referenceIdsToRepoint){
 		this.source = source;
 		this.target = target;
 		this.collisions = new ArrayList<>(collisions);
+		this.fields = new ArrayList<>(fields);
 		this.referenceIdsToRepoint = List.copyOf(referenceIdsToRepoint);
 	}
 
@@ -66,6 +73,17 @@ public final class MergePlan{
 
 	public List<MergeField> collisions(){
 		return Collections.unmodifiableList(collisions);
+	}
+
+	/**
+	 * Every field of the two records that can be decided (the audit and the privacy are not), in the order they appear: the
+	 * collisions and also, for a plan made by {@link RecordMerger#planAllFields}, the fields that only one record has and the ones
+	 * that are the same. For a plan made by {@link RecordMerger#plan} they are the collisions.
+	 * <p>
+	 * A field that is not a collision is merged by the automatic rules, unless the user decided it.
+	 */
+	public List<MergeField> fields(){
+		return Collections.unmodifiableList(fields);
 	}
 
 	public List<String> referenceIdsToRepoint(){

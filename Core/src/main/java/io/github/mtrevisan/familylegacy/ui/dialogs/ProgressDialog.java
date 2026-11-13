@@ -87,8 +87,15 @@ public final class ProgressDialog extends JDialog{
 		});
 	}
 
+	/**
+	 * Closes the dialog. On the event dispatch thread it is closed at once: whoever closes it is about to show another modal window (the
+	 * result of what it waited for), and a progress dialog that is still there, queued to be closed, would be under it, or over it.
+	 */
 	public void close(){
-		SwingUtilities.invokeLater(this::dispose);
+		if(SwingUtilities.isEventDispatchThread())
+			dispose();
+		else
+			SwingUtilities.invokeLater(this::dispose);
 	}
 
 }

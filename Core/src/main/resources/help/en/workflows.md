@@ -39,8 +39,8 @@ The baptism says 12 March 1841, the military record says 1842.
 
 ## 4. The same person appears twice
 
-1. **Tools > Detect Duplicates...** and look at the candidates, from the highest score. Use **Compare records...** on a pair. See [Finding duplicates and merging people](merging.md).
-2. If they are the **same person**: **Tools > Merge Individuals...** (make a backup first). Choose as the *target* the entry you want to keep, and read the table of collisions: leave *Keep both* for names, decide the single-valued fields. Merge, and read the summary.
+1. **Tools > Detect Duplicates...** and look at the candidates, from the highest score. Open a pair with a double-click (it is the review of the merge: you see the two records side by side and nothing is written until you confirm), or use **Compare facts...**. See [Finding duplicates and merging people](merging.md).
+2. If they are the **same person**: press **Merge...** in the list (or use **Tools > Merge Individuals...** if you already know the two entries), after a backup. Choose as the *target* the entry you want to keep, and read the table of collisions: leave *Keep both* for names, decide the single-valued fields. Merge, and read the summary.
 3. If you are **not sure**: do not merge. Record an *identity hypothesis* (**Research > Identity Hypotheses...**) and let a conclusion decide later.
 4. If they are **different people** with similar names: in the merge dialog press **Different Records...** and write why. The pair will not be proposed again.
 

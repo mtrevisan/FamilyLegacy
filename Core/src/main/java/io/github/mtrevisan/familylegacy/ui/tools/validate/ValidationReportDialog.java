@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.validate;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
@@ -234,24 +235,20 @@ public final class ValidationReportDialog extends JDialog{
 		});
 		copy.addActionListener(e -> copyToClipboard());
 
-		final JPanel bottomButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		bottomButtons.add(openRecord);
-		bottomButtons.add(copy);
-
 		final JPanel detailPanel = new JPanel(new BorderLayout());
 		detailPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
 		detailPanel.add(new JScrollPane(detail), BorderLayout.CENTER);
 
 		progressBar.setStringPainted(true);
 		progressBar.setVisible(false);
-		final JPanel status = new JPanel(new BorderLayout(8, 0));
-		status.add(summary, BorderLayout.CENTER);
-		status.add(progressBar, BorderLayout.EAST);
+		//how many problems there are, or how far the validation is, at the left as in every window with a table
+		final JPanel status = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		status.add(summary);
+		status.add(progressBar);
 
 		final JPanel south = new JPanel(new BorderLayout());
-		south.add(status, BorderLayout.NORTH);
 		south.add(detailPanel, BorderLayout.CENTER);
-		south.add(bottomButtons, BorderLayout.SOUTH);
+		south.add(GUIHelper.createStatusFooter(status, openRecord, copy), BorderLayout.SOUTH);
 
 		setLayout(new BorderLayout(8, 8));
 		add(filterBar, BorderLayout.NORTH);

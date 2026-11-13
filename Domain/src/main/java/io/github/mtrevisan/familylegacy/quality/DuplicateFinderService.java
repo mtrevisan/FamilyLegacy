@@ -131,6 +131,8 @@ public final class DuplicateFinderService{
 	private static final int W_CHILDREN_SOME = 12;
 	private static final int W_SPOUSES_SOME = 10;
 	private static final int W_SIBLINGS_SOME = 8;
+	/** Two individuals that each have relatives, but in trees that are not connected: a tree imported twice looks like this. */
+	private static final int W_OTHER_TREE = 8;
 	private static final int W_BIRTH_NEAR = 15;
 	private static final int W_DEATH_NEAR = 10;
 	private static final int W_EVENT_OVERLAP = 5;
@@ -155,6 +157,12 @@ public final class DuplicateFinderService{
 	private static final int P_BIRTH_VERY_FAR = 40;
 	private static final int P_DEATH_FAR = 15;
 	private static final int P_NAMESAKE_SIBLINGS = 25;
+	/**
+	 * Two individuals of the same tree, with no relative in common, that are no more than this many steps apart (a step is a parent, a
+	 * child or a spouse): an uncle and a nephew, two cousins. They are relatives that were told apart, not one person written twice.
+	 */
+	private static final int NEAR_RELATIVES_DISTANCE = 4;
+	private static final int P_NEAR_RELATIVES = 15;
 
 
 	/** Tunable parameters of the search. */
@@ -253,6 +261,7 @@ public final class DuplicateFinderService{
 			: Set.of());
 
 		final Frequencies frequencies = Frequencies.of(profiles.values());
+		final Connectivity connectivity = Connectivity.of(profiles);
 		final Map<String, Set<Profile>> blocks = buildBlocks(profiles.values(), options.requireSameSex);
 		final Set<String> seenPairs = new HashSet<>();
 		final List<Candidate> candidates = new ArrayList<>();
@@ -292,7 +301,7 @@ public final class DuplicateFinderService{
 						continue;
 					if(existingHypotheses.contains(pairKey))
 						continue;
-					final Candidate c = compare(a, b, options, frequencies, profiles);
+					final Candidate c = compare(a, b, options, frequencies, profiles, connectivity);
 					if(c != null)
 						candidates.add(c);
 				}
@@ -884,7 +893,7 @@ public final class DuplicateFinderService{
 	 * reach the threshold.
 	 */
 	private static Candidate compare(final Profile a, final Profile b, final Options options, final Frequencies frequencies,
-			final Map<String, Profile> profiles){
+			final Map<String, Profile> profiles, final Connectivity connectivity){
 		// Hard filter: known and different sex.
 		if(options.requireSameSex && a.sex() != null && b.sex() != null
 			&& !a.sex().equalsIgnoreCase(b.sex()))
@@ -943,6 +952,14 @@ public final class DuplicateFinderService{
 				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.siblings"), W_SIBLINGS_SOME,
 					I18N.tf("text.duplicates.detail.shared", common)));
 			}
+		}
+
+		// Trees: the same person written twice is often in two trees that are not connected (two imports), seldom in one tree at a short
+		// distance from the other (that is checked at the end, only for the pairs that got so far).
+		if(connectivity.inDifferentTrees(a.id(), b.id())){
+			score += W_OTHER_TREE;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.other_tree"), W_OTHER_TREE,
+				I18N.t("text.duplicates.detail.other_tree")));
 		}
 
 		// Birth year.
@@ -1078,7 +1095,126 @@ public final class DuplicateFinderService{
 		if(descends(profiles, a, b.id()) || descends(profiles, b, a.id()))
 			return null;
 
+		// Relatives of the same tree that are close: not if they share a parent, a child or a spouse, that is the evidence of one person
+		// written twice (the same parents with the same name), and is scored above.
+		if(commonParents == 0 && commonChildren == 0 && commonSpouses == 0 && connectivity.inSameTree(a.id(), b.id())){
+			final int steps = connectivity.distance(profiles, a.id(), b.id(), NEAR_RELATIVES_DISTANCE);
+			if(steps > 0){
+				score -= P_NEAR_RELATIVES;
+				differences.add(I18N.tf("text.duplicates.penalty.near_relatives", steps, P_NEAR_RELATIVES));
+				if(score < options.threshold)
+					return null;
+			}
+		}
+
 		return new Candidate(a, b, score, matches, differences);
+	}
+
+	/**
+	 * The trees of the file: the individuals that are linked, by parents, children and spouses, however far, are one tree. Made once for
+	 * the search, to tell two individuals of trees that are not connected from two of the same tree, and how far apart these are.
+	 * <p>
+	 * An individual with no relative at all is a tree of one: it tells nothing about the other, so it is neither in a different tree nor
+	 * in the same one as anyone.
+	 */
+	private static final class Connectivity{
+
+		private final Map<String, String> parents = new HashMap<>();
+		private final Map<String, Integer> sizes = new HashMap<>();
+
+
+		static Connectivity of(final Map<String, Profile> profiles){
+			final Connectivity connectivity = new Connectivity();
+			for(final Profile profile : profiles.values()){
+				connectivity.add(profile.id());
+				for(final String relative : profile.parentIds())
+					connectivity.union(profile.id(), relative);
+				for(final String relative : profile.childIds())
+					connectivity.union(profile.id(), relative);
+				for(final String relative : profile.spouseIds())
+					connectivity.union(profile.id(), relative);
+			}
+			return connectivity;
+		}
+
+		private void add(final String id){
+			if(parents.putIfAbsent(id, id) == null)
+				sizes.put(id, 1);
+		}
+
+		private String root(final String id){
+			String root = id;
+			while(!parents.get(root).equals(root))
+				root = parents.get(root);
+			//the ids on the way point straight to the root, so that the next search is short
+			String node = id;
+			while(!node.equals(root)){
+				final String next = parents.get(node);
+				parents.put(node, root);
+				node = next;
+			}
+			return root;
+		}
+
+		private void union(final String a, final String b){
+			add(a);
+			add(b);
+			final String rootA = root(a);
+			final String rootB = root(b);
+			if(rootA.equals(rootB))
+				return;
+
+			//the smaller tree joins the larger
+			final int sizeA = sizes.get(rootA);
+			final int sizeB = sizes.get(rootB);
+			final String larger = (sizeA >= sizeB? rootA: rootB);
+			final String smaller = (larger.equals(rootA)? rootB: rootA);
+			parents.put(smaller, larger);
+			sizes.put(larger, sizeA + sizeB);
+		}
+
+		private boolean hasRelatives(final String id){
+			return (parents.containsKey(id) && sizes.get(root(id)) > 1);
+		}
+
+		/** @return	Whether both have relatives, and they are not in the same tree. */
+		boolean inDifferentTrees(final String a, final String b){
+			return (hasRelatives(a) && hasRelatives(b) && !root(a).equals(root(b)));
+		}
+
+		/** @return	Whether both have relatives, and they are in the same tree. */
+		boolean inSameTree(final String a, final String b){
+			return (hasRelatives(a) && hasRelatives(b) && root(a).equals(root(b)));
+		}
+
+		/**
+		 * The fewest steps, by a parent, a child or a spouse, from one to the other.
+		 *
+		 * @return	The steps, or 0 if there are more than {@code maxSteps} (or no path through the visible individuals).
+		 */
+		int distance(final Map<String, Profile> profiles, final String from, final String to, final int maxSteps){
+			Set<String> frontier = Set.of(from);
+			final Set<String> seen = new HashSet<>(frontier);
+			for(int steps = 1; steps <= maxSteps && !frontier.isEmpty(); steps ++){
+				final Set<String> next = new HashSet<>();
+				for(final String id : frontier){
+					final Profile profile = profiles.get(id);
+					if(profile == null)
+						continue;
+
+					for(final Set<String> relatives : List.of(profile.parentIds(), profile.childIds(), profile.spouseIds()))
+						for(final String relative : relatives){
+							if(relative.equals(to))
+								return steps;
+							if(seen.add(relative))
+								next.add(relative);
+						}
+				}
+				frontier = next;
+			}
+			return 0;
+		}
+
 	}
 
 	/** @return	Whether the ancestor is one of the ancestors of the descendant (the parents, their parents, ...). */

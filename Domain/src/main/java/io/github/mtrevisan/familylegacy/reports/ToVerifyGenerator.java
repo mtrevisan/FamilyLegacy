@@ -93,7 +93,7 @@ public final class ToVerifyGenerator{
 				.add(finding);
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(ctx).build());
-		sections.add(new ReportSection.Heading(1, title));
+		sections.add(new ReportSection.Heading(1, ctx.labels.sections().overview()));
 		if(findings.isEmpty())
 			sections.add(new ReportSection.Paragraph(ctx.labels.sections().toVerifyNothing()));
 		else{

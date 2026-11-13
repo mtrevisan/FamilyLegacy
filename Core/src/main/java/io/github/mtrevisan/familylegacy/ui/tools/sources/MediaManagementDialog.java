@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -181,10 +182,7 @@ public final class MediaManagementDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
-		footer.add(statusLabel);
-		return footer;
+		return GUIHelper.createStatusFooter(statusLabel);
 	}
 
 

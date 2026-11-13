@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
@@ -46,6 +47,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
@@ -53,6 +55,7 @@ import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.familylegacy.sources.SourceDerivationTree;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -113,6 +116,7 @@ public final class ReportContext{
 	private volatile PrivacyResolver privacy;
 
 	private volatile KinshipCalculator kinship;
+	private volatile KinshipCalculator legalKinship;
 	private volatile CitationRenderer citations;
 	private volatile Function<String, String> contextLabelResolver;
 
@@ -336,7 +340,33 @@ public final class ReportContext{
 			return true;
 
 		//the level is the effective one: declared (unless expired), inherited, living person, national id
-		return !policy.hides(privacy().effectiveLevel(record));
+		final PrivacyResolver.Effective effective = privacy().describe(record);
+		if(policy.hides(effective.level()))
+			return false;
+
+		//what concerns an individual that may be living: all of it is hidden, or all but the name and the role in the family
+		if(concealsLiving() && privacy().concernsLiving(record))
+			return (config.livingPrivacy() == LivingPrivacy.NAME_AND_ROLE
+				&& (IndividualReader.isOfType(record) || RelationshipReader.isOfType(record)));
+		return true;
+	}
+
+	/** @return	Whether the report hides something about the individuals that may be living. */
+	private boolean concealsLiving(){
+		return (config.privacyPolicy() != PrivacyPolicy.SHOW_ALL && config.livingPrivacy() != LivingPrivacy.SHOW);
+	}
+
+	/**
+	 * Whether the record is shown with its name and its role only, because it is about an individual that may be living (or a
+	 * relationship of such an individual) and the report shows nothing more about them: the notes, the citations, the picture and the
+	 * rest of the record are left out.
+	 *
+	 * @param record	A record.
+	 * @return	Whether only the name and the role of the record are shown.
+	 */
+	public boolean isRedacted(final FLEFRecord record){
+		return (record != null && config.livingPrivacy() == LivingPrivacy.NAME_AND_ROLE && concealsLiving()
+			&& privacy().concernsLiving(record));
 	}
 
 	private PrivacyResolver privacy(){
@@ -365,6 +395,9 @@ public final class ReportContext{
 	}
 
 	public List<FLEFRecord> visibleChildren(final FLEFRecord parent, final String tag){
+		//a record shown with its name and its role only has no notes, citations, ...
+		if(!IndividualReader.TAG_NAME.equalsIgnoreCase(tag) && isRedacted(parent))
+			return List.of();
 		return visible(FLEFRecordHelper.findChildren(parent, tag));
 	}
 
@@ -571,6 +604,16 @@ public final class ReportContext{
 		return result;
 	}
 
+	/** @return	The kinship that counts the adoptive, foster and other legal links too, not only the blood ones. */
+	public KinshipCalculator legalKinship(){
+		KinshipCalculator result = legalKinship;
+		if(result == null){
+			result = KinshipCalculator.forModelWithLegalParents(model).withVocabulary(labels.kinship());
+			legalKinship = result;
+		}
+		return result;
+	}
+
 	/** @return	The derivations of the sources the report shows. */
 	public SourceDerivationTree derivations(){
 		return shared.derivationsOf(model, this::isVisible);
@@ -625,7 +668,15 @@ public final class ReportContext{
 	 * ====================================================================== */
 
 	public String displayText(final FLEFRecord rec){
-		return RecordDisplay.describe(rec, model);
+		final String text = RecordDisplay.describe(rec, model);
+		if(!GroupReader.isOfType(rec))
+			return text;
+
+		//"Dorato and Pastrelo family (family)": the type is not repeated if the name says it already
+		final String type = FLEFRecordHelper.getChildValue(rec, GroupReader.TAG_TYPE);
+		final String suffix = (type != null? " (" + type + ")": null);
+		return (suffix != null && text.contains(suffix) && Strings.CI.contains(StringUtils.substringBefore(text, suffix), type)
+			? Strings.CS.replaceOnce(text, suffix, StringUtils.EMPTY): text);
 	}
 
 	public String sourceTitle(final String sourceId){

@@ -49,7 +49,7 @@ A hidden individual is not removed from the picture: a box is shown, masked (the
 
 ## Reports
 
-A report has its **own** privacy choice in the report dialog, independent of **View > Privacy**. It starts at *Hide Confidential* (not at the view's policy), and offers the same three policies as the **View > Privacy** menu. Hidden records, citations and notes are left out, and so are the citations to hidden sources. The option **Show privacy details** prints the level, the reason and the expiry of the records that remain. See [Reports](reports.md).
+A report has its **own** privacy choice in the report dialog, independent of **View > Privacy**. It starts at *Hide Confidential* (not at the view's policy), and offers the same three policies as the **View > Privacy** menu. Hidden records, citations and notes are left out, and so are the citations to hidden sources. The option **Show privacy details** prints the level, the reason and the expiry of the records that remain. See [Reports](reports.md). Under it there is the **Living persons** choice, which says what the report writes of the persons who may be living (see above): *Hide everything*, *Name and role only* (it starts here) or *Show everything*. It applies to every report, and does nothing when the policy is *Show All*.
 
 ## Exporting to FLEF
 
@@ -76,6 +76,6 @@ In the text of a note, `[text](flef:confidential)` marks text to hide when confi
 
 ## Practical advice
 
-- To share a file with relatives, produce a **report** with *Hide Restricted and Confidential*, or a filtered FLEF export, rather than sending the `.flef`.
+- To share a file with relatives, produce a **report** with *Hide Restricted and Confidential*, or a filtered FLEF export, rather than sending the `.flef` (the report also hides the details of the living persons: see *Living persons* in the report dialog).
 - Give a death event to the people who are certainly dead, so that they are not treated as possibly living.
 - Use *Show All* only when you work on the data, and the stricter policies when you show the screen to someone.

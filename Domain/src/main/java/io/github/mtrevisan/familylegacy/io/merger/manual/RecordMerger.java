@@ -89,6 +89,26 @@ public final class RecordMerger{
 	 *                                  records have different tags
 	 */
 	public MergePlan plan(final String sourceId, final String targetId){
+		return plan(sourceId, targetId, false);
+	}
+
+	/**
+	 * Builds a plan that lists <b>every</b> field of the two records, not only the ones in collision, so that the user can see and
+	 * decide all of them: the fields that only the source has, the ones that only the target has and the ones that are the same.
+	 * <p>
+	 * The suggested decision of each field is the one the automatic rules would take, so a plan left untouched gives the same
+	 * result as {@link #plan(String, String)}; {@link #apply(MergePlan)} takes either.
+	 *
+	 * @param sourceId the id of the record to be deleted
+	 * @param targetId the id of the record to keep
+	 * @return the plan, never {@code null}
+	 * @throws IllegalArgumentException as {@link #plan(String, String)}
+	 */
+	public MergePlan planAllFields(final String sourceId, final String targetId){
+		return plan(sourceId, targetId, true);
+	}
+
+	private MergePlan plan(final String sourceId, final String targetId, final boolean allFields){
 		validate(sourceId, targetId);
 
 		final FLEFRecord source = model.getRecordById(sourceId);
@@ -114,6 +134,7 @@ public final class RecordMerger{
 		allTags.addAll(sourceByTag.keySet());
 
 		final List<MergeField> collisions = new ArrayList<>();
+		final List<MergeField> fields = new ArrayList<>();
 		for(final String tag : allTags){
 			final RecordAbsorber.FieldRole role = absorber.fieldRole(kind, tag);
 			if(role == RecordAbsorber.FieldRole.AUDIT || role == RecordAbsorber.FieldRole.PRIVACY)
@@ -121,18 +142,28 @@ public final class RecordMerger{
 
 			final List<FLEFRecord> targetInstances = targetByTag.getOrDefault(tag, List.of());
 			final List<FLEFRecord> sourceInstances = sourceByTag.getOrDefault(tag, List.of());
-			if(targetInstances.isEmpty() || sourceInstances.isEmpty())
-				continue;
-			if(absorber.sameContent(kind, tag, targetInstances, sourceInstances))
+			final boolean collision = (!targetInstances.isEmpty() && !sourceInstances.isEmpty()
+				&& !absorber.sameContent(kind, tag, targetInstances, sourceInstances));
+			if(!collision && !allFields)
 				continue;
 
 			// a field unknown to the grammar may be repeated: keeping both preserves it, as the protocol requires
 			final boolean repeated = (role != RecordAbsorber.FieldRole.SINGULAR);
-			final MergeDecision suggested = (repeated? MergeDecision.KEEP_BOTH: MergeDecision.KEEP_TARGET);
-			collisions.add(new MergeField(tag, targetInstances, sourceInstances, suggested, repeated));
+			final MergeDecision suggested;
+			if(collision)
+				suggested = (repeated? MergeDecision.KEEP_BOTH: MergeDecision.KEEP_TARGET);
+			else if(targetInstances.isEmpty())
+				//what the automatic rules do: the source's occurrences are added, a singular field is taken as the target lacks it
+				suggested = (repeated? MergeDecision.KEEP_BOTH: MergeDecision.KEEP_SOURCE);
+			else
+				suggested = MergeDecision.KEEP_TARGET;
+			final MergeField field = new MergeField(tag, targetInstances, sourceInstances, suggested, repeated);
+			fields.add(field);
+			if(collision)
+				collisions.add(field);
 		}
 
-		return new MergePlan(source, target, collisions, List.of());
+		return new MergePlan(source, target, collisions, fields, List.of());
 	}
 
 	private static Map<String, List<FLEFRecord>> indexChildrenByTag(final FLEFRecord record){
@@ -164,7 +195,13 @@ public final class RecordMerger{
 		final FLEFRecord source = plan.source();
 		final FLEFRecord target = plan.target();
 
-		for(final MergeField field : plan.collisions())
+		//the collisions, and the other fields only if the user decided them: the rest is merged by the automatic rules
+		final List<MergeField> decided = new ArrayList<>(plan.collisions());
+		for(final MergeField field : plan.fields())
+			if(field.isResolved() && !decided.contains(field))
+				decided.add(field);
+
+		for(final MergeField field : decided)
 			if(!field.isRepeated() && field.resultInstances().size() > 1)
 				throw new IllegalArgumentException("Field '" + field.tag() + "' holds a single value: keep either the target's or the"
 					+ " source's");
@@ -175,7 +212,7 @@ public final class RecordMerger{
 
 		// 1. Per-tag decisions on collisions.
 		final Set<String> collisionTags = new LinkedHashSet<>();
-		for(final MergeField field : plan.collisions()){
+		for(final MergeField field : decided){
 			collisionTags.add(field.tag());
 
 			if(field.chosen() == MergeDecision.KEEP_BOTH && !field.isComposed())

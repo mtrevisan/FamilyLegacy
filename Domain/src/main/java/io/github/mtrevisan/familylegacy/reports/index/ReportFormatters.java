@@ -37,8 +37,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
+import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -251,7 +255,11 @@ public final class ReportFormatters{
 		final StringBuilder sb = new StringBuilder();
 		if(type != null && !type.isBlank())
 			sb.append("**").append(escape(enumLabel(type))).append(":** ");
-		sb.append(escape(value));
+		//a postal address is written on several lines: in a list item it would run together, so its lines are joined by commas
+		sb.append(escape(String.join(", ", value.lines()
+			.map(String::strip)
+			.filter(line -> !line.isEmpty())
+			.toList())));
 		if(name != null && !name.isBlank())
 			sb.append(" — ").append(escape(name));
 		if(note != null && !note.isBlank())
@@ -320,7 +328,7 @@ public final class ReportFormatters{
 			return base;
 
 		return base + " — " + labels.sections().imageCroppedRegion()
-			+ ": " + x + "," + y + "," + w + "," + h;
+			+ ": x=" + x + ", y=" + y + ", " + w + "×" + h;
 	}
 
 
@@ -349,6 +357,144 @@ public final class ReportFormatters{
 	public static void appendIfPresent(final List<String> rows, final String label, final String value){
 		if(value != null && !value.isBlank())
 			rows.add("**" + label + ":** " + escape(value));
+	}
+
+	/**
+	 * Appends the validity of a record: a single {@code Date} row when it starts and ends on the same date (the date of the document
+	 * that states it, not a period), otherwise the {@code From} and {@code To} rows.
+	 */
+	public static void appendValidity(final List<String> rows, final ReportLabels labels, final String from, final String to){
+		final boolean hasFrom = (from != null && !from.isBlank());
+		final boolean hasTo = (to != null && !to.isBlank());
+		if(hasFrom && hasTo && from.trim().equals(to.trim())){
+			appendIfPresent(rows, labels.sections().date(), from);
+			return;
+		}
+
+		if(hasFrom)
+			appendIfPresent(rows, labels.sections().validFrom(), from);
+		if(hasTo)
+			appendIfPresent(rows, labels.sections().validTo(), to);
+	}
+
+	/**
+	 * Writes the coordinates of a place, kept as an ISO 6709 string ({@code +45.65056+012.21333/}), as {@code 45.65056° N, 12.21333° E}.
+	 *
+	 * @param iso	The coordinates, {@code null} if there are none.
+	 * @return	The coordinates for a reader; the text as it is if it is not in that form; {@code null} if there are none.
+	 */
+	public static String coordinates(final String iso){
+		if(iso == null || iso.isBlank())
+			return null;
+
+		final String text = StringUtils.removeEnd(iso.strip(), "/");
+		//the sign of the latitude, its digits, the sign of the longitude, its digits (an altitude may follow: it is not told)
+		final int second = Math.max(text.indexOf('+', 1), text.indexOf('-', 1));
+		if(text.isEmpty() || (text.charAt(0) != '+' && text.charAt(0) != '-') || second < 0)
+			return iso;
+		int third = text.length();
+		for(int i = second + 1; i < text.length(); i ++)
+			if(text.charAt(i) == '+' || text.charAt(i) == '-'){
+				third = i;
+				break;
+			}
+
+		try{
+			final double latitude = Double.parseDouble(text.substring(0, second));
+			final double longitude = Double.parseDouble(text.substring(second, third));
+			return Math.abs(latitude) + "° " + (latitude >= 0? "N": "S") + ", " + Math.abs(longitude) + "° " + (longitude >= 0? "E": "W");
+		}
+		catch(final NumberFormatException ignored){
+			return iso;
+		}
+	}
+
+	/** The chapters of a report that make the table of contents when there are many of them (a book about everybody has a chapter for each person). */
+	private static final int MANY_CHAPTERS = 40;
+	/** A chapter about a record: its title ends with the identifier of the record ({@code Antonia Pastrelo [I1430]}). */
+	private static final Pattern RECORD_CHAPTER = Pattern.compile("\\[[A-Za-z]+\\d+\\]\\s*$");
+
+	/**
+	 * The chapters the table of contents lists. When there are many, the chapters about a record (a person, a group) are left out: the
+	 * index of the individuals leads to them, and a contents of hundreds of lines is of no use.
+	 *
+	 * @param chapters	The headings of the first level, in order.
+	 * @return	The headings that are listed.
+	 */
+	public static List<ReportSection.Heading> contentsOf(final List<ReportSection.Heading> chapters){
+		if(chapters.size() <= MANY_CHAPTERS)
+			return chapters;
+
+		return chapters.stream()
+			.filter(chapter -> !RECORD_CHAPTER.matcher(chapter.text()).find())
+			.toList();
+	}
+
+	/* ----- Files ----------------------------------------------------------- */
+
+	/** @return	Whether the location is an address on the net ({@code https://...}), not a file of the disk. */
+	private static boolean isUrl(final String location){
+		return location.contains("://");
+	}
+
+	/**
+	 * What a report says of the location of a file: its name, not the whole path of the disk of who made the report (that is of no
+	 * use to who reads it, and tells where the files of the family are); an address on the net is kept as it is.
+	 *
+	 * @param location	A path or an address, {@code null} if there is none.
+	 * @return	The name of the file, or the address; {@code null} if there is no location.
+	 */
+	public static String fileNameOf(final String location){
+		if(location == null || location.isBlank())
+			return null;
+
+		final String trimmed = location.strip();
+		if(isUrl(trimmed))
+			return trimmed;
+		final int separator = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'));
+		return (separator >= 0? trimmed.substring(separator + 1): trimmed);
+	}
+
+	/**
+	 * The target of a link to a file, written so that every viewer follows it: each segment of the path is percent-encoded (a space, a
+	 * parenthesis or an accent break a link otherwise), and the path of a disk of Windows is a {@code file:///} address.
+	 *
+	 * @param path	A path or an address, the separators either {@code /} or {@code \}.
+	 * @return	The target of the link.
+	 */
+	public static String linkTarget(final String path){
+		if(path == null || path.isBlank())
+			return StringUtils.EMPTY;
+
+		final String trimmed = path.strip();
+		if(isUrl(trimmed))
+			return Strings.CS.replace(trimmed, StringUtils.SPACE, "%20");
+
+		final String[] segments = StringUtils.split(trimmed.replace('\\', '/'), '/');
+		final StringBuilder sb = new StringBuilder();
+		if(trimmed.startsWith("/") || trimmed.startsWith("\\"))
+			sb.append('/');
+		for(int i = 0; i < segments.length; i ++){
+			final String segment = segments[i];
+			if(i == 0 && segment.length() == 2 && Character.isLetter(segment.charAt(0)) && segment.charAt(1) == ':')
+				sb.append("file:///").append(segment);
+			else{
+				if(i > 0)
+					sb.append('/');
+				sb.append(".".equals(segment) || "..".equals(segment)
+					? segment: URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20"));
+			}
+		}
+		return sb.toString();
+	}
+
+	/** @return	Whether the description of a file is the name of the file (without the extension): it is not told twice. */
+	public static boolean isDescribedBy(final String description, final String location){
+		if(description == null || description.isBlank() || location == null)
+			return false;
+
+		final int dot = location.lastIndexOf('.');
+		return description.strip().equalsIgnoreCase(dot > 0? location.substring(0, dot): location);
 	}
 
 	/* ----- Enum labels ----------------------------------------------------- */
@@ -428,7 +574,7 @@ public final class ReportFormatters{
 		final String h = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_HEIGHT);
 		if(x == null || y == null || w == null || h == null)
 			return null;
-		return x + "," + y + "," + w + "," + h;
+		return "x=" + x + ", y=" + y + ", " + w + "×" + h;
 	}
 
 }

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
@@ -89,6 +90,7 @@ public final class ReportOptionsPanel extends JPanel{
 	 * ====================================================================== */
 
 	private final JComboBox<PrivacyPolicy> privacyPolicy = createPrivacyPolicyCombo();
+	private final JComboBox<LivingPrivacy> livingPrivacy = createLivingPrivacyCombo();
 	private final JCheckBox showPrivacyDetails = cb("show_privacy_details");
 	private final JCheckBox audit = cb("audit_trail");
 	private final JCheckBox header = cb("document_header");
@@ -205,6 +207,8 @@ public final class ReportOptionsPanel extends JPanel{
 	/** Copies every field of {@code initial} into the corresponding widget. */
 	private void applyInitial(final ReportConfig initial){
 		privacyPolicy.setSelectedItem(initial.privacyPolicy());
+		livingPrivacy.setSelectedItem(initial.livingPrivacy());
+		livingPrivacy.setEnabled(initial.privacyPolicy() != PrivacyPolicy.SHOW_ALL);
 		showPrivacyDetails.setSelected(initial.showPrivacyDetails());
 		audit.setSelected(initial.audit());
 		header.setSelected(initial.header());
@@ -260,11 +264,13 @@ public final class ReportOptionsPanel extends JPanel{
 	 */
 	public ReportConfig toConfig(final ReportLanguage selectedLanguage){
 		final PrivacyPolicy policy = (PrivacyPolicy)privacyPolicy.getSelectedItem();
+		final LivingPrivacy living = (LivingPrivacy)livingPrivacy.getSelectedItem();
 		final ReportConfig defaults = ReportConfig.defaults();
 
 		return new ReportConfig(
 			selectedLanguage != null? selectedLanguage: defaults.language(),
 			policy != null? policy: defaults.privacyPolicy(),
+			living != null? living: defaults.livingPrivacy(),
 			showPrivacyDetails.isSelected(),
 			audit.isSelected(),
 			header.isSelected(),
@@ -371,6 +377,22 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 
+	/** What is done with the individuals that may be living ("hide everything", "name and role only", "show everything"). */
+	private static JComboBox<LivingPrivacy> createLivingPrivacyCombo(){
+		final JComboBox<LivingPrivacy> combo = ComboBoxSearch.searchable(new JComboBox<>(LivingPrivacy.values()));
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof LivingPrivacy living
+					? I18N.t("enum.living_privacy." + living.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		combo.setToolTipText(I18N.t("tooltip.report.living_privacy", null));
+		return combo;
+	}
+
 	/* ======================================================================
 	 *                          Group builders
 	 * ====================================================================== */
@@ -378,6 +400,12 @@ public final class ReportOptionsPanel extends JPanel{
 	private JPanel privacyGroup(){
 		final JPanel p = singleColumn("tab.title.privacy");
 		p.add(privacyPolicy, "growx");
+		//the living persons have a meaning only when the policy hides something
+		privacyPolicy.addActionListener(e -> livingPrivacy.setEnabled(privacyPolicy.getSelectedItem() != PrivacyPolicy.SHOW_ALL));
+		final JLabel livingLabel = new JLabel(I18N.l("label.living_privacy"));
+		livingLabel.setToolTipText(I18N.t("tooltip.report.living_privacy", null));
+		p.add(livingLabel);
+		p.add(livingPrivacy, "growx");
 		addOption(p, ReportOption.SHOW_PRIVACY_DETAILS, showPrivacyDetails);
 		addOption(p, ReportOption.AUDIT, audit);
 		addOption(p, ReportOption.HEADER, header);

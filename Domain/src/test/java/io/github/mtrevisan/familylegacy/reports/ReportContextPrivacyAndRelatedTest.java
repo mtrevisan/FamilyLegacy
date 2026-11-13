@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -62,7 +63,8 @@ class ReportContextPrivacyAndRelatedTest{
 		model.addRecord(participation("EP1", "E1", "I1"));
 		model.addRecord(participation("EP2", "E1", "I2"));
 
-		final ReportConfig hiding = ReportConfig.uniform(false, ReportLanguage.ENGLISH, PrivacyPolicy.HIDE_CONFIDENTIAL);
+		final ReportConfig hiding = ReportConfig.uniform(false, ReportLanguage.ENGLISH, PrivacyPolicy.HIDE_CONFIDENTIAL)
+			.withLivingPrivacy(LivingPrivacy.SHOW);
 		final ReportContext hidingContext = ReportContext.build(model, model.getRecordById("I1"), hiding);
 		final List<EventIndex.Participant> visible = hidingContext.index.participantsOf(model.getRecordById("E1"));
 		Assertions.assertEquals(1, visible.size());

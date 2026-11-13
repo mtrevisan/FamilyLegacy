@@ -50,6 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -73,6 +74,12 @@ import java.util.Objects;
  * </ol>
  */
 public final class IndividualNarrator{
+
+	/** The attribute types that are narrated by their own sentences (or not at all), so not by the generic one. */
+	private static final Set<String> NARRATED_ELSEWHERE = Set.of(IndividualAttributeReader.ENUM_TYPE_SEX,
+		IndividualAttributeReader.ENUM_TYPE_TITLE, IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC,
+		IndividualAttributeReader.ENUM_TYPE_OCCUPATION, IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
+
 
 	private final FLEFModel model;
 	private final RelationIndex idx;
@@ -104,7 +111,7 @@ public final class IndividualNarrator{
 		final FLEFRecord emigration = findEvent(events, EventReader.ENUM_TYPE_EMIGRATION);
 		final FLEFRecord immigration = findEvent(events, EventReader.ENUM_TYPE_IMMIGRATION);
 
-		final List<FLEFRecord> marriages = findEvents(events, RelationshipReader.PARTNER_TYPES.toArray(String[]::new));
+		final List<FLEFRecord> marriages = IndividualLifeStorySection.chronological(findEvents(events, EventReader.ENUM_TYPE_MARRIAGE));
 		final List<FLEFRecord> divorces = findEvents(events, EventReader.DIVORCE_TYPES);
 		final List<FLEFRecord> characteristics = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_CHARACTERISTIC);
 		final List<FLEFRecord> residences = findAttrs(attrs, IndividualAttributeReader.ENUM_TYPE_RESIDENCE);
@@ -118,11 +125,11 @@ public final class IndividualNarrator{
 		addNameVariants(sentences, person);
 
 		// 1. Birth
-		if(birth != null){
-			final String d = orNull(DateService.getDateDisplayText(birth));
-			final String p = orNull(PlaceCitationReader.extractPlace(birth, model));
-			sentences.add(labels.narrativeBirth(name, d, p));
-		}
+		final String birthDate = (birth != null? orNull(DateService.getDateDisplayText(birth)): null);
+		final String birthPlace = (birth != null? orNull(PlaceCitationReader.extractPlace(birth, model)): null);
+		//a birth without date and place says nothing
+		if(birthDate != null || birthPlace != null)
+			sentences.add(labels.narrativeBirth(name, birthDate, birthPlace));
 		else
 			sentences.add(labels.narrativeBirthUnknown(name));
 
@@ -144,7 +151,8 @@ public final class IndividualNarrator{
 			final String p = orNull(PlaceCitationReader.extractPlace(m, model));
 			final FLEFRecord spouse = spouseFromEvent(person, m);
 			final String spouseName = (spouse != null? displayName(spouse): null);
-			sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
+			if(spouseName != null || d != null || p != null)
+				sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
 		}
 
 		// 3b. Divorces / annulments events
@@ -167,6 +175,10 @@ public final class IndividualNarrator{
 
 		// 6. Scalar attributes (Military, Education, Religion, Ethnicity, etc.)
 		for(final String type : IndividualAttributeReader.TYPES){
+			//the types already told above (or that are not a fact to narrate) are not repeated here
+			if(NARRATED_ELSEWHERE.contains(type))
+				continue;
+
 			for(final FLEFRecord a : findAttrs(attrs, type)){
 				final String v = FLEFRecordHelper.getChildValue(a, IndividualAttributeReader.TAG_VALUE);
 				if(v != null && !v.isBlank())
@@ -178,16 +190,23 @@ public final class IndividualNarrator{
 		if(emigration != null){
 			final String d = orNull(DateService.getDateDisplayText(emigration));
 			final String p = orNull(PlaceCitationReader.extractPlace(emigration, model));
-			sentences.add(labels.narrativeEmigration(name, d, p));
+			if(d != null || p != null)
+				sentences.add(labels.narrativeEmigration(name, d, p));
 		}
 		if(immigration != null){
 			final String d = orNull(DateService.getDateDisplayText(immigration));
 			final String p = orNull(PlaceCitationReader.extractPlace(immigration, model));
-			sentences.add(labels.narrativeImmigration(name, d, p));
+			if(d != null || p != null)
+				sentences.add(labels.narrativeImmigration(name, d, p));
 		}
 
 		// 8. Residences and moves
 		addResidenceSentences(sentences, name, residences);
+		for(final FLEFRecord relocation : IndividualLifeStorySection.chronological(findEvents(events, EventReader.ENUM_TYPE_RELOCATION))){
+			final String place = orNull(PlaceCitationReader.extractPlace(relocation, model));
+			if(place != null)
+				sentences.add(labels.narrativeRelocation(name, place, orNull(DateService.getDateDisplayText(relocation))));
+		}
 
 		// 9. Custom events with descriptions (awards, honors, military events, etc.)
 		addDescribedEvents(sentences, events, name);
@@ -199,19 +218,23 @@ public final class IndividualNarrator{
 		if(death != null){
 			final String d = orNull(DateService.getDateDisplayText(death));
 			final String p = orNull(PlaceCitationReader.extractPlace(death, model));
-			String cause = FLEFRecordHelper.getChildValue(death, EventReader.TAG_CAUSE_REASON);
-			sentences.add(labels.narrativeDeath(name, d, p, orNull(cause)));
+			final String cause = orNull(FLEFRecordHelper.getChildValue(death, EventReader.TAG_CAUSE_REASON));
+			//a death without date, place and cause says nothing
+			if(d != null || p != null || cause != null)
+				sentences.add(labels.narrativeDeath(name, d, p, cause));
 		}
 
 		if(burial != null){
 			final String d = orNull(DateService.getDateDisplayText(burial));
 			final String p = orNull(PlaceCitationReader.extractPlace(burial, model));
-			sentences.add(labels.narrativeBurial(name, d, p));
+			if(d != null || p != null)
+				sentences.add(labels.narrativeBurial(name, d, p));
 		}
 		else if(cremation != null){
 			final String d = orNull(DateService.getDateDisplayText(cremation));
 			final String p = orNull(PlaceCitationReader.extractPlace(cremation, model));
-			sentences.add(labels.narrativeCremation(name, d, p));
+			if(d != null || p != null)
+				sentences.add(labels.narrativeCremation(name, d, p));
 		}
 
 		return String.join(StringUtils.SPACE, sentences);
@@ -277,6 +300,8 @@ public final class IndividualNarrator{
 		for(final String core : EventReader.CORE_LIFE_EVENTS)
 			if(core.equalsIgnoreCase(type))
 				return true;
+		if(EventReader.ENUM_TYPE_MARRIAGE.equalsIgnoreCase(type))
+			return true;
 		for(final String m : RelationshipReader.PARTNER_TYPES)
 			if(m.equalsIgnoreCase(type))
 				return true;
@@ -528,9 +553,32 @@ public final class IndividualNarrator{
 
 	private String joinNames(final List<FLEFRecord> people){
 		final List<String> names = new ArrayList<>(people.size());
-		for(final FLEFRecord p : people)
-			names.add(displayName(p));
+		for(final FLEFRecord p : people){
+			//with the years of birth and death: children with the same name ("Lucia", "Lucia") are told apart
+			final String years = lifeYears(p);
+			names.add(displayName(p) + (years != null? " (" + years + ")": StringUtils.EMPTY));
+		}
 		return String.join(", ", names);
+	}
+
+	/** @return	The years of birth and death of the person ({@code 1662–1664}, {@code 1659–?}), {@code null} if none is known. */
+	private String lifeYears(final FLEFRecord person){
+		final Integer birth = yearOf(person, EventReader.ENUM_TYPE_BIRTH);
+		final Integer death = yearOf(person, EventReader.ENUM_TYPE_DEATH);
+		if(birth == null && death == null)
+			return null;
+
+		return (birth != null? birth.toString(): "?") + "–" + (death != null? death.toString(): "?");
+	}
+
+	private Integer yearOf(final FLEFRecord person, final String type){
+		for(final FLEFRecord event : idx.eventsOf(person))
+			if(type.equalsIgnoreCase(FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE))){
+				final Integer year = GenealogicalDateHelper.yearOrNull(event);
+				if(year != null)
+					return year;
+			}
+		return null;
 	}
 
 	private String displayName(final FLEFRecord rec){

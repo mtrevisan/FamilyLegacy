@@ -35,15 +35,19 @@ import java.util.Set;
 
 
 /**
- * Builds the descendants tree as an indented monospace block.
+ * Builds the descendants tree as an indented monospace block: each person with the years of birth and death and the spouses, the
+ * children from the eldest to the youngest. A person that is already in the tree (two branches that meet again) is not drawn a second
+ * time, with the children and all: the line says to see above.
  */
 public final class DescendantsSection implements SectionBuilder{
 
 	private final ReportContext ctx;
+	private final TreeText text;
 
 
 	public DescendantsSection(final ReportContext ctx){
 		this.ctx = ctx;
+		this.text = new TreeText(ctx);
 	}
 
 
@@ -52,22 +56,34 @@ public final class DescendantsSection implements SectionBuilder{
 		if(!ctx.config.descendants())
 			return List.of();
 		final StringBuilder sb = new StringBuilder();
-		write(sb, ctx.root, 0, new HashSet<>());
+		write(sb, ctx.root, 0, new HashSet<>(), new HashSet<>());
 		return List.of(
 			new ReportSection.Heading(1, ctx.labels.descendants()),
 			new ReportSection.Paragraph(sb.toString()));
 	}
 
 
-	private void write(final StringBuilder sb, final FLEFRecord parent, final int depth, final Set<String> path){
+	private void write(final StringBuilder sb, final FLEFRecord parent, final int depth, final Set<String> path, final Set<String> drawn){
 		sb.repeat("  ", depth)
-			.append(ReportFormatters.escape(ctx.displayText(parent)))
-			.append(StringUtils.LF);
-		//a circle of parentage (an error of the file) must not be followed forever
-		if(!path.add(parent.getId()))
+			.append(ReportFormatters.escape(text.label(parent)));
+		for(final FLEFRecord spouse : ctx.index.spousesOf(parent))
+			sb.append(" + ")
+				.append(ReportFormatters.escape(text.label(spouse)));
+
+		final List<FLEFRecord> children = text.childrenOf(parent);
+		//a person that is drawn already has the children below the first line, and a circle of parentage (an error of the file) must
+		//not be followed forever
+		if(!drawn.add(parent.getId()) || path.contains(parent.getId())){
+			if(!children.isEmpty())
+				sb.append(" (").append(ctx.labels.sections().treeSeeAbove()).append(')');
+			sb.append(StringUtils.LF);
 			return;
-		for(final FLEFRecord child : ctx.index.childrenOf(parent))
-			write(sb, child, depth + 1, path);
+		}
+		sb.append(StringUtils.LF);
+
+		path.add(parent.getId());
+		for(final FLEFRecord child : children)
+			write(sb, child, depth + 1, path, drawn);
 		path.remove(parent.getId());
 	}
 
