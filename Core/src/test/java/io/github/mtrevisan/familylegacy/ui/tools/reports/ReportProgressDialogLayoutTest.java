@@ -77,6 +77,35 @@ class ReportProgressDialogLayoutTest{
 	}
 
 	@Test
+	void aLongMessageDoesNotResizeTheDialogNorTheBar() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless());
+
+		final int[] widths = new int[4];
+		SwingUtilities.invokeAndWait(() -> {
+			final ProgressDialog dialog = new ProgressDialog(null, "Report");
+			dialog.validate();
+			final JProgressBar bar = barOf(dialog);
+			widths[0] = dialog.getWidth();
+			widths[1] = bar.getWidth();
+			dialog.update(10, "x".repeat(2000));
+		});
+		//update() is queued on the EDT: wait for it
+		SwingUtilities.invokeAndWait(() -> {});
+		SwingUtilities.invokeAndWait(() -> {
+			for(final java.awt.Window window : java.awt.Window.getWindows())
+				if(window instanceof final ProgressDialog dialog){
+					dialog.validate();
+					widths[2] = dialog.getWidth();
+					widths[3] = barOf(dialog).getWidth();
+					dialog.dispose();
+				}
+		});
+
+		Assertions.assertEquals(widths[0], widths[2], "the dialog changed its width");
+		Assertions.assertEquals(widths[1], widths[3], "the bar changed its width");
+	}
+
+	@Test
 	void theTaskIsToldOnceWhenTheUserCancelsWhicheverTheWay() throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless());
 

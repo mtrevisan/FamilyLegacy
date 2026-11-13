@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,7 +93,7 @@ public final class SourcesSection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, ctx.labels.sources()));
 
-		for(final String sid : ids){
+		for(final String sid : alphabetical(ids)){
 			final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
 			if(src != null)
 				appendSource(out, src, false);
@@ -100,7 +101,7 @@ public final class SourcesSection implements SectionBuilder{
 
 		//the sources the cited ones are derived from, that nothing cites: a transcription is of no use without its register
 		if(ctx.config.includeOriginalSources())
-			for(final String sid : originalsNotCited(ids)){
+			for(final String sid : alphabetical(originalsNotCited(ids))){
 				final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
 				if(src != null)
 					appendSource(out, src, true);
@@ -108,6 +109,14 @@ public final class SourcesSection implements SectionBuilder{
 		return out;
 	}
 
+
+	/** @return	The sources by title, in the order of the language (the same order of the list of citations), then by identifier. */
+	private List<String> alphabetical(final Set<String> ids){
+		final List<String> sorted = new ArrayList<>(ids);
+		sorted.sort(Comparator.comparing((final String id) -> ctx.sourceTitle(id), ReportCollation.of(ctx.labels.language().locale()))
+			.thenComparing(Comparator.naturalOrder()));
+		return sorted;
+	}
 
 	/** @return	The sources above the cited ones, that are not cited themselves. */
 	private Set<String> originalsNotCited(final Set<String> cited){

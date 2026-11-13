@@ -59,7 +59,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class ProgressDialog extends JDialog{
 
-	private final JLabel messageLabel = new JLabel(StringUtils.SPACE);
+	//the message does not dictate the width of the dialog: a text too long is cut by the label itself, with an ellipsis ("...")
+	private final JLabel messageLabel = new JLabel(StringUtils.SPACE){
+		@Override
+		public Dimension getPreferredSize(){
+			return new Dimension(0, super.getPreferredSize().height);
+		}
+
+		@Override
+		public Dimension getMinimumSize(){
+			return new Dimension(0, super.getMinimumSize().height);
+		}
+
+		@Override
+		public void setText(final String text){
+			super.setText(text);
+			setToolTipText(text);
+		}
+	};
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
 	private final AtomicBoolean cancelled = new AtomicBoolean(false);
 	private volatile Runnable cancelAction;

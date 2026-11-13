@@ -82,7 +82,8 @@ public final class FullBibliographyGenerator{
 		for(final FLEFRecord source : all)
 			if(first.isVisible(source))
 				sources.add(source);
-		sources.sort(Comparator.comparing((final FLEFRecord source) -> SourceReader.displayText(source).toLowerCase(first.labels.language().locale()))
+		sources.sort(Comparator.comparing((final FLEFRecord source) -> SourceReader.displayText(source),
+				ReportCollation.of(first.labels.language().locale()))
 			.thenComparing(FLEFRecord::getId));
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(first).build());

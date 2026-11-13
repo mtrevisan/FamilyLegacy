@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 
@@ -103,7 +105,9 @@ public final class IndexSection implements SectionBuilder{
 		final Map<FLEFRecord, String> keys = new IdentityHashMap<>();
 		for(final FLEFRecord individual : individuals)
 			keys.put(individual, FamilyBookGenerator.sortName(individual, locale));
-		individuals.sort(Comparator.comparing((final FLEFRecord individual) -> keys.get(individual))
+		final Comparator<String> order = ReportCollation.of(locale);
+		individuals.sort(Comparator.comparing((final FLEFRecord individual) -> FamilyBookGenerator.NO_NAME.equals(keys.get(individual)))
+			.thenComparing(individual -> keys.get(individual), order)
 			.thenComparing(FLEFRecord::getId));
 
 		final TreeText text = new TreeText(ctx);
@@ -138,8 +142,7 @@ public final class IndexSection implements SectionBuilder{
 		}
 
 		final List<T> sorted = new ArrayList<>(items);
-		sorted.sort(Comparator.comparing(
-			t -> label.apply(t).toLowerCase(ctx.labels.language().locale())));
+		sorted.sort(Comparator.comparing(label, ReportCollation.of(ctx.labels.language().locale())));
 
 		final List<List<String>> rows = new ArrayList<>(sorted.size());
 		for(final T t : sorted)
@@ -162,6 +165,27 @@ public final class IndexSection implements SectionBuilder{
 				byId.putIfAbsent(r.getId(), r);
 		for(final FLEFRecord r : ctx.index.indirectRelations(ctx.root))
 			byId.putIfAbsent(r.getId(), r);
+		//the individuals that take part in what happens at a place, or that cite a source
+		switch(ReportContext.rootKindOf(ctx.root)){
+			case PLACE -> {
+				for(final FLEFRecord event : ctx.index.eventsAtPlace(ctx.root))
+					addParticipants(byId, event);
+				for(final FLEFRecord event : ctx.index.eventsByPlace(ctx.root))
+					addParticipants(byId, event);
+			}
+			case SOURCE -> {
+				for(final FLEFRecord citation : ctx.index.citationsOfSource(ctx.root)){
+					final FLEFRecord owner = ctx.ownerOfCitation(citation);
+					if(owner == null)
+						continue;
+					if(IndividualReader.isOfType(owner) && ctx.isVisible(owner))
+						byId.putIfAbsent(owner.getId(), owner);
+					else
+						addParticipants(byId, owner);
+				}
+			}
+			default -> { /* nothing more */ }
+		}
 		//the members of a group
 		if(ReportContext.rootKindOf(ctx.root) == ReportContext.RootKind.GROUP)
 			for(final FLEFRecord membership : ctx.index.membersOf(ctx.root)){
@@ -172,10 +196,21 @@ public final class IndexSection implements SectionBuilder{
 			}
 
 		final List<FLEFRecord> out = new ArrayList<>(byId.values());
-		out.sort(Comparator.comparing(
-			(final FLEFRecord r) -> ctx.displayText(r)
-				.toLowerCase(ctx.labels.language().locale())));
+		out.sort(Comparator.comparing((final FLEFRecord r) -> ctx.displayText(r), ReportCollation.of(ctx.labels.language().locale())));
 		return out;
+	}
+
+
+	/** The individuals that take part in the event, if they can be shown. */
+	private void addParticipants(final Map<String, FLEFRecord> byId, final FLEFRecord event){
+		if(!EventReader.isOfType(event))
+			return;
+
+		for(final EventIndex.Participant participant : ctx.index.participantsOf(event)){
+			final FLEFRecord person = participant.record();
+			if(person != null && IndividualReader.isOfType(person) && ctx.isVisible(person))
+				byId.putIfAbsent(person.getId(), person);
+		}
 	}
 
 

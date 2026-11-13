@@ -1617,7 +1617,7 @@ public final class GEDCOMRecordBuilder{
 
 		final FLEFRecord contact = FLEFRecord.createChildWithTag(RepositoryReader.TAG_CONTACT)
 			.addChild(FLEFRecord.createChildWithTagAndValue(ContactReader.TAG_VALUE, value.trim()))
-			.addChild(FLEFRecord.createChildWithTagAndValue(ContactReader.TAG_TYPE, type));
+			.addChild(FLEFRecord.createChildWithTagAndValue(ContactReader.TAG_TYPE, ContactReader.correctType(value, type)));
 		if(StringUtils.isNotBlank(contactName))
 			contact.addChild(FLEFRecord.createChildWithTag(ContactReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, contactName.trim())));

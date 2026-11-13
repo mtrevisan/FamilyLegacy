@@ -1091,7 +1091,7 @@ public final class GrampsXMLToFLEFConverter{
 
 		return FLEFRecord.createChildWithTag(RepositoryReader.TAG_CONTACT)
 			.addChild(child(ContactReader.TAG_VALUE, value))
-			.addChild(child(ContactReader.TAG_TYPE, type))
+			.addChild(child(ContactReader.TAG_TYPE, ContactReader.correctType(value, type)))
 			.addChild(name != null? FLEFRecord.createChildWithTag(ContactReader.TAG_NAME).addChild(child(ContactReader.TAG_VALUE, StringUtils.strip(name, ", "))): null)
 			.addChild(remark != null? child(ContactReader.TAG_REMARK, remark): null)
 			.addChild(audit(now));

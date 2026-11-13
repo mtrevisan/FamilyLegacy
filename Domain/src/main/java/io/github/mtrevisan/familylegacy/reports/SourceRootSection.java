@@ -77,13 +77,14 @@ public final class SourceRootSection implements SectionBuilder{
 		writeRepositories(out);
 		writeDocuments(out);
 		out.addAll(SourceDerivationLines.derivatives(ctx, ctx.root.getId()));
-		writeCitations(out);
 
+		//the notes of the source (its text, ...) come before who cites it
 		if(ctx.config.notes())
 			out.addAll(ctx.citations().notes(ctx.root));
 		if(ctx.config.evidence())
 			ctx.citations()
 				.addEvidence(ctx.root, out);
+		writeCitations(out);
 		out.addAll(ctx.citations().audit(ctx.root));
 		out.addAll(ctx.citations().privacyInfo(ctx.root));
 		return out;
@@ -171,7 +172,6 @@ public final class SourceRootSection implements SectionBuilder{
 		if(citations.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceCitedBy()));
 		final List<String> items = new ArrayList<>(citations.size());
 		for(final FLEFRecord c : citations){
 			final FLEFRecord owner = ctx.ownerOfCitation(c);
@@ -185,6 +185,12 @@ public final class SourceRootSection implements SectionBuilder{
 				sb.append(" — *").append(ReportFormatters.escape(locator)).append('*');
 			items.add(sb.toString());
 		}
+		//all hidden: no heading with an empty list
+		if(items.isEmpty())
+			return;
+
+		items.sort(ReportCollation.of(ctx.labels.language().locale()));
+		out.add(new ReportSection.Heading(2, ctx.labels.sections().sourceCitedBy()));
 		out.add(new ReportSection.BulletList(items));
 	}
 

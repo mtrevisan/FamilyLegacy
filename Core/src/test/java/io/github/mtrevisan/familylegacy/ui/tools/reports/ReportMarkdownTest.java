@@ -297,10 +297,13 @@ class ReportMarkdownTest{
 	}
 
 	@Test
-	void theIndexOfIndividualsOfASourceDoesNotListTheSource() throws IOException{
+	void theIndexOfIndividualsOfASourceListsWhoCitesItNotTheSource() throws IOException{
 		final String markdown = markdown(ReportType.SOURCE, "S1");
 
-		Assertions.assertEquals(List.of("(empty)"), sectionOf(markdown, "# Index of Individuals"));
+		//the source is not an individual; who cites it is
+		final List<String> section = sectionOf(markdown, "# Index of Individuals");
+		Assertions.assertTrue(section.stream().noneMatch(line -> line.contains("[S1]")), section.toString());
+		Assertions.assertTrue(section.stream().anyMatch(line -> line.contains("first name [I1]")), section.toString());
 	}
 
 	@Test
@@ -345,7 +348,7 @@ class ReportMarkdownTest{
 		final String markdown = markdown(ReportType.BIBLIOGRAPHY, "I1");
 
 		assertContains(markdown, "# Sources", "## src title [S1]", "- **Publisher:** pub", "### Documents", "# Index of Places");
-		assertDoesNotContain(markdown, "# Introduction", "# Paternal Ancestry");
+		assertDoesNotContain(markdown, "# Introduction", "# Paternal Ancestry", "# Life of first name", "## Personal data");
 	}
 
 	@Test
@@ -355,7 +358,7 @@ class ReportMarkdownTest{
 		assertContains(markdown, "# Historical Context", "# Research", "## rq title", "### Activities", "### Tasks", "# Conclusions",
 			"## death cause", "# Identity Hypotheses", "# Coverage report", "| Record | Fields | Source | Evidence |",
 			"| first name [I1] [individual] | 2/2 | — | — |");
-		assertDoesNotContain(markdown, "# Paternal Ancestry", "# Direct Relations");
+		assertDoesNotContain(markdown, "# Life of first name", "## Personal data", "# Paternal Ancestry", "# Direct Relations");
 	}
 
 	@Test

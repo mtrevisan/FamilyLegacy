@@ -130,12 +130,18 @@ public final class ToVerifyGenerator{
 		final Locale locale = ctx.labels.language().locale();
 		final List<List<String>> rows = new ArrayList<>(findings.size());
 		final List<ToVerifyFinder.Finding> ordered = new ArrayList<>(findings);
-		ordered.sort(Comparator.comparing((final ToVerifyFinder.Finding finding) -> subject(ctx, finding).toLowerCase(locale))
+		ordered.sort(Comparator.comparing((final ToVerifyFinder.Finding finding) -> subject(ctx, finding), ReportCollation.of(locale))
 			.thenComparing(finding -> StringUtils.defaultString(finding.recordId())));
+		//the column of the detail is left out when no finding has anything to say (most groups are only a list of records)
+		final boolean withDetail = ordered.stream()
+			.anyMatch(finding -> !finding.detail().isBlank());
 		for(final ToVerifyFinder.Finding finding : ordered)
-			rows.add(List.of(ReportFormatters.escape(subject(ctx, finding)), ReportFormatters.escape(finding.detail())));
-		return new ReportSection.Table(List.of(ctx.labels.sections().toVerifyColumn("RECORD"),
-			ctx.labels.sections().toVerifyColumn("DETAIL")), rows);
+			rows.add(withDetail
+				? List.of(ReportFormatters.escape(subject(ctx, finding)), ReportFormatters.escape(finding.detail()))
+				: List.of(ReportFormatters.escape(subject(ctx, finding))));
+		return new ReportSection.Table((withDetail
+			? List.of(ctx.labels.sections().toVerifyColumn("RECORD"), ctx.labels.sections().toVerifyColumn("DETAIL"))
+			: List.of(ctx.labels.sections().toVerifyColumn("RECORD"))), rows);
 	}
 
 	/** @return	What is shown of the record the finding is about: its text, or its identifier if it is not there. */

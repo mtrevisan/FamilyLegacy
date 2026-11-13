@@ -12,10 +12,6 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### ALTA
-- Rivedi i report: place, source, research question, cerca errori e migliorie, correggi e applica
-- Rivedi i report: bibliography, research progress, cerca errori e migliorie, correggi e applica
-- Rivedi i report: family book, full bibliography, to verify, surnames by place, cerca errori e migliorie, correggi e applica
-- Nell'archivio dell'Archivio di Stato di Treviso l'email as-tv@beniculturali.it è registrata come telefono. Lo stesso vale per altri. Applica una correzione quando converti da gedcom a flef, scrivendo il tipo corretto.
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).

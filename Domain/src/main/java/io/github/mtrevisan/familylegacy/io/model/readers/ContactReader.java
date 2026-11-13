@@ -133,6 +133,27 @@ public final class ContactReader{
 		return null;
 	}
 
+	/**
+	 * Fixes a contact type that contradicts the value (for example, an e-mail address written as a phone).
+	 * <p>
+	 * A fax is never changed to a phone, as a fax number looks like a phone number, and postal addresses are left alone.
+	 *
+	 * @param value	The value of the contact.
+	 * @param declaredType	The type the source file declares.
+	 * @return	The type to write.
+	 */
+	public static String correctType(final String value, final String declaredType){
+		if(ENUM_TYPE_POSTAL.equals(declaredType))
+			return declaredType;
+
+		final String inferred = inferType(value);
+		if(inferred == null || inferred.equals(declaredType) || ENUM_TYPE_POSTAL.equals(inferred))
+			return declaredType;
+		if(ENUM_TYPE_PHONE.equals(inferred) && ENUM_TYPE_FAX.equals(declaredType))
+			return declaredType;
+		return inferred;
+	}
+
 	private static String typeOfWebAddress(final String lowerAddress){
 		String host = lowerAddress;
 		final int scheme = host.indexOf("://");

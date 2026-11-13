@@ -382,6 +382,10 @@ public final class SectionLabelProvider{
 		return labels.getString("PLACE_TYPE");
 	}
 
+	public String placeAttested(){
+		return labels.getString("PLACE_ATTESTED");
+	}
+
 	public String placeCoordinates(){
 		return labels.getString("PLACE_COORDINATES");
 	}

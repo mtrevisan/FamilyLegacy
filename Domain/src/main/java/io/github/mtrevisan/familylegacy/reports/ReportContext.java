@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipCalculator;
+import io.github.mtrevisan.familylegacy.places.PlaceAttestation;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
@@ -118,6 +119,7 @@ public final class ReportContext{
 	private volatile KinshipCalculator kinship;
 	private volatile KinshipCalculator legalKinship;
 	private volatile CitationRenderer citations;
+	private volatile PlaceAttestation placeAttestation;
 	private volatile Function<String, String> contextLabelResolver;
 
 
@@ -612,6 +614,34 @@ public final class ReportContext{
 			legalKinship = result;
 		}
 		return result;
+	}
+
+	/** @return	The interval in which each place surely existed, from the sources the report shows. */
+	public PlaceAttestation placeAttestation(){
+		PlaceAttestation result = placeAttestation;
+		if(result == null){
+			result = new PlaceAttestation(model, this::isVisible);
+			placeAttestation = result;
+		}
+		return result;
+	}
+
+	/**
+	 * @param placeId	The id of a place.
+	 * @return	The interval in which the place surely existed, formatted as a text ("1750 – 1900"), or {@code null} if it is not known.
+	 */
+	String placeAttestationText(final String placeId){
+		final PlaceAttestation.Interval interval = placeAttestation().of(placeId);
+		if(interval == null)
+			return null;
+
+		final Function<String, String> normResolver = contextLabelResolver();
+		final String from = GenealogicalDateHelper.formatDateStructure(interval.holder(), PlaceAttestation.Interval.TAG_FROM, labels, normResolver);
+		if(interval.sameDate() || from == null)
+			return from;
+
+		final String to = GenealogicalDateHelper.formatDateStructure(interval.holder(), PlaceAttestation.Interval.TAG_TO, labels, normResolver);
+		return (to != null? from + " – " + to: from);
 	}
 
 	/** @return	The derivations of the sources the report shows. */

@@ -117,7 +117,9 @@ public final class ReportGenerator{
 		switch(ctx.rootKind()){
 			case INDIVIDUAL -> {
 				out.add(new IntroductionSection(ctx));
-				out.add(new IndividualLifeStorySection(ctx));
+				//the bibliography and the research progress are about what the life cites and researches, not the life itself
+				if(type != ReportType.BIBLIOGRAPHY && type != ReportType.RESEARCH_PROGRESS)
+					out.add(new IndividualLifeStorySection(ctx));
 				out.add(new AncestrySection(ctx));
 				out.add(new DescendantsSection(ctx));
 				out.add(new RelationsSection(ctx));

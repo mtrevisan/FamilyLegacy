@@ -25,14 +25,11 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,36 +140,9 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 			writeActivity(out, a);
 	}
 
+	/** The activity as in the research section of the other reports (confidence, scope, target, parent activity, evidence). */
 	private void writeActivity(final List<ReportSection> out, final FLEFRecord a){
-		final String type = ReportFormatters.enumLabel(
-			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTIVITY_TYPE));
-		final String action = ReportFormatters.orEmpty(
-			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTION));
-		final String heading = (type != null? type + " — ": StringUtils.EMPTY) + action;
-		out.add(new ReportSection.Heading(3, ReportFormatters.escape(heading)));
-
-		final List<String> rows = new ArrayList<>();
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_STATUS)));
-		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_RESULT)));
-		if(!rows.isEmpty())
-			out.add(new ReportSection.BulletList(rows));
-
-		final String obs = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_OBSERVATION);
-		if(obs != null)
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().researchObservation() + ":** "
-					+ ReportFormatters.escape(obs)));
-
-		final String concl = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_CONCLUSION);
-		if(concl != null)
-			out.add(new ReportSection.Paragraph(
-				"**" + ctx.labels.sections().conclusion() + ":** " + ReportFormatters.escape(concl)));
-
-		if(ctx.config.sources())
-			out.addAll(ctx.citations().citations(a));
-		out.addAll(ctx.citations().audit(a));
+		new ContextResearchSection(ctx).appendActivity(out, a, 3);
 	}
 
 
@@ -182,26 +152,9 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().researchTasks()));
-		for(final FLEFRecord t : tasks){
-			out.add(new ReportSection.Heading(3, ReportFormatters.escape(
-				ReportFormatters.orEmpty(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION)))));
-
-			final List<String> rows = new ArrayList<>();
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_STATUS)));
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskPriority(),
-				ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_PRIORITY)));
-			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskDueDate(),
-				FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DUE_DATE));
-			if(!rows.isEmpty())
-				out.add(new ReportSection.BulletList(rows));
-
-			final String outcome = FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_OUTCOME);
-			if(outcome != null)
-				out.add(new ReportSection.Paragraph(
-					"**" + ctx.labels.sections().researchTaskOutcome() + ":** "
-						+ ReportFormatters.escape(outcome)));
-		}
+		final ContextResearchSection research = new ContextResearchSection(ctx);
+		for(final FLEFRecord t : tasks)
+			research.appendTask(out, t, 3);
 	}
 
 

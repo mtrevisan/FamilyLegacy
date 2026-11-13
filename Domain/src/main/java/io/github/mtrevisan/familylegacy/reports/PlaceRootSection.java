@@ -38,6 +38,7 @@ import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -104,6 +105,8 @@ public final class PlaceRootSection implements SectionBuilder{
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(ctx.root, PlaceReader.TAG_TYPE));
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeAttested(),
+			ctx.placeAttestationText(ctx.root.getId()));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
 			ReportFormatters.coordinates(FLEFRecordHelper.getChildValue(ctx.root, PlaceReader.TAG_LOCATION_COORDINATES)));
 		if(!rows.isEmpty())
@@ -171,9 +174,20 @@ public final class PlaceRootSection implements SectionBuilder{
 		}
 		if(!children.isEmpty()){
 			out.add(new ReportSection.Heading(2, ctx.labels.sections().placeContainedPlaces()));
-			for(final FLEFRecord rel : children)
+			//by name (accents near their letter), as a list of places is read
+			final Comparator<String> order = ReportCollation.of(ctx.labels.language().locale());
+			final List<FLEFRecord> sorted = new ArrayList<>(children);
+			sorted.sort(Comparator.comparing((final FLEFRecord rel) -> counterpartLabel(rel, true), order));
+			for(final FLEFRecord rel : sorted)
 				writeRelation(out, rel, true, 3);
 		}
+	}
+
+	private String counterpartLabel(final FLEFRecord rel, final boolean useSubject){
+		final String id = FLEFRecordHelper.getChildValue(rel, (useSubject? PlaceRelationshipReader.TAG_SUBJECT_PLACE
+			: PlaceRelationshipReader.TAG_TARGET_PLACE));
+		final FLEFRecord place = (id != null? ctx.visible(ctx.model.getRecordById(id)): null);
+		return StringUtils.defaultString(place != null? primaryName(place): id);
 	}
 
 	private void writeRelation(final List<ReportSection> out, final FLEFRecord rel,
@@ -189,8 +203,11 @@ public final class PlaceRootSection implements SectionBuilder{
 
 		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
 		final String relLabel = ReportFormatters.orEmpty(ReportFormatters.enumLabel(type));
-		out.add(new ReportSection.Heading(level,
-			ReportFormatters.escape(relLabel) + StringUtils.SPACE + ReportFormatters.escape(label)));
+		//a jurisdiction is told "administrative part of Treviso" (this place is part of Treviso); a contained place "Treviso (administrative part)"
+		//(Treviso is part of this place): the same text would say the opposite
+		out.add(new ReportSection.Heading(level, (useSubject
+			? ReportFormatters.escape(label) + (relLabel.isEmpty()? StringUtils.EMPTY: " (" + ReportFormatters.escape(relLabel) + ")")
+			: ReportFormatters.escape(relLabel) + StringUtils.SPACE + ReportFormatters.escape(label))));
 
 		final String from = GenealogicalDateHelper.formatDateStructure(
 			rel, PlaceRelationshipReader.TAG_VALID_FROM, ctx.labels, contextLabels);
@@ -223,8 +240,9 @@ public final class PlaceRootSection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().placeEvents()));
-		for(final FLEFRecord evt : events)
-			writeEvent(out, evt);
+		//the place is the one of the report: it is not repeated in each event
+		for(final FLEFRecord evt : chronological(events))
+			writeEvent(out, evt, false);
 	}
 
 	private void writeEventsByPlace(final List<ReportSection> out){
@@ -233,11 +251,21 @@ public final class PlaceRootSection implements SectionBuilder{
 			return;
 
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().placeEventParticipations()));
-		for(final FLEFRecord evt : events)
-			writeEvent(out, evt);
+		for(final FLEFRecord evt : chronological(events))
+			writeEvent(out, evt, true);
 	}
 
-	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt){
+	/** @return	The events by year (the ones with no year the last), as they are in the file inside each year. */
+	private static List<FLEFRecord> chronological(final List<FLEFRecord> events){
+		final List<FLEFRecord> sorted = new ArrayList<>(events);
+		sorted.sort(Comparator.comparing((final FLEFRecord evt) -> {
+			final Integer year = GenealogicalDateHelper.yearOrNull(evt);
+			return (year != null? year: Integer.MAX_VALUE);
+		}));
+		return sorted;
+	}
+
+	private void writeEvent(final List<ReportSection> out, final FLEFRecord evt, final boolean showPlace){
 		final String type = ReportFormatters.escape(ReportFormatters.orEmpty(
 			FLEFRecordHelper.getChildValue(evt, EventReader.TAG_TYPE)));
 		final String date = ReportFormatters.escape(ReportFormatters.orEmpty(
@@ -245,7 +273,7 @@ public final class PlaceRootSection implements SectionBuilder{
 		out.add(new ReportSection.Heading(3,
 			(type.isEmpty()? ctx.labels.sections().eventGeneric(): type) + (date.isEmpty()? StringUtils.EMPTY: " — " + date)));
 
-		final String place = PlaceCitationReader.extractPlace(evt, ctx.model);
+		final String place = (showPlace? PlaceCitationReader.extractPlace(evt, ctx.model): null);
 		if(place != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().place() + ":** " + ReportFormatters.escape(place)));

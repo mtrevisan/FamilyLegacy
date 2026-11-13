@@ -114,6 +114,22 @@ class GEDCOMLossyConversionsTest{
 	}
 
 	@Test
+	void contactTypeIsCorrectedFromTheValue() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME Archivio di Stato di Treviso
+			1 PHON as-tv@beniculturali.it
+			1 PHON 0422 1234
+			1 PHON https://www.facebook.com/archivio
+			1 FAX 0422 5678
+			""");
+
+		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(model.getRecordById("R1"), "contact");
+		final List<String> types = contacts.stream().map(contact -> FLEFRecordHelper.getChildValue(contact, "type")).toList();
+		Assertions.assertEquals(List.of("email", "phone", "social", "fax"), types);
+	}
+
+	@Test
 	void placesWrittenInDifferentWaysAreOnePlace() throws IOException{
 		final FLEFModel model = convert("""
 			0 @R1@ REPO

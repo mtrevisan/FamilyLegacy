@@ -132,6 +132,7 @@ public final class SurnameDistribution{
 				.add(origin.year());
 		}
 
+		final Comparator<String> order = ReportCollation.of(locale);
 		final List<PlaceGroup> groups = new ArrayList<>(byPlace.size());
 		for(final Map.Entry<String, Map<String, Tally>> entry : byPlace.entrySet()){
 			final boolean unknown = entry.getKey().isEmpty();
@@ -141,13 +142,13 @@ public final class SurnameDistribution{
 				rows.add(tally.toRow());
 				inPlace += tally.individuals;
 			}
-			rows.sort(Comparator.comparing((final Row row) -> row.surname().toLowerCase(locale)).thenComparing(Row::surname));
+			rows.sort(Comparator.comparing(Row::surname, order).thenComparing(Row::surname));
 			groups.add(new PlaceGroup((unknown? null: entry.getKey()), (unknown? StringUtils.EMPTY: places.fullName(entry.getKey())), inPlace,
 				rows));
 		}
 		//the places by name, the individuals with no place the last
 		groups.sort(Comparator.comparing((final PlaceGroup group) -> group.placeId() == null)
-			.thenComparing(group -> group.placeName().toLowerCase(locale))
+			.thenComparing(PlaceGroup::placeName, order)
 			.thenComparing(group -> StringUtils.defaultString(group.placeId())));
 		return new Result(individuals, surnames.size(), groups);
 	}

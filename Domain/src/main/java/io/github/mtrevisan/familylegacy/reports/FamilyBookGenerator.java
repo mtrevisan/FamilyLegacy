@@ -60,6 +60,8 @@ import java.util.StringJoiner;
  */
 public final class FamilyBookGenerator{
 
+	static final String NO_NAME = "￿";
+
 	private final FLEFModel model;
 	private final ReportConfig config;
 
@@ -95,7 +97,7 @@ public final class FamilyBookGenerator{
 		final RelationIndex index = RelationIndex.build(model, r -> true);
 		final Locale locale = labels.language().locale();
 		final List<FLEFRecord> ordered = order(persons, index, locale);
-		groups.sort(Comparator.comparing((final FLEFRecord group) -> RecordDisplay.describe(group, model).toLowerCase(locale))
+		groups.sort(Comparator.comparing((final FLEFRecord group) -> RecordDisplay.describe(group, model), ReportCollation.of(locale))
 			.thenComparing(FLEFRecord::getId));
 		return new MultiPersonReportGenerator(model, ordered, groups, config, title, List.of()).generate(listener);
 	}
@@ -106,7 +108,10 @@ public final class FamilyBookGenerator{
 		for(final FLEFRecord person : persons)
 			names.put(person, sortName(person, locale));
 
-		final Comparator<FLEFRecord> byName = Comparator.comparing((final FLEFRecord person) -> names.get(person))
+		//who has no name comes last; the others in the order of the language (accents near their letter)
+		final Comparator<String> order = ReportCollation.of(locale);
+		final Comparator<FLEFRecord> byName = Comparator.comparing((final FLEFRecord person) -> NO_NAME.equals(names.get(person)))
+			.thenComparing(person -> names.get(person), order)
 			.thenComparing(FLEFRecord::getId);
 		final List<FLEFRecord> out = new ArrayList<>(persons);
 		if(config.personOrder() == PersonOrder.BIRTH_DATE){
@@ -124,7 +129,7 @@ public final class FamilyBookGenerator{
 	static String sortName(final FLEFRecord person, final Locale locale){
 		final List<Name> names = NameAnatomyService.extractForIndividual(person);
 		if(names.isEmpty())
-			return "\uffff";
+			return NO_NAME;
 
 		final StringJoiner family = new StringJoiner(StringUtils.SPACE);
 		final StringJoiner others = new StringJoiner(StringUtils.SPACE);
@@ -138,7 +143,7 @@ public final class FamilyBookGenerator{
 				others.add(value.strip());
 		}
 		final String name = (family + StringUtils.SPACE + others).strip().toLowerCase(locale);
-		return (name.isEmpty()? "\uffff": name);
+		return (name.isEmpty()? NO_NAME: name);
 	}
 
 	/** @return	The year of birth, or the largest year if there is none (the person comes last). */

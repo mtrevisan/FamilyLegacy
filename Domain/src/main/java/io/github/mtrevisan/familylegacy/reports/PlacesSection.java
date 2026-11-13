@@ -182,6 +182,8 @@ public final class PlacesSection implements SectionBuilder{
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeType(),
 			FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE));
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeAttested(),
+			ctx.placeAttestationText(place.getId()));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().placeCoordinates(),
 			ReportFormatters.coordinates(FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_LOCATION_COORDINATES)));
 		if(!rows.isEmpty())

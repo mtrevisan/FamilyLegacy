@@ -491,6 +491,18 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
+	void contactTypeIsCorrectedFromTheValue() throws IOException{
+		final FLEFModel model = convertXml("<repositories><repository handle=\"_r\" id=\"R1\" change=\"1\"><rname>Archivio</rname><type>Archive</type>"
+			+ "<address><phone>as-tv@beniculturali.it</phone></address>"
+			+ "<address><phone>0422 1234</phone></address>"
+			+ "</repository></repositories>");
+
+		final List<String> types = FLEFRecordHelper.findChildren(record(model, "R1"), "contact").stream()
+			.map(contact -> FLEFRecordHelper.getChildValue(contact, "type")).toList();
+		Assertions.assertEquals(List.of("email", "phone"), types);
+	}
+
+	@Test
 	void aParishIsEcclesiasticalAndTheOtherPlacesAreAdministrative() throws IOException{
 		final FLEFModel model = convertXml("<places>"
 			+ "<placeobj handle=\"_1\" id=\"P1\" change=\"1\" type=\"Parish\"><pname value=\"San Marco\"/><placeref hlink=\"_2\"/></placeobj>"

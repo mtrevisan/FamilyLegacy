@@ -218,7 +218,7 @@ public final class ContextResearchSection implements SectionBuilder{
 		return out;
 	}
 
-	private void appendActivity(final List<ReportSection> out, final FLEFRecord a, final int headingLevel){
+	void appendActivity(final List<ReportSection> out, final FLEFRecord a, final int headingLevel){
 		final String type = ReportFormatters.enumLabel(
 			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTION);
@@ -341,11 +341,12 @@ public final class ContextResearchSection implements SectionBuilder{
 		return false;
 	}
 
-	private void appendTask(final List<ReportSection> out, final FLEFRecord t,
+	void appendTask(final List<ReportSection> out, final FLEFRecord t,
 		final int headingLevel){
 		final String description = FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DESCRIPTION);
 		out.add(new ReportSection.Heading(headingLevel, ReportFormatters.escape(
-			ReportFormatters.orEmpty(description))));
+			//a task with no description is told by its id
+			StringUtils.defaultIfBlank(description, ReportFormatters.orEmpty(t.getId())))));
 
 		final List<String> meta = new ArrayList<>();
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
