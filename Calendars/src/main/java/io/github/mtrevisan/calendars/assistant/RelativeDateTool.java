@@ -31,19 +31,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/** Adds or subtracts days or weeks to a date (e.g. "40 days after the birth"). */
+/** Adds or subtracts days, weeks, months or years to a date (e.g. "40 days after the birth", "9 months before the baptism"). */
 public final class RelativeDateTool{
 
 	/** The unit of the distance. */
 	public enum Unit{
-		DAYS(1, "date_assistant.distance.days"),
-		WEEKS(7, "date_assistant.distance.weeks");
+		DAYS(1, 0, "date_assistant.distance.days"),
+		WEEKS(7, 0, "date_assistant.distance.weeks"),
+		MONTHS(0, 1, "date_assistant.distance.months"),
+		YEARS(0, 12, "date_assistant.distance.years");
 
 		private final int days;
+		private final int months;
 		private final String distanceKey;
 
-		Unit(final int days, final String distanceKey){
+		Unit(final int days, final int months, final String distanceKey){
 			this.days = days;
+			this.months = months;
 			this.distanceKey = distanceKey;
 		}
 	}
@@ -88,33 +92,42 @@ public final class RelativeDateTool{
 		if(amount < 0)
 			throw new AssistantInputException("date_assistant.error.negative_distance", amount);
 
+		//months and years are counted in the calendar, keeping the day of the month: their length in days is not fixed
+		final boolean calendarUnit = (unit.months > 0);
+		final String calendar = CivilDates.calendarInForce(minJdn, CalendarReform.ROME);
+		final int sign = (after? 1: -1);
 		final long days = (long)amount * unit.days;
-		final long shift = (after? days: -days);
+		final long newMin = (calendarUnit? CivilDates.shiftMonths(minJdn, sign * amount * unit.months, calendar): minJdn + sign * days);
+		final long newMax = (calendarUnit? CivilDates.shiftMonths(maxJdn, sign * amount * unit.months, calendar): maxJdn + sign * days);
 
 		final Message distance = Message.of(unit.distanceKey, amount);
 		//the steps state the distance in days too, unless it is already in days
-		final Message stepDistance = (unit.days == 1? distance: Message.of("date_assistant.distance.with_days", distance, days));
+		final Message stepDistance = (unit.days <= 1? distance: Message.of("date_assistant.distance.with_days", distance, days));
 		final Message meaning = Message.of(after? "date_assistant.meaning.relative_after": "date_assistant.meaning.relative_before", distance,
 			baseLabel);
 		final List<Message> assumptions = new ArrayList<>();
-		assumptions.add(Message.of("date_assistant.assumption.exclusive_count"));
-		assumptions.add(Message.of("date_assistant.assumption.inclusive_count"));
+		if(calendarUnit)
+			assumptions.add(Message.of("date_assistant.assumption.counting_calendar", Message.calendar(calendar)));
+		else{
+			assumptions.add(Message.of("date_assistant.assumption.exclusive_count"));
+			assumptions.add(Message.of("date_assistant.assumption.inclusive_count"));
+		}
 		final List<Message> steps = new ArrayList<>();
 		if(minJdn == maxJdn){
 			steps.add(Message.of("date_assistant.step.base_date", baseLabel, minJdn));
-			steps.add(Message.of(after? "date_assistant.step.added": "date_assistant.step.subtracted", stepDistance, minJdn + shift));
-			return CalendarConversionTool.fromJdn(minJdn + shift, meaning, assumptions, steps);
+			steps.add(Message.of(after? "date_assistant.step.added": "date_assistant.step.subtracted", stepDistance, newMin));
+			return CalendarConversionTool.fromJdn(newMin, meaning, assumptions, steps);
 		}
 
 		assumptions.add(Message.of("date_assistant.assumption.range_base"));
 		steps.add(Message.of("date_assistant.step.base_range", baseLabel, minJdn, maxJdn));
 		steps.add(Message.of(after? "date_assistant.step.added_range": "date_assistant.step.subtracted_range", stepDistance,
-			minJdn + shift, maxJdn + shift));
-		final String calendar = CivilDates.calendarInForce(minJdn + shift, CalendarReform.ROME);
-		final String notBefore = CivilDates.format(minJdn + shift, calendar);
-		final String notAfter = CivilDates.format(maxJdn + shift, calendar);
-		steps.add(Message.of("date_assistant.step.written_range", Message.calendar(calendar), notBefore, notAfter));
-		return List.of(new DateSuggestion(Message.of("date_assistant.title.range"), meaning, assumptions, calendar, steps, null, notBefore,
+			newMin, newMax));
+		final String resultCalendar = CivilDates.calendarInForce(newMin, CalendarReform.ROME);
+		final String notBefore = CivilDates.format(newMin, resultCalendar);
+		final String notAfter = CivilDates.format(newMax, resultCalendar);
+		steps.add(Message.of("date_assistant.step.written_range", Message.calendar(resultCalendar), notBefore, notAfter));
+		return List.of(new DateSuggestion(Message.of("date_assistant.title.range"), meaning, assumptions, resultCalendar, steps, null, notBefore,
 			notAfter));
 	}
 

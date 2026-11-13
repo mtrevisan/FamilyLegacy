@@ -89,7 +89,10 @@ public final class DateAssistantContributor implements AssistantContributor{
 		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.SUN, "dates.sun", "sun", RELEVANCE));
 		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.RELATIVE, "dates.relative", "relative", RELEVANCE));
 		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.EVENT, "dates.event", "event", RELEVANCE));
+		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.INTERVAL, "dates.interval", "interval", RELEVANCE));
 		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.AGE, "dates.age", "age", RELEVANCE));
+		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.CLUES, "dates.clues", "clues", RELEVANCE));
+		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.VERIFY, "dates.verify", "verify", RELEVANCE));
 		actions.add(new DateAction(HistoricalDateAssistantDialog.Tool.ROMAN, "dates.roman", "roman", RELEVANCE));
 		return actions;
 	}

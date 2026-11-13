@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.assistant;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,23 @@ public final class CalendarConversionTool{
 	}
 
 	/**
+	 * Converts a date, and tells how a source that began the year on 25 March would write it (the old style / new style dual date,
+	 * for the days from 1 January to 24 March before the adoption of the Gregorian calendar in Great Britain).
+	 *
+	 * @param calendarCode the code of the calendar of the date
+	 * @param rawDate      the date, in the notation of the calendar
+	 * @return the candidates of {@link #convert(String, String)}, then the dual date if there is one (informative: it cannot be applied)
+	 * @throws IllegalArgumentException if the date cannot be parsed
+	 */
+	public static List<DateSuggestion> convertWithDualDating(final String calendarCode, final String rawDate){
+		final List<DateSuggestion> result = new ArrayList<>(convert(calendarCode, rawDate));
+		final DateSuggestion dual = dualDate(CalendarType.fromCode(calendarCode).parseToJdn(rawDate));
+		if(dual != null)
+			result.add(dual);
+		return result;
+	}
+
+	/**
 	 * The Julian and Gregorian dates of a day.
 	 *
 	 * @param jdn         the Julian Day Number
@@ -82,6 +100,28 @@ public final class CalendarConversionTool{
 		final DateSuggestion gregorian = candidate(Message.of("date_assistant.title.gregorian"), jdn, meaning, assumptions, steps,
 			CivilDates.GREGORIAN, Message.of(julianFirst? "date_assistant.note.gregorian_proleptic": "date_assistant.note.gregorian_adoption"));
 		return (julianFirst? List.of(julian, gregorian): List.of(gregorian, julian));
+	}
+
+	/**
+	 * The old style / new style writing of a day from 1 January to 24 March, before the year started on 1 January everywhere:
+	 * where the year began on 25 March, a source gives the previous year.
+	 *
+	 * @return the suggestion, or {@code null} if the day is not in that period
+	 */
+	private static DateSuggestion dualDate(final long jdn){
+		if(jdn >= CalendarReform.BRITAIN.firstGregorianJdn())
+			return null;
+
+		final int[] fields = CivilDates.julianFields(jdn);
+		final boolean beforeLadyDay = (fields[1] < 3 || (fields[1] == 3 && fields[2] < 25));
+		if(fields[0] < 1 || !beforeLadyDay)
+			return null;
+
+		final String year = (fields[0] - 1) + "/" + String.format("%02d", Math.floorMod(fields[0], 100));
+		final Message written = Message.of("date_assistant.title.dual_dating", fields[2], Month.of(fields[1]), year);
+		return new DateSuggestion(written, Message.of("date_assistant.meaning.dual_dating", fields[2], Month.of(fields[1]),
+			fields[0] - 1, fields[0]), List.of(Message.of("date_assistant.assumption.dual_dating")), CivilDates.JULIAN,
+			List.of(Message.of("date_assistant.step.dual_dating", jdn, fields[0] - 1, fields[0])), null);
 	}
 
 	private static DateSuggestion candidate(final Message title, final long jdn, final Message meaning,

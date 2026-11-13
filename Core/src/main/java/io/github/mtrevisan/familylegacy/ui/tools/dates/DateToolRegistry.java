@@ -40,8 +40,6 @@ public final class DateToolRegistry{
 	/** The date tools, in menu order. */
 	public static List<ToolOperation> tools(){
 		return List.of(
-			new CalendarConverterTool(),
-			new DateCalculatorTool(),
 			new HistoricalDateAssistantTool()
 		);
 	}

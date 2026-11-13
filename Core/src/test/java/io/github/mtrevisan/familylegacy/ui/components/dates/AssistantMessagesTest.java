@@ -24,12 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.dates;
 
+import io.github.mtrevisan.calendars.assistant.AgeCluesTool;
 import io.github.mtrevisan.calendars.assistant.AgeEstimator;
 import io.github.mtrevisan.calendars.assistant.CalendarConversionTool;
 import io.github.mtrevisan.calendars.assistant.DateSuggestion;
+import io.github.mtrevisan.calendars.assistant.DayRange;
+import io.github.mtrevisan.calendars.assistant.IndictionTool;
+import io.github.mtrevisan.calendars.assistant.IntervalTool;
 import io.github.mtrevisan.calendars.assistant.LiturgicalTool;
 import io.github.mtrevisan.calendars.assistant.RelativeDateTool;
 import io.github.mtrevisan.calendars.assistant.RomanDateTool;
+import io.github.mtrevisan.calendars.assistant.WeekdayTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import org.junit.jupiter.api.Assertions;
@@ -38,6 +43,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -83,6 +89,21 @@ class AssistantMessagesTest{
 		all.addAll(RelativeDateTool.offset("gregorian", "28 February 2024", 2, RelativeDateTool.Unit.WEEKS, true));
 		all.addAll(AgeEstimator.birthFromAge("julian", "1500", 72, 3, null, true, "death"));
 		all.addAll(RomanDateTool.interpret("ante diem VI Kal. Mart.", 1504));
+		all.addAll(RelativeDateTool.offset("julian", "15 December 1750", 9, RelativeDateTool.Unit.MONTHS, false));
+		all.addAll(CalendarConversionTool.convertWithDualDating("julian", "12 February 1749"));
+		all.addAll(IntervalTool.between(DayRange.parse("gregorian", "1500"), DayRange.parse("gregorian", "1 January 1502")));
+		all.addAll(IntervalTool.between(DayRange.parse("gregorian", "1 January 2020"), DayRange.parse("gregorian", "31 December 2019")));
+		final DayRange death = DayRange.parse("gregorian", "15 June 1900");
+		all.addAll(AgeCluesTool.intersect(List.of(new AgeCluesTool.Clue(death, 72, null, null, false, "death"),
+			new AgeCluesTool.Clue(DayRange.parse("gregorian", "1 January 1858"), 30, null, null, false, "census"))));
+		all.addAll(AgeCluesTool.intersect(List.of(new AgeCluesTool.Clue(death, 72, null, null, false, "death"),
+			new AgeCluesTool.Clue(DayRange.parse("gregorian", "15 June 1850"), 40, null, null, false, "marriage"))));
+		all.addAll(WeekdayTool.check("gregorian", "31 December 1853", DayOfWeek.SATURDAY));
+		all.addAll(WeekdayTool.check("gregorian", "1 March 1700", DayOfWeek.FRIDAY));
+		all.addAll(IndictionTool.check("julian", "5 March 1450", 13));
+		all.addAll(IndictionTool.check("julian", "5 March 1450", 3));
+		all.addAll(IndictionTool.years(13, 1430, 1470));
+		all.addAll(IndictionTool.years(5, 1450, 1451));
 
 		for(final DateSuggestion suggestion : all){
 			final String explanation = AssistantMessages.explanation(suggestion);

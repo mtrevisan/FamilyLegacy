@@ -55,7 +55,7 @@ It lists the couples whose partners are related and the people who are the child
 
 ## Date tools
 
-**Calendar Converter...**, **Date Calculator...** and **Historical Date Assistant...** are described in [Events and dates](events-and-dates.md#date-tools-in-the-tools-menu).
+**Historical Date Assistant...** (which converts a date between the calendars and does the date calculations: intervals, ages, weekdays and indictions) is described in [Events and dates](events-and-dates.md#date-tools-in-the-tools-menu).
 
 ## Research Assistant
 

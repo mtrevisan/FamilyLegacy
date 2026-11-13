@@ -25,18 +25,25 @@
 package io.github.mtrevisan.familylegacy.ui.components.dates;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.calendars.assistant.AgeCluesTool;
 import io.github.mtrevisan.calendars.assistant.AgeEstimator;
 import io.github.mtrevisan.calendars.assistant.AssistantInputException;
 import io.github.mtrevisan.calendars.assistant.AssistantStateException;
 import io.github.mtrevisan.calendars.assistant.CalendarConversionTool;
 import io.github.mtrevisan.calendars.assistant.DateSuggestion;
+import io.github.mtrevisan.calendars.assistant.DayRange;
+import io.github.mtrevisan.calendars.assistant.IndictionTool;
+import io.github.mtrevisan.calendars.assistant.IntervalTool;
 import io.github.mtrevisan.calendars.assistant.LiturgicalTool;
 import io.github.mtrevisan.calendars.assistant.Message;
 import io.github.mtrevisan.calendars.assistant.RelativeDateTool;
 import io.github.mtrevisan.calendars.assistant.RomanDateTool;
 import io.github.mtrevisan.calendars.assistant.SunTool;
+import io.github.mtrevisan.calendars.assistant.WeekdayTool;
 import io.github.mtrevisan.calendars.gregorian.CalendarReform;
 import io.github.mtrevisan.calendars.gregorian.CalendarReforms;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
 import org.jxmapviewer.viewer.GeoPosition;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
@@ -67,6 +74,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
@@ -83,7 +91,10 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -109,7 +120,10 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		SUN,
 		RELATIVE,
 		EVENT,
+		INTERVAL,
 		AGE,
+		CLUES,
+		VERIFY,
 		ROMAN
 	}
 
@@ -151,6 +165,9 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	private final JButton applyButton = new JButton(I18N.t("dialog.date_assistant.apply"));
 	private final JButton copyButton = new JButton(I18N.t("dialog.date_assistant.copy"));
 	private final JButton dismissButton = new JButton(I18N.t("dialog.date_assistant.dismiss"));
+	//the day written in the calendars of the table, in the conversion tool
+	private final JTable calendarTable = ToolDialogs.createTable(new RowTableModel(calendarColumns(), List.of()), null);
+	private RowTableModel calendarModel = new RowTableModel(calendarColumns(), List.of());
 
 
 	/**
@@ -203,7 +220,10 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		tools.addTab(I18N.t("dialog.date_assistant.tool.sun"), createSunPanel(calendarCode, dateText));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.relative"), createRelativePanel(calendarCode, dateText));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.event"), createEventPanel(events));
+		tools.addTab(I18N.t("dialog.date_assistant.tool.interval"), createIntervalPanel(calendarCode, dateText, events));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.age"), createAgePanel(calendarCode, dateText, events));
+		tools.addTab(I18N.t("dialog.date_assistant.tool.clues"), createCluesPanel(calendarCode, dateText, events));
+		tools.addTab(I18N.t("dialog.date_assistant.tool.verify"), createVerifyPanel(calendarCode, dateText));
 		tools.addTab(I18N.t("dialog.date_assistant.tool.roman"), createRomanPanel());
 		tools.setSelectedIndex(initialTool.ordinal());
 
@@ -269,15 +289,51 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JComboBox<String> calendar = createCalendarCombo(calendarCode);
 		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 24);
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> CalendarConversionTool.convert((String)calendar.getSelectedItem(), date.getText())));
+		run.addActionListener(e -> {
+			compute(() -> CalendarConversionTool.convertWithDualDating((String)calendar.getSelectedItem(), date.getText()));
+			showCalendarTable((String)calendar.getSelectedItem(), date.getText());
+		});
+
+		//the rows are in a fixed order, and a sorter would stay bound to the model it was created for
+		calendarTable.setRowSorter(null);
+		calendarTable.setAutoCreateRowSorter(false);
+		calendarTable.setFocusable(false);
+		final JLabel note = new JLabel("<html><i>" + I18N.t("dialog.date_assistant.conversion.table.note") + "</i></html>");
 
 		final JPanel panel = createToolPanel();
 		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
 		panel.add(calendar);
 		panel.add(new JLabel(I18N.l("dialog.date.full_date")));
 		panel.add(date);
-		panel.add(run);
+		panel.add(run, "wrap");
+		panel.add(note, "span 5,growx,wrap");
+		note.setToolTipText(I18N.t("dialog.date_assistant.conversion.table.tooltip"));
+		calendarTable.setToolTipText(I18N.t("dialog.date_assistant.conversion.table.tooltip"));
+		panel.add(new JScrollPane(calendarTable), "span 4,growx,h 200!");
+		panel.add(ToolDialogs.createCopyButton(() -> calendarModel.toText()), "aligny top");
 		return panel;
+	}
+
+	private static String[] calendarColumns(){
+		return new String[]{I18N.t("column.calendar"), I18N.t("column.date")};
+	}
+
+	/** Writes the day in every calendar of the table (nothing, if the date is not a single day or cannot be read). */
+	private void showCalendarTable(final String calendarCode, final String dateText){
+		List<Object[]> rows = List.of();
+		try{
+			final DayRange day = DayRange.parse(calendarCode, dateText);
+			if(day.isDay())
+				rows = CalendarTable.rows(day.minJdn(), calendarCode);
+		}
+		catch(final RuntimeException ignored){
+			//the reason is already said by the suggestions
+		}
+		calendarModel = new RowTableModel(calendarColumns(), rows);
+		calendarTable.setModel(calendarModel);
+		calendarTable.getColumnModel()
+			.getColumn(0)
+			.setPreferredWidth(180);
 	}
 
 	private JPanel createLiturgicalPanel(final List<PlaceChoice> places, final CalendarReform initialReform){
@@ -471,6 +527,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JComboBox<String> calendar = createCalendarCombo(calendarCode);
 		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 20);
 		date.setToolTipText(I18N.t("dialog.date_assistant.age.date.tooltip"));
+		linkEventToDate(event, calendar, date);
 		final JTextField eventName = new JTextField(I18N.t("dialog.date_assistant.age.event_name.default"), 12);
 		final JSpinner years = new JSpinner(new SpinnerNumberModel(72, 0, 150, 1));
 		final JTextField months = new JTextField(4);
@@ -514,6 +571,222 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		panel.add(ageDetails, "span 3,growx");
 		panel.add(run);
 		return panel;
+	}
+
+	/** The date of a tool: an event of the tree, or a date written in a calendar. */
+	private static final class DateSource{
+
+		private final JComboBox<EventChoice> event;
+		private final JComboBox<String> calendar;
+		private final JTextField date;
+
+
+		private DateSource(final List<EventChoice> events, final String calendarCode, final String dateText){
+			event = createEventCombo(events, true);
+			calendar = createCalendarCombo(calendarCode);
+			date = new JTextField(StringUtils.defaultString(dateText), 20);
+			date.setToolTipText(I18N.t("dialog.date_assistant.age.date.tooltip"));
+			linkEventToDate(event, calendar, date);
+		}
+
+		/** @return the date of the chosen event, or the one written */
+		private DayRange range(){
+			final EventChoice choice = (EventChoice)event.getSelectedItem();
+			if(choice != null)
+				return new DayRange(choice.minJdn(), choice.maxJdn(), choice.countingCalendar(), Message.text(choice.describe()));
+
+			return DayRange.parse((String)calendar.getSelectedItem(), date.getText());
+		}
+
+		/** Adds the event, the calendar and the date to a tool panel, the title in front of the event. */
+		private void addTo(final JPanel panel, final String title, final boolean last){
+			panel.add(new JLabel(title));
+			panel.add(event, "span 4,wrap");
+			panel.add(new JLabel(I18N.l("dialog.date.calendar")));
+			panel.add(calendar);
+			panel.add(new JLabel(I18N.l("dialog.date.full_date")));
+			panel.add(date, (last? StringUtils.EMPTY: "wrap"));
+		}
+
+	}
+
+	/** A statement of the age, with the text to show it in the list. */
+	private record ClueEntry(AgeCluesTool.Clue clue, String text){
+
+		@Override
+		public String toString(){
+			return text;
+		}
+
+	}
+
+
+	private JPanel createIntervalPanel(final String calendarCode, final String dateText, final List<EventChoice> events){
+		final DateSource from = new DateSource(events, calendarCode, dateText);
+		//the second date is, as a starting point, today: with a birth as the first date the result is the age today
+		final DateSource to = new DateSource(events, null, DayRange.today());
+		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
+		run.addActionListener(e -> compute(() -> IntervalTool.between(from.range(), to.range())));
+
+		final JPanel panel = createToolPanel();
+		panel.setToolTipText(I18N.t("dialog.date_assistant.interval.tooltip"));
+		from.addTo(panel, I18N.l("dialog.date_assistant.interval.from"), false);
+		to.addTo(panel, I18N.l("dialog.date_assistant.interval.to"), true);
+		panel.add(run);
+		return panel;
+	}
+
+	private JPanel createCluesPanel(final String calendarCode, final String dateText, final List<EventChoice> events){
+		final DateSource source = new DateSource(events, calendarCode, dateText);
+		final JTextField eventName = new JTextField(I18N.t("dialog.date_assistant.age.event_name.default"), 12);
+		final JSpinner years = new JSpinner(new SpinnerNumberModel(72, 0, 150, 1));
+		final JTextField months = new JTextField(4);
+		final JTextField days = new JTextField(4);
+		final JComboBox<String> reading = new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.age.completed"),
+			I18N.t("dialog.date_assistant.age.ordinal")});
+		reading.setToolTipText(I18N.t("dialog.date_assistant.age.ordinal.tooltip"));
+
+		final DefaultListModel<ClueEntry> clues = new DefaultListModel<>();
+		final JList<ClueEntry> cluesList = new JList<>(clues);
+		cluesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		final JButton add = new JButton(I18N.t("dialog.date_assistant.clues.add"));
+		add.addActionListener(e -> compute(() -> {
+			final Integer m = parseOptionalInt(months.getText());
+			final Integer d = parseOptionalInt(days.getText());
+			final boolean ordinal = (reading.getSelectedIndex() == 1);
+			final DayRange event = source.range();
+			//an age that cannot be used is refused now, not when the clues are put together
+			AgeEstimator.birthWindow(event.minJdn(), event.maxJdn(), event.countingCalendar(), (int)years.getValue(), m, d, ordinal);
+
+			final AgeCluesTool.Clue clue = new AgeCluesTool.Clue(event, (int)years.getValue(), m, d, ordinal, eventName.getText().trim());
+			final String age = years.getValue() + StringUtils.SPACE + I18N.t("dialog.date_assistant.age.years")
+				+ (m != null? ", " + m + StringUtils.SPACE + I18N.t("dialog.date_assistant.age.months"): StringUtils.EMPTY)
+				+ (d != null? ", " + d + StringUtils.SPACE + I18N.t("dialog.date_assistant.age.days"): StringUtils.EMPTY)
+				+ (ordinal? " (" + I18N.t("dialog.date_assistant.age.ordinal") + ")": StringUtils.EMPTY);
+			clues.addElement(new ClueEntry(clue, clue.eventName() + ", " + AssistantMessages.translate(event.label()) + ": " + age));
+			return List.of();
+		}));
+		final JButton remove = new JButton(I18N.t("dialog.date_assistant.clues.remove"));
+		remove.addActionListener(e -> {
+			final int index = cluesList.getSelectedIndex();
+			if(index >= 0)
+				clues.remove(index);
+		});
+		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
+		run.addActionListener(e -> compute(() -> AgeCluesTool.intersect(Collections.list(clues.elements()).stream()
+			.map(ClueEntry::clue)
+			.toList())));
+
+		//the age, as years, months and days, and how the years are counted
+		final JPanel ageDetails = new JPanel(new MigLayout("ins 0", "[][]5[]5[][]5[]5[][]10[]"));
+		ageDetails.add(years, "w 60!");
+		ageDetails.add(new JLabel(I18N.t("dialog.date_assistant.age.years")));
+		ageDetails.add(months, "w 40!");
+		ageDetails.add(new JLabel(I18N.t("dialog.date_assistant.age.months")));
+		ageDetails.add(days, "w 40!");
+		ageDetails.add(new JLabel(I18N.t("dialog.date_assistant.age.days")));
+		ageDetails.add(reading);
+
+		final JPanel panel = createToolPanel();
+		panel.setToolTipText(I18N.t("dialog.date_assistant.clues.tooltip"));
+		source.addTo(panel, I18N.l("dialog.date_assistant.event"), false);
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.age.event_name")));
+		panel.add(eventName, "wrap");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.age")));
+		panel.add(ageDetails, "span 3,growx");
+		panel.add(add, "wrap");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.clues.list")), "aligny top");
+		panel.add(new JScrollPane(cluesList), "span 3,growx,h 70!");
+		panel.add(remove, "split 2,flowy,aligny top");
+		panel.add(run);
+		return panel;
+	}
+
+	private JPanel createVerifyPanel(final String calendarCode, final String dateText){
+		final JComboBox<String> calendar = createCalendarCombo(calendarCode);
+		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 20);
+		date.setToolTipText(I18N.t("dialog.date_assistant.age.date.tooltip"));
+
+		final JComboBox<DayOfWeek> weekday = new JComboBox<>();
+		weekday.addItem(null);
+		for(final DayOfWeek day : DayOfWeek.values())
+			weekday.addItem(day);
+		weekday.setRenderer((list, value, index, selected, focus) -> optionalLabel(list, selected,
+			value != null? value.getDisplayName(TextStyle.FULL, Locale.getDefault()): I18N.t("dialog.date_assistant.verify.weekday.none")));
+		final JComboBox<Integer> indiction = new JComboBox<>();
+		indiction.addItem(null);
+		for(int i = 1; i <= 15; i ++)
+			indiction.addItem(i);
+		indiction.setRenderer((list, value, index, selected, focus) -> optionalLabel(list, selected,
+			value != null? String.valueOf(value): I18N.t("dialog.date_assistant.verify.indiction.none")));
+		indiction.setToolTipText(I18N.t("dialog.date_assistant.verify.indiction.tooltip"));
+
+		final JButton verify = new JButton(I18N.t("dialog.date_assistant.verify.check"));
+		verify.addActionListener(e -> compute(() -> {
+			final DayOfWeek claimedDay = (DayOfWeek)weekday.getSelectedItem();
+			final Integer claimedIndiction = (Integer)indiction.getSelectedItem();
+			if(claimedDay == null && claimedIndiction == null)
+				throw new IllegalStateException(I18N.t("dialog.date_assistant.error.nothing_to_verify"));
+
+			final List<DateSuggestion> result = new ArrayList<>();
+			if(claimedDay != null)
+				result.addAll(WeekdayTool.check((String)calendar.getSelectedItem(), date.getText(), claimedDay));
+			if(claimedIndiction != null)
+				result.addAll(IndictionTool.check((String)calendar.getSelectedItem(), date.getText(), claimedIndiction));
+			return result;
+		}));
+
+		final JSpinner yearsIndiction = new JSpinner(new SpinnerNumberModel(1, 1, 15, 1));
+		final JSpinner fromYear = createYearSpinner();
+		fromYear.setValue(1400);
+		final JSpinner toYear = createYearSpinner();
+		final JButton years = new JButton(I18N.t("dialog.date_assistant.run"));
+		years.addActionListener(e -> compute(() -> IndictionTool.years((int)yearsIndiction.getValue(), (int)fromYear.getValue(),
+			(int)toYear.getValue())));
+
+		final JPanel panel = createToolPanel();
+		panel.add(new JLabel("<html><b>" + I18N.t("dialog.date_assistant.verify.section.date") + "</b></html>"), "span 5,wrap");
+		panel.add(new JLabel(I18N.l("dialog.date.calendar")));
+		panel.add(calendar);
+		panel.add(new JLabel(I18N.l("dialog.date.full_date")));
+		panel.add(date, "wrap");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.verify.weekday")));
+		panel.add(weekday);
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.verify.indiction")));
+		panel.add(indiction);
+		panel.add(verify, "wrap");
+		panel.add(new JLabel("<html><b>" + I18N.t("dialog.date_assistant.verify.section.years") + "</b></html>"), "span 5,gaptop 10,wrap");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.verify.indiction")));
+		panel.add(yearsIndiction, "w 90!");
+		panel.add(new JLabel(I18N.l("dialog.date_assistant.verify.years.from")));
+		panel.add(fromYear, "split 3,w 90!");
+		panel.add(new JLabel(I18N.t("dialog.date_assistant.verify.years.to")));
+		panel.add(toYear, "w 90!");
+		panel.add(years);
+		return panel;
+	}
+
+	private static JLabel optionalLabel(final JList<?> list, final boolean selected, final String text){
+		final JLabel label = new JLabel(text);
+		label.setOpaque(true);
+		label.setBackground(selected? list.getSelectionBackground(): list.getBackground());
+		label.setForeground(selected? list.getSelectionForeground(): list.getForeground());
+		return label;
+	}
+
+	/**
+	 * The date is either the one of an event of the tree or the one written in the fields: while an event is chosen the calendar and
+	 * the date are not used, so they are disabled, and they are enabled again with the first item ("use the date written below").
+	 */
+	private static void linkEventToDate(final JComboBox<EventChoice> event, final JComboBox<String> calendar, final JTextField date){
+		final Runnable update = () -> {
+			final boolean written = (event.getSelectedItem() == null);
+			calendar.setEnabled(written);
+			date.setEnabled(written);
+		};
+		event.addActionListener(e -> update.run());
+		update.run();
 	}
 
 	/** A combo of the events of the model that have a date; the first item is empty if the event is optional. */

@@ -118,6 +118,19 @@ final class CivilDates{
 		return (reform == null? JulianCalendarStrategy.toJdn(year, month, day): reform.toJdn(year, month, day));
 	}
 
+	/**
+	 * Adds months to a day, keeping the day of the month (a day that does not exist in the month reached becomes its last day).
+	 *
+	 * @param months	the months to add (negative to subtract)
+	 */
+	static long shiftMonths(final long jdn, final int months, final String calendarCode){
+		final int[] fields = fields(jdn, calendarCode);
+		final int total = fields[0] * 12 + (fields[1] - 1) + months;
+		final int year = Math.floorDiv(total, 12);
+		final int month = Math.floorMod(total, 12) + 1;
+		return toJdn(year, month, Math.min(fields[2], monthLength(year, month, calendarCode)), calendarCode);
+	}
+
 	/** @return {@code 0} for Monday to {@code 6} for Sunday */
 	static int weekday(final long jdn){
 		return (int)Math.floorMod(jdn, 7L);

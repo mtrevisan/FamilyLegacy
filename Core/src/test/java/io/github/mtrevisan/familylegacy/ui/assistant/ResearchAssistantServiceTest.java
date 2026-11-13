@@ -109,7 +109,7 @@ class ResearchAssistantServiceTest{
 
 		Assertions.assertEquals("dates.assistant", inEditorIds.getFirst());
 		Assertions.assertTrue(inEditorIds.containsAll(List.of("dates.conversion", "dates.liturgical", "dates.sun", "dates.relative",
-			"dates.event", "dates.age", "dates.roman")));
+			"dates.event", "dates.interval", "dates.age", "dates.clues", "dates.verify", "dates.roman")));
 		Assertions.assertTrue(ids(service.search("", elsewhere)).isEmpty());
 		Assertions.assertTrue(ids(service.search("", new AssistantContext(null, null, null))).isEmpty());
 	}
