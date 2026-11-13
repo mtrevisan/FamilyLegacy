@@ -35,6 +35,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -83,6 +85,8 @@ import java.util.Set;
  */
 public final class DuplicateFinderDialog extends JDialog{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DuplicateFinderDialog.class);
+
 	private final ToolContext context;
 	private final CandidateTableModel tableModel = new CandidateTableModel();
 	private final JTable table = new JTable(tableModel);
@@ -93,6 +97,8 @@ public final class DuplicateFinderDialog extends JDialog{
 		DuplicateFinderService.DEFAULT_MAX_RESULTS, 10, 100000, 50));
 	private final JCheckBox sameSexCheck = new JCheckBox(I18N.t("checkbox.same_sex_only"), true);
 	private final JCheckBox skipExistingCheck = new JCheckBox(I18N.t("checkbox.skip_existing"), true);
+	private final JButton compareFacts = new JButton(I18N.t("button.compare_facts"));
+	private final JButton compareRecords = new JButton(I18N.t("button.compare_records"));
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	/** How far the search is, so that the user knows when the data will be there: shown only while it runs. */
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
@@ -206,13 +212,12 @@ public final class DuplicateFinderDialog extends JDialog{
 		final JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		footer.setBorder(BorderFactory.createEmptyBorder(2, 6, 6, 6));
 
-		final JButton compareFacts = new JButton(I18N.t("button.compare_facts"));
 		compareFacts.addActionListener(e -> compareFactsOfSelected());
 		footer.add(compareFacts);
 
-		final JButton compare = new JButton(I18N.t("button.compare_records"));
-		compare.addActionListener(e -> compareSelected());
-		footer.add(compare);
+		compareRecords.addActionListener(e -> compareSelected());
+		footer.add(compareRecords);
+		updateButtons();
 
 		progressBar.setStringPainted(true);
 		progressBar.setVisible(false);
@@ -262,6 +267,8 @@ public final class DuplicateFinderDialog extends JDialog{
 					allCandidates = get();
 					tableModel.setRows(allCandidates);
 					applyFilter();
+					if(table.getRowCount() > 0)
+						table.setRowSelectionInterval(0, 0);
 					statusLabel.setText(I18N.plural("text.duplicates.candidates", allCandidates.size()));
 				}
 				catch(final Exception ex){
@@ -320,7 +327,15 @@ public final class DuplicateFinderDialog extends JDialog{
 	 *                          Details and actions
 	 * ====================================================================== */
 
+	/** The comparisons need a pair selected: without it the buttons are disabled instead of doing nothing. */
+	private void updateButtons(){
+		final boolean selected = (table.getSelectedRowCount() > 0);
+		compareFacts.setEnabled(selected);
+		compareRecords.setEnabled(selected);
+	}
+
 	private void updateDetails(){
+		updateButtons();
 		final DuplicateFinderService.Candidate c = selectedCandidate();
 		if(c == null){
 			detailsArea.setText(StringUtils.EMPTY);
@@ -418,8 +433,9 @@ public final class DuplicateFinderDialog extends JDialog{
 					if(!comparison.isEmpty())
 						new FactsComparisonDialog(DuplicateFinderDialog.this, comparison, truncated).setVisible(true);
 				}
-				catch(final Exception ignored){
-					//the comparison is canceled, or the model changed: nothing to show
+				catch(final Exception ex){
+					LOGGER.error("Cannot compare the facts", ex);
+					statusLabel.setText(I18N.tf("text.search.failed", String.valueOf(ex.getCause() != null? ex.getCause(): ex)));
 				}
 			}
 		}.execute();
