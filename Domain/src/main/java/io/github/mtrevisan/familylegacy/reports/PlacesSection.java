@@ -265,7 +265,7 @@ public final class PlacesSection implements SectionBuilder{
 		final String targetName = (target != null? nameValue(primaryNameNode(target), target): targetId);
 
 		final StringBuilder heading = new StringBuilder();
-		final String relLabel = ReportFormatters.orEmpty(ReportFormatters.enumLabel(type));
+		final String relLabel = ReportFormatters.orEmpty(ctx.labels.enumValue("enum.place_relationship.type", type));
 		heading.append(relLabel);
 		if(targetName != null && !targetName.isBlank())
 			heading.append(' ').append(targetName);

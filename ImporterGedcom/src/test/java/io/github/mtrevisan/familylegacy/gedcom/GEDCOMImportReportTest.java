@@ -54,6 +54,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -259,6 +260,34 @@ class GEDCOMImportReportTest{
 		assertNote(occupation, "Contact", "Phone: 111");
 		Assertions.assertTrue(issues(result.report(), ImportReasons.CONTACT_DATA).isEmpty(), result.report().issues().toString());
 		Assertions.assertTrue(result.report().isEmpty(), result.report().issues().toString());
+	}
+
+	@Test
+	void canWriteAndCannotWriteAreLiteracyNotEducation() throws IOException{
+		final Result result = convertModel("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 EDUC can write
+			0 @I2@ INDI
+			1 NAME Luca /Bianchi/
+			1 EDUC cannot write
+			0 @I3@ INDI
+			1 NAME Piero /Verdi/
+			1 EDUC University
+			""");
+
+		final List<String> literacy = new ArrayList<>();
+		final List<String> education = new ArrayList<>();
+		for(final FLEFRecord attribute : result.model().getRecordsByType(IndividualAttributeReader.TYPE)){
+			final String type = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_VALUE);
+			if(IndividualAttributeReader.ENUM_TYPE_LITERACY.equals(type))
+				literacy.add(value);
+			else if(IndividualAttributeReader.ENUM_TYPE_EDUCATION.equals(type))
+				education.add(value);
+		}
+		Assertions.assertEquals(List.of("literate", "illiterate"), literacy);
+		Assertions.assertEquals(List.of("University"), education);
 	}
 
 	@Test

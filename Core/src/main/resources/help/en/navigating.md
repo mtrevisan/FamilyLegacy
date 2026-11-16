@@ -25,7 +25,7 @@ In the tree, `Ctrl+L` toggles the layout between vertical and horizontal, and `C
 
 ## The sidebar
 
-The sidebar (the *Dossier*) lists everything recorded about the selected individual or group, in collapsible sections such as **Identity**, **Events** and **Sources**. A double-click on a row opens the editor of the record behind it. The sections are described in [The tree, the graph and the ego network](views.md#the-sidebar).
+The sidebar (the *Dossier*) lists everything recorded about the selected individual or group, in collapsible sections such as **Identity**, **Events** and **Sources**. A click on a row opens the editor of the record behind it, on the right tab and with the focus on the right item. The sections are described in [The tree, the graph and the ego network](views.md#the-sidebar).
 
 ## Bookmarks
 
@@ -41,11 +41,12 @@ The sidebar (the *Dossier*) lists everything recorded about the selected individ
 
 This is a view preference: it does not change or delete any record. How the level of a record is decided, what counts as a living person, and what the policies hide in each place are explained in [Privacy](privacy.md).
 
-## Order of children and partners
+## Order of children, partners and dossier
 
-**View > Order of Children and Partners** decides how the views sort them:
+**View > Order of Children, Partners and Dossier** decides how the views sort them:
 
 - Children: by birth date (oldest first), alphabetically, or as stored in the file.
 - Partners: by date of the union (earliest first), alphabetically, or as stored in the file.
+- Dossier events and dossier attributes (of individuals and of groups), each with its own choice: oldest first (the default), newest first, or as stored in the file. Rows without a usable date always come last. The relationships of the dossier are always oldest first; sources and notes keep their grouping.
 
 Like privacy, this is only a way of looking at the data: no record is touched.

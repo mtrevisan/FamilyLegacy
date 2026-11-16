@@ -55,6 +55,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -93,8 +94,24 @@ final class RelationshipDataLoader{
 		final List<RelationshipData.Event> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, RelationshipData.Person> persons = new LinkedHashMap<>();
 		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
+		//the births and deaths with a date of each person (as a principal), in the order of the events: scanning all the events for each
+		//individual is quadratic
+		final Map<String, List<RelationshipData.Event>> eventsByPerson = new HashMap<>();
+		for(final RelationshipData.Event event : events){
+			if(event.date() == null || !EventReader.ENUM_TYPE_BIRTH.equals(event.type()) && !EventReader.ENUM_TYPE_DEATH.equals(event.type()))
+				continue;
+
+			final Set<String> principals = new LinkedHashSet<>();
+			for(final RelationshipData.Participant participant : event.participants())
+				if(participant.principal())
+					principals.add(participant.personId());
+			for(final String personId : principals)
+				eventsByPerson.computeIfAbsent(personId, k -> new ArrayList<>())
+					.add(event);
+		}
 		for(final FLEFRecord individual : filteredIndividuals.values())
-			persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
+			persons.put(individual.getId(), loadPerson(individual, eventsByPerson.getOrDefault(individual.getId(), List.of()),
+				PreferredSex.of(individual, sexes, model)));
 
 		return new RelationshipData(persons, filteredGroups, loadRelationships(model, persons.keySet(), filteredGroups.keySet()), events,
 			clergy(model, persons.keySet()), ecclesiasticalPlaces(model), countries(model));
@@ -218,14 +235,12 @@ final class RelationshipDataLoader{
 			final SexType sex){
 		//with several births the days they cover are used: a finding must hold for all of them
 		DateRange birth = null;
-		for(final RelationshipData.Event event : events)
-			if(EventReader.ENUM_TYPE_BIRTH.equals(event.type()) && event.date() != null
-					&& event.participants().stream().anyMatch(p -> p.principal() && p.personId().equals(individual.getId())))
-				birth = (birth != null? birth.hull(event.date()): event.date());
 		DateRange death = null;
+		//the events are the births and the deaths with a date that the individual is the principal of
 		for(final RelationshipData.Event event : events)
-			if(EventReader.ENUM_TYPE_DEATH.equals(event.type()) && event.date() != null
-					&& event.participants().stream().anyMatch(p -> p.principal() && p.personId().equals(individual.getId())))
+			if(EventReader.ENUM_TYPE_BIRTH.equals(event.type()))
+				birth = (birth != null? birth.hull(event.date()): event.date());
+			else if(EventReader.ENUM_TYPE_DEATH.equals(event.type()))
 				death = (death != null? death.hull(event.date()): event.date());
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);

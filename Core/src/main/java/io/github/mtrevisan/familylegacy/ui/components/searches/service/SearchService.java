@@ -133,7 +133,6 @@ public class SearchService{
 	 * @return	The types of record that can be searched, in the order to offer them: the people and their groups first, then the
 	 * 	events, places and sources, the research, the context. Every type with a strategy is there, and only those.
 	 */
-	@SuppressWarnings("unchecked")
 	public static List<Class<? extends RecordTypeHandler<?>>> searchableHandlers(){
 		return List.of(
 			IndividualHandler.class, GroupHandler.class, EventHandler.class, EventParticipationHandler.class, PlaceHandler.class, SourceHandler.class,

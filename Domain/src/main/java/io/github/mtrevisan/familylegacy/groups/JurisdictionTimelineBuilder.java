@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.groups;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -72,7 +73,7 @@ import java.util.Map;
 public final class JurisdictionTimelineBuilder{
 
 	/** The text added to the label of a relationship that points to the place, and does not go away from it. */
-	public static final String INCOMING = "incoming";
+	public static final String INCOMING = I18N.t("text.timeline.incoming");
 
 
 	private JurisdictionTimelineBuilder(){}

@@ -25,15 +25,18 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualLabel;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
@@ -352,6 +355,31 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 				tabbedPane, propertiesPanel, sexValueCombo);
 
 			return false;
+		}
+
+		if(isSexType()){
+			//two biological parents of the same child must be of different sexes (a marriage or a civil union has no such constraint)
+			final String value = StringUtils.lowerCase(StringUtils.trim(valueField.getText()));
+			final CoParentSex.Clash clash = CoParentSex.findClashingCoParent(parentEntity.getText(), SexType.fromRaw(value), model);
+			if(clash != null){
+				final String coParent = IndividualLabel.of(model, clash.coParentId());
+				final String sexLabel = I18N.t("enum.individual.sex." + value);
+				//a plain child link does not say whether the parentage is biological: only a warning
+				if(clash.certain()){
+					GUIHelper.showValidationErrorAndFocus(this, I18N.tf("validation.sex_coparent_clash", coParent, sexLabel),
+						tabbedPane, propertiesPanel, sexValueCombo);
+
+					return false;
+				}
+
+				if(JOptionPane.showConfirmDialog(this, I18N.tf("validation.sex_coparent_warning", coParent, sexLabel),
+						I18N.t("validation.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION){
+					tabbedPane.setSelectedComponent(propertiesPanel);
+					sexValueCombo.requestFocusInWindow();
+
+					return false;
+				}
+			}
 		}
 
 		return true;

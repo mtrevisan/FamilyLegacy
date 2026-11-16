@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -107,12 +108,14 @@ public record Name(
 
 	/**
 	 * Returns the display label of the name type, with underscores replaced
-	 * by spaces. Falls back to {@code "name"} when the type is empty.
+	 * by spaces when it has no translation. Falls back to the label of a name when the type is empty.
 	 *
 	 * @return the display label, never {@code null}
 	 */
 	public String displayType(){
-		return (type.isEmpty()? "name": type.replace('_', ' '));
+		return (type.isEmpty()
+			? I18N.t("text.dossier.name")
+			: I18N.t("enum.personal_name.type." + type, I18N.t("enum.name.type." + type, type.replace('_', ' '))));
 	}
 
 	/**

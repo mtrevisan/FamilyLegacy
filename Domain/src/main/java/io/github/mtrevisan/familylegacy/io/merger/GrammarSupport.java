@@ -33,6 +33,8 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,6 +58,11 @@ final class GrammarSupport{
 
 	private final FLEFGrammar grammar;
 	private final Map<String, TypeDefinition> recordKinds;
+	/** The declared type name of each field, and whether the field holds evidence: the grammar does not change, and they are asked for every node compared or merged. */
+	private final Map<FieldDefinition, String> declaredNames = Collections.synchronizedMap(new IdentityHashMap<>());
+	private final Map<FieldDefinition, Boolean> evidenceFields = Collections.synchronizedMap(new IdentityHashMap<>());
+	/** Stands for the {@code null} name in {@link #declaredNames}. */
+	private static final String NO_NAME = new String("");
 
 
 	GrammarSupport(final FLEFGrammar grammar){
@@ -99,6 +106,14 @@ final class GrammarSupport{
 	 * Name of the type of a field, as declared (e.g. {@code SourceCitation}), or {@code null} for an anonymous type.
 	 */
 	String declaredTypeName(final FieldDefinition field){
+		final String name = declaredNames.computeIfAbsent(field, f -> {
+			final String declared = computeDeclaredTypeName(f);
+			return (declared != null? declared: NO_NAME);
+		});
+		return (name == NO_NAME? null: name);
+	}
+
+	private String computeDeclaredTypeName(final FieldDefinition field){
 		final TypeDefinition type = field.type();
 		if(type instanceof ScalarType scalar && grammar.hasType(scalar.getName()))
 			return scalar.getName();
@@ -106,8 +121,10 @@ final class GrammarSupport{
 	}
 
 	boolean isEvidenceField(final FieldDefinition field){
-		final String typeName = declaredTypeName(field);
-		return (typeName != null && EVIDENCE_TYPES.contains(typeName));
+		return evidenceFields.computeIfAbsent(field, f -> {
+			final String typeName = declaredTypeName(f);
+			return (typeName != null && EVIDENCE_TYPES.contains(typeName));
+		});
 	}
 
 	static boolean isRepeated(final FieldDefinition field){

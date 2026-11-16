@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.context;
 import io.github.mtrevisan.familylegacy.events.EventHelper;
 import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
@@ -45,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDi
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;

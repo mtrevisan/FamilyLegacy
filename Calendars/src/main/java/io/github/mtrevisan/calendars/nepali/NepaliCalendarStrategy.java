@@ -38,7 +38,6 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,9 +85,12 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 	/** The month lengths of each year, and the Julian Day Number of its first day. */
 	private static final TreeMap<Integer, int[]> MONTH_LENGTHS = new TreeMap<>();
 	private static final Map<Integer, Long> NEW_YEARS = new HashMap<>();
-	private static final List<Integer> ANCHOR_MISMATCHES = new ArrayList<>();
+	/** The years whose published New Year disagrees with the accumulation of the month lengths (immutable once loaded). */
+	private static final List<Integer> ANCHOR_MISMATCHES;
 	static{
-		load();
+		final List<Integer> mismatches = new ArrayList<>();
+		load(mismatches);
+		ANCHOR_MISMATCHES = List.copyOf(mismatches);
 	}
 
 	private static void registerMonth(final int month, final String... names){
@@ -163,7 +165,7 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 		return new int[]{year, month, day};
 	}
 
-	private static void load(){
+	private static void load(final List<Integer> mismatches){
 		try(final InputStream is = NepaliCalendarStrategy.class.getResourceAsStream(RESOURCE)){
 			if(is == null)
 				throw new IllegalStateException("Missing resource " + RESOURCE);
@@ -202,7 +204,7 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 			//the published New Year prevails over the accumulation of the month lengths
 			final Long anchor = anchors.get(year);
 			if(anchor != null && anchor != newYear){
-				ANCHOR_MISMATCHES.add(year);
+				mismatches.add(year);
 				newYear = anchor;
 			}
 			NEW_YEARS.put(year, newYear);
@@ -215,7 +217,7 @@ public class NepaliCalendarStrategy implements CalendarConverterPlugin{
 	 * 	previous years, the table of the month lengths being wrong somewhere before them (empty for a consistent table)
 	 */
 	public static List<Integer> anchorMismatches(){
-		return Collections.unmodifiableList(ANCHOR_MISMATCHES);
+		return ANCHOR_MISMATCHES;
 	}
 
 	private static Map<Integer, Long> loadAnchors(){

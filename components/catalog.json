@@ -1,0 +1,12 @@
+{
+	"components": [
+		{
+			"id": "fonts",
+			"name": "Fonts for the PDF reports",
+			"description": "Noto fonts for Chinese, Japanese, Korean, Arabic, Hebrew, Thai, Hindi and Bengali",
+			"target": "fonts",
+			"asset": "fonts.zip",
+			"files": ["NotoSans-Regular.ttf"]
+		}
+	]
+}

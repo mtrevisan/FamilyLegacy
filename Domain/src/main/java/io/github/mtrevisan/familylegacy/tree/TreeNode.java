@@ -38,6 +38,10 @@ public final class TreeNode{
 
 	private TreeNode father;
 	private TreeNode mother;
+	/** Whether the father is not a biological parent of this individual (adoptive, foster, guardian, step...). */
+	private boolean fatherNonBiological;
+	/** Whether the mother is not a biological parent of this individual (adoptive, foster, guardian, step...). */
+	private boolean motherNonBiological;
 
 	private FLEFRecord partner;
 	private IndividualSummary partnerData;
@@ -99,6 +103,19 @@ public final class TreeNode{
 
 	public void setMother(final TreeNode treeNode){
 		mother = treeNode;
+	}
+
+	public boolean isFatherNonBiological(){
+		return fatherNonBiological;
+	}
+
+	public boolean isMotherNonBiological(){
+		return motherNonBiological;
+	}
+
+	public void setParentsNonBiological(final boolean fatherNonBiological, final boolean motherNonBiological){
+		this.fatherNonBiological = fatherNonBiological;
+		this.motherNonBiological = motherNonBiological;
 	}
 
 	public FLEFRecord getPartner(){

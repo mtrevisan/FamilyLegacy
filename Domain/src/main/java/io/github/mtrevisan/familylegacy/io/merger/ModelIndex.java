@@ -51,12 +51,12 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -117,7 +117,33 @@ final class ModelIndex{
 	private final Map<String, Set<String>> locatedUsagesOf = new HashMap<>();
 	private final Set<String> disprovenIdentities = new HashSet<>();
 	private final Map<String, Integer> referenceCount = new HashMap<>();
+	/** The places a place is part of, at any level, found when asked (the relationships do not change once the index is built). */
+	private final Map<String, Set<String>> placeAncestorsOf = new HashMap<>();
+	/** The usage of the owner of the references being indexed: the references of a record come one after the other. */
+	private FLEFRecord usageOwner;
+	private String usageOfOwner;
 
+
+	/** Upper case of the tags already seen: the same few record kinds, asked for every record and every comparison. */
+	private static final Map<String, String> UPPER_KINDS = new ConcurrentHashMap<>();
+	private static final int MAX_UPPER_KINDS = 256;
+
+	/**
+	 * The tag of a record in upper case, as the types of the readers are written, for the {@code switch} on the kind of record: the string is
+	 * not made again for every record.
+	 */
+	static String upperKind(final String tag){
+		if(tag == null)
+			return null;
+
+		String upper = UPPER_KINDS.get(tag);
+		if(upper == null){
+			upper = tag.toUpperCase(Locale.ROOT);
+			if(UPPER_KINDS.size() < MAX_UPPER_KINDS)
+				UPPER_KINDS.put(tag, upper);
+		}
+		return upper;
+	}
 
 	/** The tag a record of the given type has in the model (tags are kept lowercase). */
 	static String kind(final String type){
@@ -130,7 +156,7 @@ final class ModelIndex{
 		for(final FLEFRecord record : records){
 			byId.put(record.getId(), record);
 
-			switch(StringUtils.upperCase(record.getTag(), Locale.ROOT)){
+			switch(upperKind(record.getTag())){
 				case EventParticipationReader.TYPE -> indexParticipation(record);
 				case RelationshipReader.TYPE -> indexRelationship(record);
 				case PlaceRelationshipReader.TYPE -> indexPlaceRelationship(record);
@@ -139,7 +165,7 @@ final class ModelIndex{
 				case IndividualAttributeReader.TYPE -> {
 					final String individual = value(record, IndividualAttributeReader.TAG_INDIVIDUAL);
 					if(individual != null)
-						attributesOf.computeIfAbsent(individual, k -> new ArrayList<>())
+						attributesOf.computeIfAbsent(individual, k -> new ArrayList<>(2))
 							.add(record);
 				}
 				case null, default -> {}
@@ -156,6 +182,8 @@ final class ModelIndex{
 			if(place || KIND_SOURCE.equals(targetKind))
 				indexUsage(owner, parent, node.getValue(), targetKind);
 		});
+		usageOwner = null;
+		usageOfOwner = null;
 	}
 
 	/**
@@ -209,7 +237,8 @@ final class ModelIndex{
 	 * Whether the researcher concluded that two records are not the same entity.
 	 */
 	boolean isIdentityDisproven(final String idA, final String idB){
-		return disprovenIdentities.contains(ProtocolRules.unorderedPair(List.of(idA, idB)));
+		//most models have no disproven identity: the key of the pair is not built for every comparison
+		return (!disprovenIdentities.isEmpty() && disprovenIdentities.contains(ProtocolRules.unorderedPair(List.of(idA, idB))));
 	}
 
 	/**
@@ -217,18 +246,27 @@ final class ModelIndex{
 	 * locator, as {@code subjects|kind:type|locator}.
 	 */
 	private void indexUsage(final FLEFRecord owner, final FLEFRecord parent, final String usedId, final String usedKind){
-		final String subjects = subjectsOf(owner);
-		if(subjects == null)
+		//the usage depends on the owner only: it is built once for all the references of the owner
+		if(owner != usageOwner){
+			usageOwner = owner;
+			final String subjects = subjectsOf(owner);
+			if(subjects == null)
+				usageOfOwner = null;
+			else{
+				final String type = value(owner, TAG_TYPE);
+				usageOfOwner = subjects + "|" + owner.getTag() + (type != null? ":" + type: StringUtils.EMPTY);
+			}
+		}
+		final String usage = usageOfOwner;
+		if(usage == null)
 			return;
 
-		final String type = value(owner, TAG_TYPE);
-		final String usage = subjects + "|" + owner.getTag() + (type != null? ":" + type: StringUtils.EMPTY);
-		usagesOf.computeIfAbsent(usedId, k -> new LinkedHashSet<>())
+		usagesOf.computeIfAbsent(usedId, k -> new InsertionSet())
 			.add(usage);
 		if(KIND_SOURCE.equals(usedKind)){
 			final String locator = TextSimilarity.normalize(value(parent, TAG_LOCATOR));
 			if(!locator.isEmpty())
-				locatedUsagesOf.computeIfAbsent(usedId, k -> new LinkedHashSet<>())
+				locatedUsagesOf.computeIfAbsent(usedId, k -> new InsertionSet())
 					.add(usage + "|" + locator);
 		}
 	}
@@ -239,7 +277,7 @@ final class ModelIndex{
 	 */
 	private String subjectsOf(final FLEFRecord owner){
 		final Set<String> subjects = new TreeSet<>();
-		switch(StringUtils.upperCase(owner.getTag(), Locale.ROOT)){
+		switch(upperKind(owner.getTag())){
 			case EventReader.TYPE -> {
 				final Set<String> all = new TreeSet<>();
 				for(final FLEFRecord participation : participationsOfEvent(owner.getId())){
@@ -278,10 +316,10 @@ final class ModelIndex{
 		final String participant = armValue(FieldMerger.first(participation, TAG_PARTICIPANT));
 		final String event = value(participation, TAG_EVENT);
 		if(participant != null)
-			participationsByParticipant.computeIfAbsent(participant, k -> new ArrayList<>())
+			participationsByParticipant.computeIfAbsent(participant, k -> new ArrayList<>(2))
 				.add(participation);
 		if(event != null)
-			participationsByEvent.computeIfAbsent(event, k -> new ArrayList<>())
+			participationsByEvent.computeIfAbsent(event, k -> new ArrayList<>(2))
 				.add(participation);
 	}
 
@@ -294,19 +332,19 @@ final class ModelIndex{
 
 		if(RelationshipReader.CHILD_TYPES.contains(type)){
 			// the subject is the child of the target
-			parentsOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
+			parentsOf.computeIfAbsent(subject, k -> new InsertionSet())
 				.add(target);
-			childrenOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+			childrenOf.computeIfAbsent(target, k -> new InsertionSet())
 				.add(subject);
 		}
 		else if(RelationshipReader.PARTNER_TYPES.contains(type)){
-			spousesOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
+			spousesOf.computeIfAbsent(subject, k -> new InsertionSet())
 				.add(target);
-			spousesOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+			spousesOf.computeIfAbsent(target, k -> new InsertionSet())
 				.add(subject);
 		}
 		else if(RelationshipReader.isTypeGroupMember(type))
-			membersOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+			membersOf.computeIfAbsent(target, k -> new InsertionSet())
 				.add(subject);
 	}
 
@@ -318,16 +356,16 @@ final class ModelIndex{
 			return;
 
 		if(type.endsWith(PART_OF_SUFFIX)){
-			placeParentsOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
+			placeParentsOf.computeIfAbsent(subject, k -> new InsertionSet())
 				.add(target);
-			placeChildrenOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+			placeChildrenOf.computeIfAbsent(target, k -> new InsertionSet())
 				.add(subject);
 		}
 		else{
 			// succession, merger, division: the researcher keeps these places apart on purpose
-			placeSuccessionsOf.computeIfAbsent(subject, k -> new LinkedHashSet<>())
+			placeSuccessionsOf.computeIfAbsent(subject, k -> new InsertionSet())
 				.add(target);
-			placeSuccessionsOf.computeIfAbsent(target, k -> new LinkedHashSet<>())
+			placeSuccessionsOf.computeIfAbsent(target, k -> new InsertionSet())
 				.add(subject);
 		}
 	}
@@ -369,7 +407,7 @@ final class ModelIndex{
 	 * Ids of the places where the events of the given types of an entity took place.
 	 */
 	Set<String> principalEventPlaces(final String participantId, final Set<String> eventTypes){
-		final Set<String> places = new LinkedHashSet<>(0);
+		final Set<String> places = new InsertionSet();
 		for(final FLEFRecord event : principalEvents(participantId, eventTypes)){
 			final FLEFRecord placeCitation = FieldMerger.first(event, TAG_PLACE);
 			final String place = (placeCitation != null? value(placeCitation, TAG_PLACE): null);
@@ -397,7 +435,7 @@ final class ModelIndex{
 	 * another role are left out: a baptism entry is also cited for the parents and the godparents.
 	 */
 	Set<String> subjectCitations(final String individualId){
-		final Set<String> citations = new LinkedHashSet<>();
+		final Set<String> citations = new InsertionSet();
 		final FLEFRecord individual = byId.get(individualId);
 		if(individual != null){
 			addCitations(individual, citations);
@@ -431,7 +469,7 @@ final class ModelIndex{
 	 * The sexes asserted for an individual by its {@code sex} attributes (male, female: an unknown sex says nothing).
 	 */
 	Set<String> sexes(final String individualId){
-		final Set<String> sexes = new LinkedHashSet<>();
+		final Set<String> sexes = new InsertionSet();
 		for(final FLEFRecord attribute : attributesOf.getOrDefault(individualId, List.of()))
 			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(value(attribute, TAG_TYPE))){
 				final SexType sex = SexType.fromRaw(value(attribute, TAG_VALUE));
@@ -445,7 +483,7 @@ final class ModelIndex{
 	 * The attributes of an individual, as {@code type|value} (the sex is not one of them: see {@link #sexes(String)}).
 	 */
 	Set<String> attributeKeys(final String individualId){
-		final Set<String> keys = new LinkedHashSet<>();
+		final Set<String> keys = new InsertionSet();
 		for(final FLEFRecord attribute : attributesOf.getOrDefault(individualId, List.of())){
 			final String type = value(attribute, TAG_TYPE);
 			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(type))
@@ -464,7 +502,7 @@ final class ModelIndex{
 	 * The events where an individual is principal, other than the given types, as {@code type|first day}.
 	 */
 	Set<String> otherPrincipalEventKeys(final String individualId, final Set<String> excludedTypes){
-		final Set<String> keys = new LinkedHashSet<>();
+		final Set<String> keys = new InsertionSet();
 		for(final FLEFRecord participation : participationsByParticipant.getOrDefault(individualId, List.of())){
 			final String role = value(participation, TAG_ROLE);
 			if(role != null && !ROLE_PRINCIPAL.equals(role))
@@ -499,7 +537,12 @@ final class ModelIndex{
 	 * Every place a place is part of, at any level (its parish, its municipality, its province, …).
 	 */
 	Set<String> placeAncestorsOf(final String placeId){
-		final Set<String> ancestors = new LinkedHashSet<>();
+		//asked for every pair of places compared, and always the same
+		final Set<String> known = placeAncestorsOf.get(placeId);
+		if(known != null)
+			return known;
+
+		final Set<String> ancestors = new InsertionSet();
 		final Deque<String> pending = new ArrayDeque<>(placeParentsOf(placeId));
 		while(!pending.isEmpty()){
 			final String ancestor = pending.poll();
@@ -507,6 +550,7 @@ final class ModelIndex{
 			if(!ancestor.equals(placeId) && ancestors.add(ancestor))
 				pending.addAll(placeParentsOf(ancestor));
 		}
+		placeAncestorsOf.put(placeId, ancestors);
 		return ancestors;
 	}
 

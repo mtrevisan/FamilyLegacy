@@ -72,9 +72,9 @@ public final class ResearchTaskRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchTaskReader.TAG_STATUS)));
+			ctx.labels.enumValue("enum.research_task.status", FLEFRecordHelper.getChildValue(ctx.root, ResearchTaskReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskPriority(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchTaskReader.TAG_PRIORITY)));
+			ctx.labels.enumValue("enum.research_task.priority", FLEFRecordHelper.getChildValue(ctx.root, ResearchTaskReader.TAG_PRIORITY)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskDueDate(),
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchTaskReader.TAG_DUE_DATE));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchTaskOutcome(),

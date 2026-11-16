@@ -26,10 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individualtre
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.TreeMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
 
 import java.awt.Window;
 import java.util.ArrayList;
@@ -110,6 +112,17 @@ public final class RelationshipOperationCoordinator{
 			: null);
 		final String fatherId = (father != null? father.getId(): null);
 		final String motherId = (mother != null? mother.getId(): null);
+
+		//two biological parents of the same sex, among themselves or with the parents the child already has
+		if(!ParentSexGuard.confirm(parent, CoParentSex.findClashBetween(child.getId(), fatherId, fatherType, motherId, motherType, model),
+				fatherId, model))
+			return;
+		if(fatherId != null && !ParentSexGuard.confirm(parent, CoParentSex.findClashingParent(child.getId(), fatherId, fatherType, null, model),
+				fatherId, model))
+			return;
+		if(motherId != null && !ParentSexGuard.confirm(parent, CoParentSex.findClashingParent(child.getId(), motherId, motherType, null, model),
+				motherId, model))
+			return;
 
 		mutator.addChildToParents(fatherId, motherId, child, fatherType, motherType);
 	}

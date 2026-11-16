@@ -112,6 +112,9 @@ public final class IndividualAttributeReader{
 	public static final String ENUM_TYPE_LITERACY = "literacy";
 	public static final String ENUM_TYPE_EDUCATION = "education";
 	public static final String ENUM_TYPE_APPRENTICESHIP = "apprenticeship";
+	/** The values of a literacy attribute. */
+	public static final String ENUM_LITERACY_LITERATE = "literate";
+	public static final String ENUM_LITERACY_ILLITERATE = "illiterate";
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_SEX, ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, ENUM_TYPE_POSSESSION, ENUM_TYPE_MILITARY_RANK, ENUM_TYPE_CASTE,
 		ENUM_TYPE_SOCIAL_CLASS, ENUM_TYPE_ETHNICITY, ENUM_TYPE_CITIZENSHIP, ENUM_TYPE_NATIONALITY, ENUM_TYPE_NATIONAL_ID, ENUM_TYPE_TITLE, ENUM_TYPE_CHILDREN_COUNT,

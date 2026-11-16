@@ -36,12 +36,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.function.DoubleSupplier;
 
 

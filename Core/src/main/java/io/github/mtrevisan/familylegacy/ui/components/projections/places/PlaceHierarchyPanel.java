@@ -1046,7 +1046,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 	 * prettified.
 	 */
 	private static String formatRelationType(final String type){
-		return (type != null? type.replace('_', ' '): StringUtils.EMPTY);
+		return (type != null? I18N.t("enum.place_relationship.type." + type, type.replace('_', ' ')): StringUtils.EMPTY);
 	}
 
 

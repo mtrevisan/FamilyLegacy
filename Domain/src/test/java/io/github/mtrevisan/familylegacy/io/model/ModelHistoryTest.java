@@ -243,4 +243,86 @@ class ModelHistoryTest{
 		Assertions.assertFalse(entries.get(1).undone());
 	}
 
+	@Test
+	void anOlderStepCanBeRevertedOnItsOwnWhenNothingTouchedAfterwards(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+
+		model.getRecordById("P1").getChildren().getFirst().setValue("Venezia");
+		history.checkpoint();
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
+		history.checkpoint();
+
+		//entries are newest first: the older step is the one of P1
+		final ModelHistory.Entry older = history.recentChanges().get(1);
+		Assertions.assertEquals(ModelHistory.RevertState.CLEAN, history.planRevert(older).state());
+		Assertions.assertTrue(history.revert(older, false));
+
+		Assertions.assertEquals("Treviso", model.getRecordById("P1").getChildren().getFirst().getValue());
+		Assertions.assertTrue(model.hasRecord("P2"), "what the later step did is kept");
+		Assertions.assertEquals(3, history.recentChanges().size(), "the revert is a step of its own");
+
+		//and it can be undone
+		Assertions.assertTrue(history.undo());
+		Assertions.assertEquals("Venezia", model.getRecordById("P1").getChildren().getFirst().getValue());
+	}
+
+	@Test
+	void revertingAStepThatWasTouchedAfterwardsNeedsForce(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+
+		model.getRecordById("P1").getChildren().getFirst().setValue("Venezia");
+		history.checkpoint();
+		model.getRecordById("P1").getChildren().getFirst().setValue("Padova");
+		history.checkpoint();
+
+		final ModelHistory.Entry older = history.recentChanges().get(1);
+		final ModelHistory.RevertPlan plan = history.planRevert(older);
+		Assertions.assertEquals(ModelHistory.RevertState.CONFLICT, plan.state());
+		Assertions.assertEquals(List.of("P1"), plan.conflicts().stream().map(ModelHistory.Change::id).toList());
+
+		Assertions.assertFalse(history.revert(older, false));
+		Assertions.assertEquals("Padova", model.getRecordById("P1").getChildren().getFirst().getValue());
+		Assertions.assertEquals(2, history.recentChanges().size());
+
+		Assertions.assertTrue(history.revert(older, true));
+		Assertions.assertEquals("Treviso", model.getRecordById("P1").getChildren().getFirst().getValue());
+	}
+
+	@Test
+	void revertingAnAddedRecordRemovesItAndRevertingARemovedOnePutsItBack(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
+		history.checkpoint();
+		model.removeRecord("P1");
+		history.checkpoint();
+
+		Assertions.assertTrue(history.revert(history.recentChanges().get(0), false));
+		Assertions.assertTrue(model.hasRecord("P1"));
+		Assertions.assertEquals("Treviso", model.getRecordById("P1").getChildren().getFirst().getValue());
+
+		//the revert is now the newest step: the addition of P2 is the third
+		Assertions.assertTrue(history.revert(history.recentChanges().get(2), false));
+		Assertions.assertFalse(model.hasRecord("P2"));
+		Assertions.assertTrue(model.hasRecord("P1"));
+	}
+
+	@Test
+	void anUndoneStepCannotBeReverted(){
+		final FLEFModel model = model();
+		final ModelHistory history = new ModelHistory(model);
+
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE));
+		history.checkpoint();
+		history.undo();
+
+		final ModelHistory.Entry undone = history.recentChanges().getFirst();
+		Assertions.assertEquals(ModelHistory.RevertState.UNAVAILABLE, history.planRevert(undone).state());
+		Assertions.assertFalse(history.revert(undone, true));
+		Assertions.assertFalse(model.hasRecord("P2"));
+	}
+
 }

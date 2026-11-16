@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.ui.dialogs.help.ComponentsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
@@ -91,6 +92,11 @@ final class HelpMenu{
 		automaticUpdates.setToolTipText(I18N.t("menu.help.check.updates.auto.tooltip"));
 		automaticUpdates.addActionListener(e -> AppPreferences.getInstance().setUpdateCheckEnabled(automaticUpdates.isSelected()));
 		menu.add(automaticUpdates);
+
+		final JMenuItem components = new JMenuItem(I18N.t("menu.help.components"), KeyEvent.VK_O);
+		components.setToolTipText(I18N.t("menu.help.components.tooltip"));
+		components.addActionListener(e -> ComponentsDialog.show(frame));
+		menu.add(components);
 
 		final JMenuItem reportBug = new JMenuItem(I18N.t("menu.help.bug.report"), KeyEvent.VK_B);
 		reportBug.addActionListener(e -> openUrl(HelpContent.ISSUE_TRACKER_URL));

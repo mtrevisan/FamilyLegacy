@@ -78,4 +78,13 @@ public interface RecordDialog{
 	/** Shows the relationships in which the record is the object (where a child or a member is added). */
 	default void showRelationshipsAsObject(){}
 
+	/**
+	 * Shows a tab of the editor and puts the focus on a part of it: it is how the dossier takes the user to the very thing a row is about.
+	 * The editors that have no such tab ignore it.
+	 *
+	 * @param tabName the name of the tab (see {@code EditorTab})
+	 * @param nested  the item of one of the lists of the tab to select ({@code null} to focus the first component of the tab)
+	 */
+	default void showEntry(final String tabName, final FLEFRecord nested){}
+
 }

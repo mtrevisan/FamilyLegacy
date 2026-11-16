@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -132,7 +131,6 @@ final class EntityLinker{
 					.add(record);
 
 		final List<Candidate> candidates = new ArrayList<>();
-		final Set<String> compared = new HashSet<>();
 		for(final Map.Entry<String, List<FLEFRecord>> block : blocks.entrySet()){
 			final List<FLEFRecord> members = block.getValue();
 			if(members.size() > MAX_BLOCK_SIZE){
@@ -148,10 +146,12 @@ final class EntityLinker{
 					// a merge aligns the two models: records of the same model are not compared with each other
 					if(session.isMergeMode() && session.isIncoming(a.getId()) == session.isIncoming(b.getId()))
 						continue;
-					if(!compared.add(pairKey(a.getId(), b.getId())))
+					//the scores are those of the pairs already compared (the map is empty when the candidates are searched): one key for both
+					final String key = pairKey(a.getId(), b.getId());
+					if(scores.containsKey(key))
 						continue;
 
-					final MatchScore score = score(a.getId(), b.getId(), matcher, scores);
+					final MatchScore score = score(key, a.getId(), b.getId(), matcher, scores);
 					if(!score.isVetoed() && score.probability() >= reviewThreshold)
 						candidates.add(new Candidate(kind, a.getId(), b.getId(), score));
 				}
@@ -250,8 +250,12 @@ final class EntityLinker{
 	}
 
 	private MatchScore score(final String idA, final String idB, final EntityMatcher matcher, final Map<String, MatchScore> scores){
-		return scores.computeIfAbsent(pairKey(idA, idB),
-			key -> matcher.compare(session.record(idA), session.record(idB)));
+		return score(pairKey(idA, idB), idA, idB, matcher, scores);
+	}
+
+	private MatchScore score(final String key, final String idA, final String idB, final EntityMatcher matcher,
+			final Map<String, MatchScore> scores){
+		return scores.computeIfAbsent(key, k -> matcher.compare(session.record(idA), session.record(idB)));
 	}
 
 	private static String pairKey(final String idA, final String idB){

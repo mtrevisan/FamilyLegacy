@@ -89,11 +89,11 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().question(),
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_QUESTION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_STATUS)));
+			ctx.labels.enumValue("enum.research_question.status", FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().conclusion(),
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CONCLUSION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchConclusionConfidence(),
-			ReportFormatters.enumLabel(
+			ctx.labels.enumValue("enum.confidence", 
 				FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CONCLUSION_CONFIDENCE)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchClosedDate(),
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchQuestionReader.TAG_CLOSED_DATE));
@@ -174,7 +174,7 @@ public final class ResearchQuestionRootSection implements SectionBuilder{
 			if(proof != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchProofStatus() + ":** "
-						+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
+						+ ReportFormatters.escape(ctx.labels.enumValue("enum.proof_status", proof))));
 
 			final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 			if(narrative != null)

@@ -26,9 +26,9 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;

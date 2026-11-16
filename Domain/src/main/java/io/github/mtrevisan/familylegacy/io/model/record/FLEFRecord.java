@@ -64,7 +64,8 @@ public class FLEFRecord{
 	// For children:
 	private String value;
 
-	private final List<FLEFRecord> children = new ArrayList<>();
+	//no spare room: most records have only a few children, and a default list would keep room for ten of them
+	private final ArrayList<FLEFRecord> children = new ArrayList<>(0);
 
 
 	/**
@@ -254,9 +255,11 @@ public class FLEFRecord{
 	}
 
 	public long countChildrenWithTag(final String tag){
-		return children.stream()
-			.filter(c -> Strings.CI.equals(tag, c.getTag()))
-			.count();
+		long count = 0;
+		for(int i = 0, size = children.size(); i < size; i ++)
+			if(tag != null && tag.equalsIgnoreCase(children.get(i).getTag()))
+				count ++;
+		return count;
 	}
 
 	public FLEFRecord addChild(final FLEFRecord child){
@@ -315,9 +318,9 @@ public class FLEFRecord{
 	 * @return the list of removed children (empty if none were found)
 	 */
 	private List<FLEFRecord> removeChildren(final String tag){
-		final List<FLEFRecord> removed = new ArrayList<>();
+		final List<FLEFRecord> removed = new ArrayList<>(0);
 		children.removeIf(child -> {
-			if(Strings.CI.equals(tag, child.getTag())){
+			if(tag != null && tag.equalsIgnoreCase(child.getTag())){
 				removed.add(child);
 				return true;
 			}
@@ -368,6 +371,7 @@ public class FLEFRecord{
 		while(!stack.isEmpty()){
 			final FLEFRecord original = stack.pop();
 			final FLEFRecord copy = map.get(original);
+			copy.children.ensureCapacity(copy.children.size() + original.children.size());
 
 			// Copy all children
 			for(final FLEFRecord child : original.children){
@@ -405,8 +409,16 @@ public class FLEFRecord{
 	private boolean areChildrenEqual(final List<FLEFRecord> a, final List<FLEFRecord> b){
 		if(a == b)
 			return true;
-		if(a.size() != b.size())
+		final int size = a.size();
+		if(size != b.size())
 			return false;
+
+		//the same children in the same order (e.g. a copy) are equal without building anything
+		boolean sameOrder = true;
+		for(int i = 0; sameOrder && i < size; i ++)
+			sameOrder = a.get(i).equals(b.get(i));
+		if(sameOrder)
+			return true;
 
 		final Map<FLEFRecord, Integer> counts = new HashMap<>();
 		for(final FLEFRecord child : a)
@@ -425,7 +437,8 @@ public class FLEFRecord{
 
 	@Override
 	public int hashCode(){
-		int hash = Objects.hash(tag, id, value);
+		//the same value of Objects.hash(tag, id, value), without the array
+		int hash = 31 * (31 * (31 + Objects.hashCode(tag)) + Objects.hashCode(id)) + Objects.hashCode(value);
 		hash = 31 * hash + childrenHash(children);
 		return hash;
 	}

@@ -212,7 +212,7 @@ final class IndicShaper{
 		if(cached != null)
 			return cached;
 
-		final Path directory = PdfFonts.fontsDirectory();
+		final Path directory = FontsDirectory.get();
 		if(directory == null)
 			return null;
 

@@ -89,7 +89,7 @@ public final class ConclusionRootSection implements SectionBuilder{
 		if(proof != null)
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchProofStatus() + ":** "
-					+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
+					+ ReportFormatters.escape(ctx.labels.enumValue("enum.proof_status", proof))));
 
 		final String narrative = FLEFRecordHelper.getChildValue(ctx.root, ConclusionReader.TAG_NARRATIVE);
 		if(narrative != null)

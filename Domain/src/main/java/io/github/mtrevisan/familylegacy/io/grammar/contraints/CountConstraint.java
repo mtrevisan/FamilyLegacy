@@ -57,8 +57,8 @@ public final class CountConstraint extends Constraint{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final List<String> errors){
-		final List<FLEFRecord> fields = FLEFRecordHelper.findChildren(record, field);
-		if(fields.size() != count)
+		//the occurrences are counted, not collected in a list
+		if(FLEFRecordHelper.countChildren(record, field) != count)
 			errors.add(String.format("Constraint violation at '%s': field '%s' should be present %d times, record %s",
 				contextPath, field, count, record));
 	}

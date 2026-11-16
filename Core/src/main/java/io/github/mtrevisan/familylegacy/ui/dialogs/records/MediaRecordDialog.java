@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.bindings.MediaUriField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -75,7 +75,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField uriField;
+	private final MediaUriField uriField;
 	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mappingCombo;
 	private final DateField dateField;
@@ -96,7 +96,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]10[]");
 
-		uriField = new BoundTextField(MediaReader.TAG_URI);
+		uriField = new MediaUriField(MediaReader.TAG_URI);
 		BindingsHelper.installBehavior(uriField,
 			this::setNewItem, null,
 			null, null,

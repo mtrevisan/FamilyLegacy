@@ -39,19 +39,18 @@ import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.dialogs.help.ComponentsDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.FontPack;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
 import io.github.mtrevisan.familylegacy.util.PluginLoader;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
-import io.github.mtrevisan.updater.InstallerDownloader;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -80,9 +79,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -286,8 +283,8 @@ public final class ReportDialog extends JDialog{
 	 */
 	private JPanel createFontPackPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 0 8 0 8,fillx", "[grow,fill][]", "[]"));
-		final Path fonts = PluginLoader.fontsDirectory();
-		final boolean needed = (fonts != null && !FontPack.isInstalled(fonts) && formatBoxes.keySet().stream().anyMatch(ReportRenderer::choosesFont));
+		final boolean needed = (PluginLoader.fontsDirectory() != null && !ComponentsDialog.hasFonts()
+			&& formatBoxes.keySet().stream().anyMatch(ReportRenderer::choosesFont));
 		panel.setVisible(needed);
 		if(!needed)
 			return panel;
@@ -295,55 +292,13 @@ public final class ReportDialog extends JDialog{
 		final JLabel note = new JLabel("<html>" + escapeHtml(I18N.t("text.report.font_pack_missing")) + "</html>");
 		final JButton download = new JButton(I18N.t("button.report.download_fonts"));
 		download.setToolTipText(I18N.t("tooltip.report.download_fonts"));
-		download.addActionListener(e -> downloadFonts(fonts, panel));
+		download.addActionListener(e -> {
+			ComponentsDialog.show(this);
+			panel.setVisible(!ComponentsDialog.hasFonts());
+		});
 		panel.add(note, "growx");
 		panel.add(download);
 		return panel;
-	}
-
-	/** Downloads the fonts in the background, with a dialog that tells how far it is and that Escape cancels. */
-	private void downloadFonts(final Path fonts, final JPanel panel){
-		final ProgressDialog progressDialog = new ProgressDialog(this, I18N.t("dialog.report.font_pack.title"));
-		final SwingWorker<Void, Integer> worker = new SwingWorker<>(){
-			@Override
-			protected Void doInBackground() throws Exception{
-				FontPack.download(fonts, (done, total) -> publish(total > 0? (int)(done * 100 / total): 0), this::isCancelled);
-				return null;
-			}
-
-			@Override
-			protected void process(final List<Integer> percents){
-				progressDialog.update(percents.getLast(), I18N.t("dialog.report.font_pack.downloading"));
-			}
-
-			@Override
-			protected void done(){
-				progressDialog.dispose();
-				try{
-					get();
-					panel.setVisible(false);
-					JOptionPane.showMessageDialog(ReportDialog.this, I18N.t("dialog.report.font_pack.done"),
-						I18N.t("dialog.report.font_pack.title"), JOptionPane.INFORMATION_MESSAGE);
-				}
-				catch(final CancellationException | InterruptedException ignored){
-					//the user gave up: nothing to say
-				}
-				catch(final ExecutionException ex){
-					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-					if(cause instanceof InstallerDownloader.DownloadCancelledException)
-						return;
-
-					JOptionPane.showMessageDialog(ReportDialog.this,
-						(cause instanceof FontPack.NotPublishedException? I18N.t("dialog.report.font_pack.not_published"):
-						I18N.l("dialog.report.font_pack.error") + StringUtils.LF + cause.getMessage()),
-						I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		};
-		progressDialog.onCancel(() -> worker.cancel(true));
-
-		worker.execute();
-		progressDialog.setVisible(true);
 	}
 
 	private JPanel createLanguageSelectionPanel(){

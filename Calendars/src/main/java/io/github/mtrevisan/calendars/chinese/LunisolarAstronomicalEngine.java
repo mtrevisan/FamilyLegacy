@@ -26,10 +26,9 @@ package io.github.mtrevisan.calendars.chinese;
 
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.cache.BoundedCache;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.DoubleUnaryOperator;
 
 
@@ -83,10 +82,12 @@ public final class LunisolarAstronomicalEngine{
 
 	/** The local time offset from UT [hours] as a function of the Julian Date (UT). */
 	private final DoubleUnaryOperator utcOffsetHours;
-	/** Astronomical layout of each lunar year computed so far. */
-	private final Map<Integer, LunarYear> lunarYears = new ConcurrentHashMap<>();
+	/** Maximum number of years kept in each cache. */
+	private static final int MAX_CACHED_YEARS = 512;
+	/** Astronomical layout of each lunar year computed so far (the most recently used ones). */
+	private final BoundedCache<Integer, LunarYear> lunarYears = new BoundedCache<>(MAX_CACHED_YEARS);
 	/** Astronomical layout of each cycle between two Winter Solstices computed so far, without the following leap month. */
-	private final Map<Integer, LunarYear> cycles = new ConcurrentHashMap<>();
+	private final BoundedCache<Integer, LunarYear> cycles = new BoundedCache<>(MAX_CACHED_YEARS);
 
 
 	/**
@@ -144,7 +145,7 @@ public final class LunisolarAstronomicalEngine{
 		if(!engine.isAvailable())
 			throw new UnsupportedOperationException("The lunisolar calendars require the optional Ephemeris astronomical plugin JAR in classpath.");
 
-		final LunarYear layout = lunarYears.computeIfAbsent(lunarYear, year -> computeLunarYear(engine, year));
+		final LunarYear layout = lunarYears.get(lunarYear, year -> computeLunarYear(engine, year));
 		final double[] newMoonsLocalMidnight = layout.newMoonsLocalMidnight();
 
 		// Months 11 and 12 of the year follow the winter solstice of the same Gregorian year (next cycle),
@@ -196,10 +197,10 @@ public final class LunisolarAstronomicalEngine{
 	 * so it is cached.
 	 */
 	private LunarYear computeLunarYear(final EphemerisEngine engine, final int lunarYear){
-		final LunarYear cycle = cycles.computeIfAbsent(lunarYear, year -> computeCycle(engine, year));
+		final LunarYear cycle = cycles.get(lunarYear, year -> computeCycle(engine, year));
 
 		//the leap month of the following cycle can be the 11th or the 12th month of this lunar year
-		final LunarYear following = cycles.computeIfAbsent(lunarYear + 1, year -> computeCycle(engine, year));
+		final LunarYear following = cycles.get(lunarYear + 1, year -> computeCycle(engine, year));
 		int followingLeapOffset = 0;
 		if(following.leapMonthIndex() >= 0){
 			final int offset = following.leapMonthIndex() - following.month11Index();

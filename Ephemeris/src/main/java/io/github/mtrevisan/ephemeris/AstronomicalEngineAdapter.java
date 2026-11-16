@@ -257,7 +257,9 @@ public final class AstronomicalEngineAdapter implements EphemerisEngine{
 	 * @param zenith       the solar zenith angle definition configuration (e.g. OFFICIAL, CIVIL)
 	 * @return a {@link SunlightPhase.RegularDay} with the events in UTC (an event that does not happen during the day,
 	 * 	as for the Moon about once a month, is {@code null}), or {@link SunlightPhase.AlwaysDay}/{@link SunlightPhase.AlwaysNight}
-	 * 	if the body neither rises nor sets during the day
+	 * 	if the body neither rises nor sets during the day. The transit of an {@code AlwaysDay}/{@code AlwaysNight} may be
+	 * 	{@code null}: for the Moon, whose transit falls on the next day about once a month, a day can have neither rise,
+	 * 	set, nor transit
 	 */
 	@Override
 	public SunlightPhase calculateHorizonEvent(final CelestialBody body, final double midnightUtJd,

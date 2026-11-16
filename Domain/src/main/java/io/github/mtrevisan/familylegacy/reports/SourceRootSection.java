@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -130,7 +131,7 @@ public final class SourceRootSection implements SectionBuilder{
 
 			if(repo != null){
 				for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
-					final String rendered = ReportFormatters.renderContact(contact);
+					final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
 					if(rendered != null)
 						out.add(new ReportSection.Paragraph("  " + rendered));
 				}
@@ -160,7 +161,7 @@ public final class SourceRootSection implements SectionBuilder{
 			if(uri != null && !uri.isBlank()){
 				if(sb.length() > 2)
 					sb.append(" — ");
-				sb.append(uri);
+				sb.append(MediaPathDisplay.display(uri));
 			}
 			out.add(new ReportSection.Paragraph(sb.toString()));
 		}

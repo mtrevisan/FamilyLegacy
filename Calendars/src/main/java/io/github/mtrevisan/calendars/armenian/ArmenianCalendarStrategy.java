@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.calendars.armenian;
 
-import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
 import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
+import io.github.mtrevisan.calendars.gregorian.SeasonalDates;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 

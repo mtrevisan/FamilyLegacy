@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;

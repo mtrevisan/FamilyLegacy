@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.events;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -155,7 +156,7 @@ public final class EventSummary{
 			appendPart(sb, StringUtils.abbreviate(StringUtils.normalizeSpace(description), ELLIPSIS, MAX_DESCRIPTION_LENGTH));
 
 		if(sb.isEmpty())
-			sb.append("Event");
+			sb.append(I18N.t("text.dossier.event"));
 		return sb.append(" [")
 			.append(event.getId())
 			.append(']')

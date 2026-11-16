@@ -312,7 +312,8 @@ public class DateService{
 
 		final FLEFRecord approximate = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_APPROXIMATE);
 
-		return (approximate != null
+		//a calculated date (e.g. a birth derived from the age at death) is not an "about": the tilde would be misleading
+		return (approximate != null && !DateReader.ENUM_BASIS_CALCULATED.equals(DateReader.extractBasis(approximate))
 			? "~" + value
 			: value);
 	}

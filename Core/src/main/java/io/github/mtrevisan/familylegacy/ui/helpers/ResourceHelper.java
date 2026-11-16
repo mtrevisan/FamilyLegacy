@@ -33,9 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.swing.ImageIcon;
+import java.awt.AlphaComposite;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -114,13 +117,68 @@ public final class ResourceHelper{
 
 
 	public static ImageIcon getCroppedImage(final String filename, final Rectangle crop) throws IOException{
-		BufferedImage image = ResourceHelper.readBufferedImage(new File(filename));
+		final File file = new File(filename);
+
+		//only the region asked for is decoded (and then converted): a photo is far larger than the face that is cropped from it
+		if(crop != null){
+			final BufferedImage region = readRegion(file, crop);
+			if(region != null)
+				return new ImageIcon(toARGB(region));
+		}
+
+		BufferedImage image = ResourceHelper.readBufferedImage(file);
 		if(image != null){
-			image = toARGB(image);
-			image = crop(image, crop);
+			//the crop is cheap (a view on the same pixels), so it comes first: only the cropped part is converted
+			image = toARGB(crop(image, crop));
 			return (image != null? new ImageIcon(image): null);
 		}
 		return null;
+	}
+
+	/**
+	 * Decodes only a region of an image file.
+	 *
+	 * @param file the image file
+	 * @param crop the requested region (clamped to the image)
+	 * @return the region, or {@code null} if the file cannot be read by an {@link ImageReader}, or the region is outside the image
+	 *		(the caller then uses the whole-image path)
+	 */
+	private static BufferedImage readRegion(final File file, final Rectangle crop) throws IOException{
+		if(!file.exists())
+			return null;
+
+		try(final ImageInputStream input = ImageIO.createImageInputStream(file)){
+			if(input == null)
+				return null;
+
+			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+			if(!readers.hasNext())
+				return null;
+
+			final ImageReader reader = readers.next();
+			try{
+				reader.setInput(input);
+				final Rectangle bounds = new Rectangle(0, 0, reader.getWidth(0), reader.getHeight(0));
+				final Rectangle clamped = bounds.intersection(crop);
+				if(clamped.isEmpty())
+					return null;
+
+				final ImageReadParam param = reader.getDefaultReadParam();
+				param.setSourceRegion(clamped);
+				final BufferedImage region = reader.read(0, param);
+				if(region == null)
+					return null;
+
+				//a reader that ignores the region (e.g. a vector one) gives the whole image
+				if(region.getWidth() == bounds.width && region.getHeight() == bounds.height
+						&& (clamped.width != bounds.width || clamped.height != bounds.height))
+					return crop(region, clamped);
+				return region;
+			}
+			finally{
+				reader.dispose();
+			}
+		}
 	}
 
 	public static ImageIcon getImageFromResource(final String filename){
@@ -319,8 +377,10 @@ public final class ResourceHelper{
 		// cache internally. The try-with-resources closes the URL stream;
 		// ImageIO.read does not close the stream it receives.
 		if(source instanceof URL url){
-			try(final InputStream is = url.openStream()){
-				final BufferedImage image = ImageIO.read(is);
+			//the stream is kept in memory (a resource is small), instead of in the temporary file that ImageIO.read would write
+			try(final InputStream is = url.openStream();
+					final ImageInputStream input = new MemoryCacheImageInputStream(is)){
+				final BufferedImage image = readFromImageInputStream(input);
 				if(image != null)
 					return image;
 			}
@@ -492,6 +552,8 @@ public final class ResourceHelper{
 		final BufferedImage argb = new BufferedImage(
 			image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D g = argb.createGraphics();
+		//a plain copy: no blending with the (empty) destination
+		g.setComposite(AlphaComposite.Src);
 		g.drawImage(image, 0, 0, null);
 		g.dispose();
 		return argb;

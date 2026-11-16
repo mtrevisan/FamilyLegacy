@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.groups;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
@@ -88,7 +89,7 @@ public final class GroupTimelineBuilder{
 	/** The text added to the label of a membership that has ended. */
 	public static final String STATUS_ENDED_LABEL = "ended";
 	/** The text added to the label of a membership that has begun and has no end: it goes on to today. */
-	public static final String ONGOING = "ongoing";
+	public static final String ONGOING = I18N.t("text.timeline.ongoing");
 
 	private static final String TAG_STATUS = RelationshipReader.TAG_STATUS;
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
@@ -243,7 +244,7 @@ public final class GroupTimelineBuilder{
 		final List<TemporalRow> rows = new ArrayList<>(memberships.size());
 		for(final Membership membership : memberships.values())
 			rows.add(new TemporalRow(membership.entity(),
-				List.of(new TemporalTrack(TemporalTrackType.MEMBERSHIP, membership.entries(), "Membership")), 0, false));
+				List.of(new TemporalTrack(TemporalTrackType.MEMBERSHIP, membership.entries(), I18N.t("text.timeline.membership"))), 0, false));
 
 		rows.sort(Comparator.comparingLong(GroupTimelineBuilder::firstStart)
 			.thenComparing(row -> row.entity().displayLabel(), String.CASE_INSENSITIVE_ORDER)

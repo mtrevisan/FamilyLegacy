@@ -61,4 +61,13 @@ public abstract class TypeDefinition{
 	public abstract void validate(String contextPath, FLEFRecord record, RecordLookup model, FLEFGrammar grammar,
 		List<String> errors);
 
+	/**
+	 * The same, with the path of the node written only if an error needs it (see {@link ValidationPath}): the types that visit the
+	 * children of a node override it, so that the path of every node of a model is not built. By default it is built at once.
+	 */
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model, final FLEFGrammar grammar,
+			final List<String> errors){
+		validate(path.toString(), record, model, grammar, errors);
+	}
+
 }

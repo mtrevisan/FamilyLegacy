@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -43,6 +43,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -82,7 +83,8 @@ final class RecentChangesDialog extends JDialog{
 	private static final Color COLOR_UNDONE = Color.GRAY;
 
 	private final Supplier<FLEFModel> modelSupplier;
-	private final Supplier<List<ModelHistory.Entry>> historySupplier;
+	private final ModelHistory history;
+	private final Runnable afterRevert;
 
 	private final ChangesTableModel tableModel = new ChangesTableModel();
 	private final JTable table = new JTable(tableModel);
@@ -90,19 +92,28 @@ final class RecentChangesDialog extends JDialog{
 	private final JComboBox<TypeItem> typeFilter = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JButton openRecord = new JButton(I18N.t("recent_changes.open_record"));
 	private final JButton showDiff = new JButton(I18N.t("recent_changes.show_diff"));
+	private final JButton revert = new JButton(I18N.t("recent_changes.revert"));
+	private final JToggleButton onlyRecord = new JToggleButton(I18N.t("recent_changes.only_record"));
 
 	private final List<Row> allRows = new ArrayList<>();
 	private boolean updatingFilter;
+	/** The record whose history is shown ({@code null}: all the records). */
+	private String historyOfId;
 
 
-	RecentChangesDialog(final Window owner, final Supplier<FLEFModel> modelSupplier,
-			final Supplier<List<ModelHistory.Entry>> historySupplier){
+	/**
+	 * @param history	The history to list and to revert steps of.
+	 * @param afterRevert	Run after a step has been reverted, so that the views show the restored data.
+	 */
+	RecentChangesDialog(final Window owner, final Supplier<FLEFModel> modelSupplier, final ModelHistory history,
+			final Runnable afterRevert){
 		super(owner, I18N.t("recent_changes.title"), ModalityType.MODELESS);
 
 		GUIHelper.installEscapeToClose(this);
 
 		this.modelSupplier = modelSupplier;
-		this.historySupplier = historySupplier;
+		this.history = history;
+		this.afterRevert = afterRevert;
 
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -117,6 +128,8 @@ final class RecentChangesDialog extends JDialog{
 				final Row selected = tableModel.rowAt(table.getSelectedRow());
 				openRecord.setEnabled(isOpenable(selected));
 				showDiff.setEnabled(selected != null);
+				revert.setEnabled(selected != null && !selected.entry().undone());
+				onlyRecord.setEnabled(historyOfId != null || selected != null && selected.change().id() != null);
 			});
 		table.addMouseListener(new MouseAdapter(){
 			@Override
@@ -135,14 +148,26 @@ final class RecentChangesDialog extends JDialog{
 		openRecord.addActionListener(e -> openRecord(tableModel.rowAt(table.getSelectedRow())));
 		showDiff.setEnabled(false);
 		showDiff.addActionListener(e -> showDiff(tableModel.rowAt(table.getSelectedRow())));
+		revert.setEnabled(false);
+		revert.setToolTipText(I18N.t("recent_changes.revert.tooltip"));
+		revert.addActionListener(e -> revert(tableModel.rowAt(table.getSelectedRow())));
+		onlyRecord.setEnabled(false);
+		onlyRecord.setToolTipText(I18N.t("recent_changes.only_record.tooltip"));
+		onlyRecord.addActionListener(e -> {
+			final Row selected = tableModel.rowAt(table.getSelectedRow());
+			historyOfId = (onlyRecord.isSelected() && selected != null? selected.change().id(): null);
+			onlyRecord.setSelected(historyOfId != null);
+			applyFilter();
+		});
 		final JButton refresh = new JButton(I18N.t("recent_changes.refresh"));
 		refresh.addActionListener(e -> refresh());
 
 		final JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		filterPanel.add(new JLabel(I18N.l("recent_changes.filter.type")));
 		filterPanel.add(typeFilter);
+		filterPanel.add(onlyRecord);
 
-		final JPanel south = GUIHelper.createStatusFooter(summary, showDiff, openRecord, refresh);
+		final JPanel south = GUIHelper.createStatusFooter(summary, revert, showDiff, openRecord, refresh);
 
 		setLayout(new BorderLayout(8, 8));
 		add(filterPanel, BorderLayout.NORTH);
@@ -168,7 +193,7 @@ final class RecentChangesDialog extends JDialog{
 		final FLEFModel model = modelSupplier.get();
 
 		allRows.clear();
-		for(final ModelHistory.Entry entry : historySupplier.get())
+		for(final ModelHistory.Entry entry : history.recentChanges())
 			for(final ModelHistory.Change change : entry.changes())
 				allRows.add(new Row(entry, change, typeLabel(change), recordName(change, model)));
 
@@ -198,13 +223,17 @@ final class RecentChangesDialog extends JDialog{
 		final TypeItem selected = (TypeItem)typeFilter.getSelectedItem();
 		final List<Row> rows = new ArrayList<>();
 		for(final Row row : allRows)
-			if(selected == null || selected.tag() == null || selected.tag().equals(row.change().tag()))
+			if((selected == null || selected.tag() == null || selected.tag().equals(row.change().tag()))
+					&& (historyOfId == null || historyOfId.equals(row.change().id())))
 				rows.add(row);
 		tableModel.setRows(rows);
 
 		summary.setText(I18N.plural("recent_changes.summary", rows.size()));
 		openRecord.setEnabled(false);
 		showDiff.setEnabled(false);
+		revert.setEnabled(false);
+		onlyRecord.setEnabled(historyOfId != null);
+		onlyRecord.setSelected(historyOfId != null);
 	}
 
 	private static String typeLabel(final ModelHistory.Change change){
@@ -244,6 +273,47 @@ final class RecentChangesDialog extends JDialog{
 
 		RecordDiffDialog.showComparison(this, I18N.tf("recent_changes.diff_title", row.typeLabel(), row.name()),
 			row.change().before(), row.change().after(), modelSupplier.get());
+	}
+
+	/**
+	 * Reverts the whole step of the row (not only its record), after asking: if records touched by the step were changed afterwards,
+	 * the user is told which, and must explicitly force the revert.
+	 */
+	private void revert(final Row row){
+		if(row == null)
+			return;
+
+		final ModelHistory.RevertPlan plan = history.planRevert(row.entry());
+		if(plan.state() == ModelHistory.RevertState.UNAVAILABLE){
+			JOptionPane.showMessageDialog(this, I18N.t("recent_changes.revert.unavailable"), I18N.t("recent_changes.revert.title"),
+				JOptionPane.WARNING_MESSAGE);
+			refresh();
+			return;
+		}
+
+		final FLEFModel model = modelSupplier.get();
+		final boolean force = (plan.state() == ModelHistory.RevertState.CONFLICT);
+		final String message;
+		if(force){
+			final StringBuilder names = new StringBuilder();
+			for(final ModelHistory.Change conflict : plan.conflicts())
+				names.append("\n  - ")
+					.append(typeLabel(conflict))
+					.append(": ")
+					.append(recordName(conflict, model));
+			message = I18N.plural("recent_changes.revert.conflict.message", row.entry().changes().size(), names.toString());
+		}
+		else
+			message = I18N.plural("recent_changes.revert.clean.message", row.entry().changes().size());
+
+		if(JOptionPane.showConfirmDialog(this, message, I18N.t((force? "recent_changes.revert.conflict.title":
+				"recent_changes.revert.title")), JOptionPane.YES_NO_OPTION,
+				(force? JOptionPane.WARNING_MESSAGE: JOptionPane.QUESTION_MESSAGE)) != JOptionPane.YES_OPTION)
+			return;
+
+		if(history.revert(row.entry(), force))
+			afterRevert.run();
+		refresh();
 	}
 
 	private void openRecord(final Row row){

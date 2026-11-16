@@ -301,6 +301,16 @@ public final class GEDCOMMapper{
 	public static final Map<String, String> EVENT_MAP;
 	// ---- Attributi individuali ----
 	public static final Map<String, String> ATTRIBUTE_MAP;
+	// ---- Alfabetizzazione (EDUC che dichiara la capacita' di scrivere/leggere) ----
+	private static final Map<String, String> LITERACY_MAP = Map.of(
+		"can write", IndividualAttributeReader.ENUM_LITERACY_LITERATE,
+		"can read", IndividualAttributeReader.ENUM_LITERACY_LITERATE,
+		"can read and write", IndividualAttributeReader.ENUM_LITERACY_LITERATE,
+		"cannot write", IndividualAttributeReader.ENUM_LITERACY_ILLITERATE,
+		"can not write", IndividualAttributeReader.ENUM_LITERACY_ILLITERATE,
+		"cannot read", IndividualAttributeReader.ENUM_LITERACY_ILLITERATE,
+		"can not read", IndividualAttributeReader.ENUM_LITERACY_ILLITERATE,
+		"cannot read or write", IndividualAttributeReader.ENUM_LITERACY_ILLITERATE);
 	// ---- Sesso ----
 	private static final Map<String, String> SEX_MAP = new HashMap<>();
 	// ---- Tipo di media (SourceRecord.media_type) ----
@@ -654,6 +664,18 @@ public final class GEDCOMMapper{
 			defaultValue = "other";
 		}
 		return ATTRIBUTE_MAP.getOrDefault(gedcomTag.toUpperCase(Locale.ROOT), defaultValue);
+	}
+
+	/**
+	 * The literacy that an EDUC value states (some programs write "can write" / "cannot write" there: it is the literacy, not the
+	 * education).
+	 *
+	 * @return	{@code literate} or {@code illiterate}, {@code null} if the value is not a statement of literacy.
+	 */
+	public static String mapLiteracy(final String educationValue){
+		if(educationValue == null)
+			return null;
+		return LITERACY_MAP.get(StringUtils.normalizeSpace(educationValue).toLowerCase(Locale.ROOT));
 	}
 
 	public static String mapSex(String gedcomSex){

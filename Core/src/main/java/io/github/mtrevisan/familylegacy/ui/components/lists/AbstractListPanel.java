@@ -47,6 +47,7 @@ import java.awt.Component;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 
 /**
@@ -237,6 +238,24 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 	public JList<T> getList(){
 		return list;
+	}
+
+	/**
+	 * Selects the first item that matches, shows it and gives the focus to the list.
+	 *
+	 * @param matcher	What tells the item.
+	 * @return	Whether an item matched.
+	 */
+	public final boolean selectAndFocus(final Predicate<? super T> matcher){
+		for(int i = 0, size = listModel.size(); i < size; i ++)
+			if(matcher.test(listModel.get(i))){
+				list.setSelectedIndex(i);
+				list.ensureIndexIsVisible(i);
+				list.requestFocusInWindow();
+
+				return true;
+			}
+		return false;
 	}
 
 	public T getSelectedItem(){

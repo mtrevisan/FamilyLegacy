@@ -127,7 +127,7 @@ public final class MediaSection implements SectionBuilder{
 					ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(), fileName);
 				ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentDescription(), description);
 				ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentMapping(),
-					ReportFormatters.enumLabel(mapping));
+					ctx.labels.enumValue("enum.media.mapping", mapping));
 				if(!rows.isEmpty())
 					out.add(new ReportSection.BulletList(rows));
 			}

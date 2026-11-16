@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.dossier.EditorTab;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordChangeSummary;
@@ -77,6 +78,7 @@ import javax.swing.undo.CannotUndoException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.EventQueue;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -103,21 +105,21 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		ResearchQuestionHandler.TYPE, ResearchActivityHandler.TYPE, ResearchTaskHandler.TYPE, CulturalNormHandler.TYPE,
 		HistoricEventHandler.TYPE, ContextImpactHandler.TYPE);
 
-	public static final String TAB_NAME_PROPERTIES = "properties";
-	public static final String TAB_NAME_CAUSE = "cause";
-	public static final String TAB_NAME_LOCATION = "location";
-	public static final String TAB_NAME_ATTRIBUTES = "attributes";
-	public static final String TAB_NAME_RELATIONSHIPS = "relationships";
-	public static final String TAB_NAME_PARTICIPATIONS = "participations";
-	public static final String TAB_NAME_CONTEXT = "context";
-	public static final String TAB_NAME_RESEARCH = "research";
-	public static final String TAB_NAME_FINDINGS = "findings";
-	public static final String TAB_NAME_REFERENCES = "references";
-	public static final String TAB_NAME_SOURCES = "sources";
-	public static final String TAB_NAME_NOTES = "notes";
-	public static final String TAB_NAME_PRIVACY = "privacy";
-	public static final String TAB_NAME_AUDIT = "audit";
-	public static final String TAB_NAME_SUBMITTER = "submitter";
+	public static final String TAB_NAME_PROPERTIES = EditorTab.PROPERTIES;
+	public static final String TAB_NAME_CAUSE = EditorTab.CAUSE;
+	public static final String TAB_NAME_LOCATION = EditorTab.LOCATION;
+	public static final String TAB_NAME_ATTRIBUTES = EditorTab.ATTRIBUTES;
+	public static final String TAB_NAME_RELATIONSHIPS = EditorTab.RELATIONSHIPS;
+	public static final String TAB_NAME_PARTICIPATIONS = EditorTab.PARTICIPATIONS;
+	public static final String TAB_NAME_CONTEXT = EditorTab.CONTEXT;
+	public static final String TAB_NAME_RESEARCH = EditorTab.RESEARCH;
+	public static final String TAB_NAME_FINDINGS = EditorTab.FINDINGS;
+	public static final String TAB_NAME_REFERENCES = EditorTab.REFERENCES;
+	public static final String TAB_NAME_SOURCES = EditorTab.SOURCES;
+	public static final String TAB_NAME_NOTES = EditorTab.NOTES;
+	public static final String TAB_NAME_PRIVACY = EditorTab.PRIVACY;
+	public static final String TAB_NAME_AUDIT = EditorTab.AUDIT;
+	public static final String TAB_NAME_SUBMITTER = EditorTab.SUBMITTER;
 
 	private static final String ACTION_GLOBAL_UNDO = "globalUndo";
 	private static final String ACTION_GLOBAL_REDO = "globalRedo";
@@ -128,6 +130,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	protected final FLEFRecord record;
 	protected final boolean isNew;
 	protected boolean isSaved;
+	/** The record as it was when the dialog was opened (only for an existing record), to restore it if the dialog is not saved. */
+	private final FLEFRecord originalState;
 
 	private final UndoController undoController = new UndoController();
 
@@ -150,6 +154,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		this.model = model;
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
+		//the nested dialogs edit the records (and their children) in place: what the user did is undone if this dialog is cancelled
+		this.originalState = (record != null? copyOf(record): null);
 
 		setTitle(buildTitle(this.handler, (record == null)));
 	}
@@ -442,6 +448,57 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		return false;
 	}
 
+	@Override
+	public void showEntry(final String tabName, final FLEFRecord nested){
+		if(tabName == null || tabbedPane == null)
+			return;
+
+		for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
+			if(tabbedPane.getComponentAt(i) instanceof JPanel panel
+					&& tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME))){
+				tabbedPane.setSelectedIndex(i);
+
+				//the editor is modal: it is shown after this call, and only then the focus can be given
+				addWindowListener(new WindowAdapter(){
+					@Override
+					public void windowOpened(final WindowEvent e){
+						removeWindowListener(this);
+
+						EventQueue.invokeLater(() -> focusEntry(panel, nested));
+					}
+				});
+				return;
+			}
+	}
+
+	private void focusEntry(final JPanel panel, final FLEFRecord nested){
+		if(nested != null && selectInLists(panel, nested))
+			return;
+
+		final Component first = getFocusTraversalPolicy()
+			.getFirstComponent(panel);
+		if(first != null)
+			first.requestFocusInWindow();
+	}
+
+	private static boolean selectInLists(final Container container, final FLEFRecord nested){
+		for(final Component component : container.getComponents()){
+			if(component instanceof EntityListPanel listPanel){
+				if(listPanel.selectAndFocus(item -> isSameRecord(item, nested)))
+					return true;
+			}
+			else if(component instanceof Container child && selectInLists(child, nested))
+				return true;
+		}
+		return false;
+	}
+
+	private static boolean isSameRecord(final FLEFRecord item, final FLEFRecord nested){
+		return (item.getId() != null && nested.getId() != null
+			? item.getId().equals(nested.getId())
+			: item.equals(nested));
+	}
+
 	protected JPanel createPropertiesPanel(){
 		return null;
 	}
@@ -693,6 +750,17 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 			dispose();
 		}
+	}
+
+	/** Closes the dialog; if it was not saved, the changes that the nested dialogs (saved by themselves) made in place to the record are discarded. */
+	@Override
+	public void dispose(){
+		if(!isSaved && originalState != null){
+			record.clear();
+			originalState.deepCopyTo(record);
+		}
+
+		super.dispose();
 	}
 
 	private static FLEFRecord copyOf(final FLEFRecord source){

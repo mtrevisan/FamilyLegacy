@@ -31,3 +31,14 @@ Above the list, **Record type** filters the rows (*All types*), and a line says 
 - **Show changes**: a side-by-side view of the record before and after.
 - **Open record** (or a double-click): opens the editor of the record. It is not available for a removed record, and warns if the record is no longer in the file.
 - **Refresh**. The window also refreshes when you come back to it.
+
+### Reverting an older step
+
+Undo only goes back one step at a time, newest first. **Revert step** undoes **one** step of the list on its own, whichever it is, and leaves the later ones as they are: every record the step touched goes back to how it was before it (an added record is removed, a removed one is put back, a modified one is restored). Select a row and press the button; the **whole step** is reverted, not only the record of that row.
+
+- If nothing the step touched has changed since, you are asked to confirm, and the revert is exact.
+- If some of those records were **changed again afterwards**, the window lists them and warns you: reverting overwrites those later changes, and other records that refer to them may no longer be consistent. It is done only if you confirm (a *forced* revert).
+- The revert is a **new step** of its own: you can undo it with **Edit > Undo**.
+- It is not available for a step that has been undone (use **Redo**), nor for one that has left the history.
+
+**This record only** (next to the type filter) shows only the changes of the record selected in the list, as its history; press it again to show all the changes. **Show changes** highlights, field by field, what differs between the record before and after.

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
@@ -153,7 +154,22 @@ final class ApplicationMenuBar{
 		bar.add(SettingsMenu.create(frame));
 		bar.add(new HelpMenu(frame)
 			.create());
+		for(int i = 0; i < bar.getMenuCount(); i ++)
+			reserveArrowSpace(bar.getMenu(i));
 		return bar;
+	}
+
+	/**
+	 * The system look and feel does not count the arrow of a submenu when it measures the item, so that the widest one has the arrow over
+	 * its text: room is added to every submenu (the menus of the bar are left alone).
+	 */
+	private static void reserveArrowSpace(final JMenu menu){
+		for(final java.awt.Component component : menu.getMenuComponents())
+			if(component instanceof JMenu submenu){
+				reserveArrowSpace(submenu);
+				final java.awt.Dimension size = submenu.getPreferredSize();
+				submenu.setPreferredSize(new java.awt.Dimension(size.width + 24, size.height));
+			}
 	}
 
 
@@ -418,8 +434,15 @@ final class ApplicationMenuBar{
 			OrderPreferences::setChildren);
 		final JMenu partnersMenu = createEnumMenu("menu.view.order.partners", PartnerOrder.class, OrderPreferences::partners,
 			OrderPreferences::setPartners);
+		final JMenu dossierEventsMenu = createEnumMenu("menu.view.order.dossier_events", DossierOrder.class,
+			OrderPreferences::dossierEvents, OrderPreferences::setDossierEvents);
+		final JMenu dossierAttributesMenu = createEnumMenu("menu.view.order.dossier_attributes", DossierOrder.class,
+			OrderPreferences::dossierAttributes, OrderPreferences::setDossierAttributes);
 		menu.add(childrenMenu);
 		menu.add(partnersMenu);
+		menu.addSeparator();
+		menu.add(dossierEventsMenu);
+		menu.add(dossierAttributesMenu);
 		return menu;
 	}
 

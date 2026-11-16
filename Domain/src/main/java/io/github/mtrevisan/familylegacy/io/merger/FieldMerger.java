@@ -33,8 +33,12 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -68,6 +72,8 @@ final class FieldMerger{
 
 	private final GrammarSupport grammar;
 	private final RecordSignature signature;
+	/** The names of the fields of each struct, built once (a struct is merged for every record that is merged). */
+	private final Map<StructType, Set<String>> fieldNames = Collections.synchronizedMap(new IdentityHashMap<>());
 
 
 	FieldMerger(final GrammarSupport grammar, final RecordSignature signature){
@@ -106,15 +112,19 @@ final class FieldMerger{
 
 	private void mergeStruct(final FLEFRecord target, final FLEFRecord source, final StructType type, final String path,
 			final List<String> conflicts){
-		final Set<String> knownTags = new HashSet<>();
-		for(final FieldDefinition field : type.getFields()){
-			final String tag = field.name();
-			knownTags.add(tag);
-
+		for(final FieldDefinition field : type.getFields())
 			mergeField(target, source, field, path, conflicts);
-		}
 
-		mergeUnknownFields(target, source, knownTags, path, conflicts);
+		mergeUnknownFields(target, source, knownTags(type), path, conflicts);
+	}
+
+	private Set<String> knownTags(final StructType type){
+		return fieldNames.computeIfAbsent(type, t -> {
+			final Set<String> names = new HashSet<>();
+			for(final FieldDefinition field : t.getFields())
+				names.add(field.name());
+			return names;
+		});
 	}
 
 	/**
@@ -122,16 +132,16 @@ final class FieldMerger{
 	 */
 	void mergeField(final FLEFRecord target, final FLEFRecord source, final FieldDefinition field, final String path,
 			final List<String> conflicts){
-		final String fieldPath = FLEFRecordHelper.composePath(path, field.name());
+		//the path of the field is built only when something has to be merged (it is for the messages): most fields have nothing
 		final String typeName = grammar.declaredTypeName(field);
 		if(GrammarSupport.TYPE_AUDIT.equals(typeName))
-			foldSingular(target, null, field, fieldPath, conflicts);
+			foldSingular(target, null, field, path, conflicts);
 		else if(GrammarSupport.TYPE_PRIVACY.equals(typeName))
 			mergePrivacy(target, source, field.name());
 		else if(GrammarSupport.isRepeated(field))
-			mergeRepeated(target, source, field, fieldPath, conflicts);
+			mergeRepeated(target, source, field, path, conflicts);
 		else
-			foldSingular(target, source, field, fieldPath, conflicts);
+			foldSingular(target, source, field, path, conflicts);
 	}
 
 	private void mergeRepeated(final FLEFRecord target, final FLEFRecord source, final FieldDefinition field,
@@ -140,21 +150,27 @@ final class FieldMerger{
 		if(sourceOccurrences.isEmpty())
 			return;
 
+		final String fieldPath = FLEFRecordHelper.composePath(path, field.name());
 		final StructType struct = grammar.structOf(field);
+		//what the target already states, by signature, the first occurrence of each: the signature of an occurrence is built once, and not
+		//again for every occurrence of the source (uniting the evidence of an occurrence does not change its signature)
+		final Map<String, FLEFRecord> existing = new HashMap<>();
+		for(final FLEFRecord occurrence : children(target, field.name()))
+			existing.putIfAbsent(signature.of(occurrence, field.type()), occurrence);
+
 		for(final FLEFRecord occurrence : sourceOccurrences){
 			final String occurrenceSignature = signature.of(occurrence, field.type());
-			FLEFRecord same = null;
-			for(final FLEFRecord existing : children(target, field.name()))
-				if(occurrenceSignature.equals(signature.of(existing, field.type()))){
-					same = existing;
-					break;
-				}
+			final FLEFRecord same = existing.get(occurrenceSignature);
 
-			if(same == null)
-				insertChild(target, copy(occurrence));
+			if(same == null){
+				final FLEFRecord added = copy(occurrence);
+				insertChild(target, added);
+				//a copy added states what the next occurrences of the source may state again
+				existing.put(occurrenceSignature, added);
+			}
 			else if(struct != null)
 				// same assertion: unite its evidence
-				mergeStruct(same, occurrence, struct, path, conflicts);
+				mergeStruct(same, occurrence, struct, fieldPath, conflicts);
 		}
 	}
 
@@ -172,6 +188,7 @@ final class FieldMerger{
 		if(occurrences.isEmpty() || occurrences.size() == 1 && targetCount == 1)
 			return;
 
+		final String fieldPath = FLEFRecordHelper.composePath(path, field.name());
 		FLEFRecord kept;
 		if(targetCount == 0){
 			kept = copy(occurrences.getFirst());
@@ -181,7 +198,7 @@ final class FieldMerger{
 			kept = occurrences.getFirst();
 		for(int i = 1, size = occurrences.size(); i < size; i ++){
 			final FLEFRecord other = occurrences.get(i);
-			mergeSingularValue(kept, other, field, path, conflicts);
+			mergeSingularValue(kept, other, field, fieldPath, conflicts);
 			if(i < targetCount)
 				target.removeChild(other);
 		}

@@ -124,7 +124,7 @@ public final class IdentityHypothesisRootSection implements SectionBuilder{
 			if(proof != null)
 				out.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().researchProofStatus() + ":** "
-						+ ReportFormatters.escape(ReportFormatters.enumLabel(proof))));
+						+ ReportFormatters.escape(ctx.labels.enumValue("enum.proof_status", proof))));
 			final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 			if(narrative != null)
 				out.add(new ReportSection.Paragraph(ReportFormatters.escape(narrative)));

@@ -99,6 +99,17 @@ The diagnostics contain no record of your data and no log, but they do contain t
 
 If the installer publishes a SHA-256 checksum, the downloaded file is checked against it and discarded if it does not match. Messages you may meet: *Unable to check for updates* (no connection, or GitHub refused the request: wait a few minutes and try again), *Unable to download the update* (the connection dropped, or the file did not match its checksum), *Unable to start the installer* (the message gives the folder where the installer was saved, so you can run it by hand).
 
+## Optional components
+
+**Help > Optional Components...** lists the fonts and plugins that the program does not carry and that can be downloaded, such as the extra fonts of the PDF reports. It needs an internet connection; the rest of the application does not.
+
+- The names and descriptions are in the language of the application when it has them, else in English. The list is read from a catalog kept in the repository of the application on GitHub, so new components appear without a new version of the program. Each row shows the name, what it is for, the size and its state: *Not installed*, *Installed*, *Update available* (the file in the catalog is newer than the one you installed) or *Not available* (the file is not published, or has no checksum, or the program cannot tell where to put it). A component that needs a newer version of the program than yours is not listed.
+- Tick the components you want and press **Install Selected**. Each file is downloaded in turn (**Cancel**, `Esc` or the close button of the window stop the one being downloaded), checked against its published SHA-256 and discarded if it does not match, then put in the `fonts` folder (fonts) or the `plugins` folder (plugins), beside the program. A file that is not of the kind the folder accepts, or that would be written outside it, makes the whole component be refused.
+- **Refresh** reads the catalog again.
+- The fonts are used by the next PDF report. The plugins are loaded when the application starts: restart it to use the ones you installed.
+- Fonts that you put in the `fonts` folder yourself are told as installed when the catalog knows their files.
+- If the repository has no catalog yet, the list offers only the fonts of the PDF reports, taken from the latest release. *Unable to read the catalog of components* means that there is no connection or GitHub refused the request.
+
 ## The files the application writes
 
 In the folder `.familylegacy` of your home directory:

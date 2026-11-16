@@ -153,15 +153,13 @@ public class RegnalCalendarStrategy implements CalendarConverterPlugin{
 			final List<Long> matches = new ArrayList<>();
 			for(int year = firstYear; year <= firstYear + 1; year ++){
 				final int day = (date.day() != 0? date.day(): 1);
-				if(day > reform.monthLength(year, date.month()))
+				// a day that does not exist (in the month, or because of the reform) is not a candidate
+				if(day > reform.monthLength(year, date.month()) || reform.isSkipped(year, date.month(), day))
 					continue;
 
-				try{
-					final long candidate = reform.toJdn(year, date.month(), day);
-					if(candidate >= yearStart && candidate < nextYearStart)
-						matches.add(candidate);
-				}
-				catch(final IllegalArgumentException ignored){}
+				final long candidate = reform.toJdn(year, date.month(), day);
+				if(candidate >= yearStart && candidate < nextYearStart)
+					matches.add(candidate);
 			}
 			if(matches.isEmpty())
 				throw new IllegalArgumentException("The day does not exist in the regnal year " + regnalYear + ": " + rawDate);

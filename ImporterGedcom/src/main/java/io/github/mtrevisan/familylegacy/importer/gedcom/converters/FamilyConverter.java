@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
@@ -273,7 +273,8 @@ public class FamilyConverter{
 				createGroupMembership(link.wifeId, group.getId(), "wife", link.famNode);
 			for(String childId : link.childrenIds)
 				if(individualMap.containsKey(childId))
-					createGroupMembership(childId, group.getId(), RelationshipReader.ENUM_TYPE_CHILD, link.famNode);
+					//a child is a child of its parents (see below), not of the group: no role
+					createGroupMembership(childId, group.getId(), null, link.famNode);
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(individualMap.containsKey(link.husbandId) && individualMap.containsKey(link.wifeId))
@@ -368,9 +369,24 @@ public class FamilyConverter{
 						if(!individualMap.containsKey(childId) || marriage.childrenIds.contains(childId) || childId.equals(stepParentId))
 							continue;
 
-						final String birthYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(recordsById.get(childId),
-							"BIRT"), GEDCOMMapper.TAG_DATE));
-						if(marriageYear != null && birthYear != null && birthYear.compareTo(marriageYear) > 0)
+						final GEDCOMNode childNode = recordsById.get(childId);
+						final String birthYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(childNode, "BIRT"),
+							GEDCOMMapper.TAG_DATE));
+						//a child without a known birth was born in the family it belongs to: not before the marriage of its parents
+						final String otherMarriageYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(other.famNode, "MARR"),
+							GEDCOMMapper.TAG_DATE));
+						final String bornNotBefore = (birthYear != null? birthYear: otherMarriageYear);
+						if(marriageYear != null && bornNotBefore != null && bornNotBefore.compareTo(marriageYear) > 0)
+							continue;
+						//the child died before the marriage: the stepparent never knew it
+						final String childDeathYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(childNode, "DEAT"),
+							GEDCOMMapper.TAG_DATE));
+						if(marriageYear != null && childDeathYear != null && childDeathYear.compareTo(marriageYear) < 0)
+							continue;
+						//the stepparent died before the child was born
+						final String stepParentDeathYear = yearOf(GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(
+							recordsById.get(stepParentId), "DEAT"), GEDCOMMapper.TAG_DATE));
+						if(stepParentDeathYear != null && bornNotBefore != null && stepParentDeathYear.compareTo(bornNotBefore) < 0)
 							continue;
 
 						createStepChild(childId, stepParentId, marriage.famNode);

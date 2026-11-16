@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -97,11 +98,11 @@ public final class MediaRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentUri(),
-			FLEFRecordHelper.getChildValue(ctx.root, MediaReader.TAG_URI));
+			MediaPathDisplay.display(FLEFRecordHelper.getChildValue(ctx.root, MediaReader.TAG_URI)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentDescription(),
 			FLEFRecordHelper.getChildValue(ctx.root, MediaReader.TAG_DESCRIPTION));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().documentMapping(),
-			ReportFormatters.enumLabel(
+			ctx.labels.enumValue("enum.media.mapping", 
 				FLEFRecordHelper.getChildValue(ctx.root, MediaReader.TAG_MAPPING)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));

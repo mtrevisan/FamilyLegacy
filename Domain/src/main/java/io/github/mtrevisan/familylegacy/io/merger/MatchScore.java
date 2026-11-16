@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -44,18 +45,28 @@ import java.util.Locale;
  *
  * @param weight      the total weight
  * @param probability the match probability, {@code 0} when vetoed
- * @param evidence    the features that contributed, with their weight
+ * @param features    the features that contributed
+ * @param weights     the weight of each feature (the text of the evidence is built only when it is asked for: a comparison is made
+ *                    for every pair of records of a block, and all of them are kept)
  * @param veto        why the pair cannot match, or {@code null}
  */
-record MatchScore(double weight, double probability, List<String> evidence, String veto){
+record MatchScore(double weight, double probability, String[] features, double[] weights, String veto){
 
 	boolean isVetoed(){
 		return (veto != null);
 	}
 
+	/** The features that contributed, each with its weight. */
+	List<String> evidence(){
+		final List<String> evidence = new ArrayList<>(features.length);
+		for(int i = 0; i < features.length; i ++)
+			evidence.add(String.format(Locale.ROOT, "%s (%+.1f)", features[i], weights[i]));
+		return evidence;
+	}
+
 	String describe(){
-		final String features = String.join("; ", evidence);
-		return (isVetoed()? "excluded: " + veto + (features.isEmpty()? StringUtils.EMPTY: " (" + features + ")"): features);
+		final String evidence = String.join("; ", evidence());
+		return (isVetoed()? "excluded: " + veto + (evidence.isEmpty()? StringUtils.EMPTY: " (" + evidence + ")"): evidence);
 	}
 
 
@@ -66,7 +77,9 @@ record MatchScore(double weight, double probability, List<String> evidence, Stri
 
 		private final double priorOffset;
 		private double weight;
-		private final List<String> evidence = new ArrayList<>();
+		private String[] features = new String[6];
+		private double[] weights = new double[6];
+		private int count;
 		private String veto;
 
 
@@ -80,7 +93,12 @@ record MatchScore(double weight, double probability, List<String> evidence, Stri
 
 		Builder add(final double featureWeight, final String feature){
 			weight += featureWeight;
-			evidence.add(String.format(Locale.ROOT, "%s (%+.1f)", feature, featureWeight));
+			if(count == features.length){
+				features = Arrays.copyOf(features, count * 2);
+				weights = Arrays.copyOf(weights, count * 2);
+			}
+			features[count] = feature;
+			weights[count ++] = featureWeight;
 			return this;
 		}
 
@@ -96,7 +114,7 @@ record MatchScore(double weight, double probability, List<String> evidence, Stri
 
 		MatchScore build(){
 			final double probability = (veto != null? 0.: 1. / (1. + Math.pow(2., priorOffset - weight)));
-			return new MatchScore(weight, probability, List.copyOf(evidence), veto);
+			return new MatchScore(weight, probability, Arrays.copyOf(features, count), Arrays.copyOf(weights, count), veto);
 		}
 
 	}

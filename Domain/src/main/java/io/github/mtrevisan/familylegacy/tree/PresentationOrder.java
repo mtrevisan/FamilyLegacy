@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.tree;
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 
 import java.text.Collator;
@@ -116,6 +117,24 @@ public final class PresentationOrder{
 			case UNION_CHRONOLOGY -> byDate(partnerIds, unionDateOf);
 			case ALPHABETICAL -> alphabetical(partnerIds, nameOf);
 			case EXISTING -> new ArrayList<>(partnerIds);
+		};
+	}
+
+	/**
+	 * Orders the dated rows of a section of the dossier with the given strategy; the rows without a usable date always come last,
+	 * in their original order, whatever the direction.
+	 *
+	 * @param items	The rows.
+	 * @param order	The strategy.
+	 * @param dateOf	Gives the date of a row, or {@code null} if it has none.
+	 * @return	A new list; the input is not modified.
+	 */
+	public static <T> List<T> dossier(final Collection<T> items, final DossierOrder order,
+			final Function<? super T, NormalizedDate> dateOf){
+		return switch(order){
+			case CHRONOLOGICAL -> byDate(items, dateOf);
+			case REVERSE_CHRONOLOGICAL -> sortKeyed(items, dateOf, (a, b) -> b.compareTo(a));
+			case EXISTING -> new ArrayList<>(items);
 		};
 	}
 

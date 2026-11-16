@@ -213,7 +213,7 @@ public final class SourcesSection implements SectionBuilder{
 		final List<ReportSection> privacy = new ArrayList<>();
 		if(repo != null){
 			for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
-				final String rendered = ReportFormatters.renderContact(contact);
+				final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
 				if(rendered != null)
 					items.add(rendered);
 
@@ -280,7 +280,7 @@ public final class SourcesSection implements SectionBuilder{
 			if(!sb.isEmpty())
 				sb.append(" — ");
 			sb.append("*").append(ReportFormatters.escape(
-					ReportFormatters.orEmpty(ReportFormatters.enumLabel(mapping))))
+					ReportFormatters.orEmpty(ctx.labels.enumValue("enum.media.mapping", mapping))))
 				.append("*");
 		}
 		if(sb.isEmpty())

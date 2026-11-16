@@ -45,6 +45,10 @@ public final class ScalarType extends TypeDefinition{
 		final FLEFGrammar grammar, final List<String> errors){}
 
 	@Override
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model,
+		final FLEFGrammar grammar, final List<String> errors){}
+
+	@Override
 	public String toString(){
 		return getName();
 	}

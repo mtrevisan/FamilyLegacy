@@ -6,3 +6,5 @@ genealogy_db/
 
 Core/plugins/
 Core/fonts/
+
+.run/

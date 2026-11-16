@@ -39,6 +39,11 @@ import java.util.Map;
 
 public final class LayoutRenderer{
 
+	/** The length of a dash and of a gap (pixels). */
+	private static final double DASH_LENGTH = 2.;
+	/** The distance of each of two side by side connections from the common axis (pixels). */
+	private static final int PARALLEL_OFFSET = 2;
+
 	private LayoutRenderer(){}
 
 
@@ -69,51 +74,109 @@ public final class LayoutRenderer{
 		final PartnersPanel nodePanel = nodeToPanelMap.get(node);
 
 		final TreeNode father = node.getFather();
-		if(father != null){
-			final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
-			if(fatherPanel != null && nodePanel != null){
-				final Point exit = SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(),
-					container);
-				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(),
-					container);
+		final TreeNode mother = node.getMother();
+		final PartnersPanel fatherPanel = (father != null? nodeToPanelMap.get(father): null);
+		final PartnersPanel motherPanel = (mother != null? nodeToPanelMap.get(mother): null);
 
-				connectParentToChild(path, treeLayout, exit, enter);
-			}
+		//NOTE: the line drawn here for a parent goes from the panel of that parent to the panel of the node: it is the line of the
+		//parent to ITS OWN parents, so the kind of the line (biological or not) is the one of the links of the parent, not of the node
+		if(father != null){
+			if(fatherPanel != null && nodePanel != null)
+				connectToParents(path, treeLayout, father,
+					SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(), container),
+					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container));
 			buildTreeConnections(path, treeLayout, father, nodeToPanelMap, container);
 		}
 
-		final TreeNode mother = node.getMother();
 		if(mother != null){
-			final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
-			if(motherPanel != null && nodePanel != null){
-				final Point exit = SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(),
-					container);
-				final Point enter = SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(),
-					container);
-
-				connectParentToChild(path, treeLayout, exit, enter);
-			}
+			if(motherPanel != null && nodePanel != null)
+				connectToParents(path, treeLayout, mother,
+					SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(), container),
+					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container));
 			buildTreeConnections(path, treeLayout, mother, nodeToPanelMap, container);
 		}
 	}
 
+	/**
+	 * Draws the line between an individual and the couple of its parents.
+	 * <p>
+	 * A line is dashed if the individual is not a biological child of the parent it stands for. When the two parents are of a
+	 * different kind (one biological, one not) the two lines run side by side: the father on the left (dashed if not biological), the
+	 * mother on the right; when they are of the same kind there is only one line.
+	 */
+	private static void connectToParents(final Path2D path, final TreeLayout treeLayout, final TreeNode individual,
+			final Point exit, final Point enter){
+		final boolean hasFather = (individual.getFather() != null);
+		final boolean hasMother = (individual.getMother() != null);
+		final boolean fatherNonBiological = (hasFather && individual.isFatherNonBiological());
+		final boolean motherNonBiological = (hasMother && individual.isMotherNonBiological());
+		if(!hasFather || !hasMother || fatherNonBiological == motherNonBiological){
+			connectParentToChild(path, treeLayout, exit, enter, fatherNonBiological || motherNonBiological);
+			return;
+		}
+
+		final int dx = (treeLayout == TreeLayout.VERTICAL? PARALLEL_OFFSET: 0);
+		final int dy = (treeLayout == TreeLayout.VERTICAL? 0: PARALLEL_OFFSET);
+		connectParentToChild(path, treeLayout, new Point(exit.x - dx, exit.y - dy), new Point(enter.x - dx, enter.y - dy),
+			fatherNonBiological);
+		connectParentToChild(path, treeLayout, new Point(exit.x + dx, exit.y + dy), new Point(enter.x + dx, enter.y + dy),
+			motherNonBiological);
+	}
+
 	private static void connectParentToChild(final Path2D path, final TreeLayout treeLayout,
-			final Point parentExitPoint, final Point childEnterPoint){
+			final Point parentExitPoint, final Point childEnterPoint, final boolean dashed){
+		final Point[] points;
 		if(treeLayout == TreeLayout.VERTICAL){
 			final int midY = (childEnterPoint.y + parentExitPoint.y + PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
 
-			path.moveTo(parentExitPoint.x, parentExitPoint.y);
-			path.lineTo(parentExitPoint.x, midY);
-			path.lineTo(childEnterPoint.x, midY);
-			path.lineTo(childEnterPoint.x, childEnterPoint.y);
+			points = new Point[]{parentExitPoint, new Point(parentExitPoint.x, midY), new Point(childEnterPoint.x, midY),
+				childEnterPoint};
 		}
 		else{
 			final int midX = (childEnterPoint.x + parentExitPoint.x - PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
 
-			path.moveTo(parentExitPoint.x, parentExitPoint.y);
-			path.lineTo(midX, parentExitPoint.y);
-			path.lineTo(midX, childEnterPoint.y);
-			path.lineTo(childEnterPoint.x, childEnterPoint.y);
+			points = new Point[]{parentExitPoint, new Point(midX, parentExitPoint.y), new Point(midX, childEnterPoint.y),
+				childEnterPoint};
+		}
+
+		path.moveTo(points[0].x, points[0].y);
+		if(dashed)
+			//a connection that is not by birth is dashed, as in the other views of the tree
+			appendDashed(path, points);
+		else
+			for(int i = 1; i < points.length; i ++)
+				path.lineTo(points[i].x, points[i].y);
+	}
+
+	/** Adds the polyline as a sequence of short segments (the same pattern as {@code ConnectionStrokes.CONNECTION_STROKE_ADOPTED}). */
+	private static void appendDashed(final Path2D path, final Point[] points){
+		boolean on = true;
+		double remaining = DASH_LENGTH;
+		for(int i = 1; i < points.length; i ++){
+			final double dx = points[i].x - points[i - 1].x;
+			final double dy = points[i].y - points[i - 1].y;
+			final double length = Math.hypot(dx, dy);
+			if(length == 0.)
+				continue;
+
+			double position = 0.;
+			while(position < length){
+				final double step = Math.min(remaining, length - position);
+				position += step;
+				remaining -= step;
+
+				final double x = points[i - 1].x + dx * position / length;
+				final double y = points[i - 1].y + dy * position / length;
+				if(on)
+					path.lineTo(x, y);
+				else
+					path.moveTo(x, y);
+
+				if(remaining <= 0.){
+					on = !on;
+					remaining = DASH_LENGTH;
+				}
+			}
 		}
 	}
 

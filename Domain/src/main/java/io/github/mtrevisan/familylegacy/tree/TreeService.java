@@ -162,6 +162,8 @@ public class TreeService{
 
 				currentNode.setFather(fatherNode);
 				currentNode.setMother(motherNode);
+				currentNode.setParentsNonBiological(isNonBiologicalLink(currentNode.getIndividualId(), preferredFatherRecord),
+					isNonBiologicalLink(currentNode.getIndividualId(), preferredMotherRecord));
 				queue.add(fatherNode);
 				queue.add(motherNode);
 				continue;
@@ -184,6 +186,9 @@ public class TreeService{
 			if(!parents.isEmpty() && mother == null)
 				mother = parents.removeFirst();
 
+			currentNode.setParentsNonBiological(isNonBiologicalLink(currentIndividualId, father),
+				isNonBiologicalLink(currentIndividualId, mother));
+
 			if(father != null){
 				final IndividualSummary fatherData = repository.getIndividualData(father);
 				final TreeNode fatherNode = new TreeNode(father, fatherData, nextGeneration);
@@ -202,6 +207,20 @@ public class TreeService{
 		}
 
 		return rootNode;
+	}
+
+	/** @return whether the parent is linked to the child by something other than a biological relationship */
+	private boolean isNonBiologicalLink(final String childId, final FLEFRecord parent){
+		if(childId == null || parent == null)
+			return false;
+
+		final String type = repository.getParentLinkType(childId, parent.getId());
+		if(type == null)
+			return false;
+		for(final String biological : RelationshipReader.BIOLOGICAL)
+			if(biological.equals(type))
+				return false;
+		return true;
 	}
 
 	private void setPartnerData(final TreeNode node, final FLEFRecord partner, final IndividualSummary partnerData){

@@ -24,13 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.individual;
 
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.temporal.JulianFields;
 import java.util.Map;
 
 
@@ -52,6 +58,103 @@ class IndividualSummaryTest{
 		Assertions.assertTrue(summary.hasParents());
 	}
 
+
+	@Test
+	void ageOfExactDatesHasNoPrefix(){
+		Assertions.assertEquals("67", age(exact(1652), exact(1719)));
+	}
+
+	@Test
+	void ageOfApproximateDatesHasATilde(){
+		Assertions.assertEquals("~67", age(about(1652), exact(1719)));
+		Assertions.assertEquals("~67", age(exact(1652), about(1719)));
+		Assertions.assertEquals("~67", age(about(1652), about(1719)));
+	}
+
+	@Test
+	void aCalculatedDateIsExactOnlyAgainstAnExactDate(){
+		final TemporalSpan calculated = TemporalSpan.point(NormalizedDate.approximated(
+			LocalDate.of(1652, 1, 1).getLong(JulianFields.JULIAN_DAY), DatePrecision.YEAR, CalendarType.GREGORIAN.getCode(),
+			"calculated", null));
+
+		//the birth comes from the age at death: the age is the stated one
+		Assertions.assertEquals("67", age(calculated, exact(1719)));
+		Assertions.assertEquals("< ~67", age(calculated, before(1719)));
+		Assertions.assertEquals("~67", age(calculated, about(1719)));
+		Assertions.assertEquals("~67", age(calculated, between(1717, 1721)));
+	}
+
+	@Test
+	void ageIsALowerBoundWhenBirthIsBeforeOrDeathIsAfter(){
+		Assertions.assertEquals("> 67", age(before(1652), exact(1719)));
+		Assertions.assertEquals("> 67", age(exact(1652), after(1719)));
+		Assertions.assertEquals("> 67", age(before(1652), after(1719)));
+	}
+
+	@Test
+	void ageIsAnUpperBoundWhenBirthIsAfterOrDeathIsBefore(){
+		Assertions.assertEquals("< 67", age(after(1652), exact(1719)));
+		Assertions.assertEquals("< 67", age(exact(1652), before(1719)));
+		Assertions.assertEquals("< 67", age(after(1652), before(1719)));
+	}
+
+	@Test
+	void boundsAndApproximationCombine(){
+		Assertions.assertEquals("< ~67", age(after(1652), about(1719)));
+		Assertions.assertEquals("> ~67", age(about(1652), after(1719)));
+		Assertions.assertEquals("> ~67", age(before(1652), about(1719)));
+		Assertions.assertEquals("< ~67", age(about(1652), before(1719)));
+	}
+
+	@Test
+	void ageIsUndeterminedWhenBothBoundsGoTheSameWay(){
+		Assertions.assertNull(age(before(1652), before(1719)));
+		Assertions.assertNull(age(after(1652), after(1719)));
+	}
+
+	@Test
+	void aBetweenDateHasNoDirectionButIsApproximate(){
+		final TemporalSpan between = TemporalSpan.bounded(exactDate(1650), exactDate(1654));
+
+		Assertions.assertEquals(0, IndividualSummary.boundDirection(between));
+		Assertions.assertEquals("~67", age(between, exact(1719)));
+		Assertions.assertEquals("~67", age(exact(1652), between(1717, 1721)));
+		Assertions.assertEquals("< ~67", age(after(1652), between(1717, 1721)));
+	}
+
+
+	private static String age(final TemporalSpan birth, final TemporalSpan death){
+		return IndividualSummary.formatAge(birth, death);
+	}
+
+	private static NormalizedDate exactDate(final int year){
+		return NormalizedDate.exact(LocalDate.of(year, 1, 1).getLong(JulianFields.JULIAN_DAY), DatePrecision.YEAR);
+	}
+
+	private static NormalizedDate aboutDate(final int year){
+		return NormalizedDate.approximated(LocalDate.of(year, 1, 1).getLong(JulianFields.JULIAN_DAY), DatePrecision.YEAR,
+			CalendarType.GREGORIAN.getCode(), null, null);
+	}
+
+	private static TemporalSpan exact(final int year){
+		return TemporalSpan.point(exactDate(year));
+	}
+
+	private static TemporalSpan about(final int year){
+		return TemporalSpan.point(aboutDate(year));
+	}
+
+	private static TemporalSpan between(final int from, final int to){
+		return TemporalSpan.bounded(exactDate(from), exactDate(to));
+	}
+
+	private static TemporalSpan before(final int year){
+		return TemporalSpan.bounded(null, exactDate(year));
+	}
+
+	private static TemporalSpan after(final int year){
+		return TemporalSpan.bounded(exactDate(year), null);
+	}
 
 	private static FLEFRecord relationship(final String id, final String type, final String subject, final String target){
 		return FLEFRecord.createMainRecord(id, RelationshipReader.TYPE)

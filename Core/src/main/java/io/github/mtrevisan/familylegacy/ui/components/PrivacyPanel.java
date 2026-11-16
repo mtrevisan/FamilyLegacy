@@ -69,6 +69,7 @@ public class PrivacyPanel extends JPanel{
 		levelCombo = new BoundComboBox<>(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_LEVEL), PrivacyReader.LEVELS);
 		levelCombo.setI18NPrefix("enum.privacy.level");
 		reasonCombo = new BoundComboBox<>(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_REASON), GUIHelper.fillCombo(PrivacyReader.REASONS, null));
+		reasonCombo.setI18NPrefix("enum.privacy.reason");
 		reasonCombo.setEditable(true);
 		expiresField = new BoundTextField(FLEFRecordHelper.composePath(path, PrivacyReader.TAG_EXPIRES));
 

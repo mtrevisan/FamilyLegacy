@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 

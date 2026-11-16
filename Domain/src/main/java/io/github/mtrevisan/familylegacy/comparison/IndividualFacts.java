@@ -222,7 +222,7 @@ public final class IndividualFacts{
 			else if(IndividualAttributeReader.ENUM_TYPE_RESIDENCE.equals(type))
 				residences.add(value);
 			else
-				others.add((type != null? type.replace('_', ' ') + ": ": StringUtils.EMPTY) + value);
+				others.add((type != null? I18N.t("enum.individual_attribute.type." + type, type.replace('_', ' ')) + ": ": StringUtils.EMPTY) + value);
 		}
 		put(facts, "occupations", String.join(SEPARATOR, occupations));
 		put(facts, "residences", String.join(SEPARATOR, residences));

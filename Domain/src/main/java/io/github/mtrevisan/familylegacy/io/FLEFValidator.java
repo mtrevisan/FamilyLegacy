@@ -365,7 +365,44 @@ public class FLEFValidator{
 	 *                          Internal — schema
 	 * ====================================================================== */
 
-	private record RecordContext(FLEFRecord record, String path){
+	/**
+	 * A record visited, with its path of tags. The path is built only when it is needed (to check the constraints of the record, or to
+	 * tell an error), from the path of the parent: building a string for each of the millions of nodes of a model costs more memory
+	 * than the whole traversal.
+	 */
+	private static final class RecordContext{
+
+		private final FLEFRecord record;
+		private RecordContext parent;
+		private String path;
+
+
+		/** The root of a traversal, with its path. */
+		private RecordContext(final FLEFRecord record, final String path){
+			this.record = record;
+			this.parent = null;
+			this.path = path;
+		}
+
+		/** A child of a visited record. */
+		private RecordContext(final FLEFRecord record, final RecordContext parent){
+			this.record = record;
+			this.parent = parent;
+		}
+
+		private FLEFRecord record(){
+			return record;
+		}
+
+		private String path(){
+			if(path == null){
+				path = FLEFRecordHelper.composePath(parent.path(), record.getTag());
+				//the parent is not needed anymore
+				parent = null;
+			}
+			return path;
+		}
+
 	}
 
 	/**
@@ -379,7 +416,8 @@ public class FLEFValidator{
 	 * and the caller wraps each message with the id it knows about.
 	 */
 	private static List<String> collect(final Consumer<List<String>> operation){
-		final List<String> out = new ArrayList<>();
+		//with no room: most of the times there is nothing to collect
+		final List<String> out = new ArrayList<>(0);
 		operation.accept(out);
 		return out;
 	}
@@ -392,21 +430,21 @@ public class FLEFValidator{
 		while(!stack.isEmpty()){
 			final RecordContext current = stack.pop();
 			final FLEFRecord record = current.record();
-			final String path = current.path();
 
 			final TypeDefinition typeDef = grammar.getType(record.getTag());
 			if(typeDef instanceof StructType structType){
 				final List<Constraint> constraints = structType.getConstraints();
-				for(final Constraint constraint : constraints)
-					constraint.validate(path, record, model, errors);
+				//the path is built only if there is something to check
+				if(!constraints.isEmpty()){
+					final String path = current.path();
+					for(final Constraint constraint : constraints)
+						constraint.validate(path, record, model, errors);
+				}
 			}
 
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --){
-				final FLEFRecord child = children.get(i);
-				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
-				stack.push(new RecordContext(child, childPath));
-			}
+			for(int i = children.size() - 1; i >= 0; i --)
+				stack.push(new RecordContext(children.get(i), current));
 		}
 	}
 
@@ -417,34 +455,28 @@ public class FLEFValidator{
 
 	private void collectDeclaredIdsStructured(final FLEFModel model, final Set<String> declaredIds,
 		final List<ValidationError> errors){
-		record TraversalNode(FLEFRecord record, String path){
-		}
-
-		final Deque<TraversalNode> stack = new ArrayDeque<>();
+		final Deque<RecordContext> stack = new ArrayDeque<>();
 
 		final List<FLEFRecord> topLevelRecords = model.getRecords();
 		for(int i = topLevelRecords.size() - 1; i >= 0; i --){
 			final FLEFRecord topRecord = topLevelRecords.get(i);
-			stack.push(new TraversalNode(topRecord, topRecord.getTag()));
+			stack.push(new RecordContext(topRecord, topRecord.getTag()));
 		}
 
 		while(!stack.isEmpty()){
-			final TraversalNode current = stack.pop();
+			final RecordContext current = stack.pop();
 			final FLEFRecord record = current.record();
-			final String path = current.path();
 
+			//the path is built only for a duplicate id
 			final String id = record.getId();
 			if(id != null && !declaredIds.add(id))
 				errors.add(new ValidationError(
-					String.format("Duplicate record ID '%s' found at '%s'", id, path),
+					String.format("Duplicate record ID '%s' found at '%s'", id, current.path()),
 					id));
 
 			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --){
-				final FLEFRecord child = children.get(i);
-				final String childPath = FLEFRecordHelper.composePath(path, child.getTag());
-				stack.push(new TraversalNode(child, childPath));
-			}
+			for(int i = children.size() - 1; i >= 0; i --)
+				stack.push(new RecordContext(children.get(i), current));
 		}
 	}
 

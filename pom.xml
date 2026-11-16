@@ -79,7 +79,7 @@
 
 		<!-- Apache -->
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-		<apache.commons-lang3.version>3.21.0</apache.commons-lang3.version>
+		<apache.commons-lang3.version>3.22.0</apache.commons-lang3.version>
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
@@ -145,8 +145,8 @@
 <!--		<fasterxml.jackson-databind.version>3.3.0</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>3.0.0</jayway.json-path.version>-->
-		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
-<!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
+		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/jackson-coreutils -->
+<!--		<github.jackson-coreutils.version>2.0</github.jackson-coreutils.version>-->
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 		<googlecode.json-simple.version>1.1.1</googlecode.json-simple.version>
 
@@ -550,7 +550,7 @@
 <!--			<version>${fasterxml.jackson-databind.version}</version>-->
 <!--		</dependency>-->
 <!--		<dependency>-->
-<!--			<groupId>com.github.fge</groupId>-->
+<!--			<groupId>com.github.java-json-tools</groupId>-->
 <!--			<artifactId>jackson-coreutils</artifactId>-->
 <!--			<version>${github.jackson-coreutils.version}</version>-->
 <!--		</dependency>-->

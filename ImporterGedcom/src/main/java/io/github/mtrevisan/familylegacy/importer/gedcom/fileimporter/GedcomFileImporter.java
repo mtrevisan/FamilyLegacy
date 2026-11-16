@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.importer.gedcom.fileimporter;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
+import io.github.mtrevisan.familylegacy.importer.SameSexParentsCheck;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
@@ -89,8 +90,10 @@ public final class GedcomFileImporter implements FileImporter{
 			roots = new GEDCOMParser().parse(br);
 		}
 
-		return new GEDCOMToFLEFConverter()
+		final FLEFModel model = new GEDCOMToFLEFConverter()
 			.convert(roots, progress::onProgress, report);
+		SameSexParentsCheck.report(model, report);
+		return model;
 	}
 
 }

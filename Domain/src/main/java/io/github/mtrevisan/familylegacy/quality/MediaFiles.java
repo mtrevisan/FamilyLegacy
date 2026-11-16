@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -88,7 +89,7 @@ public final class MediaFiles{
 			final Path path = (StringUtils.isBlank(location)? null: localPath(location.strip(), baseDirectory));
 			if(path != null && !Files.exists(path))
 				issues.add(new ConsistencyService.Issue(ConsistencyService.Severity.WARNING, media.getId(),
-					I18N.tf("text.consistency.issue.media_missing", media.getId(), path.toString()), "media_missing"));
+					I18N.tf("text.consistency.issue.media_missing", media.getId(), MediaPathDisplay.display(path.toString())), "media_missing"));
 		}
 		return issues;
 	}

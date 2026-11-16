@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.io;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Strings;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -320,15 +319,15 @@ public class FLEFWriter{
 	private void processRecordNode(final FLEFRecord record, final Writer writer, final int indentLevel,
 			final Deque<Frame> stack) throws IOException{
 		if(compactMode){
-			// In compact mode, check if the child is compressible
-			final Effective effective = getEffectiveRecord(record);
-			writeRecordHeader(effective.record, writer, indentLevel, effective.path);
-			if(opensBlock(effective.record))
-				stack.push(new Frame(effective.record, indentLevel + 1));
+			// In compact mode, check if the child is compressible: the chain is followed in place, and its tags are written one by one
+			final FLEFRecord effective = getEffectiveRecord(record);
+			writeRecordHeader(effective, writer, indentLevel, record);
+			if(opensBlock(effective))
+				stack.push(new Frame(effective, indentLevel + 1));
 		}
 		else{
 			// Expanded mode: write the child as a separate block
-			writeRecordHeader(record, writer, indentLevel, null);
+			writeRecordHeader(record, writer, indentLevel, record);
 			if(opensBlock(record))
 				stack.push(new Frame(record, indentLevel + 1));
 		}
@@ -349,17 +348,26 @@ public class FLEFWriter{
 	 * @param record      the record to write
 	 * @param writer      the output writer
 	 * @param indentLevel the current indentation level
-	 * @param tagOverride if not {@code null}, use this tag instead of {@code record.getTag()}
+	 * @param chainStart  the record where the chain of single-child records that ends with {@code record} starts (the record itself
+	 *                    if it is not in a chain): the tags of the chain are written with the dots between them
 	 * @throws IOException if writing fails
 	 */
 	private void writeRecordHeader(final FLEFRecord record, final Writer writer, final int indentLevel,
-			final String tagOverride) throws IOException{
+			final FLEFRecord chainStart) throws IOException{
 		writeIndent(writer, indentLevel);
 
-		// Record tag/type – use tagOverride if provided
-		final String tag = (tagOverride != null? tagOverride: record.getTag());
-		if(tag != null)
-			writer.write(tag);
+		// Record tag/type – the tags of the chain, if any, are written as a dotted path
+		FLEFRecord link = chainStart;
+		while(true){
+			final String tag = link.getTag();
+			if(tag != null)
+				writer.write(tag);
+			if(link == record)
+				break;
+
+			link = link.getChildren().getFirst();
+			writer.write('.');
+		}
 
 		// Optional record ID
 		final String formattedId = record.getFormattedId();
@@ -397,7 +405,8 @@ public class FLEFWriter{
 	}
 
 	/**
-	 * Writes a multiline text value without extra indentation.
+	 * Writes a multiline text value without extra indentation. The lines are read in place and written one by one, without
+	 * normalizing the line breaks nor splitting the text first: the value can be long, and each copy of it is memory.
 	 *
 	 * @param text        the text to write
 	 * @param writer      the output writer
@@ -405,65 +414,100 @@ public class FLEFWriter{
 	 * @throws IOException if writing fails
 	 */
 	private void writeMultilineValue(final String text, final Writer writer, final int indentLevel) throws IOException{
-		final String[] lines = StringUtils.splitPreserveAllTokens(Strings.CS.replace(Strings.CS.replace(text, "\r\n", StringUtils.LF), StringUtils.CR, StringUtils.LF), '\n');
-		for(int i = 0, length = lines.length; i < length; i ++){
-			final String line = lines[i];
+		final int length = text.length();
+		if(length == 0)
+			return;
 
+		int start = 0;
+		while(true){
+			//a line ends at \n, \r\n or \r
+			int end = start;
+			while(end < length && text.charAt(end) != '\n' && text.charAt(end) != '\r')
+				end ++;
+
+			final boolean last = (end == length);
 			writeIndent(writer, indentLevel);
-			final boolean last = (i == lines.length - 1);
-			writer.write(escapeTextBlockLine(line, last));
-			if(!last)
-				writer.write(StringUtils.LF);
+			writeEscapedTextBlockLine(text, start, end, last, writer);
+			if(last)
+				return;
+
+			writer.write(StringUtils.LF);
+
+			start = end + 1;
+			if(text.charAt(end) == '\r' && start < length && text.charAt(start) == '\n')
+				start ++;
 		}
 	}
 
 	/**
-	 * Escapes the bare minimum of a line of a text block: the backslashes (the parser translates the escape sequences), the quotes
-	 * that would form triple quotes (or that would touch the closing ones), and, on the last line only, the leading whitespace (the
-	 * closing triple quotes follow the last line, whose indentation the parser would otherwise take as incidental indentation of the
-	 * whole text). Everything else, spaces and quotes included, is written as is.
+	 * Writes a line of a text block, escaping the bare minimum: the backslashes (the parser translates the escape sequences), the
+	 * quotes that would form triple quotes (or that would touch the closing ones), and, on the last line only, the leading whitespace
+	 * (the closing triple quotes follow the last line, whose indentation the parser would otherwise take as incidental indentation of
+	 * the whole text). Everything else, spaces and quotes included, is written as is.
+	 * <p>
+	 * The line is the range of a text, and it is written straight to the writer, in runs of the characters that need no escape.
 	 *
-	 * @param line	The line.
+	 * @param text	The text.
+	 * @param start	The start of the line (inclusive).
+	 * @param end	The end of the line (exclusive).
 	 * @param last	Whether the line is the last one (followed by the closing triple quotes).
-	 * @return	The escaped line.
+	 * @param writer	The output writer.
 	 */
-	private static String escapeTextBlockLine(final String line, final boolean last){
-		final StringBuilder sb = new StringBuilder(line.length() + 4);
+	private static void writeEscapedTextBlockLine(final String text, final int start, final int end, final boolean last,
+			final Writer writer) throws IOException{
+		final int length = end - start;
 		//as in a Java text block, the trailing whitespace of a line is stripped (so the last one is escaped), and a line made of
 		//whitespace only is blank, so it neither counts for the incidental indentation nor survives (so all of it is escaped)
-		final boolean blank = line.isBlank();
-		int lastNonWhitespace = line.length() - 1;
-		while(lastNonWhitespace >= 0 && Character.isWhitespace(line.charAt(lastNonWhitespace)))
-			lastNonWhitespace --;
+		int lastNonWhitespace = -1;
+		for(int i = length - 1; i >= 0; i --)
+			if(!Character.isWhitespace(text.charAt(start + i))){
+				lastNonWhitespace = i;
+
+				break;
+			}
+		final boolean blank = (lastNonWhitespace < 0);
 		int runLength = 0;
 		boolean runAtEnd = false;
-		for(int i = 0, length = line.length(); i < length; i ++){
-			final char chr = line.charAt(i);
+		//the start of the run of characters written as they are, or -1
+		int plainStart = -1;
+		for(int i = 0; i < length; i ++){
+			final char chr = text.charAt(start + i);
+			final String escaped;
 			if((chr == ' ' || chr == '\t') && (blank || i == length - 1 && lastNonWhitespace < i || i == 0 && last))
-				sb.append(chr == ' '? "\\s": "\\t");
+				escaped = (chr == ' '? "\\s": "\\t");
 			else if(chr == '"'){
-				int start = i;
-				while(start > 0 && line.charAt(start - 1) == '"')
-					start --;
-				if(start == i){
+				int quoteStart = i;
+				while(quoteStart > 0 && text.charAt(start + quoteStart - 1) == '"')
+					quoteStart --;
+				if(quoteStart == i){
 					runLength = 1;
-					while(i + runLength < length && line.charAt(i + runLength) == '"')
+					while(i + runLength < length && text.charAt(start + i + runLength) == '"')
 						runLength ++;
 					runAtEnd = (last && i + runLength == length);
 				}
 				//as in a Java text block, the first quote of every group of three is escaped; the quotes that touch the closing
 				//triple quotes are all escaped
-				if(runAtEnd || runLength >= 3 && (i - start) % 3 == 0)
-					sb.append("\\\"");
-				else
-					sb.append(chr);
+				escaped = (runAtEnd || runLength >= 3 && (i - quoteStart) % 3 == 0? "\\\"": null);
 			}
 			else if(chr == '\\')
-				sb.append("\\\\");
+				escaped = "\\\\";
 			else
-				sb.append(chr);
+				escaped = null;
+
+			if(escaped == null){
+				if(plainStart < 0)
+					plainStart = start + i;
+			}
+			else{
+				if(plainStart >= 0){
+					writer.write(text, plainStart, start + i - plainStart);
+					plainStart = -1;
+				}
+				writer.write(escaped);
+			}
 		}
-		return sb.toString();
+		if(plainStart >= 0)
+			writer.write(text, plainStart, end - plainStart);
 	}
 
 	/**
@@ -509,46 +553,29 @@ public class FLEFWriter{
 			writer.write(indentSequence);
 	}
 
-
 	/**
-	 * Holds the result of compressing a chain of single‑child records.
-	 *
-	 * @param record the deepest (effective) record in the chain
-	 * @param path   the dotted‑path tag (e.g., "valid_from.value.point.full_date")
-	 */
-	private record Effective(FLEFRecord record, String path){}
-
-	/**
-	 * Traverses a chain of records where each record has exactly one child
-	 * and no value, and returns the deepest record together with the
-	 * accumulated dotted‑path.
+	 * Traverses a chain of records where each record has exactly one child and no value, and returns the deepest record.
 	 * <p>
-	 * If the record is not compressible (has multiple children or a value),
-	 * the record itself is returned with its own tag as the path.
+	 * If the record is not compressible (has multiple children, a value or an id), the record itself is returned.
 	 *
 	 * @param record the starting record
-	 * @return an {@link Effective} containing the deepest record and its dot‑path
+	 * @return the deepest record of the chain
 	 */
-	private Effective getEffectiveRecord(final FLEFRecord record){
+	private FLEFRecord getEffectiveRecord(final FLEFRecord record){
 		if(!compactMode)
-			return new Effective(record, record.getTag());
+			return record;
 
 		// If the record has an ID, it cannot be compressed (the ID must be preserved)
 		if(StringUtils.isNotEmpty(record.getFormattedId()))
-			return new Effective(record, record.getTag());
+			return record;
 
-		final StringBuilder path = new StringBuilder(record.getTag());
 		FLEFRecord current = record;
-
 		// A record is compressible if it has exactly one child, no value, and no ID
 		while(current.getChildren().size() == 1 && current.getValue() == null
-				&& StringUtils.isEmpty(current.getFormattedId())){
+				&& StringUtils.isEmpty(current.getFormattedId()))
 			current = current.getChildren().getFirst();
-			path.append('.')
-				.append(current.getTag());
-		}
 
-		return new Effective(current, path.toString());
+		return current;
 	}
 
 }

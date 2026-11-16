@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -334,6 +335,9 @@ public final class RecordAbsorber{
 	 */
 	public record DuplicatePair(String kind, String firstId, String secondId, double probability, String rationale){}
 
+	/** A pair compared, with its score. */
+	private record ScoredPair(String firstId, String secondId, MatchScore score){}
+
 	/** The most records of a block that are compared: a block of namesakes larger than this says nothing about any two of them. */
 	private static final int MAX_BLOCK_SIZE = 300;
 
@@ -356,14 +360,20 @@ public final class RecordAbsorber{
 			if(!EntityMatcher.MATCHABLE_KINDS.contains(kind))
 				continue;
 
+			final List<FLEFRecord> ofKind = model.getRecordsByType(kind);
+			//the position of each record, to tell the pairs already compared with a number instead of a string made of the two ids
+			final Map<FLEFRecord, Integer> positions = new IdentityHashMap<>(ofKind.size() * 2);
 			final Map<String, List<FLEFRecord>> blocks = new HashMap<>();
-			for(final FLEFRecord record : model.getRecordsByType(kind))
+			for(int i = 0, size = ofKind.size(); i < size; i ++){
+				final FLEFRecord record = ofKind.get(i);
+				positions.put(record, i);
 				for(final String key : matcher.blockingKeys(record))
 					blocks.computeIfAbsent(key, k -> new ArrayList<>())
 						.add(record);
+			}
 
-			final Set<String> seen = new HashSet<>();
-			final List<DuplicatePair> pairs = new ArrayList<>();
+			final Set<Long> seen = new HashSet<>();
+			final List<ScoredPair> pairs = new ArrayList<>();
 			for(final List<FLEFRecord> block : blocks.values()){
 				if(block.size() > MAX_BLOCK_SIZE)
 					continue;
@@ -375,18 +385,22 @@ public final class RecordAbsorber{
 						final boolean ordered = (a.getId().compareTo(b.getId()) <= 0);
 						final FLEFRecord first = (ordered? a: b);
 						final FLEFRecord second = (ordered? b: a);
-						if(!seen.add(first.getId() + "|" + second.getId()))
+						final int positionA = positions.get(a);
+						final int positionB = positions.get(b);
+						if(!seen.add((long)Math.min(positionA, positionB) << Integer.SIZE | Math.max(positionA, positionB)))
 							continue;
 
 						final MatchScore score = matcher.compare(first, second);
 						if(!score.isVetoed() && score.probability() >= minProbability)
-							pairs.add(new DuplicatePair(kind, first.getId(), second.getId(), score.probability(), score.describe()));
+							pairs.add(new ScoredPair(first.getId(), second.getId(), score));
 					}
 			}
-			pairs.sort(Comparator.comparingDouble(DuplicatePair::probability).reversed()
-				.thenComparing(DuplicatePair::firstId)
-				.thenComparing(DuplicatePair::secondId));
-			result.addAll(pairs.size() > maxPerKind? pairs.subList(0, maxPerKind): pairs);
+			pairs.sort(Comparator.comparingDouble((ScoredPair pair) -> pair.score().probability()).reversed()
+				.thenComparing(ScoredPair::firstId)
+				.thenComparing(ScoredPair::secondId));
+			//the evidence is written only for the pairs given back, not for all the ones found
+			for(final ScoredPair pair : (pairs.size() > maxPerKind? pairs.subList(0, maxPerKind): pairs))
+				result.add(new DuplicatePair(kind, pair.firstId(), pair.secondId(), pair.score().probability(), pair.score().describe()));
 		}
 		return result;
 	}

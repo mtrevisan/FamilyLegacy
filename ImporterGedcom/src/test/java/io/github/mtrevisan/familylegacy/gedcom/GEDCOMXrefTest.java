@@ -186,4 +186,47 @@ class GEDCOMXrefTest{
 		Assertions.assertEquals(1, relationships(model, "step_child").size());
 	}
 
+	@Test
+	void noStepChildBeforeTheMarriageOrAfterTheDeath() throws IOException{
+		//W (I1) marries H1 (I2) in 1651 and has I4 (died 1652) and I5 (born 1654); H1 dies in 1656; W marries H2 (I3) in 1657 and has I6
+		//(no birth date): I5 is a step child of H2, I4 (dead before the marriage) is not; I6 is not a step child of H1 (dead before its birth)
+		final FLEFModel model = convert("""
+				0 @I1@ INDI
+				1 NAME W /X/
+				0 @I2@ INDI
+				1 NAME H1 /X/
+				1 DEAT Y
+				2 DATE 1 JAN 1656
+				0 @I3@ INDI
+				1 NAME H2 /Y/
+				0 @I4@ INDI
+				1 NAME Dead /X/
+				1 BIRT Y
+				2 DATE 17 DEC 1651
+				1 DEAT Y
+				2 DATE 24 JAN 1652
+				0 @I5@ INDI
+				1 NAME Alive /X/
+				1 BIRT Y
+				2 DATE JAN 1654
+				0 @I6@ INDI
+				1 NAME Later /Y/
+				0 @F1@ FAM
+				1 HUSB @I2@
+				1 WIFE @I1@
+				1 CHIL @I4@
+				1 CHIL @I5@
+				1 MARR Y
+				2 DATE 26 JAN 1651
+				0 @F2@ FAM
+				1 HUSB @I3@
+				1 WIFE @I1@
+				1 CHIL @I6@
+				1 MARR Y
+				2 DATE 30 JAN 1657
+				""");
+
+		Assertions.assertEquals(1, relationships(model, "step_child").size());
+	}
+
 }

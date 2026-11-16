@@ -295,6 +295,112 @@ public final class ModelHistory{
 		return true;
 	}
 
+	/** What reverting a step on its own would do. */
+	public enum RevertState{
+		/** Nothing the step touched has changed since: the revert is exact. */
+		CLEAN,
+		/** Some records touched by the step were changed afterwards: reverting them overwrites those later changes. */
+		CONFLICT,
+		/** The step is not applied (it is undone, or it is no longer in the history). */
+		UNAVAILABLE
+	}
+
+	/**
+	 * @param state	What reverting would do.
+	 * @param conflicts	The changes of the step whose record is not as the step left it (empty unless {@link RevertState#CONFLICT}).
+	 */
+	public record RevertPlan(RevertState state, List<Change> conflicts){}
+
+	/**
+	 * Checks what {@link #revert(Entry, boolean)} would do, without doing it.
+	 *
+	 * @param entry	A step taken from {@link #recentChanges()}.
+	 * @return	The plan.
+	 */
+	public RevertPlan planRevert(final Entry entry){
+		checkpoint();
+
+		final Step step = findApplied(entry);
+		if(step == null)
+			return new RevertPlan(RevertState.UNAVAILABLE, List.of());
+
+		final List<Change> conflicts = new ArrayList<>();
+		for(final Change change : step.changes())
+			if(!isAsLeftBy(change))
+				conflicts.add(change);
+		return new RevertPlan((conflicts.isEmpty()? RevertState.CLEAN: RevertState.CONFLICT), conflicts);
+	}
+
+	/**
+	 * Reverts a step that is not the last one: every record it touched goes back to what it was before the step (an added record is
+	 * removed, a removed one is put back, a modified one is restored), and the others are left as they are. The revert is a new step,
+	 * so it can be undone.
+	 * <p>
+	 * If the step is not {@link RevertState#CLEAN}, the records changed afterwards are overwritten, and the references between records
+	 * may no longer be consistent: that is why it is done only if {@code force} is {@code true}.
+	 * </p>
+	 *
+	 * @param entry	A step taken from {@link #recentChanges()}.
+	 * @param force	Whether to revert also if later changes touched the same records.
+	 * @return	Whether the model has been changed.
+	 */
+	public boolean revert(final Entry entry, final boolean force){
+		final RevertPlan plan = planRevert(entry);
+		if(plan.state() == RevertState.UNAVAILABLE || plan.state() == RevertState.CONFLICT && !force)
+			return false;
+
+		final Step step = findApplied(entry);
+		final List<FLEFRecord> records = new ArrayList<>(model.getRecords());
+		for(final Change change : step.changes()){
+			if(change.id() == null){
+				final FLEFRecord header = model.getHeader();
+				header.clear();
+				change.before()
+					.deepCopyTo(header);
+				continue;
+			}
+
+			final int index = indexOf(records, change.id());
+			switch(change.kind()){
+				case ADDED -> {
+					if(index >= 0)
+						records.remove(index);
+				}
+				case MODIFIED, REMOVED -> {
+					final FLEFRecord restored = copy(change.before());
+					if(index >= 0)
+						records.set(index, restored);
+					else
+						records.add(restored);
+				}
+			}
+		}
+		model.replaceRecords(records);
+		checkpoint(Origin.EDIT);
+		return true;
+	}
+
+	private Step findApplied(final Entry entry){
+		for(final Step step : undoStack)
+			//the entry and the step share the very same list
+			if(step.changes() == entry.changes())
+				return step;
+		return null;
+	}
+
+	/** @return	Whether the record is now as the change left it. */
+	private boolean isAsLeftBy(final Change change){
+		final FLEFRecord current = (change.id() == null? model.getHeader(): model.getRecordById(change.id()));
+		return (change.kind() == Kind.REMOVED? current == null: current != null && sameStructure(current, change.after()));
+	}
+
+	private static int indexOf(final List<FLEFRecord> records, final String id){
+		for(int i = 0, size = records.size(); i < size; i ++)
+			if(id.equals(records.get(i).getId()))
+				return i;
+		return -1;
+	}
+
 	/** @return	The recorded steps, the most recent first (undone ones included, flagged as such). */
 	public List<Entry> recentChanges(){
 		checkpoint();

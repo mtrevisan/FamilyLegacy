@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
@@ -230,7 +231,7 @@ public class PreferredImagePanel extends JPanel{
 			ioe.printStackTrace();
 
 			JOptionPane.showMessageDialog(this,
-				I18N.tf("error.image", uri),
+				I18N.tf("error.image", MediaPathDisplay.display(uri)),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}

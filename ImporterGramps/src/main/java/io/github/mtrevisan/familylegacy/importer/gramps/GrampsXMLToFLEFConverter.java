@@ -1696,7 +1696,8 @@ public final class GrampsXMLToFLEFConverter{
 			if(offspring == null)
 				continue;
 
-			membership(offspring, group, RelationshipReader.ENUM_TYPE_CHILD, element);
+			//a child is a child of its parents (see below), not of the group: no role
+			membership(offspring, group, null, element);
 			if(father != null)
 				parentChild(offspring, father, GrampsXML.attribute(reference, "frel"), reference, element);
 			if(mother != null)
@@ -1731,9 +1732,10 @@ public final class GrampsXMLToFLEFConverter{
 				.addChild(child(RelationshipReader.TAG_INDIVIDUAL, id(person))))
 			.addChild(FLEFRecord.createChildWithTag(RelationshipReader.TAG_TARGET)
 				.addChild(child(RelationshipReader.TAG_GROUP, group.getId())))
-			.addChild(child(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_GROUP_MEMBER))
-			.addChild(child(RelationshipReader.TAG_ROLE, role))
-			.addChild(audit(isoOf(family)));
+			.addChild(child(RelationshipReader.TAG_TYPE, RelationshipReader.ENUM_TYPE_GROUP_MEMBER));
+		if(StringUtils.isNotEmpty(role))
+			relationship.addChild(child(RelationshipReader.TAG_ROLE, role));
+		relationship.addChild(audit(isoOf(family)));
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
 	}
 

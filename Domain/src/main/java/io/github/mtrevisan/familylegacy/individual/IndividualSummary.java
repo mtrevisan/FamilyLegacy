@@ -38,13 +38,13 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpanKind;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import org.apache.commons.lang3.StringUtils;
 
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,7 +67,8 @@ public final class IndividualSummary{
 	private static final String TAG_FIGURE_DASH = "\u2012";
 
 	private static final String CIRCA_SYMBOL = "~";
-	private static final String LESS_THAN_ABOUT = "< ~";
+	private static final String LESS_THAN = "<";
+	private static final String GREATER_THAN = ">";
 	private static final String OPEN_PARENTHESIS = "(";
 	private static final String CLOSE_PARENTHESIS = ")";
 
@@ -189,22 +190,9 @@ public final class IndividualSummary{
 		final NormalizedDate normalizedDeathDate = (deathInfo != null && deathInfo.date() != null
 			? deathInfo.representativeDate()
 			: null);
-		final LocalDate birthDate = (normalizedBirthDate != null
-			? CalendarType.jdnToProlepticGregorianLocalDate(normalizedBirthDate.jdn())
+		final String age = (normalizedBirthDate != null && normalizedDeathDate != null
+			? formatAge(birthInfo.span(), deathInfo.span())
 			: null);
-		final LocalDate deathDate = (normalizedDeathDate != null
-			? CalendarType.jdnToProlepticGregorianLocalDate(normalizedDeathDate.jdn())
-			: null);
-		String age = null;
-		if(birthDate != null && deathDate != null){
-			final long years = ChronoUnit.YEARS.between(birthDate, deathDate);
-			String prefix = StringUtils.EMPTY;
-			if(normalizedBirthDate.approximate() || normalizedDeathDate.approximate())
-				prefix = CIRCA_SYMBOL;
-			if(normalizedBirthDate.approximate() && birthDate.isBefore(deathDate))
-				prefix = LESS_THAN_ABOUT;
-			age = prefix + years;
-		}
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		sj.add(birthInfo != null? birthInfo.year(): NO_DATA);
@@ -218,6 +206,63 @@ public final class IndividualSummary{
 		infoTooltip = tooltip.toString();
 		this.birthDate = normalizedBirthDate;
 
+	}
+
+	/**
+	 * @param span	The span of a birth or death date.
+	 * @return	-1 if the date is "before" (open-started bound), +1 if it is "after" (open-ended bound), 0 otherwise.
+	 */
+	static int boundDirection(final TemporalSpan span){
+		if(span == null || span.kind() != TemporalSpanKind.BOUNDED)
+			return 0;
+		if(span.isOpenStarted())
+			return -1;
+		if(span.isOpenEnded())
+			return 1;
+		return 0;
+	}
+
+	/**
+	 * The age is death - birth: a birth "before" or a death "after" makes it a lower bound ({@code >}), a birth "after" or a death
+	 * "before" makes it an upper bound ({@code <}); both going the same way leave it undetermined.
+	 * An "about" date or a date between two limits adds a {@code ~}.
+	 *
+	 * @param birth	The span of the birth date.
+	 * @param death	The span of the death date.
+	 * @return	The age text (without the unit), or {@code null} if it cannot be determined.
+	 */
+	static String formatAge(final TemporalSpan birth, final TemporalSpan death){
+		final int birthDirection = boundDirection(birth);
+		final int direction = boundDirection(death) - birthDirection;
+		if(direction == 0 && birthDirection != 0)
+			return null;
+
+		final long years = ChronoUnit.YEARS.between(
+			CalendarType.jdnToProlepticGregorianLocalDate(birth.representativeDate().jdn()),
+			CalendarType.jdnToProlepticGregorianLocalDate(death.representativeDate().jdn()));
+		String prefix = StringUtils.EMPTY;
+		if(direction != 0)
+			prefix = (direction < 0? LESS_THAN: GREATER_THAN) + StringUtils.SPACE;
+		if(isUncertain(birth) || isUncertain(death)
+				//a calculated date gives back the age it comes from (the stated one) only if the other date is exact
+				|| isCalculated(birth) && !isExact(death) || isCalculated(death) && !isExact(birth))
+			prefix += CIRCA_SYMBOL;
+		return prefix + years;
+	}
+
+	/** @return	Whether the date is an "about" or lies between two limits. */
+	private static boolean isUncertain(final TemporalSpan span){
+		return (span.kind() == TemporalSpanKind.BOUNDED && span.start() != null && span.end() != null
+			|| span.representativeDate().isAbout());
+	}
+
+	private static boolean isCalculated(final TemporalSpan span){
+		return span.representativeDate().isCalculated();
+	}
+
+	/** @return	Whether the date is a point that is neither approximate nor calculated. */
+	private static boolean isExact(final TemporalSpan span){
+		return (span.isPoint() && !span.representativeDate().approximate());
 	}
 
 	private static StringJoiner createTooltip(final EventInfo birthInfo, final EventInfo deathInfo){
@@ -363,7 +408,7 @@ public final class IndividualSummary{
 		final NormalizedDate representativeDate = (temporalSpan != null? temporalSpan.representativeDate(): null);
 		final String place = PlaceCitationReader.extractPlace(event, model);
 		final String cause = (EventReader.isTypeDeath(type)? EventReader.extractCauseReason(event): null);
-		return new EventInfo(type, dateOriginalText, date, year, representativeDate, place, cause, eventId, event);
+		return new EventInfo(type, dateOriginalText, date, year, representativeDate, temporalSpan, place, cause, eventId, event);
 	}
 
 	/**
@@ -441,6 +486,7 @@ public final class IndividualSummary{
 		String date,
 		String year,
 		NormalizedDate representativeDate,
+		TemporalSpan span,
 		String place,
 		String deathCause,
 		String eventId,

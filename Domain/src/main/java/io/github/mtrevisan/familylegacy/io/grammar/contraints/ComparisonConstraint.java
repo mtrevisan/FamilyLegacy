@@ -45,37 +45,44 @@ public final class ComparisonConstraint extends Constraint{
 	private final String left;
 	private final String operator;
 	private final String right;
+	//what depends on the tokens only, decided once
+	private final boolean leftIsField;
+	private final boolean rightIsField;
+	private final boolean ordering;
 
 
 	public ComparisonConstraint(final String left, final String operator, final String right){
 		this.left = left;
 		this.operator = operator;
 		this.right = right;
+		leftIsField = isField(left);
+		rightIsField = isField(right);
+		ordering = isOrdering(operator);
 	}
 
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final List<String> errors){
-		final String leftValue = resolveValue(record, left);
-		final String rightValue = resolveValue(record, right);
+		final String leftValue = resolveValue(record, left, leftIsField);
+		final String rightValue = resolveValue(record, right, rightIsField);
 
 		// If both fields are optional and not present, the constraint does not apply.
 		if(leftValue == null && rightValue == null)
 			return;
 
 		// If one of the two is a required field and is missing, error
-		if(isField(left) && leftValue == null){
+		if(leftIsField && leftValue == null){
 			errors.add(String.format("Constraint violation at '%s': field '%s' not found", contextPath, left));
 
 			return;
 		}
-		if(isField(right) && rightValue == null){
+		if(rightIsField && rightValue == null){
 			errors.add(String.format("Constraint violation at '%s': field '%s' not found", contextPath, right));
 
 			return;
 		}
 
-		if(isOrdering(operator) && !(isInteger(leftValue) && isInteger(rightValue))){
+		if(ordering && !(isInteger(leftValue) && isInteger(rightValue))){
 			errors.add(String.format("Constraint violation at '%s': '%s %s %s' failed (values: %s, %s): the values are not comparable numerically",
 				contextPath, left, operator, right, leftValue, rightValue));
 
@@ -93,7 +100,31 @@ public final class ComparisonConstraint extends Constraint{
 			|| LESS_THAN_OR_EQUALS.equals(op));
 	}
 
+	/**
+	 * Whether a text may be an integer: a sign and digits. A text that is not (like the name of an enum value) is told at once, without
+	 * the exception that {@link Long#parseLong(String)} throws (and fills with its stack) for each of them.
+	 */
+	private static boolean mayBeInteger(final String value){
+		if(value == null || value.isEmpty())
+			return false;
+
+		int start = 0;
+		final char first = value.charAt(0);
+		if(first == '-' || first == '+')
+			start = 1;
+		if(start == value.length())
+			return false;
+
+		for(int i = start, length = value.length(); i < length; i ++)
+			if(Character.digit(value.charAt(i), 10) < 0)
+				return false;
+		return true;
+	}
+
 	private static boolean isInteger(final String value){
+		if(!mayBeInteger(value))
+			return false;
+
 		try{
 			Long.parseLong(value);
 
@@ -104,13 +135,13 @@ public final class ComparisonConstraint extends Constraint{
 		}
 	}
 
-	private boolean isField(final String token){
+	private static boolean isField(final String token){
 		// A field is an identifier (letters, digits, underscores); a literal is a number.
 		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9'));
 	}
 
-	private String resolveValue(final FLEFRecord record, final String token){
-		if(!isField(token))
+	private static String resolveValue(final FLEFRecord record, final String token, final boolean field){
+		if(!field)
 			return token;
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(record, token);
@@ -118,26 +149,30 @@ public final class ComparisonConstraint extends Constraint{
 	}
 
 	private boolean compare(final String leftVal, final String rightVal, final String op){
-		try{
-			long l = Long.parseLong(leftVal);
-			long r = Long.parseLong(rightVal);
-			return switch(op){
-				case GREATER_THAN -> l > r;
-				case GREATER_THAN_OR_EQUALS -> l >= r;
-				case LESS_THAN -> l < r;
-				case LESS_THAN_OR_EQUALS -> l <= r;
-				case EQUALS -> l == r;
-				case NOT_EQUALS -> l != r;
-				default -> false;
-			};
-		}
-		catch(final NumberFormatException e){
-			return switch(op){
-				case EQUALS -> leftVal.equals(rightVal);
-				case NOT_EQUALS -> !leftVal.equals(rightVal);
-				default -> false;
-			};
-		}
+		//numbers are compared as numbers, anything else as text (also a number too big for a long)
+		if(mayBeInteger(leftVal) && mayBeInteger(rightVal))
+			try{
+				final long l = Long.parseLong(leftVal);
+				final long r = Long.parseLong(rightVal);
+				return switch(op){
+					case GREATER_THAN -> l > r;
+					case GREATER_THAN_OR_EQUALS -> l >= r;
+					case LESS_THAN -> l < r;
+					case LESS_THAN_OR_EQUALS -> l <= r;
+					case EQUALS -> l == r;
+					case NOT_EQUALS -> l != r;
+					default -> false;
+				};
+			}
+			catch(final NumberFormatException ignored){
+				//too big: compared as text
+			}
+
+		return switch(op){
+			case EQUALS -> leftVal.equals(rightVal);
+			case NOT_EQUALS -> !leftVal.equals(rightVal);
+			default -> false;
+		};
 	}
 
 	@Override

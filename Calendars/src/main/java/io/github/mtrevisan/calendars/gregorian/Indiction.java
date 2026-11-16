@@ -86,6 +86,9 @@ public final class Indiction{
 	public static Extraction extract(final String rawDate){
 		if(rawDate == null)
 			return new Extraction(null, 0);
+		// every keyword contains "ind": without it the (costly) pattern cannot match
+		if(!StringUtils.containsIgnoreCase(rawDate, "ind"))
+			return new Extraction(rawDate, 0);
 
 		final Matcher matcher = INDICTION_PATTERN.matcher(rawDate);
 		if(!matcher.find())

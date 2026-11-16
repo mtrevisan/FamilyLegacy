@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 
 /**
@@ -106,11 +105,41 @@ public final class FLEFRecordHelper{
 	 * @return	The matching record, or {@code null} if any tag in the path is not found.
 	 */
 	public static FLEFRecord findChild(final FLEFRecord parent, final String path){
-		final List<FLEFRecord> children = findChildren(parent, path);
-		if(children.size() > 1)
+		if(parent == null)
+			return null;
+		if(StringUtils.isEmpty(path)){
+			final List<FLEFRecord> children = parent.getChildren();
+			if(children.size() > 1)
+				throw new IllegalArgumentException("Ambiguous reference: " + path);
+
+			return (!children.isEmpty()? children.getFirst(): null);
+		}
+
+		//no list is built: the path is followed in place, stopping as soon as a second record shows that the reference is ambiguous
+		final Matches matches = new Matches(null, true);
+		walk(parent, path, 0, matches);
+		if(matches.count > 1)
 			throw new IllegalArgumentException("Ambiguous reference: " + path);
 
-		return (!children.isEmpty()? children.getFirst(): null);
+		return matches.first;
+	}
+
+	/**
+	 * Counts the children that {@link #findChildren(FLEFRecord, String)} would find, without building the list.
+	 *
+	 * @param parent	The parent record.
+	 * @param path	The dot-separated tag path.
+	 * @return	The number of matching records.
+	 */
+	public static int countChildren(final FLEFRecord parent, final String path){
+		if(parent == null)
+			return 0;
+		if(StringUtils.isEmpty(path))
+			return parent.getChildren().size();
+
+		final Matches matches = new Matches(null, false);
+		walk(parent, path, 0, matches);
+		return matches.count;
 	}
 
 	/**
@@ -147,63 +176,118 @@ public final class FLEFRecordHelper{
 		if(StringUtils.isEmpty(path))
 			return parent.getChildren();
 
-		final String[] segments = StringUtils.split(path, '.');
-		List<FLEFRecord> currentNodes = new ArrayList<>();
-		currentNodes.add(parent);
-		List<FLEFRecord> nextLevelNodes = new ArrayList<>();
-		for(int k = 0, segmentCount = segments.length; k < segmentCount; k ++){
-			final String segmentStr = segments[k];
+		final Matches matches = new Matches(new ArrayList<>(2), false);
+		walk(parent, path, 0, matches);
+		return (matches.count > 0? matches.all: Collections.emptyList());
+	}
 
-			final Segment seg = Segment.parse(segmentStr);
-			if(seg == null)
-				return Collections.emptyList();
+	/** The records found by {@link #walk(FLEFRecord, String, int, Matches)}. */
+	private static final class Matches{
 
-			nextLevelNodes.clear();
+		private FLEFRecord first;
+		private int count;
+		/** All the records found, or {@code null} if only the first one and their number are needed. */
+		private final List<FLEFRecord> all;
+		/** Whether the walk stops as soon as a second record is found (the caller only needs to know that they are many). */
+		private final boolean stopAtSecond;
 
-			for(int j = 0, nodeCount = currentNodes.size(); j < nodeCount; j++){
-				final FLEFRecord current = currentNodes.get(j);
 
-				final List<FLEFRecord> children = current.getChildren();
-				final int childSize = children.size();
-
-				if(seg.wildcard || seg.index < 0){
-					// Wildcard [*] or no index: add all matching children directly
-					for(int i = 0, childCount = children.size(); i < childCount; i++){
-						final FLEFRecord child = children.get(i);
-
-						if(Strings.CI.equals(seg.tag, child.getTag()))
-							nextLevelNodes.add(child);
-					}
-				}
-				else{
-					// Optional index filtering, e.g. RESTRICTION[2]
-					int occurrence = 0;
-					for(int i = 0; i < childSize; i ++){
-						final FLEFRecord child = children.get(i);
-						if(Strings.CI.equals(seg.tag, child.getTag())){
-							if(occurrence == seg.index){
-								nextLevelNodes.add(child);
-
-								break;
-							}
-
-							occurrence ++;
-						}
-					}
-				}
-			}
-
-			if(nextLevelNodes.isEmpty())
-				return Collections.emptyList();
-
-			// Swap list references instead of clearing and re-adding elements
-			final List<FLEFRecord> temp = currentNodes;
-			currentNodes = nextLevelNodes;
-			nextLevelNodes = temp;
+		private Matches(final List<FLEFRecord> all, final boolean stopAtSecond){
+			this.all = all;
+			this.stopAtSecond = stopAtSecond;
 		}
 
-		return currentNodes;
+		private void add(final FLEFRecord record){
+			if(count == 0)
+				first = record;
+			count ++;
+			if(all != null)
+				all.add(record);
+		}
+
+		private boolean isDone(){
+			return (stopAtSecond && count > 1);
+		}
+
 	}
+
+	/** Case-insensitive equality of two tags ({@code null} is equal to nothing). */
+	private static boolean tagEquals(final String tag, final String other){
+		return (tag != null && tag.equalsIgnoreCase(other));
+	}
+
+	/**
+	 * Follows a path of tags from a node, without splitting the path nor allocating the intermediate lists: the segments are read
+	 * in place. The records the path leads to (the order is the same of a level-by-level visit) are given to {@code matches}.
+	 * An invalid segment ("tag[", "tag[x]", "tag[-1]") matches nothing, and the empty segments ("a..b") are ignored, like in a split.
+	 */
+	private static void walk(final FLEFRecord node, final String path, final int from, final Matches matches){
+		final int length = path.length();
+		int start = from;
+		while(start < length && path.charAt(start) == '.')
+			start ++;
+		if(start == length){
+			matches.add(node);
+
+			return;
+		}
+
+		int end = path.indexOf('.', start);
+		if(end < 0)
+			end = length;
+
+		int tagEnd = end;
+		int index = -1;
+		boolean wildcard = false;
+		final int bracket = path.indexOf('[', start);
+		if(bracket >= 0 && bracket < end){
+			final int close = path.indexOf(']', bracket);
+			if(close < 0 || close >= end)
+				return;
+
+			tagEnd = bracket;
+			final String indexText = path.substring(bracket + 1, close)
+				.trim();
+			if("*".equals(indexText))
+				wildcard = true;
+			else{
+				try{
+					index = Integer.parseInt(indexText);
+				}
+				catch(final NumberFormatException ignored){
+					return;
+				}
+				if(index < 0)
+					return;
+			}
+		}
+
+		final int tagLength = tagEnd - start;
+		final List<FLEFRecord> children = node.getChildren();
+		int occurrence = 0;
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final FLEFRecord child = children.get(i);
+			final String childTag = child.getTag();
+			if(childTag == null || childTag.length() != tagLength || !childTag.regionMatches(true, 0, path, start, tagLength))
+				continue;
+
+			if(index >= 0 && !wildcard){
+				//only the occurrence asked for (e.g. RESTRICTION[2])
+				if(occurrence ++ == index){
+					walk(child, path, end, matches);
+
+					return;
+				}
+			}
+			else{
+				walk(child, path, end, matches);
+				if(matches.isDone())
+					return;
+			}
+		}
+	}
+
+
 
 
 	/*
@@ -440,10 +524,17 @@ public final class FLEFRecordHelper{
 		if(children.isEmpty())
 			return null;
 
-		return children.stream()
-			.map(FLEFRecord::getValue)
-			.filter(StringUtils::isNotEmpty)
-			.collect(Collectors.joining(","));
+		final StringBuilder sb = new StringBuilder();
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final String value = children.get(i).getValue();
+			if(StringUtils.isEmpty(value))
+				continue;
+
+			if(!sb.isEmpty())
+				sb.append(',');
+			sb.append(value);
+		}
+		return sb.toString();
 	}
 
 	/**
@@ -544,16 +635,16 @@ public final class FLEFRecordHelper{
 		if(StringUtils.isEmpty(path))
 			return parent;
 
-		final String[] segments = StringUtils.split(path, '.');
-		final FLEFRecord targetParent = navigateToParentAndCreate(parent, segments);
-		if(targetParent == null)
-			return null;
+		//the segments are read in place (the nodes are created along the way, up to an invalid segment)
+		final Cursor cursor = new Cursor(path);
+		FLEFRecord current = parent;
+		while(cursor.next()){
+			if(!cursor.valid)
+				return null;
 
-		final Segment seg = Segment.parse(segments[segments.length - 1]);
-		if(seg == null)
-			return null;
-
-		return getNthChildOrCreate(targetParent, seg);
+			current = getNthChildOrCreate(current, cursor);
+		}
+		return current;
 	}
 
 	/**
@@ -567,21 +658,23 @@ public final class FLEFRecordHelper{
 		if(parent == null || StringUtils.isEmpty(path))
 			return null;
 
-		final String[] segments = StringUtils.split(path, '.');
-		final FLEFRecord targetParent = navigateToParent(parent, segments);
-		if(targetParent == null)
-			return null;
+		final Cursor cursor = new Cursor(path);
+		FLEFRecord current = parent;
+		while(cursor.next()){
+			if(!cursor.valid)
+				return null;
 
-		final Segment seg = Segment.parse(segments[segments.length - 1]);
-		if(seg == null)
-			return null;
+			final FLEFRecord child = getNthChild(current, cursor);
+			if(child == null)
+				return null;
 
-		final FLEFRecord target = getNthChild(targetParent, seg);
-		if(target != null){
-			targetParent.getChildren()
-				.removeIf(child -> child == target);
+			if(cursor.isLast()){
+				current.getChildren()
+					.removeIf(sibling -> sibling == child);
 
-			return target;
+				return child;
+			}
+			current = child;
 		}
 		return null;
 	}
@@ -606,23 +699,32 @@ public final class FLEFRecordHelper{
 		if(parent == null || StringUtils.isEmpty(path))
 			return false;
 
-		final String[] segments = StringUtils.split(path, '.');
-		final Segment lastSegment = Segment.parse(segments[segments.length - 1]);
-		if(lastSegment == null)
-			return false;
+		final Cursor cursor = new Cursor(path);
+		//null once a segment before the last one is invalid or not found: nothing is removed, but the result depends on the last one
+		FLEFRecord current = parent;
+		while(cursor.next()){
+			if(!cursor.isLast()){
+				current = (current != null && cursor.valid? getNthChild(current, cursor): null);
 
-		if(lastSegment.index >= 0 || lastSegment.wildcard){
-			removeChild(parent, path);
+				continue;
+			}
 
+			if(!cursor.valid)
+				return false;
+
+			if(cursor.index >= 0 || cursor.wildcard){
+				removeChild(parent, path);
+
+				return true;
+			}
+
+			if(current != null){
+				current.getChildren()
+					.removeIf(child -> cursor.tagMatches(child.getTag()));
+			}
 			return true;
 		}
-
-		final FLEFRecord targetParent = navigateToParent(parent, segments);
-		if(targetParent != null)
-			targetParent.getChildren()
-				.removeIf(child -> Strings.CI.equals(lastSegment.tag, child.getTag()));
-
-		return true;
+		return false;
 	}
 
 	/**
@@ -636,6 +738,138 @@ public final class FLEFRecordHelper{
 				.clear();
 	}
 
+	/**
+	 * Reads the segments of a path of tags in place, one at a time, without splitting the path nor allocating a string for each
+	 * segment. The empty segments ("a..b") are ignored, like in a split.
+	 */
+	private static final class Cursor{
+
+		private final String path;
+		private int position;
+		private int tagStart;
+		private int tagEnd;
+		/** The occurrence asked for (e.g. RESTRICTION[2]), or {@code -1}. */
+		private int index;
+		private boolean wildcard;
+		/** Whether the segment is valid ("tag[", "tag[x]", and "tag[-1]" are not). */
+		private boolean valid;
+
+
+		private Cursor(final String path){
+			this.path = path;
+		}
+
+		/** @return whether there is a next segment, that is then the current one */
+		private boolean next(){
+			final int length = path.length();
+			while(position < length && path.charAt(position) == '.')
+				position ++;
+			if(position >= length)
+				return false;
+
+			final int start = position;
+			int end = path.indexOf('.', start);
+			if(end < 0)
+				end = length;
+			position = end;
+
+			tagStart = start;
+			tagEnd = end;
+			index = -1;
+			wildcard = false;
+			valid = true;
+			final int bracket = path.indexOf('[', start);
+			if(bracket >= 0 && bracket < end){
+				final int close = path.indexOf(']', bracket);
+				if(close < 0 || close >= end){
+					valid = false;
+
+					return true;
+				}
+
+				tagEnd = bracket;
+				final String indexText = path.substring(bracket + 1, close)
+					.trim();
+				if("*".equals(indexText))
+					wildcard = true;
+				else
+					try{
+						index = Integer.parseInt(indexText);
+						if(index < 0)
+							valid = false;
+					}
+					catch(final NumberFormatException ignored){
+						valid = false;
+					}
+			}
+			return true;
+		}
+
+		/** @return whether the current segment is the last one */
+		private boolean isLast(){
+			int next = position;
+			while(next < path.length() && path.charAt(next) == '.')
+				next ++;
+			return (next >= path.length());
+		}
+
+		private boolean tagMatches(final String tag){
+			final int length = tagEnd - tagStart;
+			return (tag != null && tag.length() == length && tag.regionMatches(true, 0, path, tagStart, length));
+		}
+
+		private String tag(){
+			return path.substring(tagStart, tagEnd);
+		}
+
+	}
+
+	private static FLEFRecord getNthChild(final FLEFRecord current, final Cursor cursor){
+		final List<FLEFRecord> children = current.getChildren();
+		int occurrence = 0;
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final FLEFRecord child = children.get(i);
+			if(!cursor.tagMatches(child.getTag()))
+				continue;
+
+			//the first child with the tag, or the occurrence asked for
+			if(cursor.index == -1 || occurrence == cursor.index)
+				return child;
+
+			occurrence ++;
+		}
+		return null;
+	}
+
+	private static FLEFRecord getNthChildOrCreate(final FLEFRecord current, final Cursor cursor){
+		final int targetIndex = Math.max(0, cursor.index);
+		int occurrence = 0;
+		FLEFRecord found = null;
+		final List<FLEFRecord> children = current.getChildren();
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final FLEFRecord child = children.get(i);
+			if(!cursor.tagMatches(child.getTag()))
+				continue;
+
+			if(occurrence == targetIndex){
+				found = child;
+
+				break;
+			}
+
+			occurrence ++;
+		}
+
+		if(found == null){
+			final String tag = cursor.tag();
+			for(int i = occurrence; i <= targetIndex; i ++){
+				found = FLEFRecord.createChildWithTag(tag);
+				current.forceAddChild(found);
+			}
+		}
+		return found;
+	}
+
 	private static FLEFRecord getNthChild(FLEFRecord current, final Segment segment){
 		final List<FLEFRecord> children = current.getChildren();
 		final int size = children.size();
@@ -644,7 +878,7 @@ public final class FLEFRecordHelper{
 			for(int i = 0; i < size; i ++){
 				final FLEFRecord child = children.get(i);
 
-				if(Strings.CI.equals(segment.tag, child.getTag()))
+				if(tagEquals(child.getTag(), segment.tag))
 					return child;
 			}
 		}
@@ -653,7 +887,7 @@ public final class FLEFRecordHelper{
 			for(int i = 0; i < size; i ++){
 				final FLEFRecord child = children.get(i);
 
-				if(Strings.CI.equals(segment.tag, child.getTag())){
+				if(tagEquals(child.getTag(), segment.tag)){
 					if(occurrence == segment.index)
 						return child;
 
@@ -672,7 +906,7 @@ public final class FLEFRecordHelper{
 		for(int i = 0, size = children.size(); i < size; i ++){
 			final FLEFRecord child = children.get(i);
 
-			if(!Strings.CI.equals(segment.tag, child.getTag()))
+			if(!tagEquals(child.getTag(), segment.tag))
 				continue;
 
 			if(occurrence == targetIndex){

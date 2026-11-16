@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
@@ -34,6 +33,7 @@ import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;

@@ -80,7 +80,8 @@ public final class PlaceholderImages{
 	 */
 	public static ImageIcon placeholder(final SexType sex, final BoxPanelType boxType){
 		final SexType effective = (sex != null? sex: SexType.UNKNOWN);
-		return CACHE.get(effective).get(boxType);
+		return CACHE.get(effective)
+			.get(boxType);
 	}
 
 	/**

@@ -155,7 +155,7 @@ public final class ContextResearchSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().status() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(status)))));
+					ctx.labels.enumValue("enum.research_question.status", status)))));
 
 		final String conclusion = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_CONCLUSION);
 		if(conclusion != null)
@@ -167,7 +167,7 @@ public final class ContextResearchSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchConclusionConfidence() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(confidence)))));
+					ctx.labels.enumValue("enum.confidence", confidence)))));
 
 		final String rationale = FLEFRecordHelper.getChildValue(q, ResearchQuestionReader.TAG_RATIONALE);
 		if(rationale != null)
@@ -219,7 +219,7 @@ public final class ContextResearchSection implements SectionBuilder{
 	}
 
 	void appendActivity(final List<ReportSection> out, final FLEFRecord a, final int headingLevel){
-		final String type = ReportFormatters.enumLabel(
+		final String type = ctx.labels.enumValue("enum.research_activity.type", 
 			FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_ACTION);
 		final StringBuilder heading = new StringBuilder();
@@ -236,11 +236,11 @@ public final class ContextResearchSection implements SectionBuilder{
 
 		final List<String> meta = new ArrayList<>();
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_STATUS)));
+			ctx.labels.enumValue("enum.research_activity.status", FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_RESULT)));
+			ctx.labels.enumValue("enum.research_activity.result", FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_RESULT)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchConclusionConfidence(),
-			ReportFormatters.enumLabel(
+			ctx.labels.enumValue("enum.confidence", 
 				FLEFRecordHelper.getChildValue(a, ResearchActivityReader.TAG_CONCLUSION_CONFIDENCE)));
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
@@ -252,7 +252,7 @@ public final class ContextResearchSection implements SectionBuilder{
 			sb.append("**").append(ctx.labels.sections().researchSearchScope()).append(":** ");
 			if(scopeType != null)
 				sb.append(ReportFormatters.escape(
-					ReportFormatters.orEmpty(ReportFormatters.enumLabel(scopeType))));
+					ReportFormatters.orEmpty(ctx.labels.enumValue("enum.research_activity.search_scope", scopeType))));
 			if(scopeDetail != null){
 				if(scopeType != null)
 					sb.append(" — ");
@@ -350,9 +350,9 @@ public final class ContextResearchSection implements SectionBuilder{
 
 		final List<String> meta = new ArrayList<>();
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_STATUS)));
+			ctx.labels.enumValue("enum.research_task.status", FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskPriority(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_PRIORITY)));
+			ctx.labels.enumValue("enum.research_task.priority", FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_PRIORITY)));
 		ReportFormatters.appendIfPresent(meta, ctx.labels.sections().researchTaskDueDate(),
 			FLEFRecordHelper.getChildValue(t, ResearchTaskReader.TAG_DUE_DATE));
 		if(!meta.isEmpty())
@@ -411,7 +411,7 @@ public final class ContextResearchSection implements SectionBuilder{
 			out.add(new ReportSection.Paragraph(
 				"**" + ctx.labels.sections().researchProofStatus() + ":** "
 					+ ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(proof)))));
+					ctx.labels.enumValue("enum.proof_status", proof)))));
 
 		final String narrative = FLEFRecordHelper.getChildValue(c, ConclusionReader.TAG_NARRATIVE);
 		if(narrative != null)

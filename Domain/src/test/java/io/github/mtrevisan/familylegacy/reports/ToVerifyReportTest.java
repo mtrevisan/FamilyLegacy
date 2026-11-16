@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
-import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -35,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;
 import org.junit.jupiter.api.Assertions;

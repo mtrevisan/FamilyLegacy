@@ -180,7 +180,7 @@ public final class CitationRenderer{
 				final List<String> quals = new ArrayList<>();
 				if(extractType != null && !extractType.isBlank())
 					quals.add(ReportFormatters.orEmpty(
-						ReportFormatters.enumLabel(extractType)));
+						ctx.labels.enumValue("enum.extract_type", extractType)));
 				if(extractLocale != null && !extractLocale.isBlank())
 					quals.add(extractLocale);
 				if(!quals.isEmpty())

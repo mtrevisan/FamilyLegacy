@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.repository;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 import io.github.mtrevisan.familylegacy.tree.PresentationOrder;
 import io.github.mtrevisan.familylegacy.tree.UnionChronology;
@@ -116,6 +117,18 @@ class PresentationOrderTest{
 		Assertions.assertEquals(day(10), UnionChronology.unionDate(List.of(divorce, banns, unrelated), day(5)));
 		Assertions.assertEquals(day(5), UnionChronology.unionDate(List.of(unrelated), day(5)));
 		Assertions.assertNull(UnionChronology.unionDate(List.of(unrelated, new UnionChronology.SharedEvent(EventReader.ENUM_TYPE_MARRIAGE, null)), null));
+	}
+
+	@Test
+	void dossierRowsAreChronologicalReverseOrAsStoredWithUndatedLast(){
+		final Map<String, NormalizedDate> dates = Map.of("c", day(300), "a", day(100), "b", day(200));
+		final List<String> input = List.of("u1", "c", "a", "u2", "b");
+
+		Assertions.assertEquals(List.of("a", "b", "c", "u1", "u2"),
+			PresentationOrder.dossier(input, DossierOrder.CHRONOLOGICAL, dates::get));
+		Assertions.assertEquals(List.of("c", "b", "a", "u1", "u2"),
+			PresentationOrder.dossier(input, DossierOrder.REVERSE_CHRONOLOGICAL, dates::get));
+		Assertions.assertEquals(input, PresentationOrder.dossier(input, DossierOrder.EXISTING, dates::get));
 	}
 
 }

@@ -42,11 +42,14 @@ public final class InConstraint extends Constraint{
 
 	private final String field;
 	private final String containerField;
+	/** The segments of the path of the container, split once (the constraint is checked for every record). */
+	private final String[] containerSegments;
 
 
 	public InConstraint(final String field, final String containerField){
 		this.field = field;
 		this.containerField = containerField;
+		containerSegments = StringUtils.split(containerField, '.');
 	}
 
 
@@ -93,7 +96,7 @@ public final class InConstraint extends Constraint{
 	 */
 	private List<String> resolveContainerValues(final FLEFRecord record, final String path, final RecordLookup model){
 		final List<String> values = new ArrayList<>();
-		final String[] segments = StringUtils.split(path, '.');
+		final String[] segments = (path == containerField? containerSegments: StringUtils.split(path, '.'));
 
 		final List<FLEFRecord> currentNodes = new ArrayList<>();
 		currentNodes.add(record);

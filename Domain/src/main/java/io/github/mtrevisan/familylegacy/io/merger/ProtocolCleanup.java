@@ -37,10 +37,12 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -168,6 +170,26 @@ final class ProtocolCleanup{
 			return;
 
 		final ModelIndex index = new ModelIndex(session.records(), session.references);
+		//the sex attributes and the biological-parent relationships of each individual, found once for all the survivors
+		final Map<String, List<FLEFRecord>> sexAttributesOf = new HashMap<>();
+		for(final FLEFRecord attribute : session.records(ModelIndex.KIND_INDIVIDUAL_ATTRIBUTE)){
+			final String owner = ModelIndex.value(attribute, IndividualAttributeReader.TAG_INDIVIDUAL);
+			if(owner != null && survivors.contains(owner)
+					&& IndividualAttributeReader.ENUM_TYPE_SEX.equals(ModelIndex.value(attribute, IndividualAttributeReader.TAG_TYPE)))
+				sexAttributesOf.computeIfAbsent(owner, k -> new ArrayList<>())
+					.add(attribute);
+		}
+		final Map<String, List<FLEFRecord>> parentRelationshipsOf = new HashMap<>();
+		for(final FLEFRecord relationship : session.records(ModelIndex.KIND_RELATIONSHIP)){
+			final String type = ModelIndex.value(relationship, ModelIndex.TAG_TYPE);
+			if(type == null || !BIOLOGICAL_PARENT_TYPES.contains(type))
+				continue;
+
+			final String subject = ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_SUBJECT));
+			if(subject != null && survivors.contains(subject))
+				parentRelationshipsOf.computeIfAbsent(subject, k -> new ArrayList<>())
+					.add(relationship);
+		}
 		for(final String individualId : survivors){
 			for(final String type : List.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH)){
 				final List<FLEFRecord> events = index.principalEvents(individualId, Set.of(type));
@@ -189,27 +211,22 @@ final class ProtocolCleanup{
 			//the sex is single-valued too: two different ones (an unknown sex says nothing) are competing assertions
 			final Set<String> sexAssertions = new LinkedHashSet<>();
 			final Set<String> sexValues = new LinkedHashSet<>();
-			for(final FLEFRecord attribute : session.records(ModelIndex.KIND_INDIVIDUAL_ATTRIBUTE))
-				if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(ModelIndex.value(attribute, IndividualAttributeReader.TAG_TYPE))
-						&& individualId.equals(ModelIndex.value(attribute, IndividualAttributeReader.TAG_INDIVIDUAL))){
-					sexAssertions.add(attribute.getId());
-					final SexType sex = SexType.fromRaw(ModelIndex.value(attribute, IndividualAttributeReader.TAG_VALUE));
-					if(sex != SexType.UNKNOWN)
-						sexValues.add(sex.getRawSex());
-				}
+			for(final FLEFRecord attribute : sexAttributesOf.getOrDefault(individualId, List.of())){
+				sexAssertions.add(attribute.getId());
+				final SexType sex = SexType.fromRaw(ModelIndex.value(attribute, IndividualAttributeReader.TAG_VALUE));
+				if(sex != SexType.UNKNOWN)
+					sexValues.add(sex.getRawSex());
+			}
 			if(sexValues.size() > 1 && !isResolved(sexAssertions))
 				session.warn("Individual " + individualId + " has " + sexAssertions.size() + " sex assertions ("
 					+ String.join(", ", sexAssertions) + "): competing assertions to resolve with a ConclusionRecord");
 
 			final Set<String> parents = new LinkedHashSet<>();
 			final Set<String> relationships = new LinkedHashSet<>();
-			for(final FLEFRecord relationship : session.records(ModelIndex.KIND_RELATIONSHIP))
-				if(ModelIndex.value(relationship, ModelIndex.TAG_TYPE) != null
-						&& BIOLOGICAL_PARENT_TYPES.contains(ModelIndex.value(relationship, ModelIndex.TAG_TYPE))
-						&& individualId.equals(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_SUBJECT)))){
-					parents.add(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_TARGET)));
-					relationships.add(relationship.getId());
-				}
+			for(final FLEFRecord relationship : parentRelationshipsOf.getOrDefault(individualId, List.of())){
+				parents.add(ModelIndex.armValue(FieldMerger.first(relationship, RelationshipReader.TAG_TARGET)));
+				relationships.add(relationship.getId());
+			}
 			if(parents.size() > MAX_BIOLOGICAL_PARENTS && !isResolved(relationships))
 				session.warn("Individual " + individualId + " has " + parents.size() + " possible biological parents ("
 					+ String.join(", ", parents) + "): parentage is undetermined until resolved with ConclusionRecords");

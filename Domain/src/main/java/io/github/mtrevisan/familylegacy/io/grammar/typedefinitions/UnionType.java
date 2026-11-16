@@ -54,6 +54,12 @@ public final class UnionType extends TypeDefinition{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final FLEFGrammar grammar, final List<String> errors){
+		validate(ValidationPath.of(contextPath), record, model, grammar, errors);
+	}
+
+	@Override
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model, final FLEFGrammar grammar,
+			final List<String> errors){
 		String tag = record.getTag();
 		FLEFRecord targetRecord = record;
 
@@ -72,7 +78,7 @@ public final class UnionType extends TypeDefinition{
 		// Ensure the record tag matches one of the defined union branches
 		if(targetType == null){
 			errors.add(String.format("Invalid union choice '%s' under '%s'. Expected one of: %s, found %s, record %s",
-				tag, contextPath, choices.keySet(), tag, record));
+				tag, path, choices.keySet(), tag, record));
 
 			return;
 		}
@@ -85,7 +91,7 @@ public final class UnionType extends TypeDefinition{
 		}
 
 		// Delegate validation to the underlying choice record
-		targetType.validate(contextPath, targetRecord, model, grammar, errors);
+		targetType.validate(path, targetRecord, model, grammar, errors);
 	}
 
 	@Override

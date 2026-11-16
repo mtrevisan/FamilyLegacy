@@ -60,10 +60,16 @@ public final class EnumType extends TypeDefinition{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final FLEFGrammar grammar, final List<String> errors){
+		validate(ValidationPath.of(contextPath), record, model, grammar, errors);
+	}
+
+	@Override
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model, final FLEFGrammar grammar,
+			final List<String> errors){
 		final String val = record.getValue();
-		if(val != null && !values.contains(val.toLowerCase(Locale.ROOT)) && !allowCustomText)
+		if(!allowCustomText && val != null && !values.contains(val.toLowerCase(Locale.ROOT)))
 			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s, record %s",
-				val, contextPath, values, record));
+				val, path, values, record));
 	}
 
 	@Override

@@ -34,7 +34,7 @@ The editor opens when you add a relationship from a person or a group (see below
 - **Subject** (required) and **Target** (required): the two entities. The target can only be a group when the subject is a group.
 - **Subject Type** (required): the type. It is filled in only after the subject and the target are chosen, and it offers the types that fit that pair: for two individuals the child, spouse-like and associate types; for an individual and a group, *group member* and *associate*; for a group, *part of* and *associate*.
 - **Subject Role**: free text. It is normally needed only for *associate* and *group member*. Examples for a group member: member, president, secretary, treasurer, resident, head of household, elder, custodian.
-- **Valid From** and **Valid To** (the *Validity Range*): when the relationship held. For partners, the earliest *Valid From* is used to order the partners, see [Navigating the tree](navigating.md#order-of-children-and-partners).
+- **Valid From** and **Valid To** (the *Validity Range*): when the relationship held. For partners, the earliest *Valid From* is used to order the partners, see [Navigating the tree](navigating.md#order-of-children-partners-and-dossier).
 - **Confidence**: low, medium or high.
 
 The other tabs are *Context*, *Research*, *Sources*, *Notes*, *Privacy* and *Audit*.
@@ -54,6 +54,8 @@ On OK the editor refuses a relationship with no subject, no target or no type, a
 1. Select the child and open **Individual > Edit Individual...** (or `F2`).
 2. In the **Relationships** tab, add a relationship. The subject is already the child.
 3. Choose the parent as **Target** and *biological child* (or another child type) as **Subject Type**, then save.
+
+**Same-sex parents.** Two people of the same sex cannot be the biological parents of the same child. Saving a *biological child* link whose other biological parent has the same sex is refused; if the link or the other one is the generic *child* (which does not say whether the parentage is biological) you get a warning and can save anyway. Use *adoptive child*, *foster child* or *step child* for such a family. The same rule applies when you add a parent or a child from the family tree or the relationship graph, when you change the sex of a parent (see [Individual attributes](editors-people.md#individual-attribute)), and an import lists such children in its report.
 4. Repeat for the second parent.
 
 In the tree there is a shortcut: right-click an **empty parent box** and choose **Connect Individual...**. You pick the person (an existing one, or you can create it), and for each child of that couple you confirm the type (*biological child* is the default). The empty box decides the sex assumed for the parent: left is male, right is female. Be careful: this command **replaces** the children's existing parent links of the same sex, if the new parent has a sex recorded.
@@ -86,10 +88,11 @@ The same can be done from the editor of the individual: the subject is already t
 - **Parents and children** come from the child types. The family views (the ones the application opens with) follow all six: *child*, *biological child*, *adoptive child*, *foster child*, *guarded child* and *step child*. Only links between two individuals count.
 - **Father and mother** are told apart by the **sex** of the parent: a parent with no sex recorded (or whose sex assertions compete with nothing to settle them) may land in the wrong place. If the sexes do not decide, the first parent found is used.
 - **Partners** come from the spouse-like and partner types, in either direction. *Associate* is not a partner. Two people who are both parents of the same child are also drawn as a couple, even without a partner relationship.
-- A couple is drawn as **biological** only if both parents are biological parents. If any link is adoptive, foster, guarded or step, the couple is drawn with a dashed line.
+- In the family views, the line from the children to a couple is drawn as **biological** (solid) only if both parents are biological parents. If any link is adoptive, foster, guarded or step, the couple is drawn with a dashed line.
+- In the individual tree, each parent has their own line to the child: solid for a biological parent, dashed for an adoptive, foster, guarded or step parent. When the two differ, the two lines run side by side (the father on the left, the mother on the right); when they are the same, they are one line.
 - A person hidden by the current **privacy** setting is ignored together with all their links.
 - **Children without a second parent** appear under a single-parent entry.
-- The order of children and partners is a view preference, see [Navigating the tree](navigating.md#order-of-children-and-partners).
+- The order of children and partners is a view preference, see [Navigating the tree](navigating.md#order-of-children-partners-and-dossier).
 
 ## Moving and removing links
 

@@ -30,8 +30,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.strategies.CulturalNormSearchStrategy;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 

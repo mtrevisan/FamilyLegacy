@@ -136,6 +136,21 @@ public record NormalizedDate(
 	}
 
 	/**
+	 * Returns whether this date is an "about": approximate, but not calculated (a date derived from another one, e.g. a birth from
+	 * the age at death, is as exact as its source).
+	 *
+	 * @return {@code true} if the date is approximate and its basis is not {@code calculated}
+	 */
+	public boolean isAbout(){
+		return (approximate && !isCalculated());
+	}
+
+	/** @return	Whether this date has been derived from another one (e.g. a birth from the age at death). */
+	public boolean isCalculated(){
+		return (approximate && "calculated".equals(approximateBasis));
+	}
+
+	/**
 	 * Returns whether this date belongs to the Gregorian calendar.
 	 *
 	 * @return {@code true} if the calendar is {@link CalendarType}

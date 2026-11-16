@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.relationshipg
 import io.github.mtrevisan.familylegacy.ego.EgoNetworkMutator;
 import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
@@ -41,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSel
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
 
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -111,12 +113,17 @@ public class EgoNetworkActionHandler{
 		if(selectedTypes == null || selectedTypes.isEmpty())
 			return;
 
+		final String selectedType = selectedTypes.getFirst();
+		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);
+		//two biological parents of the same sex (the subject is the child, the target the parent), checked before replacing anything
+		if(IndividualHandler.isOfType(egoRecord) && IndividualHandler.isOfType(targetRecord)
+				&& !ParentSexGuard.confirm(parent, CoParentSex.findClashingParent(pair[0], pair[1], selectedType, null, model), pair[1], model))
+			return;
+
 		//replace the existing relationship only once the user has confirmed the new one (cancelling must not lose it)
 		if(isPaste)
 			networkMutator.unlinkRelationship(egoRecord, targetRecord, currentEgoId);
 
-		final String selectedType = selectedTypes.getFirst();
-		final String[] pair = resolveSubjectTarget(selectedType, egoRecord, targetRecord);
 		networkMutator.createRelationship(pair[0], pair[1], selectedType);
 		networkMutator.invalidateAndNotifyTreeChanged(currentEgoId);
 	}
@@ -180,12 +187,11 @@ public class EgoNetworkActionHandler{
 	 * The whole workflow is delegated to
 	 * {@link UnlinkIndividualRelationshipsTool}, the same tool invoked by the
 	 * popup menu and by the individual tree. The tool computes the full
-	 * relationship set from the model via {@code IndividualHelper}, so
-	 * the caller does not need to pre-compute parents, associates,
-	 * groups, or children, and it does not need to know whether the
-	 * entity is the current ego or a peripheral node. After the
-	 * removal the tool invalidates the network through the mutator
-	 * wired in the {@link ToolContext}.
+	 * relationship set from the model, so the caller does not need to
+	 * pre-compute parents, associates, groups, or children, and it does not
+	 * need to know whether the entity is the current ego or a peripheral
+	 * node. After the removal the tool invalidates the network through the
+	 * mutator wired in the {@link ToolContext}.
 	 *
 	 * @param record the entity whose relationships should be unlinked;
 	 *               must not be {@code null}

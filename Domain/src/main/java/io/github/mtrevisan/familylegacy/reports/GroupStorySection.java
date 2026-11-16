@@ -41,7 +41,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 
@@ -172,14 +174,19 @@ public final class GroupStorySection implements SectionBuilder{
 		final TreeText text = new TreeText(ctx);
 		final List<FLEFRecord> parents = new ArrayList<>();
 		final List<FLEFRecord> children = new ArrayList<>();
+		//a child is not a "child of the group": it is a child of the members that are its parents (of any kind, adoptive included)
+		final Set<String> memberIds = new HashSet<>();
+		for(final FLEFRecord m : memberships)
+			memberIds.add(memberIndividualId(m));
 		for(final FLEFRecord m : memberships){
 			final String memberId = memberIndividualId(m);
 			final FLEFRecord member = (memberId != null? ctx.visible(ctx.model.getRecordById(memberId)): null);
 			if(member == null)
 				continue;
 
-			(RelationshipReader.ENUM_TYPE_CHILD.equalsIgnoreCase(FLEFRecordHelper.getChildValue(m, RelationshipReader.TAG_ROLE))
-				? children: parents).add(m);
+			final boolean child = ctx.index.parentsOf(member).stream()
+				.anyMatch(parent -> memberIds.contains(parent.getId()));
+			(child? children: parents).add(m);
 		}
 		children.sort(Comparator.comparing((final FLEFRecord m) -> ctx.model.getRecordById(memberIndividualId(m)), text.byBirth()));
 		final List<FLEFRecord> ordered = new ArrayList<>(parents);

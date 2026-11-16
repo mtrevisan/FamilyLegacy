@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -43,6 +44,7 @@ import java.util.Map;
  *   <li>group type {@code neighbourhood} becomes {@code neighborhood}, {@code organisation} becomes {@code organization};</li>
  *   <li>research question status {@code closed} becomes {@code abandoned};</li>
  *   <li>proof status {@code unresearched} (removed from the grammar) is dropped: a draft leaves the status blank.</li>
+ *   <li>{@code role child} on a {@code group_member} relationship is dropped (a child is a child of the parents, not of the group).</li>
  * </ul>
  * The comparison ignores the case; migrating a model that has already been migrated does nothing.
  */
@@ -75,6 +77,25 @@ public final class EnumValuesMigration{
 			migrated += rename(question, ResearchQuestionReader.TAG_STATUS, QUESTION_STATUSES);
 		for(final FLEFRecord record : model.getRecords())
 			migrated += dropUnresearched(record);
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipReader.TYPE))
+			migrated += dropChildRoleOfMembership(relationship);
+		return migrated;
+	}
+
+	/**
+	 * An individual is not a "child of a group": the importers used to write {@code role child} on the {@code group_member} of a
+	 * child of a family, but the child is the child of the parents (their own relationships say so). The role is dropped.
+	 */
+	private static int dropChildRoleOfMembership(final FLEFRecord relationship){
+		if(!RelationshipReader.ENUM_TYPE_GROUP_MEMBER.equalsIgnoreCase(RelationshipReader.extractType(relationship)))
+			return 0;
+
+		int migrated = 0;
+		for(final FLEFRecord role : FLEFRecordHelper.findChildren(relationship, RelationshipReader.TAG_ROLE))
+			if(RelationshipReader.ENUM_TYPE_CHILD.equalsIgnoreCase(StringUtils.trimToEmpty(role.getValue()))){
+				relationship.removeChild(role);
+				migrated ++;
+			}
 		return migrated;
 	}
 

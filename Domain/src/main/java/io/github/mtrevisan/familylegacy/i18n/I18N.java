@@ -29,6 +29,8 @@ import com.ibm.icu.text.MessageFormat;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 /**
@@ -60,6 +62,10 @@ public final class I18N{
 	private static final ResourceBundle BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE, Locale.getDefault());
 
 
+	/** The bundles of the other languages (the ones of the reports), by locale. */
+	private static final ConcurrentMap<Locale, ResourceBundle> BUNDLES = new ConcurrentHashMap<>(4);
+
+
 	private I18N(){}
 
 
@@ -80,6 +86,28 @@ public final class I18N{
 		catch(final MissingResourceException ignored){
 			return fallback;
 		}
+	}
+
+	/**
+	 * Returns the string of {@code key} in the given language, that may not be the one of the user interface (a report can be written
+	 * in a language other than the interface's), or {@code fallback} when missing. A language without a bundle gets the root
+	 * (English) one, not the one of the default locale of the JVM.
+	 */
+	public static String t(final Locale locale, final String key, final String fallback){
+		final ResourceBundle bundle = BUNDLES.computeIfAbsent(locale, I18N::loadBundle);
+		try{
+			return bundle.getString(key);
+		}
+		catch(final MissingResourceException ignored){
+			return fallback;
+		}
+	}
+
+	private static ResourceBundle loadBundle(final Locale locale){
+		final ResourceBundle candidate = ResourceBundle.getBundle(BUNDLE_BASE, locale);
+		return (candidate.getLocale().getLanguage().equals(locale.getLanguage())
+			? candidate
+			: ResourceBundle.getBundle(BUNDLE_BASE, Locale.ROOT));
 	}
 
 	/** Returns the localized string for {@code key} with {@link String#format} substitution. */

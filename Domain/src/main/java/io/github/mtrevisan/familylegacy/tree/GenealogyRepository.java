@@ -43,6 +43,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -327,7 +328,15 @@ public class GenealogyRepository{
 		ensureIndices();
 
 		final List<FLEFRecord> parents = individualToParentsMap.get(individualId);
-		return (parents != null && !parents.isEmpty()? new ArrayList<>(parents): Collections.emptyList());
+		if(parents == null || parents.isEmpty())
+			return Collections.emptyList();
+
+		//the parents by birth come first (the stable sort keeps the order of the model otherwise): the ancestors view takes the first father
+		//and the first mother, and an adoptive parent, however old the relationship, must not take the place of a parent by birth
+		final List<FLEFRecord> sorted = new ArrayList<>(parents);
+		sorted.sort(Comparator.comparingInt(parent -> (RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD.equals(getParentLinkType(individualId,
+			parent.getId()))? 0: 1)));
+		return sorted;
 	}
 
 	/**

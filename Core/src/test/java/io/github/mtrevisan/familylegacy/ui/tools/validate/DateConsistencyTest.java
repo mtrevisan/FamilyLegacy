@@ -33,6 +33,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeRead
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -52,7 +54,7 @@ class DateConsistencyTest{
 
 	private static final Set<String> KINDS = Set.of("death_before_birth", "event_before_birth", "event_after_death", "child_before_parent",
 		"born_after_mother_death", "born_after_father_death", "union_before_birth", "union_after_death", "membership_before_birth",
-		"membership_after_death", "membership_ended_before_birth");
+		"membership_after_death", "membership_ended_before_birth", "source_before_event");
 
 	private int counter;
 	private final FLEFModel model = new FLEFModel();
@@ -601,6 +603,66 @@ class DateConsistencyTest{
 		//one end of a bounded date that is wrong makes the date wrong
 		Assertions.assertEquals(DateNormalizer.Problem.INVALID, DateNormalizer.problem(notAfter("1850-99-99")));
 		Assertions.assertEquals(DateNormalizer.Problem.NONE, DateNormalizer.problem(notAfter("1850-01-01")));
+	}
+
+	/* ---- a source older than the event it is cited for ---- */
+
+	/** A person with an event of the type, dated, that cites a source dated as given. */
+	private void citedEvent(final String personId, final String type, final FLEFRecord eventDate, final FLEFRecord sourceDate){
+		event(personId, type, eventDate, EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+		final String sourceId = "S" + counter;
+		model.addRecord(FLEFRecord.createMainRecord(sourceId, SourceReader.TYPE)
+			.addChild(sourceDate));
+		model.getRecordById("E" + counter)
+			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_SOURCE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId)));
+	}
+
+	private static FLEFRecord sourceDate(final String iso){
+		return date(SourceReader.TAG_DATE, point(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_FULL_DATE, iso), null, false));
+	}
+
+	private List<String> citedKinds(){
+		return ConsistencyService.check(model).issues().stream()
+			.map(ConsistencyService.Issue::kind)
+			.filter("source_before_event"::equals)
+			.toList();
+	}
+
+	@Test
+	void aSourceOlderThanTheBirthItIsCitedForIsOnlyAWarning(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		citedEvent(mario, EventReader.ENUM_TYPE_BIRTH, exact("1882-05-11"), sourceDate("1881-05-14"));
+
+		Assertions.assertEquals(List.of("source_before_event"), citedKinds());
+		//it can be right (a note added afterwards): a warning, not an error
+		Assertions.assertTrue(ConsistencyService.check(model).issues().stream()
+			.filter(issue -> issue.kind().equals("source_before_event"))
+			.allMatch(issue -> issue.severity() == ConsistencyService.Severity.WARNING));
+	}
+
+	@Test
+	void aSourceAfterTheEventIsFine(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		citedEvent(mario, EventReader.ENUM_TYPE_DEATH, exact("1900-05-11"), sourceDate("1900-05-14"));
+
+		Assertions.assertTrue(citedKinds().isEmpty());
+	}
+
+	@Test
+	void theBannsOfAMarriageMayBeOlderThanTheWedding(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		citedEvent(mario, EventReader.ENUM_TYPE_MARRIAGE, exact("1900-05-11"), sourceDate("1900-04-20"));
+
+		Assertions.assertTrue(citedKinds().isEmpty());
+	}
+
+	@Test
+	void aSourceDatedOnlyByYearIsNotOlderThanTheSameYear(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		citedEvent(mario, EventReader.ENUM_TYPE_BIRTH, exact("1900-05-11"), sourceDate("1900"));
+
+		Assertions.assertTrue(citedKinds().isEmpty());
 	}
 
 }

@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,8 +78,15 @@ final class ChronologyDataLoader{
 		final List<ChronologyData.LifeEvent> events = loadEvents(model, filteredIndividuals.keySet());
 		final Map<String, ChronologyData.Person> persons = new LinkedHashMap<>();
 		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
+		//the events of each person, in the order of the events: scanning all the events for each individual is quadratic
+		final Map<String, List<ChronologyData.LifeEvent>> eventsByPerson = new HashMap<>();
+		for(final ChronologyData.LifeEvent event : events)
+			if(event.principal() && event.date() != null)
+				eventsByPerson.computeIfAbsent(event.personId(), k -> new ArrayList<>())
+					.add(event);
 		for(final FLEFRecord individual : filteredIndividuals.values())
-			persons.put(individual.getId(), loadPerson(individual, events, PreferredSex.of(individual, sexes, model)));
+			persons.put(individual.getId(), loadPerson(individual, eventsByPerson.getOrDefault(individual.getId(), List.of()),
+				PreferredSex.of(individual, sexes, model)));
 
 		final List<ChronologyData.ParentLink> parents = new ArrayList<>();
 		final List<ChronologyData.Union> unions = new ArrayList<>();
@@ -152,17 +160,18 @@ final class ChronologyDataLoader{
 		return events;
 	}
 
-	/** The birth and the death of an individual are the events of that type the individual is the principal of. */
-	private static ChronologyData.Person loadPerson(final FLEFRecord individual, final List<ChronologyData.LifeEvent> events,
-			final SexType sex){
+	/**
+	 * The birth and the death of an individual are the events of that type the individual is the principal of.
+	 *
+	 * @param events the events of the individual that it is the principal of and that have a date
+	 */
+	private static ChronologyData.Person loadPerson(final FLEFRecord individual,
+			final List<ChronologyData.LifeEvent> events, final SexType sex){
 		DateRange birth = null;
 		DateRange death = null;
 		String birthText = null;
 		String deathText = null;
 		for(final ChronologyData.LifeEvent event : events){
-			if(!event.principal() || !individual.getId().equals(event.personId()) || event.date() == null)
-				continue;
-
 			//with several events of the same type the days they cover are used: a finding must hold for all of them
 			if(EventReader.ENUM_TYPE_BIRTH.equals(event.type())){
 				birth = (birth != null? birth.hull(event.date()): event.date());
@@ -175,7 +184,8 @@ final class ChronologyDataLoader{
 		}
 
 		final String name = IndividualReader.extractPrimaryFullname(individual);
-		return new ChronologyData.Person(individual.getId(), (name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
+		return new ChronologyData.Person(individual.getId(),
+			(name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
 			sex, birth, death, birthText, deathText);
 	}
 

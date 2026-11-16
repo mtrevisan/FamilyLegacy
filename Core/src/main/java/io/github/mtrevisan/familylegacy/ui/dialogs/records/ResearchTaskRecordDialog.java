@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;

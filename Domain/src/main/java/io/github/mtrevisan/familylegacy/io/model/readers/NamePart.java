@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +106,7 @@ public record NamePart(String type, String value, List<TextValueVariant> variant
 	 * @return the display label, never {@code null}
 	 */
 	public String displayType(){
-		return type.replace('_', ' ');
+		return I18N.t("enum.part.type." + type, type.replace('_', ' '));
 	}
 
 }

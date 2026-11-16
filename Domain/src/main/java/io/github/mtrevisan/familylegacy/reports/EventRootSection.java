@@ -137,7 +137,7 @@ public final class EventRootSection implements SectionBuilder{
 				ReportFormatters.escape(role),
 				ReportFormatters.escape(ctx.displayText(p.record())),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(p.kind())))));
+					ctx.labels.recordKind(p.kind())))));
 		}
 		out.add(new ReportSection.Table(
 			List.of(ctx.labels.sections().role(), ctx.labels.sections().person(), ctx.labels.sections().kind()), rows));

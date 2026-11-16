@@ -142,7 +142,6 @@ public final class FileHelper{
 		return (builder != null && runOSCommand(builder));
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	private static boolean executeDesktopCommand(final Desktop.Action action, final Object parameter){
 		boolean done = false;
 		final Desktop desktop = getDesktopFor(action);

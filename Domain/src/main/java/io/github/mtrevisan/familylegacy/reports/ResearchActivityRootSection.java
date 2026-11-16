@@ -60,7 +60,7 @@ public final class ResearchActivityRootSection implements SectionBuilder{
 			return List.of();
 
 		final List<ReportSection> out = new ArrayList<>();
-		final String type = ReportFormatters.enumLabel(
+		final String type = ctx.labels.enumValue("enum.research_activity.type", 
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = ReportFormatters.orEmpty(
 			FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_ACTION));
@@ -80,9 +80,9 @@ public final class ResearchActivityRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().status(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_STATUS)));
+			ctx.labels.enumValue("enum.research_activity.status", FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_STATUS)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchResult(),
-			ReportFormatters.enumLabel(FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_RESULT)));
+			ctx.labels.enumValue("enum.research_activity.result", FLEFRecordHelper.getChildValue(ctx.root, ResearchActivityReader.TAG_RESULT)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchSearchScope(),
 			describeScope());
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().researchObservation(),
@@ -100,7 +100,7 @@ public final class ResearchActivityRootSection implements SectionBuilder{
 		if(type == null && detail == null)
 			return null;
 		final StringBuilder sb = new StringBuilder();
-		if(type != null) sb.append(ReportFormatters.enumLabel(type));
+		if(type != null) sb.append(ctx.labels.enumValue("enum.research_activity.search_scope", type));
 		if(detail != null){
 			if(!sb.isEmpty()) sb.append(" — ");
 			sb.append(detail);
@@ -139,7 +139,7 @@ public final class ResearchActivityRootSection implements SectionBuilder{
 		final FLEFRecord parent = ctx.visible(ctx.model.getRecordById(ref.getValue()));
 		if(parent == null)
 			return;
-		final String type = ReportFormatters.enumLabel(
+		final String type = ctx.labels.enumValue("enum.research_activity.type", 
 			FLEFRecordHelper.getChildValue(parent, ResearchActivityReader.TAG_ACTIVITY_TYPE));
 		final String action = FLEFRecordHelper.getChildValue(parent, ResearchActivityReader.TAG_ACTION);
 		out.add(new ReportSection.Paragraph(

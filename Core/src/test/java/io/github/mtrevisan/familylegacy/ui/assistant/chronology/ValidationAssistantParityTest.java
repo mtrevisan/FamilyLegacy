@@ -110,6 +110,7 @@ class ValidationAssistantParityTest{
 		VALIDATION.put("membership_before_birth", same("chronology.membership_before_birth"));
 		VALIDATION.put("membership_after_death", same("chronology.membership_after_death"));
 		VALIDATION.put("membership_ended_before_birth", same("chronology.membership_ended_before_birth"));
+		VALIDATION.put("source_before_event", missing("a record older than the birth, baptism, death or burial it is cited for (a warning, it can be a later note): the assistant should find it too"));
 		VALIDATION.put("date_invalid", same("chronology.date_invalid"));
 		VALIDATION.put("date_not_checked", different("chronology.date_not_checked",
 			"not a problem of the file, so information here (the indicator counts findings), a warning in the validation"));

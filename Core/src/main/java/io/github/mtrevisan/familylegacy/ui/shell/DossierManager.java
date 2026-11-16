@@ -46,6 +46,8 @@ public final class DossierManager{
 	private GroupDossierPanel groupDossier;
 	private JComponent currentDossier;
 	private boolean sidebarVisible = true;
+	/** What is done after a record was edited from a dossier (the views must show it). */
+	private Runnable onRecordEdited = () -> {};
 
 
 	public DossierManager(final JSplitPane splitPane, final FLEFModel model, final int defaultDividerLocation){
@@ -55,9 +57,17 @@ public final class DossierManager{
 		rebuild(model);
 	}
 
+	public void setOnRecordEdited(final Runnable onRecordEdited){
+		this.onRecordEdited = onRecordEdited;
+		individualDossier.setOnRecordEdited(onRecordEdited);
+		groupDossier.setOnRecordEdited(onRecordEdited);
+	}
+
 	public void rebuild(final FLEFModel model){
 		this.individualDossier = new IndividualDossierPanel(model);
 		this.groupDossier = new GroupDossierPanel(model);
+		individualDossier.setOnRecordEdited(onRecordEdited);
+		groupDossier.setOnRecordEdited(onRecordEdited);
 		this.currentDossier = individualDossier;
 
 		if(sidebarVisible){

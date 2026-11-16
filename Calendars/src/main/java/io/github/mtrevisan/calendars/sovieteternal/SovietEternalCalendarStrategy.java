@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.calendars.sovieteternal;
 
-import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
 import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
+import io.github.mtrevisan.calendars.gregorian.SeasonalDates;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 

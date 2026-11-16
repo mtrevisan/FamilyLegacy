@@ -48,6 +48,10 @@ public final class ImportReasons{
 	public static final String INCONSISTENT_ROLE = "import.discard.inconsistent_role";
 	/** An association that says a family relationship while the other side says another kind of link (a midwife is not a parent): an error of the file. */
 	public static final String INCONSISTENT_ASSOCIATION = "import.discard.inconsistent_association";
+	/** The two biological parents of a child have the same sex (the data is kept): an error of the file. */
+	public static final String SAME_SEX_PARENTS = "import.discard.same_sex_parents";
+	/** The two parents of a child, whose link does not say whether it is biological, have the same sex (the data is kept). */
+	public static final String SAME_SEX_POSSIBLE_PARENTS = "import.discard.same_sex_possible_parents";
 	/** Data that the importer does not know. */
 	public static final String UNMAPPED_TAG = "import.discard.unmapped_tag";
 	/** Other information that could not be imported. */

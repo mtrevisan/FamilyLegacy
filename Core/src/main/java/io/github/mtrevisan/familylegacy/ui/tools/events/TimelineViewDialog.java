@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.events.EventHelper;
 import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.events.EventTimeline;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
@@ -37,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;

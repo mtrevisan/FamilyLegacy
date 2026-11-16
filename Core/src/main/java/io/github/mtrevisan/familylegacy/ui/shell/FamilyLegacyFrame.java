@@ -135,6 +135,8 @@ public class FamilyLegacyFrame extends JFrame{
 		split.setContinuousLayout(true);
 
 		dossierManager = new DossierManager(split, model, SWITCHER_WIDTH);
+		//a record edited from the dossier (a name, an event...) may be shown in the views too
+		dossierManager.setOnRecordEdited(() -> SwingUtilities.invokeLater(this::refreshViewsAfterDossierEdit));
 
 		// Event Bindings
 		switcher.setSelectionCallback(dossierManager::showIndividualDossier);
@@ -213,6 +215,15 @@ public class FamilyLegacyFrame extends JFrame{
 	/** Rebuilds the views after the privacy policy changed. */
 	private void refreshPrivacy(){
 		SwingUtilities.invokeLater(this::rebuildViews);
+	}
+
+	/** Shows again the individual (or group) of the views, whose data were changed from the dossier. */
+	private void refreshViewsAfterDossierEdit(){
+		PrivacyService.invalidate();
+		switcher.getRepository()
+			.invalidateIndices();
+
+		loadRoot(switcher.getCurrentRootId());
 	}
 
 	private void rebuildViews(){
@@ -303,7 +314,7 @@ public class FamilyLegacyFrame extends JFrame{
 			return;
 		}
 
-		recentChangesDialog = new RecentChangesDialog(this, this::model, history::recentChanges);
+		recentChangesDialog = new RecentChangesDialog(this, this::model, history, this::rebuildViews);
 		recentChangesDialog.setVisible(true);
 	}
 

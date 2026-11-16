@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipCalculator;
-import io.github.mtrevisan.familylegacy.places.PlaceAttestation;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
@@ -48,6 +47,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.places.PlaceAttestation;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
@@ -682,12 +682,12 @@ public final class ReportContext{
 		if(CulturalNormReader.isOfType(rec)){
 			final String rt = FLEFRecordHelper.getChildValue(rec, CulturalNormReader.TAG_TYPE);
 			if(rt != null && !rt.isBlank())
-				return rt.replace('_', ' ');
+				return labels.enumValue("enum.cultural_norm.rule_type", rt);
 		}
 		else{
 			final String t = FLEFRecordHelper.getChildValue(rec, TAG_TYPE);
 			if(t != null && !t.isBlank())
-				return t.replace('_', ' ');
+				return labels.enumValue("enum.historic_event.type", t);
 		}
 		return id;
 	}

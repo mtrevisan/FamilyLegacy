@@ -31,11 +31,11 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.util.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -112,7 +112,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 					else{
 						final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
 						if(StringUtils.isNotEmpty(uri))
-							sb.append(FileHelper.getFilename(uri));
+							sb.append(MediaPathDisplay.display(uri));
 						else
 							sb.append('[')
 								.append(document.getId())

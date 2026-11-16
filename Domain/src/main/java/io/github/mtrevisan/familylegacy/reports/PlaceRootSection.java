@@ -202,7 +202,7 @@ public final class PlaceRootSection implements SectionBuilder{
 			return;
 
 		final String type = FLEFRecordHelper.getChildValue(rel, PlaceRelationshipReader.TAG_TYPE);
-		final String relLabel = ReportFormatters.orEmpty(ReportFormatters.enumLabel(type));
+		final String relLabel = ReportFormatters.orEmpty(ctx.labels.enumValue("enum.place_relationship.type", type));
 		//a jurisdiction is told "administrative part of Treviso" (this place is part of Treviso); a contained place "Treviso (administrative part)"
 		//(Treviso is part of this place): the same text would say the opposite
 		out.add(new ReportSection.Heading(level, (useSubject
@@ -298,7 +298,7 @@ public final class PlaceRootSection implements SectionBuilder{
 				ReportFormatters.escape(role),
 				ReportFormatters.escape(ctx.displayText(p.record())),
 				ReportFormatters.escape(ReportFormatters.orEmpty(
-					ReportFormatters.enumLabel(p.kind())))));
+					ctx.labels.recordKind(p.kind())))));
 		}
 		out.add(new ReportSection.Table(
 			List.of(ctx.labels.sections().role(), ctx.labels.sections().person(), ctx.labels.sections().kind()), rows));

@@ -79,6 +79,9 @@ public final class AppPreferences{
 	// view preferences: how the views order children and partners (presentation only, never genealogical data)
 	public static final String KEY_CHILDREN_ORDER = "view.order.children";
 	public static final String KEY_PARTNER_ORDER = "view.order.partners";
+	// view preferences: how the dated sections of the dossier are ordered (presentation only)
+	public static final String KEY_DOSSIER_EVENTS_ORDER = "view.order.dossier.events";
+	public static final String KEY_DOSSIER_ATTRIBUTES_ORDER = "view.order.dossier.attributes";
 	// view preferences: how the location of the media is shown, and the directory it is relative to (presentation only)
 	public static final String KEY_MEDIA_PATH_DISPLAY = "view.media.path";
 	public static final String KEY_MEDIA_BASE_DIRECTORY = "view.media.base_directory";
@@ -258,6 +261,21 @@ public final class AppPreferences{
 	/** Persists the display order of the partners (a view preference: it is not stored in the genealogy). */
 	public void setPartnerOrder(final PartnerOrder order){
 		put(KEY_PARTNER_ORDER, Objects.requireNonNull(order, "order").name());
+	}
+
+	/** Returns the persisted order of the dated rows of a dossier section, or the default (chronological) when unset or unknown. */
+	public DossierOrder dossierOrder(final String key){
+		try{
+			return DossierOrder.valueOf(properties.getProperty(key, DossierOrder.CHRONOLOGICAL.name()));
+		}
+		catch(final IllegalArgumentException ignored){
+			return DossierOrder.CHRONOLOGICAL;
+		}
+	}
+
+	/** Persists the order of the dated rows of a dossier section (a view preference: it is not stored in the genealogy). */
+	public void setDossierOrder(final String key, final DossierOrder order){
+		put(key, Objects.requireNonNull(order, "order").name());
 	}
 
 	/**

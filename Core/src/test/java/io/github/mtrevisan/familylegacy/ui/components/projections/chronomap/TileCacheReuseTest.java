@@ -25,17 +25,17 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.chronomap;
 
 import org.apache.commons.io.FileUtils;
-import org.jxmapviewer.viewer.Tile;
-import org.jxmapviewer.viewer.TileFactoryInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.jxmapviewer.viewer.Tile;
+import org.jxmapviewer.viewer.TileFactoryInfo;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;

@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
  *   <li>an optional <b>subtitle</b>, used for extra context;</li>
  *   <li>an optional <b>evidence badge</b>, a compact string like
  *       {@code "orig/prim/dir"};</li>
- *   <li>a <b>backing record</b>, opened in the edit dialog on double-click;</li>
+ *   <li>a <b>backing record</b>, opened in the edit dialog on click, on the tab {@link #tab} with the focus on {@link #focus};</li>
  *   <li>a <b>kind</b>, used by the panel to choose the rendering
  *       strategy ({@link Kind#NORMAL}, {@link Kind#NAME_HEADER},
  *       {@link Kind#NAME_PART});</li>
@@ -55,7 +55,9 @@ public record DossierEntry(
 	String evidenceBadge,
 	FLEFRecord editRecord,
 	Kind kind,
-	ProofStatus proofStatus
+	ProofStatus proofStatus,
+	String tab,
+	FLEFRecord focus
 ){
 
 	public enum Kind{
@@ -78,6 +80,21 @@ public record DossierEntry(
 			kind = Kind.NORMAL;
 		// proofStatus is intentionally nullable: absence means "no
 		// formal conclusion about this assertion".
+	}
+
+	/** Backward-compatible constructor: the editor is opened as it is (no tab, no focus). */
+	public DossierEntry(final String label, final String value, final String subtitle,
+		final String evidenceBadge, final FLEFRecord editRecord, final Kind kind, final ProofStatus proofStatus){
+		this(label, value, subtitle, evidenceBadge, editRecord, kind, proofStatus, null, null);
+	}
+
+	/**
+	 * @param tab   the tab of the editor to show (see {@link EditorTab})
+	 * @param focus the item of the tab to select, {@code null} to focus the first component of the tab
+	 * @return the same entry, that opens the editor on the given tab
+	 */
+	public DossierEntry withFocus(final String tab, final FLEFRecord focus){
+		return new DossierEntry(label, value, subtitle, evidenceBadge, editRecord, kind, proofStatus, tab, focus);
 	}
 
 	/** Backward-compatible constructor: no kind, no proof status. */

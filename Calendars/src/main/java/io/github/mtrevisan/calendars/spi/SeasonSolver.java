@@ -27,6 +27,7 @@ package io.github.mtrevisan.calendars.spi;
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
+import io.github.mtrevisan.calendars.cache.BoundedCache;
 
 
 /**
@@ -34,6 +35,13 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
  * calendars that accept a season in place of a month share the same code.
  */
 public final class SeasonSolver{
+
+	/** Maximum number of events kept. */
+	private static final int MAX_CACHED_EVENTS = 4096;
+	private static final BoundedCache<Event, Double> EVENTS = new BoundedCache<>(MAX_CACHED_EVENTS);
+
+	private record Event(double anchorJdUT, double targetLongitude){}
+
 
 	private SeasonSolver(){}
 
@@ -82,7 +90,10 @@ public final class SeasonSolver{
 		if(!engine.isAvailable())
 			throw new UnsupportedOperationException(calendarName + " calendar requires the Ephemeris plugin.");
 
-		return engine.findSolarLongitudeEvent(anchorJdUT, targetLongitude);
+		//the events are the same for all the dates of a year (the anchor is the first day of the month of the season), and each one
+		//costs several evaluations of the planetary theory
+		return EVENTS.get(new Event(anchorJdUT, targetLongitude),
+			event -> engine.findSolarLongitudeEvent(event.anchorJdUT(), event.targetLongitude()));
 	}
 
 	/**

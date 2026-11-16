@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import org.apache.commons.lang3.StringUtils;
@@ -105,20 +106,19 @@ public final class PrivacyBadge implements Icon{
 		if(privacy == null || !privacy.isRestricted())
 			return null;
 
-		final StringBuilder sb = new StringBuilder(privacy.level().name()
-			.toLowerCase(Locale.ROOT));
+		final StringBuilder sb = new StringBuilder(I18N.t("enum.privacy.level." + privacy.level().name().toLowerCase(Locale.ROOT)));
 		switch(privacy.origin()){
-			case INHERITED -> sb.append(" (inherited)");
-			case LIVING_PERSON -> sb.append(" (may be living)");
-			case NATIONAL_ID -> sb.append(" (national id)");
+			case INHERITED -> sb.append(' ').append(I18N.t("text.privacy.origin.inherited"));
+			case LIVING_PERSON -> sb.append(' ').append(I18N.t("text.privacy.origin.living_person"));
+			case NATIONAL_ID -> sb.append(' ').append(I18N.t("text.privacy.origin.national_id"));
 			default -> {}
 		}
 		if(StringUtils.isNotBlank(privacy.reason()))
 			sb.append(", ")
-				.append(privacy.reason());
+				.append(I18N.t("enum.privacy.reason." + privacy.reason(), privacy.reason()));
 		if(StringUtils.isNotBlank(privacy.expires()))
-			sb.append(", until ")
-				.append(privacy.expires());
+			sb.append(", ")
+				.append(I18N.tf("text.privacy.until", privacy.expires()));
 		return sb.toString();
 	}
 

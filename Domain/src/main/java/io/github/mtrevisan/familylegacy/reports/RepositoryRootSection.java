@@ -97,7 +97,7 @@ public final class RepositoryRootSection implements SectionBuilder{
 	private void writeBasicInfo(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().type(),
-			ReportFormatters.enumLabel(RepositoryReader.extractType(ctx.root)));
+			ctx.labels.enumValue("enum.repository.type", RepositoryReader.extractType(ctx.root)));
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 	}
@@ -165,7 +165,7 @@ public final class RepositoryRootSection implements SectionBuilder{
 	private void writeContacts(final List<ReportSection> out){
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : ctx.visibleChildren(ctx.root, RepositoryReader.TAG_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact);
+			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
 			if(rendered != null)
 				rows.add(rendered);
 		}

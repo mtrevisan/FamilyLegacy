@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 
 import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
@@ -34,6 +33,7 @@ import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.merge.RecordMergeWorkflow;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

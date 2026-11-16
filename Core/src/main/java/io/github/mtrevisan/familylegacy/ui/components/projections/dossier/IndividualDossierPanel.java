@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -84,7 +85,7 @@ import java.util.Map;
  * <b>Interaction.</b>
  * <ul>
  *   <li>a single click on a section header expands or collapses the section;</li>
- *   <li>a double click on a row that carries a backing record opens the standard edit dialog for that record;</li>
+ *   <li>a click on a row that carries a backing record opens the edit dialog for that record, on the right tab and with the focus on the right component;</li>
  *   <li>after a successful edit the dossier is rebuilt, so the panel reflects the change immediately.</li>
  * </ul>
  * <p>
@@ -135,6 +136,14 @@ public class IndividualDossierPanel extends JPanel{
 	private final Map<DossierSectionType, Boolean> expandedState = new EnumMap<>(DossierSectionType.class);
 
 
+	/** Rebuilds the dossier when the user changes the order of its sections. */
+	private final Runnable orderListener = this::refresh;
+
+
+	/** What to do after a record was edited from the dossier (the other views show it too). */
+	private Runnable onRecordEdited = () -> {};
+
+
 	public IndividualDossierPanel(final FLEFModel model){
 		this.model = model;
 		this.service = new IndividualDossierService(model);
@@ -147,6 +156,11 @@ public class IndividualDossierPanel extends JPanel{
 	/* ======================================================================
 	 *                          Public API
 	 * ====================================================================== */
+
+	/** Sets what is done after a record was edited and saved from the dossier, so that the other views are refreshed. */
+	public void setOnRecordEdited(final Runnable onRecordEdited){
+		this.onRecordEdited = onRecordEdited;
+	}
 
 	/**
 	 * Populates the panel with the dossier of the given individual. A
@@ -191,6 +205,21 @@ public class IndividualDossierPanel extends JPanel{
 		return (dossier != null && !dossier.isEmpty()
 			? dossier.individual().getId()
 			: null);
+	}
+
+
+	@Override
+	public void addNotify(){
+		super.addNotify();
+
+		OrderPreferences.addListener(orderListener);
+	}
+
+	@Override
+	public void removeNotify(){
+		OrderPreferences.removeListener(orderListener);
+
+		super.removeNotify();
 	}
 
 
@@ -441,7 +470,7 @@ public class IndividualDossierPanel extends JPanel{
 	 * right, optional subtitle underneath the value, optional evidence
 	 * badge on the far right.
 	 * <p>
-	 * When the entry carries a backing record, a double click opens the
+	 * When the entry carries a backing record, a click opens the
 	 * standard edit dialog for that record.
 	 */
 	private final class EntryRow extends JPanel{
@@ -507,6 +536,14 @@ public class IndividualDossierPanel extends JPanel{
 
 			if(entry.isEditable()){
 				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+				//a row that opens the editor on a given tab can also open the record as it is: tell it
+				if(entry.tab() != null){
+					final String hint = I18N.t("tooltip.dossier.open_row");
+					final String current = valueLabel.getToolTipText();
+					valueLabel.setToolTipText(current != null? current + " · " + hint: hint);
+					labelLabel.setToolTipText(hint);
+					subtitleLabel.setToolTipText(hint);
+				}
 				attachRecursively(this, this);
 			}
 		}
@@ -524,15 +561,15 @@ public class IndividualDossierPanel extends JPanel{
 
 		/**
 		 * Recursively attaches the mouse listener of the parent row to
-		 * every child component, so that hovering or double-clicking on
+		 * every child component, so that hovering or clicking on
 		 * the labels is handled by the same row.
 		 */
 		private void attachRecursively(final Component component, final EntryRow row){
 			component.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent e){
-					if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
-						openEditDialog();
+					if(SwingUtilities.isLeftMouseButton(e))
+						openEditDialog(e.isShiftDown());
 				}
 
 				@Override
@@ -554,7 +591,11 @@ public class IndividualDossierPanel extends JPanel{
 					attachRecursively(child, row);
 		}
 
-		private void openEditDialog(){
+		/**
+		 * @param plain	Whether to open the record as it is, on its first tab, instead of jumping to the tab and the item of the row
+		 * 	(for a note row: the event, attribute... the note belongs to, instead of the note).
+		 */
+		private void openEditDialog(final boolean plain){
 			final FLEFRecord record = entry.editRecord();
 			if(record == null)
 				return;
@@ -562,10 +603,15 @@ public class IndividualDossierPanel extends JPanel{
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 			final Window owner = SwingUtilities.getWindowAncestor(IndividualDossierPanel.this);
 			final RecordDialog dialog = handler.createEditDialog(owner, model, record);
+			//the editor opens on the tab the row belongs to, with the focus on the very thing the row is about
+			if(!plain && entry.tab() != null)
+				dialog.showEntry(entry.tab(), entry.focus());
 			dialog.setVisible(true);
 
-			if(dialog.isSaved())
+			if(dialog.isSaved()){
 				refresh();
+				onRecordEdited.run();
+			}
 		}
 	}
 

@@ -22,10 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.calendars.dateparsing;
+package io.github.mtrevisan.calendars.gregorian;
 
 import io.github.mtrevisan.calendars.astronomy.CalendarSeason;
-import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.SeasonSolver;
 
 import java.time.LocalDate;

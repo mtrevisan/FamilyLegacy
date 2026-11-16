@@ -52,21 +52,27 @@ import java.util.List;
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final FLEFGrammar grammar, final List<String> errors){
+		validate(ValidationPath.of(contextPath), record, model, grammar, errors);
+	}
+
+	@Override
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model, final FLEFGrammar grammar,
+			final List<String> errors){
 		boolean matchesAny = true;
 		for(final TypeDefinition alternative : alternatives)
 			switch(alternative){
-				case StructType structType -> structType.validate(contextPath, record, model, grammar, errors);
-				case EnumType enumType -> enumType.validate(contextPath, record, model, grammar, errors);
-				case UnionType unionType -> unionType.validate(contextPath, record, model, grammar, errors);
-				case AlternationType alternationType -> alternationType.validate(contextPath, record, model, grammar, errors);
-				case ReferenceType refType -> refType.validate(contextPath, record, model, grammar, errors);
-				case ScalarType scalarType -> scalarType.validate(contextPath, record, model, grammar, errors);
+				case StructType structType -> structType.validate(path, record, model, grammar, errors);
+				case EnumType enumType -> enumType.validate(path, record, model, grammar, errors);
+				case UnionType unionType -> unionType.validate(path, record, model, grammar, errors);
+				case AlternationType alternationType -> alternationType.validate(path, record, model, grammar, errors);
+				case ReferenceType refType -> refType.validate(path, record, model, grammar, errors);
+				case ScalarType scalarType -> scalarType.validate(path, record, model, grammar, errors);
 				default -> matchesAny = false;
 			}
 
 		if(!matchesAny)
 			errors.add(String.format("Record at '%s' does not match any allowed alternation type, record %s",
-				contextPath, record));
+				path, record));
 	}
 
 	@Override

@@ -25,9 +25,9 @@
 package io.github.mtrevisan.calendars.seleucid;
 
 import io.github.mtrevisan.calendars.dateparsing.MonthLengths;
-import io.github.mtrevisan.calendars.dateparsing.SeasonalDates;
 import io.github.mtrevisan.calendars.dateparsing.YearMonthDay;
 import io.github.mtrevisan.calendars.gregorian.JulianCalendarStrategy;
+import io.github.mtrevisan.calendars.gregorian.SeasonalDates;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 

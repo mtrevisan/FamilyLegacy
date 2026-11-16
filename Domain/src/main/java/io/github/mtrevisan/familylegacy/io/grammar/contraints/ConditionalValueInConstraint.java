@@ -76,9 +76,16 @@ public final class ConditionalValueInConstraint extends Constraint{
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(record, field);
 		final String value = (child != null? child.getValue(): null);
-		if(value != null && allowedValues.stream().noneMatch(value.strip()::equalsIgnoreCase))
+		if(value != null && !isAllowed(value.strip()))
 			errors.add(String.format("Constraint violation at '%s': field '%s' must be one of %s because '%s' is '%s' (found: %s)",
 				contextPath, field, allowedValues, conditionField, conditionValue, value));
+	}
+
+	private boolean isAllowed(final String value){
+		for(int i = 0, size = allowedValues.size(); i < size; i ++)
+			if(value.equalsIgnoreCase(allowedValues.get(i)))
+				return true;
+		return false;
 	}
 
 	@Override

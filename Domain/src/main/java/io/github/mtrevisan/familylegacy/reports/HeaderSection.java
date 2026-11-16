@@ -140,7 +140,7 @@ public final class HeaderSection implements SectionBuilder{
 	private void appendSubmitter(final List<ReportSection> out, final FLEFRecord header){
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : FLEFRecordHelper.findChildren(header, HeaderReader.TAG_SUBMITTER_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact);
+			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
 			if(rendered != null)
 				rows.add(rendered);
 		}

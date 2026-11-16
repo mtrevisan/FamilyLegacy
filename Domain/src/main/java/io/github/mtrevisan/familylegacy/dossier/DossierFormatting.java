@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.dossier;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -31,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpanKind;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -72,10 +74,37 @@ public final class DossierFormatting{
 			return StringUtils.EMPTY;
 
 		final TemporalSpan span = DateNormalizer.normalize(dateStruct);
-		if(span == null || span.start() == null)
+		if(span == null || (span.start() == null && span.end() == null))
 			return StringUtils.EMPTY;
 
-		return formatNormalizedDate(span.start());
+		return formatSpan(span);
+	}
+
+	/**
+	 * Tells an exact date from an approximate one and from a range: "about", "calculated", "before", "after", "between ... and ...",
+	 * "from ... to ...".
+	 */
+	static String formatSpan(final TemporalSpan span){
+		final NormalizedDate start = span.start();
+		final NormalizedDate end = span.end();
+		if(span.isPoint())
+			return formatBound(start);
+
+		final boolean spanning = (span.kind() == TemporalSpanKind.SPANNING);
+		if(start != null && end != null)
+			return I18N.tf(spanning? "text.dossier.date.from_to": "text.dossier.date.between", formatBound(start), formatBound(end));
+		if(start != null)
+			return I18N.tf(spanning? "text.dossier.date.from": "text.dossier.date.after", formatBound(start));
+		return I18N.tf(spanning? "text.dossier.date.to": "text.dossier.date.before", formatBound(end));
+	}
+
+	private static String formatBound(final NormalizedDate date){
+		final String text = formatNormalizedDate(date);
+		if(date.isAbout())
+			return I18N.tf("text.dossier.date.about", text);
+		if(date.isCalculated())
+			return I18N.tf("text.dossier.date.calculated", text);
+		return text;
 	}
 
 	public String formatValidity(final FLEFRecord parent, final String tagValidFrom, final String tagValidTo){
@@ -85,12 +114,12 @@ public final class DossierFormatting{
 			return StringUtils.EMPTY;
 
 		if(from.isEmpty())
-			return "until " + to;
+			return I18N.tf("text.dossier.validity.until", to);
 
 		if(to.isEmpty())
-			return "from " + from;
+			return I18N.tf("text.dossier.validity.from", from);
 
-		return from + " – " + to;
+		return I18N.tf("text.dossier.validity.range", from, to);
 	}
 
 
@@ -137,8 +166,8 @@ public final class DossierFormatting{
 			case DAY -> ymd[2] + StringUtils.SPACE + monthName(ymd[1]) + StringUtils.SPACE + ymd[0];
 			case MONTH -> monthName(ymd[1]) + StringUtils.SPACE + ymd[0];
 			case YEAR -> Integer.toString(ymd[0]);
-			case DECADE -> (ymd[0] / 10 * 10) + "s";
-			case CENTURY -> (ymd[0] / 100 + 1) + "th c.";
+			case DECADE -> I18N.tf("text.dossier.date.decade", ymd[0] / 10 * 10);
+			case CENTURY -> I18N.tf("text.dossier.date.century", ymd[0] / 100 + 1);
 		};
 	}
 

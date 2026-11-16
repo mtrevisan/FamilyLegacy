@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,6 +57,15 @@ public final class DateFormulas{
 
 	/** The Unicode spaces that {@link Character#isWhitespace(char)} does not recognize, turned into plain spaces. */
 	private static final Pattern EXOTIC_SPACES = Pattern.compile("[\\u00A0\\u2007\\u202F]");
+
+	/** The words that a formula is made of (for a formula of several words, the last one, which must be in the text anyway). */
+	private static final Set<String> FORMULA_TOKENS = FORMULA_WORDS.stream()
+		.map(word -> word.substring(word.lastIndexOf(' ') + 1))
+		.collect(Collectors.toUnmodifiableSet());
+	private static final int MAX_FORMULA_WORD_LENGTH = FORMULA_TOKENS.stream()
+		.mapToInt(String::length)
+		.max()
+		.orElse(0);
 
 	private static final Pattern FORMULA_PATTERN = Pattern.compile(
 		"(?iu)(?<![\\p{L}])(?:" + alternation(FORMULA_WORDS) + ")(?![\\p{L}])");
@@ -125,8 +135,17 @@ public final class DateFormulas{
 	 * @return the text with plain spaces
 	 */
 	public static String plainSpaces(final String text){
-		return EXOTIC_SPACES.matcher(text)
-			.replaceAll(StringUtils.SPACE);
+		boolean exotic = false;
+		for(int i = 0; i < text.length(); i ++){
+			final char c = text.charAt(i);
+			if(c == ' ' || c == ' ' || c == ' '){
+				exotic = true;
+				break;
+			}
+		}
+		return (exotic
+			? EXOTIC_SPACES.matcher(text).replaceAll(StringUtils.SPACE)
+			: text);
 	}
 
 	/**
@@ -171,11 +190,55 @@ public final class DateFormulas{
 	}
 
 	private static String removeFormulasKeeping(final String text, final Predicate<String> isName){
-		String result = replaceUnlessName(FORMULA_PATTERN, text, isName);
-		result = replaceUnlessName(ANNO_DOMINI, result, isName);
-		result = DAY_ORDINAL_SUFFIX.matcher(result)
-			.replaceAll("$1");
+		String result = text;
+		if(hasFormulaWord(result))
+			result = replaceUnlessName(FORMULA_PATTERN, result, isName);
+		if(hasAnnoDominiCandidate(result))
+			result = replaceUnlessName(ANNO_DOMINI, result, isName);
+		if(hasOrdinalCandidate(result))
+			result = DAY_ORDINAL_SUFFIX.matcher(result)
+				.replaceAll("$1");
 		return StringUtils.normalizeSpace(result);
+	}
+
+	/** Whether the text has a whole word of the formulas (the cheap check that avoids the regular expression). */
+	private static boolean hasFormulaWord(final String text){
+		final int length = text.length();
+		int i = 0;
+		while(i < length){
+			if(!Character.isLetter(text.charAt(i))){
+				i ++;
+				continue;
+			}
+			int end = i + 1;
+			while(end < length && Character.isLetter(text.charAt(end)))
+				end ++;
+			if(end - i <= MAX_FORMULA_WORD_LENGTH && FORMULA_TOKENS.contains(text.substring(i, end).toLowerCase(Locale.ROOT)))
+				return true;
+			i = end;
+		}
+		return false;
+	}
+
+	/** Whether the text may have the "A.D." marker: it has a "d" (the markers are "a.d.", "a. d.", "a.d", "ad"). */
+	private static boolean hasAnnoDominiCandidate(final String text){
+		for(int i = 0; i < text.length(); i ++){
+			final char c = text.charAt(i);
+			if(c == 'd' || c == 'D')
+				return true;
+		}
+		return false;
+	}
+
+	/** Whether the text may have an ordinal day ("1st", "2°"): a digit followed by a letter or by a degree sign. */
+	private static boolean hasOrdinalCandidate(final String text){
+		for(int i = 0; i < text.length() - 1; i ++)
+			if(Character.isDigit(text.charAt(i))){
+				final char next = text.charAt(i + 1);
+				if(Character.isLetter(next) || next == '°' || next == 'º')
+					return true;
+			}
+		return false;
 	}
 
 	private static String replaceUnlessName(final Pattern pattern, final String text, final Predicate<String> isName){
@@ -193,6 +256,11 @@ public final class DateFormulas{
 	 */
 	public static Era extractEra(final String text){
 		final String plain = plainSpaces(text);
+		// the era marker is made of letters (and dots): a text ending with a digit cannot have it
+		final String stripped = StringUtils.stripEnd(plain, null);
+		if(stripped.isEmpty() || Character.isDigit(stripped.charAt(stripped.length() - 1)))
+			return new Era(plain, false);
+
 		final Matcher matcher = BEFORE_CHRIST.matcher(plain);
 		return (matcher.find()
 			? new Era(plain.substring(0, matcher.start()), true)

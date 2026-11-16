@@ -12,14 +12,8 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `temporal/README.txt` e `social/README.txt`.
 
 ### ALTA
-uno non può essere "figlio di un gruppo", deve essere "figlio degli individui che sono membri del gruppo", ma questo è da controllare se viene già creato, in ogni caso questo non può essere, da protocollo (attento che uno o più dei legami possono essere "adoptive")
-relationship RL5139 {
-	subject.individual I2400
-	target.group G577
-	type group_member
-	role child
-	audit.creation.date 2021-11-07T19:40:31Z
-}
+- Crea un pannello delle attività.
+- Cerca nei siti esterni (FamilySearch, Ancestry, CompGen e altri). Apre ricerche precompilate con nome e luoghi della persona. L'utente può aggiungere siti propri con un modello di URL e segnaposto come name_given e birth_place.
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
@@ -32,6 +26,397 @@ relationship RL5139 {
   un `BufferedImage`).
 - Export diretto del dossier (basta un report che lo usi).
 - Export CSV di sottoinsiemi (`ExportExcelTool` commentato; fare solo CSV).
+- OCR su documenti scansionati, con "Salva come nota" di tipo trascrizione. Si può appoggiare a Tesseract o a altri siti gratuiti simili, con particolare attenzione alla capacità di fare ocr su test vecchi, di molte lingue del mondo, anche con grammatiche antiche.
+- Marcatura di persone nelle foto, con riquadri collegati a persona, famiglia, o evento.
+- Albero modificabile direttamente nel grafico. Ogni card ha un "+" per aggiungere padre, madre, figlio o coniuge, collegando una persona esistente o creandone una nuova. Si sceglie anche il tipo di legame (Nato, Adottato, Figliastro; Sposato, Unione civile). È molto più rapido del modulo completo.
+- Corrispondenze DNA e browser dei cromosomi: importazione CSV di segmenti (cromosoma, inizio, fine, cM, SNP) e vista con barre paterne e materne. È un blocco di funzioni a sé.
+- Campo per l'etichetta Y-DNA come attributo della persona, con il formato R-BY44535+. Se volete un lavoro semplice sul DNA, partite da qui.
+- Assistente AI sull'albero. Ha già senso concettualmente (risponde solo con i dati dell'albero, cita i record, dice quando mancano dati), ma è un progetto separato, e il vostro Research Assistant è già un punto di partenza.
+
+#### Search Level 2
+Implement a Visual Query Builder for FamilyLegacy.
+
+Goal
+----
+Allow users to perform powerful searches without learning a query language.
+
+The query builder must be usable by non-technical genealogists.
+
+Requirements
+------------
+
+Create a dedicated search dialog containing:
+
+- entity selector
+  - Individuals
+  - Groups
+  - Events
+  - Places
+  - Sources
+  - Media
+  - Research Questions
+  - Research Activities
+  - Research Tasks
+
+- condition list
+
+Each condition contains:
+
+- field selector
+- operator selector
+- value editor
+
+Example:
+
+Individuals
+
+WHERE
+
+[ Family Name ] [ contains ] [ Bortoluzzi ]
+
+AND
+
+[ Birth Date ] [ before ] [ 1800 ]
+
+AND
+
+[ Residence ] [ contains ] [ Treviso ]
+
+Supported operators
+-------------------
+
+Text:
+- contains
+- equals
+- starts with
+- ends with
+- fuzzy match
+
+Dates:
+- before
+- after
+- between
+- equals
+- unknown
+
+Numbers:
+- equals
+- less than
+- less or equal
+- greater than
+- greater or equal
+- between
+
+Presence:
+- exists
+- missing
+
+Logical operators:
+- AND
+- OR
+
+Domain-specific conditions
+--------------------------
+
+Individuals:
+- has birth
+- has death
+- has marriage
+- has sources
+- has unresolved conflicts
+- has identity hypotheses
+- has research questions
+
+Relationships:
+- has parents
+- has children
+- has spouses
+
+Events:
+- type
+- date
+- place
+
+Places:
+- type
+- hierarchy
+
+Sources:
+- repository
+- date
+- media type
+
+Queries should be internally represented by an abstract query model, not SQL strings.
+
+Architecture
+------------
+
+Create reusable classes:
+
+- SearchQuery
+- SearchCondition
+- SearchOperator
+- QueryBuilderService
+
+The visual editor must only construct SearchQuery objects.
+
+Execution must be delegated to a search engine layer.
+
+Future integration
+------------------
+
+The builder must become the foundation for:
+
+- saved searches
+- AI generated searches
+- future text query language
+
+Do not embed search logic directly into UI components.
+
+#### Search Level 3
+Implement Saved Searches.
+
+Goal
+----
+Allow users to save frequently used queries and execute them later.
+
+Requirements
+------------
+
+Users can:
+
+- save a query
+- rename a saved query
+- organize saved queries
+- delete a saved query
+- duplicate a saved query
+
+Saved query structure
+---------------------
+
+Store:
+
+- id
+- name
+- description
+- target entity type
+- SearchQuery definition
+- creation date
+- update date
+
+UI
+--
+
+Add:
+
+Search
+ ├─ Search...
+ ├─ Saved Searches
+ │    ├─ Missing Deaths
+ │    ├─ Possible Duplicates
+ │    ├─ Unresolved Conclusions
+ │    └─ ...
+ └─ Manage Saved Searches
+
+Built-in searches
+-----------------
+
+Provide predefined saved searches:
+
+Individuals:
+- Missing birth
+- Missing death
+- Missing parents
+- Missing sources
+
+Research:
+- Open research questions
+- Unresolved identity hypotheses
+- Unresolved conclusions
+
+Diagnostics:
+- Chronology issues
+- Possible duplicates
+
+User-defined searches
+---------------------
+
+Users may create custom searches from the Visual Query Builder.
+
+Execution
+---------
+
+Saved searches must execute through the same search engine used by normal searches.
+
+No duplicated execution logic.
+
+Future integration
+------------------
+
+Saved searches will later be callable from:
+
+- Research Assistant
+- automation workflows
+- dashboards
+- reports
+
+Design accordingly.
+
+#### Search Level 4
+Implement AI-assisted Search Generation.
+
+Goal
+----
+Allow users to express searches in natural language.
+
+Examples:
+
+"Find people born before 1800."
+
+"Show individuals without a death event."
+
+"Find all residents of Treviso."
+
+"Find people with conflicting birth dates."
+
+"Show all open research questions."
+
+The AI must translate the request into a SearchQuery.
+
+Architecture
+------------
+
+The AI must NOT execute searches directly.
+
+Pipeline:
+
+User text
+→ AI interpretation
+→ SearchQuery
+→ Standard search engine
+→ Results
+
+The generated query must be visible to the user.
+
+Example:
+
+Input:
+
+Find people born before 1800.
+
+Generated query:
+
+Entity:
+Individuals
+
+Conditions:
+Birth Date < 1800
+
+The user may:
+
+- execute
+- edit
+- cancel
+
+Safety
+------
+
+AI suggestions must never:
+
+- modify data
+- infer unsupported facts
+- execute actions automatically
+
+The AI is only translating natural language into SearchQuery structures.
+
+Integration
+-----------
+
+Add:
+
+Search
+ └─ Natural Language Search...
+
+and integrate into:
+
+Ctrl+Shift+A Research Assistant
+
+Future support
+--------------
+
+Prepare for:
+
+- multilingual queries
+- query explanations
+- search suggestions
+- query refinement
+
+The AI should operate on the abstract query model created for the Visual Query Builder.
+
+#### Search Level 5
+Implement an Advanced Query Language.
+
+Goal
+----
+Provide power users with a compact textual way to build searches.
+
+This feature is lower priority than:
+
+- Visual Query Builder
+- Saved Searches
+- AI Query Translation
+
+Requirements
+------------
+
+The language must compile into SearchQuery objects.
+
+Example syntax:
+
+birth.year < 1800
+
+birth.year < 1800
+AND place contains "Treviso"
+
+death missing
+
+sources.count = 0
+
+Grammar
+-------
+
+Support:
+
+- AND
+- OR
+- NOT
+- parenthesis
+- comparison operators
+- string operators
+- date operators
+- existence checks
+
+Execution
+---------
+
+Parser
+→ SearchQuery
+→ Standard search engine
+
+No direct database access.
+
+The Visual Query Builder and Query Language must share the same internal SearchQuery model.
+
+Future
+------
+
+Users should be able to:
+
+- convert visual searches to text
+- convert text to visual searches
+
+Both representations describe the same underlying SearchQuery.
+
 
 ### BASSA
 Mantenuti, ma da fare solo se emerge un bisogno concreto (revisione del 2026-11-09), dal più utile al meno:

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -47,6 +48,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -414,6 +416,21 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 				tabbedPane, propertiesPanel, subjectTypeCombo);
 
 			return false;
+		}
+
+		//two biological parents of the same child must be of different sexes (subject = child, target = parent)
+		final FLEFRecord child = subjectField.getEntity();
+		final FLEFRecord parent = targetField.getEntity();
+		if(child != null && parent != null && IndividualHandler.isOfType(child)
+				&& IndividualHandler.isOfType(parent)){
+			final CoParentSex.Clash clash = CoParentSex.findClashingParent(child.getId(), parent.getId(), subjectTypeCombo.getText(),
+				record.getId(), model);
+			if(!ParentSexGuard.confirm(this, clash, parent.getId(), model)){
+				tabbedPane.setSelectedComponent(propertiesPanel);
+				subjectTypeCombo.requestFocusInWindow();
+
+				return false;
+			}
 		}
 
 		return true;

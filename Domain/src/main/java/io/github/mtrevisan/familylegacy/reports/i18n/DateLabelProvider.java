@@ -116,7 +116,7 @@ public final class DateLabelProvider{
 			return labels.getString(key);
 		}
 		catch(final Exception ignored){
-			return part.replace('_', ' ');
+			return labels.enumValue("enum.date.century_part", part);
 		}
 	}
 

@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReade
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.strategies.EventParticipationSearchStrategy;
-import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 

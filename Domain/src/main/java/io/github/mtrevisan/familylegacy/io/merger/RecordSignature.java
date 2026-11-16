@@ -32,10 +32,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 
 /**
@@ -82,34 +82,53 @@ final class RecordSignature{
 				.append(':')
 				.append(value);
 
-		// group by tag, keeping the order of the occurrences of the same tag
-		final Map<String, List<FLEFRecord>> byTag = new TreeMap<>();
-		for(final FLEFRecord child : node.getChildren())
-			if(child.getTag() != null && !TAG_AUDIT.equals(child.getTag()))
-				byTag.computeIfAbsent(child.getTag(), k -> new ArrayList<>())
-					.add(child);
-		if(byTag.isEmpty())
+		// group by tag, keeping the order of the occurrences of the same tag: a stable sort by tag, on the children that count
+		final List<FLEFRecord> children = node.getChildren();
+		int counted = 0;
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final String tag = children.get(i).getTag();
+			if(tag != null && !TAG_AUDIT.equals(tag))
+				counted ++;
+		}
+		if(counted == 0)
 			return;
 
+		final FLEFRecord[] ordered = new FLEFRecord[counted];
+		int written = 0;
+		for(int i = 0, size = children.size(); i < size; i ++){
+			final FLEFRecord child = children.get(i);
+			if(child.getTag() != null && !TAG_AUDIT.equals(child.getTag()))
+				ordered[written ++] = child;
+		}
+		if(counted > 1)
+			Arrays.sort(ordered, BY_TAG);
+
 		//the evidence is left out, and a structure that has nothing else states what one with no children does
-		final StringBuilder fields = new StringBuilder();
-		for(final Map.Entry<String, List<FLEFRecord>> entry : byTag.entrySet()){
-			final String tag = entry.getKey();
-			final TypeDefinition childType = childType(type, tag);
+		final int mark = sb.length();
+		sb.append('{');
+		boolean any = false;
+		String tag = null;
+		TypeDefinition childType = null;
+		for(final FLEFRecord child : ordered){
+			if(!child.getTag().equals(tag)){
+				tag = child.getTag();
+				childType = childType(type, tag);
+			}
 			if(childType == EVIDENCE)
 				continue;
 
-			for(final FLEFRecord child : entry.getValue()){
-				fields.append(tag);
-				append(fields, child, childType);
-				fields.append(';');
-			}
+			sb.append(tag);
+			append(sb, child, childType);
+			sb.append(';');
+			any = true;
 		}
-		if(!fields.isEmpty())
-			sb.append('{')
-				.append(fields)
-				.append('}');
+		if(any)
+			sb.append('}');
+		else
+			sb.setLength(mark);
 	}
+
+	private static final Comparator<FLEFRecord> BY_TAG = Comparator.comparing(FLEFRecord::getTag);
 
 	/** Marker for a field that must be left out of the signature. */
 	private static final TypeDefinition EVIDENCE = new UnionType(EvidenceQualifiersReader.TAG_EVIDENCE, Map.of());

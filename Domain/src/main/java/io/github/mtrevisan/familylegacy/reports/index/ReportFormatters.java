@@ -240,7 +240,7 @@ public final class ReportFormatters{
 	 * name and note are omitted when absent. Returns {@code null} when the
 	 * contact has no value.</p>
 	 */
-	public static String renderContact(final FLEFRecord contact){
+	public static String renderContact(final FLEFRecord contact, final ReportLabels labels){
 		if(contact == null)
 			return null;
 
@@ -254,7 +254,7 @@ public final class ReportFormatters{
 
 		final StringBuilder sb = new StringBuilder();
 		if(type != null && !type.isBlank())
-			sb.append("**").append(escape(enumLabel(type))).append(":** ");
+			sb.append("**").append(escape(labels.enumValue("enum.contact.type", type))).append(":** ");
 		//a postal address is written on several lines: in a list item it would run together, so its lines are joined by commas
 		sb.append(escape(String.join(", ", value.lines()
 			.map(String::strip)
@@ -497,19 +497,6 @@ public final class ReportFormatters{
 		return description.strip().equalsIgnoreCase(dot > 0? location.substring(0, dot): location);
 	}
 
-	/* ----- Enum labels ----------------------------------------------------- */
-
-	/**
-	 * Turns an enum-like code ({@code activity_type}, {@code status},
-	 * {@code result}, {@code proof_status}, {@code priority}, ...) into a
-	 * human-readable label by replacing underscores with spaces. Returns
-	 * {@code null} for null or blank input.
-	 */
-	public static String enumLabel(final String code){
-		if(StringUtils.isEmpty(code))
-			return null;
-		return code.trim().replace('_', ' ');
-	}
 
 	/**
 	 * Converts a note body to a renderer-agnostic string. Markdown notes

@@ -173,7 +173,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event.type"), typeCombo);
 
 		// description
-		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event.description"), descriptionArea);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.description"), descriptionArea);
 
 		// date
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.date"), dateField);
@@ -288,14 +288,6 @@ public class EventRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.event.type")),
 				tabbedPane, propertiesPanel, typeCombo);
-
-			return false;
-		}
-
-		if(descriptionArea.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this,
-				I18N.tf("validation.required", I18N.t("dialog.event.description")),
-				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;
 		}

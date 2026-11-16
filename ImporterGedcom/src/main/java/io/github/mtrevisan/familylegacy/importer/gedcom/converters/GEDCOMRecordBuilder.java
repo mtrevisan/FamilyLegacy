@@ -28,9 +28,9 @@ import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.PendingFile;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMImportContext;
-import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
@@ -1072,13 +1072,22 @@ public final class GEDCOMRecordBuilder{
 			}
 		}
 
+		// Value: the value of the attribute, or else its TYPE (that some programs use to hold it)
+		String value = (!GEDCOMHelper.isFlag(node.getValue())? StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)): null);
+		//"can write" / "cannot write" as an education is a literacy ("literate" / "illiterate")
+		if(IndividualAttributeReader.ENUM_TYPE_EDUCATION.equals(type)){
+			final String literacy = GEDCOMMapper.mapLiteracy(value);
+			if(literacy != null){
+				type = IndividualAttributeReader.ENUM_TYPE_LITERACY;
+				value = literacy;
+			}
+		}
+
 		final FLEFRecord attribute = FLEFRecord.createMainRecord(IDGenerator.nextId(IndividualAttributeReader.ID_PREFIX),
 				IndividualAttributeReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, individualId))
 			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, type));
 
-		// Value: the value of the attribute, or else its TYPE (that some programs use to hold it)
-		String value = (!GEDCOMHelper.isFlag(node.getValue())? StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)): null);
 		if(typeValue != null && !typeConsumed){
 			if(value == null)
 				value = typeValue;

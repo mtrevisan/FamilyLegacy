@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports.i18n;
 
 import com.ibm.icu.text.MessageFormat;
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipVocabulary;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -88,6 +89,34 @@ public final class ReportLabels{
 
 	public String getString(final String key){
 		return bundle.getString(key);
+	}
+
+	/**
+	 * @param prefix	The prefix of the keys of the values of the enumeration (e.g. {@code "enum.event.type"}).
+	 * @param code	The value of the enumeration (e.g. {@code "marriage_bann"}).
+	 * @return	The name of the value in the language of the report, taken from the translations of the user interface (that has them
+	 * 	already, so they are not repeated in every language of the reports); the code with the underscores as spaces if it has none;
+	 * 	{@code null} for a blank code.
+	 */
+	public String enumValue(final String prefix, final String code){
+		if(code == null || code.isBlank())
+			return null;
+
+		final String trimmed = code.trim();
+		return I18N.t(language.locale(), prefix + "." + trimmed, trimmed.replace('_', ' '));
+	}
+
+	/** @return	The name of a kind of record (an individual, a group, a place, ...) in the language of the report. */
+	public String recordKind(final String kind){
+		if(kind == null || kind.isBlank())
+			return null;
+
+		try{
+			return getString("COVERAGE_KIND_" + kind.trim().toUpperCase(Locale.ROOT));
+		}
+		catch(final java.util.MissingResourceException ignored){
+			return kind.trim().replace('_', ' ');
+		}
 	}
 
 	/**

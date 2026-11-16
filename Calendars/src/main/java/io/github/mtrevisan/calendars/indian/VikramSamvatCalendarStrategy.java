@@ -25,6 +25,7 @@
 package io.github.mtrevisan.calendars.indian;
 
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
+import io.github.mtrevisan.calendars.cache.BoundedCache;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -119,8 +119,10 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 	/** An amanta month: from new moon to new moon. */
 	private record LunarMonth(double newMoon, double nextNewMoon, int name, boolean adhika){}
 
-	/** The amanta months of each chaitradi year. */
-	private static final Map<Integer, List<LunarMonth>> YEARS = new ConcurrentHashMap<>();
+	/** Maximum number of years kept in the cache. */
+	private static final int MAX_CACHED_YEARS = 1_024;
+	/** The amanta months of each chaitradi year (the most recently used ones). */
+	private static final BoundedCache<Integer, List<LunarMonth>> YEARS = new BoundedCache<>(MAX_CACHED_YEARS);
 
 
 	/** A parsed date. */
@@ -134,7 +136,7 @@ public class VikramSamvatCalendarStrategy implements CalendarConverterPlugin{
 
 		// the chaitradi year of the month
 		final int year = (date.kartikadi() && date.month() != -1 && date.month() <= ASHVINA? date.year() + 1: date.year());
-		final List<LunarMonth> months = YEARS.computeIfAbsent(year, VikramSamvatCalendarStrategy::computeYear);
+		final List<LunarMonth> months = YEARS.get(year, VikramSamvatCalendarStrategy::computeYear);
 
 		if(date.month() == -1){
 			// a year alone starts on Chaitra (or Kartika) Shukla Pratipada

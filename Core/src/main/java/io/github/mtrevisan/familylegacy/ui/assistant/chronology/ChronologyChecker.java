@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -323,11 +324,19 @@ final class ChronologyChecker{
 	/** Two marriages of the same person that certainly overlap: it is not an error (polygamy exists), but it is worth a look. */
 	private static void checkOverlappingMarriages(final ChronologyData data, final List<Diagnostic> findings){
 		final Set<String> reported = new HashSet<>();
+		//the marriages of each person, found once (in the order of the unions)
+		final Map<String, List<ChronologyData.Union>> marriagesOf = new HashMap<>();
+		for(final ChronologyData.Union union : data.unions())
+			if(union.marriage()){
+				if(union.firstId() != null)
+					marriagesOf.computeIfAbsent(union.firstId(), k -> new ArrayList<>())
+						.add(union);
+				if(union.secondId() != null && !union.secondId().equals(union.firstId()))
+					marriagesOf.computeIfAbsent(union.secondId(), k -> new ArrayList<>())
+						.add(union);
+			}
 		for(final ChronologyData.Person person : data.persons().values()){
-			final List<ChronologyData.Union> marriages = data.unions().stream()
-				.filter(ChronologyData.Union::marriage)
-				.filter(u -> person.id().equals(u.firstId()) || person.id().equals(u.secondId()))
-				.toList();
+			final List<ChronologyData.Union> marriages = marriagesOf.getOrDefault(person.id(), List.of());
 			for(int i = 0; i < marriages.size(); i ++)
 				for(int j = i + 1; j < marriages.size(); j ++){
 					final ChronologyData.Union first = marriages.get(i);

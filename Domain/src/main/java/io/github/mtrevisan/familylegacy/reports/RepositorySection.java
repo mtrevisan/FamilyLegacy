@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.reports;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -204,7 +203,7 @@ public final class RepositorySection implements SectionBuilder{
 	private void appendContacts(final List<ReportSection> out, final FLEFRecord repo){
 		final List<String> rows = new ArrayList<>();
 		for(final FLEFRecord contact : ctx.visibleChildren(repo, RepositoryReader.TAG_CONTACT)){
-			final String rendered = ReportFormatters.renderContact(contact);
+			final String rendered = ReportFormatters.renderContact(contact, ctx.labels);
 			if(rendered != null)
 				rows.add(rendered);
 		}

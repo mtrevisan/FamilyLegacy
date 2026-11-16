@@ -14,7 +14,11 @@
 
 	<profiles>
 		<profile>
-			<!-- mvn package -Pupdate-deltat
+			<!-- How to call it (from the repository root; the phase process-classes is enough, no tests are run):
+					mvn -pl Ephemeris process-classes -Pupdate-deltat
+				or, from the Ephemeris folder:
+					mvn process-classes -Pupdate-deltat
+				(any later phase works too, e.g. "mvn package -Pupdate-deltat")
 				Downloads the IERS table of ΔT from the U.S. Naval Observatory (see DeltaTUpdater) into
 				src/main/resources/deltat.data, and into target/classes so that this build already contains it.
 				Opt-in on purpose: the build stays reproducible and works offline, and a download failure never breaks it
@@ -175,6 +179,20 @@
 						<artifactId>exec-maven-plugin</artifactId>
 						<version>3.5.0</version>
 						<executions>
+							<execution>
+								<id>update-deltat</id>
+								<!-- process-classes comes before the shade (package): the shaded plugin contains the fresh table.
+									A download failure never breaks the build (the table already in place is kept) -->
+								<phase>process-classes</phase>
+								<goals><goal>java</goal></goals>
+								<configuration>
+									<mainClass>io.github.mtrevisan.ephemeris.tools.DeltaTUpdater</mainClass>
+									<arguments>
+										<argument>${project.basedir}/src/main/resources/deltat.data</argument>
+										<argument>${project.build.outputDirectory}/deltat.data</argument>
+									</arguments>
+								</configuration>
+							</execution>
 							<execution>
 								<id>jdeps-modules</id>
 								<!-- eseguito dopo lo shade (package) ma prima di jpackage (anch'esso package) -->
@@ -388,6 +406,7 @@
 						--add-reads io.github.mtrevisan.ephemeris=org.junit.jupiter.api
 						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.engine=org.junit.platform.commons
 						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.helpers=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.tools=org.junit.platform.commons
 					</argLine>
 				</configuration>
 			</plugin>

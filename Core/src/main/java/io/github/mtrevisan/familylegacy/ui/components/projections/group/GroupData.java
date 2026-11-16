@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.group;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -111,7 +112,7 @@ public final class GroupData{
 			nameText = NO_DATA;
 
 		final String rawType = GroupReader.extractType(group);
-		type = (rawType != null? rawType.replace('_', ' '): StringUtils.EMPTY);
+		type = (rawType != null? I18N.t("enum.group.type." + rawType, rawType.replace('_', ' ')): StringUtils.EMPTY);
 
 		extractPreferredImage(group, model);
 	}

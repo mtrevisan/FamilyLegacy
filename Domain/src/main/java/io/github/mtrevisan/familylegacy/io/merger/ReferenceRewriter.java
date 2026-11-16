@@ -65,7 +65,19 @@ final class ReferenceRewriter{
 	/**
 	 * A path, relative to a record of some kind, that holds a reference to a record of {@code targetKind}.
 	 */
-	record XrefPath(String path, String targetKind){}
+	record XrefPath(String path, String targetKind, String parentPath, String tag){
+
+		/**
+		 * @param path       the path of the node that holds the reference, relative to the owner
+		 * @param targetKind the kind of record the reference points to
+		 */
+		XrefPath(final String path, final String targetKind){
+			//the parts of the path are read once, not for every record visited
+			this(path, targetKind, (path.lastIndexOf('.') < 0? null: path.substring(0, path.lastIndexOf('.'))),
+				Strings.CS.removeEnd(path.substring(path.lastIndexOf('.') + 1), WILDCARD));
+		}
+
+	}
 
 	@FunctionalInterface
 	interface ReferenceVisitor{
@@ -109,15 +121,26 @@ final class ReferenceRewriter{
 	void forEachReference(final FLEFRecord owner, final ReferenceVisitor visitor){
 		for(final XrefPath xrefPath : pathsOf(owner.getTag())){
 			final String path = xrefPath.path();
-			final int separator = path.lastIndexOf('.');
-			final List<FLEFRecord> parents = (separator < 0
-				? List.of(owner)
-				: FLEFRecordHelper.findChildren(owner, path.substring(0, separator)));
-			final String tag = Strings.CS.removeEnd(path.substring(separator + 1), WILDCARD);
-			for(final FLEFRecord parent : parents)
-				for(final FLEFRecord node : parent.getChildren())
-					if(tag.equals(node.getTag()) && node.getValue() != null)
-						visitor.visit(owner, parent, node, path, xrefPath.targetKind());
+			final String tag = xrefPath.tag();
+			if(xrefPath.parentPath() == null){
+				//the reference is a child of the owner: no list of parents is built
+				visitChildren(owner, owner, tag, path, xrefPath.targetKind(), visitor);
+
+				continue;
+			}
+
+			for(final FLEFRecord parent : FLEFRecordHelper.findChildren(owner, xrefPath.parentPath()))
+				visitChildren(owner, parent, tag, path, xrefPath.targetKind(), visitor);
+		}
+	}
+
+	private static void visitChildren(final FLEFRecord owner, final FLEFRecord parent, final String tag, final String path, final String targetKind,
+			final ReferenceVisitor visitor){
+		final List<FLEFRecord> children = parent.getChildren();
+		for(int i = 0; i < children.size(); i ++){
+			final FLEFRecord node = children.get(i);
+			if(tag.equals(node.getTag()) && node.getValue() != null)
+				visitor.visit(owner, parent, node, path, targetKind);
 		}
 	}
 

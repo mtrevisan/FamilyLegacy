@@ -94,7 +94,7 @@ public final class GroupNarrator{
 				final String d = DateService.getDateDisplayText(unionEvt);
 				final String p = PlaceCitationReader.extractPlace(unionEvt, model);
 
-				final String typeLabel = (type != null? type.replace('_', ' '): labels.narrative().groupUnionDefaultType());
+				final String typeLabel = (type != null? labels.enumValue("enum.event.type", type): labels.narrative().groupUnionDefaultType());
 				if(d != null || p != null)
 					sentences.add(labels.narrative().groupNarrativeUnion(displayName, typeLabel, d, p));
 			}

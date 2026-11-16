@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergePlan;
 import io.github.mtrevisan.familylegacy.io.merger.manual.RecordMerger;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.Statistics;
@@ -115,6 +116,10 @@ class ToolDialogsEscapeTest{
 			view.setFocusable(true);
 			return view;
 		}
+		if(type == ModelHistory.class)
+			return new ModelHistory(model);
+		if(type == Runnable.class)
+			return (Runnable)() -> {};
 		if(type == BookmarkStore.class)
 			return new BookmarkStore();
 		if(type == ImportReport.class)

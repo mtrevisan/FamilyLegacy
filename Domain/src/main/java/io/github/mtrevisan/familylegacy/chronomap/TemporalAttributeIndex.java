@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.chronomap;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
@@ -132,7 +133,7 @@ public final class TemporalAttributeIndex{
 		return new AttributeDatum(
 			(id != null? id: StringUtils.EMPTY),
 			ownerId,
-			(type != null? type.replace('_', ' '): "attribute"),
+			(type != null? I18N.t("enum.individual_attribute.type." + type, I18N.t("enum.group_attribute.type." + type, type.replace('_', ' '))): I18N.t("text.dossier.attribute")),
 			(value != null? value: StringUtils.EMPTY),
 			fromJdn, toJdn,
 			(from != null), (to != null),

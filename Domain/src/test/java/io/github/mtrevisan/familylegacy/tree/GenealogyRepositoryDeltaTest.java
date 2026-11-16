@@ -74,6 +74,22 @@ class GenealogyRepositoryDeltaTest{
 	}
 
 
+	@Test
+	void theParentsByBirthComeBeforeTheAdoptiveOnes(){
+		final FLEFModel model = new FLEFModel();
+		for(final String id : new String[]{"C", "A", "F", "M"})
+			model.addRecord(FLEFRecord.createMainRecord(id, IndividualReader.TYPE));
+		//the adoption is the oldest relationship of the child
+		model.addRecord(relationship("R1", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD, "C", "A"));
+		model.addRecord(relationship("R2", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, "C", "F"));
+		model.addRecord(relationship("R3", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, "C", "M"));
+		final GenealogyRepository repository = new GenealogyRepository(new String[]{RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD,
+			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD}, model);
+
+		Assertions.assertEquals(List.of("F", "M", "A"), repository.getParents("C").stream().map(FLEFRecord::getId).toList());
+	}
+
+
 	private static FLEFRecord relationship(final String id, final String type, final String subject, final String target){
 		return FLEFRecord.createMainRecord(id, RelationshipReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue(RelationshipReader.TAG_TYPE, type))

@@ -70,6 +70,28 @@ class EnumValuesMigrationTest{
 	}
 
 	@Test
+	void childRoleOfAGroupMembershipIsDropped(){
+		final FLEFModel model = new FLEFParser().parse("""
+			relationship R1 {
+				subject.individual I1
+				target.group G1
+				type group_member
+				role child
+			}
+			relationship R2 {
+				subject.individual I2
+				target.group G1
+				type group_member
+				role president
+			}
+			""");
+
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(model.getRecordById("R1"), "role"));
+		Assertions.assertEquals("president", FLEFRecordHelper.getChildValue(model.getRecordById("R2"), "role"));
+		Assertions.assertEquals(0, EnumValuesMigration.migrate(model));
+	}
+
+	@Test
 	void migratingTwiceChangesNothing(){
 		final FLEFModel model = new FLEFParser().parse(FILE);
 

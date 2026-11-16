@@ -58,10 +58,16 @@ public final class ReferenceType extends TypeDefinition{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final RecordLookup model,
 			final FLEFGrammar grammar, final List<String> errors){
+		validate(ValidationPath.of(contextPath), record, model, grammar, errors);
+	}
+
+	@Override
+	public void validate(final ValidationPath path, final FLEFRecord record, final RecordLookup model, final FLEFGrammar grammar,
+			final List<String> errors){
 		// Syntactic validation: Check if node is a reference format
 		final FLEFRecord referencedRecord = model.getRecordById(record.getValue());
 		if(referencedRecord == null)
-			errors.add(String.format("Expected cross-reference at '%s', record %s", contextPath, record));
+			errors.add(String.format("Expected cross-reference at '%s', record %s", path, record));
 	}
 
 	@Override

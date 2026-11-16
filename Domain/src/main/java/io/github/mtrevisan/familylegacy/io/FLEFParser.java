@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.io.grammar.SingularFieldIndex;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import java.io.ByteArrayInputStream;
@@ -44,7 +43,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
 
@@ -70,6 +68,11 @@ public class FLEFParser{
 	private ProgressListener progressListener = ProgressListener.NOOP;
 	private int lastReportedPercent = -1;
 	private final List<String> warnings = new ArrayList<>();
+	/** The tags are the same few words repeated for every node: a single instance of each is kept. */
+	private final StringPool tags = new StringPool(2048);
+	/** The short values repeat too (the types, the calendars, ...). */
+	private final StringPool values = new StringPool(4096);
+	private static final int MAX_POOLED_VALUE_LENGTH = 32;
 
 
 	/**
@@ -88,20 +91,50 @@ public class FLEFParser{
 		final ProgressListener l = (listener != null? listener: ProgressListener.NOOP);
 		l.onProgress(0, I18N.t("parser.reading.file"));
 
-		final byte[] data = Files.readAllBytes(path);
-		final String content;
-		if(isGzipCompressed(data)){
-			l.onProgress(-1, I18N.t("parser.decompressing"));
+		return parse(readContent(path, l), l);
+	}
 
-			try(final ByteArrayInputStream bais = new ByteArrayInputStream(data);
-				 final GZIPInputStream gis = new GZIPInputStream(bais)){
-				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
+	/**
+	 * Reads a file as text. The buffers are kept as few and as short-lived as possible: the bytes are not kept while the text is parsed,
+	 * and a compressed file is read in a buffer of exactly its uncompressed size (written at its end), instead of the chunks that
+	 * {@link InputStream#readAllBytes()} joins in a second array.
+	 */
+	private static String readContent(final Path path, final ProgressListener listener) throws IOException{
+		byte[] data = Files.readAllBytes(path);
+		if(!isGzipCompressed(data))
+			return new String(data, StandardCharsets.UTF_8);
+
+		listener.onProgress(-1, I18N.t("parser.decompressing"));
+
+		//the uncompressed size modulo 2^32 is in the last four bytes (little endian)
+		final int trailer = (data.length >= 18
+			? (data[data.length - 4] & 0xFF) | (data[data.length - 3] & 0xFF) << 8 | (data[data.length - 2] & 0xFF) << 16
+				| (data[data.length - 1] & 0xFF) << 24
+			: -1);
+		//a size that cannot be (deflate does not compress more than about 1000 times) is not trusted
+		final int declaredSize = (trailer > 0 && trailer <= data.length * 1100L? trailer: -1);
+		try(final ByteArrayInputStream bais = new ByteArrayInputStream(data);
+			 final GZIPInputStream gis = new GZIPInputStream(bais)){
+			if(declaredSize > 0){
+				final byte[] expanded = new byte[declaredSize];
+				final int read = gis.readNBytes(expanded, 0, declaredSize);
+				//a size that does not match (e.g. a file with more than one member) is not trusted
+				final int next = (read == declaredSize? gis.read(): -1);
+				if(read == declaredSize && next < 0)
+					return new String(expanded, StandardCharsets.UTF_8);
+
+				final byte[] rest = gis.readAllBytes();
+				final int nextLength = (next >= 0? 1: 0);
+				final byte[] all = new byte[read + nextLength + rest.length];
+				System.arraycopy(expanded, 0, all, 0, read);
+				if(nextLength == 1)
+					all[read] = (byte)next;
+				System.arraycopy(rest, 0, all, read + nextLength, rest.length);
+				return new String(all, StandardCharsets.UTF_8);
 			}
-		}
-		else
-			content = new String(data, StandardCharsets.UTF_8);
 
-		return parse(content, l);
+			return new String(gis.readAllBytes(), StandardCharsets.UTF_8);
+		}
 	}
 
 	/**
@@ -235,18 +268,20 @@ public class FLEFParser{
 	}
 
 	private FLEFRecord parseRecord(){
-		final String tag = readIdentifier()
-			.toLowerCase(Locale.ROOT);
+		final int tagStart = position;
+		skipIdentifier();
+		final int tagEnd = position;
 
 		FLEFRecord record;
 		FLEFRecord currentRecord;
-		if(tag.indexOf('.') >= 0){
-			final NestedPair pair = createNestedRecord(tag);
+		final int firstDot = text.indexOf('.', tagStart);
+		if(firstDot >= 0 && firstDot < tagEnd){
+			final NestedPair pair = createNestedRecord(tagStart, tagEnd);
 			record = pair.root;
 			currentRecord = pair.current;
 		}
 		else{
-			record = FLEFRecord.createChildWithTag(tag);
+			record = FLEFRecord.createChildWithTag(tags.lowercase(text, tagStart, tagEnd));
 			currentRecord = record;
 		}
 
@@ -347,24 +382,37 @@ public class FLEFParser{
 	 * valid_from { value { point { full_date {} } } }
 	 * Returns the deepest record (the last segment).
 	 */
-	private NestedPair createNestedRecord(final String tagPath){
-		final String[] segments = StringUtils.split(tagPath, '.');
-		final FLEFRecord root = FLEFRecord.createChildWithTag(segments[0]);
-		FLEFRecord current = root;
-		for(int i = 1, length = segments.length; i < length; i ++){
-			final FLEFRecord child = FLEFRecord.createChildWithTag(segments[i]);
-			current.addChild(child);
+	private NestedPair createNestedRecord(final int tagStart, final int tagEnd){
+		//the segments are read in place, without splitting the path (the empty ones are ignored)
+		FLEFRecord root = null;
+		FLEFRecord current = null;
+		int start = tagStart;
+		while(start < tagEnd){
+			int end = text.indexOf('.', start);
+			if(end < 0 || end > tagEnd)
+				end = tagEnd;
+			if(end > start){
+				final FLEFRecord child = FLEFRecord.createChildWithTag(tags.lowercase(text, start, end));
+				if(root == null)
+					root = child;
+				else
+					current.addChild(child);
 
-			current = child;
+				current = child;
+			}
+			start = end + 1;
 		}
+		if(root == null)
+			throw error("Expected identifier");
+
 		return new NestedPair(root, current);
 	}
 
 
 	/**
-	 * Reads an identifier.
+	 * Moves past an identifier.
 	 */
-	private String readIdentifier(){
+	private void skipIdentifier(){
 		final int start = position;
 		while(!eof()){
 			final char c = peek();
@@ -375,8 +423,6 @@ public class FLEFParser{
 		}
 		if(start == position)
 			throw error("Expected identifier");
-
-		return text.substring(start, position);
 	}
 
 	/**
@@ -391,7 +437,9 @@ public class FLEFParser{
 
 			advance();
 		}
-		final String res = text.substring(start, position);
+		final String res = (position - start <= MAX_POOLED_VALUE_LENGTH
+			? values.exact(text, start, position)
+			: text.substring(start, position));
 
 		skipLineBreak();
 
@@ -428,27 +476,30 @@ public class FLEFParser{
 		if(end < 0)
 			throw error("Unterminated multiline string");
 
-		// Extract the raw content between the delimiters
-		final String raw = text.substring(position, end);
 		int startOfCloseLine = end;
 		// Find the start of the line that contains the closing quotes
 		while(startOfCloseLine > 0 && text.charAt(startOfCloseLine - 1) != '\n')
 			startOfCloseLine --;
-		// The line content from startOfCloseLine to 'end' is the closing line (including the triple quotes)
-		final String closeLine = text.substring(startOfCloseLine, end);
-		// Compute the leading whitespace (indent) of the line containing the closing delimiter
-		final int closeIndent = countLeadingWhitespace(closeLine);
+		// Compute the leading whitespace (indent) of the line containing the closing delimiter (from its start to 'end')
+		int closeIndent = 0;
+		while(startOfCloseLine + closeIndent < end && (text.charAt(startOfCloseLine + closeIndent) == ' '
+				|| text.charAt(startOfCloseLine + closeIndent) == '\t'))
+			closeIndent ++;
+
+		// The raw content is between the delimiters
+		final String block = normalizeTextBlock(position, end, closeIndent);
 
 		// Move position past the closing delimiter and normalize the trailing newline
 		position = end + 3;
 
 		skipLineBreak();
 
-		return normalizeTextBlock(raw, closeIndent);
+		return block;
 	}
 
 	/**
-	 * Normalizes a raw text block content (enclosed in """) according to Java text block rules.
+	 * Normalizes a raw text block content (enclosed in """) according to Java text block rules, working on a single array of
+	 * characters (the text block can be long, and every copy of it is memory).
 	 * <p>
 	 * This method performs the following transformations:
 	 * <ol>
@@ -457,119 +508,130 @@ public class FLEFParser{
 	 *       is typically followed by a newline).</li>
 	 *   <li>Determines the minimum indentation (incidental indentation) across all non-blank lines,
 	 *       including the indentation of the closing delimiter line.</li>
-	 *   <li>Removes this minimum indentation from every line.</li>
+	 *   <li>Removes this minimum indentation from every line, and the trailing whitespace.</li>
 	 *   <li>Translates standard escape sequences: {@code \\}, {@code \"}, {@code \n}, {@code \r}, {@code \t}, {@code \s}.</li>
 	 * </ol>
 	 *
-	 * @param raw the raw string read between the triple quotes (including the leading/trailing newlines)
-	 * @param closeIndent  the number of leading whitespace characters on the closing delimiter line
+	 * @param from        the start of the raw string in the text (just after the opening triple quotes)
+	 * @param to          the end of the raw string in the text (the closing triple quotes)
+	 * @param closeIndent the number of leading whitespace characters on the closing delimiter line
 	 * @return the normalized content, ready to be stored as the record value
 	 */
-	private String normalizeTextBlock(final String raw, final int closeIndent){
+	private String normalizeTextBlock(final int from, final int to, final int closeIndent){
+		final char[] buffer = new char[to - from];
+		text.getChars(from, to, buffer, 0);
+
 		// Step 1: Normalize line endings to LF only
-		String normalized = raw.replace("\r\n", StringUtils.LF)
-			.replace('\r', '\n');
+		int size = 0;
+		for(int i = 0, length = buffer.length; i < length; i ++){
+			final char c = buffer[i];
+			if(c == '\r'){
+				buffer[size ++] = '\n';
+				if(i + 1 < length && buffer[i + 1] == '\n')
+					i ++;
+			}
+			else
+				buffer[size ++] = c;
+		}
 
 		// Step 2: Remove the leading newline if present (the opening """ is usually followed by \n)
-		if(normalized.startsWith(StringUtils.LF))
-			normalized = normalized.substring(1);
+		final int begin = (size > 0 && buffer[0] == '\n'? 1: 0);
 
-		// Step 3: Split into lines (keep trailing empty lines)
-		final String[] lines = StringUtils.splitPreserveAllTokens(normalized, '\n');
-
-		// Step 4: Calculate the minimum indentation among all non‑blank content lines
+		// Step 3: Calculate the minimum indentation among all non-blank content lines
 		// and also consider the indentation of the closing delimiter line.
 		int minIndent = closeIndent;
-		for(final String line : lines){
+		for(int lineStart = begin; lineStart <= size; ){
+			int lineEnd = lineStart;
+			while(lineEnd < size && buffer[lineEnd] != '\n')
+				lineEnd ++;
+
 			// Ignore lines that consist solely of whitespace when computing the minimum indent
-			if(line.trim().isEmpty())
-				continue;
-
-			final int leading = countLeadingWhitespace(line);
-			if(leading < minIndent)
-				minIndent = leading;
+			if(!isBlank(buffer, lineStart, lineEnd)){
+				int leading = 0;
+				while(lineStart + leading < lineEnd && (buffer[lineStart + leading] == ' ' || buffer[lineStart + leading] == '\t'))
+					leading ++;
+				if(leading < minIndent)
+					minIndent = leading;
+			}
+			lineStart = lineEnd + 1;
 		}
-		// If the block consists only of blank lines, set minIndent to 0
-		if(minIndent == Integer.MAX_VALUE)
-			minIndent = 0;
 
-		// Step 5: Strip the minimum indentation from each line
-		final StringBuilder result = new StringBuilder();
-		for(int i = 0, length = lines.length; i < length; i ++){
-			final String line = lines[i];
-			if(i > 0)
-				result.append(StringUtils.LF);
+		// Step 4: Strip the minimum indentation and the trailing whitespace from each line (in place: the text only shrinks)
+		int written = 0;
+		for(int lineStart = begin; lineStart <= size; ){
+			int lineEnd = lineStart;
+			while(lineEnd < size && buffer[lineEnd] != '\n')
+				lineEnd ++;
+
+			if(lineStart > begin)
+				buffer[written ++] = '\n';
 			// Remove the minIndent only if the line is long enough
-			final String stripped = (!line.isEmpty() && line.length() >= minIndent? line.substring(minIndent): line);
+			final int contentStart = (lineEnd > lineStart && lineEnd - lineStart >= minIndent? lineStart + minIndent: lineStart);
 			// As in a Java text block, the trailing whitespace of each line is removed (before the escapes are translated)
-			result.append(StringUtils.stripEnd(stripped, null));
+			int contentEnd = lineEnd;
+			while(contentEnd > contentStart && Character.isWhitespace(buffer[contentEnd - 1]))
+				contentEnd --;
+			for(int i = contentStart; i < contentEnd; i ++)
+				buffer[written ++] = buffer[i];
+			lineStart = lineEnd + 1;
 		}
 
-		// Step 6: Translate escape sequences (handle \", \\, \n, \r, \t, \s)
-		return translateEscapes(result.toString());
+		// Step 5: Translate escape sequences (handle \", \\, \n, \r, \t, \s)
+		return new String(buffer, 0, translateEscapes(buffer, written));
+	}
+
+	/** @return whether the characters have nothing but whitespace (as the lines that {@link String#trim()} makes empty) */
+	private static boolean isBlank(final char[] buffer, final int start, final int end){
+		for(int i = start; i < end; i ++)
+			if(buffer[i] > ' ')
+				return false;
+		return true;
 	}
 
 	/**
-	 * Counts the number of leading whitespace characters (spaces and tabs).
-	 *
-	 * @param str the string to examine
-	 * @return the number of leading whitespace characters
-	 */
-	private int countLeadingWhitespace(final String str){
-		int count = 0;
-		for(int i = 0, length = str.length(); i < length; i ++){
-			char c = str.charAt(i);
-			if(c == ' ' || c == '\t')
-				count ++;
-			else
-				break;
-		}
-		return count;
-	}
-
-	/**
-	 * Translates standard escape sequences found in a text block.
+	 * Translates standard escape sequences found in a text block, in place (a translation is never longer than the sequence).
 	 * <p>
 	 * Supports: {@code \\} -> {@code \}, {@code \"} -> {@code "}, {@code \n} -> newline,
 	 * {@code \r} -> carriage return, {@code \t} -> tab, {@code \s} -> space.
 	 * Unrecognized escapes are left unchanged (e.g., {@code \x} remains {@code \x}).
 	 *
-	 * @param input the string potentially containing escape sequences
-	 * @return the string with escapes translated
+	 * @param buffer the characters potentially containing escape sequences
+	 * @param length the number of characters
+	 * @return the number of characters once the escapes are translated
 	 */
-	private String translateEscapes(final String input){
-		final StringBuilder sb = new StringBuilder();
-		for(int i = 0, length = input.length(); i < length; i ++){
-			final char c = input.charAt(i);
-			if(c == '\\' && i + 1 < input.length()){
-				char next = input.charAt(i + 1);
+	private static int translateEscapes(final char[] buffer, final int length){
+		int written = 0;
+		for(int i = 0; i < length; i ++){
+			final char c = buffer[i];
+			if(c == '\\' && i + 1 < length){
+				final char next = buffer[i + 1];
 				switch(next){
 					case 'n' -> {
-						sb.append(StringUtils.LF);
+						buffer[written ++] = '\n';
 						i ++;
 					}
 					case 'r' -> {
-						sb.append('\r');
+						buffer[written ++] = '\r';
 						i ++;
 					}
 					case 't' -> {
-						sb.append('\t');
+						buffer[written ++] = '\t';
 						i ++;
 					}
 					case 's' -> {
-						sb.append(' ');
+						buffer[written ++] = ' ';
 						i ++;
 					}
 					case 'b' -> {
-						sb.append('\b');
+						buffer[written ++] = '\b';
 						i ++;
 					}
 					case 'f' -> {
-						sb.append('\f');
+						buffer[written ++] = '\f';
 						i ++;
 					}
 					case '\'' -> {
-						sb.append('\'');
+						buffer[written ++] = '\'';
 						i ++;
 					}
 					//line continuation: the escaped line break is removed
@@ -580,31 +642,31 @@ public class FLEFParser{
 						int value = next - '0';
 						int digits = 1;
 						final int maxDigits = (next <= '3'? 3: 2);
-						while(digits < maxDigits && i + 1 + digits < length && input.charAt(i + 1 + digits) >= '0'
-								&& input.charAt(i + 1 + digits) <= '7'){
-							value = value * 8 + (input.charAt(i + 1 + digits) - '0');
+						while(digits < maxDigits && i + 1 + digits < length && buffer[i + 1 + digits] >= '0'
+								&& buffer[i + 1 + digits] <= '7'){
+							value = value * 8 + (buffer[i + 1 + digits] - '0');
 							digits ++;
 						}
-						sb.append((char)value);
+						buffer[written ++] = (char)value;
 						i += digits;
 					}
 					case '"' -> {
-						sb.append('"');
+						buffer[written ++] = '"';
 						i ++;
 					}
 					case '\\' -> {
-						sb.append('\\');
+						buffer[written ++] = '\\';
 						i ++;
 					}
 					default ->
 						// Unknown escape: leave both characters as-is
-						sb.append(c);
+						buffer[written ++] = c;
 				}
 			}
 			else
-				sb.append(c);
+				buffer[written ++] = c;
 		}
-		return sb.toString();
+		return written;
 	}
 
 

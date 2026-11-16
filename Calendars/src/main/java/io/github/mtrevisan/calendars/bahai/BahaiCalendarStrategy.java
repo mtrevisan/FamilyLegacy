@@ -28,6 +28,7 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.cache.BoundedCache;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 import io.github.mtrevisan.calendars.spi.CalendarConverterPlugin;
 import io.github.mtrevisan.calendars.spi.CalendarMetadata;
@@ -45,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -118,7 +118,10 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 	static{
 		loadOfficialData();
 	}
-	private static final Map<Integer, Long> COMPUTED_NAW_RUZ = new ConcurrentHashMap<>();
+	/** Maximum number of years kept in the cache. */
+	private static final int MAX_CACHED_YEARS = 1_024;
+	/** The Naw-Rúz computed for each year (the most recently used ones). */
+	private static final BoundedCache<Integer, Long> COMPUTED_NAW_RUZ = new BoundedCache<>(MAX_CACHED_YEARS);
 
 
 	private static void registerMonth(final int month, final String... names){
@@ -190,7 +193,7 @@ public class BahaiCalendarStrategy implements CalendarConverterPlugin{
 	 * @return the Julian Day Number of the Gregorian day of Naw-Rúz
 	 */
 	public static long computeNawRuzJdn(final int year){
-		return COMPUTED_NAW_RUZ.computeIfAbsent(year, y -> {
+		return COMPUTED_NAW_RUZ.get(year, y -> {
 			final EphemerisEngine engine = EphemerisEngineFactory.getEngine();
 			if(!engine.isAvailable())
 				throw new UnsupportedOperationException("Bahá'í calendar requires the Ephemeris plugin.");

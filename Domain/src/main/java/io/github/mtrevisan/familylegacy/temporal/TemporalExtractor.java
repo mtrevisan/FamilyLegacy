@@ -128,7 +128,7 @@ public final class TemporalExtractor{
 
 			final String type = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
 			final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
-			final String label = (type != null? type.replace('_', ' '): "event");
+			final String label = (type != null? I18N.t("enum.event.type." + type, type.replace('_', ' ')): I18N.t("text.dossier.event"));
 
 			result.add(new TemporalEntry(span, label, type, role, event, evidenceOf(event)));
 		}
@@ -212,7 +212,9 @@ public final class TemporalExtractor{
 
 		final String type = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_TYPE: GroupAttributeReader.TAG_TYPE));
 		final String value = FLEFRecordHelper.getChildValue(attribute, (isIndividual? IndividualAttributeReader.TAG_VALUE: GroupAttributeReader.TAG_VALUE));
-		final String label = (type != null? type.replace('_', ' '): "attribute");
+		final String label = (type != null
+			? I18N.t((isIndividual? "enum.individual_attribute.type.": "enum.group_attribute.type.") + type, type.replace('_', ' '))
+			: I18N.t("text.dossier.attribute"));
 
 		return new TemporalEntry(span, label, type, value, attribute, evidenceOf(attribute));
 	}
@@ -273,8 +275,7 @@ public final class TemporalExtractor{
 				continue;
 
 			final String impactType = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_IMPACT_TYPE);
-			final String label = context.getTag()
-				.replace('_', ' ');
+			final String label = I18N.t("text.context.kind." + context.getTag(), context.getTag().replace('_', ' '));
 			output.add(new TemporalEntry(span, label, context.getTag(), impactType, context, evidenceOf(impact)));
 		}
 	}

@@ -34,7 +34,6 @@ import org.openpdf.text.pdf.FontSelector;
 import org.openpdf.text.pdf.PdfWriter;
 
 import java.awt.Color;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -82,8 +81,6 @@ final class PdfFonts{
 	/** The words that are written in capitals in the name of a family. */
 	private static final Set<String> ACRONYMS = Set.of("ui", "sc", "tc", "jp", "kr", "hk", "cjk", "mt", "ms", "mdl2");
 	/** System property that sets the directory of the fonts the program carries (the application sets nothing: it is beside the plugins). */
-	private static final String FONTS_DIR_PROPERTY = "familylegacy.fonts.dir";
-	private static final String FONTS_DIR = "fonts";
 	private static final Map<String, Optional<BaseFont>> BASES = new ConcurrentHashMap<>();
 
 	private static boolean registered;
@@ -215,7 +212,7 @@ final class PdfFonts{
 		if(bundledRegistered)
 			return;
 
-		final Path directory = fontsDirectory();
+		final Path directory = FontsDirectory.get();
 		try{
 			if(directory != null && Files.isDirectory(directory)){
 				FontFactory.registerDirectory(directory.toString());
@@ -224,26 +221,6 @@ final class PdfFonts{
 		}
 		catch(final RuntimeException ignored){
 			//a directory that cannot be read is like a missing one
-		}
-	}
-
-	/**
-	 * @return	The directory of the fonts the program carries ({@code fonts}, beside the {@code plugins} directory this plugin is in, or the
-	 * 	one the {@code familylegacy.fonts.dir} system property names); {@code null} if it cannot be told. It may not exist.
-	 */
-	static Path fontsDirectory(){
-		final String explicit = System.getProperty(FONTS_DIR_PROPERTY);
-		if(explicit != null && !explicit.isBlank())
-			return Path.of(explicit);
-
-		try{
-			final Path plugins = Path.of(PdfFonts.class.getProtectionDomain().getCodeSource().getLocation().toURI())
-				.getParent();
-			final Path parent = (plugins != null? plugins.getParent(): null);
-			return (parent != null? parent.resolve(FONTS_DIR): null);
-		}
-		catch(final URISyntaxException | RuntimeException ignored){
-			return null;
 		}
 	}
 

@@ -171,8 +171,9 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		currentPanel = treeGraphPanel;
 		add(treeGraphPanel, BorderLayout.CENTER);
 
-		treeGraphPanel.withNavigationCallback(navigationHistory::push);
-		egoPanel.withNavigationCallback(navigationHistory::push);
+		//a new root (a click, an arrow, a confirmation...) is recorded and tells the frame, so the dossier follows it
+		treeGraphPanel.withNavigationCallback(this::onRootChanged);
+		egoPanel.withNavigationCallback(this::onRootChanged);
 
 		setupSwitchShortcut(this);
 	}
@@ -729,6 +730,12 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		return PrivacyService.visible(model, model.getRecordsByType(IndividualHandler.TYPE)).stream()
 			.map(FLEFRecord::getId)
 			.toList();
+	}
+
+	private void onRootChanged(final String id){
+		navigationHistory.push(id);
+		lastRootId = id;
+		notifyNavigation(id);
 	}
 
 	private void notifyNavigation(final String id){

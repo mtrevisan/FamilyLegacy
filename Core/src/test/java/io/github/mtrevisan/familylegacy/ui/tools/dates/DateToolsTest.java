@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.tools.dates;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.events.EventToolRegistry;
 import org.junit.jupiter.api.Assertions;

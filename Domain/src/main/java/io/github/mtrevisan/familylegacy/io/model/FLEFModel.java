@@ -220,13 +220,26 @@ public class FLEFModel implements RecordLookup{
 			return false;
 
 		final FLEFModel other = (FLEFModel)obj;
-		return (Objects.equals(getHeader(), other.getHeader())
-			&& Objects.equals(new HashSet<>(records), new HashSet<>(other.records)));
+		if(!Objects.equals(getHeader(), other.getHeader()))
+			return false;
+
+		//the same records in the same order (e.g. a copy) are equal without building the sets
+		final int size = records.size();
+		if(size == other.records.size()){
+			boolean sameOrder = true;
+			for(int i = 0; sameOrder && i < size; i ++)
+				sameOrder = records.get(i).equals(other.records.get(i));
+			if(sameOrder)
+				return true;
+		}
+
+		return Objects.equals(new HashSet<>(records), new HashSet<>(other.records));
 	}
 
 	@Override
 	public int hashCode(){
-		int hash = Objects.hash(getHeader());
+		//the same value of Objects.hash(getHeader()), without the array
+		int hash = 31 + Objects.hashCode(getHeader());
 		hash = 31 * hash + childrenHash(records);
 		return hash;
 	}

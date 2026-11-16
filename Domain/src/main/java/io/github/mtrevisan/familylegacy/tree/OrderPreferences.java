@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.tree;
 
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
 import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
 
 import java.util.List;
@@ -53,6 +54,10 @@ public final class OrderPreferences{
 		.childrenOrder();
 	private static volatile PartnerOrder partners = AppPreferences.getInstance()
 		.partnerOrder();
+	private static volatile DossierOrder dossierEvents = AppPreferences.getInstance()
+		.dossierOrder(AppPreferences.KEY_DOSSIER_EVENTS_ORDER);
+	private static volatile DossierOrder dossierAttributes = AppPreferences.getInstance()
+		.dossierOrder(AppPreferences.KEY_DOSSIER_ATTRIBUTES_ORDER);
 	/** Incremented at every change, so that the caches of already ordered data can tell they are stale. */
 	private static final AtomicInteger VERSION = new AtomicInteger();
 
@@ -100,6 +105,44 @@ public final class OrderPreferences{
 		VERSION.incrementAndGet();
 		AppPreferences.getInstance()
 			.setPartnerOrder(order);
+		fireChanged();
+	}
+
+	/** @return	The order of the events in the dossier (default {@link DossierOrder#CHRONOLOGICAL}). */
+	public static DossierOrder dossierEvents(){
+		return dossierEvents;
+	}
+
+	/** @return	The order of the attributes in the dossier (default {@link DossierOrder#CHRONOLOGICAL}). */
+	public static DossierOrder dossierAttributes(){
+		return dossierAttributes;
+	}
+
+	/** Changes the order of the events in the dossier, persists the choice in the user preferences, and notifies the listeners. */
+	public static void setDossierEvents(final DossierOrder order){
+		Objects.requireNonNull(order, "order");
+
+		if(order == dossierEvents)
+			return;
+
+		dossierEvents = order;
+		VERSION.incrementAndGet();
+		AppPreferences.getInstance()
+			.setDossierOrder(AppPreferences.KEY_DOSSIER_EVENTS_ORDER, order);
+		fireChanged();
+	}
+
+	/** Changes the order of the attributes in the dossier, persists the choice in the user preferences, and notifies the listeners. */
+	public static void setDossierAttributes(final DossierOrder order){
+		Objects.requireNonNull(order, "order");
+
+		if(order == dossierAttributes)
+			return;
+
+		dossierAttributes = order;
+		VERSION.incrementAndGet();
+		AppPreferences.getInstance()
+			.setDossierOrder(AppPreferences.KEY_DOSSIER_ATTRIBUTES_ORDER, order);
 		fireChanged();
 	}
 

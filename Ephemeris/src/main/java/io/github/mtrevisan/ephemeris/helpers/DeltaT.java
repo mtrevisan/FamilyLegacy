@@ -531,6 +531,37 @@ public final class DeltaT{
 	 *                          Espenak-Meeus polynomials
 	 * ====================================================================== */
 
+	//coefficients of the Espenak-Meeus polynomials, in the order of the intervals of polynomialDeltaT
+	private static final double[] POLY_0 = {
+		10583.6, -1014.41, 33.78311, -5.952053,
+		-0.1798452, 0.022174192, 0.0090316521};
+	private static final double[] POLY_1 = {
+		1574.2, -556.01, 71.23472, 0.319781,
+		-0.8503463, -0.005050998, 0.0083572073};
+	private static final double[] POLY_2 = {
+		120., -0.9808, -0.01532, 1. / 7129.};
+	private static final double[] POLY_3 = {
+		8.83, 0.1603, -0.0059285, 0.00013336, -1. / 1174000.};
+	private static final double[] POLY_4 = {
+		13.72, -0.332447, 0.0068612, 0.0041116,
+		-0.00037436, 0.0000121272, -0.0000001699, 0.000000000875};
+	private static final double[] POLY_5 = {
+		7.62, 0.5737, -0.251754, 0.01680668,
+		-0.0004473624, 1. / 233174.};
+	private static final double[] POLY_6 = {
+		-2.79, 1.494119, -0.0598939, 0.0061966, -0.000197};
+	private static final double[] POLY_7 = {
+		21.20, 0.84493, -0.076100, 0.0020936};
+	private static final double[] POLY_8 = {
+		29.07, 0.407, -1. / 233., 1. / 2547.};
+	private static final double[] POLY_9 = {
+		45.45, 1.067, -1. / 260., -1. / 718.};
+	private static final double[] POLY_10 = {
+		63.86, 0.3345, -0.060374, 0.0017275,
+		0.000651814, 0.00002373599};
+	private static final double[] POLY_11 = {
+		62.92, 0.32217, 0.005589};
+
 	/**
 	 * Evaluates the Espenak-Meeus piecewise polynomial for ΔT. The return
 	 * value is in seconds and assumes the Morrison-Stephenson lunar
@@ -543,69 +574,40 @@ public final class DeltaT{
 			return -20. + 32. * sq((y - 1820.) / 100.);
 
 		if(y < 500.)
-			return MathHelper.polynomial(y / 100., new double[]{
-				10583.6, -1014.41, 33.78311, -5.952053,
-				-0.1798452, 0.022174192, 0.0090316521
-			});
+			return MathHelper.polynomial(y / 100., POLY_0);
 
 		if(y < 1600.)
-			return MathHelper.polynomial((y - 1000.) / 100., new double[]{
-				1574.2, -556.01, 71.23472, 0.319781,
-				-0.8503463, -0.005050998, 0.0083572073
-			});
+			return MathHelper.polynomial((y - 1000.) / 100., POLY_1);
 
 		if(y < 1700.)
-			return MathHelper.polynomial(y - 1600., new double[]{
-				120., -0.9808, -0.01532, 1. / 7129.
-			});
+			return MathHelper.polynomial(y - 1600., POLY_2);
 
 		if(y < 1800.)
-			return MathHelper.polynomial(y - 1700., new double[]{
-				8.83, 0.1603, -0.0059285, 0.00013336, -1. / 1174000.
-			});
+			return MathHelper.polynomial(y - 1700., POLY_3);
 
 		if(y < 1860.)
-			return MathHelper.polynomial(y - 1800., new double[]{
-				13.72, -0.332447, 0.0068612, 0.0041116,
-				-0.00037436, 0.0000121272, -0.0000001699, 0.000000000875
-			});
+			return MathHelper.polynomial(y - 1800., POLY_4);
 
 		if(y < 1900.)
-			return MathHelper.polynomial(y - 1860., new double[]{
-				7.62, 0.5737, -0.251754, 0.01680668,
-				-0.0004473624, 1. / 233174.
-			});
+			return MathHelper.polynomial(y - 1860., POLY_5);
 
 		if(y < 1920.)
-			return MathHelper.polynomial(y - 1900., new double[]{
-				-2.79, 1.494119, -0.0598939, 0.0061966, -0.000197
-			});
+			return MathHelper.polynomial(y - 1900., POLY_6);
 
 		if(y < 1941.)
-			return MathHelper.polynomial(y - 1920., new double[]{
-				21.20, 0.84493, -0.076100, 0.0020936
-			});
+			return MathHelper.polynomial(y - 1920., POLY_7);
 
 		if(y < 1961.)
-			return MathHelper.polynomial(y - 1950., new double[]{
-				29.07, 0.407, -1. / 233., 1. / 2547.
-			});
+			return MathHelper.polynomial(y - 1950., POLY_8);
 
 		if(y < 1986.)
-			return MathHelper.polynomial(y - 1975., new double[]{
-				45.45, 1.067, -1. / 260., -1. / 718.
-			});
+			return MathHelper.polynomial(y - 1975., POLY_9);
 
 		if(y < 2005.)
-			return MathHelper.polynomial(y - 2000., new double[]{
-				63.86, 0.3345, -0.060374, 0.0017275,
-				0.000651814, 0.00002373599
-			});
+			return MathHelper.polynomial(y - 2000., POLY_10);
 
 		if(y < 2050.)
-			return MathHelper.polynomial(y - 2000., new double[]{
-				62.92, 0.32217, 0.005589
-			});
+			return MathHelper.polynomial(y - 2000., POLY_11);
 
 		if(y < 2150.)
 			return -20. + 32. * sq((y - 1820.) / 100.) - 0.5628 * (2150. - y);
@@ -618,13 +620,11 @@ public final class DeltaT{
 	 * Correction for the difference in the adopted lunar secular
 	 * acceleration. The Espenak-Meeus polynomials and the S/M/H spline
 	 * assume −26″/cy²; ELP/MPP02 uses −25.858″/cy². The correction is
-	 * significant only outside 1955–2005, where those sources were
-	 * derived without reference to a specific lunar ephemeris.
+	 * quadratic around 1955 and is applied over the whole time line, so that the
+	 * polynomial and spline branches stay continuous (it is below 0.04 s within
+	 * 2005 and 0.01 s within 1955 ± 28 years, hence negligible there).
 	 */
 	private static double secularAccelerationCorrection(final double y){
-		if(y >= 1955. && y <= 2005.)
-			return 0.;
-
 		return -0.000012932 * sq(y - 1955.);
 	}
 

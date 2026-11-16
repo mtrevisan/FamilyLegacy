@@ -39,6 +39,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -264,8 +265,12 @@ public final class TagSuggester{
 	 *                          Fields
 	 * ====================================================================== */
 
-	private final Map<String, List<FieldInfo>> types = new LinkedHashMap<>();
-	private final Map<String, String> recordTagToType = new LinkedHashMap<>();
+	//the grammar is read and parsed once, and shared by all the suggesters: they only differ in the record and the field they work on
+	private final Map<String, List<FieldInfo>> types;
+	private final Map<String, String> recordTagToType;
+	/** The tags that are a leaf in some type, and the tags that are a block in some type (built once: they are asked at every keystroke). */
+	private final Set<String> leafTags;
+	private final Set<String> blockTags;
 
 	private final String fieldTag;
 	private final String recordType;
@@ -277,11 +282,43 @@ public final class TagSuggester{
 	 * ====================================================================== */
 
 	public TagSuggester(final String recordTag, final String fieldTag){
-		this.fieldTag = fieldTag;
+		this(Shared.TEMPLATE, recordTag, fieldTag);
+	}
+
+	/** The holder of the parsed grammar: it is parsed when the first suggester is made. */
+	private static final class Shared{
+
+		private static final TagSuggester TEMPLATE = new TagSuggester();
+
+	}
+
+	/** The suggester that reads and parses the grammar, for the others to share. */
+	private TagSuggester(){
+		types = new LinkedHashMap<>();
+		recordTagToType = new LinkedHashMap<>();
+		fieldTag = null;
+		recordType = null;
+		fieldType = null;
 
 		final String content = loadGrammar();
 		if(content != null)
 			parseGrammar(content);
+
+		final Set<String> leaves = new HashSet<>();
+		final Set<String> blocks = new HashSet<>();
+		for(final List<FieldInfo> fields : types.values())
+			for(final FieldInfo f : fields)
+				(f.block? blocks: leaves).add(f.name);
+		leafTags = leaves;
+		blockTags = blocks;
+	}
+
+	private TagSuggester(final TagSuggester template, final String recordTag, final String fieldTag){
+		this.fieldTag = fieldTag;
+		types = template.types;
+		recordTagToType = template.recordTagToType;
+		leafTags = template.leafTags;
+		blockTags = template.blockTags;
 
 		this.recordType = recordTagToType.get(recordTag);
 		this.fieldType = computeFieldType(this.recordType, fieldTag);
@@ -351,8 +388,9 @@ public final class TagSuggester{
 			if(prefix.isEmpty() || f.name.startsWith(prefix))
 				out.add(new Suggestion(f.name, f.block, f.prefill, f.cardinality));
 
-		LOGGER.debug("Suggestions for type '{}', prefix '{}': {} → {}",
-			ctx.parentType(), prefix, fields.size(), out.size());
+		if(LOGGER.isDebugEnabled())
+			LOGGER.debug("Suggestions for type '{}', prefix '{}': {} → {}",
+				ctx.parentType(), prefix, fields.size(), out.size());
 		return out;
 	}
 
@@ -432,23 +470,11 @@ public final class TagSuggester{
 	}
 
 	public boolean isLeafTag(final String tag){
-		if(tag == null)
-			return false;
-		for(final List<FieldInfo> fields : types.values())
-			for(final FieldInfo f : fields)
-				if(f.name.equals(tag) && !f.block)
-					return true;
-		return false;
+		return (tag != null && leafTags.contains(tag));
 	}
 
 	public boolean isBlockTag(final String tag){
-		if(tag == null)
-			return false;
-		for(final List<FieldInfo> fields : types.values())
-			for(final FieldInfo f : fields)
-				if(f.name.equals(tag) && f.block)
-					return true;
-		return false;
+		return (tag != null && blockTags.contains(tag));
 	}
 
 	/**
@@ -539,33 +565,31 @@ public final class TagSuggester{
 		if(text == null || caret < 0 || caret > text.length())
 			return false;
 
+		//the line up to the caret, read in place: this is asked at every keystroke
 		int lineStart = caret;
 		while(lineStart > 0 && text.charAt(lineStart - 1) != '\n')
 			lineStart --;
-		final String rawLine = text.substring(lineStart, caret);
 
-		int i = 0;
-		while(i < rawLine.length()
-			&& (rawLine.charAt(i) == ' ' || rawLine.charAt(i) == '\t'))
+		int i = lineStart;
+		while(i < caret && (text.charAt(i) == ' ' || text.charAt(i) == '\t'))
 			i ++;
-		final String stripped = rawLine.substring(i);
 
-		if(stripped.isEmpty())
+		if(i == caret)
 			return false;
-		final char last = stripped.charAt(stripped.length() - 1);
+		final char last = text.charAt(caret - 1);
 		if(last == '{' || last == '}')
 			return false;
 		if(last == ' ' || last == '\t')
 			return true;
 
-		int j = 0;
-		while(j < stripped.length()){
-			final char c = stripped.charAt(j);
+		int j = i;
+		while(j < caret){
+			final char c = text.charAt(j);
 			if(!Character.isLetterOrDigit(c) && c != '_' && c != '.')
 				break;
 			j ++;
 		}
-		return (j < stripped.length());
+		return (j < caret);
 	}
 
 
@@ -666,8 +690,9 @@ public final class TagSuggester{
 		final String indent = currentIndent(text, caret);
 		final boolean suppressed = inMultilineString || inBlockComment || inLineComment;
 
-		LOGGER.debug("resolveContext: caret={}, path={}, parentType={}, prefix='{}', suppressed={}",
-			caret, path, parentType, prefix, suppressed);
+		if(LOGGER.isDebugEnabled())
+			LOGGER.debug("resolveContext: caret={}, path={}, parentType={}, prefix='{}', suppressed={}",
+				caret, path, parentType, prefix, suppressed);
 
 		return new Context(parentType, prefix, indent, suppressed);
 	}

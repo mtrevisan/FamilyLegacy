@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.social;
 
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.social.SocialLayoutMode;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;

@@ -31,7 +31,7 @@ Details:
 - The **base directory** is the folder of the open `.flef` file, unless you choose another with **Base directory...**. **Use the folder of the open file** removes your choice and goes back to the default. The tooltip of *Base directory...* tells which folder is in use.
 - A file that is not under the base directory, and a web address, are always shown in full.
 - Choosing *Relative to the base directory* with no file open and no folder chosen asks for the folder.
-- The setting only changes what is *shown*. The field where you edit the location of a media always shows it whole, and the stored value is never changed.
+- The setting only changes what is *shown*, everywhere a location appears: the lists of media, the *Location* field of the media editor, error messages, the *media missing* warning of the validation, tooltips and the media pages of the reports. The stored value is never changed, and it is the whole value that is saved and used to open the file.
 - Windows that are already open show the new setting when they are opened again.
 
 ## Interface level
@@ -69,7 +69,7 @@ The assistant window and its counter in the toolbar follow the level too: a basi
 ## Preferences in the View menu
 
 - **View > Privacy**: what the views show, according to the privacy of each record. See [Navigating the tree](navigating.md#privacy).
-- **View > Order of Children and Partners**: how children and partners are sorted. See [Navigating the tree](navigating.md#order-of-children-and-partners).
+- **View > Order of Children, Partners and Dossier**: how children, partners and the events and attributes of the dossier are sorted. See [Navigating the tree](navigating.md#order-of-children-partners-and-dossier).
 
 ## Identity Assistant
 

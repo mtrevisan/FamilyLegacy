@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.importer.gramps;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.FileImporter;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
+import io.github.mtrevisan.familylegacy.importer.SameSexParentsCheck;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 
 import java.io.IOException;
@@ -90,7 +91,9 @@ public final class GrampsFileImporter implements FileImporter{
 		}
 
 		progress.onProgress(-1, I18N.t("progress.parsing_gramps"));
-		return GrampsXMLToFLEFConverter.convert(grampsXml, progress::onProgress, report, mediaDirectory);
+		final FLEFModel model = GrampsXMLToFLEFConverter.convert(grampsXml, progress::onProgress, report, mediaDirectory);
+		SameSexParentsCheck.report(model, report);
+		return model;
 	}
 
 }

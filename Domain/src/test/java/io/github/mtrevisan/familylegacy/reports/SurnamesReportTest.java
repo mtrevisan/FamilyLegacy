@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
-import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -33,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;

@@ -288,7 +288,7 @@ public final class IndividualNarrator{
 					valueBuilder.append(')');
 				}
 
-				final String eventLabel = (type != null? type.replace('_', ' '): labels.sections().eventGenericLower());
+				final String eventLabel = (type != null? labels.enumValue("enum.individual_attribute.type", type): labels.sections().eventGenericLower());
 				sentences.add(labels.narrativeAttribute(name, eventLabel, valueBuilder.toString()));
 			}
 		}

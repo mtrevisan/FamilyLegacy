@@ -35,11 +35,11 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialo
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import org.jxmapviewer.JXMapViewer;
-import org.jxmapviewer.viewer.GeoPosition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
+import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.viewer.GeoPosition;
 
 import javax.swing.Action;
 import javax.swing.JComponent;

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
@@ -152,7 +153,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				ioe.printStackTrace();
 
 				JOptionPane.showMessageDialog(parent,
-					I18N.tf("error.image", uri),
+					I18N.tf("error.image", MediaPathDisplay.display(uri)),
 					I18N.t("error.title"),
 					JOptionPane.ERROR_MESSAGE);
 			}
@@ -229,7 +230,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 							ioe.printStackTrace();
 
 							JOptionPane.showMessageDialog(parent,
-								I18N.tf("error.image", uri),
+								I18N.tf("error.image", MediaPathDisplay.display(uri)),
 								I18N.t("error.title"),
 								JOptionPane.ERROR_MESSAGE);
 						}

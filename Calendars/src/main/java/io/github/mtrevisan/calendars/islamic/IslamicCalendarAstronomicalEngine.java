@@ -28,11 +28,10 @@ import io.github.mtrevisan.calendars.astronomy.EphemerisEngine;
 import io.github.mtrevisan.calendars.astronomy.EphemerisEngineFactory;
 import io.github.mtrevisan.calendars.astronomy.SunlightPhase;
 import io.github.mtrevisan.calendars.astronomy.Zenith;
+import io.github.mtrevisan.calendars.cache.BoundedCache;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarStrategy;
 
 import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -91,8 +90,10 @@ public final class IslamicCalendarAstronomicalEngine{
 	private static final double UNIX_EPOCH_JD = 2440587.5;
 	private static final double MILLISECONDS_PER_DAY = 86_400_000.;
 
-	/** The first day of each month computed so far, by month index since the epoch. */
-	private static final Map<Long, Long> MONTH_STARTS = new ConcurrentHashMap<>();
+	/** Maximum number of months kept in the cache (about 340 years). */
+	private static final int MAX_CACHED_MONTHS = 4_096;
+	/** The first day of each month computed so far (the most recently used ones), by month index since the epoch. */
+	private static final BoundedCache<Long, Long> MONTH_STARTS = new BoundedCache<>(MAX_CACHED_MONTHS);
 
 
 	private IslamicCalendarAstronomicalEngine(){}
@@ -147,13 +148,7 @@ public final class IslamicCalendarAstronomicalEngine{
 			return UmmAlQuraTable.monthStartJdn(year, month);
 
 		final long monthIndex = (year - 1L) * 12L + (month - 1L);
-		final Long cached = MONTH_STARTS.get(monthIndex);
-		if(cached != null)
-			return cached;
-
-		final long start = computeMonthStartJdn(monthIndex);
-		MONTH_STARTS.put(monthIndex, start);
-		return start;
+		return MONTH_STARTS.get(monthIndex, IslamicCalendarAstronomicalEngine::computeMonthStartJdn);
 	}
 
 	private static long computeMonthStartJdn(final long monthIndex){

@@ -237,7 +237,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			if(vs.isEmpty())
 				continue;
 			final String partType = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
-			final String sb = "*" + ReportFormatters.escape(ReportFormatters.orEmpty(ReportFormatters.enumLabel(partType))) +
+			final String sb = "*" + ReportFormatters.escape(ReportFormatters.orEmpty(ctx.labels.enumValue("enum.part.type", partType))) +
 				":* " + ReportFormatters.escape(String.join(", ", vs));
 			out.add(sb);
 		}
@@ -376,7 +376,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 				? " — *" + ReportFormatters.escape(p.role()) + "*": StringUtils.EMPTY);
 			items.add(ReportFormatters.escape(ctx.displayText(p.record()))
 				+ " [" + ReportFormatters.escape(ReportFormatters.orEmpty(
-				ReportFormatters.enumLabel(p.kind()))) + "]" + role);
+				ctx.labels.recordKind(p.kind()))) + "]" + role);
 		}
 		if(!items.isEmpty()){
 			out.add(new ReportSection.Heading(4, ctx.labels.sections().eventOtherParticipants()));
@@ -452,7 +452,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 
 		final StringBuilder header = new StringBuilder();
 		if(type != null && !type.isBlank()){
-			header.append(ReportFormatters.escape(ReportFormatters.enumLabel(type)));
+			header.append(ReportFormatters.escape(ctx.labels.enumValue("enum.individual_attribute.type", type)));
 		}
 		if(value != null && !value.isBlank()){
 			if(!header.isEmpty()) header.append(": ");
@@ -545,7 +545,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			: (group != null? ctx.displayText(group): ReportFormatters.orEmpty(StringUtils.defaultIfBlank(objectId, groupId))));
 
 		//"Biological child of Hieronimo Pastrelo (father)": the subject is the child, the other end is the parent (with its role)
-		final String typeLabel = StringUtils.capitalize(StringUtils.defaultString(ReportFormatters.enumLabel(relType)));
+		final String typeLabel = StringUtils.capitalize(StringUtils.defaultString(ctx.labels.enumValue("enum.relationship.type", relType)));
 		//the kinship term of the other end ("father"): in the title, when the relationship has no role of its own
 		String kinTerm = null;
 		if(ctx.isVisible(object)){

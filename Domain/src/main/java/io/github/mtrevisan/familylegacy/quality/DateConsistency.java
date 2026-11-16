@@ -34,6 +34,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
@@ -81,6 +83,13 @@ public final class DateConsistency{
 		return (type != null && POSTHUMOUS_TYPES.contains(type));
 	}
 
+	/**
+	 * The events that a record of the time attests: a birth (or a baptism), a death (or a burial) is written down when, or after, it
+	 * happens. A marriage is not here: its banns are published, and cited, before the wedding.
+	 */
+	private static final Set<String> RECORDED_AFTER_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.CUSTOM_TYPE_BAPTISM,
+		EventReader.CUSTOM_TYPE_CHRISTENING, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
+
 	/** The longest time between the death of the father and the birth of the child, in days. */
 	private static final int MAX_GESTATION_DAYS = 300;
 	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
@@ -107,6 +116,7 @@ public final class DateConsistency{
 	public static List<ConsistencyService.Issue> check(final FLEFModel model){
 		final List<ConsistencyService.Issue> issues = new ArrayList<>();
 		checkReadable(model, issues);
+		checkCitedSources(model, issues);
 
 		final List<LifeEvent> events = loadEvents(model);
 		final Map<String, List<LifeEvent>> eventsByPerson = new HashMap<>();
@@ -171,6 +181,41 @@ public final class DateConsistency{
 		final String kind = (problem == DateNormalizer.Problem.INVALID? "date_invalid": "date_not_checked");
 		issues.add(new ConsistencyService.Issue(ConsistencyService.Severity.WARNING, record.getId(),
 			I18N.tf(KEY_PREFIX + kind, RecordDisplay.describe(record, model), field, text(date)), kind));
+	}
+
+	/**
+	 * A source dated before the event it is cited for: the record of a birth, a baptism, a death or a burial is normally not older than
+	 * what it records (a year that was typed wrong, in the event or in the source, is the usual cause). It is only a warning, though, not
+	 * an error: a source can be older than the event if it was completed afterwards (a note added in the margin of a register, a later
+	 * annotation about another individual), so it is a thing to verify, not a proof. It is judged by all the days both dates may stand
+	 * for, like the others.
+	 */
+	private static void checkCitedSources(final FLEFModel model, final List<ConsistencyService.Issue> issues){
+		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE)){
+			if(!RECORDED_AFTER_TYPES.contains(EventReader.extractType(event)))
+				continue;
+
+			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
+			final DateRange eventDate = (dates.isEmpty()? null: range(dates.getFirst()));
+			if(eventDate == null)
+				continue;
+
+			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(event, EventReader.TAG_SOURCE)){
+				if(SourceCitationReader.isContradicting(citation))
+					continue;
+
+				final FLEFRecord source = model.getRecordById(SourceCitationReader.extractSource(citation));
+				if(source == null)
+					continue;
+
+				final FLEFRecord sourceDateStructure = FLEFRecordHelper.findChild(source, SourceReader.TAG_DATE);
+				final DateRange sourceDate = range(sourceDateStructure);
+				if(sourceDate != null && sourceDate.isBefore(eventDate))
+					issues.add(new ConsistencyService.Issue(ConsistencyService.Severity.WARNING, event.getId(),
+						I18N.tf(KEY_PREFIX + "source_before_event", RecordDisplay.describe(event, model), text(dates.getFirst()),
+						RecordDisplay.describe(source, model), text(sourceDateStructure)), "source_before_event"));
+			}
+		}
 	}
 
 	private static void checkLifespans(final Map<String, Person> persons, final List<ConsistencyService.Issue> issues){

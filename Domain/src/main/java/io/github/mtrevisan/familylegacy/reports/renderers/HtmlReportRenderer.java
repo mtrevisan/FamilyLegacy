@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.reports.renderers;
 
+import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
-import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;

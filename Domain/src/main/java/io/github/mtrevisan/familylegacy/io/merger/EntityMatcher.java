@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -123,6 +123,12 @@ final class EntityMatcher{
 	/** Whether the compared records come from two different files. */
 	private final boolean crossFile;
 	private final Map<String, IndividualFeatures> individualFeatures = new HashMap<>();
+	//what is read from a place, once for each place (like the features of an individual): a place is compared with every place of its block,
+	//and each comparison reads the names of its ancestors and of its subdivisions
+	private final Map<FLEFRecord, PlaceNames> placeNamesOf = new IdentityHashMap<>();
+	private final Map<FLEFRecord, List<String>> ancestorChainOf = new IdentityHashMap<>();
+	private final Map<FLEFRecord, Set<String>> jurisdictionOf = new IdentityHashMap<>();
+	private final Map<FLEFRecord, Set<String>> childNamesOf = new IdentityHashMap<>();
 
 
 	EntityMatcher(final ModelIndex index, final RecordSignature signature, final boolean crossFile){
@@ -140,8 +146,8 @@ final class EntityMatcher{
 	 * Keys of the blocks a record belongs to: only records sharing a key are compared. A record without keys is never compared.
 	 */
 	Set<String> blockingKeys(final FLEFRecord record){
-		final Set<String> keys = new LinkedHashSet<>();
-		switch(StringUtils.upperCase(record.getTag(), Locale.ROOT)){
+		final Set<String> keys = new InsertionSet();
+		switch(ModelIndex.upperKind(record.getTag())){
 			case IndividualReader.TYPE -> {
 				final IndividualFeatures features = individual(record.getId());
 				for(final String given : features.givens){
@@ -225,7 +231,7 @@ final class EntityMatcher{
 				.veto("identity disproven by a conclusion")
 				.build();
 
-		return switch(StringUtils.upperCase(a.getTag(), Locale.ROOT)){
+		return switch(ModelIndex.upperKind(a.getTag())){
 			case IndividualReader.TYPE -> compareIndividuals(a, b);
 			case GroupReader.TYPE -> compareGroups(a, b);
 			case PlaceReader.TYPE -> comparePlaces(a, b);
@@ -244,8 +250,8 @@ final class EntityMatcher{
 		final IndividualFeatures fb = individual(b.getId());
 		final MatchScore.Builder score = new MatchScore.Builder(PRIOR_INDIVIDUAL);
 
-		final Set<String> sexesA = index.sexes(a.getId());
-		final Set<String> sexesB = index.sexes(b.getId());
+		final Set<String> sexesA = fa.sexes;
+		final Set<String> sexesB = fb.sexes;
 		if(!sexesA.isEmpty() && !sexesB.isEmpty()){
 			if(Collections.disjoint(sexesA, sexesB))
 				return score.veto("opposite sexes")
@@ -392,7 +398,7 @@ final class EntityMatcher{
 		final double tolerance = (proxy? DAYS_PER_YEAR / 4.: 0.);
 		for(final TemporalSpan birth : births)
 			for(final TemporalSpan death : deaths)
-				if(interval(birth)[0] > interval(death)[1] + tolerance)
+				if(low(birth) > high(death) + tolerance)
 					return true;
 		return false;
 	}
@@ -400,7 +406,7 @@ final class EntityMatcher{
 	private static double earliest(final List<TemporalSpan> spans){
 		double earliest = Double.MAX_VALUE;
 		for(final TemporalSpan span : spans){
-			final double low = interval(span)[0];
+			final double low = low(span);
 			if(low != -Double.MAX_VALUE)
 				earliest = Math.min(earliest, low);
 		}
@@ -412,7 +418,7 @@ final class EntityMatcher{
 		for(final TemporalSpan span : spans){
 			// deliberately the low bound, as in earliest(): the lifespan veto is meant to fire only on a surely impossible span; the high
 			// bound is open-ended (Double.MAX_VALUE) for "after X" dates and would veto on any vague or approximate death date
-			final double low = interval(span)[0];
+			final double low = low(span);
 			if(low != -Double.MAX_VALUE)
 				latest = Math.max(latest, low);
 		}
@@ -622,7 +628,11 @@ final class EntityMatcher{
 	 */
 	private record PlaceNames(List<String> leaves, Set<String> qualifiers){}
 
-	private static PlaceNames placeNames(final FLEFRecord place){
+	private PlaceNames placeNames(final FLEFRecord place){
+		return placeNamesOf.computeIfAbsent(place, EntityMatcher::readPlaceNames);
+	}
+
+	private static PlaceNames readPlaceNames(final FLEFRecord place){
 		final List<String> texts = new ArrayList<>();
 		for(final FLEFRecord name : FieldMerger.children(place, TAG_NAME)){
 			texts.add(ModelIndex.value(name, TAG_VALUE));
@@ -630,7 +640,7 @@ final class EntityMatcher{
 		}
 
 		final List<String> leaves = new ArrayList<>();
-		final Set<String> qualifiers = new LinkedHashSet<>();
+		final Set<String> qualifiers = new InsertionSet();
 		for(final String text : texts){
 			if(text == null)
 				continue;
@@ -651,6 +661,10 @@ final class EntityMatcher{
 	 * level is followed, and the chain stops at a cycle).
 	 */
 	private List<String> ancestorChain(final FLEFRecord place){
+		return ancestorChainOf.computeIfAbsent(place, this::readAncestorChain);
+	}
+
+	private List<String> readAncestorChain(final FLEFRecord place){
 		final List<String> chain = new ArrayList<>();
 		final Set<String> seen = new HashSet<>();
 		seen.add(place.getId());
@@ -676,6 +690,10 @@ final class EntityMatcher{
 	 * The jurisdictions of a place, as names (qualifiers and names of the ancestors) and as ids of the ancestors.
 	 */
 	private Set<String> jurisdiction(final FLEFRecord place, final PlaceNames names){
+		return jurisdictionOf.computeIfAbsent(place, p -> readJurisdiction(p, names));
+	}
+
+	private Set<String> readJurisdiction(final FLEFRecord place, final PlaceNames names){
 		final Set<String> jurisdiction = new HashSet<>(names.qualifiers());
 		for(final String ancestorId : index.placeAncestorsOf(place.getId())){
 			jurisdiction.add("@" + ancestorId);
@@ -687,6 +705,10 @@ final class EntityMatcher{
 	}
 
 	private Set<String> childNames(final FLEFRecord place){
+		return childNamesOf.computeIfAbsent(place, this::readChildNames);
+	}
+
+	private Set<String> readChildNames(final FLEFRecord place){
 		final Set<String> names = new HashSet<>();
 		for(final String childId : index.placeChildrenOf(place.getId())){
 			final FLEFRecord child = index.record(childId);
@@ -1015,26 +1037,28 @@ final class EntityMatcher{
 	 * whole year), and an approximate bound is widened by two years.
 	 */
 	private static double gapInDays(final TemporalSpan a, final TemporalSpan b){
-		final double[] intervalA = interval(a);
-		final double[] intervalB = interval(b);
-		return Math.max(0., Math.max(intervalA[0], intervalB[0]) - Math.min(intervalA[1], intervalB[1]));
+		return Math.max(0., Math.max(low(a), low(b)) - Math.min(high(a), high(b)));
 	}
 
-	private static double[] interval(final TemporalSpan span){
+	/** The first day of a span, widened by two years if it is approximate (no array is built: this runs for every pair of dates). */
+	private static double low(final TemporalSpan span){
 		double low = (span.minJdn() == Long.MIN_VALUE? -Double.MAX_VALUE: span.minJdn());
+		if(span.isApproximate() && low != -Double.MAX_VALUE)
+			low -= 2. * DAYS_PER_YEAR;
+		return low;
+	}
+
+	/** The last day of a span, widened by two years if it is approximate. */
+	private static double high(final TemporalSpan span){
 		double high;
 		if(span.isPoint())
 			high = span.start().jdn() + span.start().precisionSpanInDays() - 1;
 		else
 			high = (span.maxJdn() == Long.MAX_VALUE? Double.MAX_VALUE
 				: span.maxJdn() + span.end().precisionSpanInDays() - 1);
-		if(span.isApproximate()){
-			if(low != -Double.MAX_VALUE)
-				low -= 2. * DAYS_PER_YEAR;
-			if(high != Double.MAX_VALUE)
-				high += 2. * DAYS_PER_YEAR;
-		}
-		return new double[]{low, high};
+		if(span.isApproximate() && high != Double.MAX_VALUE)
+			high += 2. * DAYS_PER_YEAR;
+		return high;
 	}
 
 	private static boolean isPreciseDay(final TemporalSpan span){
@@ -1053,6 +1077,7 @@ final class EntityMatcher{
 	 */
 	private static final class IndividualFeatures{
 
+		private final Set<String> sexes;
 		private final List<String> givens;
 		private final List<String> families;
 		private final List<TemporalSpan> births;
@@ -1094,6 +1119,8 @@ final class EntityMatcher{
 			families = TextSimilarity.normalizeAll(familyTexts);
 
 			final String id = (individual != null? individual.getId(): null);
+			//the sexes are read once for the individual, not at every comparison with another one
+			sexes = index.sexes(id);
 			final List<TemporalSpan> birthSpans = index.principalEventSpans(id, BIRTH_TYPES);
 			birthIsProxy = birthSpans.isEmpty();
 			births = (birthIsProxy? index.principalEventSpans(id, BIRTH_PROXY_TYPES): birthSpans);
@@ -1101,7 +1128,8 @@ final class EntityMatcher{
 			deathIsProxy = deathSpans.isEmpty();
 			deaths = (deathIsProxy? index.principalEventSpans(id, DEATH_PROXY_TYPES): deathSpans);
 
-			final Set<String> places = new LinkedHashSet<>(index.principalEventPlaces(id, BIRTH_TYPES));
+			final Set<String> places = new InsertionSet();
+			places.addAll(index.principalEventPlaces(id, BIRTH_TYPES));
 			places.addAll(index.principalEventPlaces(id, BIRTH_PROXY_TYPES));
 			birthPlaces = places;
 

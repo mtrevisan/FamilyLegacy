@@ -38,7 +38,7 @@ class ImportReportTest{
 	private static final List<String> REASONS = List.of("import.discard.identifier", "import.discard.contact_data",
 		"import.discard.place_detail", "import.discard.note_detail", "import.discard.media_detail", "import.discard.name_detail",
 		"import.discard.date_detail", "import.discard.source_detail", "import.discard.inconsistent_role", "import.discard.inconsistent_association", "import.discard.unmapped_tag",
-		"import.discard.other");
+		"import.discard.same_sex_parents", "import.discard.same_sex_possible_parents", "import.discard.other");
 
 	private static final List<String> DIALOG_KEYS = List.of("dialog.import.report.title", "dialog.import.report.intro",
 		"dialog.import.report.summary", "dialog.import.report.details", "dialog.import.report.column.reason",

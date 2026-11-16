@@ -89,28 +89,85 @@ public final class GitHubReleases{
 	 * @throws IOException	If GitHub cannot be reached or its answer cannot be understood.
 	 */
 	public Optional<ReleaseAsset> latestAsset(final String name) throws IOException{
-		final Optional<Map<String, Object>> release = latestRelease();
-		if(release.isEmpty() || Boolean.TRUE.equals(release.get().get("draft")))
+		final Optional<Assets> assets = latestAssets();
+		return (assets.isPresent()? assets.get().find(name): Optional.empty());
+	}
+
+	/**
+	 * @return	The files of the latest published release (neither a draft nor a pre-release), or empty if there is none yet.
+	 * @throws IOException	If GitHub cannot be reached or its answer cannot be understood.
+	 */
+	public Optional<Assets> latestAssets() throws IOException{
+		final Optional<Map<String, Object>> release = release("latest");
+		return (release.isPresent() && !Boolean.TRUE.equals(release.get().get("draft"))?
+			Optional.of(new Assets(Json.asArray(release.get().get("assets")))): Optional.empty());
+	}
+
+	/**
+	 * @param tag	The tag of the release (letters, digits, {@code .}, {@code _} and {@code -} only).
+	 * @return	The files of the release with that tag (a release that is kept to hold data that does not change with the application's
+	 * 	version), or empty if there is no such release, or it is a draft.
+	 * @throws IOException	If GitHub cannot be reached or its answer cannot be understood.
+	 */
+	public Optional<Assets> assetsOf(final String tag) throws IOException{
+		if(!isPlainTag(tag))
 			return Optional.empty();
 
-		final List<Object> assets = Json.asArray(release.get().get("assets"));
-		for(final Object asset : assets){
-			final Map<String, Object> candidate = Json.asObject(asset);
-			final String url = Json.asString(candidate.get("browser_download_url"));
-			if(!name.equals(Json.asString(candidate.get("name"))) || !isHttps(url))
-				continue;
+		final Optional<Map<String, Object>> release = release("tags/" + tag);
+		return (release.isPresent() && !Boolean.TRUE.equals(release.get().get("draft"))?
+			Optional.of(new Assets(Json.asArray(release.get().get("assets")))): Optional.empty());
+	}
 
-			String sha256 = digestOf(candidate);
-			if(sha256 == null)
-				sha256 = checksumFile(assets, name);
-			final long size = (candidate.get("size") instanceof final Double value? value.longValue(): -1);
-			return Optional.of(new ReleaseAsset(name, URI.create(url), size, sha256));
+	private static boolean isPlainTag(final String tag){
+		if(tag == null || tag.isEmpty() || tag.length() > 100)
+			return false;
+		for(int i = 0; i < tag.length(); i ++){
+			final char c = tag.charAt(i);
+			if(!Character.isLetterOrDigit(c) && c != '.' && c != '_' && c != '-')
+				return false;
 		}
-		return Optional.empty();
+		return true;
+	}
+
+
+	/** The files attached to a release. */
+	public final class Assets{
+
+		private final List<Object> assets;
+
+
+		private Assets(final List<Object> assets){
+			this.assets = assets;
+		}
+
+		/**
+		 * @param name	The file name of the asset.
+		 * @return	The asset with that name, with its SHA-256 if the release publishes it, or empty if there is none.
+		 */
+		public Optional<ReleaseAsset> find(final String name){
+			for(final Object asset : assets){
+				final Map<String, Object> candidate = Json.asObject(asset);
+				final String url = Json.asString(candidate.get("browser_download_url"));
+				if(!name.equals(Json.asString(candidate.get("name"))) || !isHttps(url))
+					continue;
+
+				String sha256 = digestOf(candidate);
+				if(sha256 == null)
+					sha256 = checksumFile(assets, name);
+				final long size = (candidate.get("size") instanceof final Double value? value.longValue(): -1);
+				return Optional.of(new ReleaseAsset(name, URI.create(url), size, sha256));
+			}
+			return Optional.empty();
+		}
+
 	}
 
 	private Optional<Map<String, Object>> latestRelease() throws IOException{
-		final URI uri = URI.create(API + repository + "/releases/latest");
+		return release("latest");
+	}
+
+	private Optional<Map<String, Object>> release(final String path) throws IOException{
+		final URI uri = URI.create(API + repository + "/releases/" + path);
 		final String body;
 		try{
 			body = readText(uri);

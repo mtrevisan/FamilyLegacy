@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -85,7 +85,7 @@ public class MediaHandler extends AbstractRecordTypeHandler<RecordDialog>{
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(uri))
-			sb.append(FileHelper.getFilename(uri));
+			sb.append(MediaPathDisplay.display(uri));
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(id)){
 			if(!sb.isEmpty())

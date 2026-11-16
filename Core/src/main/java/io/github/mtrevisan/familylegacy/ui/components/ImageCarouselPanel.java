@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 
 import javax.swing.BorderFactory;
@@ -220,7 +221,7 @@ public class ImageCarouselPanel extends JPanel{
 				label.setVerticalAlignment(SwingConstants.CENTER);
 				label.setPreferredSize(new Dimension(THUMBNAIL_SIZE + GAP, THUMBNAIL_SIZE + GAP));
 				label.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-				label.setToolTipText(uri);
+				label.setToolTipText(MediaPathDisplay.display(uri));
 			}
 			return label;
 		}

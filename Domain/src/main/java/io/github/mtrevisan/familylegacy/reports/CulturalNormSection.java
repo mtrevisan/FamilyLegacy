@@ -187,7 +187,7 @@ public final class CulturalNormSection implements SectionBuilder{
 		String v = FLEFRecordHelper.getChildValue(norm, CulturalNormReader.TAG_TYPE);
 		if(StringUtils.isEmpty(v))
 			return null;
-		return v.replace('_', ' ');
+		return ctx.labels.enumValue("enum.cultural_norm.rule_type", v);
 	}
 
 }

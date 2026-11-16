@@ -117,6 +117,11 @@ public final class PluginLoader{
 		return (parent != null? parent.resolve(FONTS_DIR): null);
 	}
 
+	/** @return	The directory of the plugins, or {@code null} if the application cannot tell where it is. */
+	public static Path pluginsDirectory(){
+		return resolvePluginsDirectory();
+	}
+
 	/** Looks where the other plugins are: the property of the packaged application, beside the jar, the development folders. */
 	private static Path resolvePluginsDirectory(){
 		final String explicit = System.getProperty(PLUGINS_DIR_PROPERTY);
