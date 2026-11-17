@@ -31,8 +31,8 @@ import java.util.Objects;
 
 
 /**
- * A reference to a FLEF entity participating in the General Temporal
- * Projection.
+ * A reference to a FLEF entity participating in the temporal
+ * timelines.
  * <p>
  * A reference couples three pieces of information:
  * <ul>

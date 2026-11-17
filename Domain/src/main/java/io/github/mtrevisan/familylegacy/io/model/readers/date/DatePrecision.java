@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 
 /**
- * Granularity of a normalized date used by the General Temporal Projection.
+ * Granularity of a normalized date used by the temporal timelines.
  * <p>
  * Corresponds to the alternatives of the FLEF {@code SingleDate} union:
  * {@code full_date} maps to {@link #DAY}, {@link #MONTH} or {@link #YEAR}

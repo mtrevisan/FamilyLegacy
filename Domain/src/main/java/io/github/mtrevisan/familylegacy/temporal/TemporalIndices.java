@@ -47,8 +47,8 @@ import java.util.Map;
 
 
 /**
- * Pre-computed indices over the FLEF model, used by the General Temporal
- * Projection to avoid repeated full scans of {@code model.getRecordsByType}.
+ * Pre-computed indices over the FLEF model, used by the temporal
+ * timelines to avoid repeated full scans of {@code model.getRecordsByType}.
  * <p>
  * The indices are built once per projection build. They map an entity id to
  * the list of records that reference it, so that extraction for a given row

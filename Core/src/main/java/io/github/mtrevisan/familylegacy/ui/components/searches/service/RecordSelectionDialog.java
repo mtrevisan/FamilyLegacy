@@ -27,8 +27,13 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 import io.github.mtrevisan.familylegacy.events.EventSummary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.RecordDeleter;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
@@ -956,8 +961,8 @@ public class RecordSelectionDialog extends JDialog{
 		if(confirm != JOptionPane.YES_OPTION)
 			return;
 
-		// 3. Remove the target record from the model
-		model.removeRecord(record.getId());
+		// 3. Remove the target record from the model (a source takes its extracts with it, and the references to them)
+		deleteRecord(record);
 
 		// 4. Clean cache and refresh the appropriate view
 		displayTextCache.remove(record);
@@ -965,6 +970,19 @@ public class RecordSelectionDialog extends JDialog{
 			placeHierarchyPanel.reload();
 		else
 			performSearch();
+	}
+
+	/**
+	 * Removes a record from the model. A source or an extract is deleted following the deletion rule of the protocol: the extracts of
+	 * a source are deleted with it, and the references to the deleted records (the citations of the source, the extracts referenced
+	 * by the citations) are removed.
+	 */
+	private void deleteRecord(final FLEFRecord record){
+		final FLEFGrammar grammar = MergeGrammar.instance();
+		if(grammar != null && (SourceReader.isOfType(record) || ExtractReader.isOfType(record)))
+			new RecordDeleter(grammar).delete(model, record.getId());
+		else
+			model.removeRecord(record.getId());
 	}
 
 	private void unlinkRecord(){

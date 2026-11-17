@@ -208,17 +208,14 @@ public final class PlaceMapPickerDialog extends JDialog{
 			confirmed = chosen;
 			dispose();
 		});
-		final JButton cancelButton = new JButton(I18N.t("button.close"));
-		cancelButton.addActionListener(e -> dispose());
 
 		final JPanel toolbar = new JPanel(new MigLayout("insets 6", "[][grow,fill]"));
 		toolbar.add(historicalMaps.createButton());
 		toolbar.add(new JLabel("<html><i>" + I18N.t("dialog.map_picker.hint") + "</i></html>"));
 
-		final JPanel south = new JPanel(new MigLayout("insets 6", "[grow,fill][][]"));
+		final JPanel south = new JPanel(new MigLayout("insets 6", "[grow,fill][]"));
 		south.add(positionLabel);
-		south.add(okButton, "sg b");
-		south.add(cancelButton, "sg b");
+		south.add(okButton);
 
 		mapViewer.setPreferredSize(new Dimension(820, 560));
 		setLayout(new BorderLayout());

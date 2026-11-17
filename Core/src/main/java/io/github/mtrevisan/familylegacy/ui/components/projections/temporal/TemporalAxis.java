@@ -39,7 +39,7 @@ import java.util.List;
 
 
 /**
- * The horizontal time axis of the General Temporal Projection.
+ * The horizontal time axis of the temporal timelines.
  * <p>
  * The axis owns:
  * <ul>

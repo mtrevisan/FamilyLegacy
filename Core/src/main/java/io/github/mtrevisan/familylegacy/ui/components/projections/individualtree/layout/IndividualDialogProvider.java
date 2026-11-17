@@ -45,8 +45,8 @@ import java.util.Locale;
  * <p>
  * The provider was extracted from {@code IndividualTreePanel} to reduce the
  * responsibilities of that class and to make the dialog flow reusable from
- * other views that operate on the same records (e.g. the Ego Network and
- * the Social Network views). Instances are immutable and thread-safe.
+ * other views that operate on the same records (e.g. the Ego Network
+ * view). Instances are immutable and thread-safe.
  */
 public final class IndividualDialogProvider{
 

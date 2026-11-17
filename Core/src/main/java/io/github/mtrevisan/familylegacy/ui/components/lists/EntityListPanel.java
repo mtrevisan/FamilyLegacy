@@ -603,6 +603,9 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		parentRecord = model.getRecordById(recordId);
+		//a new record is not in the model yet: its editor gives it as the parent entity
+		if(parentRecord == null && parentEntity != null && recordId.equals(parentEntity.getId()))
+			parentRecord = parentEntity;
 		isReference = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
@@ -871,6 +874,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				dialog.link(LinkRole.PARTICIPANT, parentRecord);
 			else if(actorType == ActorType.EVENT)
 				dialog.link(LinkRole.EVENT, parentRecord);
+			dialog.link(LinkRole.OWNER, parentRecord);
 			dialog.link(LinkRole.IDENTITY, parentRecord);
 			dialog.link(LinkRole.RESOLVED_TARGET, parentRecord);
 		};

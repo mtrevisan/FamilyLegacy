@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -48,6 +49,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
@@ -93,6 +95,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final EntityListPanel personalNamePanel;
 	/** The sex given by whoever creates the individual (the tree: the father is male): saved as a sex attribute. */
 	private SexType presetSex;
+	/** The only sex the individual may have (the one opposite to the other parent), with the message shown when another is entered. */
+	private SexType requiredSex;
+	private String requiredSexReason;
 
 
 	public static IndividualRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -248,6 +253,13 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		witSex(sex);
 	}
 
+	@Override
+	public void requireSex(final SexType sex, final String reason){
+		witSex(sex);
+		requiredSex = sex;
+		requiredSexReason = reason;
+	}
+
 	public IndividualRecordDialog witSex(final SexType sex){
 		presetSex = sex;
 
@@ -266,6 +278,22 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_VALUE, presetSex.getRawSex()))
 			.addChild(AuditStamp.now()));
 		presetSex = null;
+	}
+
+
+	@Override
+	protected boolean validData(){
+		if(requiredSex == null || requiredSex == SexType.UNKNOWN)
+			return true;
+
+		//the sex is edited in the Attributes tab: every assertion must say the required one (none at all is fine, the preset is saved)
+		for(final FLEFRecord assertion : PreferredSex.assertions(record.getId(), model))
+			if(SexType.fromRaw(FLEFRecordHelper.getChildValue(assertion, IndividualAttributeReader.TAG_VALUE)) != requiredSex){
+				JOptionPane.showMessageDialog(this, requiredSexReason, I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+				return false;
+			}
+		return true;
 	}
 
 

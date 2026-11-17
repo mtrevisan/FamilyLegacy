@@ -28,7 +28,7 @@ import java.util.List;
 
 
 /**
- * A single horizontal lifeline in the General Temporal Projection.
+ * A single horizontal lifeline in the temporal timelines.
  * <p>
  * A row is anchored to a row entity (individual, group or place) and
  * carries all the temporal tracks built for that entity. The row does not

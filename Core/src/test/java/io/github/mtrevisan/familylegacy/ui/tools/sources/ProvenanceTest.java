@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
@@ -75,11 +76,14 @@ class ProvenanceTest{
 					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_SOURCE_TYPE, EvidenceQualifiersReader.ENUM_SOURCE_TYPE_ORIGINAL))
 					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY))
 					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT)),
-				FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, "born on the 3rd"))
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM))
-					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
-						.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, "M1")))));
+				FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_EXTRACT, "X1")));
+		//the extract is a record of the source, referenced by the citation
+		final FLEFRecord extract = FLEFRecord.createMainRecord("X1", ExtractReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_SOURCE, "S1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TEXT, "born on the 3rd"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TYPE, ExtractReader.ENUM_TYPE_VERBATIM))
+			.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
+				.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_MEDIA, "M1")));
 		event = FLEFRecord.createMainRecord("E1", EventReader.TYPE)
 			.addChild(citation("S2", null, SourceCitationReader.STANCE_CONTRADICTS));
 		final FLEFRecord participation = FLEFRecord.createMainRecord("P1", EventParticipationReader.TYPE)
@@ -90,7 +94,7 @@ class ProvenanceTest{
 			.addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL, "I1"))
 			.addChild(citation("S1", "p. 40", SourceCitationReader.STANCE_SUPPORTS));
 
-		for(final FLEFRecord record : List.of(repository, register, census, individual, event, participation, attribute))
+		for(final FLEFRecord record : List.of(repository, register, census, extract, individual, event, participation, attribute))
 			model.addRecord(record);
 	}
 
@@ -118,7 +122,7 @@ class ProvenanceTest{
 		Assertions.assertEquals("p. 12", row.locator());
 		Assertions.assertEquals(SourceCitationReader.STANCE_SUPPORTS, row.stance());
 		Assertions.assertEquals("born on the 3rd", row.extractText());
-		Assertions.assertEquals(SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM, row.extractType());
+		Assertions.assertEquals(ExtractReader.ENUM_TYPE_VERBATIM, row.extractType());
 		Assertions.assertEquals("original, primary, direct", row.evidence());
 		Assertions.assertEquals("State Archive", row.repositories());
 		Assertions.assertEquals("M1", row.documents());

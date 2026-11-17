@@ -66,13 +66,37 @@ Every entry of a *Sources with Citations* list is a citation: it ties an asserti
 |---|---|
 | **Source** | The source cited. |
 | **Locator** | Where in the source: volume, page, entry. The [Source Citation Assistant](assistant.md#the-source-citation-assistant) can build it. |
-| **Extracts** | The parts of the source that you quote or point to: see below. |
+| **Extracts** | The parts of the source that you quote or point to: see [Extract](#extract). |
 | **Stance** | *supports* or *contradicts*: how the citation relates to the assertion. |
 | **Evidence** | The [evidence qualifiers](#evidence-qualifiers). |
 
-The source and the stance are required.
+The source and the stance are required. Every extract in the list must belong to the source cited: if you change the source, the editor refuses OK until you remove the extracts of the other source.
 
-**Extract.** An extract has a **media part** (a media record, with an optional crop), a **text**, a **type** (*verbatim*, *summarized*, *translated* or *normalized*), a **locale** and a **remark**. At least one of media part and text is needed.
+The **Extracts** list (right-click, or `Ins` and `Del`):
+
+- **Create New...** opens the [extract](#extract) editor for a new extract of the source cited (choose the source first: the extract belongs to it, and its *Source* cannot be changed there).
+- **Add Existing...** lists the extracts of the source cited that the citation does not reference yet, so that one transcription can be cited by several records.
+- **Edit...** opens the extract. An extract is a record of its own: a change is seen by every citation that references it.
+- **Remove** removes only the reference: the extract stays with its source.
+
+The extracts created from a citation that you then cancel are discarded.
+
+## Extract
+
+What a source says, kept once and cited as many times as needed: a transcription, a translation, a summary or an excerpt, and the parts of the media where it is (a page, a region of an image, a segment of a recording). An extract is not evidence by itself: the citations that reference it are. Open it from the *Extracts* list of a [source citation](#source-citation). **Tabs:** Properties, Privacy, Audit.
+
+| Field | Meaning |
+|---|---|
+| **Source** | Required: the source the extract belongs to. It is fixed when the extract is created from a citation, and it cannot be changed once a citation references the extract. |
+| **Media Parts** | The media of the source where the passage is: an image with an optional crop, a page of a document (with an optional crop), or a segment of an audio or video recording. |
+| **Text** | The text of the passage. |
+| **Type** | How the text relates to the source: *verbatim* (exactly as written), *summarized*, *translated* or *normalized* (same language, regularized spelling, expanded abbreviations). |
+| **Locale** | The language of the text. |
+| **Remarks** | Short free-text remarks about the extract. |
+
+At least one of media part and text is needed. A media part must be a media of the source: if it is not, on OK you are asked whether to add it to the *Media* of the source (answering no goes back to the editor).
+
+Deleting a source (from **Manage Sources...**) deletes its extracts too, and removes the citations of the source and the references to its extracts. Files written before the extracts became records are converted when they are opened: each extract of a citation becomes an extract of the source cited (identical extracts of the same source become one).
 
 ## Evidence qualifiers
 

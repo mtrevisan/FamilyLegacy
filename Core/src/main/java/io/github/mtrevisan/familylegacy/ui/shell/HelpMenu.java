@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.DiagnosticsDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
@@ -52,6 +53,9 @@ import java.net.URISyntaxException;
  * (open the online documentation, check for updates, show the About dialog).
  */
 final class HelpMenu{
+
+	/** The size of the icon of the application in the About dialog. */
+	private static final int ABOUT_ICON_SIZE = 64;
 
 	private final FamilyLegacyFrame frame;
 
@@ -152,7 +156,7 @@ final class HelpMenu{
 
 	private void showAboutDialog(){
 		JOptionPane.showMessageDialog(frame, I18N.tf("menu.help.about.message", ProjectInfo.getAppVersion()),
-			I18N.t("menu.help.about.title"), JOptionPane.INFORMATION_MESSAGE);
+			I18N.t("menu.help.about.title"), JOptionPane.INFORMATION_MESSAGE, AppIcon.icon(ABOUT_ICON_SIZE));
 	}
 
 }

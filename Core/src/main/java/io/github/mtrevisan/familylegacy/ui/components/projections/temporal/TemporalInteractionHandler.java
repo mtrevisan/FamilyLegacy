@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
-import io.github.mtrevisan.familylegacy.temporal.TemporalConnection;
 import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
@@ -47,18 +46,15 @@ import java.util.Map;
 
 
 /**
- * Static hit‑testing and tooltip utilities for the General Temporal
- * Projection.
+ * Static hit‑testing and tooltip utilities for the timeline panel.
  * <p>
  * The handler is stateless: callers pass the current model, layout, axis and
  * content bounds on every query. Hit testing follows the visual stacking
- * order (connections first, then entries), so that the topmost element under
- * the cursor is returned.
+ * order (entries first, then the bands behind them), so that the topmost
+ * element under the cursor is returned.
  */
 public final class TemporalInteractionHandler{
 
-	/** Tolerance, in pixels, applied to connection hit testing. */
-	private static final int CONNECTION_HIT_TOLERANCE = 4;
 	/** Tolerance, in pixels, on each side of a band: a historic event with a single date is a line. */
 	private static final int BAND_HIT_TOLERANCE = 2;
 
@@ -107,14 +103,7 @@ public final class TemporalInteractionHandler{
 			}
 		}
 
-		// 2. Connections
-		final List<TemporalConnection> connections = model.connections();
-		for(final TemporalConnection connection : connections){
-			if(hitConnection(x, y, connection, layout, axis, contentBounds))
-				return new TemporalProjectionRef.ConnectionRef(connection);
-		}
-
-		// 3. Context bands (the background): the narrowest one if more overlap
+		// 2. Context bands (the background): the narrowest one if more overlap
 		TemporalContextBand narrowest = null;
 		long narrowestWidth = Long.MAX_VALUE;
 		for(final TemporalContextBand band : model.bands()){
@@ -155,16 +144,6 @@ public final class TemporalInteractionHandler{
 			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
 			return sb.append("</html>").toString();
 		}
-		if(ref instanceof TemporalProjectionRef.ConnectionRef connectionRef){
-			final TemporalConnection connection = connectionRef.connection();
-			sb.append("<b>").append(escape(connection.relationshipType())).append("</b>");
-			if(connection.hasRole())
-				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(connection.role()));
-			sb.append("<br>").append(I18N.l("tooltip.field.status")).append(StringUtils.SPACE).append(escape(connection.span().status()));
-			sb.append("<br>").append(escape(describeSpan(connection.span())));
-			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
-			return sb.append("</html>").toString();
-		}
 		if(ref instanceof TemporalProjectionRef.BandRef bandRef){
 			final TemporalContextBand band = bandRef.band();
 			sb.append("<b>").append(escape(band.label().isEmpty()? band.kind(): band.label())).append("</b>");
@@ -184,43 +163,6 @@ public final class TemporalInteractionHandler{
 	/* ======================================================================
 	 *                          Helpers
 	 * ====================================================================== */
-
-	private static boolean hitConnection(final int x, final int y, final TemporalConnection connection,
-		final TemporalProjectionLayout layout, final TemporalAxis axis, final Rectangle contentBounds){
-		final int sourceY = layout.rowCenterY(connection.sourceRow());
-		final int targetY = layout.rowCenterY(connection.targetRow());
-		if(sourceY < 0 || targetY < 0)
-			return false;
-
-		final int screenSourceY = contentBounds.y + sourceY;
-		final int screenTargetY = contentBounds.y + targetY;
-
-		final long minJdn = connection.span().minJdn();
-		final long maxJdn = connection.span().maxJdn();
-
-		final int startX = (minJdn == Long.MIN_VALUE
-			? contentBounds.x
-			: contentBounds.x + axis.jdnToX(minJdn));
-		final int endX = (maxJdn == Long.MAX_VALUE
-			? contentBounds.x + contentBounds.width
-			: contentBounds.x + axis.jdnToX(maxJdn));
-		final int midX = (startX + endX) / 2;
-
-		//the three segments of the polyline (the same drawn by the renderer), each expanded by the tolerance
-		return (isNearHorizontal(x, y, startX, midX, screenSourceY)
-			|| isNearVertical(x, y, midX, screenSourceY, screenTargetY)
-			|| isNearHorizontal(x, y, midX, endX, screenTargetY));
-	}
-
-	private static boolean isNearHorizontal(final int x, final int y, final int x1, final int x2, final int lineY){
-		return (Math.abs(y - lineY) <= CONNECTION_HIT_TOLERANCE
-			&& x >= Math.min(x1, x2) - CONNECTION_HIT_TOLERANCE && x <= Math.max(x1, x2) + CONNECTION_HIT_TOLERANCE);
-	}
-
-	private static boolean isNearVertical(final int x, final int y, final int lineX, final int y1, final int y2){
-		return (Math.abs(x - lineX) <= CONNECTION_HIT_TOLERANCE
-			&& y >= Math.min(y1, y2) - CONNECTION_HIT_TOLERANCE && y <= Math.max(y1, y2) + CONNECTION_HIT_TOLERANCE);
-	}
 
 	private static String escape(final String text){
 		if(text == null)

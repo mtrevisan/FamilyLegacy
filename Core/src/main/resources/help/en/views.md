@@ -8,8 +8,8 @@ The same mouse actions work in the three views:
 
 | Action | Result |
 |---|---|
-| Click the **name** of a person in a box (the pointer becomes a hand) | The view is **re-rooted** on that person. |
-| Click elsewhere on a box | Selects it; the sidebar shows that person. |
+| Click the **name** of a person in a box, right on its letters, even when the name is just `?` (the pointer becomes a hand) | The view is **re-rooted** on that person. |
+| Click elsewhere on a box, including the blank space beside or below the name | Selects it; the sidebar shows that person. |
 | **Double-click** a box | Opens the editor. |
 | **Right-click** a box | Selects it and opens its context menu. |
 | Drag any empty part of the view | Moves the view. There is no wheel zoom in these views: use the scroll bars or drag. |
@@ -23,7 +23,7 @@ The selected box has an orange-red border. Empty placeholder boxes (an unknown p
 
 ## Tree
 
-The **Biological Tree** is a classic pedigree: one box per individual, couples side by side, with empty boxes where an ancestor is unknown.
+The **Biological Tree** is a classic pedigree: one box per individual, couples side by side, an unknown ancestor or partner is not drawn (there is no empty box): add the missing person from the context menu of the person that is there (**Add Parent...**, **Add Partner...**, or their **Connect** versions).
 
 - A solid thin line joins a birth connection; a **dashed line** joins an adoptive or other non-birth connection.
 - The small square between the two partners is the **union**. Hover it to see every marriage the two share (civil, religious, ...), each with its date and place, earliest first. Its border is **solid** when at least one marriage is recorded and **dashed** when none is.
@@ -51,12 +51,12 @@ The **Sugiyama Graph** shows the same pedigree as a layered graph. A person reac
 Right-click a box:
 
 - **Edit Individual...**, **Add Individual...**, **Connect Individual...**
-- **Add Child...**, **Connect Child...**
+- **Add Partner...**, **Connect Partner...**, **Add Parent...**, **Connect Parent...**, **Add Child...**, **Connect Child...**, **Paste as Partner**, **Paste as Parent**, **Paste as Child**
 - **Relocate**, **Paste**, **Delete**
 - **Unlink Relationships...**
 - **Memberships Over Time...**, **Provenance...** (from the *Standard* level of features), **Consanguinity Loops...**
 
-The entries are enabled or disabled according to the box: *Add Individual*, *Connect Individual* and *Paste* work on an empty box, and all the others (*Add Child* and *Connect Child* too) on a box that has a person; on an empty box they are grayed out. What they do is explained in [Relationships](relationships.md).
+The entries are enabled or disabled according to the box. *Add Partner...* and *Add Parent...* open the "new individual" dialog, then ask the type of the relationship and create it; *Connect Partner...* and *Connect Parent...* do the same with an existing person. The partner entries are always available (a person may have several partners); the parent entries only while the person has fewer than two parents. What they do is explained in [Relationships](relationships.md). *Paste as Partner*, *Paste as Parent* and *Paste as Child* use the person copied with **Relocate**: they detach it from everyone and link it to the selected person (as in [Relationships](relationships.md#moving-and-removing-links)). When the selected person already has a parent of a known sex, a new parent must be of the opposite sex: *Add Parent...* creates the person with that sex and the editor does not save another one, and *Connect Parent...* and *Paste as Parent* refuse a person of the same sex.
 
 ## Ego network
 
@@ -67,16 +67,21 @@ The **Ego Network** is a hub with spokes around one individual or group, the *eg
 - All the lines are drawn dotted in this version.
 - **Jump to** also finds groups in this view.
 
-Context menu of a **person**: *Edit Individual...*, *Add Child...* and *Connect Child...* (only for the ego), *Delete*, *Paste*, *Unlink Relationships...*, *Memberships Over Time...*, *Provenance...*, *Consanguinity Loops...*. Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
+Context menu of a **person**: *Edit Individual...*, *Add Partner...*, *Connect Partner...*, *Add Parent...*, *Connect Parent...*, *Add Child...*, *Connect Child...*, *Paste as Partner*, *Paste as Parent* and *Paste as Child* (only for the ego), *Delete*, *Paste*, *Unlink Relationships...*, *Memberships Over Time...*, *Provenance...*, *Consanguinity Loops...*. Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
 
 ## The sidebar
 
 The right-hand pane, called the **Dossier**, is shown with the toolbar button **Sidebar** or **View > Show Sidebar**. Until you select somebody it says *Select an individual to view its dossier*. Then its title is the name of the selected individual or group, with the *Vital* line (the years of life) under it.
 
-For an individual the sections are, in this order (a section with nothing in it is left out, and the header shows the number of entries): **Identity** (the parts of the name, photo, sex, vital, privacy), **Events**, **Attributes**, **Relationships**, **Sources**, **Context**, **Identity hypothesis** (including *Possible duplicate*), **Research** and **Notes**. For a group: **Identity**, **Members**, **Subgroups**, **Attributes**, **Events**, **Sources**, **Context**, **Research** and **Notes**.
+For an individual the sections are, in this order (a section with nothing in it is left out, and the header shows the number of entries): **Identity** (the parts of the name, photo, sex, vital, privacy), **Events**, **Attributes**, **Relationships**, **Friends, Associates, Neighbors**, **Sources**, **Context**, **Identity hypothesis** (including *Possible duplicate*), **Research** and **Notes**. For a group: **Identity**, **Members**, **Subgroups**, **Attributes**, **Events**, **Sources**, **Context**, **Research** and **Notes**.
 
 - Only *Identity* and *Events* start open; the others are collapsed. The open or closed state of each kind of section is remembered for the session.
 - A click on a section header opens or closes it.
+- **Friends, Associates, Neighbors** (the FAN method of E. S. Mills, to get around a brick wall) is a table of the people who appear together with the individual in the documents, the strongest link first; it is left out when nobody does, and it starts closed. Godparents and witnesses who recur are often relatives or fellow villagers, and the parish registers note them almost always. The columns are the person, the *Events* they share, the *Roles* (the individual's, then the other person's, with how many times: *principal / witness ×2*), the *Period* (the years of the shared events) and the *Place*. The header (*Events*, *Period*...) sorts the table; a click on the name of a person opens the record of that person, and the tooltip tells the strength of the link, how many times the person has a role other than principal in the whole file (somebody who is witness in dozens of events is probably the sacristan, not a friend) and the shared events.
+  - Everybody who takes part, with any role, in an event of the individual is listed, and the links between two participants count too: that is how two godparents of the same child are seen as a possible couple.
+  - The strength is two points for each shared event, one for each different pair of roles beyond the first and one if the shared events are not all in the same year (a tie that lasts). Spouses, parents, children and siblings (as the relationships say) are shown in grey after the others, whatever their strength, because they are not what the method looks for.
+  - Under the table, *Where to search next* lists hints: a person that recurs with no known kinship (a candidate relative or fellow villager) and two people with the same role in the same event, not known to be related, who might be a couple. They are only text, with the reasoning in the tooltip: nothing is created, linked or changed. The same hints, and who to search together with the individual, are in the [Research Assistant](assistant.md#what-it-looks-for).
+  - The table is only as rich as the roles recorded: a file whose events have only principal participants (most imported GEDCOM files) shows nothing but relatives, or no table at all.
 - In **Sources** and **Notes**, a row that belongs to an event, an attribute or a relationship says which one on its second line (for example *of birth, 19 Nov 1926* or *of occupation: baker*), so that you can tell apart several of the same kind. A click on such a row opens the note (or the source citation) inside the editor of that event, attribute or relationship; **Shift + click** opens the editor of the event, attribute or relationship itself, on its first tab. The tooltip of such a row reminds you of the two ways.
 - A value in **blue** belongs to a record: **click the row** to open the editor of that record, on the tab the row belongs to and with the focus on the right item (for example, the *Sex* row opens the *Attributes* tab with the sex attribute selected); the dossier refreshes after you save. The rows are **not** links to other people: to move to somebody else, use the tree, *Jump to* or *Find record*.
 - A date says how sure it is: an exact date is shown as it is, an approximate one as *about 1850*, one derived from another (for instance a birth from the age at death) as *calculated 1850*, and a range as *before 1850*, *after 1850*, *between 1850 and 1860* or *from 1850 to 1860*.

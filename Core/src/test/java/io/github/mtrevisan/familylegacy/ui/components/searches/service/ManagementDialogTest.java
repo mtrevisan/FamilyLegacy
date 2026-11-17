@@ -91,7 +91,7 @@ class ManagementDialogTest{
 
 		Assertions.assertFalse(texts.contains(I18N.t("button.select")), texts.toString());
 		Assertions.assertFalse(texts.contains("Cancel"), texts.toString());
-		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains("Close"), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.new")), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.edit")), texts.toString());
 		Assertions.assertTrue(texts.contains(I18N.t("button.delete")), texts.toString());
@@ -112,7 +112,7 @@ class ManagementDialogTest{
 			dialog.dispose();
 		});
 		Assertions.assertFalse(texts.contains(I18N.t("button.select")), texts.toString());
-		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains("Close"), texts.toString());
 	}
 
 	@Test
@@ -224,7 +224,7 @@ class ManagementDialogTest{
 		Assertions.assertTrue(texts.contains(I18N.t("button.select")), texts.toString());
 		//it is closed with ESC: there is no button for that
 		Assertions.assertFalse(texts.contains("Cancel"), texts.toString());
-		Assertions.assertFalse(texts.contains(I18N.t("button.close")), texts.toString());
+		Assertions.assertFalse(texts.contains("Close"), texts.toString());
 	}
 
 }

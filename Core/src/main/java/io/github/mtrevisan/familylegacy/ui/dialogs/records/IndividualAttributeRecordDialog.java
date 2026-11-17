@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
@@ -285,6 +286,15 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord owner){
+		//the individual may be a new one, that is not in the model yet
+		if(role == LinkRole.OWNER && IndividualHandler.isOfType(owner)){
+			withParentEntity(owner);
+			refreshLayout();
+		}
+	}
 
 	public IndividualAttributeRecordDialog withIndividual(final String individualId){
 		if(StringUtils.isNotEmpty(individualId)){

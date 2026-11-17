@@ -186,7 +186,7 @@ final class UpdateFlow{
 	}
 
 	private void offerPage(final String message, final ReleaseInfo release){
-		final Object[] options = {I18N.t("menu.help.check.updates.page"), I18N.t("menu.help.check.updates.close")};
+		final Object[] options = {I18N.t("menu.help.check.updates.page")};
 		final int choice = JOptionPane.showOptionDialog(frame, message(message, release), I18N.t("menu.help.check.updates.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if(choice == 0)

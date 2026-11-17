@@ -102,8 +102,8 @@ final class GroupViewFilters{
 		final TemporalProjectionModel inYear = GroupYearFilter.filter(built, yearControl.getYear());
 		legend.update(inYear);
 		final TemporalProjectionModel byRole = legend.filter(inYear);
-		return (contextBox.isSelected() || byRole.bands().isEmpty()? byRole: new TemporalProjectionModel(byRole.rows(), byRole.connections(),
-			List.of(), byRole.impactLinks(), byRole.domainStart(), byRole.domainEnd()));
+		return (contextBox.isSelected() || byRole.bands().isEmpty()? byRole: new TemporalProjectionModel(byRole.rows(), List.of(),
+			byRole.domainStart(), byRole.domainEnd()));
 	}
 
 	/** Forgets the roles that were hidden: a new view has other roles. The year stays, it is a choice about the time. */

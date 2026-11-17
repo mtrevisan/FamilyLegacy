@@ -81,7 +81,7 @@ public final class LayoutRenderer{
 		//NOTE: the line drawn here for a parent goes from the panel of that parent to the panel of the node: it is the line of the
 		//parent to ITS OWN parents, so the kind of the line (biological or not) is the one of the links of the parent, not of the node
 		if(father != null){
-			if(fatherPanel != null && nodePanel != null)
+			if(isDrawn(fatherPanel) && isDrawn(nodePanel) && nodePanel.getFatherPanel().isVisible())
 				connectToParents(path, treeLayout, father,
 					SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(), container),
 					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container));
@@ -89,12 +89,17 @@ public final class LayoutRenderer{
 		}
 
 		if(mother != null){
-			if(motherPanel != null && nodePanel != null)
+			if(isDrawn(motherPanel) && isDrawn(nodePanel) && nodePanel.getMotherPanel().isVisible())
 				connectToParents(path, treeLayout, mother,
 					SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(), container),
 					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container));
 			buildTreeConnections(path, treeLayout, mother, nodeToPanelMap, container);
 		}
+	}
+
+	/** A line goes only to boxes that are on the screen: no box (an ancestor that is not shown, a partner that is not there), no segment. */
+	private static boolean isDrawn(final PartnersPanel panel){
+		return (panel != null && panel.getParent() != null && panel.isVisible() && panel.getWidth() > 0 && panel.getHeight() > 0);
 	}
 
 	/**

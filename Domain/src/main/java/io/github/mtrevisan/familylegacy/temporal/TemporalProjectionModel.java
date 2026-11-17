@@ -25,34 +25,25 @@
 package io.github.mtrevisan.familylegacy.temporal;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 
 import java.util.List;
 
 
 /**
- * Immutable snapshot of the entire General Temporal Projection.
+ * Immutable snapshot of a timeline drawn by the temporal panel (the group timeline, the career of an individual, the timeline of the
+ * jurisdictions).
  * <p>
- * Produced by the projection service and consumed by the layout, renderer
- * and interaction layers. It gathers:
+ * It gathers:
  * <ul>
  *   <li>{@code rows} — the horizontal lifelines, one per row entity;</li>
- *   <li>{@code connections} — temporal arcs between rows;</li>
  *   <li>{@code bands} — contextual background bands;</li>
- *   <li>{@code impactLinks} — links between bands and their targets;</li>
- *   <li>{@code domainStart} / {@code domainEnd} — the overall temporal
- *       extent, computed from all elements, or {@code null} when the model
- *       is empty.</li>
+ *   <li>{@code domainStart} / {@code domainEnd} — the overall temporal extent, or {@code null} when the model is empty.</li>
  * </ul>
- * The record is immutable: all lists are copied on construction. The domain
- * bounds are computed by the {@link #of(List, List, List, List)} factory and
- * are consistent with the content of the model at construction time.
+ * The record is immutable: all lists are copied on construction.
  */
 public record TemporalProjectionModel(
 	List<TemporalRow> rows,
-	List<TemporalConnection> connections,
 	List<TemporalContextBand> bands,
-	List<ContextImpactLink> impactLinks,
 	NormalizedDate domainStart,
 	NormalizedDate domainEnd
 ){
@@ -62,39 +53,17 @@ public record TemporalProjectionModel(
 	 */
 	public TemporalProjectionModel{
 		rows = (rows != null? List.copyOf(rows): List.of());
-		connections = (connections != null? List.copyOf(connections): List.of());
 		bands = (bands != null? List.copyOf(bands): List.of());
-		impactLinks = (impactLinks != null? List.copyOf(impactLinks): List.of());
 	}
 
 
 	/**
-	 * Creates a model and computes its temporal domain from the given
-	 * elements.
-	 *
-	 * @param rows        the row lifelines; may be {@code null}
-	 * @param connections the temporal arcs; may be {@code null}
-	 * @param bands       the contextual background bands; may be {@code null}
-	 * @param impactLinks the links between bands and their targets; may be {@code null}
-	 * @return a fully populated, immutable model
-	 */
-	public static TemporalProjectionModel of(final List<TemporalRow> rows,
-		final List<TemporalConnection> connections,
-		final List<TemporalContextBand> bands,
-		final List<ContextImpactLink> impactLinks){
-		final NormalizedDate start = computeDomainStart(rows, connections, bands);
-		final NormalizedDate end = computeDomainEnd(rows, connections, bands);
-		return new TemporalProjectionModel(rows, connections, bands, impactLinks, start, end);
-	}
-
-	/**
-	 * Returns an empty model with no rows, connections, bands or impact
-	 * links, and a {@code null} temporal domain.
+	 * Returns an empty model with no rows or bands, and a {@code null} temporal domain.
 	 *
 	 * @return an empty model
 	 */
 	public static TemporalProjectionModel empty(){
-		return new TemporalProjectionModel(List.of(), List.of(), List.of(), List.of(), null, null);
+		return new TemporalProjectionModel(List.of(), List.of(), null, null);
 	}
 
 
@@ -141,8 +110,8 @@ public record TemporalProjectionModel(
 	}
 
 	/**
-	 * Returns the number of entries across all rows and connections.
-	 * Bands and impact links are not counted.
+	 * Returns the number of entries across all rows.
+	 * Bands are not counted.
 	 *
 	 * @return the total entry count
 	 */
@@ -155,68 +124,10 @@ public record TemporalProjectionModel(
 	}
 
 
-	/* ======================================================================
-	 *                       Domain computation
-	 * ====================================================================== */
-
-	private static NormalizedDate computeDomainStart(final List<TemporalRow> rows,
-		final List<TemporalConnection> connections, final List<TemporalContextBand> bands){
-		NormalizedDate min = null;
-		if(rows != null)
-			for(final TemporalRow row : rows)
-				for(final TemporalTrack track : row.tracks())
-					for(final TemporalEntry entry : track.entries())
-						min = minOrNull(min, earliest(entry.span()));
-		if(connections != null)
-			for(final TemporalConnection connection : connections)
-				min = minOrNull(min, earliest(connection.span()));
-		if(bands != null)
-			for(final TemporalContextBand band : bands)
-				min = minOrNull(min, earliest(band.span()));
-		return min;
-	}
-
-	private static NormalizedDate computeDomainEnd(final List<TemporalRow> rows,
-		final List<TemporalConnection> connections, final List<TemporalContextBand> bands){
-		NormalizedDate max = null;
-		if(rows != null)
-			for(final TemporalRow row : rows)
-				for(final TemporalTrack track : row.tracks())
-					for(final TemporalEntry entry : track.entries())
-						max = maxOrNull(max, entry.span().effectiveEnd());
-		if(connections != null)
-			for(final TemporalConnection connection : connections)
-				max = maxOrNull(max, connection.span().effectiveEnd());
-		if(bands != null)
-			for(final TemporalContextBand band : bands)
-				max = maxOrNull(max, band.span().effectiveEnd());
-		return max;
-	}
-
-	/** The first known date of a span: its start, or its end when the span has no start (open-start span). */
-	private static NormalizedDate earliest(final TemporalSpan span){
-		return (span.start() != null? span.start(): span.end());
-	}
-
-	private static NormalizedDate minOrNull(final NormalizedDate current, final NormalizedDate candidate){
-		if(candidate == null)
-			return current;
-		return (current == null || candidate.compareTo(current) < 0? candidate: current);
-	}
-
-	private static NormalizedDate maxOrNull(final NormalizedDate current, final NormalizedDate candidate){
-		if(candidate == null)
-			return current;
-		return (current == null || candidate.compareTo(current) > 0? candidate: current);
-	}
-
-
 	@Override
 	public String toString(){
 		return "TemporalProjectionModel[rows=" + rows.size()
-			+ ", connections=" + connections.size()
 			+ ", bands=" + bands.size()
-			+ ", impacts=" + impactLinks.size()
 			+ ", domain=" + (hasDomain()? domainStart + " .. " + domainEnd: "(empty)")
 			+ "]";
 	}

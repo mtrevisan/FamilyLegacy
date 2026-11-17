@@ -206,14 +206,18 @@ final class PlaceChecker{
 		if(sameType)
 			why.add(I18N.tf("place.why.same_type", I18N.t("enum.place.type." + left.type(), left.type())));
 
-		//a place with the same name in another place is another place (San Pietro in two different towns)
+		//a place with the same name in another place is another place (San Pietro in two different towns), unless one of the
+		//places containing it contains the place of the other: the same city may be recorded in the province in one period and
+		//in a district of the province in another
 		final Set<String> leftParents = parents.getOrDefault(left.id(), Set.of());
 		final Set<String> rightParents = parents.getOrDefault(right.id(), Set.of());
 		if(!leftParents.isEmpty() && !rightParents.isEmpty()){
-			if(leftParents.stream().noneMatch(rightParents::contains) && !sameParentName(leftParents, rightParents, byId))
+			if(leftParents.stream().anyMatch(rightParents::contains) || sameParentName(leftParents, rightParents, byId))
+				why.add(I18N.t("place.why.same_parent"));
+			else if(containsOneOf(leftParents, rightParents, parents) || containsOneOf(rightParents, leftParents, parents))
+				why.add(I18N.t("place.why.parent_within_parent"));
+			else
 				return null;
-
-			why.add(I18N.t("place.why.same_parent"));
 		}
 
 		if(left.hasCoordinates() && right.hasCoordinates()){
@@ -247,6 +251,22 @@ final class PlaceChecker{
 			final PlaceData.Place place = byId.get(id);
 			if(place != null && place.names().stream().map(PlaceChecker::normalize).anyMatch(names::contains))
 				return true;
+		}
+		return false;
+	}
+
+	/** @return whether one of the containers contains, directly or not, one of the places */
+	private static boolean containsOneOf(final Set<String> containers, final Set<String> places, final Map<String, Set<String>> parents){
+		final Set<String> visited = new HashSet<>();
+		final List<String> pending = new ArrayList<>(places);
+		while(!pending.isEmpty()){
+			for(final String parent : parents.getOrDefault(pending.removeLast(), Set.of()))
+				if(visited.add(parent)){
+					if(containers.contains(parent))
+						return true;
+
+					pending.add(parent);
+				}
 		}
 		return false;
 	}

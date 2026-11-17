@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DatePrecision;
 
 
 /**
- * Zoom level of the temporal axis in the General Temporal Projection.
+ * Zoom level of the temporal axis in the temporal timelines.
  * <p>
  * The levels are ordered from the widest (millennium) to the narrowest
  * (day). {@link #next()} returns the narrower level (zoom in) and

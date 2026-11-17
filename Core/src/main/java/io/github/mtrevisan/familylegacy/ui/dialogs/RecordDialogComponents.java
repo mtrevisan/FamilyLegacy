@@ -95,8 +95,13 @@ public final class RecordDialogComponents{
 	 * Loads data from the given record into all panels.
 	 */
 	public void load(final FLEFRecord record){
-		if(!record.hasChildren())
+		if(!record.hasChildren()){
+			//a new record has nothing to load, but the lists of its attributes must know whose they are: the editor of what they add needs it
+			loadReferenceIfPresent(PanelKey.INDIVIDUAL_ATTRIBUTE, elp -> elp.withParentEntity(record).withConclusions().loadReference(record.getId()));
+			loadReferenceIfPresent(PanelKey.GROUP_ATTRIBUTE, elp -> elp.withParentEntity(record).withConclusions().loadReference(record.getId()));
+
 			return;
+		}
 
 		bindingManager.load(record);
 

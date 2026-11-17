@@ -111,8 +111,9 @@ public class MultiLineLabel extends JTextArea{
 			return;
 		}
 
-		// Determine available width: use maxWidth if set, otherwise component width minus insets
-		final int availWidth = (maxWidth > 0? maxWidth: getWidth() - getInsets().left - getInsets().right);
+		// Determine available width: the narrower of maxWidth (if set) and the width the layout actually gave
+		// (minus insets); text measured against a wider width than the drawn one would be clipped, not wrapped
+		final int availWidth = availableWidth();
 		if(availWidth <= 0){
 			setTextIfChanged(rawText);
 
@@ -185,6 +186,14 @@ public class MultiLineLabel extends JTextArea{
 		setTextIfChanged(result.toString());
 	}
 
+	private int availableWidth(){
+		final Insets insets = getInsets();
+		final int boundsWidth = getWidth() - insets.left - insets.right;
+		if(maxWidth <= 0)
+			return boundsWidth;
+		return (getWidth() > 0? Math.min(maxWidth, boundsWidth): maxWidth);
+	}
+
 	@Override
 	public Dimension getPreferredSize(){
 		final Font font = getFont();
@@ -236,14 +245,19 @@ public class MultiLineLabel extends JTextArea{
 			return false;
 
 		try{
-			// Horizontal extent of the drawn characters of that line.
+			// Horizontal extent of the drawn characters of that line: from the
+			// caret before the first character to the caret after the last one.
+			// (modelToView2D returns a zero-width caret rectangle placed BEFORE
+			// the character, so the caret at lineEnd is the right edge of the
+			// last glyph; using lineEnd - 1 would cut the last glyph off, and a
+			// one-character name such as "?" would be unclickable.)
 			final Rectangle2D startRect = modelToView2D(lineStart);
-			final Rectangle2D lastRect = modelToView2D(lineEnd - 1);
-			if(startRect == null || lastRect == null)
+			final Rectangle2D endRect = modelToView2D(lineEnd);
+			if(startRect == null || endRect == null)
 				return false;
 
 			final double minX = startRect.getMinX();
-			final double maxX = lastRect.getMaxX();
+			final double maxX = endRect.getMinX();
 			// Vertical extent of the line. startRect and lastRect are on the
 			// same line, so either one is fine; use startRect for clarity.
 			final double minY = startRect.getMinY();

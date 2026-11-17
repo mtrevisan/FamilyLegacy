@@ -193,7 +193,7 @@ public final class GUIHelper{
 			}
 
 			if(i >= format.length())
-				throw new IllegalArgumentException("Formato non valido: " + format);
+				throw new IllegalArgumentException("Invalid format: " + format);
 
 			final char conv = format.charAt(i);
 			i ++;

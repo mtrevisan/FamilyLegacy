@@ -133,7 +133,7 @@ public final class JurisdictionTimelineBuilder{
 				.withSortOrder(i));
 		final NormalizedDate start = GroupTimelineBuilder.domainStart(ordered);
 		final NormalizedDate end = GroupTimelineBuilder.domainEnd(ordered);
-		return new TemporalProjectionModel(ordered, List.of(), GroupTimelineBuilder.contextBands(model, start, end), List.of(), start, end);
+		return new TemporalProjectionModel(ordered, GroupTimelineBuilder.contextBands(model, start, end), start, end);
 	}
 
 	/**

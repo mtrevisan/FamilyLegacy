@@ -25,31 +25,18 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.util.Locale;
 
 
 /**
- * Toolbar of the General Temporal Projection.
+ * Toolbar of the timeline panel: zoom in, zoom out, fit to domain.
  * <p>
- * Exposes:
- * <ul>
- *   <li>zoom controls — zoom in, zoom out, fit to domain, and a zoom level
- *       combo;</li>
- *   <li>layer toggles — context bands, connections, impact links;</li>
- *   <li>entity type filter — all, individuals, groups, places.</li>
- * </ul>
- * The toolbar holds the state of its toggles and combo boxes and exposes it
- * through getters; it notifies the panel of user actions through a
- * {@link Listener}.
+ * It notifies the panel of user actions through a {@link Listener}.
  */
 public final class TemporalProjectionToolbar extends JPanel{
 
@@ -60,32 +47,12 @@ public final class TemporalProjectionToolbar extends JPanel{
 		void onZoomIn();
 		void onZoomOut();
 		void onFitToDomain();
-		void onFiltersChanged();
-	}
-
-	/** Entity type filter option values. */
-	public enum EntityFilter{
-		ALL,
-		INDIVIDUALS,
-		GROUPS,
-		PLACES;
-
-		@Override
-		public String toString(){
-			return I18N.t("enum.temporal.entity_filter." + name().toLowerCase(Locale.ROOT));
-		}
 	}
 
 
 	private final JButton zoomInBtn = new JButton("+");
 	private final JButton zoomOutBtn = new JButton("−");
 	private final JButton fitBtn = new JButton(I18N.t("button.fit"));
-	private final JCheckBox showBandsCheck = new JCheckBox(I18N.t("checkbox.bands"), true);
-	private final JCheckBox showConnectionsCheck = new JCheckBox(I18N.t("checkbox.connections"), true);
-	private final JCheckBox showImpactLinksCheck = new JCheckBox(I18N.t("checkbox.impacts"), true);
-	private final JComboBox<EntityFilter> entityFilterCombo = ComboBoxSearch.searchable(new JComboBox<>(EntityFilter.values()));
-	private final JLabel showLabel = new JLabel("  " + I18N.l("label.toolbar.show"));
-	private final JLabel entitiesLabel = new JLabel("  " + I18N.l("label.toolbar.entities"));
 	private final Listener listener;
 
 
@@ -94,44 +61,6 @@ public final class TemporalProjectionToolbar extends JPanel{
 
 		initComponents();
 		installListeners(listener);
-	}
-
-
-	/* ======================================================================
-	 *                          State accessors
-	 * ====================================================================== */
-
-	public boolean isShowBands(){
-		return showBandsCheck.isSelected();
-	}
-
-	public boolean isShowConnections(){
-		return showConnectionsCheck.isSelected();
-	}
-
-	public boolean isShowImpactLinks(){
-		return showImpactLinksCheck.isSelected();
-	}
-
-	public EntityFilter getEntityFilter(){
-		return (EntityFilter)entityFilterCombo.getSelectedItem();
-	}
-
-
-	/**
-	 * Shows or hides the controls that choose what the projection of the whole file shows: the layers (bands, connections, impact links)
-	 * and the type of entity. A view that is given its own model (the group views) has none of those to choose, and the controls would do
-	 * nothing: it hides them. The zoom controls stay.
-	 *
-	 * @param visible	Whether to show the layer toggles and the entity filter.
-	 */
-	public void setContentControlsVisible(final boolean visible){
-		showLabel.setVisible(visible);
-		showBandsCheck.setVisible(visible);
-		showConnectionsCheck.setVisible(visible);
-		showImpactLinksCheck.setVisible(visible);
-		entitiesLabel.setVisible(visible);
-		entityFilterCombo.setVisible(visible);
 	}
 
 
@@ -147,12 +76,6 @@ public final class TemporalProjectionToolbar extends JPanel{
 		content.add(zoomOutBtn);
 		content.add(zoomInBtn);
 		content.add(fitBtn);
-		content.add(showLabel);
-		content.add(showBandsCheck);
-		content.add(showConnectionsCheck);
-		content.add(showImpactLinksCheck);
-		content.add(entitiesLabel);
-		content.add(entityFilterCombo);
 
 		add(content, BorderLayout.WEST);
 	}
@@ -164,10 +87,6 @@ public final class TemporalProjectionToolbar extends JPanel{
 		zoomInBtn.addActionListener(e -> listener.onZoomIn());
 		zoomOutBtn.addActionListener(e -> listener.onZoomOut());
 		fitBtn.addActionListener(e -> listener.onFitToDomain());
-		showBandsCheck.addActionListener(e -> listener.onFiltersChanged());
-		showConnectionsCheck.addActionListener(e -> listener.onFiltersChanged());
-		showImpactLinksCheck.addActionListener(e -> listener.onFiltersChanged());
-		entityFilterCombo.addActionListener(e -> listener.onFiltersChanged());
 	}
 
 }

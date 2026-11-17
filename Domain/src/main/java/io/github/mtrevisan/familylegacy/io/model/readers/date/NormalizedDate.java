@@ -30,7 +30,7 @@ import org.apache.commons.lang3.Strings;
 
 
 /**
- * A single normalized point in time used by the General Temporal Projection.
+ * A single normalized point in time used by the temporal timelines.
  * <p>
  * Normalization maps every FLEF {@code SingleDate} alternative (full date,
  * decade, century, with any calendar) onto a common numeric axis, so that

@@ -33,7 +33,7 @@ import java.util.Map;
 
 
 /**
- * Computes the vertical layout of the General Temporal Projection.
+ * Computes the vertical layout of the temporal timelines.
  * <p>
  * The layout is <b>viewport‑independent</b>: it produces only vertical
  * coordinates (row positions, track positions, entry lanes). Horizontal
@@ -78,7 +78,7 @@ public final class TemporalProjectionLayout{
 
 
 	private List<RowLayout> rows = List.of();
-	/** The rows by entity: the connections and the impacts look for the row of an entity at every paint. */
+	/** The rows by entity: the panel looks for the row of an entity at every paint. */
 	private Map<TemporalEntityRef, RowLayout> rowsByEntity = Map.of();
 	private int totalHeight;
 
@@ -225,18 +225,6 @@ public final class TemporalProjectionLayout{
 	 */
 	public RowLayout findRow(final TemporalEntityRef entity){
 		return rowsByEntity.get(entity);
-	}
-
-	/**
-	 * Returns the vertical center of the given row, or {@code -1} if the row
-	 * is not part of the layout.
-	 *
-	 * @param entity the row entity
-	 * @return the vertical center in pixels, or {@code -1}
-	 */
-	public int rowCenterY(final TemporalEntityRef entity){
-		final RowLayout row = findRow(entity);
-		return (row != null? row.y() + row.height() / 2: -1);
 	}
 
 

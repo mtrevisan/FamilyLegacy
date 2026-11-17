@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.grammar;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalRequireConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalValueInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.EveryConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
@@ -194,12 +195,36 @@ public final class FLEFGrammarValidator{
 			if(condIn.getAllowedValues().isEmpty())
 				errors.add(context + ": " + condIn + " lists no values");
 		}
+		else if(constraint instanceof EveryConstraint every){
+			if(!fieldNames.contains(topField(every.getField())))
+				errors.add(context + ": " + every + " iterates over unknown field '" + every.getField() + "'");
+			for(final String operand : List.of(every.getLeft(), every.getRight()))
+				if(!every.isOnVariable(operand) && isFieldName(operand) && !fieldNames.contains(topField(operand)))
+					errors.add(context + ": " + every + " references unknown field '" + operand + "'");
+		}
 		else if(constraint instanceof OnlyIfInConstraint onlyIf){
 			if(!fieldNames.contains(onlyIf.getField()))
 				errors.add(context + ": " + onlyIf + " references unknown field '" + onlyIf.getField() + "'");
 			if(!fieldNames.contains(onlyIf.getConditionField()))
 				errors.add(context + ": " + onlyIf + " has unknown condition field '" + onlyIf.getConditionField() + "'");
 		}
+	}
+
+	/** The first segment of a path (e.g. {@code source} for {@code source.media}), without an index. */
+	private static String topField(final String path){
+		int end = path.length();
+		final int dot = path.indexOf('.');
+		if(dot >= 0)
+			end = dot;
+		final int bracket = path.indexOf('[');
+		if(bracket >= 0 && bracket < end)
+			end = bracket;
+		return path.substring(0, end);
+	}
+
+	/** Whether an operand is a field (an identifier) rather than a literal (a number). */
+	private static boolean isFieldName(final String operand){
+		return (!operand.isEmpty() && !Character.isDigit(operand.charAt(0)) && operand.charAt(0) != '-');
 	}
 
 	private void validateUnion(final UnionType union, final String context){

@@ -106,8 +106,13 @@ public class BindingsHelper{
 			final Runnable keyDeleteAction, final Consumer<MenuBuilder> menuBuilder){
 		component.setBackground(COLOR_BACKGROUND);
 		component.setToolTipText(I18N.t(shiftDoubleClickAction == null? "tooltip.text": "tooltip.dual_action_text"));
-		if(component instanceof JTextComponent field)
+		if(component instanceof JTextComponent field){
 			field.setEditable(false);
+
+			//a field that has not been loaded yet must already show the placeholder
+			if(component instanceof BoundTextField btf && !btf.isReadOnly() && StringUtils.isEmpty(btf.getText()))
+				btf.setText(null);
+		}
 		else if(component instanceof JList<?> list)
 			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 

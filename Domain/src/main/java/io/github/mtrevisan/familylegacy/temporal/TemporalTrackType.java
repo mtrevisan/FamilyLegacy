@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.temporal;
 
 /**
  * Categories of temporal track that can be attached to a row in the
- * General Temporal Projection.
+ * temporal timelines.
  * <p>
  * A track groups entries that share the same origin in the FLEF protocol:
  * <ul>

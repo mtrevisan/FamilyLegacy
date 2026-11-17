@@ -26,9 +26,13 @@ package io.github.mtrevisan.familylegacy.io.model;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -78,6 +82,32 @@ public final class RecordChangeSummary{
 		final List<String> limited = new ArrayList<>(changes.subList(0, MAX_LINES));
 		limited.add(ELLIPSIS + " +" + (changes.size() - MAX_LINES));
 		return limited;
+	}
+
+	/**
+	 * Adds an {@code update} to the audit of the record, whose comment tells what was changed, added or removed.
+	 * <p>
+	 * Nothing is added if nothing changed, or if the record has no audit.
+	 * </p>
+	 *
+	 * @param before	The record as it was before the change.
+	 * @param after	The record as it is now (the one that receives the update).
+	 * @return	Whether an update was added.
+	 */
+	public static boolean recordUpdate(final FLEFRecord before, final FLEFRecord after){
+		final FLEFRecord audit = FLEFRecordHelper.findChild(after, TAG_AUDIT);
+		if(audit == null)
+			return false;
+
+		final List<String> changes = describe(before, after);
+		if(changes.isEmpty())
+			return false;
+
+		final String date = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+		audit.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_UPDATE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, date))
+			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, String.join(StringUtils.LF, changes))));
+		return true;
 	}
 
 	private static void compare(final String prefix, final FLEFRecord before, final FLEFRecord after, final List<String> changes){

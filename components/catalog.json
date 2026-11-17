@@ -7,6 +7,15 @@
 			"target": "fonts",
 			"asset": "fonts.zip",
 			"files": ["NotoSans-Regular.ttf"]
+		},
+		{
+			"id": "facedetector",
+			"name": "Face detector",
+			"description": "Finds the faces in a portrait, so that a click on a face crops the head",
+			"target": "plugins",
+			"asset": "face-detector.jar",
+			"release": "components",
+			"files": ["face-detector.jar"]
 		}
 	]
 }

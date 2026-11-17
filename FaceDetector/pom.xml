@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<!-- The detector of the faces of a portrait: OpenCV with the YuNet model (FaceDetectorYN).
+		It is a plugin, downloaded apart as the fonts are (Help > Optional Components): the jar Core/plugins/face-detector.jar carries the
+		model (230 KB) and the native libraries of OpenCV for ONE platform (javacpp.platform, some tens of MB), and it is NOT put in the
+		installer. It is read from the class path of its own class loader (no module-info: the libraries of ByteDeco are automatic modules).
+		The application (Domain: the SPI of the detectors) and its libraries are provided. -->
+	<artifactId>FaceDetector</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>plugin</shadedClassifierName>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<minimizeJar>false</minimizeJar>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+							</transformers>
+							<filters>
+								<!-- what is only for building or for Python, not for loading the libraries from Java: link objects, import libraries and exports, the
+									headers, the modules of Python, the executables, the variant of OpenBLAS with LAPACK that is not loaded -->
+								<filter>
+									<artifact>org.bytedeco:*</artifact>
+									<excludes>
+										<exclude>**/*.obj</exclude>
+										<exclude>**/*.lib</exclude>
+										<exclude>**/*.pyd</exclude>
+										<exclude>**/python/**</exclude>
+										<exclude>**/lib/site-packages/**</exclude>
+										<exclude>**/*.exe</exclude>
+										<exclude>**/*.exp</exclude>
+										<exclude>**/include/**</exclude>
+										<exclude>**/jniopenblas_full.dll</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>module-info.class</exclude>
+										<exclude>META-INF/versions/*/module-info.class</exclude>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>plugin-into-core</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.basedir}/../Core/plugins"/>
+								<copy file="${project.build.directory}/${project.build.finalName}-plugin.jar"
+									tofile="${project.basedir}/../Core/plugins/face-detector.jar" overwrite="true"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- provided by the application (the SPI of the detectors, and the libraries it uses) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- OpenCV (and what it needs): the classes, and the native libraries of the platform -->
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>opencv</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>opencv</artifactId>
+			<version>${bytedeco.opencv.version}</version>
+			<classifier>${javacpp.platform}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>openblas</artifactId>
+			<version>${bytedeco.openblas.version}</version>
+			<classifier>${javacpp.platform}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>javacpp</artifactId>
+			<version>${bytedeco.javacpp.version}</version>
+			<classifier>${javacpp.platform}</classifier>
+		</dependency>
+
+		<!-- Logger -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

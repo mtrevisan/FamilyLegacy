@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantC
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.context.ContextAssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.fan.FanAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.features.ResearchToolsAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
@@ -73,6 +74,7 @@ public final class DefaultResearchAssistant{
 		service.register(new ConclusionAssistantContributor());
 		service.register(new RelationshipAssistantContributor());
 		service.register(new ConsanguinityAssistantContributor());
+		service.register(new FanAssistantContributor());
 		service.register(new IdentityAssistantContributor());
 		service.register(new GapAssistantContributor());
 		service.register(new CitationAssistantContributor());

@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -241,6 +242,14 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord owner){
+		if(role == LinkRole.OWNER && GroupHandler.isOfType(owner)){
+			withParentEntity(owner);
+			refreshLayout();
+		}
+	}
 
 	public GroupAttributeRecordDialog withGroup(final String groupId){
 		if(StringUtils.isNotEmpty(groupId)){

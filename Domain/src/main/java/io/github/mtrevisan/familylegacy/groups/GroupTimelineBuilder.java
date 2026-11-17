@@ -38,13 +38,13 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBands;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalExtractor;
 import io.github.mtrevisan.familylegacy.temporal.TemporalIndices;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
-import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionService;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.temporal.TemporalTrack;
 import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
@@ -179,7 +179,7 @@ public final class GroupTimelineBuilder{
 				.withSortOrder(i));
 		final NormalizedDate start = domainStart(ordered);
 		final NormalizedDate end = domainEnd(ordered);
-		return new TemporalProjectionModel(ordered, List.of(), contextBands(model, start, end), List.of(), start, end);
+		return new TemporalProjectionModel(ordered, contextBands(model, start, end), start, end);
 	}
 
 
@@ -276,7 +276,7 @@ public final class GroupTimelineBuilder{
 			return List.of();
 
 		final List<TemporalContextBand> bands = new ArrayList<>();
-		for(final TemporalContextBand band : new TemporalProjectionService(model).contextBands())
+		for(final TemporalContextBand band : TemporalContextBands.of(model))
 			if(band.span().maxJdn() >= start.jdn() && band.span().minJdn() <= end.jdn())
 				bands.add(band);
 		bands.sort(Comparator.comparingLong((TemporalContextBand band) -> band.span().minJdn())

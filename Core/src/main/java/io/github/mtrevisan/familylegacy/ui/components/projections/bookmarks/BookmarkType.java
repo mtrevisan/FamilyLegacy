@@ -48,13 +48,7 @@ public enum BookmarkType{
 	EGO_NETWORK("bookmark.ego_network"),
 
 	/** Chronomap, with the individual selected. */
-	CHRONOMAP("bookmark.chronomap"),
-
-	/** Temporal projection, with the individual selected. */
-	TEMPORAL("bookmark.temporal"),
-
-	/** Social network focused on an individual or a group. */
-	SOCIAL_NETWORK("bookmark.social_network");
+	CHRONOMAP("bookmark.chronomap");
 
 
 	private final String displayKey;

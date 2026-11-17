@@ -144,6 +144,50 @@ final class FieldMerger{
 			foldSingular(target, source, field, path, conflicts);
 	}
 
+	/**
+	 * Unites, at any depth of a record, the occurrences of a repeated evidence field (the citations) that state the same thing: after
+	 * the records they reference have been collapsed (e.g. two equal extracts of a source), two citations may have become the same.
+	 *
+	 * @param record    the record (modified in place)
+	 * @param conflicts where to describe the values that could not be kept
+	 * @return whether something was united
+	 */
+	boolean uniteRepeatedEvidence(final FLEFRecord record, final List<String> conflicts){
+		final StructType type = grammar.recordType(record.getTag());
+		return (type != null && uniteRepeatedEvidence(record, type, record.getTag(), conflicts));
+	}
+
+	private boolean uniteRepeatedEvidence(final FLEFRecord node, final StructType type, final String path, final List<String> conflicts){
+		boolean united = false;
+		for(final FieldDefinition field : type.getFields()){
+			final List<FLEFRecord> occurrences = children(node, field.name());
+			if(occurrences.isEmpty())
+				continue;
+
+			final String fieldPath = FLEFRecordHelper.composePath(path, field.name());
+			final StructType struct = grammar.structOf(field);
+			if(struct != null)
+				for(final FLEFRecord occurrence : occurrences)
+					united |= uniteRepeatedEvidence(occurrence, struct, fieldPath, conflicts);
+			if(occurrences.size() < 2 || !GrammarSupport.isRepeated(field) || !grammar.isEvidenceField(field))
+				continue;
+
+			final Map<String, FLEFRecord> first = new HashMap<>();
+			for(final FLEFRecord occurrence : occurrences){
+				final FLEFRecord same = first.putIfAbsent(signature.of(occurrence, field.type()), occurrence);
+				if(same == null)
+					continue;
+
+				if(struct != null)
+					mergeStruct(same, occurrence, struct, fieldPath, conflicts);
+				node.getChildren()
+					.removeIf(child -> child == occurrence);
+				united = true;
+			}
+		}
+		return united;
+	}
+
 	private void mergeRepeated(final FLEFRecord target, final FLEFRecord source, final FieldDefinition field,
 			final String path, final List<String> conflicts){
 		final List<FLEFRecord> sourceOccurrences = children(source, field.name());

@@ -32,11 +32,13 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GedcomTexts;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -45,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -54,7 +58,7 @@ import java.util.Set;
  * <ul>
  *   <li>TITL → title; ABBR → title of type {@code abbreviated}</li>
  *   <li>AUTH → author; DATA.AGNC (the responsible agency) → author</li>
- *   <li>PUBL → publisher</li>
+ *   <li>PUBL → publisher (and place and date, when written as "place : publisher, date")</li>
  *   <li>DATA.EVEN.DATE (the period covered) → date; DATA.EVEN.PLAC (the jurisdiction) → place; the events recorded and
  *   DATA.NOTE → notes</li>
  *   <li>TEXT → note</li>
@@ -67,6 +71,12 @@ import java.util.Set;
  * Repositories and multimedia records must be converted before.
  */
 public class SourceConverter {
+
+	/** A publication over some years (e.g. "1992-1993", "1992-93"). */
+	private static final Pattern YEAR_RANGE = Pattern.compile("^(\\d{3,4})\\s*[-–]\\s*(\\d{1,4})$");
+	/** The mark of a copyright or phonogram date (e.g. "c1992", "©1992", "cop. 1992", "p1992"). */
+	private static final Pattern COPYRIGHT_MARK = Pattern.compile("^(?:©|℗|cop\\.?|copyright|c|p)\\s*(?=\\d)",
+		Pattern.CASE_INSENSITIVE);
 
 	private final FLEFModel model;
 	private final Map<String, GEDCOMNode> noteRawMap;
@@ -89,9 +99,14 @@ public class SourceConverter {
 		this.placeCache = placeCache;
 	}
 
+	/** What a publication says: where, by whom, and when the source was published (each one may be missing). */
+	private record Publication(String place, String publisher, String date){}
+
 	/**
-	 * A note of the source that is only a date is the date of the source; one that is "place : date" (or "date : place") gives its
-	 * place and its date. Nothing is done if the note says anything else, or the source has already what the note would give.
+	 * A note of the source that is only a date is the date the source was created (published); one that is "place : date" (or
+	 * "date : place") gives its place and its date, and one that is "place : publisher, date", as the catalogues write the
+	 * publication, gives its publisher too (see {@link #parsePublication(String, boolean)}).
+	 * Nothing is done if the note says anything else, or the source has already a date (or a place), or another publisher.
 	 *
 	 * @return	Whether the note was used (and so it is not a note of the source any more).
 	 */
@@ -99,50 +114,139 @@ public class SourceConverter {
 		final String noteId = GEDCOMHelper.pointer(noteNode.getValue());
 		final String text = StringUtils.trimToNull(GEDCOMHelper.extractFullText(noteId != null && noteRawMap != null
 			? noteRawMap.get(noteId): noteNode));
-		if(text == null)
-			return false;
+		final Publication publication = parsePublication(text, false);
+		return (publication != null && applyPublication(source, publication, noteNode.getLevel()));
+	}
 
-		final boolean dateFree = hasNoChild(source, SourceReader.TAG_DATE);
-		final boolean placeFree = hasNoChild(source, SourceReader.TAG_PLACE);
-		if(isDate(text)){
-			if(!dateFree)
-				return false;
+	/**
+	 * The publication facts of the source (PUBL): written as the catalogues do, "place : publisher, date" (e.g.
+	 * {@code Treviso : Canova, 1992}), they give the place, the publisher and the date of the source; otherwise, or if the source
+	 * has already a date or a place, the whole text is the publisher.
+	 */
+	private void attachPublication(final FLEFRecord source, final String text, final int level){
+		final Publication publication = parsePublication(text, true);
+		if(publication == null || !applyPublication(source, publication, level))
+			source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_PUBLISHER, text));
+	}
 
-			GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, text);
-			return true;
-		}
+	/**
+	 * Reads a publication as the catalogues write it: "date", "place : date" (or "date : place"), "place : publisher, date"; for
+	 * the field of the publication (PUBL) also "place : publisher" and "publisher, date". The date may be written as the catalogues
+	 * do (see {@link #publicationDate(String)}).
+	 *
+	 * @param text	The text.
+	 * @param publicationField	Whether the text is the field of the publication (and so its parts are publication facts).
+	 * @return	The publication, or {@code null} if the text is not written so.
+	 */
+	private static Publication parsePublication(final String text, final boolean publicationField){
+		if(StringUtils.isBlank(text))
+			return null;
+
+		final String onlyDate = publicationDate(text);
+		if(onlyDate != null)
+			return new Publication(null, null, onlyDate);
 
 		final int colon = text.indexOf(':');
-		if(colon < 1 || colon != text.lastIndexOf(':') || !dateFree || !placeFree)
-			return false;
+		if(colon < 0){
+			//"publisher, date"
+			final Publication publisherAndDate = (publicationField? publisherAndDate(null, text): null);
+			return (publisherAndDate != null && publisherAndDate.date() != null? publisherAndDate: null);
+		}
+		if(colon == 0 || colon != text.lastIndexOf(':'))
+			return null;
 
 		final String before = StringUtils.trimToNull(text.substring(0, colon));
 		final String after = StringUtils.trimToNull(text.substring(colon + 1));
 		if(before == null || after == null)
+			return null;
+
+		final String afterDate = publicationDate(after);
+		final String beforeDate = publicationDate(before);
+		if(afterDate != null && beforeDate == null)
+			return new Publication(before, null, afterDate);
+		if(beforeDate != null)
+			return (afterDate == null? new Publication(after, null, beforeDate): null);
+
+		//"place : publisher, date"
+		final Publication publisherAndDate = publisherAndDate(before, after);
+		if(publisherAndDate != null && publisherAndDate.date() != null)
+			return publisherAndDate;
+		//"place : publisher"
+		return (publicationField? new Publication(before, after, null): null);
+	}
+
+	/** "publisher, date" (the date after the last comma), at the given place; {@code null} if the text is not written so. */
+	private static Publication publisherAndDate(final String place, final String text){
+		final int comma = text.lastIndexOf(',');
+		if(comma < 1)
+			return null;
+
+		final String publisher = StringUtils.trimToNull(text.substring(0, comma));
+		final String date = publicationDate(text.substring(comma + 1));
+		return (publisher != null && date != null && publicationDate(publisher) == null
+			? new Publication(place, publisher, date)
+			: null);
+	}
+
+	/**
+	 * Gives the source the place, the publisher and the date of a publication, if it has none of them already (the same publisher
+	 * is not a conflict).
+	 *
+	 * @return	Whether the publication was given to the source.
+	 */
+	private boolean applyPublication(final FLEFRecord source, final Publication publication, final int level){
+		if(publication.date() != null && !hasNoChild(source, SourceReader.TAG_DATE)
+				|| publication.place() != null && !hasNoChild(source, SourceReader.TAG_PLACE))
 			return false;
 
-		final String date;
-		final String place;
-		if(isDate(after) && !isDate(before)){
-			date = after;
-			place = before;
-		}
-		else if(isDate(before) && !isDate(after)){
-			date = before;
-			place = after;
-		}
-		else
+		final String existingPublisher = FLEFRecordHelper.getChildValue(source, SourceReader.TAG_PUBLISHER);
+		if(publication.publisher() != null && existingPublisher != null && !existingPublisher.equalsIgnoreCase(publication.publisher()))
 			return false;
 
-		GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, date);
-		GEDCOMRecordBuilder.attachPlaceCitation(source, model, new GEDCOMNode(noteNode.getLevel(), GEDCOMMapper.TAG_PLACE, place), null, noteRawMap,
-			placeCache);
+		if(publication.publisher() != null && existingPublisher == null)
+			source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_PUBLISHER, publication.publisher()));
+		if(publication.date() != null)
+			GEDCOMRecordBuilder.attachDate(source, SourceReader.TAG_DATE, publication.date());
+		if(publication.place() != null)
+			GEDCOMRecordBuilder.attachPlaceCitation(source, model, new GEDCOMNode(level, GEDCOMMapper.TAG_PLACE, publication.place()), null,
+				noteRawMap, placeCache);
 		return true;
 	}
 
 	private static boolean hasNoChild(final FLEFRecord record, final String tag){
 		return record.getChildren().stream()
 			.noneMatch(child -> tag.equals(child.getTag()));
+	}
+
+	/**
+	 * The date of a publication, as GEDCOM writes it, from the way the catalogues write it: a final period is dropped
+	 * ({@code 1992.}), a date supplied by the cataloguer is in brackets ({@code [1992]}, {@code [1992?]}), a copyright or phonogram
+	 * date has its mark ({@code c1992}, {@code ©1992}, {@code cop. 1992}, {@code p1992}), and a publication over some years is a
+	 * range ({@code 1992-1993}, {@code 1992-93}).
+	 *
+	 * @param text	The text.
+	 * @return	The date, or {@code null} if the text is not a date.
+	 */
+	private static String publicationDate(final String text){
+		String date = StringUtils.trimToNull(StringUtils.removeEnd(StringUtils.trimToEmpty(text), "."));
+		if(date == null)
+			return null;
+
+		if(date.length() > 2 && date.charAt(0) == '[' && date.charAt(date.length() - 1) == ']')
+			date = date.substring(1, date.length() - 1)
+				.trim();
+		date = COPYRIGHT_MARK.matcher(date)
+			.replaceFirst(StringUtils.EMPTY);
+		final Matcher range = YEAR_RANGE.matcher(date);
+		if(range.matches()){
+			final String start = range.group(1);
+			String end = range.group(2);
+			//the end may be written with its last digits only
+			if(end.length() < start.length())
+				end = start.substring(0, start.length() - end.length()) + end;
+			date = "FROM " + start + " TO " + end;
+		}
+		return (isDate(date)? date: null);
 	}
 
 	/** Whether the text is a GEDCOM date: it is understood as such and has a year (a bare small number is not one). */
@@ -203,7 +307,7 @@ public class SourceConverter {
 		final String publication = StringUtils.trimToNull(GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(sourNode,
 			"PUBL")));
 		if(publication != null)
-			source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_PUBLISHER, publication));
+			attachPublication(source, publication, sourNode.getLevel() + 1);
 
 		// ---- 4. DATA.EVEN (events recorded, with the period covered and the jurisdiction) ----
 		final List<String> eventsRecorded = new ArrayList<>();
@@ -289,18 +393,15 @@ public class SourceConverter {
 		}
 
 		// ---- 7. Notes (NOTE, DATA.NOTE, events recorded, TEXT) – inline structs ----
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(sourNode, GEDCOMMapper.TAG_NOTE)){
-			//a note that is only a date, or "place : date", is the date (and the place) of the source
+		//a note that is only a date, or "place : date", is the date (and the place) the source was created; the date may be written
+		//in a way GEDCOM does not know (e.g. "15 gennaio 1953"): the parsers of the calendars read it
+		final List<GEDCOMNode> noteNodes = new ArrayList<>(GEDCOMHelper.findChildren(sourNode, GEDCOMMapper.TAG_NOTE));
+		noteNodes.addAll(GEDCOMHelper.findChildren(dataNode, GEDCOMMapper.TAG_NOTE));
+		for(final GEDCOMNode noteNode : noteNodes)
 			if(!consumeDateAndPlace(source, noteNode))
 				GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);
-		}
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(dataNode, GEDCOMMapper.TAG_NOTE)){
-			GEDCOMRecordBuilder.attachNote(source, model, noteNode, noteRawMap);
-		}
 		if(!eventsRecorded.isEmpty())
 			source.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.events_recorded"), String.join(StringUtils.LF, eventsRecorded), dataNode));
-		source.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.text_from_source"),
-			GEDCOMHelper.extractFullText(GEDCOMHelper.findFirstChild(sourNode, "TEXT")), sourNode));
 
 		// ---- What has no field in FLEF is kept as notes ----
 		KeptNotes.keepIdentifiers(source, sourNode, StringUtils.EMPTY, sourNode);
@@ -313,6 +414,31 @@ public class SourceConverter {
 		source.addChild(AuditBuilder.build(sourNode));
 
 		model.addRecord(source);
+
+		// ---- Text from source (TEXT): a verbatim extract of the source ----
+		for(final GEDCOMNode textNode : GEDCOMHelper.findChildren(sourNode, GEDCOMMapper.TAG_TEXT))
+			addTextExtract(source.getId(), textNode, sourNode);
+	}
+
+	/**
+	 * The text of a source (a verbatim copy of what it says) is an extract of the source, that the citations of the source can
+	 * reference.
+	 */
+	private void addTextExtract(final String sourceId, final GEDCOMNode textNode, final GEDCOMNode sourNode){
+		final String text = GEDCOMHelper.extractFullText(textNode);
+		if(StringUtils.isBlank(text))
+			return;
+
+		final FLEFRecord extract = FLEFRecord.createMainRecord(IDGenerator.nextId(ExtractReader.ID_PREFIX), ExtractReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_SOURCE, sourceId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TEXT, text.trim()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TYPE, ExtractReader.ENUM_TYPE_VERBATIM));
+		// GEDCOM 7 states the language of the text
+		final String locale = GEDCOMHelper.findFirstValue(textNode, GEDCOMMapper.TAG_LANGUAGE);
+		if(locale != null)
+			extract.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_LOCALE, locale));
+		extract.addChild(AuditBuilder.build(sourNode));
+		model.addRecord(extract);
 	}
 
 }

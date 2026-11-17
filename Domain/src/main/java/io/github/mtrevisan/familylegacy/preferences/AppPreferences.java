@@ -95,6 +95,8 @@ public final class AppPreferences{
 	public static final String KEY_UX_LEVEL = "ui.level";
 	// whether the editors suggest advanced concepts when they could help (presentation only)
 	public static final String KEY_SUGGESTIONS = "ui.suggestions";
+	// whether the main window shows the panel of the research tasks still to be done (presentation only)
+	public static final String KEY_TASKS_PANEL = "view.tasks_panel";
 	// whether the application looks for a newer release at startup, and when it last asked GitHub (epoch milliseconds)
 	public static final String KEY_UPDATE_CHECK = "update.check";
 	public static final String KEY_UPDATE_LAST = "update.last";
@@ -201,6 +203,16 @@ public final class AppPreferences{
 	/** Persists whether the editors suggest advanced concepts (a view preference: it is not stored in the genealogy). */
 	public void setSuggestionsEnabled(final boolean enabled){
 		put(KEY_SUGGESTIONS, Boolean.toString(enabled));
+	}
+
+	/** Returns whether the main window shows the panel of the research tasks still to be done; off unless the user turned it on. */
+	public boolean tasksPanelVisible(){
+		return "true".equals(properties.getProperty(KEY_TASKS_PANEL));
+	}
+
+	/** Persists whether the main window shows the panel of the research tasks (a view preference: it is not stored in the genealogy). */
+	public void setTasksPanelVisible(final boolean visible){
+		put(KEY_TASKS_PANEL, Boolean.toString(visible));
 	}
 
 	/** Returns whether the application looks for a newer release at startup; on unless the user turned it off. */

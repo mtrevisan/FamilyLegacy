@@ -57,8 +57,8 @@ public interface RecordDialog{
 	/**
 	 * Presets a record in the part it plays (the editors that have no such part ignore it).
 	 *
-	 * @param role   the part
-	 * @param record the record
+	 * @param role	the part
+	 * @param record	the record
 	 */
 	default void link(final LinkRole role, final FLEFRecord record){}
 
@@ -74,6 +74,9 @@ public interface RecordDialog{
 
 	/** Presets the sex of a new individual, and keeps it (the editors of the other records ignore it). */
 	default void presetSex(final SexType sex){}
+
+	/** Forces the sex of a new individual: the editors refuse to save it with another sex (the editors of the other records ignore it). */
+	default void requireSex(final SexType sex, final String reason){}
 
 	/** Shows the relationships in which the record is the object (where a child or a member is added). */
 	default void showRelationshipsAsObject(){}

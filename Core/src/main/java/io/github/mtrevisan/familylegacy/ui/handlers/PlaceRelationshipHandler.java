@@ -92,7 +92,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<RecordDi
 
 		final String id = record.getId();
 
-		return subjectDisplayText + " is related to " + objectDisplayText + " as " + type + " [" + id + ']';
+		return I18N.tf("text.place_relationship.display", subjectDisplayText, objectDisplayText, type) + " [" + id + ']';
 	}
 
 	@Override

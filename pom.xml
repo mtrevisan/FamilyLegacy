@@ -35,6 +35,7 @@
 		<module>Updater</module>
 		<module>ImporterGedcom</module>
 		<module>ImporterGramps</module>
+		<module>FaceDetector</module>
 		<module>Core</module>
 		<module>Ephemeris</module>
 	</modules>
@@ -107,11 +108,18 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.15.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.16.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
 		<bytedeco.opencv.version>4.14.0-1.5.14</bytedeco.opencv.version>
+
+		<!-- the native libraries of the face detector plugin, for the platform that builds it (-Djavacpp.platform=linux-x86_64, ...) -->
+		<!-- https://mvnrepository.com/artifact/org.bytedeco/openblas -->
+		<bytedeco.openblas.version>0.3.34-1.5.14</bytedeco.openblas.version>
+		<!-- https://mvnrepository.com/artifact/org.bytedeco/javacpp -->
+		<bytedeco.javacpp.version>1.5.14</bytedeco.javacpp.version>
+		<javacpp.platform>windows-x86_64</javacpp.platform>
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
@@ -181,7 +189,7 @@
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<slf4j.slf4j-api.version>2.0.20</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.6.6</logback.logback-classic.version>
+		<logback.logback-classic.version>1.6.7</logback.logback-classic.version>
 
 		<!-- Testing -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->

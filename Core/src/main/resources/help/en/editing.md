@@ -13,6 +13,7 @@ Fields marked with an asterisk are required. **OK** checks the fields that are r
 
 - **Individual > Add Individual...** creates a new individual.
 - **Individual > Add Child...** opens the editor of the selected individual on the **Relationships** tab, where you add the relationship that makes the new person a child of this one.
+- **Individual > Add Partner...** and **Add Parent...** create a new individual and link it to the selected one (the type of the relationship is asked); **Connect Partner...** and **Connect Parent...** do the same with an existing person. **Paste as Partner**, **Paste as Parent** and **Paste as Child** move the person copied with **Relocate**.
 
 How the links between people are recorded, and the shortcuts of the tree (**Connect Individual...**, **Connect Child...**), are explained in [Relationships](relationships.md).
 
@@ -34,7 +35,7 @@ Two cautions:
 
 ## Moving, deleting and unlinking
 
-- **Relocate** (`Ctrl+X`) only copies the selected individual or group to a clipboard. **Paste**, in the context menu of an empty box of the tree (the entry reads *Paste ... Here*), then detaches the person from all their current links and reattaches them in the new place. See [Relationships](relationships.md#moving-and-removing-links) before using it.
+- **Relocate** (`Ctrl+X`) only copies the selected individual or group to a clipboard. **Paste as Partner**, **Paste as Parent** or **Paste as Child**, in the context menu of a person, then detaches the person from all their current links and reattaches them in the new place. See [Relationships](relationships.md#moving-and-removing-links) before using it.
 - **Delete** (`Del`) removes the selected individual together with every relationship that involves it, and its event participations and attributes. You are asked to confirm, and the dialog tells you how many relationships will go.
 - **Unlink Relationships...** opens a dialog that lists the relationships of the selected individual or group and removes the ones you choose, without deleting the people.
 - **Set as Root** makes the selected individual the root of the current view.

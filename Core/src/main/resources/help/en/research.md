@@ -15,6 +15,18 @@ Because they are separate records, a wrong conclusion can be revised without los
 
 The lists are the way to find and edit the records of one type; the board is the way to see how they fit together.
 
+## The tasks panel
+
+**View > Show Tasks Panel** puts a panel below the views with the research tasks still to be done in the whole file: those whose status is *open* or *in progress* (or that have no status). The panel stays open while you work, and the choice is remembered. Like the Research menu, it is offered from the *Standard* level.
+
+- The tasks are ordered by **due date**, the earliest first (the ones without a due date last), then by **priority** (*high*, then *normal* or none, then *low*). A task whose due date has passed is written in red, and the title line says how many there are (*3 tasks, 1 overdue*).
+- Each line shows the due date, the priority, the status, the task, its research question and what the question is about (*About*: a task has no target of its own, it takes the targets of its questions).
+- **Double-click** a task (or press `Enter`) to open its editor.
+- **New Task...** creates a task. If the person or group selected in the view is the target of a research question still under way (*open* or *on hold*), the new task already belongs to that question; if there are several, a menu under the button lists them, with *Without a Question* at the end. With nothing selected, or no such question, the task starts with no question.
+- **Right-click** a task to change its status without opening the editor (*Mark as completed*, *Mark as abandoned*, ...) or to open its question. A change of status is noted in the audit of the task, as a save from the editor is; a completed or abandoned task leaves the list.
+- **Only the selected record** keeps the tasks of the questions about the person or group selected in the view, and follows the selection.
+- The **×** at the right end hides the panel.
+
 ## The context board
 
 **Research > Context Board...** shows the historical and cultural context as a tree, and is where historic events, cultural norms and context impacts are created and edited. There are two sections: **Historic events** (wars, epidemics, ..., in chronological order, those with no date last) and **Cultural norms** (customs, laws and practices of a time and place, by title). Under each one are the **impacts** it had, written as `→` the record it influenced, with the type of impact and the confidence. Each line has the type and the date (for a norm, the period it was valid), the complete place and the number of impacts. Impacts that cite no existing context are under **(no context)**, so nothing is hidden.

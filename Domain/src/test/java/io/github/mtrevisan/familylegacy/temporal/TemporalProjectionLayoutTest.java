@@ -70,7 +70,7 @@ class TemporalProjectionLayoutTest{
 		final TemporalRow row = new TemporalRow(entity, List.of(track), 0, false);
 
 		final TemporalProjectionLayout layout = new TemporalProjectionLayout();
-		layout.compute(TemporalProjectionModel.of(List.of(row), List.of(), List.of(), List.of()));
+		layout.compute(new TemporalProjectionModel(List.of(row), List.of(), null, null));
 
 		return layout.rows().getFirst().tracks().get(TemporalTrackType.EVENT);
 	}

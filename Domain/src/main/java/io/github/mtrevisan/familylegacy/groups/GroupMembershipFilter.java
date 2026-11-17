@@ -94,7 +94,7 @@ public final class GroupMembershipFilter{
 		for(int i = 0; i < rows.size(); i ++)
 			ordered.add(rows.get(i)
 				.withSortOrder(i));
-		return new TemporalProjectionModel(ordered, model.connections(), model.bands(), model.impactLinks(),
+		return new TemporalProjectionModel(ordered, model.bands(),
 			GroupTimelineBuilder.domainStart(ordered), GroupTimelineBuilder.domainEnd(ordered));
 	}
 

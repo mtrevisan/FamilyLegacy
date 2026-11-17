@@ -11,9 +11,9 @@ The **View > Projection** menu (and the toolbar buttons) switch between four vie
 | **Ego Network** | `Ctrl+3` | The relations of one individual or group, drawn as a graph. |
 | **Chronomap** | `Ctrl+4` | The individuals on a map and in a list, filtered by a timeline: where and when things happened. |
 
-In the tree, `Ctrl+L` toggles the layout between vertical and horizontal, and `Ctrl+T` shows or hides the lifespans strip at the bottom. `F11` toggles full screen. The three family views are described in [The tree, the graph and the ego network](views.md), and the map in [The Chronomap](chronomap.md).
+In the tree, `Ctrl+L` toggles the layout between vertical and horizontal, and `Ctrl+T` shows or hides the lifespans strip at the bottom. `F11` (or **View > Full Screen**) puts the window in full screen: it covers the whole screen, task bar included, with no title bar; the menus stay. `F11` again brings the window back as it was. Going in or out of full screen closes the windows that are open beside the main one, such as Recent changes. The three family views are described in [The tree, the graph and the ego network](views.md), and the map in [The Chronomap](chronomap.md).
 
-**View > Show Toolbar** and **View > Show Sidebar** hide or show those parts of the window.
+**View > Show Toolbar** and **View > Show Sidebar** hide or show those parts of the window. From the *Standard* level, **View > Show Tasks Panel** shows the research tasks still to be done below the views (see [The tasks panel](research.md#the-tasks-panel)).
 
 ## Moving around
 

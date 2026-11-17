@@ -4,7 +4,7 @@
 
 A **source** is where information was found: a parish register, a census, a letter, a book. The **Source** menu has:
 
-- **Manage Sources...** opens the list of sources, where you can search, create, edit and delete them (see [Manage dialogs](searching.md#manage-dialogs)). Each line shows the author, the type and how many citations the source has: a source with no citation is one to look at. It is available when the file has sources.
+- **Manage Sources...** opens the list of sources, where you can search, create, edit and delete them (see [Manage dialogs](searching.md#manage-dialogs)). Deleting a source deletes its [extracts](editors-sources.md#extract) as well, and removes its citations from the records. Each line shows the author, the type and how many citations the source has: a source with no citation is one to look at. It is available when the file has sources.
 - **New Source...** creates a source.
 
 ## Repositories

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.reports.index;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
@@ -87,13 +88,14 @@ public final class SourceAndMediaIndex{
 					sourceToCitationsMap.computeIfAbsent(sid, k -> new ArrayList<>())
 						.add(cit);
 				}
-				for(final FLEFRecord dp : FLEFRecordHelper.findChildren(cit, SourceCitationReader.TAG_EXTRACT_MEDIA_PART_MEDIA)){
-					final String did = dp.getValue();
-					if(did != null){
-						docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>())
-							.add(cit);
+				for(final FLEFRecord extract : ExtractReader.extractsOf(cit, model))
+					for(final FLEFRecord dp : FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_MEDIA_PART_MEDIA)){
+						final String did = dp.getValue();
+						if(did != null){
+							docToCitationsMap.computeIfAbsent(did, k -> new ArrayList<>())
+								.add(cit);
+						}
 					}
-				}
 			}
 		}
 	}

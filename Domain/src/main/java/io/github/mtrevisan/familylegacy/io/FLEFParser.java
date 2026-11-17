@@ -247,6 +247,8 @@ public class FLEFParser{
 		SexMigration.migrate(root);
 		//the files written with the enum values that the grammar renamed or removed
 		EnumValuesMigration.migrate(root);
+		//the files written when the extracts were structures inside the citations
+		ExtractMigration.migrate(root);
 
 		return root;
 	}

@@ -36,7 +36,7 @@ import java.util.List;
 
 /**
  * Converts a FLEF {@code DateStructure} into a {@link TemporalSpan} ready
- * for the General Temporal Projection.
+ * for the temporal timelines.
  * <p>
  * Handles all three alternatives of the {@code DateValue} union
  * ({@code point}, {@code bounded}, {@code spanning}) and all three

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.images;
 
+import io.github.mtrevisan.familylegacy.imaging.PortraitCrops;
 import io.github.mtrevisan.familylegacy.util.math.AffineTransform;
 import io.github.mtrevisan.familylegacy.util.math.Quaternion;
 import io.github.mtrevisan.familylegacy.util.math.ZeroException;
@@ -32,6 +33,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -41,6 +43,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -48,6 +51,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.List;
 
 
 public class ScaledImage extends JLabel{
@@ -70,6 +74,10 @@ public class ScaledImage extends JLabel{
 
 	private static final int RESIZE_EDGE_THRESHOLD = 8;
 	private static final Color OVERLAY_COLOR = new Color(0, 0, 0, 120);
+	/** The crops proposed from the faces: the color of the crop drawn by hand, faded, and dashed. */
+	private static final Color PROPOSAL_COLOR = new Color(255, 0, 0, 110);
+	private static final BasicStroke PROPOSAL_STROKE = new BasicStroke(5.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.f,
+		new float[]{8.f, 5.f}, 0.f);
 
 	private Image image;
 	private int imageWidth;
@@ -110,6 +118,9 @@ public class ScaledImage extends JLabel{
 	private volatile char resizingCropEdge;
 
 	private volatile boolean viewOnly;
+
+	/** The crops of the heads found from the faces: a click inside one of them makes it the crop. */
+	private volatile List<PortraitCrops.Proposal> cropProposals = List.of();
 
 
 	public static ScaledImage create(){
@@ -277,6 +288,8 @@ public class ScaledImage extends JLabel{
 			// Crop selection & external dimming overlay:
 			if(cropStartPointX >= 0)
 				drawCropRectangle(g2);
+			if(!isCurved())
+				drawCropProposals(g2);
 
 			g2.dispose();
 		}
@@ -488,6 +501,55 @@ public class ScaledImage extends JLabel{
 		g.drawRect(x1, y1, width, height);
 	}
 
+	/** Draws the crops proposed from the faces, dashed and faded (the one that is the crop already is not drawn twice). */
+	private void drawCropProposals(final Graphics2D g){
+		final List<PortraitCrops.Proposal> proposals = cropProposals;
+		if(viewOnly || proposals.isEmpty())
+			return;
+
+		final Rectangle current = getCrop();
+		final Stroke oldStroke = g.getStroke();
+		g.setColor(PROPOSAL_COLOR);
+		g.setStroke(PROPOSAL_STROKE);
+		for(final PortraitCrops.Proposal proposal : proposals){
+			final Rectangle crop = proposal.crop();
+			if(crop.equals(current))
+				continue;
+
+			final int x1 = transformation.transformX(crop.x);
+			final int y1 = transformation.transformY(crop.y);
+			g.drawRect(x1, y1, transformation.transformX(crop.x + crop.width) - x1, transformation.transformY(crop.y + crop.height) - y1);
+		}
+		g.setStroke(oldStroke);
+	}
+
+	/**
+	 * Sets the crops proposed from the faces: they are drawn dashed and faded, and a click inside one of them makes it the crop (editable as
+	 * the one drawn by hand).
+	 *
+	 * @param proposals	The proposals; {@code null} or empty for none.
+	 */
+	public final void setCropProposals(final List<PortraitCrops.Proposal> proposals){
+		cropProposals = (proposals != null? List.copyOf(proposals): List.of());
+
+		repaint();
+	}
+
+	/** @return	Whether there are crops proposed from the faces. */
+	public final boolean hasCropProposals(){
+		return !cropProposals.isEmpty();
+	}
+
+	/** Makes the proposal that a click at the point (in the pixels of the component) chooses the crop; nothing if none contains the point. */
+	private boolean applyProposalAt(final Point point){
+		final PortraitCrops.Proposal proposal = PortraitCrops.pick(cropProposals, getInverseX(point.x), getInverseY(point.y));
+		if(proposal == null)
+			return false;
+
+		setCrop(proposal.crop());
+		return true;
+	}
+
 	private int getWestCoordinate(){
 		return transformation.transformX(Math.min(cropStartPointX, cropEndPointX));
 	}
@@ -564,6 +626,8 @@ public class ScaledImage extends JLabel{
 		private int potentialCropStartX;
 		private int potentialCropStartY;
 		private Point pressPoint;
+		/** The handle of the crop that was under the press ({@code 0} if none). */
+		private char pressHandle;
 
 		private int cropDragStartX;
 		private int cropDragStartY;
@@ -576,6 +640,16 @@ public class ScaledImage extends JLabel{
 
 			if(!cropDefinition && cropStartPointX >= 0)
 				setCropCursor();
+			if(!cropDefinition && !cropProposals.isEmpty() && isOverProposal(evt.getPoint())){
+				//(not over a handle of the crop: that one wins)
+				final char handle = (cropStartPointX >= 0? getCropHandleAt(evt.getPoint()): 0);
+				if(handle == 0 || handle == 'M')
+					setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			}
+		}
+
+		private boolean isOverProposal(final Point point){
+			return (PortraitCrops.pick(cropProposals, getInverseX(point.x), getInverseY(point.y)) != null);
 		}
 
 		@Override
@@ -608,6 +682,7 @@ public class ScaledImage extends JLabel{
 
 				pressPoint = evt.getPoint();
 				final char handle = getCropHandleAt(pressPoint);
+				pressHandle = handle;
 				if(handle != 0){
 					resizingCropEdge = handle;
 
@@ -708,6 +783,10 @@ public class ScaledImage extends JLabel{
 			if(viewOnly)
 				return;
 
+			//a click (not a drag) away from the handles of the crop, or inside it, on a face found: the crop is proposed
+			final boolean click = (pressPoint != null && !cropDefinition && pressPoint.distance(evt.getPoint()) < DRAG_THRESHOLD
+				&& (pressHandle == 0 || pressHandle == 'M'));
+
 			if(resizingCropEdge != 0)
 				resizingCropEdge = 0;
 			else if(cropDefinition){
@@ -719,6 +798,8 @@ public class ScaledImage extends JLabel{
 
 				repaint();
 			}
+			if(click && applyProposalAt(pressPoint))
+				repaint();
 
 			pressPoint = null;
 			setCropCursor();

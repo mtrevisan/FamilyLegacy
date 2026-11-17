@@ -95,7 +95,7 @@ public final class ComparisonConstraint extends Constraint{
 				contextPath, left, operator, right, leftValue, rightValue));
 	}
 
-	private static boolean isOrdering(final String op){
+	static boolean isOrdering(final String op){
 		return (GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op) || LESS_THAN.equals(op)
 			|| LESS_THAN_OR_EQUALS.equals(op));
 	}
@@ -121,7 +121,7 @@ public final class ComparisonConstraint extends Constraint{
 		return true;
 	}
 
-	private static boolean isInteger(final String value){
+	static boolean isInteger(final String value){
 		if(!mayBeInteger(value))
 			return false;
 
@@ -135,7 +135,7 @@ public final class ComparisonConstraint extends Constraint{
 		}
 	}
 
-	private static boolean isField(final String token){
+	static boolean isField(final String token){
 		// A field is an identifier (letters, digits, underscores); a literal is a number.
 		return ((token.isEmpty() || token.charAt(0) < '0' || token.charAt(0) > '9'));
 	}
@@ -148,7 +148,7 @@ public final class ComparisonConstraint extends Constraint{
 		return (child != null? child.getValue(): null);
 	}
 
-	private boolean compare(final String leftVal, final String rightVal, final String op){
+	static boolean compare(final String leftVal, final String rightVal, final String op){
 		//numbers are compared as numbers, anything else as text (also a number too big for a long)
 		if(mayBeInteger(leftVal) && mayBeInteger(rightVal))
 			try{

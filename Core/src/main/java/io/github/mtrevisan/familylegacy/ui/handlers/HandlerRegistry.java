@@ -60,6 +60,7 @@ public final class HandlerRegistry{
 		HANDLERS.put(MediaHandler.TYPE, MediaHandler.getInstance());
 		HANDLERS.put(EventHandler.TYPE, EventHandler.getInstance());
 		HANDLERS.put(EventParticipationHandler.TYPE, EventParticipationHandler.getInstance());
+		HANDLERS.put(ExtractHandler.TYPE, ExtractHandler.getInstance());
 		HANDLERS.put(GroupAttributeHandler.TYPE, GroupAttributeHandler.getInstance());
 		HANDLERS.put(GroupHandler.TYPE, GroupHandler.getInstance());
 		HANDLERS.put(HeaderHandler.TYPE, HeaderHandler.getInstance());

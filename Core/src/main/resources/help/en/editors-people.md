@@ -10,7 +10,7 @@ Open it with **Individual > Edit Individual...** (or `F2`); **Individual > Add I
 
 **Properties**
 
-- The **preferred image**: left-click to choose an image, right-click for more options such as *Edit Crop...*, which sets the part of the image shown in the boxes.
+- The **preferred image**: left-click to choose an image, right-click for more options such as *Edit Crop...*, which sets the part of the image shown in the boxes. In the crop dialog you draw the rectangle by dragging, and move or resize it with its edges and corners (`Ctrl` + drag pans the image, `Ctrl` + wheel zooms, right-click fits it again). With the **face detector** installed (see *Optional components* in the troubleshooting page) the faces are found when the dialog opens: each one gets a dashed, faded rectangle that is the whole head in the proportions of the portrait, and a **click** inside one of them (without dragging) makes it the crop, which you can then edit by hand as any other. A click where no rectangle is (a profile, someone seen from behind, a damaged photo) does nothing: draw the crop by hand. Without the detector the dialog is only the hand drawing.
 - **Personal Names**: the list of the names of the person. Each opens the [personal name editor](#personal-name).
 
 **Other tabs**

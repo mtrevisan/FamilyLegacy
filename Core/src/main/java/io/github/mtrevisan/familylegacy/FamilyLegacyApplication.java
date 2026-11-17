@@ -27,30 +27,23 @@ package io.github.mtrevisan.familylegacy;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.imaging.FaceDetectors;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.shell.FamilyLegacyFrame;
+import io.github.mtrevisan.familylegacy.ui.shell.SplashWindow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JWindow;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
 import java.io.File;
 
 
@@ -74,7 +67,9 @@ public final class FamilyLegacyApplication{
 		TreeIcons.class.getName(),
 		GregorianCalendarParser.class.getName(),
 		CalendarType.class.getName(),
-		DateReader.class.getName()
+		DateReader.class.getName(),
+		//the icon of the main window, drawn at all its sizes
+		AppIcon.class.getName() + "$WindowImages"
 	};
 
 
@@ -93,35 +88,15 @@ public final class FamilyLegacyApplication{
 			FLEFRecord.onMultipleChildren(record -> JOptionPane.showMessageDialog(null,
 				"Record with more than one child: " + record, I18N.t("error.title"), JOptionPane.ERROR_MESSAGE));
 
-			final JProgressBar progress = new JProgressBar(0, WARM_UP_CLASSES.length);
-			final JWindow splash = createSplash(progress);
+			final SplashWindow splash = new SplashWindow();
+			splash.setProgress(0, WARM_UP_CLASSES.length + 1);
 			splash.setVisible(true);
 
-			warmUp(progress, () -> {
+			warmUp(splash, () -> {
 				splash.dispose();
 				openFrame(fileToOpen);
 			});
 		});
-	}
-
-	private static JWindow createSplash(final JProgressBar progress){
-		final JLabel title = new JLabel("FamilyLegacy", SwingConstants.CENTER);
-		title.setFont(title.getFont().deriveFont(Font.BOLD, 22.f));
-		final JLabel message = new JLabel(I18N.t("splash.loading"), SwingConstants.CENTER);
-
-		final JPanel content = new JPanel(new BorderLayout(0, 10));
-		content.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.GRAY),
-			BorderFactory.createEmptyBorder(24, 32, 24, 32)));
-		content.add(title, BorderLayout.NORTH);
-		content.add(message, BorderLayout.CENTER);
-		content.add(progress, BorderLayout.SOUTH);
-
-		final JWindow splash = new JWindow();
-		splash.setContentPane(content);
-		splash.setMinimumSize(new Dimension(360, 0));
-		splash.pack();
-		splash.setLocationRelativeTo(null);
-		return splash;
 	}
 
 	private static void openFrame(final File fileToOpen){
@@ -143,9 +118,9 @@ public final class FamilyLegacyApplication{
 
 	/**
 	 * Initializes the classes that would otherwise freeze the UI for seconds the first time an individual is shown, off the event
-	 * dispatch thread, advancing the progress bar after each one; then runs {@code onDone} on the event dispatch thread.
+	 * dispatch thread, advancing the splash progress after each one; then runs {@code onDone} on the event dispatch thread.
 	 */
-	private static void warmUp(final JProgressBar progress, final Runnable onDone){
+	private static void warmUp(final SplashWindow splash, final Runnable onDone){
 		final Thread thread = new Thread(() -> {
 			int done = 0;
 			for(final String className : WARM_UP_CLASSES){
@@ -156,8 +131,11 @@ public final class FamilyLegacyApplication{
 					LOGGER.debug("Cannot warm up {}", className, e);
 				}
 				final int value = ++done;
-				SwingUtilities.invokeLater(() -> progress.setValue(value));
+				SwingUtilities.invokeLater(() -> splash.setProgress(value, WARM_UP_CLASSES.length + 1));
 			}
+			//the face detector (plugin, native libraries, model) is the slowest step: ready before the first crop dialog
+			FaceDetectors.warmUp();
+			SwingUtilities.invokeLater(() -> splash.setProgress(WARM_UP_CLASSES.length + 1, WARM_UP_CLASSES.length + 1));
 			SwingUtilities.invokeLater(onDone);
 		}, "warm-up");
 		thread.setDaemon(true);

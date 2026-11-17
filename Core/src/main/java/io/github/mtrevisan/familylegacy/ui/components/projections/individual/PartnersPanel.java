@@ -184,7 +184,7 @@ public class PartnersPanel extends JPanel{
 	}
 
 
-	private boolean collapsedChildless;
+	private boolean collapsed;
 
 
 	private void initComponents(){
@@ -602,8 +602,8 @@ public class PartnersPanel extends JPanel{
 			return;
 
 		//undo the collapse applied to a childless couple, in case this panel is reused
-		if(collapsedChildless){
-			collapsedChildless = false;
+		if(collapsed){
+			collapsed = false;
 
 			fatherPanel.setVisible(true);
 			motherPanel.setVisible(true);
@@ -628,34 +628,36 @@ public class PartnersPanel extends JPanel{
 		fatherAncestorsLabel.setIcon(fatherHasAncestors? TreeIcons.ancestors(treeLayout): null);
 		motherAncestorsLabel.setIcon(motherHasAncestors? TreeIcons.ancestors(treeLayout): null);
 
-		if(isPrimaryBox()){
-			final boolean hasFather = (father != null && !father.isEmpty());
-			final boolean hasMother = (mother != null && !mother.isEmpty());
-			final boolean hasChildren = (hasFather && fatherPanel.getData().hasChildren()
-				|| hasMother && motherPanel.getData().hasChildren());
-			if(!hasChildren){
-				collapsedChildless = true;
-				if(!hasFather)
-					fatherPanel.setVisible(false);
-				if(!hasMother)
-					motherPanel.setVisible(false);
+		final boolean hasFather = (father != null && !father.isEmpty());
+		final boolean hasMother = (mother != null && !mother.isEmpty());
+		//a missing partner or parent is not shown as an empty box (the missing one is added from the menu of the person that is there), and a
+		//primary couple without children is only the person and the partner
+		final boolean childlessPrimary = (isPrimaryBox() && hasFather && hasMother
+			&& !fatherPanel.getData().hasChildren() && !motherPanel.getData().hasChildren());
+		if(!hasFather || !hasMother || childlessPrimary){
+			collapsed = true;
+			if(!hasFather)
+				fatherPanel.setVisible(false);
+			if(!hasMother)
+				motherPanel.setVisible(false);
 
-				// Hide empty partner panels so hidemode 3 collapses their layout space
-				arrowFatherPanel.setVisible(hasFather);
-				arrowMotherPanel.setVisible(hasMother);
+			// Hide empty partner panels so hidemode 3 collapses their layout space
+			arrowFatherPanel.setVisible(hasFather);
+			arrowMotherPanel.setVisible(hasMother);
 
-				// Hide group connector if there isn't a couple
-				groupPanel.setVisible(hasFather && hasMother);
+			// Hide group connector if there isn't a couple
+			groupPanel.setVisible(hasFather && hasMother);
 
-				if(hasFather && hasMother)
+			if(hasFather && hasMother){
+				if(treeLayout == TreeLayout.VERTICAL)
 					setLayout(new MigLayout("ins 0,hidemode 3",
 						"[right]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[left]",
 						"[bottom]"));
-				else
-					setLayout(new MigLayout("ins 0,hidemode 3",
-						"[center,shrink 0]",
-						"[bottom]"));
 			}
+			else
+				setLayout(new MigLayout("ins 0,hidemode 3",
+					"[center,shrink 0]",
+					"[bottom]"));
 		}
 	}
 
@@ -696,6 +698,20 @@ public class PartnersPanel extends JPanel{
 	}
 
 	public final Point getPaintingExitPoint(){
+		//only one of the two is shown (the missing one is not drawn): the line starts from the box that is there, not from a group connector
+		final boolean fatherShown = fatherPanel.isVisible();
+		final boolean motherShown = motherPanel.isVisible();
+		if(fatherShown != motherShown){
+			final IndividualPanel shown = (fatherShown? fatherPanel: motherPanel);
+			if(treeLayout == TreeLayout.VERTICAL){
+				final Point p = SwingUtilities.convertPoint(shown, shown.getPaintingVerticalEnterPoint(), this);
+				return new Point(p.x, getHeight() - 1);
+			}
+
+			final Point p = SwingUtilities.convertPoint(shown, shown.getPaintingHorizontalEnterPoint(), this);
+			return new Point(0, p.y);
+		}
+
 		if(treeLayout == TreeLayout.VERTICAL){
 			Point p1 = fatherPanel.getPaintingVerticalEnterPoint();
 			p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);

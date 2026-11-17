@@ -41,6 +41,7 @@ open module io.github.mtrevisan.familylegacy.domain {
 	exports io.github.mtrevisan.familylegacy.events;
 	exports io.github.mtrevisan.familylegacy.groups;
 	exports io.github.mtrevisan.familylegacy.i18n;
+	exports io.github.mtrevisan.familylegacy.imaging;
 	exports io.github.mtrevisan.familylegacy.importer;
 	exports io.github.mtrevisan.familylegacy.individual;
 	exports io.github.mtrevisan.familylegacy.io;
@@ -85,4 +86,7 @@ open module io.github.mtrevisan.familylegacy.domain {
 		with io.github.mtrevisan.familylegacy.reports.renderers.TextReportRenderer,
 			io.github.mtrevisan.familylegacy.reports.renderers.MarkdownReportRenderer,
 			io.github.mtrevisan.familylegacy.reports.renderers.HtmlReportRenderer;
+
+	// The face detector (finds the faces of a portrait) is a plugin too
+	uses io.github.mtrevisan.familylegacy.imaging.FaceDetector;
 }

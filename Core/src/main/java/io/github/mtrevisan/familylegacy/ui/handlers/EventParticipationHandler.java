@@ -86,20 +86,19 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<RecordD
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
 			participantText = handler.getDisplayText(participant, model);
 		}
-		sb.append(StringUtils.isNotEmpty(participantText)? participantText: "Unknown Participant");
+		sb.append(StringUtils.isNotEmpty(participantText)? participantText: I18N.t("text.event_participation.unknown_participant"));
 
 		final String role = FLEFRecordHelper.getChildValue(record, EventParticipationReader.TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
-			sb.append(" (as ")
-				.append(role)
-				.append(')');
+			sb.append(' ')
+				.append(I18N.tf("text.event_participation.as_role", role));
 
 		final String eventRef = FLEFRecordHelper.getChildValue(record, EventParticipationReader.TAG_EVENT);
 		if(StringUtils.isNotEmpty(eventRef)){
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
 			if(eventRecord != null)
-				sb.append(" in ")
-					.append(EventSummary.describeWithoutParticipants(eventRecord, model));
+				sb.append(' ')
+					.append(I18N.tf("text.event_participation.in_event", EventSummary.describeWithoutParticipants(eventRecord, model)));
 		}
 
 		final String id = record.getId();

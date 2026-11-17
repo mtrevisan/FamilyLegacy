@@ -25,27 +25,22 @@
 package io.github.mtrevisan.familylegacy.temporal;
 
 /**
- * A reference to a drawable element of the General Temporal Projection.
+ * A reference to a drawable element of a timeline: a whole row, a specific entry, or a context band.
  * <p>
- * This sealed interface allows {@link ContextImpactLink} to point at
- * heterogeneous targets — a whole row, a specific entry, or a connection —
- * without forcing them to share a common supertype. Each variant carries
- * just enough information to resolve its anchor entity, so that the renderer
- * can highlight the target and the interaction handler can open the
- * underlying record.
+ * Each variant carries just enough information to resolve its anchor entity, so that the renderer can highlight the target and the
+ * interaction handler can open the underlying record.
  * <p>
  * Variants are declared as nested records to keep the hierarchy in a single
  * compilation unit and to make exhaustive {@code switch} patterns over the
  * sealed type possible.
  */
 public sealed interface TemporalProjectionRef
-	permits TemporalProjectionRef.RowRef, TemporalProjectionRef.EntryRef, TemporalProjectionRef.ConnectionRef,
-		TemporalProjectionRef.BandRef{
+	permits TemporalProjectionRef.RowRef, TemporalProjectionRef.EntryRef, TemporalProjectionRef.BandRef{
 
 	/**
 	 * Returns the row entity that anchors this reference. For row references
 	 * it is the row itself; for entry references it is the enclosing row;
-	 * for connection references it is the source endpoint.
+	 * for band references it is the context entity.
 	 *
 	 * @return the anchor entity, never {@code null}
 	 */
@@ -87,22 +82,6 @@ public sealed interface TemporalProjectionRef
 		@Override
 		public TemporalEntityRef anchorEntity(){
 			return rowEntity;
-		}
-	}
-
-	/**
-	 * A reference to a {@link TemporalConnection} between two rows.
-	 */
-	record ConnectionRef(TemporalConnection connection) implements TemporalProjectionRef{
-
-		public ConnectionRef{
-			if(connection == null)
-				throw new IllegalArgumentException("Connection must not be null");
-		}
-
-		@Override
-		public TemporalEntityRef anchorEntity(){
-			return connection.sourceRow();
 		}
 	}
 

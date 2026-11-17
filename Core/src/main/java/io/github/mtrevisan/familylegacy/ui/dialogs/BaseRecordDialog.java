@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.dossier.EditorTab;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordChangeSummary;
-import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -83,9 +82,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -739,8 +735,16 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 			saveData();
 
-			if(previous != null)
-				recordChanges(previous);
+			if(previous != null){
+				//saving without having changed anything leaves the record as it was: the editor rewrites it (children in another order,
+				//a new creation date in the audit), which would be taken as a change of the file
+				if(RecordChangeSummary.describe(previous, record).isEmpty()){
+					record.clear();
+					previous.deepCopyTo(record);
+				}
+				else
+					recordChanges(previous);
+			}
 
 			if(isNew && handler.isTopLevelEntity())
 				model.addRecord(record);
@@ -778,18 +782,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	 * @param previous	The record as it was before the save.
 	 */
 	private void recordChanges(final FLEFRecord previous){
-		final FLEFRecord audit = FLEFRecordHelper.findChild(record, AuditReader.TAG_AUDIT);
-		if(audit == null)
-			return;
-
-		final List<String> changes = RecordChangeSummary.describe(previous, record);
-		if(changes.isEmpty())
-			return;
-
-		final String date = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		audit.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_UPDATE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, date))
-			.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, String.join("\n", changes))));
+		RecordChangeSummary.recordUpdate(previous, record);
 	}
 
 	/**

@@ -82,6 +82,7 @@ public final class IndividualSummary{
 	private final String nameText;
 	private String nameTooltip;
 	private boolean hasParents;
+	private int parentCount;
 	private boolean hasFather;
 	private boolean hasMother;
 	private boolean hasPartner;
@@ -146,13 +147,7 @@ public final class IndividualSummary{
 				if(RelationshipReader.isTypeBiologicalChild(type)){
 					if(subjectId.equals(id)){
 						final FLEFRecord object = model.getRecordById(objectId);
-						final SexType targetSex = PreferredSex.of(object, model);
-						if(targetSex == SexType.MALE)
-							hasFather = true;
-						else if(targetSex == SexType.FEMALE)
-							hasMother = true;
-						else
-							hasParents = true;
+						registerParent(PreferredSex.of(object, model));
 					}
 
 					if(objectId.equals(id))
@@ -160,13 +155,7 @@ public final class IndividualSummary{
 				}
 				else if(subjectId.equals(id) && RelationshipReader.isTypeChild(type)){
 					final FLEFRecord target = model.getRecordById(objectId);
-					final SexType targetSex = PreferredSex.of(target, model);
-					if(targetSex == SexType.MALE)
-						hasFather = true;
-					else if(targetSex == SexType.FEMALE)
-						hasMother = true;
-					else
-						hasParents = true;
+					registerParent(PreferredSex.of(target, model));
 				}
 				else if(RelationshipReader.isTypePartner(type))
 					// Partner/Spouse relationship (non-child type)
@@ -323,6 +312,21 @@ public final class IndividualSummary{
 
 	public boolean hasMother(){
 		return (hasMother || hasParents);
+	}
+
+	/** Returns how many parents the individual has (a person with a father and a mother has two). */
+	public int getParentCount(){
+		return parentCount;
+	}
+
+	private void registerParent(final SexType sex){
+		parentCount ++;
+		if(sex == SexType.MALE)
+			hasFather = true;
+		else if(sex == SexType.FEMALE)
+			hasMother = true;
+		else
+			hasParents = true;
 	}
 
 	public boolean hasParents(){

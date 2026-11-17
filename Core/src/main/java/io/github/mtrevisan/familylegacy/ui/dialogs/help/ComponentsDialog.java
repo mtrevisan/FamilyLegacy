@@ -119,13 +119,10 @@ public final class ComponentsDialog extends JDialog{
 		install.setEnabled(false);
 		install.addActionListener(e -> installSelected());
 		refresh.addActionListener(e -> reload());
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> dispose());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(install);
 		buttons.add(refresh);
-		buttons.add(close);
 		final JPanel south = new JPanel(new BorderLayout());
 		south.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 		south.add(status, BorderLayout.CENTER);

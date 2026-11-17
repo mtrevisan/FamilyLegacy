@@ -36,7 +36,7 @@ import java.util.List;
 
 
 /**
- * Draws the horizontal time axis of the General Temporal Projection: the
+ * Draws the horizontal time axis of the temporal timelines: the
  * strip at the top of the panel with tick marks and labels, and the faint
  * vertical grid lines that extend through the content area.
  * <p>

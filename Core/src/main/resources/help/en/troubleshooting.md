@@ -95,7 +95,7 @@ The diagnostics contain no record of your data and no log, but they do contain t
 
 - If you are up to date, a message says so.
 - If a newer version is published, a window shows its number and its release notes. **Download and Install** downloads the installer (a progress bar shows how much has arrived; **Cancel**, `Esc` or the close button of the window stop it and delete what was downloaded), then asks you to confirm. **Close and Install** closes the application and starts the installer, which replaces the installed version: your files, preferences and bookmarks are not touched. **Open Release Page** shows the release in the browser instead, and **Later** does nothing.
-- Downloading and installing from the application works on Windows. On other systems the window offers only the release page.
+- Downloading and installing from the application works on Windows. On other systems the window offers only **Open Release Page**; `Esc` or the close button of the window close it.
 
 If the installer publishes a SHA-256 checksum, the downloaded file is checked against it and discarded if it does not match. Messages you may meet: *Unable to check for updates* (no connection, or GitHub refused the request: wait a few minutes and try again), *Unable to download the update* (the connection dropped, or the file did not match its checksum), *Unable to start the installer* (the message gives the folder where the installer was saved, so you can run it by hand).
 
@@ -105,8 +105,9 @@ If the installer publishes a SHA-256 checksum, the downloaded file is checked ag
 
 - The names and descriptions are in the language of the application when it has them, else in English. The list is read from a catalog kept in the repository of the application on GitHub, so new components appear without a new version of the program. Each row shows the name, what it is for, the size and its state: *Not installed*, *Installed*, *Update available* (the file in the catalog is newer than the one you installed) or *Not available* (the file is not published, or has no checksum, or the program cannot tell where to put it). A component that needs a newer version of the program than yours is not listed.
 - Tick the components you want and press **Install Selected**. Each file is downloaded in turn (**Cancel**, `Esc` or the close button of the window stop the one being downloaded), checked against its published SHA-256 and discarded if it does not match, then put in the `fonts` folder (fonts) or the `plugins` folder (plugins), beside the program. A file that is not of the kind the folder accepts, or that would be written outside it, makes the whole component be refused.
-- **Refresh** reads the catalog again.
+- **Refresh** reads the catalog again. There is no button to close the dialog: `Esc` (or the close button of the window) closes it.
 - The fonts are used by the next PDF report. The plugins are loaded when the application starts: restart it to use the ones you installed.
+- **Face detector** is a plugin of some tens of MB (it carries the native libraries of OpenCV and a 230 KB model, YuNet). Once installed and the application restarted, the crop dialog of a preferred image finds the faces and lets you click on one to crop the head (see the editor of the individual). Without it nothing changes: the crop is drawn by hand.
 - Fonts that you put in the `fonts` folder yourself are told as installed when the catalog knows their files.
 - If the repository has no catalog yet, the list offers only the fonts of the PDF reports, taken from the latest release. *Unable to read the catalog of components* means that there is no connection or GitHub refused the request.
 

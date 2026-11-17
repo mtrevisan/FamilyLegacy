@@ -61,7 +61,8 @@ zip ../fonts-cjk.zip *.otf *.txt
 
 ## Plugins
 
-- The name decides what the plugin is: `report-*.jar` is a report format, `importer-*.jar` an importer. Any other name is not loaded.
+- The name decides what the plugin is: `report-*.jar` is a report format, `importer-*.jar` an importer, `face-detector.jar` the face detector. Any other name is not loaded.
+- `face-detector.jar` (module `FaceDetector`, built into `Core/plugins/`; it is also copied into the installer by the Ephemeris profiles, like the other plugins) carries the native libraries of ONE platform: `mvn -pl FaceDetector package` makes the Windows x64 one, `-Djavacpp.platform=linux-x86_64` (or `macosx-arm64`, ...) another. Upload it to the `components` release (`gh release upload components Core/plugins/face-detector.jar`); a catalog entry is for one platform, so give another platform a jar with another name only if the loader is extended to it.
 - The jar is built as the other plugins (see the `Report*` and `Importer*` modules): it carries only its own libraries, not the ones of the
   application, and lists its providers in `META-INF/services`.
 - A plugin is loaded when the application starts: the user must restart it. On Windows a jar that is in use cannot be replaced, so an update of

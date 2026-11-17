@@ -26,40 +26,55 @@ package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
-import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
-import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.util.LocaleHelper;
+import io.github.mtrevisan.familylegacy.ui.handlers.ExtractHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Dialog;
+import javax.swing.JOptionPane;
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
 
 
 /**
- * Panel for managing a list of extracts with text, type, locale, and notes.
+ * Panel for the extracts a source citation references ({@code extract*: Xref<ExtractRecord>}).
+ * <p>
+ * The extracts are records of the source cited: a new extract is created for that source, an existing extract is chosen among the
+ * extracts of that source, and removing an extract from the list removes only the reference (the extract stays with its source, and
+ * other citations may reference it).
  */
 public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
+	/** Tells the id of the source currently cited by the citation being edited. */
+	private final Supplier<String> citedSource;
+
+	/** The ids of the extracts created from this panel, to discard if the citation is not saved. */
+	private final Set<String> createdIds = new LinkedHashSet<>();
 
 
-	public ExtractListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
+	/**
+	 * @param path	The path of the references in the citation.
+	 * @param parent	The parent window.
+	 * @param panelTitle	The border title.
+	 * @param model	The model.
+	 * @param citedSource	Tells the id of the source currently cited (it may change while the citation is edited).
+	 */
+	public ExtractListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model,
+			final Supplier<String> citedSource){
 		super(parent, panelTitle, model);
 
 		this.path = path;
+		this.citedSource = citedSource;
 
 
 		initComponents();
@@ -75,6 +90,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem, this::removeItem,
 			builder -> {
 				builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
+				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit"), this::editItem);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
@@ -84,197 +100,131 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		final String text = SourceCitationReader.extractExtractText(record);
-		final String type = SourceCitationReader.extractExtractType(record);
-		final String locale = SourceCitationReader.extractExtractLocale(record);
-
-		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(locale))
-			sb.append('[')
-				.append(locale)
-				.append("] ");
-		if(StringUtils.isNotEmpty(text))
-			sb.append(GUIHelper.limitTextLength(StringUtils.replaceChars(text, '\n', '|')));
-		else{
-			// First media_part
-			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_MEDIA_PART).stream()
-				.findFirst()
-				.orElse(null);
-			if(documentPart != null){
-				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, SourceCitationReader.TAG_MEDIA);
-				final String documentId = (documentCitation != null? documentCitation.getValue(): null);
-				final FLEFRecord document = model.getRecordById(documentId);
-				if(document != null){
-					final String description = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_DESCRIPTION);
-
-					if(StringUtils.isNotEmpty(description))
-						sb.append(description);
-					else{
-						final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
-						if(StringUtils.isNotEmpty(uri))
-							sb.append(MediaPathDisplay.display(uri));
-						else
-							sb.append('[')
-								.append(document.getId())
-								.append(']');
-					}
-				}
-			}
-		}
-
-		if(StringUtils.isNotEmpty(type)){
-			if(!sb.isEmpty())
-				sb.append(' ');
-			sb.append('(')
-				.append(type)
-				.append(')');
-		}
-
-		return (!sb.isEmpty()
-			? sb.toString()
-			: "--");
-	}
-
-	@Override
-	protected FLEFRecord showAddDialog(){
-		throw new UnsupportedOperationException("Not supported.");
+		return ExtractHandler.getInstance().getDisplayText(record, model);
 	}
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		return showExtractDialog(null);
+		final FLEFRecord source = citedSourceRecord();
+		if(source == null)
+			return null;
+
+		final RecordDialog dialog = ExtractHandler.getInstance().createNewDialog(parent, model);
+		dialog.link(LinkRole.SOURCE, source);
+		dialog.setVisible(true);
+		if(!dialog.isSaved())
+			return null;
+
+		final FLEFRecord extract = dialog.getRecord();
+		createdIds.add(extract.getId());
+		return extract;
 	}
 
+	/** Chooses one of the extracts of the source cited that the citation does not reference yet. */
+	@Override
+	protected FLEFRecord showAddDialog(){
+		final FLEFRecord source = citedSourceRecord();
+		if(source == null)
+			return null;
+
+		final List<FLEFRecord> listed = getItems();
+		final List<Choice> choices = new ArrayList<>();
+		for(final FLEFRecord extract : ExtractReader.extractsOfSource(source.getId(), model))
+			if(!listed.contains(extract))
+				choices.add(new Choice(extract, getDisplayText(extract) + " [" + extract.getId() + "]"));
+		if(choices.isEmpty()){
+			JOptionPane.showMessageDialog(parent,
+				I18N.tf("dialog.extract.none_of_source", source.getId()),
+				I18N.t("dialog.source_citation.extract.title"),
+				JOptionPane.INFORMATION_MESSAGE);
+
+			return null;
+		}
+
+		final Object selected = JOptionPane.showInputDialog(parent,
+			I18N.tf("dialog.extract.choose_of_source", source.getId()),
+			I18N.t("dialog.source_citation.extract.title"),
+			JOptionPane.QUESTION_MESSAGE, null,
+			choices.toArray(), choices.getFirst());
+		return (selected instanceof final Choice choice? choice.extract(): null);
+	}
+
+	/** Edits the extract in place (it is a record: the change is seen by every citation that references it). */
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
-		return showExtractDialog(record);
+		final RecordDialog dialog = ExtractHandler.getInstance().createEditDialog(parent, model, record);
+		dialog.setVisible(true);
+		return record;
+	}
+
+	private FLEFRecord citedSourceRecord(){
+		final String sourceId = citedSource.get();
+		final FLEFRecord source = (StringUtils.isNotEmpty(sourceId)? model.getRecordById(sourceId): null);
+		if(source == null)
+			JOptionPane.showMessageDialog(parent,
+				I18N.t("dialog.extract.source_first"),
+				I18N.t("dialog.source_citation.extract.title"),
+				JOptionPane.INFORMATION_MESSAGE);
+		return source;
+	}
+
+
+	/**
+	 * @param sourceId	The id of the source cited.
+	 * @return	The extracts in the list that do not belong to the source (they cannot be referenced by a citation of it).
+	 */
+	public List<FLEFRecord> extractsNotOf(final String sourceId){
+		final List<FLEFRecord> others = new ArrayList<>(0);
+		for(final FLEFRecord extract : getItems())
+			if(!Objects.equals(sourceId, ExtractReader.extractSource(extract)))
+				others.add(extract);
+		return others;
 	}
 
 	/**
-	 * Shows the extract dialog for creating or editing an extract.
-	 *
-	 * @param record	the initial extract record, or {@code null} for a new extract
-	 * @return the created/updated extract record, or {@code null} if canceled
+	 * Removes from the model the extracts created from this panel that no list references anymore: to call when the citation is not
+	 * saved, since nothing else references them.
 	 */
-	private FLEFRecord showExtractDialog(final FLEFRecord record){
-		final MediaPartListPanel documentPartPanel = new MediaPartListPanel(SourceCitationReader.TAG_MEDIA_PART, parent, I18N.t("dialog.extract.media.parts.title"), model);
-		final BoundTextArea textArea = new BoundTextArea(SourceCitationReader.TAG_TEXT, 3, 25);
-		final BoundComboBox<String> typeCombo = new BoundComboBox<>(SourceCitationReader.TAG_TYPE, GUIHelper.fillCombo(SourceCitationReader.EXTRACT_TYPES, I18N.t("search.combo.any")));
-		typeCombo.setI18NPrefix("enum.extract_type");
-		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(SourceCitationReader.TAG_LOCALE, GUIHelper.fillCombo(LocaleHelper.getAvailableLanguageTags().toArray(String[]::new), null));
-		final BasicNoteListPanel remark = new BasicNoteListPanel(SourceCitationReader.TAG_REMARK, parent, I18N.t("dialog.extract.remark"), SourceCitationReader.TAG_REMARK);
-
-
-		loadExtractData(record, documentPartPanel, textArea, typeCombo, localeCombo, remark);
-
-
-		final JDialog dialog = new JDialog(parent, I18N.t(record == null? "dialog.extract.title.add": "dialog.extract.title.edit"), Dialog.ModalityType.APPLICATION_MODAL);
-		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, remark);
-
-		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
-			() -> {
-				if(!validExtractData(dialog, documentPartPanel, textArea))
-					return;
-
-				if(record == null){
-					final FLEFRecord res = FLEFRecord.createEmpty();
-					documentPartPanel.saveReferences(res);
-					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, textArea.getText()));
-					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, (String)typeCombo.getSelectedItem()));
-					res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCALE, (String)localeCombo.getSelectedItem()));
-					for(final FLEFRecord note : remark.getItems())
-						res.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, NoteReader.extractText(note)));
-					result[0] = res;
-				}
-				else{
-					documentPartPanel.saveReferences(record);
-					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TEXT, textArea.getText());
-					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_TYPE, (String)typeCombo.getSelectedItem());
-					FLEFRecordHelper.updateChildValue(record, SourceCitationReader.TAG_LOCALE, (String)localeCombo.getSelectedItem());
-					FLEFRecordHelper.removeChildren(record, SourceCitationReader.TAG_REMARK);
-					for(final FLEFRecord note : remark.getItems())
-						record.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, NoteReader.extractText(note)));
-				}
-
-				dialog.dispose();
-			},
-			dialog::dispose);
-		dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-		dialog.pack();
-		dialog.setLocationRelativeTo(parent);
-		dialog.setVisible(true);
-
-		return result[0];
+	public void discardCreated(){
+		for(final String id : createdIds)
+			model.removeRecord(id);
+		createdIds.clear();
 	}
 
-	private static void initExtractComponents(final JDialog dialog, final MediaPartListPanel documentPartPanel,
-			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
-			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
-		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]10[]10[]"));
-
-		GUIHelper.addComponent(dialog, documentPartPanel);
-
-		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.text"), textArea);
-
-		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.extract.type"), typeCombo);
-
-		GUIHelper.addLabeledComponent(dialog, I18N.l("dialog.extract.locale"), localeCombo);
-
-		GUIHelper.addComponent(dialog, basicNote);
-	}
-
-	private static void loadExtractData(final FLEFRecord record, final MediaPartListPanel documentPartPanel,
-			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
-			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
-		if(record == null)
-			return;
-
-		final List<FLEFRecord> documentParts = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_MEDIA_PART);
-		final String text = SourceCitationReader.extractExtractText(record);
-		final String type = SourceCitationReader.extractExtractType(record);
-		final String locale = SourceCitationReader.extractExtractLocale(record);
-		final List<String> notes = FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_REMARK).stream()
-			.map(FLEFRecord::getValue)
-			.toList();
-
-		for(final FLEFRecord documentPart : documentParts)
-			documentPartPanel.addItemDirectly(documentPart);
-		textArea.setText(text);
-		if(StringUtils.isNotEmpty(type))
-			typeCombo.setSelectedItem(type);
-		if(StringUtils.isNotEmpty(locale))
-			localeCombo.setSelectedItem(locale);
-		for(final String note : notes)
-			basicNote.addItemDirectly(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, note));
-	}
-
-	private static boolean validExtractData(final JDialog dialog, final MediaPartListPanel documentPartPanel,
-			final BoundTextArea textArea){
-		if(documentPartPanel.isEmpty() && textArea.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(dialog,
-				I18N.tf("validation.at_least_one_of", I18N.t("dialog.extract.media_part"), I18N.t("dialog.extract.text")),
-				null, null, documentPartPanel);
-
-			return false;
+	/** Forgets the extracts created from this panel: to call when the citation is saved. */
+	public void keepCreated(){
+		final List<FLEFRecord> items = getItems();
+		//an extract created and then removed from the list is referenced by nothing: it is not kept
+		for(final String id : createdIds){
+			final FLEFRecord extract = model.getRecordById(id);
+			if(extract != null && !items.contains(extract))
+				model.removeRecord(id);
 		}
-
-		return true;
+		createdIds.clear();
 	}
 
-	public void load(final FLEFRecord record){
+	public void load(final FLEFRecord citation){
 		clear();
 
-		if(record == null || record.isEmpty())
+		if(citation == null || citation.isEmpty())
 			return;
 
-		final List<FLEFRecord> extracts = FLEFRecordHelper.extractStructures(record, path);
-		setItems(extracts);
+		setItems(ExtractReader.extractsOf(citation, model));
 	}
 
-	public void save(final FLEFRecord record){
-		super.save(record, path);
+	public void save(final FLEFRecord citation){
+		FLEFRecordHelper.removeChildren(citation, path);
+		for(final FLEFRecord extract : getItems())
+			citation.addChild(FLEFRecord.createChildWithTagAndValue(path, extract.getId()));
+	}
+
+
+	/** An extract shown in the list to choose from. */
+	private record Choice(FLEFRecord extract, String text){
+		@Override
+		public String toString(){
+			return text;
+		}
 	}
 
 }

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -210,7 +211,7 @@ public class FLEFWriter{
 
 		// Write header record if present
 		if(hasHeader){
-			progressListener.onProgress(0, "Writing header…");
+			progressListener.onProgress(0, I18N.t("writer.writing_header"));
 
 			writeRecord(model.getHeader(), writer, 0);
 
@@ -230,7 +231,7 @@ public class FLEFWriter{
 
 		writer.flush();
 
-		progressListener.onProgress(100, "Done");
+		progressListener.onProgress(100, I18N.t("writer.done"));
 	}
 
 	/**
@@ -244,7 +245,7 @@ public class FLEFWriter{
 		final int percent = (int)(done * 100. / total);
 		if(percent != lastReportedPercent){
 			lastReportedPercent = percent;
-			progressListener.onProgress(percent, "Serializing… (" + done + "/" + total + ")");
+			progressListener.onProgress(percent, I18N.tf("writer.serializing", done, total));
 		}
 	}
 

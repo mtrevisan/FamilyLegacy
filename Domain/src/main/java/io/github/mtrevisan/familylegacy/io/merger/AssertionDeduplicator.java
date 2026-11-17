@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.merger;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,11 +46,16 @@ import java.util.TreeSet;
  * all preserved, to be resolved by a ConclusionRecord.
  * <p>
  * Two events are the same only if they also have the same principals (twins have distinct birth events with the same date and
- * place). The kinds are processed in dependency order, since collapsing events makes their participations identical.
+ * place). The kinds are processed in dependency order, since collapsing events makes their participations identical. The extracts come
+ * first: two equal extracts of the same source are one, and the citations that referenced them, now identical, are united.
  */
 final class AssertionDeduplicator{
 
+	/** The extracts of a source: once the sources are merged, the same extract may be there twice. */
+	private static final String KIND_EXTRACT = ModelIndex.kind(ExtractReader.TYPE);
+
 	private static final List<List<String>> STAGES = List.of(
+		List.of(KIND_EXTRACT),
 		List.of(ModelIndex.KIND_RELATIONSHIP, ModelIndex.KIND_INDIVIDUAL_ATTRIBUTE, ModelIndex.KIND_GROUP_ATTRIBUTE, ModelIndex.KIND_PLACE_RELATIONSHIP),
 		List.of(ModelIndex.KIND_EVENT),
 		List.of(ModelIndex.KIND_EVENT_PARTICIPATION),
@@ -166,6 +172,11 @@ final class AssertionDeduplicator{
 						collapse(kind, policy.select(group.getValue(), participantsOf.get(group.getKey())), merges);
 			}
 			store.absorb(merges);
+
+			//the citations that referenced the collapsed extracts may now state the same thing twice
+			if(stage.contains(KIND_EXTRACT) && !merges.isEmpty())
+				for(final FLEFRecord record : store.records())
+					fields.uniteRepeatedEvidence(record, new ArrayList<>(0));
 		}
 	}
 

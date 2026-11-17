@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDi
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.CulturalNormRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.ExtractRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupAttributeRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
@@ -64,6 +65,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ExtractHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HeaderHandler;
@@ -108,6 +110,7 @@ public final class RecordDialogCatalog implements RecordDialogProvider{
 		registry.register(CulturalNormHandler.TYPE, CulturalNormRecordDialog::createNew, CulturalNormRecordDialog::createEdit);
 		registry.register(EventHandler.TYPE, EventRecordDialog::createNew, EventRecordDialog::createEdit);
 		registry.register(EventParticipationHandler.TYPE, EventParticipationRecordDialog::createNew, EventParticipationRecordDialog::createEdit);
+		registry.register(ExtractHandler.TYPE, ExtractRecordDialog::createNew, ExtractRecordDialog::createEdit);
 		registry.register(GroupAttributeHandler.TYPE, GroupAttributeRecordDialog::createNew, GroupAttributeRecordDialog::createEdit);
 		registry.register(GroupHandler.TYPE, GroupRecordDialog::createNew, GroupRecordDialog::createEdit);
 		registry.register(HeaderHandler.TYPE, (parent, model) -> new HeaderDialog(parent, model, null), (parent, model, record) -> new HeaderDialog(parent, model, null));

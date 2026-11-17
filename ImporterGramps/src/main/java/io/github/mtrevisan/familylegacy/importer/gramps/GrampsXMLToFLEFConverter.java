@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.PlaceCache;
+import io.github.mtrevisan.familylegacy.io.ExtractMigration;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
@@ -41,6 +42,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
@@ -365,6 +367,8 @@ public final class GrampsXMLToFLEFConverter{
 		for(final Element source : items("sources", GRAMPS_SOURCE))
 			source(source);
 		orphanNotes();
+		//each extract becomes a record of the source cited
+		ExtractMigration.migrate(model);
 		listener.onProgress(100, t("progress.done"));
 		return model;
 	}
@@ -821,8 +825,8 @@ public final class GrampsXMLToFLEFConverter{
 				sourceMedia.computeIfAbsent(GrampsXML.attribute(source, GRAMPS_HANDLE), k -> new LinkedHashSet<>())
 					.add(id(object));
 				extracts.add(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
-						.addChild(child(SourceCitationReader.TAG_MEDIA, id(object)))));
+					.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
+						.addChild(child(ExtractReader.TAG_MEDIA, id(object)))));
 			}
 
 			for(final Element noteReference : GrampsXML.children(citation, GRAMPS_NOTEREF)){
@@ -840,7 +844,7 @@ public final class GrampsXMLToFLEFConverter{
 					parent.addChild(note(tf("title.citation", sourceId), String.join(StringUtils.LF, remarks), citation));
 				else
 					extracts.getFirst()
-						.addChild(child(SourceCitationReader.TAG_REMARK, String.join(StringUtils.LF, remarks)));
+						.addChild(child(ExtractReader.TAG_REMARK, String.join(StringUtils.LF, remarks)));
 
 			final FLEFRecord structure = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
 				.addChild(child(SourceCitationReader.TAG_SOURCE, sourceId));
@@ -907,11 +911,11 @@ public final class GrampsXMLToFLEFConverter{
 			});
 			//what the reference says besides the region (its notes, its attributes) is a remark of the extract
 			final FLEFRecord extract = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-				.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
-					.addChild(child(SourceCitationReader.TAG_MEDIA, mediaId))
-					.addChild(cropOrNull(SourceCitationReader.TAG_CROP, object, reference)));
+				.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
+					.addChild(child(ExtractReader.TAG_MEDIA, mediaId))
+					.addChild(cropOrNull(ExtractReader.TAG_CROP, object, reference)));
 			for(final String remark : referenceRemarks(reference))
-				extract.addChild(child(SourceCitationReader.TAG_REMARK, remark));
+				extract.addChild(child(ExtractReader.TAG_REMARK, remark));
 			final FLEFRecord structure = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
 				.addChild(child(SourceCitationReader.TAG_SOURCE, source.getId()))
 				.addChild(extract)

@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
@@ -528,8 +529,8 @@ class GrampsXMLToFLEFConverterTest{
 		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(record(model, "I1"), SourceCitationReader.TAG_SOURCE);
 		Assertions.assertTrue(sources.stream().anyMatch(source -> "S1".equals(FLEFRecordHelper.getChildValue(source, SourceCitationReader.TAG_SOURCE))));
 		final List<String> remarks = sources.stream()
-			.flatMap(source -> FLEFRecordHelper.findChildren(source, SourceCitationReader.TAG_EXTRACT).stream())
-			.flatMap(extract -> FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_REMARK).stream())
+			.flatMap(source -> ExtractReader.extractsOf(source, model).stream())
+			.flatMap(extract -> FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_REMARK).stream())
 			.map(FLEFRecord::getValue)
 			.toList();
 		Assertions.assertEquals(List.of("Ref note", "Role: front"), remarks);
@@ -671,14 +672,17 @@ class GrampsXMLToFLEFConverterTest{
 		final Path image = directory.resolve("picture.png");
 		ImageIO.write(new BufferedImage(200, 100, BufferedImage.TYPE_INT_RGB), "png", image.toFile());
 
-		final FLEFRecord individual = record(convertRegion(image.toString()), "I1");
+		final FLEFModel model = convertRegion(image.toString());
+		final FLEFRecord individual = record(model, "I1");
 
 		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.x"));
 		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.y"));
 		Assertions.assertEquals("100", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.width"));
 		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.height"));
-		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "source.extract.media_part.crop.x"));
-		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(individual, "source.extract.media_part.crop.height"));
+		//the extract of the citation is a record of the source
+		final FLEFRecord extract = ExtractReader.extractsOf(FLEFRecordHelper.findChild(individual, "source"), model).getFirst();
+		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(extract, "media_part.crop.x"));
+		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(extract, "media_part.crop.height"));
 		Assertions.assertTrue(notesTitled(individual, "Region of O1").isEmpty());
 	}
 

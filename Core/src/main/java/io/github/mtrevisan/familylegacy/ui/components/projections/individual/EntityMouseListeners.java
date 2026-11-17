@@ -48,9 +48,10 @@ import java.util.function.Supplier;
  * {@code GroupPanel}:
  * <ul>
  *   <li><b>single click on the name label</b> (only for the secondary
- *       boxes of the tree) re-roots the view on the entity; the hand
- *       cursor appears only when the pointer is over the text, not over
- *       the whole label;</li>
+ *       boxes of the tree) re-roots the view on the entity; both the
+ *       click and the hand cursor count only over the drawn text of the
+ *       name (even a lone "?"), not over the whole label: a click on the
+ *       blank part of the label selects, like the rest of the panel;</li>
  *   <li><b>single click anywhere else on the panel</b> selects the
  *       entity: the panel is highlighted with a thicker border, and any
  *       detail panel observing the selection is populated;</li>
@@ -107,6 +108,11 @@ public final class EntityMouseListeners{
 			public void mousePressed(final MouseEvent e){
 				final FLEFRecord record = recordSupplier.get();
 				if(record == null || !SwingUtilities.isLeftMouseButton(e) || e.getClickCount() != 1)
+					return;
+				// Only a press on the drawn text of the name re-roots (even when
+				// the name is just "?"); a press on the empty part of the label
+				// falls through to the panel listener, which selects the box.
+				if(!nameLabel.isTextHit(e.getPoint()))
 					return;
 
 				onRootSelected.accept(record.getId());

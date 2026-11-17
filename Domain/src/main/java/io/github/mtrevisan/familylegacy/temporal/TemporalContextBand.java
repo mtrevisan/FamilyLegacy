@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 /**
- * A background band in the General Temporal Projection.
+ * A background band in the temporal timelines.
  * <p>
  * A band is a temporal interval extracted from a context entity
  * ({@code HistoricEventRecord} or {@code CulturalNormRecord}) that is

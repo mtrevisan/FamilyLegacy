@@ -244,7 +244,7 @@ public class TimeRangeDialog extends JDialog{
 
 			if(audioData == null || audioData.length == 0){
 				g.setColor(Color.GRAY);
-				g.drawString("No waveform available", 20, 30);
+				g.drawString(I18N.t("text.time_range.no_waveform"), 20, 30);
 				return;
 			}
 

@@ -34,6 +34,8 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.social.FanResult;
+import io.github.mtrevisan.familylegacy.social.FanService;
 import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
@@ -49,6 +51,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -61,6 +65,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
@@ -96,24 +101,24 @@ import java.util.Map;
  */
 public class IndividualDossierPanel extends JPanel{
 
-	private static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
-	private static final Color HEADER_BACKGROUND_HOVER = new Color(232, 226, 214);
-	private static final Color HEADER_BORDER = new Color(210, 205, 195);
-	private static final Color HEADER_TEXT = new Color(40, 35, 25);
-	private static final Color SECTION_BACKGROUND = new Color(250, 249, 245);
-	private static final Color ROW_BACKGROUND_ALT = new Color(246, 244, 238);
-	private static final Color ROW_BACKGROUND_HOVER = new Color(238, 232, 218);
+	static final Color HEADER_BACKGROUND = new Color(240, 236, 228);
+	static final Color HEADER_BACKGROUND_HOVER = new Color(232, 226, 214);
+	static final Color HEADER_BORDER = new Color(210, 205, 195);
+	static final Color HEADER_TEXT = new Color(40, 35, 25);
+	static final Color SECTION_BACKGROUND = new Color(250, 249, 245);
+	static final Color ROW_BACKGROUND_ALT = new Color(246, 244, 238);
+	static final Color ROW_BACKGROUND_HOVER = new Color(238, 232, 218);
 	private static final Color LABEL_COLOR = new Color(60, 55, 45);
-	private static final Color VALUE_COLOR = new Color(30, 30, 30);
-	private static final Color SUBTITLE_COLOR = new Color(120, 115, 100);
+	static final Color VALUE_COLOR = new Color(30, 30, 30);
+	static final Color SUBTITLE_COLOR = new Color(120, 115, 100);
 	private static final Color EVIDENCE_COLOR = new Color(90, 120, 90);
-	private static final Color LINK_COLOR = new Color(30, 80, 180);
-	private static final Color EMPTY_COLOR = new Color(140, 130, 120);
+	static final Color LINK_COLOR = new Color(30, 80, 180);
+	static final Color EMPTY_COLOR = new Color(140, 130, 120);
 
-	private static final Font HEADER_FONT = new Font("Tahoma", Font.BOLD, 12);
+	static final Font HEADER_FONT = new Font("Tahoma", Font.BOLD, 12);
 	private static final Font LABEL_FONT = new Font("Tahoma", Font.BOLD, 11);
-	private static final Font VALUE_FONT = new Font("Tahoma", Font.PLAIN, 12);
-	private static final Font SUBTITLE_FONT = new Font("Tahoma", Font.ITALIC, 10);
+	static final Font VALUE_FONT = new Font("Tahoma", Font.PLAIN, 12);
+	static final Font SUBTITLE_FONT = new Font("Tahoma", Font.ITALIC, 10);
 	private static final Font EVIDENCE_FONT = new Font("Tahoma", Font.PLAIN, 9);
 	private static final Font TITLE_FONT = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font EMPTY_FONT = new Font("Tahoma", Font.ITALIC, 12);
@@ -125,15 +130,18 @@ public class IndividualDossierPanel extends JPanel{
 
 	private final FLEFModel model;
 	private final IndividualDossierService service;
+	private final FanService fanService;
 
 	/** Content panel: rebuilt on every {@link #setIndividual(String)}. */
-	private final JPanel contentPanel = new JPanel(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]", "[]0[]"));
+	private final JPanel contentPanel = new ContentPanel();
 
 	private final JLabel titleLabel = new JLabel();
 	private final JLabel subtitleLabel = new JLabel();
 
 	/** Section collapse state, preserved across reloads. */
 	private final Map<DossierSectionType, Boolean> expandedState = new EnumMap<>(DossierSectionType.class);
+	/** Whether the FAN table (it is not a section of the dossier) is open: it starts closed. */
+	private boolean fanExpanded;
 
 
 	/** Rebuilds the dossier when the user changes the order of its sections. */
@@ -147,6 +155,7 @@ public class IndividualDossierPanel extends JPanel{
 	public IndividualDossierPanel(final FLEFModel model){
 		this.model = model;
 		this.service = new IndividualDossierService(model);
+		this.fanService = new FanService(model);
 
 		buildUI();
 		showEmpty();
@@ -285,6 +294,10 @@ public class IndividualDossierPanel extends JPanel{
 
 		contentPanel.removeAll();
 		for(final DossierSectionType type : DossierSectionType.values()){
+			//the FAN table is between the relationships and the sources: who appears together with the individual in the documents
+			if(type == DossierSectionType.SOURCES)
+				addFanSection(dossier.individual().getId());
+
 			final List<DossierEntry> entries = dossier.entriesOf(type);
 			if(entries.isEmpty())
 				continue;
@@ -301,6 +314,71 @@ public class IndividualDossierPanel extends JPanel{
 
 		contentPanel.revalidate();
 		contentPanel.repaint();
+	}
+
+
+	private void addFanSection(final String individualId){
+		final FanResult fan = fanService.build(individualId);
+		if(fan.isEmpty())
+			return;
+
+		contentPanel.add(new FanSectionPanel(model, fan, this::openRecord, fanExpanded, expanded -> fanExpanded = expanded), "growx");
+	}
+
+	/**
+	 * Opens the editor of a record, as the click on a row of the dossier does; the dossier is rebuilt if the record was saved.
+	 *
+	 * @param record the record to edit
+	 */
+	private void openRecord(final FLEFRecord record){
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+		final Window owner = SwingUtilities.getWindowAncestor(this);
+		final RecordDialog dialog = handler.createEditDialog(owner, model, record);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved()){
+			refresh();
+			onRecordEdited.run();
+		}
+	}
+
+
+	/**
+	 * The content of the scroll pane: it is as wide as the visible area, so that a long row (a path, a note) is clipped instead of
+	 * making the whole dossier wider than the window, and the tables of the sections fit.
+	 */
+	private static final class ContentPanel extends JPanel implements Scrollable{
+
+		ContentPanel(){
+			super(new MigLayout("ins 0,wrap 1,fillx", "[0::,grow,fill]", "[]0[]"));
+		}
+
+
+		@Override
+		public Dimension getPreferredScrollableViewportSize(){
+			return getPreferredSize();
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction){
+			return GUIHelper.SCROLLBAR_UNIT_INCREMENT;
+		}
+
+		@Override
+		public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction){
+			return (orientation == SwingConstants.VERTICAL? visibleRect.height: visibleRect.width);
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportWidth(){
+			return true;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportHeight(){
+			return false;
+		}
+
 	}
 
 
@@ -408,7 +486,7 @@ public class IndividualDossierPanel extends JPanel{
 	 * The indicator is a fixed-size component: right-pointing when collapsed,
 	 * down-pointing when expanded.
 	 */
-	private static final class ArrowIndicator extends JComponent{
+	static final class ArrowIndicator extends JComponent{
 
 		/** Side of the triangle, in pixels. */
 		private static final int SIZE = 8;

@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 /**
- * A single temporal assertion on a track of the General Temporal Projection.
+ * A single temporal assertion on a track of the temporal timelines.
  * <p>
  * An entry corresponds to one FLEF record that carries a date and belongs to
  * the row entity. Typical origins:

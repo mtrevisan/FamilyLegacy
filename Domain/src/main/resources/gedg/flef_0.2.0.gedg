@@ -951,7 +951,6 @@ ImpactTarget = oneof {
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
 // DERIVED_FROM relationships MUST NOT form cycles: a source cannot be derived from itself, directly or through other sources.
-// TODO Cancellando un SourceRecord, si cancellano i suoi ExtractRecord; le referenze in SourceCitation.extract vengono rimosse.
 record SourceRecord {
   title+: NameStructure             // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
   author*: Agent                    // the persons, groups, or entities who created the record (author, compiler, transcriber, notary, clerk, ...). For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
@@ -982,8 +981,7 @@ Agent = oneof {
 struct SourceCitation {
   source: Xref<SourceRecord>
   locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
-  //extract*: ExtractStructure
-  extract*: Xref<ExtractRecord>   // TODO
+  extract*: Xref<ExtractRecord>
   stance: enum {   // Direction of this citation relative to the assertion it is cited for.
     supports,     // the source supports the assertion
     contradicts   // the source contradicts the assertion
@@ -991,30 +989,7 @@ struct SourceCitation {
   evidence?: EvidenceQualifiers   // classification of this source's contribution to the assertion it is cited for
   privacy?: PrivacyStructure
 
-  //require extract.media_part.media in source.media
-  require every e in extract: e.source == source   // TODO
-}
-
-// embedded
-struct ExtractStructure {
-  media_part*: struct {
-    media: Xref<MediaRecord>
-    page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
-    crop?: CropRect     // region of the image or page, in pixels
-    start_time?: Duration    // for audio and video: start of the cited segment, from the beginning of the media (e.g., 'PT15M32S')
-    end_time?: Duration      // for audio and video: end of the cited segment (e.g., 'PT15M54S')
-  }
-  text?: Text
-  type?: enum {   // Describes how the TEXT value relates to the content of the cited source.
-    verbatim,     // The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made.
-    summarized,   // The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation.
-    translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
-    normalized    // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
-  }
-  locale?: LocaleCode
-  remark*: Text   // short free-text remark about this extract
-
-  require at_least_one(media_part, text)
+  require every e in extract: e.source == source
 }
 
 // component record
@@ -1034,9 +1009,7 @@ record ExtractRecord {
     verbatim,     // The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made.
     summarized,   // The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation.
     translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
-    normalized,   // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
-    transcribed,    // TODO? handwriting/audio converted to text
-    transliterated  // TODO? writing system converted
+    normalized   // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
   }
   locale?: LocaleCode
   remark*: Text   // short free-text remark about this extract
@@ -1044,11 +1017,10 @@ record ExtractRecord {
   audit: AuditStructure
 
   require at_least_one(media_part, text)
-  require every media_part.media in source.media   // TODO
+  require every media_part.media in source.media
 }
 
-// Cropping rectangle expressed in image pixels, relative to the WIDTH and HEIGHT declared by the MEDIA.
-// When the image no longer matches those dimensions, consumers SHOULD rescale crops if the aspect ratio is unchanged, and warn otherwise.
+// Cropping rectangle expressed in image pixels.
 struct CropRect {
   x: Int
   y: Int
@@ -1068,7 +1040,7 @@ struct CropRect {
 // A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media
 // resource.
 // The kind of a media is a classification and may be revised: it is a field, so that correcting it does not change the references to the record.
-// A MEDIA_PART (see ExtractStructure) uses PAGE and CROP for images and documents, START_TIME and END_TIME for audio and video.
+// A MEDIA_PART (see ExtractRecord) uses PAGE and CROP for images and documents, START_TIME and END_TIME for audio and video.
 record MediaRecord {
   uri: Uri               // URI identifying the underlying resource.
   kind: enum {           // the nature of the resource

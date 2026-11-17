@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.temporal;
 
 /**
- * Kinds of FLEF entities that can appear in the General Temporal Projection.
+ * Kinds of FLEF entities that can appear in the temporal timelines.
  * <p>
  * The projection draws two families of entities:
  * <ul>

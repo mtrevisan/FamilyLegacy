@@ -25,14 +25,20 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.imaging.FaceDetector;
+import io.github.mtrevisan.familylegacy.imaging.FaceDetectors;
+import io.github.mtrevisan.familylegacy.imaging.PortraitCrops;
 import io.github.mtrevisan.familylegacy.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
@@ -41,15 +47,27 @@ import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 
+/**
+ * Defines the crop of an image: drawn by hand, or, when the face detector plugin is there, proposed with a click on a face (the whole head, in
+ * the proportions of the portrait; it can be edited as the one drawn by hand). The faces are looked for once, away from the event dispatch
+ * thread, when the dialog is shown.
+ */
 public class ImageCropDialog extends JDialog{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ImageCropDialog.class);
 
 	private static final float MAX_SCREEN_FRACTION = 0.75f;
 
 
 	private BufferedImage image;
 	private ScaledImage imageHolder;
+	private boolean viewOnly;
+	private SwingWorker<List<PortraitCrops.Proposal>, Void> faceSearch;
 
 	private boolean isSaved;
 
@@ -79,6 +97,8 @@ public class ImageCropDialog extends JDialog{
 	}
 
 	private void initComponents(final boolean viewOnly){
+		this.viewOnly = viewOnly;
+
 		setTitle(I18N.t("dialog.preferred.image.crop.title"));
 
 		if(viewOnly)
@@ -116,6 +136,9 @@ public class ImageCropDialog extends JDialog{
 			throw new IOException(I18N.tf("error.image", file.getAbsolutePath()));
 
 		isSaved = false;
+		cancelFaceSearch();
+		imageHolder.setCropProposals(null);
+		imageHolder.setToolTipText(null);
 		image = newImage;
 		imageHolder.setRectangularImage(image);
 		imageHolder.setCrop(crop);
@@ -180,6 +203,65 @@ public class ImageCropDialog extends JDialog{
 		if(getWidth() > screenBounds.width || getHeight() > screenBounds.height)
 			setSize(Math.min(getWidth(), screenBounds.width),
 				Math.min(getHeight(), screenBounds.height));
+	}
+
+	/** Looks for the faces when the dialog is shown (not when the image is only read), and gives up when it is hidden. */
+	@Override
+	public void setVisible(final boolean visible){
+		if(visible)
+			startFaceSearch();
+		else
+			cancelFaceSearch();
+
+		super.setVisible(visible);
+	}
+
+	/** Finds the faces once for the image, away from the event dispatch thread: the proposals appear when they are ready. */
+	private void startFaceSearch(){
+		cancelFaceSearch();
+		if(viewOnly || image == null || imageHolder.hasCropProposals())
+			return;
+
+		final BufferedImage target = image;
+		final SwingWorker<List<PortraitCrops.Proposal>, Void> search = new SwingWorker<>(){
+			@Override
+			protected List<PortraitCrops.Proposal> doInBackground() throws IOException{
+				final Optional<FaceDetector> detector = FaceDetectors.available();
+				if(detector.isEmpty())
+					return List.of();
+
+				final List<Rectangle> faces = detector.get().detectFaces(target);
+				return PortraitCrops.proposals(faces, target.getWidth(), target.getHeight());
+			}
+
+			@Override
+			protected void done(){
+				if(isCancelled() || image != target)
+					return;
+
+				try{
+					final List<PortraitCrops.Proposal> proposals = get();
+					imageHolder.setCropProposals(proposals);
+					imageHolder.setToolTipText(proposals.isEmpty()? null: I18N.t("dialog.preferred.image.crop.faces.tooltip"));
+				}
+				catch(final ExecutionException ee){
+					//the plugin cannot work (missing native library, ...): the crop is only drawn by hand
+					LOGGER.warn("The face detector failed", ee.getCause());
+				}
+				catch(final InterruptedException ie){
+					Thread.currentThread().interrupt();
+				}
+			}
+		};
+		faceSearch = search;
+		search.execute();
+	}
+
+	private void cancelFaceSearch(){
+		if(faceSearch != null){
+			faceSearch.cancel(true);
+			faceSearch = null;
+		}
 	}
 
 	public void save(){

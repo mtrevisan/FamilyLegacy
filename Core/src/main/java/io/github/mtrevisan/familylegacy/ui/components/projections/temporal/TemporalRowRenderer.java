@@ -41,7 +41,7 @@ import java.util.Map;
 
 
 /**
- * Draws a single row of the General Temporal Projection: the row header
+ * Draws a single row of the temporal timelines: the row header
  * (label column) and all the track entries.
  * <p>
  * Entries are drawn only when they intersect the visible window; the
@@ -86,35 +86,6 @@ public final class TemporalRowRenderer{
 	private TemporalRowRenderer(){
 	}
 
-
-	/**
-	 * Draws one row (header and tracks).
-	 *
-	 * @param g             the graphics context
-	 * @param row           the row model (must not be {@code null})
-	 * @param rowLayout     the row layout (must not be {@code null})
-	 * @param axis          the temporal axis
-	 * @param headerBounds  the rectangle reserved for row labels
-	 * @param contentBounds the rectangle of the temporal content
-	 * @param selected      whether the row is currently selected
-	 */
-	public static void drawRow(final Graphics2D g, final TemporalRow row,
-		final TemporalProjectionLayout.RowLayout rowLayout, final TemporalAxis axis,
-		final Rectangle headerBounds, final Rectangle contentBounds, final boolean selected){
-		if(g == null || row == null || rowLayout == null || axis == null
-			|| headerBounds == null || contentBounds == null)
-			return;
-
-		final int screenY = contentBounds.y + rowLayout.y();
-		final int rowHeight = rowLayout.height();
-
-		drawHeader(g, row, headerBounds, screenY, rowHeight, selected);
-
-		if(row.collapsed())
-			return;
-
-		drawTracks(g, row, rowLayout, axis, contentBounds, selected);
-	}
 
 	/**
 	 * Draws only the row header (label column).

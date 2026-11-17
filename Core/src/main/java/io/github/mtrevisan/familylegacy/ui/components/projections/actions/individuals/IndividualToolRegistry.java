@@ -47,7 +47,14 @@ public final class IndividualToolRegistry{
 	/** Relationship tools. */
 	public static List<ToolOperation> relationshipTools(){
 		return List.of(
-			new AddChildTool()
+			new AddPartnerTool(),
+			new AddParentTool(),
+			new AddChildTool(),
+			new ConnectPartnerTool(),
+			new ConnectParentTool(),
+			new PasteAsPartnerTool(),
+			new PasteAsParentTool(),
+			new PasteAsChildTool()
 		);
 	}
 

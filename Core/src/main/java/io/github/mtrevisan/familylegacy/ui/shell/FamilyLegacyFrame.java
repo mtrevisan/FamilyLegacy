@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
@@ -47,11 +49,13 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToInd
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogPlacement;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
+import io.github.mtrevisan.familylegacy.ui.tools.research.TasksPanel;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.Box;
@@ -66,9 +70,13 @@ import javax.swing.UIManager;
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -91,6 +99,8 @@ public class FamilyLegacyFrame extends JFrame{
 	private static final int SWITCHER_WIDTH = 1000;
 	/** Initial width of the dossier side of the split pane. */
 	private static final int DOSSIER_WIDTH = 400;
+	/** Initial height of the tasks panel, below the views. */
+	private static final int TASKS_HEIGHT = 180;
 
 
 	private final TreeType treeType;
@@ -106,8 +116,19 @@ public class FamilyLegacyFrame extends JFrame{
 	private final FileMenuController fileController;
 	private Runnable terminator = () -> System.exit(0);
 	private final JSplitPane split;
+	/** The research tasks still to be done, below the views (see {@link #setTasksPanelVisible(boolean)}). */
+	private final TasksPanel tasksPanel;
+	/** The views (with the dossier) above the tasks panel; {@code null} while the panel is hidden. */
+	private JSplitPane tasksSplit;
 
 	private final JToolBar toolBar;
+
+	/** Whether the window covers the whole screen. */
+	private boolean fullScreen;
+	/** Where the window was before going in full screen. */
+	private Rectangle windowedBounds;
+	/** Whether the window was maximized before going in full screen. */
+	private int windowedState = NORMAL;
 
 	private final ToolBarBuilder toolBarBuilder = new ToolBarBuilder();
 	private final DossierManager dossierManager;
@@ -115,6 +136,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	public FamilyLegacyFrame(final TreeType treeType, final FLEFModel model){
 		super("Family Legacy");
+		setIconImages(AppIcon.windowImages());
 
 		this.treeType = treeType;
 
@@ -138,10 +160,18 @@ public class FamilyLegacyFrame extends JFrame{
 		//a record edited from the dossier (a name, an event...) may be shown in the views too
 		dossierManager.setOnRecordEdited(() -> SwingUtilities.invokeLater(this::refreshViewsAfterDossierEdit));
 
+		tasksPanel = new TasksPanel(this::model, this::currentSelectionId);
+		//a task saved, or its status changed, from the panel is a step of the history (and is written to the file)
+		tasksPanel.setAfterChange(history::checkpoint);
+		tasksPanel.setOnHide(() -> setTasksPanelVisible(false));
+		//the tasks are listed again when the model changes (a step of the history, an undo, a redo, another file)
+		history.addChangeListener(() -> {
+			if(tasksSplit != null)
+				tasksPanel.refresh();
+		});
+
 		// Event Bindings
-		switcher.setSelectionCallback(dossierManager::showIndividualDossier);
-		switcher.setGroupSelectionCallback(dossierManager::showGroupDossier);
-		switcher.withNavigationListener(id -> dossierManager.syncDossier(id, model));
+		bindSwitcher(switcher, model);
 
 		toolBar = toolBarBuilder.build(
 			() -> {
@@ -179,6 +209,7 @@ public class FamilyLegacyFrame extends JFrame{
 		setLayout(new BorderLayout());
 		add(toolBar, BorderLayout.NORTH);
 		add(split, BorderLayout.CENTER);
+		applyTasksPanelVisibility();
 
 		setSize(SWITCHER_WIDTH + DOSSIER_WIDTH, 800);
 		setMinimumSize(new Dimension(900, 500));
@@ -202,6 +233,8 @@ public class FamilyLegacyFrame extends JFrame{
 		FeatureVisibilityService.shared()
 			.addListener(() -> SwingUtilities.invokeLater(() -> {
 				setJMenuBar(new ApplicationMenuBar(this).build(switcher.getRepository()));
+				//the tasks panel is part of the research, shown from the standard level
+				applyTasksPanelVisibility();
 				revalidate();
 				repaint();
 			}));
@@ -210,6 +243,22 @@ public class FamilyLegacyFrame extends JFrame{
 		//the order of children and partners is a view preference: changing it only rebuilds the views
 		OrderPreferences.addListener(this::refreshPrivacy);
 		installUndoCheckpoints();
+	}
+
+	/** Tells the views what to do when the user selects or reaches a record: show it in the dossier, list its tasks. */
+	private void bindSwitcher(final ProjectionSwitcherPanel switcher, final FLEFModel model){
+		switcher.setSelectionCallback(id -> {
+			dossierManager.showIndividualDossier(id);
+			tasksPanel.selectionChanged();
+		});
+		switcher.setGroupSelectionCallback(id -> {
+			dossierManager.showGroupDossier(id);
+			tasksPanel.selectionChanged();
+		});
+		switcher.withNavigationListener(id -> {
+			dossierManager.syncDossier(id, model);
+			tasksPanel.selectionChanged();
+		});
 	}
 
 	/** Rebuilds the views after the privacy policy changed. */
@@ -236,6 +285,9 @@ public class FamilyLegacyFrame extends JFrame{
 			rootId = ModelUtils.findLowestIndividualId(model);
 		loadRoot(rootId);
 		dossierManager.rebuild(model);
+		//the privacy policy decides which tasks are listed
+		if(tasksSplit != null)
+			tasksPanel.refresh();
 	}
 
 	/**
@@ -366,12 +418,56 @@ public class FamilyLegacyFrame extends JFrame{
 			SwingUtilities.invokeLater(this::rebuildViews);
 	}
 
+	/** @return	Whether the window covers the whole screen (see {@link #setFullScreen(boolean)}). */
 	public boolean isFullScreen(){
-		return ((getExtendedState() & MAXIMIZED_BOTH) == MAXIMIZED_BOTH);
+		return fullScreen;
 	}
 
 	public void toggleFullScreen(){
-		setExtendedState(isFullScreen()? NORMAL: MAXIMIZED_BOTH);
+		setFullScreen(!isFullScreen());
+	}
+
+	/**
+	 * Puts the window in full screen on the screen it is on, or brings it back as it was.
+	 * <p>
+	 * In full screen the window has no title bar and no borders, and covers the task bar; the menus stay. The decorations can be
+	 * changed only while the window is not displayable, hence it is disposed and shown again: the windows it owns that are open
+	 * (non-modal dialogs) are closed.
+	 * <p>
+	 * The window is only given the bounds of the screen, it is not made the full-screen window of the device
+	 * ({@link GraphicsDevice#setFullScreenWindow(Window)}): on Windows the exclusive mode minimizes the window every time it loses
+	 * the focus, even to one of its own dialogs, and gives it back right after; the window flickers (on and on while a dialog is
+	 * open), showing what is behind it.
+	 *
+	 * @param fullScreen	Whether the window covers the whole screen.
+	 */
+	public void setFullScreen(final boolean fullScreen){
+		if(fullScreen == isFullScreen())
+			return;
+
+		this.fullScreen = fullScreen;
+		if(fullScreen){
+			final Rectangle screenBounds = getGraphicsConfiguration().getBounds();
+			windowedBounds = getBounds();
+			windowedState = (getExtendedState() & ~ICONIFIED);
+
+			dispose();
+			setUndecorated(true);
+			//a maximized window would cover only the area outside the task bar
+			setExtendedState(NORMAL);
+			setBounds(screenBounds);
+			setVisible(true);
+		}
+		else{
+			dispose();
+			setUndecorated(false);
+			setBounds(windowedBounds);
+			setVisible(true);
+			setExtendedState(windowedState);
+		}
+		validate();
+		toFront();
+		requestFocus();
 	}
 
 	public boolean isToolbarVisible(){
@@ -388,6 +484,68 @@ public class FamilyLegacyFrame extends JFrame{
 
 	public boolean isSidebarVisible(){
 		return dossierManager.isSidebarVisible();
+	}
+
+	/** @return	Whether the tasks panel can be shown: the research is part of the interface from the standard level. */
+	public boolean isTasksPanelAvailable(){
+		return FeatureVisibilityService.shared()
+			.isVisible(UxLevel.STANDARD);
+	}
+
+	/** @return	Whether the tasks panel is shown below the views. */
+	public boolean isTasksPanelVisible(){
+		return (isTasksPanelAvailable() && AppPreferences.getInstance().tasksPanelVisible());
+	}
+
+	/** Shows or hides the tasks panel below the views; the choice is kept in the user preferences. */
+	public void setTasksPanelVisible(final boolean visible){
+		AppPreferences.getInstance()
+			.setTasksPanelVisible(visible);
+		applyTasksPanelVisibility();
+	}
+
+	/** Puts the tasks panel below the views, or takes it away, as the preference and the level of the interface say. */
+	private void applyTasksPanelVisibility(){
+		final boolean visible = isTasksPanelVisible();
+		if(visible && tasksSplit == null){
+			remove(split);
+			tasksSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, split, tasksPanel);
+			tasksSplit.setResizeWeight(1.);
+			tasksSplit.setContinuousLayout(true);
+			tasksSplit.setBorder(null);
+			placeTasksDivider(tasksSplit);
+			add(tasksSplit, BorderLayout.CENTER);
+			tasksPanel.refresh();
+		}
+		else if(!visible && tasksSplit != null){
+			remove(tasksSplit);
+			tasksSplit.removeAll();
+			tasksSplit = null;
+			add(split, BorderLayout.CENTER);
+		}
+		revalidate();
+		repaint();
+	}
+
+	/** Gives the tasks panel its initial height as soon as the split pane has one (the window may not be shown yet). */
+	private static void placeTasksDivider(final JSplitPane splitPane){
+		final Runnable place = () -> splitPane.setDividerLocation(Math.max(0, splitPane.getHeight() - splitPane.getDividerSize()
+			- TASKS_HEIGHT));
+		if(splitPane.getHeight() > 0){
+			SwingUtilities.invokeLater(place);
+			return;
+		}
+
+		splitPane.addComponentListener(new ComponentAdapter(){
+			@Override
+			public void componentResized(final ComponentEvent e){
+				if(splitPane.getHeight() <= 0)
+					return;
+
+				splitPane.removeComponentListener(this);
+				place.run();
+			}
+		});
 	}
 
 	public void setSidebarVisible(final boolean visible){
@@ -476,9 +634,7 @@ public class FamilyLegacyFrame extends JFrame{
 			}
 
 			switcher = new ProjectionSwitcherPanel(treeType, newModel);
-			switcher.setSelectionCallback(dossierManager::showIndividualDossier);
-			switcher.setGroupSelectionCallback(dossierManager::showGroupDossier);
-			switcher.withNavigationListener(id -> dossierManager.syncDossier(id, newModel));
+			bindSwitcher(switcher, newModel);
 			switcher.setProjectionChangeListener(toolBarBuilder::updateProjectionState);
 
 			dossierManager.rebuild(newModel);
@@ -513,14 +669,6 @@ public class FamilyLegacyFrame extends JFrame{
 			}
 			case CHRONOMAP -> {
 				bookmarkType = BookmarkType.CHRONOMAP;
-				rootId = switcher.getCurrentRootId();
-			}
-			case TEMPORAL -> {
-				bookmarkType = BookmarkType.TEMPORAL;
-				rootId = switcher.getCurrentRootId();
-			}
-			case SOCIAL_NETWORK -> {
-				bookmarkType = BookmarkType.SOCIAL_NETWORK;
 				rootId = switcher.getCurrentRootId();
 			}
 			default -> {
@@ -569,8 +717,6 @@ public class FamilyLegacyFrame extends JFrame{
 			case SUGIYAMA_GRAPH -> ProjectionType.SUGIYAMA_GRAPH;
 			case EGO_NETWORK -> ProjectionType.EGO_NETWORK;
 			case CHRONOMAP -> ProjectionType.CHRONOMAP;
-			case TEMPORAL -> ProjectionType.TEMPORAL;
-			case SOCIAL_NETWORK -> ProjectionType.SOCIAL_NETWORK;
 		};
 
 		switcher.setProjection(projection);

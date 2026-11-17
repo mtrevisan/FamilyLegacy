@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -68,13 +69,13 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 			final String role = RelationshipReader.extractRole(record);
 
 			final String categoryTag = switch(StringUtils.defaultString(type)){
-				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> "[Biological]";
-				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> "[Adoptive]";
-				case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> "[Custody]";
-				case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> "[Legal Protection]";
-				case RelationshipReader.ENUM_TYPE_STEP_CHILD -> "[Step child]";
-				case RelationshipReader.ENUM_TYPE_GROUP_MEMBER -> "[Group]";
-				default -> "[Other]";
+				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> I18N.t("text.relationship.category.biological");
+				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> I18N.t("text.relationship.category.adoptive");
+				case RelationshipReader.ENUM_TYPE_FOSTER_CHILD -> I18N.t("text.relationship.category.custody");
+				case RelationshipReader.ENUM_TYPE_GUARDED_CHILD -> I18N.t("text.relationship.category.legal_protection");
+				case RelationshipReader.ENUM_TYPE_STEP_CHILD -> I18N.t("text.relationship.category.step_child");
+				case RelationshipReader.ENUM_TYPE_GROUP_MEMBER -> I18N.t("text.relationship.category.group");
+				default -> I18N.t("text.relationship.category.other");
 			};
 
 			final StringBuilder sb = new StringBuilder();

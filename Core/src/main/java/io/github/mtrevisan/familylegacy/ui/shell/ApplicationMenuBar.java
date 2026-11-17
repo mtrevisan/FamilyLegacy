@@ -363,8 +363,6 @@ final class ApplicationMenuBar{
 					case SUGIYAMA_GRAPH -> graphItem.setSelected(true);
 					case EGO_NETWORK -> egoItem.setSelected(true);
 					case CHRONOMAP -> chronomapItem.setSelected(true);
-					//the temporal projection and the social network have no menu item for now (see ProjectionType)
-					case TEMPORAL, SOCIAL_NETWORK -> {}
 				}
 			}
 
@@ -397,6 +395,14 @@ final class ApplicationMenuBar{
 		showSidebar.addActionListener(e -> frame.setSidebarVisible(showSidebar.isSelected()));
 		menu.add(showSidebar);
 
+		//the research tasks still to be done: only where the research is part of the interface
+		final JCheckBoxMenuItem showTasks = new JCheckBoxMenuItem(I18N.t("menu.view.show.tasks"));
+		showTasks.setMnemonic(KeyEvent.VK_K);
+		showTasks.setSelected(frame.isTasksPanelVisible());
+		showTasks.addActionListener(e -> frame.setTasksPanelVisible(showTasks.isSelected()));
+		if(frame.isTasksPanelAvailable())
+			menu.add(showTasks);
+
 		menu.add(new JSeparator());
 
 		menu.add(createPrivacyMenu());
@@ -409,6 +415,7 @@ final class ApplicationMenuBar{
 				fullScreen.setSelected(frame.isFullScreen());
 				showToolbar.setSelected(frame.isToolbarVisible());
 				showSidebar.setSelected(frame.isSidebarVisible());
+				showTasks.setSelected(frame.isTasksPanelVisible());
 			}
 
 			@Override

@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
@@ -33,7 +32,6 @@ import io.github.mtrevisan.familylegacy.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
-import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionService;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.tree.TreeChangeListener;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -41,13 +39,11 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -59,9 +55,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -76,18 +69,18 @@ Wheel senza modificatori → scroll verticale nativo.
 Drag sinistro sul content → pan orizzontale.
 Click su entry → selezione della riga.
 Hover → tooltip con tipo, ruolo, span.
-Toggle toolbar → refresh (ricostruzione del modello con il filtro).
  */
 
 
 /**
- * Main panel of the General Temporal Projection.
+ * Timeline panel shared by the group views (group timeline, career of an individual, timeline of the jurisdictions): it draws the
+ * {@link TemporalProjectionModel} given by {@link #withModelSource(Supplier)}.
  * <p>
  * Composes a {@link TemporalProjectionToolbar} on top of a
  * {@link JScrollPane} that hosts three synchronized canvases:
  * <ul>
- *   <li>the <b>content canvas</b> (viewport view) — draws bands, grid,
- *       entry bars, connection arcs and impact link connectors;</li>
+ *   <li>the <b>content canvas</b> (viewport view) — draws bands, grid
+ *       and entry bars;</li>
  *   <li>the <b>header canvas</b> (row header view) — draws the row labels,
  *       kept horizontally aligned with the content canvas;</li>
  *   <li>the <b>axis strip canvas</b> (column header view) — draws the
@@ -104,7 +97,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 
 	private final FLEFModel flefModel;
-	private final TemporalProjectionService service;
 	private final TemporalProjectionLayout layout;
 	private final TemporalProjectionToolbar toolbar;
 	private final TemporalZoomController zoomController;
@@ -113,8 +105,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private final HeaderCanvas headerCanvas;
 	private final AxisStripCanvas axisStripCanvas;
 
-	/** Gives the model to show when it is not the one of the whole file; {@code null} for the whole file. */
-	private Supplier<TemporalProjectionModel> modelSource;
+	/** Gives the model to show. */
+	private Supplier<TemporalProjectionModel> modelSource = TemporalProjectionModel::empty;
 	private TemporalProjectionModel model = TemporalProjectionModel.empty();
 	/** The rows of the model by entity (looked for at every paint, for every row: a list made it quadratic). */
 	private Map<TemporalEntityRef, TemporalRow> rowsByEntity = Map.of();
@@ -127,7 +119,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 	public TemporalProjectionPanel(final FLEFModel flefModel){
 		this.flefModel = flefModel;
-		this.service = new TemporalProjectionService(flefModel);
 		this.layout = new TemporalProjectionLayout();
 		this.toolbar = new TemporalProjectionToolbar(new ToolbarListener());
 		this.zoomController = new TemporalZoomController(() -> axis)
@@ -152,7 +143,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 * ====================================================================== */
 
 	/**
-	 * Builds the projection from the current FLEF model and rebuilds the UI.
+	 * Asks the model source for the model to show and rebuilds the UI.
 	 */
 	public void loadProjection(){
 		if(!SwingUtilities.isEventDispatchThread()){
@@ -160,16 +151,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			return;
 		}
 
-		if(modelSource != null)
-			//the model is given (a group timeline): the toolbar filter does not apply
-			model = modelSource.get();
-		else{
-			// Determine the entity filter from the toolbar.
-			final TemporalProjectionToolbar.EntityFilter filter = toolbar.getEntityFilter();
-			model = (filter != TemporalProjectionToolbar.EntityFilter.ALL
-				? service.build(entity -> matchesFilter(entity, filter))
-				: service.build());
-		}
+		model = modelSource.get();
 
 		final Map<TemporalEntityRef, TemporalRow> index = new HashMap<>(model.rows().size() * 2);
 		for(final TemporalRow row : model.rows())
@@ -197,16 +179,14 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	}
 
 	/**
-	 * Makes the panel show the model given by the supplier instead of the whole file (used by the group timeline). The supplier is
-	 * called at every {@link #loadProjection()}, so that a refresh shows the current data.
+	 * Makes the panel show the model given by the supplier. The supplier is called at every {@link #loadProjection()}, so that a refresh
+	 * shows the current data.
 	 *
-	 * @param source	The supplier of the model to show, or {@code null} for the projection of the whole file.
+	 * @param source	The supplier of the model to show, or {@code null} for an empty panel.
 	 * @return	This panel.
 	 */
 	public TemporalProjectionPanel withModelSource(final Supplier<TemporalProjectionModel> source){
-		modelSource = source;
-		//what the toolbar chooses (layers, entities) is not a choice of a view with its own model
-		toolbar.setContentControlsVisible(source == null);
+		modelSource = (source != null? source: TemporalProjectionModel::empty);
 
 		return this;
 	}
@@ -215,7 +195,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 * Refreshes the projection after the underlying model has changed.
 	 */
 	public void refreshProjection(){
-		service.invalidate();
 		loadProjection();
 	}
 
@@ -363,8 +342,8 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 
 	/**
 	 * Opens the edit dialog appropriate for the record referenced by the
-	 * given projection element. The record is resolved from the entry or
-	 * connection carried by the reference; if no handler matches the record
+	 * given projection element. The record is resolved from the entry, row
+	 * or band carried by the reference; if no handler matches the record
 	 * tag, the call is a no-op.
 	 */
 	private void openEditDialogFor(final TemporalProjectionRef ref){
@@ -390,8 +369,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private static FLEFRecord sourceRecordOf(final TemporalProjectionRef ref){
 		if(ref instanceof TemporalProjectionRef.EntryRef entryRef)
 			return entryRef.entry().sourceRecord();
-		if(ref instanceof TemporalProjectionRef.ConnectionRef connectionRef)
-			return connectionRef.connection().sourceRecord();
 		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
 			return rowRef.entity().record();
 		if(ref instanceof TemporalProjectionRef.BandRef bandRef)
@@ -417,14 +394,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private TemporalProjectionRef hitTest(final MouseEvent e){
 		final Rectangle contentBounds = new Rectangle(0, 0, contentCanvas.getWidth(),
 			contentCanvas.getHeight());
-		final TemporalProjectionRef ref = TemporalInteractionHandler.hitTest(e.getX(), e.getY(), model, layout, axis,
-			contentBounds);
-		//the bands and the connections that are not drawn are not there
-		if(ref instanceof TemporalProjectionRef.BandRef && !toolbar.isShowBands())
-			return null;
-		if(ref instanceof TemporalProjectionRef.ConnectionRef && !toolbar.isShowConnections())
-			return null;
-		return ref;
+		return TemporalInteractionHandler.hitTest(e.getX(), e.getY(), model, layout, axis, contentBounds);
 	}
 
 
@@ -444,16 +414,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private void onAxisChanged(){
 		contentCanvas.repaint();
 		axisStripCanvas.repaint();
-	}
-
-	private static boolean matchesFilter(final TemporalEntityRef entity,
-		final TemporalProjectionToolbar.EntityFilter filter){
-		return switch(filter){
-			case ALL -> true;
-			case INDIVIDUALS -> entity.type() == TemporalEntityType.INDIVIDUAL;
-			case GROUPS -> entity.type() == TemporalEntityType.GROUP;
-			case PLACES -> entity.type() == TemporalEntityType.PLACE;
-		};
 	}
 
 
@@ -486,10 +446,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			axis.fitToDomain();
 			onAxisChanged();
 		}
-
-		@Override public void onFiltersChanged(){
-			refreshProjection();
-		}
 	}
 
 
@@ -497,7 +453,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	 *                          Canvases
 	 * ====================================================================== */
 
-	/** Viewport view: draws bands, grid, entries, connections and impacts. */
+	/** Viewport view: draws bands, grid and entries. */
 	private final class ContentCanvas extends JPanel{
 		ContentCanvas(){
 			setBackground(TemporalProjectionRenderer.COLOR_BACKGROUND);
@@ -514,8 +470,7 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 			final Rectangle bounds = new Rectangle(0, 0, getWidth(), getHeight());
 
 			// Bands (background)
-			if(toolbar.isShowBands())
-				TemporalContextRenderer.drawBands(g2, model.bands(), axis, bounds);
+			TemporalContextRenderer.drawBands(g2, model.bands(), axis, bounds);
 
 			// Vertical grid
 			TemporalAxisRenderer.drawVerticalGrid(g2, axis, bounds);
@@ -540,14 +495,6 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 					&& selectedEntity.equals(rowLayout.entity()));
 				TemporalRowRenderer.drawRowTracks(g2, row, rowLayout, axis, bounds, selected);
 			}
-
-			// Connections
-			if(toolbar.isShowConnections())
-				TemporalConnectionRenderer.drawConnections(g2, model.connections(), layout, axis, bounds);
-
-			// Impact links
-			if(toolbar.isShowImpactLinks())
-				TemporalContextRenderer.drawImpactLinks(g2, model.impactLinks(), layout, axis, bounds);
 		}
 
 		@Override
@@ -617,39 +564,5 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 		return rowsByEntity.get(entity);
 	}
 
-
-	/* ======================================================================
-	 *                          Bootstrap
-	 * ====================================================================== */
-
-	static void main(final String[] args) throws IOException{
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final String modelUri = "/tests/TGMZ.flef";
-
-		final String content;
-		try(final InputStream is = TemporalProjectionPanel.class.getResourceAsStream(modelUri)){
-			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-		}
-
-		final FLEFParser parser = new FLEFParser();
-		final FLEFModel model = parser.parse(content);
-
-		SwingUtilities.invokeLater(() -> {
-			final TemporalProjectionPanel panel = new TemporalProjectionPanel(model);
-			panel.loadProjection();
-
-			final JFrame frame = new JFrame("General Temporal Projection");
-			frame.setLayout(new BorderLayout());
-			frame.add(panel, BorderLayout.CENTER);
-			frame.setSize(1200, 700);
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setLocationRelativeTo(null);
-			frame.setVisible(true);
-		});
-	}
 
 }

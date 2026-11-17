@@ -25,19 +25,24 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppLogo;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.BorderLayout;
@@ -54,7 +59,7 @@ import java.util.Optional;
 
 
 /**
- * The help of the application: the list of the pages on the left, the selected page on the right.
+ * The help of the application: the logo and the list of the pages on the left, the selected page on the right.
  * <p>
  * The pages are Markdown files bundled with the application (see {@link HelpTopics}), so the help works without a connection. A
  * link to another page ({@code page.md} or {@code page.md#heading}) opens it here; a link to the web opens the browser. The
@@ -62,6 +67,9 @@ import java.util.Optional;
  * requested page.
  */
 public final class HelpBrowserDialog extends JDialog{
+
+	/** The size of the logo of the application, above the list of the pages. */
+	private static final int LOGO_SIZE = 128;
 
 	/** The window being shown, if any: it is forgotten when closed, so that it can be released. */
 	private static HelpBrowserDialog current;
@@ -122,9 +130,17 @@ public final class HelpBrowserDialog extends JDialog{
 
 		final JScrollPane listScroll = new JScrollPane(topicList);
 		listScroll.setPreferredSize(new Dimension(210, 560));
+		final JPanel sidePanel = new JPanel(new BorderLayout());
+		final Icon logo = AppLogo.icon(LOGO_SIZE);
+		if(logo != null){
+			final JLabel logoLabel = new JLabel(logo, SwingConstants.CENTER);
+			logoLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 10, 8));
+			sidePanel.add(logoLabel, BorderLayout.NORTH);
+		}
+		sidePanel.add(listScroll, BorderLayout.CENTER);
 		final JScrollPane contentScroll = new JScrollPane(editor);
 		contentScroll.setPreferredSize(new Dimension(700, 560));
-		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, contentScroll);
+		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, sidePanel, contentScroll);
 		split.setContinuousLayout(true);
 
 		setLayout(new BorderLayout());
