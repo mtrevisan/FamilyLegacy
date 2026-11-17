@@ -111,9 +111,10 @@ public final class ResearchActivityReader{
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 
+	public static final String ENUM_ACTIVITY_TYPE_SEARCH = "search";
 	public static final String ENUM_ACTIVITY_TYPE_REVIEW = "review";
 	public static final String[] TYPES = new String[]{
-		"search", ENUM_ACTIVITY_TYPE_REVIEW, "analysis", "correspondence", "interview", "hypothesis"
+		ENUM_ACTIVITY_TYPE_SEARCH, ENUM_ACTIVITY_TYPE_REVIEW, "analysis", "correspondence", "interview", "hypothesis"
 	};
 	public static final String ENUM_STATUS_PLANNED = "planned";
 	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";

@@ -130,10 +130,12 @@
 											<arg value="--icon"/>
 											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
 											<!-- the automatic detection of the modules does not see through a fat jar: the list is the one of
-												the print-module-deps output of jdeps on the shaded jar of Core, plus the ones that are
-												loaded dynamically (locale data, charsets, zip file system); update it if the code starts using other modules -->
+												the print-module-deps output of jdeps on the shaded jar of Core and on the plugins (jdk.xml.dom is needed by Batik, the
+												SVG images; java.management by the diagnostics; java.logging, java.security.jgss, java.xml.crypto by the
+												Word plugin), plus the ones that are loaded dynamically (locale data, charsets, zip file system, Unsafe);
+												update it if the code starts using other modules, in both profiles -->
 											<arg value="--add-modules"/>
-											<arg value="java.base,java.compiler,java.desktop,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
+											<arg value="java.base,java.compiler,java.desktop,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.xml.dom,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
 											<!-- the default options plus the compression of the runtime image -->
 											<arg value="--jlink-options"/>
 											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
@@ -283,9 +285,9 @@
 											<!-- the icon of the executable and of its shortcuts, drawn from images/app-icon*.png -->
 											<arg value="--icon"/>
 											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
-											<!-- Lista moduli: aggiornala con l'output di target/jdeps-modules.txt -->
+											<!-- the same list of the profile windows-exe (keep the two equal): see the comment there -->
 											<arg value="--add-modules"/>
-											<arg value="java.base,java.compiler,java.desktop,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml.crypto,jdk.xml.dom"/>
+											<arg value="java.base,java.compiler,java.desktop,java.logging,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.xml.dom,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
 											<arg value="--jlink-options"/>
 											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
 											<arg value="--java-options"/>

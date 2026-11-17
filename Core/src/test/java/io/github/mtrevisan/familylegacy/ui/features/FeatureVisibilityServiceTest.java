@@ -84,6 +84,7 @@ class FeatureVisibilityServiceTest{
 	void researchToolsAreHiddenInBasicAndEveryOneIsReachableFromTheAssistant(){
 		final List<ToolOperation> tools = new ArrayList<>();
 		tools.addAll(ResearchToolRegistry.planningTools());
+		tools.addAll(ResearchToolRegistry.externalSearchTools());
 		tools.addAll(ResearchToolRegistry.contextTools());
 		tools.addAll(ResearchToolRegistry.analysisTools());
 		tools.addAll(ResearchToolRegistry.reportTools());

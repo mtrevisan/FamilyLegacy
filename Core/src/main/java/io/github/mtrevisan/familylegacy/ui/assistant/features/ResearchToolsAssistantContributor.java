@@ -105,7 +105,8 @@ public final class ResearchToolsAssistantContributor implements AssistantContrib
 	@Override
 	public List<AssistantAction> actions(){
 		final List<AssistantAction> actions = new ArrayList<>();
-		for(final List<ToolOperation> group : List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.contextTools(),
+		for(final List<ToolOperation> group : List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.externalSearchTools(),
+				ResearchToolRegistry.contextTools(),
 				ResearchToolRegistry.analysisTools(), ResearchToolRegistry.reportTools()))
 			for(final ToolOperation tool : group)
 				actions.add(new ToolAction(tool));

@@ -65,6 +65,7 @@ It lists the couples whose partners are related and the people who are the child
 ## Related tools in other menus
 
 - **Individual > Kinship Calculator...**: [Kinship and consanguinity](kinship.md).
+- **Individual > Search External Sites...** and **Research > External Sites and Credentials...**: [Searching external sites](external-search.md).
 - **Group > Group Timeline...**, **Group > Group Network...** and **Individual > Memberships Over Time...**: [Group timeline, group network and memberships over time](group-views.md).
 - **Place > Jurisdiction Timeline...**: how a place changed jurisdiction in time, in the same page.
 - **File > Backup...** and **Restore from Backup...**: see [Files](files.md#backup-and-restore).

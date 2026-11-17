@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.awt.Window;
+import java.util.Map;
 
 
 /**
@@ -71,6 +72,14 @@ public interface RecordDialog{
 	 * @param refresh refreshes the list that shows the nested record
 	 */
 	default void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){}
+
+	/**
+	 * Starts a new record with some values: a draft the user completes, and saves or discards. Only the fields still empty are filled,
+	 * and only the ones the editor knows (the others, and the editors that take no draft, ignore them).
+	 *
+	 * @param values	The value of each field, by the tag of the field.
+	 */
+	default void presetValues(final Map<String, String> values){}
 
 	/** Presets the sex of a new individual, and keeps it (the editors of the other records ignore it). */
 	default void presetSex(final SexType sex){}

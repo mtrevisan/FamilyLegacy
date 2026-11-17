@@ -53,6 +53,7 @@ A group is a set of individuals (a family, a household, a congregation...). Memb
 
 - **Kinship Calculator...** tells how two individuals are related; the selected individual fills the first side. See [Kinship and consanguinity](kinship.md).
 - **Memberships Over Time...** shows the groups the individual belonged to in time, with the role in each. See [Group timeline, group network and memberships over time](group-views.md).
+- **Search External Sites...** (also in the menu of the right click on a box) opens a search of the individual, with each of its names, on genealogical sites and archives. See [Searching external sites](external-search.md).
 - To merge two entries for the same person, see [Finding duplicates and merging people](merging.md).
 
 ## Places

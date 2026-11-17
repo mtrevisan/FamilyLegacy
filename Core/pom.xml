@@ -190,6 +190,12 @@
 			<artifactId>Updater</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<!-- The search of a person on external sites (the sites, the credentials of the user, the values of an individual) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ExternalSearch</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- The PDF and Word formats are plugins (Core/plugins/report-*.jar, built by their modules): here only for the tests -->
 		<dependency>

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.tree.EntityListener;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.PopupMenuHelper;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.externalsearch.ExternalSearchTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.AddChildTool;
@@ -82,6 +83,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		final JMenuItem careerItem = new JMenuItem(I18N.t("menu.individual.group_career"));
 		final JMenuItem provenanceItem = new JMenuItem(I18N.t("menu.source_citation.provenance"));
 		final JMenuItem loopsItem = new JMenuItem(I18N.t("menu.individual.consanguinity_loops"));
+		final JMenuItem externalSearchItem = new JMenuItem(I18N.t("menu.research.external_search"));
 
 		final JPopupMenu popup = new JPopupMenu();
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
@@ -89,6 +91,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
 				//the provenance (citation by citation, with stance and evidence) is offered from the standard level, as in the menu bar
 				provenanceItem.setVisible(FeatureVisibilityService.shared().isVisible(new ProvenanceTool().minimumLevel()));
+				externalSearchItem.setVisible(FeatureVisibilityService.shared().isVisible(new ExternalSearchTool().minimumLevel()));
 				final IndividualSummary data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
@@ -121,6 +124,7 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 				//both read the selected individual: on an empty box there is nothing to show
 				provenanceItem.setEnabled(hasData);
 				loopsItem.setEnabled(hasData);
+				externalSearchItem.setEnabled(hasData);
 			}
 		});
 
@@ -187,6 +191,12 @@ public class EntityTreePopupMenuFactory implements EntityPopupMenuFactory<Indivi
 		PopupMenuHelper.addMenuItem(popup, loopsItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new ConsanguinityLoopsTool()
+				.run(context);
+		});
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, externalSearchItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new ExternalSearchTool()
 				.run(context);
 		});
 

@@ -15,6 +15,8 @@ Because they are separate records, a wrong conclusion can be revised without los
 
 The lists are the way to find and edit the records of one type; the board is the way to see how they fit together.
 
+**Search External Sites...** opens, in the browser, a search of the selected individual on genealogical sites and archives, with every name of the individual, and can record it as a research activity; **External Sites and Credentials...** manages the sites and your keys for them. See [Searching external sites](external-search.md).
+
 ## The context board
 
 **Research > Context Board...** shows the historical and cultural context as a tree, and is where historic events, cultural norms and context impacts are created and edited. There are two sections: **Historic events** (wars, epidemics, ..., in chronological order, those with no date last) and **Cultural norms** (customs, laws and practices of a time and place, by title). Under each one are the **impacts** it had, written as `→` the record it influenced, with the type of impact and the confidence. Each line has the type and the date (for a norm, the period it was valid), the complete place and the number of impacts. Impacts that cite no existing context are under **(no context)**, so nothing is hidden.

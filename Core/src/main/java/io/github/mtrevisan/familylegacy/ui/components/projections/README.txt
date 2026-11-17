@@ -32,479 +32,6 @@ MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `tempora
 - Campo per l'etichetta Y-DNA come attributo della persona, con il formato R-BY44535+. Se volete un lavoro semplice sul DNA, partite da qui.
 - Assistente AI sull'albero. Ha già senso concettualmente (risponde solo con i dati dell'albero, cita i record, dice quando mancano dati), ma è un progetto separato, e il vostro Research Assistant è già un punto di partenza.
 
-#### research
-Cerca nei siti esterni (FamilySearch, MyHeritage, Ancestry, Geneanet, CompGen, https://api.wikitree.com/api.php, OpenArch.nl, Archives nationales / Europeana, NARA (USA), Chronicling America e altri). Apre ricerche precompilate con nome e luoghi della persona. L'utente può aggiungere siti propri con un modello di URL e segnaposto come name_given e birth_place.
-
-# Goal
-
-Implement a genealogy search federation layer that can query multiple external genealogy providers and archival repositories through a common API.
-
-The final architecture must allow FLEF to search across heterogeneous sources, normalize the results, expose repository coverage information, and aggregate matches.
-
-This is not a prototype. Design it as production\-quality infrastructure intended to support many providers over time.
-
----
-
-# Research First
-
-Before writing code:
-
-1. Inspect the existing codebase.
-2. Identify existing domain models that can be reused.
-3. Produce a short architecture assessment.
-4. Identify potential conflicts with the current FLEF model.
-5. Propose adjustments if necessary.
-
-Do not blindly follow my suggestions if you find a better design.
-
----
-
-# High\-Level Architecture
-
-Create a new module:
-
-repository\-api
-
-containing:
-
-GenealogyRepository
-
-RepositoryCapability
-
-RepositoryCoverage
-
-RepositoryMetadata
-
-PersonQuery
-
-FamilyQuery
-
-SourceQuery
-
-PlaceQuery
-
-SearchResult<T>
-
-SearchMatch<T>
-
-RepositoryException
-
-Create a separate module:
-
-repository\-impl
-
-containing concrete implementations.
-
-No provider\-specific code must leak into the core API.
-
----
-
-# Repository Interface
-
-Design an interface similar to:
-
-public interface GenealogyRepository \{
-
-    String getId();
-
-    String getName();
-
-    RepositoryMetadata getMetadata();
-
-    Set<RepositoryCapability> getCapabilities();
-
-    RepositoryCoverage getCoverage();
-
-    SearchResult<PersonMatch> searchPersons(PersonQuery query);
-
-    SearchResult<FamilyMatch> searchFamilies(FamilyQuery query);
-
-    SearchResult<SourceMatch> searchSources(SourceQuery query);
-
-    Optional<PersonRecord> getPerson(String id);
-
-    Optional<FamilyRecord> getFamily(String id);
-
-    Optional<SourceRecord> getSource(String id);
-
-\}
-
-Refine if needed.
-
----
-
-# Coverage Model
-
-This is critical.
-
-The system must distinguish between:
-
-- no result found
-- repository unavailable
-- repository does not cover the requested area
-- repository does not cover the requested period
-- repository does not support the requested operation
-
-Create explicit modelling for repository coverage.
-
-Examples:
-
-CoverageType.GLOBAL
-
-CoverageType.COUNTRY
-
-CoverageType.REGION
-
-CoverageType.LOCAL
-
-Temporal coverage:
-
-1500\-1900
-
-1900\-1950
-
-Document coverage:
-
-CIVIL\_REGISTERS
-
-PARISH\_RECORDS
-
-CENSUS
-
-MILITARY
-
-NEWSPAPERS
-
-IMMIGRATION
-
-OBITUARIES
-
-A query should be able to determine in advance whether a repository is likely relevant.
-
----
-
-# Query Objects
-
-Design immutable query objects.
-
-PersonQuery should support:
-
-- givenName
-- surname
-- alternateNames
-- sex
-- birthDate
-- birthPlace
-- deathDate
-- deathPlace
-- spouseName
-- fatherName
-- motherName
-- freeText
-
-SourceQuery should support:
-
-- title
-- repository
-- location
-- dateRange
-- sourceType
-- freeText
-
-Support partial information.
-
-Support fuzzy matching later.
-
----
-
-# Search Results
-
-Design:
-
-SearchResult<T>containing:
-
-- repositoryId
-- totalHits
-- returnedHits
-- page
-- pageSize
-- estimated
-- duration
-- results
-
-Each result:
-
-SearchMatch<T>must contain:
-
-- externalId
-- score
-- confidence
-- title
-- summary
-- providerUrl
-- rawPayload (optional)
-- mappedRecord (optional)
-
----
-
-# Repository Capability System
-
-Implement:
-
-SEARCH\_PERSONS
-
-SEARCH\_FAMILIES
-
-SEARCH\_SOURCES
-
-SEARCH\_EVENTS
-
-SEARCH\_MEDIA
-
-READ\_PERSON
-
-READ\_FAMILY
-
-READ\_SOURCE
-
-WRITE\_PERSON
-
-WRITE\_FAMILY
-
-WRITE\_SOURCE
-
-Providers declare capabilities explicitly.
-
----
-
-# Providers To Model
-
-Implement adapters for the following providers.
-
-Group them by maturity.
-
-## Tier 1 (real implementation)
-
-Implement actual API integration:
-
-### FamilySearch
-
-Capabilities:
-
-- Person search
-- Tree access
-- Source access
-
-Support OAuth\-ready architecture.
-
-Create placeholders where credentials are required.
-
-### WikiTree
-
-API:
-
-[https://api.wikitree.com/api.php](https://api.wikitree.com/api.php)
-
-Implement real search and person retrieval.
-
-### OpenArch.nl
-
-Implement actual search support.
-
----
-
-## Tier 2 (partial implementation)
-
-Create provider implementations and service structures even if credentials are required.
-
-### MyHeritage
-
-### Ancestry
-
-### Geneanet
-
-Document:
-
-- available APIs
-- access restrictions
-- implementation strategy
-
-Provide stubs ready for future activation.
-
----
-
-## Tier 3 (archival repositories)
-
-Implement search adapters where feasible.
-
-### Europeana
-
-Search API integration.
-
-### NARA (National Archives and Records Administration)
-
-US National Archives API.
-
-### Chronicling America
-
-Library of Congress newspaper API.
-
-### Open Library
-
-Historical documents and local history references.
-
-### Internet Archive
-
-Books and digitized genealogy material.
-
-### Digital Public Library of America (DPLA)
-
-Search API.
-
-### Trove (National Library of Australia)
-
-Historical newspapers and genealogy resources.
-
-### Archivo Histórico Nacional (Spain)
-
-Prepare provider structure.
-
-### Nederlandse Archieven
-
-Prepare provider structure.
-
-### CompGen / Verein für Computergenealogie
-
-Research available interfaces and propose integration.
-
----
-
-# Aggregation Layer
-
-Implement:
-
-CompositeGenealogyRepository
-
-Capabilities:
-
-- execute searches across multiple repositories
-- run in parallel
-- merge results
-- preserve provenance
-- preserve provider URLs
-- preserve confidence scores
-
-Support:
-
-RepositorySelectionPolicy
-
-Examples:
-
-ALL
-
-RELEVANT\_ONLY
-
-COUNTRY\_MATCH
-
-CUSTOM
-
----
-
-# Provenance Requirements
-
-Every imported record must preserve:
-
-- source repository
-- external identifier
-- retrieval timestamp
-- original URL
-- raw payload
-
-Nothing should become detached from provenance.
-
-This is mandatory.
-
----
-
-# Mapping Layer
-
-Create explicit mapper classes:
-
-FamilySearchMapper
-
-WikiTreeMapper
-
-EuropeanaMapper
-
-OpenArchMapper
-
-Avoid embedding mapping logic inside repository classes.
-
----
-
-# Concurrency
-
-Use modern Java concurrency.
-
-Searches against multiple repositories should run in parallel.
-
-Support cancellation.
-
-Support timeout policies.
-
-Support partial results.
-
-A slow repository must not block the entire search operation.
-
----
-
-# Error Handling
-
-Model:
-
-RepositoryUnavailableException
-
-RateLimitException
-
-AuthenticationException
-
-CoverageException
-
-MappingException
-
-Partial failures must not fail global searches.
-
----
-
-# Deliverables
-
-1. Architecture review.
-2. Proposed improvements.
-3. Complete implementation.
-4. Unit tests.
-5. Integration tests where possible.
-6. Documentation.
-7. Provider matrix.
-
-Provider matrix example:
-
-| Provider | Search | Retrieve | Sources | Coverage | Auth |
-| --- | --- | --- | --- | --- | --- |
-
----
-
-# Important
-
-Think like a genealogy platform architect, not like a CRUD application developer.
-
-The resulting design must be capable of supporting dozens of genealogy providers, archives, libraries and document repositories over the next decade without requiring changes to the public API.
-
-# Also
-
-Introduce a RepositoryEvidenceLevel and RepositoryTrustLevel model. A collaborative tree (FamilySearch, WikiTree, Geneanet) is fundamentally different from an archival repository (NARA, Europeana, OpenArch) and search results should carry information about evidentiary strength. This metadata will later be used by FLEF's evidence and citation system when ranking or importing records.
-
-===========================
-
 #### Search Level 2
 Implement a Visual Query Builder for FamilyLegacy.
 
@@ -893,6 +420,7 @@ Both representations describe the same underlying SearchQuery.
 ### BASSA
 Mantenuti, ma da fare solo se emerge un bisogno concreto (revisione del 2026-11-09), dal più utile al meno:
 - Report: lacune per generazione; Calendario degli anniversari.
+- Ricerca nei siti esterni: fasi 1-2 (federazione via API) e residui della fase 0 (fatta): sezione "Ricerca nei siti esterni".
 - Dossier: filtri (solo tipo di evento e intervallo; il resto è già nelle sezioni).
 - Consanguineità: rapporto di tutto il file e assistente lenti nel caso estremo (140 s, fuori EDT): sostituire gli insiemi di antenati di
   `ConsanguinityCalculator.ancestorsOf` (oggi `Set<String>`) con insiemi di bit su indici interi. Serve solo con file chiusi su se
@@ -1105,6 +633,91 @@ di un individuo (c'è già il dialogo degli anelli).
 - Misure su un file grande (30000 individui): gli assistenti sono lenti (cronologia 40-65 s, relazioni 55-60 s, consanguineità 140 s,
   identità 30 s, gli altri sotto 5 s), ma stanno fuori dall'EDT con il ritmo dell'indicatore (4 volte la durata). La prima copia del
   modello per la lettura fuori dall'EDT costa 0.9 s (sull'EDT, una volta), quella dopo una modifica quanto è cambiato.
+
+
+## Ricerca nei siti esterni (valutazione del 2026-11-17)
+
+Richiesta: cercare la persona nei siti esterni (FamilySearch, MyHeritage, Ancestry, Geneanet, CompGen, WikiTree, OpenArch.nl,
+Archives nationales / Europeana, NARA, Chronicling America e altri) con ricerche precompilate da nome e luoghi; l'utente aggiunge siti
+propri con un modello di URL e segnaposto (name_given, birth_place, ...). La specifica estesa (federazione via API, moduli
+"repository-api" / "repository-impl") è stata valutata: si fa a fasi, con le correzioni sotto. I dati sui fornitori (endpoint, chiavi,
+limiti, termini d'uso) vanno verificati su fonti ufficiali prima della fase 1.
+
+Fase 0 - FATTA (2026-11-17): ricerche precompilate
+- Modulo Maven `ExternalSearch` (JPMS `io.github.mtrevisan.familylegacy.externalsearch`, dipende da Domain, nessuna UI, nessuna rete):
+  `Placeholder`, `UrlTemplate` (`{name_given}`, `{credential:<nome>}`, `{{` = parentesi letterale codificata), `SearchSite`,
+  `SiteCoverage` + `Relevance`, `BuiltInSites` (19 siti; `loginRequired` per FamilySearch), `ExternalSearchSettings` (siti dell'utente, modifiche ai predefiniti con
+  ripristino, abilitati), `CredentialStore` (file a parte, permessi solo del proprietario, NON cifrato), `SearchLink`, `CountryResolver`;
+  in `flef`: `SearchProfileExtractor` (tutti i nomi dell'individuo e le loro trascrizioni, anni con finestra, luogo = città, paese,
+  genitori e coniuge non viventi). File: `~/.familylegacy/external-sites.properties` e `external-credentials.properties`.
+- UI in `ui.components.projections.actions.externalsearch` (non in `ui.tools`: i menu delle proiezioni la chiamano):
+  `ExternalSearchDialog` (nomi spuntabili e modificabili, valori modificabili, siti ordinati per pertinenza, consenso per vivi/riservati,
+  bozza di attività di ricerca), `ExternalSitesDialog`, `SiteEditorDialog`, `SiteCredentialsDialog`. Menu Individual, Research (gruppo
+  nuovo `ResearchToolRegistry.externalSearchTools()`), popup di albero ed ego network; il Research Assistant le raggiunge tramite
+  `ResearchToolsAssistantContributor`. `RecordDialog.presetValues` (bozza) e `link(TARGET)` implementati nell'editor delle attività.
+- Aiuto: `help/en/external-search.md` (+ index, research, editing, tools). Test: 30 nel modulo, factory in `ToolDialogsEscapeTest`.
+- Formati degli indirizzi verificati il 2026-11-17 (pagine reali, documentazione, WikiTree Sourcer, gramplet WebSearch di Gramps).
+  Ancora TODO (BASSA):
+  - Codifiche per sito: MyHeritage vuole lo spazio come `%2F3` dentro `qname`, Ancestry `+` e `-` al posto della virgola nei luoghi.
+    Serve un filtro nel modello (es. `{name_given|myheritage}`); oggi un nome di più parole su MyHeritage è cercato meno bene.
+  - WieWasWie e la ricerca di WikiTree sono solo moduli (nessun indirizzo): WieWasWie escluso, WikiTree apre l'indice del cognome
+    (`/genealogy/{surname}`, verificato dall'utente nel browser il 2026-11-17). WikiTree Plus scartato: blocca interi intervalli di IP di utenti
+    normali ("AI bots activity", visto dall'utente il 2026-11-17).
+  - Credenziali: ogni sito le usa a modo suo (fase 1). Europeana `wskey` e DPLA `api_key` nella query, NARA header `x-api-key`, Trove
+    `key` o header, WikiTree `appId` (non segreto) + login per i profili privati, FamilySearch OAuth 2 con PKCE (app key dopo revisione,
+    l'utente entra sulla pagina di FamilySearch, nessuna password salvata). Da verificare sulla documentazione ufficiale prima di
+    scriverli. Il `CredentialStore` resta un deposito nome/valore; il modo d'uso (parametro, header, OAuth, token con scadenza) sta nel
+    provider. Le ricerche nel browser non usano credenziali: l'utente entra sul sito nel browser.
+  - FamilySearch accetta anche i nomi dei genitori/coniuge (usati); le date di Europeana, loc.gov, Trove, DPLA, Internet Archive sono
+    quelle dell'oggetto, non della persona: non usate.
+  - Stesso indirizzo da nomi diversi (es. stesso cognome su un sito che usa solo il cognome): aperto una volta sola (fatto).
+  - Il Gap e il Planner del Research Assistant non propongono ancora la ricerca su un sito per luogo e periodo.
+  - Credenziali cifrate (password principale) se servirà davvero; oggi solo permessi del file.
+
+Fase 1 - TODO (BASSA): federazione via API, solo fornitori aperti senza approvazione
+- Nel modulo `ExternalSearch` (o un `SearchApi` accanto) i provider come plugin `search-*.jar` in `plugins/`, caricati come gli importatori (ServiceLoader / ModuleLayer).
+- Provider: OpenArch (senza chiave), WikiTree (pubblica, `appId`), loc.gov (giornali, ex Chronicling America), Internet Archive.
+- Pannello dei risultati; punteggio ricalcolato localmente contro l'individuo del file (`comparison/IndividualFacts`, `FuzzyMatcher`):
+  i punteggi dei fornitori non sono confrontabili fra loro.
+- "Importa come fonte": `SourceRecord` + `RepositoryRecord` di tipo `website` + `RepositoryCitation.locator` (id esterno, URL) + bozza
+  di `EvidenceQualifiers` + `ResearchActivityRecord` con `result` (positive / negative / unavailable). Mai senza un passo esplicito
+  dell'utente.
+- Prerequisito: un parser JSON (oggi nessuna dipendenza JSON; `MapWarperSearch` legge il JSON con regex): jackson-jr o un parser
+  minimo interno.
+- Rete: virtual threads (non `StructuredTaskScope`, in preview in Java 25), timeout per fornitore, cancellazione, risultati parziali;
+  cache su disco, limite di frequenza per fornitore, User-Agent generico, comportamento offline.
+
+Fase 2 - TODO (BASSA): fornitori con chiave o approvazione
+- Europeana, NARA, DPLA, Trove: chiave gratuita fornita dall'utente nelle preferenze (una chiave nel binario open source non è segreta).
+- FamilySearch: solo con app key del programma sviluppatori (OAuth2 PKCE per app native); controllare i termini d'uso sulla
+  conservazione dei dati.
+- CompGen GOV (gov.genealogy.net): come gazetteer storico dei luoghi (giurisdizioni con date), non come ricerca di persone; si lega alla
+  gerarchia dei luoghi per epoca.
+
+Scelte di modello (non TODO)
+- Nome: non `GenealogyRepository` (esiste già in `Domain/.../tree`; in FLEF "repository" è il `RepositoryRecord`, l'archivio che
+  custodisce le fonti). Usare `SearchProvider` e `SearchSiteTemplate`.
+- Niente `PersonRecord` / `FamilyRecord` / `SourceRecord` paralleli ai record FLEF: i risultati sono DTO leggeri e diventano record solo
+  all'import. Niente ricerca di famiglie (in FLEF la famiglia è un gruppo con relazioni).
+- API: una `search(Query)` con `sealed interface Query` (persona, fonte) e `supports(kind)`, non un'interfaccia con un metodo per tipo
+  che ogni provider deve implementare.
+- Copertura: per paese moderno delle coordinate (`PlaceCoordinateResolver`) e intervallo di anni, non per testo del luogo (le
+  giurisdizioni cambiano nel tempo). Serve a distinguere "negativo" (coperto, niente trovato), "non pertinente" e "non disponibile",
+  che corrispondono a `result` del `ResearchActivityRecord`.
+- Forza delle prove: niente `TrustLevel` / `EvidenceLevel` per fornitore (in FLEF i qualificatori non valutano la fonte nel suo insieme,
+  e uno stesso fornitore ha alberi e registri). Ogni risultato porta una `RecordNature`: albero compilato (solo una pista),
+  indice / trascrizione (derived, con `derived_from` del registro), immagine (original), voce di inventario (dice dove sta una fonte),
+  pubblicazione. All'import diventa una bozza di `EvidenceQualifiers`, mai una `Confidence`.
+- Provenienza: id esterno, URL e data di consultazione nei record FLEF esistenti; il payload grezzo, se serve, in una cache fuori dal file.
+
+SCARTATI (il motivo è scritto per non riproporli)
+- Stub API di Ancestry, MyHeritage, Geneanet: nessuna API pubblica aperta a nuovi sviluppatori; basta il link precompilato.
+- Stub per Archivo Histórico Nacional (PARES) e Nederlandse Archieven: nessuna API di ricerca; OpenArch copre gran parte degli archivi
+  olandesi; basta il link.
+- Open Library: valore genealogico basso (Internet Archive copre i libri digitalizzati).
+- Capability WRITE_*: il programma lavora su un file locale; la scrittura su FamilySearch richiede una certificazione.
+- Payload grezzo nel file .flef: ingrandisce il file e alcuni termini d'uso ne limitano la conservazione.
+- "API pubblica immutabile per dieci anni": irrealistico; un'API stabile si ottiene tenendola piccola, con query sealed estendibili.
 
 
 ## Separazione fra dati e presentazione (ordine di figli e partner)

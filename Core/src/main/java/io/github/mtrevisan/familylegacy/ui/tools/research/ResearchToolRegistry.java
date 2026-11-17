@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.tools.research;
 
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.context.ContextBoardTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.externalsearch.ExternalSearchTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.externalsearch.ManageExternalSitesTool;
 
 import java.util.List;
 
@@ -47,6 +49,14 @@ public final class ResearchToolRegistry{
 			new ManageResearchQuestionsTool(),
 			new ManageResearchActivitiesTool(),
 			new ManageResearchTasksTool()
+		);
+	}
+
+	/** The search of the selected individual on external sites, and the sites and credentials of the user. */
+	public static List<ToolOperation> externalSearchTools(){
+		return List.of(
+			new ExternalSearchTool(),
+			new ManageExternalSitesTool()
 		);
 	}
 

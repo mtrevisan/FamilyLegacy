@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.actions.indiv
 
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.externalsearch.ExternalSearchTool;
 
 import java.util.List;
 
@@ -72,7 +73,8 @@ public final class IndividualToolRegistry{
 			new SetAsRootTool(),
 			new KinshipCalculatorTool(repository),
 			new IndividualCareerTool(),
-			new ConsanguinityLoopsTool()
+			new ConsanguinityLoopsTool(),
+			new ExternalSearchTool()
 		);
 	}
 

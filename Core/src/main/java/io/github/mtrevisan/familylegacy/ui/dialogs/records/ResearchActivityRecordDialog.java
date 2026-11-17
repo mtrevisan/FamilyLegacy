@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
@@ -54,12 +55,14 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.Map;
 
 
 /**
@@ -195,6 +198,30 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			.addItemDirectly(question);
 
 		return this;
+	}
+
+	/** The target of a new activity (the individual searched, the source reviewed); the other parts are ignored. */
+	@Override
+	public void link(final LinkRole role, final FLEFRecord record){
+		if(role == LinkRole.TARGET && record != null && targetField.getEntity() == null)
+			targetField.setEntity(record);
+	}
+
+	/**
+	 * Fills the type and the status of a new activity (they always have a value: the first one of the list is not a choice of the user),
+	 * and its action, if still empty.
+	 */
+	@Override
+	public void presetValues(final Map<String, String> values){
+		final String type = values.get(ResearchActivityReader.TAG_ACTIVITY_TYPE);
+		if(StringUtils.isNotBlank(type))
+			activityTypeCombo.setSelectedItem(type);
+		final String status = values.get(ResearchActivityReader.TAG_STATUS);
+		if(StringUtils.isNotBlank(status))
+			statusCombo.setSelectedItem(status);
+		final String action = values.get(ResearchActivityReader.TAG_ACTION);
+		if(StringUtils.isNotBlank(action) && actionArea.isEmpty())
+			actionArea.setText(action);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityLoops;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
+import io.github.mtrevisan.familylegacy.externalsearch.ExternalSearchSettings;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
@@ -122,6 +123,8 @@ class ToolDialogsEscapeTest{
 			return (Runnable)() -> {};
 		if(type == BookmarkStore.class)
 			return new BookmarkStore();
+		if(type == ExternalSearchSettings.class)
+			return ExternalSearchSettings.inMemory();
 		if(type == ImportReport.class)
 			return new ImportReport();
 		if(type == ConsanguinityReport.class)

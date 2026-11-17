@@ -635,7 +635,8 @@ final class ApplicationMenuBar{
 
 		//the workflow, then the reasoning on the evidence (conclusions, hypotheses), then the context it is read in, then the reports; a group
 		//with one tool left at the level of the user joins the previous one instead of standing alone between two separators
-		addToolGroups(menu, bindings, List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.analysisTools(),
+		addToolGroups(menu, bindings, List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.externalSearchTools(),
+			ResearchToolRegistry.analysisTools(),
 			ResearchToolRegistry.contextTools(), ResearchToolRegistry.reportTools()), true);
 
 		bindDynamicEnablement(menu, bindings);

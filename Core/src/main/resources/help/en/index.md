@@ -20,6 +20,7 @@ Family Legacy is a genealogical data manager built on the **Family LEgacy Format
 - [Entering dates](dates.md): the date editor, what to type, the calendars and the messages you may see.
 - [Sources and media](sources-and-media.md): sources, repositories, media and citations.
 - [Research](research.md): questions, activities, tasks, conclusions and identity hypotheses.
+- [Searching external sites](external-search.md): open a search of a person on FamilySearch, Antenati, Geneanet and other sites; your own sites and credentials.
 
 ## The fields of the editors
 

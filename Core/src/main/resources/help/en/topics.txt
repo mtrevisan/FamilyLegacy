@@ -12,6 +12,7 @@ events-and-dates.md
 dates.md
 sources-and-media.md
 research.md
+external-search.md
 editors.md
 editors-people.md
 editors-events-places.md

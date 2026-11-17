@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<!-- The search of a person on external sites (FamilySearch, Antenati, Geneanet, ...): the catalogue of the sites with their URL
+		templates and coverage, the sites and the credentials of the user, and what a FLEF individual gives to fill a template (names,
+		years, places, relatives). It opens nothing and has no user interface: the application (Core) shows it. -->
+	<artifactId>ExternalSearch</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<!-- The module of the tests (the tests are patched into it) has to read JUnit: Maven arranges it by itself, an IDE does not -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						--add-reads io.github.mtrevisan.familylegacy.externalsearch=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.familylegacy.externalsearch/io.github.mtrevisan.familylegacy.externalsearch=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.familylegacy.externalsearch/io.github.mtrevisan.familylegacy.externalsearch.flef=org.junit.platform.commons
+					</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- The model (individuals, names, events, places, privacy) and the helpers of the application -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<!-- Logger -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
