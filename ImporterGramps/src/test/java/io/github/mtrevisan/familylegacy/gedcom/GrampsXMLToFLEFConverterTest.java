@@ -672,14 +672,17 @@ class GrampsXMLToFLEFConverterTest{
 		final Path image = directory.resolve("picture.png");
 		ImageIO.write(new BufferedImage(200, 100, BufferedImage.TYPE_INT_RGB), "png", image.toFile());
 
-		final FLEFRecord individual = record(convertRegion(image.toString()), "I1");
+		final FLEFModel model = convertRegion(image.toString());
+		final FLEFRecord individual = record(model, "I1");
 
 		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.x"));
 		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.y"));
 		Assertions.assertEquals("100", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.width"));
 		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(individual, "preferred_image.crop.height"));
-		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(individual, "source.extract.media_part.crop.x"));
-		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(individual, "source.extract.media_part.crop.height"));
+		//the extract of the citation is a record of the source
+		final FLEFRecord extract = ExtractReader.extractsOf(FLEFRecordHelper.findChild(individual, "source"), model).getFirst();
+		Assertions.assertEquals("20", FLEFRecordHelper.getChildValue(extract, "media_part.crop.x"));
+		Assertions.assertEquals("50", FLEFRecordHelper.getChildValue(extract, "media_part.crop.height"));
 		Assertions.assertTrue(notesTitled(individual, "Region of O1").isEmpty());
 	}
 

@@ -41,6 +41,7 @@ import org.apache.commons.lang3.Strings;
 import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -59,6 +60,8 @@ public final class GEDCOMMapper{
 	public static final String TAG_SOURCE = "SOUR";
 	public static final String TAG_DATE = "DATE";
 	public static final String TAG_CENSUS = "CENS";
+	/** The events that prove that an individual has died by their date: the death, the burial, the cremation. */
+	public static final List<String> DEATH_PROOF_TAGS = List.of("DEAT", "BURI", "CREM");
 	public static final String TAG_TYPE = "TYPE";
 	public static final String TAG_MULTIMEDIA = "OBJE";
 	public static final String TAG_PLACE = "PLAC";

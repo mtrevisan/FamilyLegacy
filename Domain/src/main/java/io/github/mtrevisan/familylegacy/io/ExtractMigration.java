@@ -69,21 +69,18 @@ import java.util.Map;
  *   source S1
  *   text "Born on the 3rd"
  *   type verbatim
- *   audit { creation { date ... comment "Migrated from the extract of a citation" } }
+ *   audit.creation.date ...
  * }
  * </pre>
  * so that every extract belongs to the source cited ({@code require every e in extract: e.source == source}).
  * <p>
- * The same extract of the same source, written in several citations, becomes one record that all of them reference. The extract is
- * dated as the record that held the citation. Migrating a model that has already been migrated does nothing.
+ * The same extract of the same source, written in several citations, becomes one record that all of them reference (and so does an
+ * extract equal to an extract record of the source already there). The extract is dated as the record that held the citation. Migrating a model that has already been migrated does nothing.
  * <p>
  * The importers build the extracts as structures too, and call this migration when they are done (after the sources have been
  * merged, so that each extract belongs to the source that is left).
  */
 public final class ExtractMigration{
-
-	/** The comment of the creation of the extracts made by the migration. */
-	public static final String MIGRATION_COMMENT = "Migrated from the extract of a citation";
 
 	private static final String TAG_AUDIT_CREATION_DATE = FLEFRecordHelper.composePath(AuditReader.TAG_AUDIT, AuditReader.TAG_CREATION_DATE);
 
@@ -117,6 +114,19 @@ public final class ExtractMigration{
 		private Migration(final FLEFModel model){
 			this.model = model;
 			sequence = new IdSequence(model);
+
+			//an extract written in a citation that is already a record of the source (e.g. the text of the source, from an import) is
+			//that record
+			for(final FLEFRecord extract : model.getRecordsByType(ExtractReader.TYPE)){
+				final FLEFRecord content = FLEFRecord.createChildWithTag(ExtractReader.TYPE);
+				for(final FLEFRecord field : extract.getChildren())
+					if(!Strings.CI.equalsAny(field.getTag(), ExtractReader.TAG_AUDIT, ExtractReader.TAG_PRIVACY)){
+						final FLEFRecord copy = FLEFRecord.createEmpty();
+						field.deepCopyTo(copy);
+						content.addChild(copy);
+					}
+				idsByContent.putIfAbsent(content, extract.getId());
+			}
 		}
 
 
@@ -189,19 +199,15 @@ public final class ExtractMigration{
 			return id;
 		}
 
+		/** The creation of the extract is the one of the record that held it (today, if it has none). */
 		private static FLEFRecord auditOf(final FLEFRecord owner){
 			final String date = FLEFRecordHelper.getChildValue(owner, TAG_AUDIT_CREATION_DATE);
-			if(date == null){
-				final FLEFRecord audit = AuditStamp.now();
-				FLEFRecordHelper.findChild(audit, AuditReader.TAG_CREATION)
-					.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, MIGRATION_COMMENT));
-				return audit;
-			}
+			if(date == null)
+				return AuditStamp.now();
 
 			return FLEFRecord.createChildWithTag(AuditReader.TAG_AUDIT)
 				.addChild(FLEFRecord.createChildWithTag(AuditReader.TAG_CREATION)
-					.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, date))
-					.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_COMMENT, MIGRATION_COMMENT)));
+					.addChild(FLEFRecord.createChildWithTagAndValue(AuditReader.TAG_DATE, date)));
 		}
 
 	}

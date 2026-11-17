@@ -308,12 +308,16 @@ public class FamilyConverter{
 					// The event is about the family and about each spouse
 					GEDCOMRecordBuilder.attachEventParticipation(event.getId(), AgentReader.TAG_GROUP, group.getId(), EventParticipationReader.ENUM_ROLE_PRINCIPAL, null, child,
 						model);
-					if(individualMap.containsKey(link.husbandId)){
+					//a census of the family lists only the spouses still alive: one who died before it is not in it
+					final long[] censusDays = (GEDCOMMapper.TAG_CENSUS.equals(child.getTag())
+						? GEDCOMDateConverter.dayRange(GEDCOMHelper.findFirstValue(child, GEDCOMMapper.TAG_DATE))
+						: null);
+					if(individualMap.containsKey(link.husbandId) && !diedBefore(link.husbandId, censusDays)){
 						final String age = GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(child, GEDCOMMapper.TAG_HUSBAND), GEDCOMMapper.TAG_AGE);
 						ageBirthConverter.track(link.husbandId, event, GEDCOMRecordBuilder.attachEventParticipation(event.getId(),
 							AgentReader.TAG_INDIVIDUAL, link.husbandId, EventParticipationReader.ENUM_ROLE_PRINCIPAL, age, child, model), age, child);
 					}
-					if(individualMap.containsKey(link.wifeId)){
+					if(individualMap.containsKey(link.wifeId) && !diedBefore(link.wifeId, censusDays)){
 						final String age = GEDCOMHelper.findFirstValue(GEDCOMHelper.findFirstChild(child, GEDCOMMapper.TAG_WIFE), GEDCOMMapper.TAG_AGE);
 						ageBirthConverter.track(link.wifeId, event, GEDCOMRecordBuilder.attachEventParticipation(event.getId(),
 							AgentReader.TAG_INDIVIDUAL, link.wifeId, EventParticipationReader.ENUM_ROLE_PRINCIPAL, age, child, model), age, child);
@@ -408,6 +412,30 @@ public class FamilyConverter{
 			.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.derived"), GedcomTexts.tf("text.step_child_derived", stepParentId, childId), marriageNode))
 			.addChild(AuditBuilder.build(marriageNode));
 		Deduplicator.getDeduplicatedRecordId(model, relationship);
+	}
+
+	/**
+	 * Whether an individual surely died before an event: the last day its death, burial or cremation may stand for comes before the first
+	 * day the date of the event may stand for. An uncertain date (a year, an approximate date, an open bound) never excludes anybody
+	 * by mistake: a death in 1871 is not before a census of 1871.
+	 *
+	 * @param individualId	The id of the individual.
+	 * @param eventDays	The days of the event (see {@link GEDCOMDateConverter#dayRange(String)}), {@code null} if not known.
+	 * @return	Whether the individual was dead at the time of the event.
+	 */
+	private boolean diedBefore(final String individualId, final long[] eventDays){
+		if(eventDays == null || eventDays[0] == Long.MIN_VALUE)
+			return false;
+
+		final GEDCOMNode individual = recordsById.get(individualId);
+		long deadBy = Long.MAX_VALUE;
+		for(final String tag : GEDCOMMapper.DEATH_PROOF_TAGS)
+			for(final GEDCOMNode node : GEDCOMHelper.findChildren(individual, tag)){
+				final long[] days = GEDCOMDateConverter.dayRange(GEDCOMHelper.findFirstValue(node, GEDCOMMapper.TAG_DATE));
+				if(days != null)
+					deadBy = Math.min(deadBy, days[1]);
+			}
+		return (deadBy < eventDays[0]);
 	}
 
 	/** @return the year of a GEDCOM date (the first four digits), {@code null} if it has none */

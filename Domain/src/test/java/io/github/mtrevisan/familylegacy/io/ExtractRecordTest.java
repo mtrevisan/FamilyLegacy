@@ -174,7 +174,7 @@ class ExtractRecordTest{
 		Assertions.assertEquals("Born on the 3rd", ExtractReader.extractText(text));
 		Assertions.assertEquals(ExtractReader.ENUM_TYPE_VERBATIM, ExtractReader.extractType(text));
 		Assertions.assertEquals("2020-01-01T00:00:00Z", FLEFRecordHelper.getChildValue(text, "audit.creation.date"));
-		Assertions.assertEquals(ExtractMigration.MIGRATION_COMMENT, FLEFRecordHelper.getChildValue(text, "audit.creation.comment"));
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(text, "audit.creation.comment"));
 		Assertions.assertEquals("M1", FLEFRecordHelper.getChildValue(extracts1.get(1), ExtractReader.TAG_MEDIA_PART_MEDIA));
 
 		//the citations reference the records

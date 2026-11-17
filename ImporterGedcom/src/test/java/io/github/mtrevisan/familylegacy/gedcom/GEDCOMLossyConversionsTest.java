@@ -39,7 +39,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
@@ -361,6 +364,107 @@ class GEDCOMLossyConversionsTest{
 		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "France"));
 		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY), placeTypes(model, "Bordeaux"));
 		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Gironde"));
+	}
+
+	@Test
+	void aNameLongerThanTheFormCountsTheLevelsFromTheCountry() throws IOException{
+		//the hamlet before the city is a level the form does not name: the city of Sacile in the district of Sacile stays a city,
+		//and the district a county, whichever of the two names comes first
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Cavolano, Sacile, Sacile, Pordenone, Italia
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(1, placeTypes(model, "Cavolano").size());
+		Assertions.assertNull(placeTypes(model, "Cavolano").getFirst());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Sacile").stream()
+			.sorted()
+			.toList());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_PROVINCE), placeTypes(model, "Pordenone"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+	}
+
+	@Test
+	void aCityIsNotTheDistrictWithItsName() throws IOException{
+		//the same city written in two eras: in the province, and in the district of the same name in the province; the city of
+		//the shorter name is not the district of the longer one, and the province, whose level the shorter name does not tell,
+		//stays one place with the type of the longer name
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Sacile, Pordenone, Italia
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY),
+			placeTypes(model, "Sacile").stream()
+				.sorted()
+				.toList());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_PROVINCE), placeTypes(model, "Pordenone"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+
+		//the city of the birth is in the province, the city of the death in the district
+		final String birthPlace = eventPlace(model, "birth");
+		final String deathPlace = eventPlace(model, "death");
+		Assertions.assertNotEquals(birthPlace, deathPlace);
+		Assertions.assertEquals(List.of("Pordenone"), containerNames(model, birthPlace));
+		Assertions.assertEquals(List.of("Sacile"), containerNames(model, deathPlace));
+	}
+
+	@Test
+	void theSameCityWithTheSameCoordinatesIsOnePlaceInBothJurisdictions() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Sacile, Pordenone, Italia
+			3 MAP
+			4 LATI N45.95
+			4 LONG E12.5
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			3 MAP
+			4 LATI N45.95
+			4 LONG E12.5
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		//the city, and the district
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Sacile").stream()
+			.sorted()
+			.toList());
+		final String city = eventPlace(model, "birth");
+		Assertions.assertEquals(city, eventPlace(model, "death"));
+		Assertions.assertEquals(List.of("Pordenone", "Sacile"), containerNames(model, city).stream()
+			.sorted()
+			.toList());
+	}
+
+	private static String eventPlace(final FLEFModel model, final String type){
+		return FLEFRecordHelper.getChildValue(eventOfType(model, type), FLEFRecordHelper.composePath(EventReader.TAG_PLACE,
+			PlaceCitationReader.TAG_PLACE));
+	}
+
+	private static List<String> containerNames(final FLEFModel model, final String placeId){
+		final List<String> names = new ArrayList<>();
+		for(final FLEFRecord relationship : model.getRecordsByType(PlaceRelationshipReader.TYPE))
+			if(placeId.equals(FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT,
+					PlaceReader.TYPE))))
+				names.add(FLEFRecordHelper.getChildValue(model.getRecordById(FLEFRecordHelper.getChildValue(relationship,
+					FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_TARGET, PlaceReader.TYPE))),
+					FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+		return names;
 	}
 
 
@@ -685,6 +789,103 @@ class GEDCOMLossyConversionsTest{
 		Assertions.assertEquals("1954", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
 		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"));
 		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWithPlaceOfPublicationAndDateOfPublication() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 NOTE Treviso : 1992
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		final FLEFRecord place = model.getRecordById(FLEFRecordHelper.getChildValue(source, "place.place"));
+		Assertions.assertEquals("Treviso", FLEFRecordHelper.getChildValue(place, FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWrittenAsTheCataloguesDo() throws IOException{
+		//the date as the catalogues write it: with a final period, supplied in brackets, with the copyright mark, over some years
+		for(final String[] noteAndDate : new String[][]{{"Treviso : 1992.", "1992"}, {"Treviso : [1992]", "1992"},
+				{"Treviso : c1992", "1992"}, {"Treviso : cop. 1992", "1992"}, {"Treviso : marzo 1992", "MAR 1992"}}){
+			final FLEFRecord source = convert("0 @S1@ SOUR\n1 TITL Storia di Treviso\n1 NOTE " + noteAndDate[0] + "\n")
+				.getRecordById("S1");
+
+			Assertions.assertEquals(noteAndDate[1], FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"), noteAndDate[0]);
+			Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"), noteAndDate[0]);
+			Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE), noteAndDate[0]);
+		}
+
+		final FLEFRecord volumes = convert("0 @S1@ SOUR\n1 TITL Storia di Treviso\n1 NOTE Treviso : 1992-93\n").getRecordById("S1");
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(volumes, "date.value.spanning.from.value.full_date"));
+		Assertions.assertEquals("1993", FLEFRecordHelper.getChildValue(volumes, "date.value.spanning.to.value.full_date"));
+	}
+
+	@Test
+	void sourceNoteWithPlacePublisherAndDate() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 NOTE Treviso : Canova, 1992
+			0 @S2@ SOUR
+			1 TITL Storia di Venezia
+			1 PUBL Marsilio
+			1 NOTE Venezia : Canova, 1992
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("Canova", FLEFRecordHelper.getChildValue(source, "publisher"));
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+		//another publisher than the one of the source: the note says something else, and stays a note
+		final FLEFRecord other = model.getRecordById("S2");
+		Assertions.assertEquals("Marsilio", FLEFRecordHelper.getChildValue(other, "publisher"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(other, "date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(other, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void thePublicationFactsAreThePlaceThePublisherAndTheDateOfTheSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 PUBL Treviso : Canova, 1992
+			0 @S2@ SOUR
+			1 TITL Storia di Venezia
+			1 PUBL Marsilio, 1985
+			0 @S3@ SOUR
+			1 TITL Storia di Padova
+			1 PUBL Padova : Antenore
+			0 @S4@ SOUR
+			1 TITL Storia di Vicenza
+			1 PUBL Neri Pozza
+			""");
+
+		final FLEFRecord treviso = model.getRecordById("S1");
+		Assertions.assertEquals("Canova", FLEFRecordHelper.getChildValue(treviso, SourceReader.TAG_PUBLISHER));
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(treviso, "date.value.point.value.full_date"));
+		final FLEFRecord place = model.getRecordById(FLEFRecordHelper.getChildValue(treviso, "place.place"));
+		Assertions.assertEquals("Treviso", FLEFRecordHelper.getChildValue(place, FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+
+		final FLEFRecord venezia = model.getRecordById("S2");
+		Assertions.assertEquals("Marsilio", FLEFRecordHelper.getChildValue(venezia, SourceReader.TAG_PUBLISHER));
+		Assertions.assertEquals("1985", FLEFRecordHelper.getChildValue(venezia, "date.value.point.value.full_date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(venezia, "place"));
+
+		final FLEFRecord padova = model.getRecordById("S3");
+		Assertions.assertEquals("Antenore", FLEFRecordHelper.getChildValue(padova, SourceReader.TAG_PUBLISHER));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(padova, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(padova, "date"));
+
+		//a publisher alone stays as it is
+		final FLEFRecord vicenza = model.getRecordById("S4");
+		Assertions.assertEquals("Neri Pozza", FLEFRecordHelper.getChildValue(vicenza, SourceReader.TAG_PUBLISHER));
+		Assertions.assertNull(FLEFRecordHelper.findChild(vicenza, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(vicenza, "date"));
 	}
 
 	@Test

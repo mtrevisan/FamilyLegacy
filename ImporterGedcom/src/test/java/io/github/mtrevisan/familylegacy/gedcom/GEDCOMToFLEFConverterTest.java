@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
@@ -392,8 +393,10 @@ class GEDCOMToFLEFConverterTest{
 		final FLEFRecord citation = citations.getFirst();
 		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
 		Assertions.assertEquals("#31", FLEFRecordHelper.getChildValue(citation, "locator"));
-		Assertions.assertEquals("Baptized", FLEFRecordHelper.getChildValue(citation, "extract.text"));
-		Assertions.assertEquals("A citation note", FLEFRecordHelper.getChildValue(citation, "extract.remark"));
+		final FLEFRecord extract = ExtractReader.extractsOf(citation, model).getFirst();
+		Assertions.assertEquals("S1", ExtractReader.extractSource(extract));
+		Assertions.assertEquals("Baptized", ExtractReader.extractText(extract));
+		Assertions.assertEquals(List.of("A citation note"), ExtractReader.extractRemarks(extract));
 		Assertions.assertEquals("primary", FLEFRecordHelper.getChildValue(citation, "evidence.information_type"));
 
 		// the entry date of the citation is the creation date of the source (and no note is created for it)

@@ -47,6 +47,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToInd
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogPlacement;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
@@ -115,6 +116,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 	public FamilyLegacyFrame(final TreeType treeType, final FLEFModel model){
 		super("Family Legacy");
+		setIconImages(AppIcon.windowImages());
 
 		this.treeType = treeType;
 

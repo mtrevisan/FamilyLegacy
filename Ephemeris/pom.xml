@@ -101,6 +101,12 @@
 											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
 										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
+										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
+											application itself; outside jpackage-input, otherwise it would be copied into the application -->
+										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
+											  jvm="${java.home}/bin/java" classpath="${package.coreTarget}/jpackage-input/Core.jar">
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+										</java>
 										<!-- an antivirus may keep the previous output locked for a moment -->
 										<retry retrycount="10" retrydelay="3000">
 											<delete dir="${package.coreTarget}/windows-exe"/>
@@ -120,6 +126,9 @@
 											<arg value="Core.jar"/>
 											<arg value="--main-class"/>
 											<arg value="${package.mainClass}"/>
+											<!-- the icon of the executable and of its shortcuts, drawn from images/app-icon*.png -->
+											<arg value="--icon"/>
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
 											<!-- the automatic detection of the modules does not see through a fat jar: the list is the one of
 												the print-module-deps output of jdeps on the shaded jar of Core, plus the ones that are
 												loaded dynamically (locale data, charsets, zip file system); update it if the code starts using other modules -->
@@ -243,6 +252,12 @@
 											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
 										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
 											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
+										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
+											application itself; outside jpackage-input, otherwise it would be copied into the application -->
+										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
+											  jvm="${java.home}/bin/java" classpath="${package.coreTarget}/jpackage-input/Core.jar">
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+										</java>
 
 										<!-- 2. Rimuovi l'output precedente (l'antivirus può tenerlo lockato) -->
 										<retry retrycount="10" retrydelay="3000">
@@ -265,6 +280,9 @@
 											<arg value="Core.jar"/>
 											<arg value="--main-class"/>
 											<arg value="${package.mainClass}"/>
+											<!-- the icon of the executable and of its shortcuts, drawn from images/app-icon*.png -->
+											<arg value="--icon"/>
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
 											<!-- Lista moduli: aggiornala con l'output di target/jdeps-modules.txt -->
 											<arg value="--add-modules"/>
 											<arg value="java.base,java.compiler,java.desktop,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml.crypto,jdk.xml.dom"/>

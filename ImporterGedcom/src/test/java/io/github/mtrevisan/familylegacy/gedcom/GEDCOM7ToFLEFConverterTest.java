@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
@@ -331,8 +332,14 @@ class GEDCOM7ToFLEFConverterTest{
 		final FLEFRecord citation = citations.getFirst();
 		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
 		Assertions.assertEquals("Folio 12", FLEFRecordHelper.getChildValue(citation, "locator"));
-		Assertions.assertEquals("la", FLEFRecordHelper.getChildValue(citation, "extract.locale"));
-		final FLEFRecord crop = FLEFRecordHelper.findChildren(citation, "extract").stream()
+		//the extracts are records of the source, referenced by the citation
+		final List<FLEFRecord> extracts = ExtractReader.extractsOf(citation, model);
+		Assertions.assertTrue(extracts.stream().allMatch(extract -> "S1".equals(ExtractReader.extractSource(extract))));
+		Assertions.assertEquals(List.of("la"), extracts.stream()
+			.map(ExtractReader::extractLocale)
+			.filter(Objects::nonNull)
+			.toList());
+		final FLEFRecord crop = extracts.stream()
 			.map(extract -> FLEFRecordHelper.findChild(extract, "media_part.crop"))
 			.filter(Objects::nonNull)
 			.findFirst()

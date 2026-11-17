@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.calendars.gregorian.GregorianCalendarParser;
+import io.github.mtrevisan.calendars.gregorian.GregorianDateInput;
+import io.github.mtrevisan.calendars.spi.CalendarMetadata;
 import io.github.mtrevisan.familylegacy.importer.gedcom.DateInfo;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMDateParser;
@@ -111,6 +114,15 @@ public final class GEDCOMDateConverter{
 		.appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
 		.toFormatter(Locale.ROOT);
 
+
+	/** The months of the gregorian and julian calendars, in order. */
+	private static final List<String> MONTHS = List.of("JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC");
+	/** The days after the first day of a month that any calendar may still give to it (a month of 30 days, or 31). */
+	private static final long LONGEST_MONTH_DAYS = 30;
+	/** The days after the first day of a year that any calendar may still give to it (a leap year of the hebrew calendar has 385). */
+	private static final long LONGEST_YEAR_DAYS = 384;
+	/** The margin of an approximate date, on each side (two years, as in the consistency checks). */
+	private static final long APPROXIMATE_MARGIN_DAYS = 2 * 366L;
 
 	private record SingleDate(String date, String calendar){}
 
@@ -492,6 +504,8 @@ public final class GEDCOMDateConverter{
 		}
 		date = StringUtils.normalizeSpace(date)
 			.toUpperCase(Locale.ROOT);
+		//the date as written, for the parsers of the calendars when it is not a GEDCOM date
+		final String text = date;
 
 		final Matcher m = MONTH_DATE_PATTERN.matcher(date);
 		if(calendar == null && m.matches() && m.group(2) != null){
@@ -503,14 +517,14 @@ public final class GEDCOMDateConverter{
 		}
 		if(DateReader.ENUM_CALENDAR_HEBREW.equals(calendar) || DateReader.ENUM_CALENDAR_FRENCH_REPUBLICAN.equals(calendar)){
 			if(!m.matches())
-				return null;
+				return resolveByCalendar(text, calendar);
 
 			final StringBuilder sb = new StringBuilder();
 			if(m.group(2) != null){
 				final String month = (DateReader.ENUM_CALENDAR_HEBREW.equals(calendar)? HEBREW_MONTHS: FRENCH_REPUBLICAN_MONTHS)
 					.get(m.group(2));
 				if(month == null)
-					return null;
+					return resolveByCalendar(text, calendar);
 
 				if(m.group(1) != null)
 					sb.append(m.group(1)).append(' ');
@@ -526,25 +540,236 @@ public final class GEDCOMDateConverter{
 			? eraMatcher.replaceFirst(" BCE")
 			: COMMON_ERA_PATTERN.matcher(date).replaceFirst(StringUtils.EMPTY));
 		final Matcher gm = GREGORIAN_DATE_PATTERN.matcher(date);
-		if(!gm.matches()){
-			//a season (e.g. "SPR 1935") is not a GEDCOM month, but the calendar parser reads it
-			if(m.matches() && m.group(1) == null && m.group(2) != null && isReadByCalendarParser(date))
-				return new SingleDate(date, (calendar != null? calendar: (Integer.parseInt(m.group(3)) < 1582
-					? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN)));
-			return null;
-		}
+		if(!gm.matches())
+			//not a GEDCOM date (a season, a month in another language, "August 2, 2000", ...): the parser of the calendar may read it
+			return resolveByCalendar(text, calendar);
 
 		if(calendar == null)
 			calendar = (gm.group(4) != null || gm.group(5) != null || Integer.parseInt(gm.group(3)) < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN);
 		return new SingleDate(date, calendar);
 	}
 
-	private static boolean isReadByCalendarParser(final String date){
+	/**
+	 * The days a GEDCOM date may stand for, as Julian Day Numbers: a year covers all its days, a month all the days of the month, an
+	 * approximate date (ABT, CAL, EST, or marked with a question mark) has a margin of two years on each side, a bound open on one side
+	 * ({@code BEF}, {@code AFT}, {@code FROM} without {@code TO}) goes on forever on that side, and the alternatives of a date are all
+	 * covered.
+	 * <p>
+	 * A date not written as GEDCOM wants is read by the parser of its calendar (see {@link CalendarType}); a date of a calendar other than
+	 * the gregorian and julian ones lasts, when it has no day, the longest month or year a calendar may have. A date before the common
+	 * era, and a phrase, give {@code null}.
+	 *
+	 * @param gedcomDate	The GEDCOM date.
+	 * @return	The first and the last day ({@link Long#MIN_VALUE} or {@link Long#MAX_VALUE} for an open side), or {@code null} if the
+	 * 	date cannot be read.
+	 */
+	public static long[] dayRange(final String gedcomDate){
+		if(StringUtils.isBlank(gedcomDate))
+			return null;
+
+		long first = Long.MAX_VALUE;
+		long last = Long.MIN_VALUE;
+		for(final String alternative : alternatives(gedcomDate.trim())){
+			final DateInfo dateInfo = GEDCOMDateParser.parse(alternative);
+			if(dateInfo == null || dateInfo.isPhraseOnly())
+				return null;
+
+			final long[] range = switch(dateInfo.getType()){
+				case POINT -> singleDayRange(dateInfo.getValue(), dateInfo.isApproximate());
+				case BOUNDED -> boundedDayRange(dateInfo.getNotBefore(), dateInfo.getNotAfter());
+				case SPANNING -> boundedDayRange(dateInfo.getFrom(), dateInfo.getTo());
+			};
+			if(range == null)
+				return null;
+
+			first = Math.min(first, range[0]);
+			last = Math.max(last, range[1]);
+		}
+		return new long[]{first, last};
+	}
+
+	private static long[] boundedDayRange(final String start, final String end){
+		long first = Long.MIN_VALUE;
+		long last = Long.MAX_VALUE;
+		if(start != null){
+			final long[] range = singleDayRange(start, false);
+			if(range == null)
+				return null;
+			first = range[0];
+		}
+		if(end != null){
+			final long[] range = singleDayRange(end, false);
+			if(range == null)
+				return null;
+			last = range[1];
+		}
+		return new long[]{first, last};
+	}
+
+	private static long[] singleDayRange(final String gedcomDate, boolean approximate){
+		if(StringUtils.isBlank(gedcomDate))
+			return null;
+
+		String date = gedcomDate.trim();
+		if(date.endsWith("?")){
+			approximate = true;
+			date = Strings.CI.removeEnd(date, "?").trim();
+		}
+		final Matcher qualifierMatcher = QUALIFIER_PATTERN.matcher(date);
+		if(qualifierMatcher.matches()){
+			approximate = true;
+			date = qualifierMatcher.group(2)
+				.trim();
+		}
+
+		final SingleDate singleDate = resolve(date);
+		if(singleDate == null)
+			return null;
+
+		final boolean julian = DateReader.ENUM_CALENDAR_JULIAN.equals(singleDate.calendar());
+		final long[] range;
+		final Matcher gm = GREGORIAN_DATE_PATTERN.matcher(singleDate.date());
+		if(!julian && !DateReader.ENUM_CALENDAR_GREGORIAN.equals(singleDate.calendar())){
+			range = calendarDayRange(singleDate);
+			if(range == null)
+				return null;
+		}
+		else if(gm.matches()){
+			if(gm.group(5) != null)
+				return null;
+
+			final int year = Integer.parseInt(gm.group(3));
+			//a double dating (1750/51) is either of the two years
+			final int lastYear = (gm.group(4) != null? year + 1: year);
+			final int month = (gm.group(2) != null? MONTHS.indexOf(gm.group(2)) + 1: 0);
+			final int day = (gm.group(1) != null? Integer.parseInt(gm.group(1)): 0);
+			if(month == 0)
+				range = new long[]{julianDayNumber(year, 1, 1, julian), julianDayNumber(lastYear + 1, 1, 1, julian) - 1};
+			else if(day == 0)
+				range = new long[]{julianDayNumber(year, month, 1, julian),
+					(month == 12? julianDayNumber(lastYear + 1, 1, 1, julian): julianDayNumber(lastYear, month + 1, 1, julian)) - 1};
+			else
+				range = new long[]{julianDayNumber(year, month, day, julian), julianDayNumber(lastYear, month, day, julian)};
+		}
+		else{
+			//a season (e.g. "SPR 1935"): its whole year
+			final Matcher m = MONTH_DATE_PATTERN.matcher(singleDate.date());
+			if(!m.matches())
+				return null;
+
+			final int year = Integer.parseInt(m.group(3));
+			range = new long[]{julianDayNumber(year, 1, 1, julian), julianDayNumber(year + 1, 1, 1, julian) - 1};
+		}
+
+		if(approximate){
+			range[0] -= APPROXIMATE_MARGIN_DAYS;
+			range[1] += APPROXIMATE_MARGIN_DAYS;
+		}
+		return range;
+	}
+
+	/**
+	 * The days of a date of a calendar other than the gregorian and the julian ones, read by the parser of its calendar
+	 * ({@link CalendarType}): the first day is the one the parser gives, the last one is that day if the date has the day, otherwise
+	 * the longest month or year that any calendar has after it (so that the range never misses a day of the date).
+	 */
+	private static long[] calendarDayRange(final SingleDate singleDate){
+		final CalendarType calendarType = CalendarType.findByCode(singleDate.calendar())
+			.orElse(null);
+		if(calendarType == null)
+			return null;
+
 		try{
-			GregorianCalendarParser.parse(date);
-			return true;
+			final long first = calendarType.parseToJdn(singleDate.date());
+			final CalendarMetadata metadata = calendarType.getMetadata(singleDate.date());
+			final Map<String, Boolean> components = metadata.nativeComponents();
+			final long length;
+			if(metadata.isComplete() || Boolean.TRUE.equals(components.get(CalendarMetadata.COMPONENT_DAY)))
+				length = 0;
+			else if(Boolean.TRUE.equals(components.get(CalendarMetadata.COMPONENT_MONTH)))
+				length = LONGEST_MONTH_DAYS;
+			else
+				length = LONGEST_YEAR_DAYS;
+			return new long[]{first, first + length};
+		}
+		catch(final RuntimeException ignored){
+			return null;
+		}
+	}
+
+	/** The Julian Day Number of a day of the gregorian or of the julian calendar (the month may exceed twelve by one, for January). */
+	private static long julianDayNumber(final int year, final int month, final int day, final boolean julian){
+		final int a = (14 - month) / 12;
+		final long y = year + 4800L - a;
+		final long m = month + 12L * a - 3;
+		final long base = day + (153 * m + 2) / 5 + 365 * y + Math.floorDiv(y, 4);
+		return (julian
+			? base - 32083
+			: base - Math.floorDiv(y, 100) + Math.floorDiv(y, 400) - 32045);
+	}
+
+	/**
+	 * Reads a date that is not written as GEDCOM wants (a month in another language, "August 2, 2000", a season, the era written
+	 * otherwise...) with the parser of its calendar.
+	 * <p>
+	 * A date of the gregorian or julian calendar (or of no stated calendar) that the parser reads is written again as a GEDCOM date
+	 * ({@code 15 GENNAIO 1953} becomes {@code 15 JAN 1953}); a season is kept as written, the parser reads it. A date of another
+	 * calendar is kept as written if its parser ({@link CalendarType}) reads it.
+	 *
+	 * @param text	The date (without the calendar escape).
+	 * @param calendar	The calendar stated by the escape, or {@code null}.
+	 * @return	The date, or {@code null} if the parser cannot read it either.
+	 */
+	private static SingleDate resolveByCalendar(final String text, final String calendar){
+		if(calendar != null && !DateReader.ENUM_CALENDAR_GREGORIAN.equals(calendar) && !DateReader.ENUM_CALENDAR_JULIAN.equals(calendar)){
+			final CalendarType calendarType = CalendarType.findByCode(calendar)
+				.orElse(null);
+			return (calendarType != null && isReadBy(calendarType, text)? new SingleDate(text, calendar): null);
+		}
+
+		final GregorianDateInput input;
+		try{
+			input = GregorianCalendarParser.parse(text);
 		}
 		catch(final IllegalArgumentException ignored){
+			return null;
+		}
+
+		//the astronomical year (1 BCE is 0), and the civil year of a dual dating (1709/10 is 1710)
+		final int year = input.year();
+		final boolean beforeCommonEra = (year <= 0);
+		final String resolvedCalendar = (calendar != null
+			? calendar
+			: (input.dualYear() || beforeCommonEra || year < 1582? DateReader.ENUM_CALENDAR_JULIAN: DateReader.ENUM_CALENDAR_GREGORIAN));
+		if(input.month() < 0)
+			//a season: the parser reads it as it is
+			return new SingleDate(text, resolvedCalendar);
+
+		final StringBuilder sb = new StringBuilder();
+		if(input.day() > 0)
+			sb.append(input.day())
+				.append(' ');
+		if(input.month() > 0)
+			sb.append(MONTHS.get(input.month() - 1))
+				.append(' ');
+		if(beforeCommonEra)
+			sb.append(1 - year)
+				.append(" BCE");
+		else if(input.dualYear())
+			sb.append(year - 1)
+				.append('/')
+				.append(StringUtils.leftPad(String.valueOf(year % 100), 2, '0'));
+		else
+			sb.append(year);
+		return new SingleDate(sb.toString(), resolvedCalendar);
+	}
+
+	private static boolean isReadBy(final CalendarType calendarType, final String date){
+		try{
+			calendarType.parseToJdn(date);
+			return true;
+		}
+		catch(final RuntimeException ignored){
 			return false;
 		}
 	}

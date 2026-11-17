@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.PlaceholderImages;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
+import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.shell.FamilyLegacyFrame;
 import org.slf4j.Logger;
@@ -74,7 +75,9 @@ public final class FamilyLegacyApplication{
 		TreeIcons.class.getName(),
 		GregorianCalendarParser.class.getName(),
 		CalendarType.class.getName(),
-		DateReader.class.getName()
+		DateReader.class.getName(),
+		//the icon of the main window, drawn at all its sizes
+		AppIcon.class.getName() + "$WindowImages"
 	};
 
 

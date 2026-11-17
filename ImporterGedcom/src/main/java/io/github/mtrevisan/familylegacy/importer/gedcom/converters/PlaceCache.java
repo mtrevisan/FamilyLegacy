@@ -55,7 +55,12 @@ public class PlaceCache{
 
 
 	private final FLEFModel model;
-	private final Map<String, FLEFRecord> cache = new HashMap<>();
+	/** The places by the place containing them and their name: the ones in the same place with the same name differ by their level. */
+	private final Map<String, List<FLEFRecord>> cache = new HashMap<>();
+	/** The level of each place (the name of the level in the form, lowercase) by its id, when a name tells it for sure. */
+	private final Map<String, String> placeLevels = new HashMap<>();
+	/** The ids of the places whose type is only guessed from the position of a jurisdiction in a name shorter than the form. */
+	private final Set<String> guessedTypes = new HashSet<>();
 	private final Set<String> relationshipCache = new HashSet<>();
 	/** The names of the levels of the places (HEAD.PLAC.FORM), for the places without their own. */
 	private String defaultForm;
@@ -70,9 +75,11 @@ public class PlaceCache{
 	 * Parses hierarchical place parts separated by commas, creates individual PlaceRecords
 	 * for each level, links them hierarchically, and avoids duplicate or redundant information.
 	 * <p>
-	 * A place is identified by its name together with the names of the places containing it, so that places with the same name
-	 * in different jurisdictions (e.g. "San Martino, Treviso" and "San Martino, Venezia", or the town and the province in
-	 * "Treviso, Treviso, Italia") stay distinct.
+	 * A place is identified by its name together with the place containing it, so that places with the same name in different
+	 * jurisdictions (e.g. "San Martino, Treviso" and "San Martino, Venezia", or the town and the province in
+	 * "Treviso, Treviso, Italia") stay distinct; in the same place, two jurisdictions with the same name and different levels
+	 * are different places too (the city of Sacile in "Sacile, Pordenone, Italia" and the district of Sacile in
+	 * "Sacile, Sacile, Pordenone, Italia").
 	 */
 	public FLEFRecord getOrCreatePlace(GEDCOMNode placNode){
 		return getOrCreatePlace(placNode, null);
@@ -96,14 +103,18 @@ public class PlaceCache{
 
 		// Split place name into its jurisdictions, skipping the empty ones (e.g. ", , Treviso, Italia"): the position of
 		// a jurisdiction in the name tells its level
+		//a name longer than the form ("Cavolano, Sacile, Sacile, Pordenone, Italia" for "City, County, State, Country") has
+		//jurisdictions more specific than the first level (a hamlet, a street): the levels are counted from the largest one, the
+		//last, and the jurisdictions before the first level stay untyped
 		final List<String> parts = new ArrayList<>();
 		final List<String> levels = new ArrayList<>();
 		final String[] rawParts = StringUtils.splitPreserveAllTokens(placeName, ',');
+		final int extraParts = Math.max(rawParts.length - levelNamesParts.length, 0);
 		for(int i = 0; i < rawParts.length; i ++){
 			final String trimmed = StringUtils.normalizeSpace(rawParts[i]);
 			if(!trimmed.isEmpty()){
 				parts.add(trimmed);
-				levels.add(i < levelNamesParts.length? levelNamesParts[i]: null);
+				levels.add(i >= extraParts && i - extraParts < levelNamesParts.length? levelNamesParts[i - extraParts]: null);
 			}
 		}
 		if(parts.isEmpty())
@@ -113,24 +124,25 @@ public class PlaceCache{
 		//Country"), is written by tools that leave out the levels they do not know: the last jurisdiction is still the largest one
 		//(the country), not the level that its position would give ("Italia" typed as a state, "France" as a city)
 		//(a name of one jurisdiction only says nothing of its level: it is left untyped, unless a longer name types it)
-		if(parts.size() == rawParts.length && parts.size() < levelNamesParts.length)
+		//the jurisdictions between the first and the last one could be at any of the levels left out: their position only
+		//guesses their type, and does not tell them apart from a jurisdiction with the same name at another level
+		final boolean shortName = (parts.size() == rawParts.length && parts.size() < levelNamesParts.length);
+		if(shortName)
 			levels.set(parts.size() - 1, (parts.size() > 1? levelNamesParts[levelNamesParts.length - 1]: null));
 
-		final String placeKey = String.join(", ", parts)
-			.toLowerCase(Locale.ROOT);
-		FLEFRecord leafPlace = cache.get(placeKey);
-		if(leafPlace == null){
-			// Build the place hierarchy by linking each part to its parent container
-			FLEFRecord containerPlace = null;
-			for(int i = parts.size() - 1; i >= 0; i --){
-				final String key = String.join(", ", parts.subList(i, parts.size())).toLowerCase(Locale.ROOT);
-				final FLEFRecord place = getOrCreateSinglePlace(key, parts.get(i), placNode);
-				if(containerPlace != null)
-					linkPlaces(place, containerPlace, placNode);
-				containerPlace = place;
-			}
-			leafPlace = containerPlace;
+		// Build the place hierarchy by linking each part to its parent container
+		final FLEFRecord[] places = new FLEFRecord[parts.size()];
+		FLEFRecord containerPlace = null;
+		for(int i = parts.size() - 1; i >= 0; i --){
+			final boolean guessed = (shortName && i > 0 && i < parts.size() - 1);
+			final FLEFRecord place = getOrCreateSinglePlace(containerPlace, parts.get(i), (guessed? null: levelKey(levels.get(i))),
+				placNode);
+			if(containerPlace != null)
+				linkPlaces(place, containerPlace, placNode);
+			places[i] = place;
+			containerPlace = place;
 		}
+		final FLEFRecord leafPlace = places[0];
 
 		// The metadata of a PLAC (FONE, ROMN, LANG, TRAN, MAP, TYPE) is about the most specific place
 		attachPlaceMetadata(leafPlace, placNode);
@@ -139,7 +151,7 @@ public class PlaceCache{
 		for(int i = 0; i < parts.size(); i ++){
 			final String type = mapLevelType(levels.get(i));
 			if(type != null)
-				setTypeIfAbsent(cache.get(String.join(", ", parts.subList(i, parts.size())).toLowerCase(Locale.ROOT)), type);
+				setType(places[i], type, (shortName && i > 0 && i < parts.size() - 1));
 		}
 		return leafPlace;
 	}
@@ -177,38 +189,79 @@ public class PlaceCache{
 		};
 	}
 
-	/** Sets the type of a place, after its names, if it has none. */
-	private static void setTypeIfAbsent(final FLEFRecord place, final String type){
-		if(place == null || FLEFRecordHelper.findChild(place, PlaceReader.TAG_TYPE) != null)
+	/** The name of a level of the form, as it identifies a level, or {@code null} if empty. */
+	private static String levelKey(final String levelName){
+		final String key = StringUtils.trimToNull(StringUtils.normalizeSpace(levelName));
+		return (key != null? key.toLowerCase(Locale.ROOT): null);
+	}
+
+	/**
+	 * Sets the type of a place, after its names, if it has none or if the one it has was only guessed.
+	 *
+	 * @param guessed	Whether the type is only guessed from the position of the jurisdiction in a name shorter than the form.
+	 */
+	private void setType(final FLEFRecord place, final String type, final boolean guessed){
+		if(place == null)
 			return;
+
+		final FLEFRecord current = FLEFRecordHelper.findChild(place, PlaceReader.TAG_TYPE);
+		if(current != null){
+			if(!guessed && guessedTypes.remove(place.getId()))
+				current.setValue(type);
+			return;
+		}
 
 		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME);
 		place.getChildren()
 			.add(names.isEmpty()? 0: place.getChildren().indexOf(names.getLast()) + 1, FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, type));
+		if(guessed)
+			guessedTypes.add(place.getId());
 	}
 
 	/**
 	 * Gets or creates a single PlaceRecord.
+	 * <p>
+	 * In the same container, a place with the same name and the same level (or with no level known) is the same place; a
+	 * place with no level known is the one with that name, whatever its level.
 	 *
-	 * @param key	The name of the place followed by the names of the places containing it, lowercase.
+	 * @param container	The place containing it, {@code null} for the largest one.
+	 * @param level	The level of the place (the name of the level in the form, lowercase), {@code null} if unknown.
 	 */
-	private FLEFRecord getOrCreateSinglePlace(final String key, final String partName, final GEDCOMNode placNode){
-		return cache.computeIfAbsent(key, k -> {
-			final FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceReader.ID_PREFIX), PlaceReader.TYPE)
-				// ---- Primary name (text.value) ----
-				.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
-					.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, partName))
-				)
-				// ---- Audit ----
-				.addChild(AuditBuilder.build(placNode));
+	private FLEFRecord getOrCreateSinglePlace(final FLEFRecord container, final String partName, final String level,
+			final GEDCOMNode placNode){
+		final String key = (container != null? container.getId(): StringUtils.EMPTY) + "|" + partName.toLowerCase(Locale.ROOT);
+		final List<FLEFRecord> candidates = cache.computeIfAbsent(key, k -> new ArrayList<>(1));
+		if(level == null){
+			if(!candidates.isEmpty())
+				return candidates.getFirst();
+		}
+		else{
+			for(final FLEFRecord candidate : candidates)
+				if(level.equals(placeLevels.get(candidate.getId())))
+					return candidate;
+			for(final FLEFRecord candidate : candidates)
+				if(!placeLevels.containsKey(candidate.getId())){
+					placeLevels.put(candidate.getId(), level);
+					return candidate;
+				}
+		}
 
-			model.addRecord(place);
-			return place;
-		});
+		final FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceReader.ID_PREFIX), PlaceReader.TYPE)
+			// ---- Primary name (text.value) ----
+			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, partName))
+			)
+			// ---- Audit ----
+			.addChild(AuditBuilder.build(placNode));
+		model.addRecord(place);
+		candidates.add(place);
+		if(level != null)
+			placeLevels.put(place.getId(), level);
+		return place;
 	}
 
 	/** Attaches the variants of the name, the coordinates, and the type, when not already present. */
-	private static void attachPlaceMetadata(final FLEFRecord place, final GEDCOMNode placNode){
+	private void attachPlaceMetadata(final FLEFRecord place, final GEDCOMNode placNode){
 		final FLEFRecord name = FLEFRecordHelper.findChildren(place, PlaceReader.TAG_NAME).stream()
 			.findFirst()
 			.orElse(null);
@@ -254,11 +307,9 @@ public class PlaceCache{
 		}
 
 		// ---- Type (optional) ----
-		if(FLEFRecordHelper.findChild(place, PlaceReader.TAG_TYPE) == null){
-			final String type = GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(placNode, GEDCOMMapper.TAG_TYPE));
-			if(type != null)
-				place.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, type));
-		}
+		final String type = GEDCOMMapper.toTypeToken(GEDCOMHelper.findFirstValue(placNode, GEDCOMMapper.TAG_TYPE));
+		if(type != null)
+			setType(place, type, false);
 	}
 
 	/**

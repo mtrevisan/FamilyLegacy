@@ -148,6 +148,23 @@ class PlaceCheckerTest{
 	}
 
 	@Test
+	void theSameCityInTheProvinceAndInADistrictOfTheProvinceMayBeTheSamePlace(){
+		//"Sacile, Pordenone, Italia" in one period, "Sacile, Sacile, Pordenone, Italia" in another
+		final List<PlaceData.Place> places = List.of(place("P1", "Sacile", PlaceReader.ENUM_TYPE_CITY), place("P2", "Sacile", PlaceReader.ENUM_TYPE_CITY),
+			place("P3", "Sacile", PlaceReader.ENUM_TYPE_COUNTY), place("P4", "Pordenone", PlaceReader.ENUM_TYPE_PROVINCE));
+		final List<PlaceData.Relation> relations = List.of(part("R1", "P1", "P4"), part("R2", "P2", "P3"), part("R3", "P3", "P4"));
+
+		final List<PlaceFinding> found = ofKind(findings(places, relations), "place.possible_duplicate");
+
+		Assertions.assertEquals(1, found.size());
+		Assertions.assertEquals(List.of("P1", "P2"), found.getFirst().compare());
+		Assertions.assertTrue(found.getFirst().diagnostic().explanation().contains("contains the place of the other"),
+			found.getFirst().diagnostic().explanation());
+		//and the district is not part of a smaller place
+		Assertions.assertTrue(ofKind(findings(places, relations), "place.inverted_hierarchy").isEmpty());
+	}
+
+	@Test
 	void coordinatesTellWhetherTheyAreTheSamePlace(){
 		final List<PlaceFinding> near = ofKind(findings(List.of(place("P1", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 45.0, 12.0, 0),
 			place("P2", "Santa Maria", PlaceReader.ENUM_TYPE_VILLAGE, 45.01, 12.01, 0)), List.of()), "place.possible_duplicate");

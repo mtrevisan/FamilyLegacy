@@ -13,7 +13,6 @@ MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `tempora
 
 ### ALTA
 - Crea un pannello delle attività.
-- Cerca nei siti esterni (FamilySearch, Ancestry, CompGen e altri). Apre ricerche precompilate con nome e luoghi della persona. L'utente può aggiungere siti propri con un modello di URL e segnaposto come name_given e birth_place.
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (valutare il riuso di `SocialFilters`).
@@ -32,6 +31,479 @@ MEDIA, BASSA. I TODO specifici delle viste temporale e social stanno in `tempora
 - Corrispondenze DNA e browser dei cromosomi: importazione CSV di segmenti (cromosoma, inizio, fine, cM, SNP) e vista con barre paterne e materne. È un blocco di funzioni a sé.
 - Campo per l'etichetta Y-DNA come attributo della persona, con il formato R-BY44535+. Se volete un lavoro semplice sul DNA, partite da qui.
 - Assistente AI sull'albero. Ha già senso concettualmente (risponde solo con i dati dell'albero, cita i record, dice quando mancano dati), ma è un progetto separato, e il vostro Research Assistant è già un punto di partenza.
+
+#### research
+Cerca nei siti esterni (FamilySearch, MyHeritage, Ancestry, Geneanet, CompGen, https://api.wikitree.com/api.php, OpenArch.nl, Archives nationales / Europeana, NARA (USA), Chronicling America e altri). Apre ricerche precompilate con nome e luoghi della persona. L'utente può aggiungere siti propri con un modello di URL e segnaposto come name_given e birth_place.
+
+# Goal
+
+Implement a genealogy search federation layer that can query multiple external genealogy providers and archival repositories through a common API.
+
+The final architecture must allow FLEF to search across heterogeneous sources, normalize the results, expose repository coverage information, and aggregate matches.
+
+This is not a prototype. Design it as production\-quality infrastructure intended to support many providers over time.
+
+---
+
+# Research First
+
+Before writing code:
+
+1. Inspect the existing codebase.
+2. Identify existing domain models that can be reused.
+3. Produce a short architecture assessment.
+4. Identify potential conflicts with the current FLEF model.
+5. Propose adjustments if necessary.
+
+Do not blindly follow my suggestions if you find a better design.
+
+---
+
+# High\-Level Architecture
+
+Create a new module:
+
+repository\-api
+
+containing:
+
+GenealogyRepository
+
+RepositoryCapability
+
+RepositoryCoverage
+
+RepositoryMetadata
+
+PersonQuery
+
+FamilyQuery
+
+SourceQuery
+
+PlaceQuery
+
+SearchResult<T>
+
+SearchMatch<T>
+
+RepositoryException
+
+Create a separate module:
+
+repository\-impl
+
+containing concrete implementations.
+
+No provider\-specific code must leak into the core API.
+
+---
+
+# Repository Interface
+
+Design an interface similar to:
+
+public interface GenealogyRepository \{
+
+    String getId();
+
+    String getName();
+
+    RepositoryMetadata getMetadata();
+
+    Set<RepositoryCapability> getCapabilities();
+
+    RepositoryCoverage getCoverage();
+
+    SearchResult<PersonMatch> searchPersons(PersonQuery query);
+
+    SearchResult<FamilyMatch> searchFamilies(FamilyQuery query);
+
+    SearchResult<SourceMatch> searchSources(SourceQuery query);
+
+    Optional<PersonRecord> getPerson(String id);
+
+    Optional<FamilyRecord> getFamily(String id);
+
+    Optional<SourceRecord> getSource(String id);
+
+\}
+
+Refine if needed.
+
+---
+
+# Coverage Model
+
+This is critical.
+
+The system must distinguish between:
+
+- no result found
+- repository unavailable
+- repository does not cover the requested area
+- repository does not cover the requested period
+- repository does not support the requested operation
+
+Create explicit modelling for repository coverage.
+
+Examples:
+
+CoverageType.GLOBAL
+
+CoverageType.COUNTRY
+
+CoverageType.REGION
+
+CoverageType.LOCAL
+
+Temporal coverage:
+
+1500\-1900
+
+1900\-1950
+
+Document coverage:
+
+CIVIL\_REGISTERS
+
+PARISH\_RECORDS
+
+CENSUS
+
+MILITARY
+
+NEWSPAPERS
+
+IMMIGRATION
+
+OBITUARIES
+
+A query should be able to determine in advance whether a repository is likely relevant.
+
+---
+
+# Query Objects
+
+Design immutable query objects.
+
+PersonQuery should support:
+
+- givenName
+- surname
+- alternateNames
+- sex
+- birthDate
+- birthPlace
+- deathDate
+- deathPlace
+- spouseName
+- fatherName
+- motherName
+- freeText
+
+SourceQuery should support:
+
+- title
+- repository
+- location
+- dateRange
+- sourceType
+- freeText
+
+Support partial information.
+
+Support fuzzy matching later.
+
+---
+
+# Search Results
+
+Design:
+
+SearchResult<T>containing:
+
+- repositoryId
+- totalHits
+- returnedHits
+- page
+- pageSize
+- estimated
+- duration
+- results
+
+Each result:
+
+SearchMatch<T>must contain:
+
+- externalId
+- score
+- confidence
+- title
+- summary
+- providerUrl
+- rawPayload (optional)
+- mappedRecord (optional)
+
+---
+
+# Repository Capability System
+
+Implement:
+
+SEARCH\_PERSONS
+
+SEARCH\_FAMILIES
+
+SEARCH\_SOURCES
+
+SEARCH\_EVENTS
+
+SEARCH\_MEDIA
+
+READ\_PERSON
+
+READ\_FAMILY
+
+READ\_SOURCE
+
+WRITE\_PERSON
+
+WRITE\_FAMILY
+
+WRITE\_SOURCE
+
+Providers declare capabilities explicitly.
+
+---
+
+# Providers To Model
+
+Implement adapters for the following providers.
+
+Group them by maturity.
+
+## Tier 1 (real implementation)
+
+Implement actual API integration:
+
+### FamilySearch
+
+Capabilities:
+
+- Person search
+- Tree access
+- Source access
+
+Support OAuth\-ready architecture.
+
+Create placeholders where credentials are required.
+
+### WikiTree
+
+API:
+
+[https://api.wikitree.com/api.php](https://api.wikitree.com/api.php)
+
+Implement real search and person retrieval.
+
+### OpenArch.nl
+
+Implement actual search support.
+
+---
+
+## Tier 2 (partial implementation)
+
+Create provider implementations and service structures even if credentials are required.
+
+### MyHeritage
+
+### Ancestry
+
+### Geneanet
+
+Document:
+
+- available APIs
+- access restrictions
+- implementation strategy
+
+Provide stubs ready for future activation.
+
+---
+
+## Tier 3 (archival repositories)
+
+Implement search adapters where feasible.
+
+### Europeana
+
+Search API integration.
+
+### NARA (National Archives and Records Administration)
+
+US National Archives API.
+
+### Chronicling America
+
+Library of Congress newspaper API.
+
+### Open Library
+
+Historical documents and local history references.
+
+### Internet Archive
+
+Books and digitized genealogy material.
+
+### Digital Public Library of America (DPLA)
+
+Search API.
+
+### Trove (National Library of Australia)
+
+Historical newspapers and genealogy resources.
+
+### Archivo Histórico Nacional (Spain)
+
+Prepare provider structure.
+
+### Nederlandse Archieven
+
+Prepare provider structure.
+
+### CompGen / Verein für Computergenealogie
+
+Research available interfaces and propose integration.
+
+---
+
+# Aggregation Layer
+
+Implement:
+
+CompositeGenealogyRepository
+
+Capabilities:
+
+- execute searches across multiple repositories
+- run in parallel
+- merge results
+- preserve provenance
+- preserve provider URLs
+- preserve confidence scores
+
+Support:
+
+RepositorySelectionPolicy
+
+Examples:
+
+ALL
+
+RELEVANT\_ONLY
+
+COUNTRY\_MATCH
+
+CUSTOM
+
+---
+
+# Provenance Requirements
+
+Every imported record must preserve:
+
+- source repository
+- external identifier
+- retrieval timestamp
+- original URL
+- raw payload
+
+Nothing should become detached from provenance.
+
+This is mandatory.
+
+---
+
+# Mapping Layer
+
+Create explicit mapper classes:
+
+FamilySearchMapper
+
+WikiTreeMapper
+
+EuropeanaMapper
+
+OpenArchMapper
+
+Avoid embedding mapping logic inside repository classes.
+
+---
+
+# Concurrency
+
+Use modern Java concurrency.
+
+Searches against multiple repositories should run in parallel.
+
+Support cancellation.
+
+Support timeout policies.
+
+Support partial results.
+
+A slow repository must not block the entire search operation.
+
+---
+
+# Error Handling
+
+Model:
+
+RepositoryUnavailableException
+
+RateLimitException
+
+AuthenticationException
+
+CoverageException
+
+MappingException
+
+Partial failures must not fail global searches.
+
+---
+
+# Deliverables
+
+1. Architecture review.
+2. Proposed improvements.
+3. Complete implementation.
+4. Unit tests.
+5. Integration tests where possible.
+6. Documentation.
+7. Provider matrix.
+
+Provider matrix example:
+
+| Provider | Search | Retrieve | Sources | Coverage | Auth |
+| --- | --- | --- | --- | --- | --- |
+
+---
+
+# Important
+
+Think like a genealogy platform architect, not like a CRUD application developer.
+
+The resulting design must be capable of supporting dozens of genealogy providers, archives, libraries and document repositories over the next decade without requiring changes to the public API.
+
+# Also
+
+Introduce a RepositoryEvidenceLevel and RepositoryTrustLevel model. A collaborative tree (FamilySearch, WikiTree, Geneanet) is fundamentally different from an archival repository (NARA, Europeana, OpenArch) and search results should carry information about evidentiary strength. This metadata will later be used by FLEF's evidence and citation system when ranking or importing records.
+
+===========================
 
 #### Search Level 2
 Implement a Visual Query Builder for FamilyLegacy.

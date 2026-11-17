@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 984 984"
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg16"
+   sodipodi:docname="app-icon-small.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview16"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="53.4375"
+     inkscape:cx="8"
+     inkscape:cy="8"
+     inkscape:window-width="1920"
+     inkscape:window-height="1057"
+     inkscape:window-x="1912"
+     inkscape:window-y="-2"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg16" />
+  <!-- The application icon simplified for the small sizes (16-24 pixels). The coordinates are those of the logo (cut as the icon,
+		984 pixels): the magnifier with its handle and nib, the stem and the main branches with their nodes, without the leaves, so that
+		the outline survives at a few pixels. Rendered to images/app-icon-{16,20,24}.png -->
+  <defs
+     id="defs5">
+    <linearGradient
+       id="bg"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#12355f"
+         id="stop1" />
+      <stop
+         offset="1"
+         stop-color="#051630"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       id="metal"
+       gradientUnits="userSpaceOnUse"
+       x1="250"
+       y1="0"
+       x2="734"
+       y2="0">
+      <stop
+         offset="0"
+         stop-color="#e9b24c"
+         id="stop3" />
+      <stop
+         offset="0.5"
+         stop-color="#8cc9c0"
+         id="stop4" />
+      <stop
+         offset="1"
+         stop-color="#43cfe4"
+         id="stop5" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#metal"
+       id="linearGradient16"
+       gradientUnits="userSpaceOnUse"
+       x1="250"
+       y1="0"
+       x2="734"
+       y2="0"
+       gradientTransform="matrix(1,0,0,0.95881233,0,40.043124)" />
+  </defs>
+  <rect
+     width="984"
+     height="984"
+     rx="186"
+     fill="url(#bg)"
+     id="rect5" />
+  <g
+     fill="none"
+     stroke="url(#metal)"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     id="g9">
+    <!-- the tree: stem, and on each side the branch to the upper node, to the ring node and to the outer node -->
+    <g
+       stroke-width="48"
+       id="g8">
+      <path
+         d="M492 425 V150"
+         id="path5" />
+      <path
+         d="M492 330 Q420 230 330 145 M492 330 Q564 230 654 145"
+         id="path6" />
+      <path
+         d="M395 455 L262 240 M589 455 L722 240"
+         id="path7" />
+      <path
+         d="M372 480 Q300 400 180 382 M612 480 Q684 400 804 382"
+         id="path8" />
+    </g>
+    <!-- the magnifier: ring, neck and handle -->
+    <circle
+       cx="492"
+       cy="580"
+       r="150"
+       stroke-width="58"
+       id="circle8" />
+    <path
+       d="M 492,744.77018 V 931.73859"
+       stroke-width="82.2519"
+       id="path9"
+       style="stroke:url(#linearGradient16)" />
+  </g>
+  <!-- the nib in the ring -->
+  <path
+     d="M492 495 L548 590 L520 660 H464 L436 590 Z"
+     fill="url(#metal)"
+     id="path10" />
+  <!-- the nodes -->
+  <circle
+     cx="492"
+     cy="95"
+     r="62"
+     fill="#e9b24c"
+     id="circle10" />
+  <circle
+     cx="318"
+     cy="132"
+     r="48"
+     fill="#e9b24c"
+     id="circle11" />
+  <circle
+     cx="666"
+     cy="132"
+     r="48"
+     fill="#43cfe4"
+     id="circle12" />
+  <circle
+     cx="240"
+     cy="210"
+     r="58"
+     fill="#43cfe4"
+     id="circle13" />
+  <circle
+     cx="744"
+     cy="210"
+     r="58"
+     fill="#43cfe4"
+     id="circle14" />
+  <circle
+     cx="155"
+     cy="378"
+     r="58"
+     fill="#e9b24c"
+     id="circle15" />
+  <circle
+     cx="829"
+     cy="378"
+     r="58"
+     fill="#e9b24c"
+     id="circle16" />
+</svg>
