@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.contraints.ConditionalValueIn
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.CountConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.EqualTypeConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.EveryConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.InConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.MemberOfConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
@@ -140,6 +141,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_ONLY = "only";
 	private static final String TAG_IN = "in";
 	private static final String TAG_MEMBER_OF = "member_of";
+	private static final String TAG_EVERY = "every";
 	private static final String TAG_XREF = "Xref";
 
 	public static final String FIELD_HEADER = "header";
@@ -678,6 +680,14 @@ public final class FLEFGrammarParser{
 			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
 		}
 
+		// require every field in container
+		// require every var in field: left operator right
+		if(peekIs(TAG_EVERY)){
+			next();
+
+			return parseEveryConstraint();
+		}
+
 		// require field in container
 		final String firstToken = parseFieldReference();
 
@@ -717,8 +727,41 @@ public final class FLEFGrammarParser{
 			return new ComparisonConstraint(left, op, right);
 		}
 
-		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'only', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
+		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'every', 'only', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
 			(peekToken() != null? peekToken().line(): 0));
+	}
+
+	/**
+	 * Reads what follows {@code require every}:
+	 * <ul>
+	 *   <li>{@code field in container}: every value of the field is among the values of the container (as {@code require field in
+	 *   container}, which already checks every value);</li>
+	 *   <li>{@code var in field: left operator right}: the comparison holds for every occurrence {@code var} of the field.</li>
+	 * </ul>
+	 */
+	private Constraint parseEveryConstraint(){
+		final int line = (peekToken() != null? peekToken().line(): 0);
+		final String first = parseFieldReference();
+		expect(TAG_IN);
+		final String container = parseFieldReference();
+		if(!peekIs(TAG_COLON))
+			return new InConstraint(first, container);
+
+		next();
+
+		if(first.indexOf('.') >= 0 || first.indexOf('[') >= 0)
+			throw new FLEFGrammarParseException("Expected a variable name after 'require every', found '" + first + "'", line);
+
+		final String left = parseFieldReference();
+		final String op = peek();
+		if(!(NOT_EQUALS.equals(op) || EQUALS.equals(op) || GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op)
+				|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)))
+			throw new FLEFGrammarParseException("Expected a comparison operator in 'require every " + first + " in " + container
+				+ ":', found '" + op + "'", (peekToken() != null? peekToken().line(): line));
+
+		next();
+		final String right = parseFieldReference();
+		return new EveryConstraint(first, container, left, op, right);
 	}
 
 	/**

@@ -52,6 +52,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.TextValueVariantReader;
@@ -516,12 +517,12 @@ public final class GEDCOMRecordBuilder{
 			final String text = GEDCOMHelper.extractFullText(textNode);
 			if(StringUtils.isNotBlank(text)){
 				final FLEFRecord extract = FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, text.trim()))
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM));
+					.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TEXT, text.trim()))
+					.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TYPE, ExtractReader.ENUM_TYPE_VERBATIM));
 				// GEDCOM 7 states the language of the text
 				final String locale = GEDCOMHelper.findFirstValue(textNode, GEDCOMMapper.TAG_LANGUAGE);
 				if(locale != null)
-					extract.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCALE, locale));
+					extract.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_LOCALE, locale));
 				extracts.add(extract);
 			}
 		}
@@ -531,8 +532,8 @@ public final class GEDCOMRecordBuilder{
 				// a media of an extract must be a media of the source
 				addMediaReference(source, mediaId);
 				extracts.add(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
-						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_MEDIA, mediaId))
+					.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
+						.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_MEDIA, mediaId))
 						.addChild(crop)));
 			}
 		}
@@ -549,7 +550,7 @@ public final class GEDCOMRecordBuilder{
 				final String text = GEDCOMHelper.extractFullText(noteId != null && noteRawMap != null? noteRawMap.get(noteId): noteNode);
 				if(StringUtils.isNotBlank(text))
 					extracts.getFirst()
-						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_REMARK, text.trim()));
+						.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_REMARK, text.trim()));
 			}
 		}
 		for(final FLEFRecord extract : extracts)
@@ -791,8 +792,8 @@ public final class GEDCOMRecordBuilder{
 			parent.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
 				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, sourceId))
 				.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
-						.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_MEDIA, mediaId))
+					.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
+						.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_MEDIA, mediaId))
 						.addChild(buildCrop(node))))
 				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS)));
 		}

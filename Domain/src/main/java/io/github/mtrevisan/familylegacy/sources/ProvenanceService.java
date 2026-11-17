@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -216,15 +217,15 @@ public final class ProvenanceService{
 		final List<String> texts = new ArrayList<>();
 		String extractType = StringUtils.EMPTY;
 		final Map<String, String> documents = new LinkedHashMap<>();
-		for(final FLEFRecord extract : FLEFRecordHelper.findChildren(citation, SourceCitationReader.TAG_EXTRACT)){
-			final String text = FLEFRecordHelper.getChildValue(extract, SourceCitationReader.TAG_TEXT);
+		for(final FLEFRecord extract : ExtractReader.extractsOf(citation, model)){
+			final String text = ExtractReader.extractText(extract);
 			if(StringUtils.isNotBlank(text)){
 				if(texts.isEmpty())
-					extractType = StringUtils.defaultString(FLEFRecordHelper.getChildValue(extract, SourceCitationReader.TAG_TYPE));
+					extractType = StringUtils.defaultString(ExtractReader.extractType(extract));
 				texts.add(text.strip());
 			}
-			for(final FLEFRecord part : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_MEDIA_PART)){
-				final String documentId = FLEFRecordHelper.getChildValue(part, SourceCitationReader.TAG_MEDIA);
+			for(final FLEFRecord part : FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_MEDIA_PART)){
+				final String documentId = FLEFRecordHelper.getChildValue(part, ExtractReader.TAG_MEDIA);
 				if(documentId != null)
 					documents.put(documentId, documentId);
 			}

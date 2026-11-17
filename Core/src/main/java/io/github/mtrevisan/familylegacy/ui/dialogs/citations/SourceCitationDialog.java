@@ -44,6 +44,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Window;
+import java.util.List;
+import java.util.StringJoiner;
 
 
 /**
@@ -54,28 +56,17 @@ import java.awt.Window;
  * struct SourceCitation {
  *   source: Xref&lt;SourceRecord&gt;
  *   locator?: Text
- *   extract*: ExtractStructure
+ *   extract*: Xref&lt;ExtractRecord&gt;
  *   stance: enum { supports, contradicts }
- *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *
- *   require extract.media_part.media in source.media
- * }
- *
- * struct ExtractStructure {
- *   media_part*: struct {
- *     media: Xref&lt;MediaRecord&gt;
- *     crop?: CropRect
- *   }
- *   text?: Text
- *   type?: enum { verbatim, summarized, translated, normalized }
- *   locale?: LocaleCode
- *   remark*: Text
- *
- *   require one_of(media_part, text)
+ *   require every e in extract: e.source == source
  * }
  * </pre>
+ * <p>
+ * The extracts are records of the source cited (see {@code ExtractRecordDialog}): the citation can be saved only if every extract it
+ * references belongs to the source it cites. The extracts created from this dialog are discarded if the citation is not saved.
  * <p>
  * Tabs:
  * Tab 1 (Properties): locator, extract, evidence
@@ -108,7 +99,8 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 
 		sourceField = EntityField.createForRecordFromReference(SourceCitationReader.TAG_SOURCE, this, model, SourceHandler.class);
 		locatorField = new BoundTextField(SourceCitationReader.TAG_LOCATOR);
-		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source_citation.extract.title"), model);
+		extractPanel = new ExtractListPanel(SourceCitationReader.TAG_EXTRACT, this, I18N.t("dialog.source_citation.extract.title"), model,
+			this::citedSourceId);
 
 		stanceCombo = new BoundComboBox<>(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCES);
 		stanceCombo.setI18NPrefix("enum.source_citation.stance");
@@ -159,7 +151,7 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 			if(!confirmRecordExistsForType(sourceId, SourceHandler.getInstance().getLabel()))
 				return;
 
-			sourceField.setText(sourceId);
+			sourceField.setEntity(model.getRecordById(sourceId));
 		}
 	}
 
@@ -177,6 +169,11 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 	@Override
 	public FLEFRecord citedSource(){
 		return sourceField.getEntity();
+	}
+
+	private String citedSourceId(){
+		final FLEFRecord source = sourceField.getEntity();
+		return (source != null? source.getId(): null);
 	}
 
 
@@ -205,6 +202,18 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 
 			return false;
 		}
+		//every extract the citation references belongs to the source it cites
+		final List<FLEFRecord> extractsOfOtherSources = extractPanel.extractsNotOf(citedSourceId());
+		if(!extractsOfOtherSources.isEmpty()){
+			final StringJoiner ids = new StringJoiner(", ");
+			for(final FLEFRecord extract : extractsOfOtherSources)
+				ids.add(extract.getId());
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.extract.other_source", ids.toString(), citedSourceId()),
+				tabbedPane, propertiesPanel, extractPanel);
+
+			return false;
+		}
 
 		return true;
 	}
@@ -216,6 +225,16 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 		components.save(record);
 
 		extractPanel.save(record);
+		extractPanel.keepCreated();
+	}
+
+	/** Closes the dialog; the extracts created from it are discarded if the citation was not saved (nothing references them). */
+	@Override
+	public void dispose(){
+		if(!isSaved())
+			extractPanel.discardCreated();
+
+		super.dispose();
 	}
 
 

@@ -33,50 +33,20 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  * <p>
  * Structure:
  * <pre>
- * // Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment.
+ * // Reference to a SOURCE record used as evidence for an assertion, together with optional location, extracts, and evidence classification.
  * struct SourceCitation {
  *   source: Xref&lt;SourceRecord&gt;
  *   locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
- *   extract*: ExtractStructure
+ *   extract*: Xref&lt;ExtractRecord&gt;
  *   stance: enum { supports, contradicts }
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *
- *   require extract.media_part.media in source.media
- * }
- *
- * struct ExtractStructure {
- *   media_part*: struct {
- *     media: Xref&lt;MediaRecord&gt;
- *     page?: Int          // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
- *     crop?: CropRect     // region of the image or page, in pixels
- *     start?: Duration    // for audio and video: start of the cited segment, from the beginning of the media
- *     end?: Duration      // for audio and video: end of the cited segment
- *   }
- *   text?: Text
- *   type?: enum {   // Describes how the TEXT value relates to the content of the cited source.
- *     verbatim,     // The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made.
- *     summarized,   // The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation.
- *     translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
- *     normalized    // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
- *   }
- *   locale?: LocaleCode
- *   remark*: Text
- *
- *   require at_least_one(media_part, text)
- * }
- *
- * // Cropping rectangle expressed in image pixels.
- * struct CropRect {
- *   x: Int
- *   y: Int
- *   width: Int
- *   height: Int
- *
- *   require width > 0
- *   require height > 0
+ *   require every e in extract: e.source == source
  * }
  * </pre>
+ * The extracts are records of their own (see {@link ExtractReader}): every extract a citation references belongs to the source it
+ * cites.
  */
 public final class SourceCitationReader{
 
@@ -95,36 +65,6 @@ public final class SourceCitationReader{
 		STANCE_SUPPORTS,
 		STANCE_CONTRADICTS
 	};
-
-	// Extract structure
-	public static final String TAG_MEDIA_PART = "media_part";
-	public static final String TAG_MEDIA = "media";
-	public static final String TAG_PAGE = "page";
-	public static final String TAG_CROP = "crop";
-	public static final String TAG_START_TIME = "start_time";
-	public static final String TAG_END_TIME = "end_time";
-	public static final String TAG_TEXT = "text";
-	public static final String TAG_TYPE = "type";
-	public static final String TAG_LOCALE = "locale";
-	public static final String TAG_REMARK = "remark";
-
-	public static final String TAG_MEDIA_PART_MEDIA = FLEFRecordHelper.composePath(TAG_MEDIA_PART, TAG_MEDIA);
-	public static final String TAG_EXTRACT_MEDIA_PART_MEDIA = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_MEDIA_PART, TAG_MEDIA);
-	public static final String TAG_EXTRACT_TEXT = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_TEXT);
-	public static final String TAG_EXTRACT_TYPE = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_TYPE);
-	public static final String TAG_EXTRACT_LOCALE = FLEFRecordHelper.composePath(TAG_EXTRACT, TAG_LOCALE);
-
-	public static final String ENUM_EXTRACT_TYPE_VERBATIM = "verbatim";
-	public static final String ENUM_EXTRACT_TYPE_SUMMARIZED = "summarized";
-	public static final String ENUM_EXTRACT_TYPE_TRANSLATED = "translated";
-	public static final String ENUM_EXTRACT_TYPE_NORMALIZED = "normalized";
-	public static final String[] EXTRACT_TYPES = {
-		ENUM_EXTRACT_TYPE_VERBATIM,
-		ENUM_EXTRACT_TYPE_SUMMARIZED,
-		ENUM_EXTRACT_TYPE_TRANSLATED,
-		ENUM_EXTRACT_TYPE_NORMALIZED
-	};
-
 
 	private SourceCitationReader(){}
 
@@ -178,23 +118,6 @@ public final class SourceCitationReader{
 			if(!isContradicting(citation))
 				return true;
 		return false;
-	}
-
-
-	public static String extractExtractText(final FLEFRecord extractRecord){
-		return FLEFRecordHelper.getChildValue(extractRecord, TAG_SOURCE);
-	}
-
-	public static String extractExtractType(final FLEFRecord extractRecord){
-		return FLEFRecordHelper.getChildValue(extractRecord, TAG_TYPE);
-	}
-
-	public static String extractExtractLocale(final FLEFRecord extractRecord){
-		return FLEFRecordHelper.getChildValue(extractRecord, TAG_LOCALE);
-	}
-
-	public static String extractExtractRemark(final FLEFRecord extractRecord){
-		return FLEFRecordHelper.getChildValue(extractRecord, TAG_REMARK);
 	}
 
 }

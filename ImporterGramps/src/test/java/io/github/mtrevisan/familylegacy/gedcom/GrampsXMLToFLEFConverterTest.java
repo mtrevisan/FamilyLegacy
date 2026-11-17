@@ -49,6 +49,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -528,8 +529,8 @@ class GrampsXMLToFLEFConverterTest{
 		final List<FLEFRecord> sources = FLEFRecordHelper.findChildren(record(model, "I1"), SourceCitationReader.TAG_SOURCE);
 		Assertions.assertTrue(sources.stream().anyMatch(source -> "S1".equals(FLEFRecordHelper.getChildValue(source, SourceCitationReader.TAG_SOURCE))));
 		final List<String> remarks = sources.stream()
-			.flatMap(source -> FLEFRecordHelper.findChildren(source, SourceCitationReader.TAG_EXTRACT).stream())
-			.flatMap(extract -> FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_REMARK).stream())
+			.flatMap(source -> ExtractReader.extractsOf(source, model).stream())
+			.flatMap(extract -> FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_REMARK).stream())
 			.map(FLEFRecord::getValue)
 			.toList();
 		Assertions.assertEquals(List.of("Ref note", "Role: front"), remarks);

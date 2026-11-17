@@ -405,7 +405,7 @@ final class CitationAnalysisDialog extends JDialog{
 
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 			final String text = (handler != null? handler.getDisplayText(record, model): record.getId());
-			final String target = (inNotes? text + '\n' + AttachedTextExtractor.extract(record): text);
+			final String target = (inNotes? text + '\n' + AttachedTextExtractor.extract(record, model): text);
 			final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
 			if(match.passes())
 				scored.add(new Scored(record, text, match));

@@ -421,7 +421,7 @@ class GEDCOMToFLEFConverterTest{
 		Assertions.assertEquals("R1", FLEFRecordHelper.getChildValue(source, "repository.repository"));
 		Assertions.assertEquals("12/A", FLEFRecordHelper.getChildValue(source, "repository.locator"));
 		// OBJE.SOUR: the media belongs to the source
-		Assertions.assertEquals("M1", FLEFRecordHelper.getChildValue(source, SourceCitationReader.TAG_MEDIA));
+		Assertions.assertEquals("M1", FLEFRecordHelper.getChildValue(source, SourceReader.TAG_MEDIA));
 
 		final FLEFRecord repository = model.getRecordById("R1");
 		Assertions.assertEquals("555-1234", FLEFRecordHelper.getChildValue(repository, "contact.value"));

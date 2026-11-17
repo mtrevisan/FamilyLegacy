@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
@@ -170,13 +171,19 @@ public final class CitationRenderer{
 			if(locator != null)
 				sb.append(" — *").append(ctx.labels.sections().sourceLocator()).append(":* ").append(ReportFormatters.escape(locator));
 
-			final String extractText = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TEXT);
+			//the extracts are records of their own, with their own privacy
+			final List<FLEFRecord> extracts = ctx.visible(ExtractReader.extractsOf(c, ctx.model));
+			final FLEFRecord textExtract = extracts.stream()
+				.filter(extract -> ExtractReader.extractText(extract) != null)
+				.findFirst()
+				.orElse(null);
+			final String extractText = (textExtract != null? ExtractReader.extractText(textExtract): null);
 			if(extractText != null){
 				sb.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
 					.append(ReportFormatters.escape(extractText)).append('"');
 
-				final String extractType = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_TYPE);
-				final String extractLocale = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_EXTRACT_LOCALE);
+				final String extractType = ExtractReader.extractType(textExtract);
+				final String extractLocale = ExtractReader.extractLocale(textExtract);
 				final List<String> quals = new ArrayList<>();
 				if(extractType != null && !extractType.isBlank())
 					quals.add(ReportFormatters.orEmpty(
@@ -189,13 +196,13 @@ public final class CitationRenderer{
 			}
 
 			// Extract note.
-			final String extractNote = ReportFormatters.extractNote(c);
+			final String extractNote = ReportFormatters.extractNote(extracts);
 			if(extractNote != null)
 				sb.append(" — *").append(ctx.labels.sections().extractNote()).append(":* ")
 					.append(ReportFormatters.escape(extractNote));
 
 			// Extract crop.
-			final String crop = ReportFormatters.extractCrop(c);
+			final String crop = ReportFormatters.extractCrop(extracts);
 			if(crop != null)
 				sb.append(" — *").append(ctx.labels.sections().extractCrop()).append(":* ")
 					.append(ReportFormatters.escape(crop));

@@ -220,7 +220,7 @@ public class SearchService{
 				if(placeNames != null)
 					target += '\n' + String.join("\n", placeNames.containerNames(record.getId()));
 				if(inNotes)
-					target += '\n' + AttachedTextExtractor.extract(record);
+					target += '\n' + AttachedTextExtractor.extract(record, model);
 				final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
 				if(match.passes())
 					scored.add(new ScoredRecord(record, displayText, match));

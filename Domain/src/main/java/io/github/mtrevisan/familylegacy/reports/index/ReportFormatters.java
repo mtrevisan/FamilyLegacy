@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -532,13 +533,13 @@ public final class ReportFormatters{
 	}
 
 	/**
-	 * Renders the {@code ExtractStructure.remark} entries of a citation as a one-line string. Returns
+	 * Renders the {@code ExtractRecord.remark} entries of the extracts of a citation as a one-line string. Returns
 	 * {@code null} when there is no remark.
 	 */
-	public static String extractNote(final FLEFRecord citation){
+	public static String extractNote(final List<FLEFRecord> extracts){
 		final List<String> remarks = new ArrayList<>();
-		for(final FLEFRecord extract : FLEFRecordHelper.findChildren(citation, SourceCitationReader.TAG_EXTRACT))
-			for(final FLEFRecord remark : FLEFRecordHelper.findChildren(extract, SourceCitationReader.TAG_REMARK)){
+		for(final FLEFRecord extract : extracts)
+			for(final FLEFRecord remark : FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_REMARK)){
 				final String value = remark.getValue();
 				if(StringUtils.isNotBlank(value))
 					remarks.add(value.trim());
@@ -547,12 +548,16 @@ public final class ReportFormatters{
 	}
 
 	/**
-	 * Renders an {@code ExtractStructure.media_part.crop} as a compact
-	 * string for the citation. Returns {@code null} when the crop is absent.
+	 * Renders the first {@code ExtractRecord.media_part.crop} of the extracts of a citation as a compact
+	 * string. Returns {@code null} when the crop is absent.
 	 */
-	public static String extractCrop(final FLEFRecord citation){
-		final FLEFRecord crop = FLEFRecordHelper.findChild(citation,
-			FLEFRecordHelper.composePath(SourceCitationReader.TAG_EXTRACT, SourceCitationReader.TAG_MEDIA_PART, SourceCitationReader.TAG_CROP));
+	public static String extractCrop(final List<FLEFRecord> extracts){
+		FLEFRecord crop = null;
+		for(final FLEFRecord extract : extracts){
+			crop = FLEFRecordHelper.findChild(extract, ExtractReader.TAG_MEDIA_PART_CROP);
+			if(crop != null)
+				break;
+		}
 		if(crop == null)
 			return null;
 		final String x = FLEFRecordHelper.getChildValue(crop, CropReader.TAG_X);

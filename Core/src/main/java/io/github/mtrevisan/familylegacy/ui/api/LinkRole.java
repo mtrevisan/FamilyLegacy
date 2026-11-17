@@ -42,6 +42,8 @@ public enum LinkRole{
 	/** The event of an event participation. */
 	EVENT,
 	/** What a conclusion resolves: it is taken only once the record is in the model. */
-	RESOLVED_TARGET
+	RESOLVED_TARGET,
+	/** The source an extract belongs to. */
+	SOURCE
 
 }

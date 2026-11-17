@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.io.ExtractMigration;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOM7Normalizer;
@@ -265,6 +266,8 @@ public class GEDCOMToFLEFConverter {
 		addMissingRecords(repositoryMap);
 		addMissingRecords(multimediaMap);
 		// Submitters are not added as top‑level records; they are included in the header.
+		//each extract becomes a record of the source cited (after the sources have been merged)
+		ExtractMigration.migrate(model);
 
 		listener.onProgress(100, I18N.t("progress.gedcom.done"));
 

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeRead
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -76,9 +77,9 @@ class ProvenanceTest{
 					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_INFORMATION_TYPE, EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY))
 					.addChild(FLEFRecord.createChildWithTagAndValue(EvidenceQualifiersReader.TAG_EVIDENCE_TYPE, EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT)),
 				FLEFRecord.createChildWithTag(SourceCitationReader.TAG_EXTRACT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TEXT, "born on the 3rd"))
-					.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_TYPE, SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM))
-					.addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_MEDIA_PART)
+					.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TEXT, "born on the 3rd"))
+					.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_TYPE, ExtractReader.ENUM_TYPE_VERBATIM))
+					.addChild(FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART)
 						.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_MEDIA, "M1")))));
 		event = FLEFRecord.createMainRecord("E1", EventReader.TYPE)
 			.addChild(citation("S2", null, SourceCitationReader.STANCE_CONTRADICTS));
@@ -118,7 +119,7 @@ class ProvenanceTest{
 		Assertions.assertEquals("p. 12", row.locator());
 		Assertions.assertEquals(SourceCitationReader.STANCE_SUPPORTS, row.stance());
 		Assertions.assertEquals("born on the 3rd", row.extractText());
-		Assertions.assertEquals(SourceCitationReader.ENUM_EXTRACT_TYPE_VERBATIM, row.extractType());
+		Assertions.assertEquals(ExtractReader.ENUM_TYPE_VERBATIM, row.extractType());
 		Assertions.assertEquals("original, primary, direct", row.evidence());
 		Assertions.assertEquals("State Archive", row.repositories());
 		Assertions.assertEquals("M1", row.documents());
