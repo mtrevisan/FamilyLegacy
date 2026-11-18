@@ -17,6 +17,8 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA.
 
 ### ALTA
+- i componenti addizionali da scaricare si trovano censiti nel file catalog.json? sono gestite anche le versioni? checksum?
+- installer: jpackage + Inno Setup
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (si può partire da `SocialFilters`, Domain `social`, o dal commit
