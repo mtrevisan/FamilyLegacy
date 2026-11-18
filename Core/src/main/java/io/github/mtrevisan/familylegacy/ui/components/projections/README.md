@@ -17,6 +17,7 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA.
 
 ### ALTA
+- nella finestra iniziale di ogni report, non far scegliere il formato di output tramite molti checkbox, piuttosto quando si preme Generate proporre e far scegliere all'utente il formato del file in cui si vuole salvare, legando la lista ai Report* disponibili
 
 ### MEDIA
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (si può partire da `SocialFilters`, Domain `social`, o dal commit
