@@ -5,9 +5,9 @@
 
 	<groupId>io.github.mtrevisan</groupId>
 	<artifactId>FamilyLegacy</artifactId>
-	<version>0.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 
 	<name>FamilyLegacy</name>
 	<description>Library for parsing of GEDCOM format</description>
@@ -24,6 +24,22 @@
 		</developer>
 	</developers>
 
+	<modules>
+		<module>Calendars</module>
+		<module>ReportApi</module>
+		<module>ReportPdf</module>
+		<module>ReportDocx</module>
+		<module>ReportEpub</module>
+		<module>ReportSite</module>
+		<module>Domain</module>
+		<module>Updater</module>
+		<module>ImporterGedcom</module>
+		<module>ImporterGramps</module>
+		<module>FaceDetector</module>
+		<module>Core</module>
+		<module>Ephemeris</module>
+	</modules>
+
 	<scm>
 		<connection>scm:git:git@github.com:mtrevisan/FamilyLegacy.git</connection>
 		<developerConnection>scm:git:git@github.com:mtrevisan/FamilyLegacy.git</developerConnection>
@@ -39,37 +55,44 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<java.version>21</java.version>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.release>25</maven.compiler.release>
 
 		<javadoc.html.version>-html5</javadoc.html.version>
 
 		<!-- Profiles & Build -->
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-		<maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
 		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-		<!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
-		<sonatype.nexus-staging-maven-plugin.version>1.7.0</sonatype.nexus-staging-maven-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.sonatype.central/central-publishing-maven-plugin -->
+		<sonatype.central-publishing-maven-plugin.version>0.12.0</sonatype.central-publishing-maven-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
 		<maven-source-plugin.version>3.4.0</maven-source-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
 		<maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
-		<maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
-		<maven-help-plugin.version>3.5.2</maven-help-plugin.version>
+		<maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 		<maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
+		<maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-dependency-plugin -->
+		<maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
 
 		<!-- Apache -->
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-		<apache.commons-lang3.version>3.20.0</apache.commons-lang3.version>
+		<apache.commons-lang3.version>3.22.0</apache.commons-lang3.version>
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
-		<apache.commons-validator.version>1.10.1</apache.commons-validator.version>
+		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
-		<apache.tika-core.version>3.3.1</apache.tika-core.version>
+		<apache.tika-core.version>4.2.0</apache.tika-core.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
+		<apache.commons-text.version>1.15.0</apache.commons-text.version>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<apache.commons-io.version>2.22.0</apache.commons-io.version>
+
+		<!-- Thumbnailator -->
+		<!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
+		<coobird.thumbnailator.version>0.4.21</coobird.thumbnailator.version>
 
 		<!-- Jakarta -->
 		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
@@ -77,76 +100,103 @@
 		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
 		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
 
+		<!-- Time4J / Dates -->
+		<!-- https://mvnrepository.com/artifact/org.threeten/threeten-extra -->
+		<threeten.extra.version>1.11.0</threeten.extra.version>
+		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+		<ibm.icu.version>79.1</ibm.icu.version>
+
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.3.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.16.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
-		<bytedeco.opencv.version>4.13.0-1.5.13</bytedeco.opencv.version>
+		<bytedeco.opencv.version>4.14.0-1.5.14</bytedeco.opencv.version>
+
+		<!-- the native libraries of the face detector plugin, for the platform that builds it (-Djavacpp.platform=linux-x86_64, ...) -->
+		<!-- https://mvnrepository.com/artifact/org.bytedeco/openblas -->
+		<bytedeco.openblas.version>0.3.34-1.5.14</bytedeco.openblas.version>
+		<!-- https://mvnrepository.com/artifact/org.bytedeco/javacpp -->
+		<bytedeco.javacpp.version>1.5.14</bytedeco.javacpp.version>
+		<javacpp.platform>windows-x86_64</javacpp.platform>
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-		<h2.version>2.4.240</h2.version>
+		<h2.version>2.5.252</h2.version>
 
-		<!-- Topological sorting -->
+		<!-- Graphs -->
 		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
 		<org.jgrapht.version>1.5.3</org.jgrapht.version>
 
-		<!-- MigLayout -->
+		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-core -->
+		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-ui-swing -->
+		<org.graphstream-core.version>2.0</org.graphstream-core.version>
+
+		<!-- Map -->
+		<!-- https://mvnrepository.com/artifact/org.jxmapviewer/jxmapviewer2 -->
+		<org.jxmapviewer.version>2.8.1</org.jxmapviewer.version>
+
+		<!-- UI / Layout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
-		<miglayout-swing.version>11.4.3</miglayout-swing.version>
+		<miglayout-swing.version>11.5.2</miglayout-swing.version>
 		<!-- SwingX -->
 		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-core -->
 		<swinglabs.swingx.version>1.6.5-1</swinglabs.swingx.version>
 
-		<!-- Markdown viewer -->
+		<!-- Markdown -->
 		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
 		<vladsch.flexmark.version>0.64.8</vladsch.flexmark.version>
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>3.2.0</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>3.3.0</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>3.0.0</jayway.json-path.version>-->
-		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
-<!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
+		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/jackson-coreutils -->
+<!--		<github.jackson-coreutils.version>2.0</github.jackson-coreutils.version>-->
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 		<googlecode.json-simple.version>1.1.1</googlecode.json-simple.version>
 
-		<!-- TwelveMonkeys ImageIO -->
+		<!-- TwelveMonkeys -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-batik -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-bmp -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-icns -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-jpeg -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-pict -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-pnm -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-psd -->
-		<twelvemonkeys.imageio-core.version>3.13.1</twelvemonkeys.imageio-core.version>
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-tiff -->
+		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
+		<twelvemonkeys.imageio-core.version>3.15.3</twelvemonkeys.imageio-core.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+		<apache.pdfbox.version>3.0.8</apache.pdfbox.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-transcoder -->
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-svggen -->
+		<!-- https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-codec -->
+		<apache.xmlgraphics.batik.version>1.20</apache.xmlgraphics.batik.version>
+
+		<!-- Reports -->
+		<!-- PDF support -->
+		<!-- https://mvnrepository.com/artifact/com.github.librepdf/openpdf -->
+		<librepdf.openpdf.version>3.0.5</librepdf.openpdf.version>
+		<!-- DOCX support -->
+		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+		<apache.poi-ooxml.version>6.0.0</apache.poi-ooxml.version>
 
 		<!-- Logging -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-		<slf4j.slf4j-api.version>2.0.18</slf4j.slf4j-api.version>
+		<slf4j.slf4j-api.version>2.0.20</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.5.37</logback.logback-classic.version>
+		<logback.logback-classic.version>1.6.7</logback.logback-classic.version>
 
-		<!-- JUnit -->
-		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-		<junit.junit-jupiter-engine.version>6.1.1</junit.junit-jupiter-engine.version>
+		<!-- Testing -->
+		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->
+		<junit.junit-jupiter.version>6.1.3</junit.junit-jupiter.version>
 	</properties>
 
 	<profiles>
-		<profile>
-			<id>stage</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
-					<!-- Deploy -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<version>${maven-deploy-plugin.version}</version>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 		<profile>
 			<!-- mvn clean deploy -U -Dmaven.test.skip=true-->
 			<!-- mvn clean deploy -Pdeploy -->
@@ -173,24 +223,14 @@
 					</plugin>
 					<!-- Nexus Staging Plugin -->
 					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
-						<artifactId>nexus-staging-maven-plugin</artifactId>
-						<version>${sonatype.nexus-staging-maven-plugin.version}</version>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>${sonatype.central-publishing-maven-plugin.version}</version>
 						<extensions>true</extensions>
-						<executions>
-							<execution>
-								<id>default-deploy</id>
-								<phase>deploy</phase>
-								<goals>
-									<goal>deploy</goal>
-								</goals>
-							</execution>
-						</executions>
 						<configuration>
-							<!-- The Base URL of Nexus instance where we want to stage -->
-							<serverId>sonatype-nexus-staging</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
-							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+							<publishingServerId>central</publishingServerId>
+							<autoPublish>true</autoPublish>
+							<waitUntil>published</waitUntil>
 						</configuration>
 					</plugin>
 					<!-- Source -->
@@ -228,25 +268,29 @@
 					</plugin>
 				</plugins>
 			</build>
-
-			<distributionManagement>
-				<snapshotRepository>
-					<id>sonatype-nexus-snapshots</id>
-					<name>Sonatype Nexus Snapshots</name>
-					<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-					<uniqueVersion>true</uniqueVersion>
-				</snapshotRepository>
-				<repository>
-					<id>sonatype-nexus-staging</id>
-					<name>Nexus Release Repository</name>
-					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-					<uniqueVersion>false</uniqueVersion>
-				</repository>
-			</distributionManagement>
 		</profile>
 	</profiles>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>version.properties</include>
+					<include>software.properties</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>version.properties</exclude>
+					<exclude>software.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
 		<plugins>
 			<!-- Compiler -->
 			<plugin>
@@ -254,175 +298,245 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
+					<release>${maven.compiler.release}</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<showDeprecation>true</showDeprecation>
 				</configuration>
 			</plugin>
-			<!-- Help -->
-			<!-- display active profile in compile phase -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-help-plugin</artifactId>
-				<version>${maven-help-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>show-profiles</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>active-profiles</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<!-- Templating -->
-			<!-- https://mvnrepository.com/artifact/org.codehaus.mojo/templating-maven-plugin -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>templating-maven-plugin</artifactId>
-				<version>1.0.0</version>
-				<executions>
-					<execution>
-						<id>generate-version-class</id>
-						<goals>
-							<goal>filter-sources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- Shade -->
+<!--			<plugin>-->
+<!--				<groupId>org.codehaus.mojo</groupId>-->
+<!--				<artifactId>build-helper-maven-plugin</artifactId>-->
+<!--				<version>3.6.2</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>add-source</id>-->
+<!--						<phase>generate-sources</phase>-->
+<!--						<goals><goal>add-source</goal></goals>-->
+<!--						<configuration>-->
+<!--							<sources>-->
+<!--								<source>${project.build.directory}/generated-sources/templates</source>-->
+<!--							</sources>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-resources-plugin</artifactId>-->
+<!--				<version>3.3.1</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>filter-templates</id>-->
+<!--						<phase>generate-sources</phase>-->
+<!--						<goals><goal>copy-resources</goal></goals>-->
+<!--						<configuration>-->
+<!--							<outputDirectory>${project.build.directory}/generated-sources/templates</outputDirectory>-->
+<!--							<resources>-->
+<!--								<resource>-->
+<!--									<directory>src/main/java-templates</directory>-->
+<!--									<filtering>true</filtering>-->
+<!--								</resource>-->
+<!--							</resources>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
-				<executions>
-					<execution>
-						<!-- Run shade goal on package phase -->
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<minimizeJar>true</minimizeJar>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>shaded</shadedClassifierName>
-							<filters>
-								<!-- FIXME: strengthen the inclusions -->
-								<!-- ClassNotFoundException: ch.qos.logback.classic.boolex.OnMarkerEvaluator-->
-								<filter>
-									<artifact>ch.qos.logback:logback-classic</artifact>
-									<includes>
-										<include>**</include>
-									</includes>
-								</filter>
-							</filters>
-							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
-										<X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
-										<Built-By>Mauro Trevisan</Built-By>
-										<Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
-										<Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
-				</executions>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.6.0</version>
 			</plugin>
 		</plugins>
 	</build>
 
-	<dependencies>
-		<!-- Apache -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>${apache.commons-lang3.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-validator</groupId>
-			<artifactId>commons-validator</artifactId>
-			<version>${apache.commons-validator.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-core</artifactId>
-			<version>${apache.tika-core.version}</version>
-		</dependency>
+	<dependencyManagement>
+		<dependencies>
+			<!-- Apache -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${apache.commons-lang3.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-validator</groupId>
+				<artifactId>commons-validator</artifactId>
+				<version>${apache.commons-validator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.tika</groupId>
+				<artifactId>tika-core</artifactId>
+				<version>${apache.tika-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>${apache.commons-text.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${apache.commons-io.version}</version>
+			</dependency>
 
-		<!-- Jakarta -->
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<version>${jakarta.persistence.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.transaction</groupId>
-			<artifactId>jakarta.transaction-api</artifactId>
-			<version>${jakarta.transaction.version}</version>
-		</dependency>
+			<!-- Thumbnailator -->
+			<dependency>
+				<groupId>net.coobird</groupId>
+				<artifactId>thumbnailator</artifactId>
+				<version>${coobird.thumbnailator.version}</version>
+			</dependency>
 
-		<!-- Hibernate -->
-		<dependency>
-			<groupId>org.hibernate.orm</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.hibernate-core.version}</version>
-		</dependency>
+			<!-- Jakarta -->
+			<dependency>
+				<groupId>jakarta.persistence</groupId>
+				<artifactId>jakarta.persistence-api</artifactId>
+				<version>${jakarta.persistence.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>jakarta.transaction</groupId>
+				<artifactId>jakarta.transaction-api</artifactId>
+				<version>${jakarta.transaction.version}</version>
+			</dependency>
 
-		<!-- Database -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
-		</dependency>
+			<!-- Date -->
+			<dependency>
+				<groupId>org.threeten</groupId>
+				<artifactId>threeten-extra</artifactId>
+				<version>${threeten.extra.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.ibm.icu</groupId>
+				<artifactId>icu4j</artifactId>
+				<version>${ibm.icu.version}</version>
+			</dependency>
 
-		<!-- Image processing -->
-		<dependency>
-			<groupId>org.bytedeco</groupId>
-			<artifactId>opencv</artifactId>
-			<version>${bytedeco.opencv.version}</version>
-		</dependency>
+			<!-- Hibernate -->
+			<dependency>
+				<groupId>org.hibernate.orm</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate.hibernate-core.version}</version>
+			</dependency>
 
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>${org.jgrapht.version}</version>
-		</dependency>
+			<!-- Database -->
+			<dependency>
+				<groupId>com.h2database</groupId>
+				<artifactId>h2</artifactId>
+				<version>${h2.version}</version>
+			</dependency>
 
-		<!-- Layout -->
-		<dependency>
-			<groupId>com.miglayout</groupId>
-			<artifactId>miglayout-swing</artifactId>
-			<version>${miglayout-swing.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.swinglabs.swingx</groupId>
-			<artifactId>swingx-core</artifactId>
-			<version>${swinglabs.swingx.version}</version>
-		</dependency>
+			<dependency>
+				<groupId>org.jgrapht</groupId>
+				<artifactId>jgrapht-core</artifactId>
+				<version>${org.jgrapht.version}</version>
+			</dependency>
 
-		<dependency>
-			<groupId>com.vladsch.flexmark</groupId>
-			<artifactId>flexmark-all</artifactId>
-			<version>${vladsch.flexmark.version}</version>
-		</dependency>
+			<!-- Layout -->
+			<dependency>
+				<groupId>com.miglayout</groupId>
+				<artifactId>miglayout-swing</artifactId>
+				<version>${miglayout-swing.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.swinglabs.swingx</groupId>
+				<artifactId>swingx-core</artifactId>
+				<version>${swinglabs.swingx.version}</version>
+			</dependency>
 
-		<!-- Image processing -->
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-core</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.twelvemonkeys.imageio</groupId>
-			<artifactId>imageio-psd</artifactId>
-			<version>${twelvemonkeys.imageio-core.version}</version>
-		</dependency>
+			<!-- Image processing -->
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-core</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-batik</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-transcoder</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-svggen</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-codec</artifactId>
+				<version>${apache.xmlgraphics.batik.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-bmp</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-icns</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-jpeg</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-pict</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-pnm</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-psd</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-webp</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-tiff</artifactId>
+				<version>${twelvemonkeys.imageio-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.pdfbox</groupId>
+				<artifactId>pdfbox</artifactId>
+				<version>${apache.pdfbox.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bytedeco</groupId>
+				<artifactId>opencv</artifactId>
+				<version>${bytedeco.opencv.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.graphstream</groupId>
+				<artifactId>gs-core</artifactId>
+				<version>${org.graphstream-core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.graphstream</groupId>
+				<artifactId>gs-ui-swing</artifactId>
+				<version>${org.graphstream-core.version}</version>
+			</dependency>
 
-		<!-- JSON -->
+			<!-- Map -->
+			<dependency>
+				<groupId>org.jxmapviewer</groupId>
+				<artifactId>jxmapviewer2</artifactId>
+				<version>${org.jxmapviewer.version}</version>
+			</dependency>
+
+			<!-- JSON -->
 <!--		<dependency>-->
 <!--			<groupId>com.fasterxml.jackson.core</groupId>-->
 <!--			<artifactId>jackson-databind</artifactId>-->
@@ -444,7 +558,7 @@
 <!--			<version>${fasterxml.jackson-databind.version}</version>-->
 <!--		</dependency>-->
 <!--		<dependency>-->
-<!--			<groupId>com.github.fge</groupId>-->
+<!--			<groupId>com.github.java-json-tools</groupId>-->
 <!--			<artifactId>jackson-coreutils</artifactId>-->
 <!--			<version>${github.jackson-coreutils.version}</version>-->
 <!--		</dependency>-->
@@ -465,28 +579,48 @@
 <!--			</exclusions>-->
 <!--		</dependency>-->
 
-		<!-- Logger -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.slf4j-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback.logback-classic.version}</version>
-<!--			<scope>test</scope>-->
-<!--			<optional>true</optional>-->
-		</dependency>
+			<!-- Reports -->
+			<!-- PDF support -->
+			<dependency>
+				<groupId>com.github.librepdf</groupId>
+				<artifactId>openpdf</artifactId>
+				<version>${librepdf.openpdf.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.vladsch.flexmark</groupId>
+				<artifactId>flexmark-all</artifactId>
+				<version>${vladsch.flexmark.version}</version>
+			</dependency>
+			<!-- DOCX support -->
+			<dependency>
+				<groupId>org.apache.poi</groupId>
+				<artifactId>poi-ooxml</artifactId>
+				<version>${apache.poi-ooxml.version}</version>
+			</dependency>
 
-		<!-- JUnit -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit.junit-jupiter-engine.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+			<!-- Logger -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.slf4j-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.logback-classic.version}</version>
+				<!--				<scope>test</scope>-->
+				<!--				<optional>true</optional>-->
+			</dependency>
+
+			<!-- JUnit -->
+			<dependency>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter</artifactId>
+				<version>${junit.junit-jupiter.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<licenses>
 		<license>

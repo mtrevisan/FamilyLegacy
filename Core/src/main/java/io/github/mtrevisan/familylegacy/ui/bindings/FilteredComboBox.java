@@ -1,0 +1,259 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.bindings;
+
+import io.github.mtrevisan.familylegacy.search.SearchMatcher;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.util.LocaleHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+
+/**
+ * An editable JComboBox that dynamically filters items based on text input.
+ *
+ * @param <E>	The type of the elements in this combo box.
+ */
+public class FilteredComboBox<E> extends JComboBox<E>{
+
+	/** [ms] */
+	private static final int DEBOUNCE_TIME = 400;
+
+	public static final String PROPERTY_DEBOUNCER = "search";
+
+	private static final String NON_BREAKING_SPACE = "\u00A0";
+
+
+	/** The typed text is matched word by word, as in every search field (the combo has no check boxes for the whole word and the typos). */
+	private static final Set<SearchMode> NO_MODES = EnumSet.noneOf(SearchMode.class);
+
+	private record FilterItem<E>(E item, String displayLower){}
+
+
+	private final List<FilterItem<E>> filterCache = new ArrayList<>();
+	private final DefaultComboBoxModel<E> model;
+	private JTextComponent editorComponent;
+	private boolean isFiltering;
+
+	private final Debouncer<String> filterDebouncer = new Debouncer<>(key -> onTextChanged(), DEBOUNCE_TIME);
+
+
+	@SuppressWarnings("unchecked")
+	public FilteredComboBox(){
+		this((E[])new Object[0]);
+	}
+
+	public FilteredComboBox(final E[] items){
+		super();
+
+		this.model = new DefaultComboBoxModel<>();
+		setModel(this.model);
+		setEditable(true);
+
+		installRenderer();
+
+		setupEditorListener();
+
+		if(items != null)
+			setItems(items);
+	}
+
+	private void installRenderer(){
+		setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+				final boolean isSelected, final boolean cellHasFocus){
+				final Object displayValue = manageEmptyValue(value);
+				return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
+			}
+		});
+	}
+
+	private static Object manageEmptyValue(final Object value){
+		return (value == null || (value instanceof String str && str.trim().isEmpty())
+			? NON_BREAKING_SPACE
+			: value);
+	}
+
+
+	/**
+	 * Updates the full master list of items and resets the filter.
+	 *
+	 * @param items	The new list of items.
+	 */
+	public void setItems(final E[] items){
+		this.filterCache.clear();
+		if(items != null)
+			for(final E item : items){
+				final String display = (item != null? item.toString(): StringUtils.EMPTY);
+				this.filterCache.add(new FilterItem<>(item, display.toLowerCase()));
+			}
+
+		if(!filterCache.isEmpty()){
+			final FilterItem<E> longest = filterCache.stream()
+				.max(Comparator.comparingInt(e -> e.displayLower().length()))
+				.orElse(null);
+			if(longest != null)
+				setPrototypeDisplayValue(longest.item());
+		}
+
+		refilter(getText());
+	}
+
+	private void setupEditorListener(){
+		this.editorComponent = (JTextComponent)getEditor().getEditorComponent();
+
+		// Listen for all text modifications (typing, pasting, backspace, delete)
+		final Document document = this.editorComponent.getDocument();
+		document.addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
+			}
+		});
+
+		// Hide popup on Enter or Escape key presses
+		this.editorComponent.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyPressed(final KeyEvent e){
+				if(e.getKeyCode() == KeyEvent.VK_ENTER || e.getKeyCode() == KeyEvent.VK_ESCAPE)
+					hidePopup();
+			}
+		});
+	}
+
+	private void onTextChanged(){
+		if(isFiltering)
+			return;
+
+		final Object selected = getSelectedItem();
+		if(selected != null && getText().equals(selected.toString()))
+			return;
+
+		SwingUtilities.invokeLater(() -> refilter(getText()));
+	}
+
+	private synchronized void refilter(final String textToMatch){
+		if(editorComponent == null)
+			return;
+
+		isFiltering = true;
+		try{
+			final int caretPosition = editorComponent.getCaretPosition();
+			final String searchText = (textToMatch == null? StringUtils.EMPTY: textToMatch.trim().toLowerCase());
+
+			final List<E> matches = new ArrayList<>();
+			if(searchText.isEmpty()){
+				for(final FilterItem<E> wrapper : filterCache)
+					matches.add(wrapper.item());
+			}
+			else{
+				for(final FilterItem<E> wrapper : filterCache)
+					if(SearchMatcher.score(searchText, wrapper.displayLower(), NO_MODES).passes())
+						matches.add(wrapper.item());
+			}
+
+			model.removeAllElements();
+			if(!matches.isEmpty())
+				model.addAll(matches);
+
+			if(matches.isEmpty() || searchText.isEmpty())
+				hidePopup();
+			else if(!isPopupVisible())
+				showPopup();
+
+			// Restore editor text and cursor position without resetting user input (rewriting an unchanged text would
+			// fire document events again and keep re-triggering the debounced filter)
+			if(!Objects.equals(editorComponent.getText(), textToMatch))
+				editorComponent.setText(textToMatch);
+			editorComponent.setCaretPosition(Math.min(caretPosition, editorComponent.getText().length()));
+		}
+		finally{
+			isFiltering = false;
+		}
+	}
+
+	private String getText(){
+		return (editorComponent != null? editorComponent.getText(): StringUtils.EMPTY);
+	}
+
+
+	static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		// Extract BCP 47 language tags (e.g. "en-US - English (United States)")
+		final String[] languageCodes = LocaleHelper.getAvailableLanguageTags()
+			.toArray(String[]::new);
+
+		SwingUtilities.invokeLater(() -> {
+			final JFrame frame = new JFrame("Filtered Language Codes Demo");
+			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			frame.setSize(450, 150);
+			frame.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
+
+			final FilteredComboBox<String> comboBox = new FilteredComboBox<>(languageCodes);
+
+			frame.add(comboBox);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

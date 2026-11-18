@@ -1,0 +1,169 @@
+https://learn.microsoft.com/it-it/java/openjdk/java-jlink-runtimes
+https://www.baeldung.com/jlink
+
+
+Sì, 127 MB per un'applicazione JavaFX/Swing con `jpackage` è una dimensione comune, ma è possibile ridurla in modo significativo. La ragione principale è che, di default, `jpackage` include un runtime Java che contiene moduli non strettamente necessari alla tua applicazione. Il tuo `pom.xml` specifica solo `java.desktop`, ma questo modulo è già molto grande di per sé.
+
+Secondo diverse fonti, i moduli `java.base` e `java.desktop` da soli occupano circa **33–38 MB**, e le librerie native (come `jvm.dll`) aggiungono altri **20–30 MB**. Questo significa che il solo runtime, per un'app desktop, parte già da una base di **50 MB** circa. I restanti megabyte sono probabilmente dovuti a una combinazione di:
+
+*   Il JAR shaded della tua applicazione (con tutte le sue dipendenze).
+*   Moduli JDK aggiuntivi inclusi automaticamente da `jpackage` (spesso più del necessario).
+*   Dati di localizzazione (locale) completi per tutte le lingue del mondo.
+
+La soluzione più efficace è **sostituire il runtime generico creato da `jpackage` con un runtime minimo creato su misura con `jlink`**. Ecco come fare, passo dopo passo.
+
+---
+
+### 🛠️ Passo 1: Trovare i moduli JDK realmente necessari con `jdeps`
+
+Il tool `jdeps`, incluso nel JDK, analizza il tuo JAR shaded e scopre esattamente quali moduli JDK sono richiesti. Assicurati di eseguire il comando sul JAR **shaded** (quello che contiene tutte le dipendenze), non su quello originale.
+
+Apri un terminale nella cartella `target` del modulo `Core` ed esegui:
+
+```bash
+jdeps --print-module-deps --ignore-missing-deps FamilyLegacy-1.0.0-shaded.jar
+```
+
+> **Nota**: il nome del file JAR potrebbe variare. Controlla il nome esatto generato dal plugin shade.
+>
+> L'opzione `--ignore-missing-deps` è utile perché il JAR shaded potrebbe contenere dipendenze non modulari che confonderebbero l'analisi.
+
+Il comando restituirà una lista di moduli separati da virgola, ad esempio:
+`java.base,java.desktop,java.logging,java.sql,...`
+
+Questa lista è il punto di partenza per il tuo runtime personalizzato. **Attenzione**: `jdeps` non è infallibile. Non riesce a vedere i moduli usati solo tramite **riflessione** o **ServiceLoader**. Moduli comuni che potrebbero mancare sono:
+*   `jdk.crypto.ec` (per connessioni TLS/HTTPS)
+*   `jdk.localedata` (se usi locale oltre all'inglese)
+*   `java.scripting` (se usi JavaScript)
+*   `java.naming` (spesso usato da driver JDBC)
+
+Se la tua app fallisce all'avvio con una `ClassNotFoundException`, aggiungi il modulo mancante alla lista.
+
+---
+
+### 📦 Passo 2: Creare un runtime minimo con `jlink`
+
+Ora usa `jlink` per costruire un'immagine runtime contenente **solo** i moduli trovati (più eventuali aggiunte). Ecco un comando di esempio con le opzioni di ottimizzazione consigliate:
+
+```bash
+jlink \
+  --add-modules java.base,java.desktop,java.logging \  # <-- SOSTITUISCI con la tua lista
+  --output target/custom-runtime \
+  --strip-debug \
+  --no-header-files \
+  --no-man-pages \
+  --compress=zip-9 \
+  --strip-native-commands
+```
+
+Cosa fanno queste opzioni:
+
+| Opzione | Effetto |
+|---|---|
+| `--strip-debug` | Rimuove le informazioni di debug dalle classi, riducendo le dimensioni (ma rendendo gli stack trace meno dettagliati). |
+| `--no-header-files` | Esclude i file header C/C++ (inutili a runtime). |
+| `--no-man-pages` | Esclude le pagine di manuale. |
+| `--compress=zip-9` | Applica la massima compressione (JDK 21+). Per JDK precedenti, usa `--compress=2`. |
+| `--strip-native-commands` | Esclude comandi nativi come `java.exe` (non servono per un'app pacchettizzata). |
+
+Il risultato sarà una cartella `target/custom-runtime` di dimensioni molto più contenute.
+
+---
+
+### ⚙️ Passo 3: Integrare `jlink` e `jpackage` nel `pom.xml`
+
+Hai due modi per farlo, a seconda di quanto vuoi automatizzare il processo.
+
+#### Opzione A (più semplice): Passare le opzioni di `jlink` direttamente a `jpackage`
+
+Il plugin `org.panteleyev:jpackage-maven-plugin` (che stai già usando) supporta il parametro `<jLinkOptions>`. Questo permette di passare opzioni aggiuntive a `jlink` quando `jpackage` crea il runtime internamente.
+
+Aggiungi questo blocco dentro la configurazione del plugin, nel tuo profilo `windows-standalone`:
+
+```xml
+<plugin>
+    <groupId>org.panteleyev</groupId>
+    <artifactId>jpackage-maven-plugin</artifactId>
+    <!-- ... -->
+    <configuration>
+        <!-- ... altre configurazioni ... -->
+        <addModules>
+            <module>java.desktop</module>
+            <!-- Aggiungi qui eventuali moduli extra trovati con jdeps -->
+        </addModules>
+        <jLinkOptions>
+            <option>--strip-debug</option>
+            <option>--no-header-files</option>
+            <option>--no-man-pages</option>
+            <option>--compress=zip-9</option>
+            <option>--strip-native-commands</option>
+        </jLinkOptions>
+    </configuration>
+</plugin>
+```
+
+Questo è il modo più diretto per ottenere una prima riduzione senza modificare il flusso di build.
+
+#### Opzione B (più efficace): Creare il runtime con `jlink` e passarlo a `jpackage`
+
+Questa è la strada migliore. Consiste nell'eseguire `jlink` come passo separato (tramite `exec-maven-plugin` o `maven-antrun-plugin`) e poi dire a `jpackage` di usare quel runtime con il parametro `<runtimeImage>`.
+
+Ecco uno schema di come potresti strutturarlo nel POM. Nota che la lista dei moduli va inserita manualmente, basandoti sull'output di `jdeps`.
+
+```xml
+<!-- 1. Esegui jlink per creare il runtime personalizzato -->
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>3.1.0</version>
+    <executions>
+        <execution>
+            <id>create-custom-runtime</id>
+            <phase>package</phase>
+            <goals><goal>exec</goal></goals>
+            <configuration>
+                <executable>${java.home}/bin/jlink</executable>
+                <arguments>
+                    <argument>--add-modules</argument>
+                    <argument>java.base,java.desktop,java.logging</argument> <!-- SOSTITUISCI -->
+                    <argument>--output</argument>
+                    <argument>${project.build.directory}/custom-runtime</argument>
+                    <argument>--strip-debug</argument>
+                    <argument>--no-header-files</argument>
+                    <argument>--no-man-pages</argument>
+                    <argument>--compress=zip-9</argument>
+                    <argument>--strip-native-commands</argument>
+                </arguments>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+
+<!-- 2. Usa jpackage con il runtime personalizzato -->
+<plugin>
+    <groupId>org.panteleyev</groupId>
+    <artifactId>jpackage-maven-plugin</artifactId>
+    <!-- ... -->
+    <configuration>
+        <!-- ... -->
+        <runtimeImage>${project.build.directory}/custom-runtime</runtimeImage>
+        <!-- Rimuovi <addModules> e <jLinkOptions>, non servono più -->
+    </configuration>
+</plugin>
+```
+
+In questo modo hai il pieno controllo sui moduli inclusi e sulle ottimizzazioni applicate.
+
+---
+
+### 💎 Riepilogo e aspettative realistiche
+
+Il percorso per ridurre le dimensioni è quindi:
+
+1.  **Analizza** il JAR shaded con `jdeps`.
+2.  **Costruisci** un runtime minimo con `jlink`, escludendo tutto il superfluo (header, manuali, comandi nativi) e applicando la massima compressione.
+3.  **Integra** questo runtime nel tuo flusso Maven, preferibilmente passandolo a `jpackage` tramite `--runtime-image`.
+
+Considera che, partendo da una base di circa 50 MB per il solo runtime desktop, è improbabile scendere sotto i **70-80 MB** totali per un'applicazione Swing con diverse dipendenze. Tuttavia, rispetto ai 127 MB iniziali, un'ottimizzazione potrebbe facilmente portarti a una riduzione del **30-40%**, avvicinandoti a dimensioni più ragionevoli per un'applicazione desktop moderna.
+
+Se, dopo aver eseguito `jdeps`, hai dubbi sui moduli da includere, sentiti libero di chiedere: possiamo raffinare la lista insieme.

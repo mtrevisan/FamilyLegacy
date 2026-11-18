@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>Core</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<!-- The tests are patched into the module: it has to read JUnit and the importers (plugins, here as test dependencies, they build the
+				fixtures) and to open the packages of the tests to JUnit. Maven arranges the latter by itself, an IDE does not: they are in the
+				argument file, that the IDE reads from here -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>@${project.basedir}/surefire-opens.args</argLine>
+				</configuration>
+			</plugin>
+			<!-- Shade -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<!-- Run shade goal on package phase -->
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>false</minimizeJar>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>shaded</shadedClassifierName>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+
+							<filters combine.self="override">
+								<!-- FIXME: strengthen the inclusions -->
+								<!-- ClassNotFoundException: ch.qos.logback.classic.boolex.OnMarkerEvaluator-->
+								<filter>
+									<artifact>ch.qos.logback:logback-classic</artifact>
+									<includes>
+										<include>**</include>
+									</includes>
+								</filter>
+								<!-- ICU is used only for MessageFormat and the charset detector: not for its collation, transliteration, break and
+									character-name data -->
+								<filter>
+									<artifact>com.ibm.icu:icu4j</artifact>
+									<excludes>
+										<exclude>com/ibm/icu/impl/data/icudata/coll/**</exclude>
+										<exclude>com/ibm/icu/impl/data/icudata/translit/**</exclude>
+										<exclude>com/ibm/icu/impl/data/icudata/brkitr/**</exclude>
+										<exclude>com/ibm/icu/impl/data/icudata/unames.icu</exclude>
+									</excludes>
+								</filter>
+								<!-- development-only resources (test data, docs, old grammars): not needed at runtime -->
+								<filter>
+									<artifact>${project.groupId}:${project.artifactId}</artifact>
+									<excludes>
+										<exclude>tests/**</exclude>
+										<exclude>docs/**</exclude>
+										<exclude>ged/**</exclude>
+										<exclude>gedg/flef_0.0.*</exclude>
+										<exclude>gedg/flef_0.1.*</exclude>
+										<exclude>gedg/gedcom_*</exclude>
+										<exclude>gedg/*.md</exclude>
+										<exclude>gedg/*.txt</exclude>
+										<exclude>gedg/*.gramps</exclude>
+										<exclude>gedg/*.dtd</exclude>
+										<exclude>gedg/treebard/**</exclude>
+									</excludes>
+								</filter>
+								<!-- the old grammars and the documents of the grammar (the domain has them): not needed at runtime -->
+								<filter>
+									<artifact>${project.groupId}:Domain</artifact>
+									<excludes>
+										<exclude>gedg/flef_0.0.*</exclude>
+										<exclude>gedg/flef_0.1.*</exclude>
+										<exclude>gedg/gedcom_*</exclude>
+										<exclude>gedg/*.md</exclude>
+										<exclude>gedg/*.txt</exclude>
+										<exclude>gedg/*.gramps</exclude>
+										<exclude>gedg/*.dtd</exclude>
+										<exclude>gedg/treebard/**</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>xml-apis:xml-apis</artifact>
+									<excludes>
+										<exclude>**</exclude>
+									</excludes>
+								</filter>
+								<!-- xml-apis-ext is not excluded: it holds the SVG DOM (org.w3c.dom.svg) that Batik needs, and the JDK has not -->
+							</filters>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<X-Compile-Source-JDK>${maven.compiler.release}</X-Compile-Source-JDK>
+										<X-Compile-Target-JDK>${maven.compiler.release}</X-Compile-Target-JDK>
+										<X-Compile-Release-JDK>${maven.compiler.release}</X-Compile-Release-JDK>
+										<Built-By>Mauro Trevisan</Built-By>
+										<Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+										<Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>jpackage-windows</id>
+						<!-- after the shade plugin (declared before in this POM, same phase) -->
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.build.directory}/jpackage-input"/>
+								<copy file="${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar"
+									  tofile="${project.build.directory}/jpackage-input/${project.artifactId}.jar"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- The plugins' host module (Calendars) and its dependency go on the module path, so that the plugins (Ephemeris),
+                which are JPMS modules loaded from app/plugins, can be resolved against them -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>copy-host-modules</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeArtifactIds>Calendars,ReportApi,commons-lang3</includeArtifactIds>
+							<outputDirectory>${project.build.directory}/jpackage-input/modules</outputDirectory>
+							<stripVersion>true</stripVersion>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- The model and the logic (the UI of Core depends on it, not vice versa) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Calendars -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Calendars</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportApi</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- The check for a newer release, the download and the start of its installer -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Updater</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- The PDF and Word formats are plugins (Core/plugins/report-*.jar, built by their modules): here only for the tests -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportPdf</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportDocx</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportEpub</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ReportSite</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- The importers (GEDCOM, Gramps) are plugins (Core/plugins/importer-*.jar, built by their modules): here only for the tests -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGedcom</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGramps</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+		</dependency>
+
+		<!-- Thumbnailator -->
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+		</dependency>
+
+		<!-- Date -->
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+		</dependency>
+
+		<!-- Layout -->
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+		</dependency>
+
+		<!-- Image processing -->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-batik</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-transcoder</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svggen</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-bmp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-icns</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-jpeg</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pict</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-pnm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-psd</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-tiff</artifactId>
+		</dependency>
+
+		<!-- Map -->
+		<dependency>
+			<groupId>org.jxmapviewer</groupId>
+			<artifactId>jxmapviewer2</artifactId>
+		</dependency>
+
+		<!-- Logger -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

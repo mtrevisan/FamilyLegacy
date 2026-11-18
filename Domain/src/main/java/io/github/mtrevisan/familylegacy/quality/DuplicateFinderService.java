@@ -1,0 +1,1473 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.quality;
+
+import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.merger.TextSimilarity;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.sources.SourceHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.DoubleConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+/**
+ * Finds possible duplicate individuals by comparing not only their own
+ * data, but also their relationships: parents, children, siblings,
+ * spouses, events they participated in, attributes, sources, and places.
+ * <p>
+ * <b>Why the relationships matter.</b> Two individuals with the same
+ * name may be different people; two individuals with slightly different
+ * names but the same parents and the same birth year are almost
+ * certainly the same person. The service weights the shared
+ * relationships heavily for this reason.
+ * <p>
+ * <b>Blocking.</b> The service never compares every pair of individuals.
+ * Each profile is placed in one or more blocks keyed by the prefix of
+ * its given name and of its family name, together with its sex, and
+ * only profiles that share a block are compared. With twelve thousand
+ * individuals, this reduces the number of comparisons from tens of
+ * millions to tens of thousands.
+ * <p>
+ * <b>Sex as a hard filter.</b> When both individuals have a known and
+ * different sex, the pair is discarded before scoring: a male and a
+ * female cannot be the same historical person, no matter how similar
+ * the rest of the data looks.
+ */
+public final class DuplicateFinderService{
+
+	private static final Pattern PUNCTUATION_RUN = Pattern.compile("[\\p{Punct}]+");
+	private static final Pattern COMBINING_MARKS = Pattern.compile("\\p{M}+");
+	private static final Pattern YEAR = Pattern.compile("(\\d{3,4})");
+	public static final int DEFAULT_THRESHOLD = 55;
+	public static final int DEFAULT_MAX_RESULTS = 500;
+
+	/** Years of tolerance when comparing birth or death years. */
+	private static final int YEAR_TOLERANCE = 3;
+	/** Birth years further apart than this (both known) take points away. */
+	private static final int BIRTH_FAR_YEARS = 10;
+	private static final int BIRTH_VERY_FAR_YEARS = 25;
+	private static final int DEATH_FAR_YEARS = 10;
+	/** How far up the parents are followed to tell that one individual descends from another. */
+	private static final int MAX_ANCESTRY_DEPTH = 15;
+	/** Two children of the same parents, with the same given name, born this many years apart are two siblings (the first one died). */
+	private static final int NAMESAKE_YEARS = 2;
+
+	// Feature weights. They sum to more than 100 on purpose, because a
+	// strong match on one dimension should be able to overcome a weak
+	// match on another. The threshold is calibrated against real data.
+	/** The share of the work that the description of the individuals is: the comparison of the pairs is the rest. */
+	private static final double PROFILES_SHARE = 0.3;
+	/** The comparisons between two reports of the progress. */
+	private static final int PROGRESS_PAIRS = 2_000;
+	/** The individuals described between two reports of the progress. */
+	private static final int PROGRESS_INDIVIDUALS = 200;
+
+	private static final int W_NAME_FULL = 40;
+	private static final int W_NAME_PARTIAL = 25;
+	private static final int W_NAME_TOKEN = 10;
+	// the names that agree by the similarity of the letters (see NameSimilarity): less than the same names
+	private static final int W_NAME_SIMILAR = 20;
+	private static final int W_NAME_INITIAL = 15;
+	private static final int W_NAME_TOKEN_SIMILAR = 6;
+	private static final int W_PARENTS_ALL = 20;
+	private static final int W_PARENTS_SOME = 12;
+	private static final int W_CHILDREN_SOME = 12;
+	private static final int W_SPOUSES_SOME = 10;
+	private static final int W_SIBLINGS_SOME = 8;
+	/** Two individuals that each have relatives, but in trees that are not connected: a tree imported twice looks like this. */
+	private static final int W_OTHER_TREE = 8;
+	private static final int W_BIRTH_NEAR = 15;
+	private static final int W_DEATH_NEAR = 10;
+	private static final int W_EVENT_OVERLAP = 5;
+	private static final int W_ATTRIBUTE_OVERLAP = 5;
+	private static final int W_SOURCE_OVERLAP = 5;
+	private static final int W_PLACE_OVERLAP = 5;
+	// Second pass: the same facts compared by name, for the records that do not share an identifier (a tree imported twice has no
+	// parent, spouse, place in common, only ones with the same name). Smaller than the weights of the shared records.
+	private static final int W_PARENTS_NAMES = 12;
+	private static final int W_SPOUSES_NAMES = 8;
+	private static final int W_PLACES_NAMES = 4;
+	private static final int W_OCCUPATIONS = 4;
+	private static final int W_CHILDREN_NAMES = 8;
+	private static final int W_ATTRIBUTE_TEXTS = 3;
+	private static final int W_SOURCE_TITLES = 3;
+	/** What the comparison by name can add at the most: if the rest does not reach the threshold with it, the pair is dropped. */
+	private static final int MAX_BY_NAME = W_PARENTS_NAMES + W_SPOUSES_NAMES + W_CHILDREN_NAMES + W_PLACES_NAMES + W_ATTRIBUTE_TEXTS
+		+ W_SOURCE_TITLES + W_OCCUPATIONS;
+	// What contradicts takes points away (the weight of a disagreement, in the Fellegi-Sunter model of record linkage).
+	private static final int P_GIVEN_NAME_DISAGREES = 30;
+	private static final int P_BIRTH_FAR = 20;
+	private static final int P_BIRTH_VERY_FAR = 40;
+	private static final int P_DEATH_FAR = 15;
+	private static final int P_NAMESAKE_SIBLINGS = 25;
+	/**
+	 * Two individuals of the same tree, with no relative in common, that are no more than this many steps apart (a step is a parent, a
+	 * child or a spouse): an uncle and a nephew, two cousins. They are relatives that were told apart, not one person written twice.
+	 */
+	private static final int NEAR_RELATIVES_DISTANCE = 4;
+	private static final int P_NEAR_RELATIVES = 15;
+
+
+	/** Tunable parameters of the search. */
+	public static final class Options{
+		public int threshold = DEFAULT_THRESHOLD;
+		public int maxResults = DEFAULT_MAX_RESULTS;
+		public boolean requireSameSex = true;
+		/** When {@code true}, pairs already covered by an identity hypothesis are skipped. */
+		public boolean skipExistingHypotheses = true;
+	}
+
+	/** The cached, precomputed description of one individual. */
+	public record Profile(
+		String id,
+		String displayName,
+		String sex,
+		Set<String> givenTokens,
+		Set<String> familyTokens,
+		Set<String> fullNameVariants,
+		Integer birthYear,
+		Integer deathYear,
+		Set<String> parentIds,
+		Set<String> childIds,
+		Set<String> siblingIds,
+		Set<String> spouseIds,
+		Set<String> eventIds,
+		Set<String> attributeKeys,
+		Set<String> sourceIds,
+		Set<String> placeIds,
+		/** The names of the parents (normalized), to compare the parents that do not share an identifier. */
+		Set<String> parentNames,
+		/** The names of the spouses (normalized). */
+		Set<String> spouseNames,
+		/** The names of the places of the events (normalized). */
+		Set<String> placeNames,
+		/** The occupations (normalized). */
+		Set<String> occupations,
+		/** The names of the children (normalized). */
+		Set<String> childNames,
+		/** The text of the attributes other than the occupations (residence, religion, ...), by type (normalized). */
+		Map<String, Set<String>> attributeTexts,
+		/** The titles of the cited sources (normalized). */
+		Set<String> sourceTitles){}
+
+	/** One matched feature, with its contribution to the total score. */
+	public record FeatureMatch(String feature, int score, String detail){}
+
+	/** One candidate pair, with the score and the matched/different features. */
+	public record Candidate(
+		Profile left,
+		Profile right,
+		int score,
+		List<FeatureMatch> matches,
+		List<String> differences){}
+
+
+	private DuplicateFinderService(){}
+
+
+	/**
+	 * Finds duplicate candidates in the model.
+	 *
+	 * @param model   the model; must not be {@code null}
+	 * @param options the search parameters; must not be {@code null}
+	 * @return the candidate list, sorted by descending score; never
+	 *         {@code null}
+	 */
+	public static List<Candidate> find(final FLEFModel model, final Options options){
+		return find(model, options, fraction -> {});
+	}
+
+	/**
+	 * Finds duplicate candidates in the model, telling how far it got, so that the user knows when the data will be there.
+	 * <p>
+	 * The progress is the share of the work done, from 0 to 1, and it never goes back: the first third is the description of each
+	 * individual (the cost is the number of individuals), the rest is the comparison of the pairs that share a block (the cost is the
+	 * number of those pairs, known before the first one is compared). It is called from the thread that runs the search, so a listener
+	 * that touches Swing has to hand over to the event dispatch thread. If that thread is interrupted the search stops and gives
+	 * nothing: a newer search replaces it.
+	 * </p>
+	 *
+	 * @param model    the model; must not be {@code null}
+	 * @param options  the search parameters; must not be {@code null}
+	 * @param progress told, from time to time, the share of the work done (0 to 1); must not be {@code null}
+	 * @return the candidate list, sorted by descending score; never {@code null}
+	 */
+	public static List<Candidate> find(final FLEFModel model, final Options options, final DoubleConsumer progress){
+		final Map<String, Profile> profiles = buildProfiles(model, fraction -> progress.accept(fraction * PROFILES_SHARE));
+		if(profiles.size() < 2){
+			progress.accept(1.);
+			return List.of();
+		}
+
+		final Set<String> existingHypotheses = (options.skipExistingHypotheses
+			? existingHypothesisPairs(model)
+			: Set.of());
+
+		final Frequencies frequencies = Frequencies.of(profiles.values());
+		final Connectivity connectivity = Connectivity.of(profiles);
+		final Map<String, Set<Profile>> blocks = buildBlocks(profiles.values(), options.requireSameSex);
+		final Set<String> seenPairs = new HashSet<>();
+		final List<Candidate> candidates = new ArrayList<>();
+
+		long totalPairs = 0L;
+		for(final Set<Profile> blockSet : blocks.values())
+			totalPairs += (long)blockSet.size() * (blockSet.size() - 1) / 2;
+		long donePairs = 0L;
+		long reportedPairs = 0L;
+		progress.accept(PROFILES_SHARE);
+
+		for(final Set<Profile> blockSet : blocks.values()){
+			if(Thread.currentThread().isInterrupted())
+				return List.of();
+
+			// Materialize the block as a list for indexed iteration. The set
+			// has already removed duplicate entries of the same profile, but
+			// the explicit identity guard below is kept as a second line of
+			// defense: no code path in this method should ever compare an
+			// individual with itself.
+			final List<Profile> block = new ArrayList<>(blockSet);
+			final int size = block.size();
+			for(int i = 0; i < size; i ++){
+				for(int j = i + 1; j < size; j ++){
+					final Profile a = block.get(i);
+					final Profile b = block.get(j);
+
+					// A profile is never equal to itself in a candidate pair.
+					// This guard is redundant with the set-based
+					// deduplication above, but it protects against future
+					// changes to the blocking logic.
+					if(a.id().equals(b.id()))
+						continue;
+
+					final String pairKey = pairKey(a.id(), b.id());
+					if(!seenPairs.add(pairKey))
+						continue;
+					if(existingHypotheses.contains(pairKey))
+						continue;
+					final Candidate c = compare(a, b, options, frequencies, profiles, connectivity);
+					if(c != null)
+						candidates.add(c);
+				}
+
+				//the pairs of this row are done
+				donePairs += size - 1 - i;
+				if(donePairs - reportedPairs >= PROGRESS_PAIRS || i == size - 1){
+					reportedPairs = donePairs;
+					progress.accept(PROFILES_SHARE + (1. - PROFILES_SHARE) * donePairs / Math.max(1L, totalPairs));
+				}
+				if((i & 63) == 0 && Thread.currentThread().isInterrupted())
+					return List.of();
+			}
+		}
+
+		progress.accept(1.);
+		candidates.sort(Comparator
+			.comparingInt(Candidate::score).reversed()
+			.thenComparing(c -> c.left().id())
+			.thenComparing(c -> c.right().id()));
+
+		return candidates.size() > options.maxResults
+			? List.copyOf(candidates.subList(0, options.maxResults))
+			: List.copyOf(candidates);
+	}
+
+
+	/* ======================================================================
+	 *                          Profile building
+	 * ====================================================================== */
+
+	private static Map<String, Profile> buildProfiles(final FLEFModel model, final DoubleConsumer progress){
+		final List<FLEFRecord> individuals = PrivacyService.visible(model, model.getRecordsByType(IndividualReader.TYPE));
+
+		// Index relationships once. Each relationship is stored under
+		// both endpoints, so a single pass builds every lookup we need.
+		final Map<String, List<FLEFRecord>> relationshipsByEndpoint = new HashMap<>();
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
+		for(final FLEFRecord relationship : relationships){
+			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String object = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			if(subject != null)
+				relationshipsByEndpoint.computeIfAbsent(subject, k -> new ArrayList<>())
+					.add(relationship);
+			if(object != null && !object.equals(subject))
+				relationshipsByEndpoint.computeIfAbsent(object, k -> new ArrayList<>())
+					.add(relationship);
+		}
+
+		// Index participations by participant.
+		final Map<String, List<FLEFRecord>> participationsByIndividual = new HashMap<>();
+		final List<FLEFRecord> participations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationReader.TYPE));
+		for(final FLEFRecord participation : participations){
+			final FLEFRecord participantBlock = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
+			if(participantBlock == null)
+				continue;
+			final FLEFRecord oneof = participantBlock.getTheOnlyChild();
+			if(!IndividualReader.isOfType(oneof))
+				continue;
+			final FLEFRecord ref = oneof.getTheOnlyChild();
+			final String id = (ref != null? ref.getValue(): oneof.getValue());
+			if(id != null)
+				participationsByIndividual.computeIfAbsent(id, k -> new ArrayList<>())
+					.add(participation);
+		}
+
+		// Index attributes by individual.
+		final Map<String, List<FLEFRecord>> attributesByIndividual = new HashMap<>();
+		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
+		for(final FLEFRecord attribute : attributes){
+			final String id = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
+			if(id != null)
+				attributesByIndividual.computeIfAbsent(id, k -> new ArrayList<>())
+					.add(attribute);
+		}
+
+		// Index events by id, so date extraction does not scan the whole
+		// event list per participation.
+		final Map<String, FLEFRecord> eventsById = new LinkedHashMap<>();
+		final List<FLEFRecord> events = PrivacyService.visible(model, model.getRecordsByType(EventReader.TYPE));
+		for(final FLEFRecord event : events)
+			if(event.getId() != null)
+				eventsById.put(event.getId(), event);
+
+		// Build the parent -> children map once, to compute siblings in
+		// O(1) per individual.
+		final Map<String, Set<String>> childrenByParent = new HashMap<>();
+		for(final FLEFRecord rel : relationships){
+			final String type = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE);
+			if(!RelationshipReader.isTypeBiologicalChild(type))
+				continue;
+
+			final String child = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String target = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			if(child != null && target != null)
+				childrenByParent.computeIfAbsent(target, k -> new LinkedHashSet<>())
+					.add(child);
+		}
+
+		//the names of the individuals and of the places, to compare by name what has no identifier in common
+		final Map<String, Set<String>> individualNames = new HashMap<>();
+		for(final FLEFRecord individual : individuals)
+			if(individual.getId() != null)
+				individualNames.put(individual.getId(), extractNames(individual).fullNameVariants());
+		final Map<String, Set<String>> placeNames = new HashMap<>();
+		for(final FLEFRecord place : PrivacyService.visible(model, model.getRecordsByType(PlaceReader.TYPE)))
+			if(place.getId() != null){
+				final Set<String> names = new LinkedHashSet<>();
+				for(final String name : PlaceReader.extractNames(place)){
+					final String normalized = TextSimilarity.normalize(name);
+					if(!normalized.isEmpty())
+						names.add(normalized);
+				}
+				placeNames.put(place.getId(), names);
+			}
+
+		final Map<String, String> sourceTitles = new HashMap<>();
+		for(final FLEFRecord source : SourceHelper.listAllSources(model))
+			if(source.getId() != null){
+				final String title = TextSimilarity.normalize(SourceHelper.sourceTitle(source));
+				if(!title.isEmpty() && !title.equals(TextSimilarity.normalize(source.getId())))
+					sourceTitles.put(source.getId(), title);
+			}
+
+		final Map<String, Profile> profiles = new LinkedHashMap<>();
+		//the indexes above are a tenth of the description of the individuals, each of these is the rest
+		progress.accept(0.1);
+		int built = 0;
+		for(final FLEFRecord individual : individuals){
+			if(individual.getId() == null)
+				continue;
+			profiles.put(individual.getId(), buildProfile(individual,
+				relationshipsByEndpoint, participationsByIndividual,
+				attributesByIndividual, eventsById, childrenByParent, individualNames, placeNames, sourceTitles, model));
+			built ++;
+			if(built % PROGRESS_INDIVIDUALS == 0){
+				progress.accept(0.1 + 0.9 * built / individuals.size());
+				if(Thread.currentThread().isInterrupted())
+					return profiles;
+			}
+		}
+		progress.accept(1.);
+		return profiles;
+	}
+
+	private static Profile buildProfile(final FLEFRecord individual,
+		final Map<String, List<FLEFRecord>> relationshipsByEndpoint,
+		final Map<String, List<FLEFRecord>> participationsByIndividual,
+		final Map<String, List<FLEFRecord>> attributesByIndividual,
+		final Map<String, FLEFRecord> eventsById,
+		final Map<String, Set<String>> childrenByParent,
+		final Map<String, Set<String>> individualNames,
+		final Map<String, Set<String>> placeNamesById,
+		final Map<String, String> sourceTitlesById, final FLEFModel model){
+		final String id = individual.getId();
+		//only a determined sex tells two individuals apart: the sex that is not known is no sex
+		final SexType preferredSex = PreferredSex.ofAttributes(attributesByIndividual.get(id), model);
+		final String sex = (preferredSex != SexType.UNKNOWN? preferredSex.getRawSex(): null);
+		final NameTokens names = extractNames(individual);
+		final String displayName = (names.fullNameVariants.isEmpty()
+			? id
+			: firstVariant(names.fullNameVariants));
+
+		// Relationships.
+		final Set<String> parents = new LinkedHashSet<>();
+		final Set<String> children = new LinkedHashSet<>();
+		final Set<String> spouses = new LinkedHashSet<>();
+		for(final FLEFRecord rel : relationshipsByEndpoint.getOrDefault(id, List.of())){
+			final String type = FLEFRecordHelper.getChildValue(rel, RelationshipReader.TAG_TYPE);
+			if(type == null)
+				continue;
+			final String subject = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String target = rel.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			if(subject == null || target == null)
+				continue;
+
+			if(RelationshipReader.isTypeBiologicalChild(type)){
+				if(id.equals(subject))
+					parents.add(target);
+				else if(id.equals(target))
+					children.add(subject);
+			}
+			else if(RelationshipReader.isTypePartner(type)){
+				if(id.equals(subject))
+					spouses.add(target);
+				else if(id.equals(target))
+					spouses.add(subject);
+			}
+		}
+
+		// Siblings: children of the same parents, minus self.
+		final Set<String> siblings = new LinkedHashSet<>();
+		for(final String parent : parents){
+			for(final String child : childrenByParent.getOrDefault(parent, Set.of()))
+				if(!child.equals(id))
+					siblings.add(child);
+		}
+
+		// Events.
+		final Set<String> eventIds = new LinkedHashSet<>();
+		Integer birthYear = null;
+		Integer deathYear = null;
+		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
+			if(eventId == null)
+				continue;
+			eventIds.add(eventId);
+			final FLEFRecord event = eventsById.get(eventId);
+			if(event == null)
+				continue;
+			final String eventType = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
+			if(eventType == null)
+				continue;
+			final String type = eventType.toLowerCase(Locale.ROOT);
+			final Integer year = extractYearFromEvent(event);
+			if(EventReader.ENUM_TYPE_BIRTH.equals(type) && birthYear == null)
+				birthYear = year;
+			else if(EventReader.ENUM_TYPE_DEATH.equals(type) && deathYear == null)
+				deathYear = year;
+		}
+
+		// Attributes.
+		final Set<String> attributeKeys = new LinkedHashSet<>();
+		final Set<String> occupations = new LinkedHashSet<>();
+		final Map<String, Set<String>> attributeTexts = new LinkedHashMap<>();
+		for(final FLEFRecord attr : attributesByIndividual.getOrDefault(id, List.of())){
+			final String type = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_TYPE);
+			//the sex is compared on its own (see the filter on the sex): it is not a fact like the others
+			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(type))
+				continue;
+
+			final String value = FLEFRecordHelper.getChildValue(attr, IndividualAttributeReader.TAG_VALUE);
+			if(IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(type) && value != null){
+				final String occupation = TextSimilarity.normalize(value);
+				if(!occupation.isEmpty())
+					occupations.add(occupation);
+			}
+			else if(type != null && value != null){
+				final String text = TextSimilarity.normalize(value);
+				if(!text.isEmpty())
+					attributeTexts.computeIfAbsent(type, k -> new LinkedHashSet<>())
+						.add(text);
+			}
+			if(type != null)
+				attributeKeys.add(type + ":" + (value != null? normalize(value): StringUtils.EMPTY));
+		}
+
+		// Sources: from the individual itself, from its events, and from
+		// its relationships.
+		final Set<String> sourceIds = new LinkedHashSet<>();
+		collectSources(individual, sourceIds);
+		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
+			final FLEFRecord event = (eventId != null? eventsById.get(eventId): null);
+			if(event != null)
+				collectSources(event, sourceIds);
+			collectSources(participation, sourceIds);
+		}
+		for(final FLEFRecord rel : relationshipsByEndpoint.getOrDefault(id, List.of()))
+			collectSources(rel, sourceIds);
+
+		// Places: from the events the individual participated in.
+		final Set<String> placeIds = new LinkedHashSet<>();
+		for(final FLEFRecord participation : participationsByIndividual.getOrDefault(id, List.of())){
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
+			final FLEFRecord event = (eventId != null? eventsById.get(eventId): null);
+			if(event == null)
+				continue;
+			final FLEFRecord place = FLEFRecordHelper.findChild(event, EventReader.TAG_PLACE);
+			if(place != null){
+				final String placeId = FLEFRecordHelper.getChildValue(place, PlaceCitationReader.TAG_PLACE);
+				if(placeId != null)
+					placeIds.add(placeId);
+			}
+		}
+
+		return new Profile(id, displayName, sex,
+			names.givenTokens, names.familyTokens, names.fullNameVariants,
+			birthYear, deathYear,
+			parents, children, siblings, spouses,
+			eventIds, attributeKeys, sourceIds, placeIds,
+			namesOf(parents, individualNames), namesOf(spouses, individualNames), placeNamesOf(placeIds, placeNamesById), occupations,
+			namesOf(children, individualNames), attributeTexts, titlesOf(sourceIds, sourceTitlesById));
+	}
+
+	private static Set<String> namesOf(final Set<String> ids, final Map<String, Set<String>> namesById){
+		final Set<String> names = new LinkedHashSet<>();
+		for(final String id : ids){
+			for(final String name : namesById.getOrDefault(id, Set.of())){
+				final String normalized = TextSimilarity.normalize(name);
+				if(!normalized.isEmpty())
+					names.add(normalized);
+			}
+		}
+		return names;
+	}
+
+	private static Set<String> titlesOf(final Set<String> sourceIds, final Map<String, String> titlesById){
+		final Set<String> titles = new LinkedHashSet<>();
+		for(final String sourceId : sourceIds){
+			final String title = titlesById.get(sourceId);
+			if(title != null)
+				titles.add(title);
+		}
+		return titles;
+	}
+
+	private static Set<String> placeNamesOf(final Set<String> placeIds, final Map<String, Set<String>> namesById){
+		final Set<String> names = new LinkedHashSet<>();
+		for(final String placeId : placeIds)
+			names.addAll(namesById.getOrDefault(placeId, Set.of()));
+		return names;
+	}
+
+
+	/* ======================================================================
+	 *                          Name extraction
+	 * ====================================================================== */
+
+	private record NameTokens(
+		Set<String> givenTokens,
+		Set<String> familyTokens,
+		Set<String> fullNameVariants){}
+
+	/**
+	 * Extracts the name tokens from every {@code name} block of the
+	 * individual. Each block is a {@code PersonalNameStructure} whose
+	 * {@code part} children carry a {@code type} and a {@code value}.
+	 * The full-name variant of a block is the concatenation of all its
+	 * parts, in order.
+	 */
+	private static NameTokens extractNames(final FLEFRecord individual){
+		final Set<String> given = new LinkedHashSet<>();
+		final Set<String> family = new LinkedHashSet<>();
+		final Set<String> full = new LinkedHashSet<>();
+
+		for(final FLEFRecord nameBlock : individual.getChildren()){
+			if(!IndividualReader.TAG_NAME.equalsIgnoreCase(nameBlock.getTag()))
+				continue;
+			final StringBuilder fullName = new StringBuilder();
+			//the prefix of a family name belongs to the family name that follows it
+			String familyPrefix = StringUtils.EMPTY;
+			for(final FLEFRecord part : nameBlock.getChildren()){
+				if(!NameReader.TAG_PART.equalsIgnoreCase(part.getTag()))
+					continue;
+				final String type = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_TYPE);
+				final String value = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
+				if(StringUtils.isEmpty(value))
+					continue;
+				final String norm = normalize(value);
+				if(!fullName.isEmpty())
+					fullName.append(' ');
+				fullName.append(norm);
+				if(type != null){
+					final String t = type.toLowerCase(Locale.ROOT);
+					switch(t){
+						case NameReader.ENUM_PART_TYPE_GIVEN -> given.add(norm);
+						case NameReader.ENUM_PART_TYPE_FAMILY_PREFIX -> familyPrefix = norm + ' ';
+						case NameReader.ENUM_PART_TYPE_FAMILY -> {
+							family.add(familyPrefix + norm);
+							familyPrefix = StringUtils.EMPTY;
+						}
+					}
+				}
+			}
+			if(!fullName.isEmpty())
+				full.add(fullName.toString());
+		}
+		return new NameTokens(given, family, full);
+	}
+
+	private static String firstVariant(final Set<String> variants){
+		return variants.iterator().next();
+	}
+
+	/**
+	 * Normalizes a string for comparison: lower-case, NFD decomposition
+	 * with combining marks stripped, punctuation replaced by spaces,
+	 * whitespace collapsed.
+	 */
+	private static String normalize(final String text){
+		if(text == null)
+			return StringUtils.EMPTY;
+
+		String s = text.toLowerCase(Locale.ROOT);
+		s = Normalizer.normalize(s, Normalizer.Form.NFD);
+		s = COMBINING_MARKS.matcher(s).replaceAll(StringUtils.EMPTY);
+		s = PUNCTUATION_RUN.matcher(s).replaceAll(StringUtils.SPACE);
+		s = StringUtils.normalizeSpace(s);
+		return s;
+	}
+
+
+	/* ======================================================================
+	 *                          Event dates
+	 * ====================================================================== */
+
+	/**
+	 * Extracts the year from the {@code date} block of an event, or
+	 * {@code null} when no year can be determined. The method accepts
+	 * the common forms produced by the protocol and by the tools in this
+	 * application: a direct value, a {@code full_date}, a {@code decade}
+	 * start year, and a {@code century} ordinal.
+	 */
+	private static Integer extractYearFromEvent(final FLEFRecord event){
+		final FLEFRecord date = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
+		if(date == null)
+			return null;
+
+		//the date structure of the protocol (point, bounded, spanning; calendar; precision): the normalizer reads all of them
+		try{
+			final TemporalSpan span = DateNormalizer.normalize(date);
+			final NormalizedDate representative = (span != null? span.representativeDate(): null);
+			if(representative != null)
+				return CalendarType.jdnToProlepticGregorianLocalDate(representative.jdn()).getYear();
+		}
+		catch(final RuntimeException ignored){
+			//a date that cannot be normalized is read as text, as before
+		}
+
+		final String raw = findFirstValue(date);
+		return extractYear(raw);
+	}
+
+	private static String findFirstValue(final FLEFRecord record){
+		final String direct = FLEFRecordHelper.getChildValue(record, DateReader.TAG_VALUE);
+		if(direct != null && !direct.isBlank())
+			return direct;
+		for(final FLEFRecord child : record.getChildren()){
+			final String v = findFirstValue(child);
+			if(v != null)
+				return v;
+		}
+		return null;
+	}
+
+	private static Integer extractYear(final String raw){
+		if(StringUtils.isEmpty(raw))
+			return null;
+		final String s = raw.trim();
+		// Accept "1894", "1894-03", "1894-03-01", or "17 JUN 1894".
+		final Matcher m = YEAR.matcher(s);
+		if(!m.find())
+			return null;
+		try{
+			return Integer.parseInt(m.group(1));
+		}
+		catch(final NumberFormatException ignored){
+			return null;
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Sources
+	 * ====================================================================== */
+
+	private static void collectSources(final FLEFRecord record, final Set<String> out){
+		for(final FLEFRecord child : record.getChildren()){
+			if(!SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(child.getTag()))
+				continue;
+			final String sourceId = FLEFRecordHelper.getChildValue(child, SourceCitationReader.TAG_SOURCE);
+			if(sourceId != null)
+				out.add(sourceId);
+			else{
+				// Nested form: source { source S1, ... }
+				final FLEFRecord inner = FLEFRecordHelper.findChild(child, SourceCitationReader.TAG_SOURCE);
+				if(inner != null){
+					final String v = (inner.getTheOnlyChild() != null
+						? inner.getTheOnlyChild().getValue(): inner.getValue());
+					if(v != null)
+						out.add(v);
+				}
+			}
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Blocking
+	 * ====================================================================== */
+
+	/**
+	 * Builds the blocking index. Each profile is placed under one block
+	 * for its given-name prefix and one for its family-name prefix,
+	 * together with its sex (only if {@code separateBySex}; a profile of unknown sex is put in the blocks of every known sex). Profiles that share neither a given-name
+	 * prefix nor a family-name prefix are never compared.
+	 * <p>
+	 * Blocks are sets, not lists, because a profile can legitimately
+	 * produce the same prefix through more than one of its name variants:
+	 * for example, {@code Giovanni} and {@code Gianni} both reduce to the
+	 * prefix {@code gi}, and the profile would otherwise be added twice to
+	 * the same block. The set deduplicates by profile identity, so the
+	 * comparison loop never sees the same individual twice in the same
+	 * block.
+	 */
+	private static Map<String, Set<Profile>> buildBlocks(
+		final Collection<Profile> profiles, final boolean separateBySex){
+		final Map<String, Set<Profile>> blocks = new LinkedHashMap<>();
+		//the sexes known in the file: a profile of unknown sex goes in the block of each of them, so it is compared with all of the
+		//known ones (the filter in compare() decides) and with the other unknown ones, while the known sexes stay apart
+		final Set<String> knownSexes = new LinkedHashSet<>();
+		if(separateBySex)
+			for(final Profile p : profiles)
+				if(p.sex() != null)
+					knownSexes.add(p.sex().toLowerCase(Locale.ROOT));
+		for(final Profile p : profiles){
+			//the sex is part of the key only when the pairs of different sex are not wanted: otherwise they would never be compared
+			final List<String> sexes = (!separateBySex? List.of(""): (p.sex() != null? List.of(p.sex().toLowerCase(Locale.ROOT))
+				: (knownSexes.isEmpty()? List.of("?"): List.copyOf(knownSexes))));
+			for(final String sex : sexes)
+				addToBlocks(blocks, p, sex);
+		}
+		return blocks;
+	}
+
+	private static void addToBlocks(final Map<String, Set<Profile>> blocks, final Profile p, final String sex){
+		for(final String given : p.givenTokens()){
+			final String prefix = (given.length() >= 2? given.substring(0, 2): given);
+			blocks.computeIfAbsent("g:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
+				.add(p);
+		}
+		for(final String family : p.familyTokens()){
+			final String prefix = (family.length() >= 2? family.substring(0, 2): family);
+			blocks.computeIfAbsent("f:" + sex + ":" + prefix, k -> new LinkedHashSet<>())
+				.add(p);
+		}
+		//the spellings that differ in the first letter or in the vowels (Catarina, Katarina) meet by the consonants
+		for(final String name : p.givenTokens())
+			addSkeletonBlock(blocks, "sg:" + sex + ":", name, p);
+		for(final String name : p.familyTokens())
+			addSkeletonBlock(blocks, "sf:" + sex + ":", name, p);
+	}
+
+	private static void addSkeletonBlock(final Map<String, Set<Profile>> blocks, final String prefix, final String name,
+			final Profile profile){
+		final String skeleton = NameSimilarity.skeleton(name);
+		//a skeleton of one or two letters puts together too many names
+		if(skeleton.length() >= 3)
+			blocks.computeIfAbsent(prefix + skeleton.substring(0, 3), k -> new LinkedHashSet<>())
+				.add(profile);
+	}
+
+	private static String pairKey(final String a, final String b){
+		return (a.compareTo(b) <= 0? a + "|" + b: b + "|" + a);
+	}
+
+	/**
+	 * Returns the set of pairs already covered by an identity hypothesis
+	 * in the model, so the finder can skip them.
+	 */
+	private static Set<String> existingHypothesisPairs(final FLEFModel model){
+		final Set<String> pairs = new HashSet<>();
+		final List<FLEFRecord> identityHypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisReader.TYPE));
+		for(final FLEFRecord identityHypothesis : identityHypotheses){
+			final List<String> candidates = new ArrayList<>();
+			for(final FLEFRecord child : identityHypothesis.getChildren()){
+				if(!IdentityHypothesisReader.TAG_IDENTITY.equalsIgnoreCase(child.getTag()))
+					continue;
+				final FLEFRecord oneof = child.getTheOnlyChild();
+				if(oneof == null)
+					continue;
+				final FLEFRecord ref = oneof.getTheOnlyChild();
+				final String id = (ref != null? ref.getValue(): oneof.getValue());
+				if(id != null)
+					candidates.add(id);
+			}
+			if(candidates.size() >= 2)
+				pairs.add(pairKey(candidates.get(0), candidates.get(1)));
+		}
+		return pairs;
+	}
+
+
+	/* ======================================================================
+	 *                          Comparison
+	 * ====================================================================== */
+
+	/**
+	 * Compares two profiles and returns a candidate when the score
+	 * exceeds the threshold, or {@code null} otherwise.
+	 * <p>
+	 * Besides what the two have in common, the comparison knows what two records of one person cannot be: a parent and a child, two
+	 * spouses, an ancestor and a descendant are never the same person; two children of the same parents with different given names are
+	 * siblings; and the facts that contradict (a given name that does not agree, birth or death years far apart, the same given name
+	 * given to two children of the same parents born years apart) take points away. The agreement of a name is worth less when the
+	 * name is common in the file (the frequency of the tokens, as the weight of a field in the Fellegi-Sunter model of record linkage).
+	 * What can be told from the identifiers is done first and the comparison by name, which costs the most, only if the pair can still
+	 * reach the threshold.
+	 */
+	private static Candidate compare(final Profile a, final Profile b, final Options options, final Frequencies frequencies,
+			final Map<String, Profile> profiles, final Connectivity connectivity){
+		// Hard filter: known and different sex.
+		if(options.requireSameSex && a.sex() != null && b.sex() != null
+			&& !a.sex().equalsIgnoreCase(b.sex()))
+			return null;
+		// Hard filter: a parent and a child, two spouses.
+		if(a.parentIds().contains(b.id()) || b.parentIds().contains(a.id()) || a.childIds().contains(b.id()) || b.childIds().contains(a.id())
+				|| a.spouseIds().contains(b.id()) || b.spouseIds().contains(a.id()))
+			return null;
+
+		final List<FeatureMatch> matches = new ArrayList<>();
+		final List<String> differences = new ArrayList<>();
+		int score = 0;
+
+		// Names.
+		final NameScore name = scoreNames(a, b, matches, differences, frequencies);
+		score += name.score();
+
+		// Parents: the same records.
+		final boolean parentsKnown = (!a.parentIds().isEmpty() && !b.parentIds().isEmpty());
+		final int commonParents = (parentsKnown? intersectionSize(a.parentIds(), b.parentIds()): 0);
+		if(commonParents > 0){
+			// Hard filter: the same parents and a different given name are two siblings.
+			if(name.givenDisagrees())
+				return null;
+
+			final int c = (commonParents == a.parentIds().size() && commonParents == b.parentIds().size()
+				? W_PARENTS_ALL: W_PARENTS_SOME);
+			score += c;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents"), c,
+				I18N.tf("text.duplicates.detail.parents", commonParents, compact(a.parentIds()), compact(b.parentIds()))));
+		}
+
+		// Children.
+		final boolean childrenKnown = (!a.childIds().isEmpty() && !b.childIds().isEmpty());
+		final int commonChildren = (childrenKnown? intersectionSize(a.childIds(), b.childIds()): 0);
+		if(commonChildren > 0){
+			score += W_CHILDREN_SOME;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children"), W_CHILDREN_SOME,
+				I18N.tf("text.duplicates.detail.shared", commonChildren)));
+		}
+
+		// Spouses.
+		final boolean spousesKnown = (!a.spouseIds().isEmpty() && !b.spouseIds().isEmpty());
+		final int commonSpouses = (spousesKnown? intersectionSize(a.spouseIds(), b.spouseIds()): 0);
+		if(commonSpouses > 0){
+			score += W_SPOUSES_SOME;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses"), W_SPOUSES_SOME,
+				I18N.tf("text.duplicates.detail.shared", commonSpouses)));
+		}
+
+		// Siblings (not if the parents are the same: the siblings are the same fact as the parents, counted twice).
+		if(commonParents == 0 && !a.siblingIds().isEmpty() && !b.siblingIds().isEmpty()){
+			final int common = intersectionSize(a.siblingIds(), b.siblingIds());
+			if(common > 0){
+				score += W_SIBLINGS_SOME;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.siblings"), W_SIBLINGS_SOME,
+					I18N.tf("text.duplicates.detail.shared", common)));
+			}
+		}
+
+		// Trees: the same person written twice is often in two trees that are not connected (two imports), seldom in one tree at a short
+		// distance from the other (that is checked at the end, only for the pairs that got so far).
+		if(connectivity.inDifferentTrees(a.id(), b.id())){
+			score += W_OTHER_TREE;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.other_tree"), W_OTHER_TREE,
+				I18N.t("text.duplicates.detail.other_tree")));
+		}
+
+		// Birth year.
+		int penalty = 0;
+		if(a.birthYear() != null && b.birthYear() != null){
+			final int diff = Math.abs(a.birthYear() - b.birthYear());
+			if(diff <= YEAR_TOLERANCE){
+				score += W_BIRTH_NEAR;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.birth_year"), W_BIRTH_NEAR,
+					a.birthYear() + " / " + b.birthYear() + " (Δ " + diff + ")"));
+			}
+			else if(diff > BIRTH_VERY_FAR_YEARS){
+				penalty += P_BIRTH_VERY_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.birth_year", a.birthYear(), b.birthYear(), P_BIRTH_VERY_FAR));
+			}
+			else if(diff > BIRTH_FAR_YEARS){
+				penalty += P_BIRTH_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.birth_year", a.birthYear(), b.birthYear(), P_BIRTH_FAR));
+			}
+			else
+				differences.add(I18N.tf("text.duplicates.diff.birth_year", a.birthYear(), b.birthYear()));
+
+			//the same given name given to two children of the same parents, born years apart: the first one died, as it was done
+			if(commonParents > 0 && diff >= NAMESAKE_YEARS){
+				penalty += P_NAMESAKE_SIBLINGS;
+				differences.add(I18N.tf("text.duplicates.penalty.namesake_siblings", P_NAMESAKE_SIBLINGS));
+			}
+		}
+
+		// Death year.
+		if(a.deathYear() != null && b.deathYear() != null){
+			final int diff = Math.abs(a.deathYear() - b.deathYear());
+			if(diff <= YEAR_TOLERANCE){
+				score += W_DEATH_NEAR;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.death_year"), W_DEATH_NEAR,
+					a.deathYear() + " / " + b.deathYear() + " (Δ " + diff + ")"));
+			}
+			else if(diff > DEATH_FAR_YEARS){
+				penalty += P_DEATH_FAR;
+				differences.add(I18N.tf("text.duplicates.penalty.death_year", a.deathYear(), b.deathYear(), P_DEATH_FAR));
+			}
+			else
+				differences.add(I18N.tf("text.duplicates.diff.death_year", a.deathYear(), b.deathYear()));
+		}
+
+		// Events, attributes, sources, places.
+		score += overlapBonus(a.eventIds(), b.eventIds(), W_EVENT_OVERLAP,
+			I18N.t("text.duplicates.feature.events"), matches);
+		score += overlapBonus(a.attributeKeys(), b.attributeKeys(), W_ATTRIBUTE_OVERLAP,
+			I18N.t("text.duplicates.feature.attributes"), matches);
+		final int sourcesInCommon = overlapBonus(a.sourceIds(), b.sourceIds(), W_SOURCE_OVERLAP,
+			I18N.t("text.duplicates.feature.sources"), matches);
+		score += sourcesInCommon;
+		final int placesInCommon = overlapBonus(a.placeIds(), b.placeIds(), W_PLACE_OVERLAP,
+			I18N.t("text.duplicates.feature.places"), matches);
+		score += placesInCommon;
+
+		if(name.givenDisagrees()){
+			penalty += P_GIVEN_NAME_DISAGREES;
+			differences.add(I18N.tf("text.duplicates.penalty.given_name", P_GIVEN_NAME_DISAGREES));
+		}
+
+		// What is left is the comparison by name, that costs the most: only if the pair can still reach the threshold.
+		if(score - penalty + MAX_BY_NAME < options.threshold)
+			return null;
+
+		// Second pass, by name: the facts that are the same words in different records (a tree that is in the file twice shares no record).
+		if(parentsKnown && commonParents == 0){
+			//no parent in common: two imports of the same tree have parents with the same name, not the same record
+			final String[] pair = agreeingNames(a.parentNames(), b.parentNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_PARENTS_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.parents_names"), W_PARENTS_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.parents"));
+		}
+		if(childrenKnown && commonChildren == 0){
+			final String[] pair = agreeingNames(a.childNames(), b.childNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_CHILDREN_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.children_names"), W_CHILDREN_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.children"));
+		}
+		if(spousesKnown && commonSpouses == 0){
+			final String[] pair = agreeingNames(a.spouseNames(), b.spouseNames(), NameKind.PERSON);
+			if(pair != null){
+				score += W_SPOUSES_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.spouses_names"), W_SPOUSES_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+			else
+				differences.add(I18N.t("text.duplicates.diff.spouses"));
+		}
+		if(placesInCommon == 0){
+			final String[] pair = agreeingNames(a.placeNames(), b.placeNames(), NameKind.PLACE);
+			if(pair != null){
+				score += W_PLACES_NAMES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.places_names"), W_PLACES_NAMES,
+					I18N.tf("text.duplicates.detail.similar_names", pair[0], pair[1])));
+			}
+		}
+		final String[] attributeText = agreeingAttributeTexts(a.attributeTexts(), b.attributeTexts());
+		if(attributeText != null){
+			score += W_ATTRIBUTE_TEXTS;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.attribute_texts"), W_ATTRIBUTE_TEXTS,
+				I18N.tf("text.duplicates.detail.similar_attributes", attributeText[0], attributeText[1], attributeText[2])));
+		}
+		if(sourcesInCommon == 0){
+			final String[] title = agreeingNames(a.sourceTitles(), b.sourceTitles(), NameKind.TITLE);
+			if(title != null){
+				score += W_SOURCE_TITLES;
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.source_titles"), W_SOURCE_TITLES,
+					I18N.tf("text.duplicates.detail.similar_names", title[0], title[1])));
+			}
+		}
+		final String[] occupations = agreeingNames(a.occupations(), b.occupations(), NameKind.TEXT);
+		if(occupations != null){
+			score += W_OCCUPATIONS;
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.occupations"), W_OCCUPATIONS,
+				I18N.tf("text.duplicates.detail.similar_names", occupations[0], occupations[1])));
+		}
+
+		score -= penalty;
+		if(score < options.threshold)
+			return null;
+
+		// Hard filter: an ancestor and a descendant (a grandfather and the grandson of the same name are two people).
+		if(descends(profiles, a, b.id()) || descends(profiles, b, a.id()))
+			return null;
+
+		// Relatives of the same tree that are close: not if they share a parent, a child or a spouse, that is the evidence of one person
+		// written twice (the same parents with the same name), and is scored above.
+		if(commonParents == 0 && commonChildren == 0 && commonSpouses == 0 && connectivity.inSameTree(a.id(), b.id())){
+			final int steps = connectivity.distance(profiles, a.id(), b.id(), NEAR_RELATIVES_DISTANCE);
+			if(steps > 0){
+				score -= P_NEAR_RELATIVES;
+				differences.add(I18N.tf("text.duplicates.penalty.near_relatives", steps, P_NEAR_RELATIVES));
+				if(score < options.threshold)
+					return null;
+			}
+		}
+
+		return new Candidate(a, b, score, matches, differences);
+	}
+
+	/**
+	 * The trees of the file: the individuals that are linked, by parents, children and spouses, however far, are one tree. Made once for
+	 * the search, to tell two individuals of trees that are not connected from two of the same tree, and how far apart these are.
+	 * <p>
+	 * An individual with no relative at all is a tree of one: it tells nothing about the other, so it is neither in a different tree nor
+	 * in the same one as anyone.
+	 */
+	private static final class Connectivity{
+
+		private final Map<String, String> parents = new HashMap<>();
+		private final Map<String, Integer> sizes = new HashMap<>();
+
+
+		static Connectivity of(final Map<String, Profile> profiles){
+			final Connectivity connectivity = new Connectivity();
+			for(final Profile profile : profiles.values()){
+				connectivity.add(profile.id());
+				for(final String relative : profile.parentIds())
+					connectivity.union(profile.id(), relative);
+				for(final String relative : profile.childIds())
+					connectivity.union(profile.id(), relative);
+				for(final String relative : profile.spouseIds())
+					connectivity.union(profile.id(), relative);
+			}
+			return connectivity;
+		}
+
+		private void add(final String id){
+			if(parents.putIfAbsent(id, id) == null)
+				sizes.put(id, 1);
+		}
+
+		private String root(final String id){
+			String root = id;
+			while(!parents.get(root).equals(root))
+				root = parents.get(root);
+			//the ids on the way point straight to the root, so that the next search is short
+			String node = id;
+			while(!node.equals(root)){
+				final String next = parents.get(node);
+				parents.put(node, root);
+				node = next;
+			}
+			return root;
+		}
+
+		private void union(final String a, final String b){
+			add(a);
+			add(b);
+			final String rootA = root(a);
+			final String rootB = root(b);
+			if(rootA.equals(rootB))
+				return;
+
+			//the smaller tree joins the larger
+			final int sizeA = sizes.get(rootA);
+			final int sizeB = sizes.get(rootB);
+			final String larger = (sizeA >= sizeB? rootA: rootB);
+			final String smaller = (larger.equals(rootA)? rootB: rootA);
+			parents.put(smaller, larger);
+			sizes.put(larger, sizeA + sizeB);
+		}
+
+		private boolean hasRelatives(final String id){
+			return (parents.containsKey(id) && sizes.get(root(id)) > 1);
+		}
+
+		/** @return	Whether both have relatives, and they are not in the same tree. */
+		boolean inDifferentTrees(final String a, final String b){
+			return (hasRelatives(a) && hasRelatives(b) && !root(a).equals(root(b)));
+		}
+
+		/** @return	Whether both have relatives, and they are in the same tree. */
+		boolean inSameTree(final String a, final String b){
+			return (hasRelatives(a) && hasRelatives(b) && root(a).equals(root(b)));
+		}
+
+		/**
+		 * The fewest steps, by a parent, a child or a spouse, from one to the other.
+		 *
+		 * @return	The steps, or 0 if there are more than {@code maxSteps} (or no path through the visible individuals).
+		 */
+		int distance(final Map<String, Profile> profiles, final String from, final String to, final int maxSteps){
+			Set<String> frontier = Set.of(from);
+			final Set<String> seen = new HashSet<>(frontier);
+			for(int steps = 1; steps <= maxSteps && !frontier.isEmpty(); steps ++){
+				final Set<String> next = new HashSet<>();
+				for(final String id : frontier){
+					final Profile profile = profiles.get(id);
+					if(profile == null)
+						continue;
+
+					for(final Set<String> relatives : List.of(profile.parentIds(), profile.childIds(), profile.spouseIds()))
+						for(final String relative : relatives){
+							if(relative.equals(to))
+								return steps;
+							if(seen.add(relative))
+								next.add(relative);
+						}
+				}
+				frontier = next;
+			}
+			return 0;
+		}
+
+	}
+
+	/** @return	Whether the ancestor is one of the ancestors of the descendant (the parents, their parents, ...). */
+	private static boolean descends(final Map<String, Profile> profiles, final Profile descendant, final String ancestorId){
+		Set<String> frontier = descendant.parentIds();
+		final Set<String> seen = new HashSet<>();
+		for(int depth = 0; depth < MAX_ANCESTRY_DEPTH && !frontier.isEmpty(); depth ++){
+			if(frontier.contains(ancestorId))
+				return true;
+
+			final Set<String> next = new HashSet<>();
+			for(final String id : frontier){
+				if(!seen.add(id))
+					continue;
+
+				final Profile parent = profiles.get(id);
+				if(parent != null)
+					next.addAll(parent.parentIds());
+			}
+			frontier = next;
+		}
+		return false;
+	}
+
+	/** The score of the names of two profiles, and whether their given names disagree (both have one, and no one agrees with the other). */
+	private record NameScore(int score, boolean givenDisagrees){}
+
+	private static NameScore scoreNames(final Profile a, final Profile b, final List<FeatureMatch> matches, final List<String> differences,
+			final Frequencies frequencies){
+		if(!a.fullNameVariants().isEmpty() && !b.fullNameVariants().isEmpty()){
+			final Set<String> intersection = new HashSet<>(a.fullNameVariants());
+			intersection.retainAll(b.fullNameVariants());
+			//a name that is a single word (a family name alone, written as a name of its own) is not a full name: it would make every
+			//individual of a family the same person as the others
+			if(!a.givenTokens().isEmpty() && !b.givenTokens().isEmpty())
+				intersection.removeIf(name -> name.indexOf(' ') < 0);
+			if(!intersection.isEmpty()){
+				final String name = intersection.iterator().next();
+				final double factor = frequencies.factor(frequencies.full().get(name));
+				final int weight = scaled(W_NAME_FULL, factor);
+				matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+					I18N.tf("text.duplicates.detail.exact", name) + rarity(factor)));
+				return new NameScore(weight, false);
+			}
+		}
+		final boolean bothGiven = (!a.givenTokens().isEmpty() && !b.givenTokens().isEmpty());
+		final String sharedGiven = firstCommon(a.givenTokens(), b.givenTokens());
+		final String sharedFamily = firstCommon(a.familyTokens(), b.familyTokens());
+		if(sharedGiven != null && sharedFamily != null){
+			final double factor = (frequencies.factor(frequencies.given().get(sharedGiven)) + frequencies.factor(frequencies.family().get(sharedFamily))) / 2.;
+			final int weight = scaled(W_NAME_PARTIAL, factor);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.t("text.duplicates.detail.given_family") + rarity(factor)));
+			return new NameScore(weight, false);
+		}
+
+		//what is not the same name may be the same name spelled in another way: the similarity of the letters decides, with no list of names
+		final NameSimilarity.Match given = NameSimilarity.best(a.givenTokens(), b.givenTokens());
+		NameSimilarity.Match family = NameSimilarity.best(a.familyTokens(), b.familyTokens());
+		//an initial is a given name: a family name that is only an initial says nothing
+		if(family.level() == NameSimilarity.Level.INITIAL)
+			family = new NameSimilarity.Match(NameSimilarity.Level.NONE, null, null);
+		//the given names disagree when both have one and not even as an initial or a spelling variant
+		final boolean givenDisagrees = (bothGiven && sharedGiven == null && !given.agrees());
+		if(given.agrees() && family.agrees()){
+			final boolean initial = (given.level() == NameSimilarity.Level.INITIAL);
+			final double factor = (frequencies.factor(frequencies.given().get(given.first())) + frequencies.factor(frequencies.family().get(family.first()))) / 2.;
+			final int weight = scaled((initial? W_NAME_INITIAL: W_NAME_SIMILAR), factor);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.tf("text.duplicates.detail.similar_given_family", describe(given), describe(family)) + rarity(factor)));
+			return new NameScore(weight, false);
+		}
+		if(sharedGiven != null || sharedFamily != null){
+			final double factor = (sharedGiven != null
+				? frequencies.factor(frequencies.given().get(sharedGiven))
+				: frequencies.factor(frequencies.family().get(sharedFamily)));
+			final int weight = scaled(W_NAME_TOKEN, factor);
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), weight,
+				I18N.t(sharedGiven != null? "text.duplicates.detail.given": "text.duplicates.detail.family") + rarity(factor)));
+			return new NameScore(weight, givenDisagrees);
+		}
+		final NameSimilarity.Match one = (family.level() == NameSimilarity.Level.SIMILAR? family
+			: (given.level() == NameSimilarity.Level.SIMILAR? given: null));
+		if(one != null){
+			matches.add(new FeatureMatch(I18N.t("text.duplicates.feature.name"), W_NAME_TOKEN_SIMILAR,
+				I18N.tf("text.duplicates.detail.similar_token", describe(one))));
+			return new NameScore(W_NAME_TOKEN_SIMILAR, givenDisagrees);
+		}
+		differences.add(I18N.t("text.duplicates.diff.no_name"));
+		return new NameScore(0, givenDisagrees);
+	}
+
+	private static String firstCommon(final Set<String> first, final Set<String> second){
+		final Set<String> smaller = (first.size() <= second.size()? first: second);
+		final Set<String> larger = (first.size() <= second.size()? second: first);
+		for(final String token : smaller)
+			if(larger.contains(token))
+				return token;
+		return null;
+	}
+
+	private static int scaled(final int weight, final double factor){
+		return (int)Math.round(weight * factor);
+	}
+
+	/** @return	The factor of the rarity of a name, written after the detail of the match (nothing if it is the usual one). */
+	private static String rarity(final double factor){
+		return (Math.abs(factor - 1.) < 0.01? StringUtils.EMPTY: String.format(Locale.ROOT, " (×%.2f)", factor));
+	}
+
+	/**
+	 * How common the names are in the file: how many individuals have each given name, each family name and each full name. Two
+	 * individuals that share a name that a tenth of the file has are not as alike as two that share one that two have (the weight of an
+	 * agreement is higher for a value that is rarer, in the Fellegi-Sunter model of record linkage).
+	 */
+	private record Frequencies(int individuals, Map<String, Integer> given, Map<String, Integer> family, Map<String, Integer> full){
+
+		/** Below this size a file says nothing about how common a name is. */
+		private static final int MIN_INDIVIDUALS = 50;
+		private static final double FACTOR_MIN = 0.55;
+		private static final double FACTOR_RANGE = 0.7;
+
+
+		static Frequencies of(final Collection<Profile> profiles){
+			final Map<String, Integer> given = new HashMap<>();
+			final Map<String, Integer> family = new HashMap<>();
+			final Map<String, Integer> full = new HashMap<>();
+			for(final Profile profile : profiles){
+				for(final String token : profile.givenTokens())
+					given.merge(token, 1, Integer::sum);
+				for(final String token : profile.familyTokens())
+					family.merge(token, 1, Integer::sum);
+				for(final String name : profile.fullNameVariants())
+					full.merge(name, 1, Integer::sum);
+			}
+			return new Frequencies(profiles.size(), given, family, full);
+		}
+
+		/**
+		 * @param count	How many individuals have the name ({@code null}: not known).
+		 * @return	The factor of the weight of the agreement on it: from 0.55 for a name that every individual has to 1.25 for one that
+		 * 	only one has; 1 for a file that is too small to tell.
+		 */
+		double factor(final Integer count){
+			if(count == null || individuals < MIN_INDIVIDUALS)
+				return 1.;
+
+			final double rarity = Math.log((double)individuals / Math.max(1, count)) / Math.log(individuals);
+			return FACTOR_MIN + FACTOR_RANGE * Math.clamp(rarity, 0., 1.);
+		}
+
+	}
+
+	/** @return	The two names of a match, as they are shown ({@code giovanni / giovani}). */
+	private static String describe(final NameSimilarity.Match match){
+		return (match.first().equals(match.second())? match.first(): match.first() + " / " + match.second());
+	}
+
+	private static int overlapBonus(final Set<String> a, final Set<String> b,
+		final int weight, final String feature, final List<FeatureMatch> matches){
+		if(a.isEmpty() || b.isEmpty())
+			return 0;
+		final int common = intersectionSize(a, b);
+		if(common <= 0)
+			return 0;
+		matches.add(new FeatureMatch(feature, weight, I18N.tf("text.duplicates.detail.shared", common)));
+		return weight;
+	}
+
+	/**
+	 * Looks for an attribute type that both have, with a text of the first that agrees with a text of the second.
+	 *
+	 * @return	{type, text of the first, text of the second}, {@code null} if none agrees.
+	 */
+	public static String[] agreeingAttributeTexts(final Map<String, Set<String>> first, final Map<String, Set<String>> second){
+		for(final Map.Entry<String, Set<String>> entry : first.entrySet()){
+			final Set<String> other = second.get(entry.getKey());
+			if(other == null)
+				continue;
+
+			final String[] pair = agreeingNames(entry.getValue(), other, NameKind.TEXT);
+			if(pair != null)
+				return new String[]{entry.getKey(), pair[0], pair[1]};
+		}
+		return null;
+	}
+
+	/** What the texts compared by name are: the rules of agreement differ. */
+	public enum NameKind{
+		/** Names of people: a name with more words agrees only if the shorter one has at least two ("Giovanni" is not "Giovanni Rossi"). */
+		PERSON,
+		/** Names of places: a name with more words is another place ("San Martino" is not "San Martino di Lupari"). */
+		PLACE,
+		/** Free text, such as an occupation: it agrees if the words of one are among the words of the other. */
+		TEXT,
+		/** Titles of works: they agree if they are equal or a spelling variant, never because one is part of the other. */
+		TITLE
+	}
+
+	/**
+	 * Looks for a name of the first group that agrees with a name of the second: equal, a spelling variant, or (by the rules of the kind)
+	 * one contained in the other. The texts are already normalized.
+	 *
+	 * @return	The two names that agree (the equal ones first), {@code null} if none does or a group is empty.
+	 */
+	public static String[] agreeingNames(final Set<String> first, final Set<String> second, final NameKind kind){
+		String[] found = null;
+		for(final String a : first)
+			for(final String b : second){
+				final TextSimilarity.Agreement agreement = (kind == NameKind.PLACE
+					? TextSimilarity.comparePlaceNormalized(a, b)
+					: TextSimilarity.compareNormalized(a, b));
+				if(agreement == null || agreement == TextSimilarity.Agreement.DIFFERENT)
+					continue;
+				if(agreement == TextSimilarity.Agreement.EXACT)
+					return new String[]{a, b};
+				if(kind == NameKind.TITLE && agreement == TextSimilarity.Agreement.SUBSET)
+					continue;
+				if(found == null && agreement == TextSimilarity.Agreement.SUBSET && kind == NameKind.PERSON
+						&& Math.min(StringUtils.split(a).length, StringUtils.split(b).length) < 2)
+					continue;
+				if(found == null)
+					found = new String[]{a, b};
+			}
+		return found;
+	}
+
+	private static int intersectionSize(final Set<String> a, final Set<String> b){
+		final Set<String> smaller = (a.size() <= b.size()? a: b);
+		final Set<String> larger = (a.size() <= b.size()? b: a);
+		int n = 0;
+		for(final String s : smaller)
+			if(larger.contains(s))
+				n ++;
+		return n;
+	}
+
+	private static String compact(final Set<String> ids){
+		if(ids.isEmpty())
+			return "-";
+		final StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for(final String id : ids){
+			if(i >= 3){
+				sb.append(", …");
+				break;
+			}
+			if(i > 0)
+				sb.append(", ");
+			sb.append(id);
+			i ++;
+		}
+		return sb.toString();
+	}
+
+}

@@ -1,0 +1,417 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualLabel;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Window;
+import java.io.IOException;
+import java.util.Arrays;
+
+
+/**
+ * Dialog for editing a {@code INDIVIDUAL_ATTRIBUTE_RECORD} according to FLEF 0.2.0.
+ * <p>
+ * Structure:
+ * <pre>
+ * record IndividualAttributeRecord {
+ *   individual: Xref&lt;IndividualRecord&gt;
+ *   type: enum {
+ *     sex, characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
+ *     nationality, national_id, title, children_count, marriages_count, religion, language, literacy, education,
+ *     apprenticeship
+ *   } | Text
+ *   value?: Text
+ *   valid_from?: DateStructure
+ *   valid_to?: DateStructure
+ *   place?: PlaceCitation
+ *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   confidence?: Confidence
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): individual, type, value, valid_from, valid_to, place, confidence
+ * Tab 5 (Context): ContextImpactRecord (target[individual_attribute] = this attribute)
+ * Tab 6 (Research): ConclusionRecord (resolves = this attribute), ResearchQuestionRecord (target[individual_attribute] = this attribute)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class IndividualAttributeRecordDialog extends BaseRecordDialog{
+
+	private static final String CARD_TEXT = "text";
+	private static final String CARD_SEX = "sex";
+
+	private final JPanel propertiesPanel;
+
+	private final BoundComboBox<String> typeCombo;
+	private final BoundTextField valueField;
+	/** Replaces the text field of the value when the type is {@code sex}: its value is an enumeration (male, female, unknown). */
+	private final JComboBox<String> sexValueCombo;
+	private final CardLayout valueLayout = new CardLayout();
+	private final JPanel valuePanel = new JPanel(valueLayout);
+	private final DateField validFromField;
+	private final DateField validToField;
+	private final EntityField placeField;
+	private final BoundComboBox<String> confidenceCombo;
+
+
+	public static IndividualAttributeRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, IndividualAttributeRecordDialog::new);
+	}
+
+	public static IndividualAttributeRecordDialog createEdit(final Window parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createEdit(parent, model, record, IndividualAttributeRecordDialog::new);
+	}
+
+
+	private IndividualAttributeRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, IndividualAttributeHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
+
+		typeCombo = new BoundComboBox<>(IndividualAttributeReader.TAG_TYPE, GUIHelper.fillCombo(IndividualAttributeReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.individual_attribute.type");
+		typeCombo.setEditable(true);
+		valueField = new BoundTextField(IndividualAttributeReader.TAG_VALUE);
+		validFromField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_FROM, this, I18N.t("dialog.valid_from"), model);
+		validToField = DateField.createWithWrapperTag(IndividualAttributeReader.TAG_VALID_TO, this, I18N.t("dialog.valid_to"), model);
+		placeField = EntityField.createForStructureWithReference(IndividualAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		confidenceCombo = new BoundComboBox<>(IndividualAttributeReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, this.record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, IndividualAttributeReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.NOTE, IndividualAttributeReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, IndividualAttributeReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, IndividualAttributeReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(valueField);
+
+		sexValueCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, null)));
+		sexValueCombo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				return super.getListCellRendererComponent(list, (value != null? I18N.t("enum.individual.sex." + value): StringUtils.EMPTY),
+					index, isSelected, cellHasFocus);
+			}
+		});
+		valuePanel.add(valueField, CARD_TEXT);
+		valuePanel.add(sexValueCombo, CARD_SEX);
+		//the combo is the view of the value field, that is the one bound to the record
+		sexValueCombo.addActionListener(e -> {
+			if(isSexType())
+				valueField.setText((String)sexValueCombo.getSelectedItem());
+		});
+		typeCombo.addActionListener(e -> showValueComponent());
+		typeCombo.addItemListener(e -> showValueComponent());
+		components.bind(confidenceCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	private boolean isSexType(){
+		return IndividualAttributeReader.ENUM_TYPE_SEX.equals(typeCombo.getText());
+	}
+
+	/** Shows the combo of the sexes in place of the text field of the value when the type is sex. */
+	private void showValueComponent(){
+		if(isSexType()){
+			final String value = StringUtils.lowerCase(StringUtils.trim(valueField.getText()));
+			sexValueCombo.setSelectedItem(Arrays.asList(IndividualReader.SEXES).contains(value)? value: null);
+			valueLayout.show(valuePanel, CARD_SEX);
+		}
+		else
+			valueLayout.show(valuePanel, CARD_TEXT);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// individual
+		//parentEntity
+
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.individual_attribute.type"), typeCombo);
+
+		// value
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.individual_attribute.value"), valuePanel);
+
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
+		validityPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.validity.range")));
+		// valid from
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_from"), validFromField);
+		// valid to
+		GUIHelper.addLabeledComponent(validityPanel, I18N.l("dialog.valid_to"), validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
+
+		// place
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place"), placeField);
+
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.individual_attribute.confidence"), confidenceCombo);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	public void link(final LinkRole role, final FLEFRecord owner){
+		//the individual may be a new one, that is not in the model yet
+		if(role == LinkRole.OWNER && IndividualHandler.isOfType(owner)){
+			withParentEntity(owner);
+			refreshLayout();
+		}
+	}
+
+	public IndividualAttributeRecordDialog withIndividual(final String individualId){
+		if(StringUtils.isNotEmpty(individualId)){
+			if(!confirmRecordExistsForType(individualId, IndividualHandler.getInstance().getLabel()))
+				return this;
+
+			final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
+			withParentEntity(temporary);
+			refreshLayout();
+		}
+
+		return this;
+	}
+
+	private void refreshLayout(){
+		if(isShowing()){
+			revalidate();
+			repaint();
+
+			pack();
+		}
+	}
+
+
+	@Override
+	protected void loadData(){
+		// load parent individual reference
+		final String individualId = FLEFRecordHelper.getChildValue(record, IndividualAttributeReader.TAG_INDIVIDUAL);
+		if(StringUtils.isNotEmpty(individualId)){
+			final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
+			withParentEntity(temporary);
+		}
+
+
+		validFromField.load(record);
+		validToField.load(record);
+		placeField.load(record);
+
+		components.load(record);
+		showValueComponent();
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected boolean validData(){
+		if(parentEntity.isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				I18N.tf("validation.required", I18N.t("validation.required_parent_field")),
+				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+			return false;
+		}
+
+		if(!typeCombo.isValued()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.individual_attribute.type")),
+				tabbedPane, propertiesPanel, typeCombo);
+
+			return false;
+		}
+
+		if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(typeCombo.getText())
+				&& !Arrays.asList(IndividualReader.SEXES).contains(StringUtils.lowerCase(StringUtils.trim(valueField.getText())))){
+			GUIHelper.showValidationErrorAndFocus(this, I18N.tf("validation.sex_value", String.join(", ", IndividualReader.SEXES)),
+				tabbedPane, propertiesPanel, sexValueCombo);
+
+			return false;
+		}
+
+		if(isSexType()){
+			//two biological parents of the same child must be of different sexes (a marriage or a civil union has no such constraint)
+			final String value = StringUtils.lowerCase(StringUtils.trim(valueField.getText()));
+			final CoParentSex.Clash clash = CoParentSex.findClashingCoParent(parentEntity.getText(), SexType.fromRaw(value), model);
+			if(clash != null){
+				final String coParent = IndividualLabel.of(model, clash.coParentId());
+				final String sexLabel = I18N.t("enum.individual.sex." + value);
+				//a plain child link does not say whether the parentage is biological: only a warning
+				if(clash.certain()){
+					GUIHelper.showValidationErrorAndFocus(this, I18N.tf("validation.sex_coparent_clash", coParent, sexLabel),
+						tabbedPane, propertiesPanel, sexValueCombo);
+
+					return false;
+				}
+
+				if(JOptionPane.showConfirmDialog(this, I18N.tf("validation.sex_coparent_warning", coParent, sexLabel),
+						I18N.t("validation.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION){
+					tabbedPane.setSelectedComponent(propertiesPanel);
+					sexValueCombo.requestFocusInWindow();
+
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		record.getChildren()
+			.removeIf(child -> IndividualAttributeReader.TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
+		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
+
+
+		validFromField.save(record);
+		validToField.save(record);
+		placeField.saveReferences(record);
+
+		components.save(record);
+	}
+
+
+	static void main(final String[] args) throws IOException{
+		GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, "/tests/test.flef", "IA1");
+	}
+
+}

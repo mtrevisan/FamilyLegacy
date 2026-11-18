@@ -1,0 +1,134 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+
+
+/**
+ * Handler for INDIVIDUAL ATTRIBUTE records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // A characteristic, condition, status, classification, or descriptive property attributed to an individual. Attributes may be directly recorded
+ * // in sources, derived from evidence, inferred from research, or reported through oral tradition.
+ * // Individual attributes describe enduring or observable characteristics of a person rather than discrete events. Events such as birth,
+ * // marriage, military service, education, immigration, or death SHOULD normally be represented using EVENT records.
+ * record IndividualAttributeRecord {
+ *   individual: Xref&lt;IndividualRecord&gt;   // The individual to whom this attribute applies.
+ *   type: enum {                         // The type of attribute being asserted.
+ *     sex,               // Biological sex as recorded in sources or inferred from evidence. Single-valued: see Preferred assertion. VALUE is male, female, or unknown.
+ *     characteristic,    // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
+ *     residence,         // Place where the individual is known to have lived, resided, or maintained a household.
+ *     occupation,        // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
+ *     possession,        // Property, assets, land, livestock, tools, money, or other possessions associated with the individual.
+ *     military_rank,     // Military rank or grade held by the individual (e.g. "captain", "sergeant", "colonel").
+ *     caste,             // Social, hereditary, religious, or legal caste classification associated with the individual.
+ *     social_class,      // Social, economic, or societal classification associated with the individual (e.g. "nobility", "bourgeoisie", "peasant").
+ *     ethnicity,         // Ethnic, tribal, cultural, or ancestral identity.
+ *     citizenship,       // Citizenship, nationality, or legal political allegiance.
+ *     nationality,       // National identity, ethnic-national affiliation, or nationality associated with the individual. Unlike CITIZENSHIP, nationality may reflect cultural or historical identity rather than legal status.
+ *     national_id,       // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
+ *     title,             // Noble, honorific, professional, hereditary, religious, or administrative title associated with the individual (e.g. "Count", "Doctor", "Bishop", "Sir").
+ *     children_count,    // Reported number of children associated with the individual.
+ *     marriages_count,   // Reported number of marriages associated with the individual.
+ *     religion,          // Religion, denomination, faith, or spiritual affiliation.
+ *     language,          // Language spoken, written, understood, or otherwise associated with the individual.
+ *     literacy,          // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
+ *     education,         // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+ *     apprenticeship     // Apprenticeship, trainee status, or participation in a master-apprentice relationship over a period of time.
+ *   } | Text
+ *   value?: Text                         // The value of the attribute.
+ *   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.
+ *   valid_to?: DateStructure             // The date until which this attribute is known or believed to have been valid.
+ *   place?: PlaceCitation                // Place specifically associated with this attribute.
+ *   source*: SourceCitation              // Sources supporting this attribute.
+ *   note*: NoteStructure
+ *   evidence?: EvidenceQualifiers        // Evidentiary assessment of this assertion.
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ */
+public final class IndividualAttributeReader{
+
+	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
+	public static final String ID_PREFIX = "IA";
+
+	public static final String TAG_INDIVIDUAL = "individual";
+	public static final String TAG_TYPE = "type";
+	public static final String TAG_VALUE = "value";
+	public static final String TAG_VALID_FROM = "valid_from";
+	public static final String TAG_VALID_TO = "valid_to";
+	public static final String TAG_PLACE = "place";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_CONFIDENCE = "confidence";
+	public static final String TAG_PRIVACY = "privacy";
+	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_TYPE_SEX = "sex";
+	public static final String ENUM_TYPE_CHARACTERISTIC = "characteristic";
+	public static final String ENUM_TYPE_RESIDENCE = "residence";
+	public static final String ENUM_TYPE_OCCUPATION = "occupation";
+	/** The words that make an occupation that of a member of the clergy (a hint, matched case-insensitively inside the occupation). */
+	public static final String[] CLERGY_OCCUPATIONS = {"priest", "vicar", "curate", "rector", "chaplain", "prete", "parroco", "pievano",
+		"curato", "cappellano", "sacerdote", "vicario"};
+	public static final String ENUM_TYPE_TITLE = "title";
+	public static final String ENUM_TYPE_POSSESSION = "possession";
+	public static final String ENUM_TYPE_MILITARY_RANK = "military_rank";
+	public static final String ENUM_TYPE_CASTE = "caste";
+	public static final String ENUM_TYPE_SOCIAL_CLASS = "social_class";
+	public static final String ENUM_TYPE_ETHNICITY = "ethnicity";
+	public static final String ENUM_TYPE_CITIZENSHIP = "citizenship";
+	public static final String ENUM_TYPE_NATIONALITY = "nationality";
+	public static final String ENUM_TYPE_NATIONAL_ID = "national_id";
+	public static final String ENUM_TYPE_CHILDREN_COUNT = "children_count";
+	public static final String ENUM_TYPE_MARRIAGES_COUNT = "marriages_count";
+	public static final String ENUM_TYPE_RELIGION = "religion";
+	public static final String ENUM_TYPE_LANGUAGE = "language";
+	public static final String ENUM_TYPE_LITERACY = "literacy";
+	public static final String ENUM_TYPE_EDUCATION = "education";
+	public static final String ENUM_TYPE_APPRENTICESHIP = "apprenticeship";
+	/** The values of a literacy attribute. */
+	public static final String ENUM_LITERACY_LITERATE = "literate";
+	public static final String ENUM_LITERACY_ILLITERATE = "illiterate";
+	public static final String[] TYPES = new String[]{
+		ENUM_TYPE_SEX, ENUM_TYPE_CHARACTERISTIC, ENUM_TYPE_RESIDENCE, ENUM_TYPE_OCCUPATION, ENUM_TYPE_POSSESSION, ENUM_TYPE_MILITARY_RANK, ENUM_TYPE_CASTE,
+		ENUM_TYPE_SOCIAL_CLASS, ENUM_TYPE_ETHNICITY, ENUM_TYPE_CITIZENSHIP, ENUM_TYPE_NATIONALITY, ENUM_TYPE_NATIONAL_ID, ENUM_TYPE_TITLE, ENUM_TYPE_CHILDREN_COUNT,
+		ENUM_TYPE_MARRIAGES_COUNT, ENUM_TYPE_RELIGION, ENUM_TYPE_LANGUAGE, ENUM_TYPE_LITERACY, ENUM_TYPE_EDUCATION, ENUM_TYPE_APPRENTICESHIP
+	};
+
+
+	private IndividualAttributeReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+
+
+}

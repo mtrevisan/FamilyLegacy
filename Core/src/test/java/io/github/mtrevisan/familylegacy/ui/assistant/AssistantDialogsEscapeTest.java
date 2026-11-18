@@ -1,0 +1,207 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.assistant;
+
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.jxmapviewer.JXMapViewer;
+import org.jxmapviewer.viewer.GeoPosition;
+
+import javax.swing.Action;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
+
+
+/** The dialogs of the assistants close with ESC, and only themselves, over the dialog they were opened from. */
+class AssistantDialogsEscapeTest{
+
+	private static final String GEDCOM = """
+		0 HEAD
+		1 CHAR UTF-8
+		0 @I1@ INDI
+		1 NAME Anna /Rossi/
+		1 SEX F
+		1 BIRT
+		2 DATE 1 JAN 1850
+		0 @I2@ INDI
+		1 NAME Bruno /Rossi/
+		1 SEX M
+		""";
+
+
+	private static FLEFModel convert() throws IOException{
+		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(GEDCOM));
+		return new GEDCOMToFLEFConverter().convert(roots);
+	}
+
+	/** What pressing ESC does in a dialog: the action its root pane binds to the key, wherever the focus is in the window. */
+	private static void pressEscape(final JDialog dialog){
+		final Object binding = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).get(GUIHelper.ESCAPE_STROKE);
+		Assertions.assertNotNull(binding, "ESC is not bound in " + dialog.getClass().getSimpleName());
+		final Action action = dialog.getRootPane().getActionMap().get(binding);
+		Assertions.assertNotNull(action);
+		action.actionPerformed(new ActionEvent(dialog, ActionEvent.ACTION_PERFORMED, "escape"));
+	}
+
+
+	@Test
+	void theHistoricalDateAssistantClosesOverTheEditorOfTheDate() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final JDialog editor = DateStructureDialog.createNew(null, model, "Date");
+
+		final HistoricalDateAssistantDialog assistant = new HistoricalDateAssistantDialog(editor,
+			HistoricalDateAssistantDialog.Tool.CONVERSION, "gregorian", "12 January 1400", model, suggestion -> {});
+		pressEscape(assistant);
+
+		Assertions.assertFalse(assistant.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable(), "ESC in the assistant closed the editor of the date");
+		//and then the editor closes with its own ESC
+		pressEscape(editor);
+		Assertions.assertFalse(editor.isDisplayable());
+	}
+
+	@Test
+	void theMapToPickAPlaceClosesOverTheAssistant() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final HistoricalDateAssistantDialog assistant = new HistoricalDateAssistantDialog(null,
+			HistoricalDateAssistantDialog.Tool.SUN, "gregorian", "12 January 1400", model, null);
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(assistant, Double.NaN, null);
+		pressEscape(picker);
+
+		Assertions.assertFalse(picker.isDisplayable());
+		Assertions.assertNull(picker.selectedPosition(), "closing without confirming must choose nothing");
+		Assertions.assertTrue(assistant.isDisplayable(), "ESC in the map closed the assistant below it");
+		assistant.dispose();
+	}
+
+	@Test
+	void theMapToPickAPlaceOpensCenteredOnTheCoordinates(){
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final GeoPosition venice = new GeoPosition(45.44, 12.33);
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(null, 2_000_000., venice);
+		final JXMapViewer viewer = findViewer(picker);
+
+		Assertions.assertEquals(venice.getLatitude(), viewer.getCenterPosition().getLatitude(), 0.01);
+		Assertions.assertEquals(venice.getLongitude(), viewer.getCenterPosition().getLongitude(), 0.01);
+		picker.dispose();
+	}
+
+	private static JXMapViewer findViewer(final java.awt.Container container){
+		for(final java.awt.Component component : container.getComponents()){
+			if(component instanceof JXMapViewer viewer)
+				return viewer;
+			if(component instanceof java.awt.Container child){
+				final JXMapViewer found = findViewer(child);
+				if(found != null)
+					return found;
+			}
+		}
+		return null;
+	}
+
+	@Test
+	void theListOfTheRecordsClosesOverTheEditorOfARecord() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+
+		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
+			(owner, m, record) -> {});
+		pressEscape(chooser);
+
+		Assertions.assertFalse(chooser.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable(), "ESC in the list closed the editor below it");
+	}
+
+	@Test
+	void theListOfWhereUsedClosesOverTheEditorOfARecord() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+
+		final WhereUsedDialog list = new WhereUsedDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE));
+		pressEscape(list);
+
+		Assertions.assertFalse(list.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable(), "ESC in the list closed the editor below it");
+	}
+
+	@Test
+	void thePaletteClosesOverTheEditorItWasOpenedFrom() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+
+		final ResearchAssistantPalette palette = new ResearchAssistantPalette(new ResearchAssistantService(),
+			new AssistantContext(editor, null, model));
+		pressEscape(palette);
+
+		Assertions.assertFalse(palette.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable(), "ESC in the palette closed the editor below it");
+	}
+
+	@Test
+	void theChainOfTheAssistantsClosesOneAtATime() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		//an editor, the list of the records opened from the palette, the editor of one of them
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
+			(owner, m, record) -> {});
+		final JDialog opened = (JDialog)HandlerRegistry.getHandler("INDIVIDUAL").createEditDialog(chooser, model,
+			model.getRecordsByType(IndividualReader.TYPE).getFirst()).window();
+
+		pressEscape(opened);
+		Assertions.assertFalse(opened.isDisplayable());
+		Assertions.assertTrue(chooser.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable());
+
+		pressEscape(chooser);
+		Assertions.assertFalse(chooser.isDisplayable());
+		Assertions.assertTrue(editor.isDisplayable());
+	}
+
+}

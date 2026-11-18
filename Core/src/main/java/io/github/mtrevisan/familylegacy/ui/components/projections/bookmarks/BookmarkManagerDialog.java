@@ -1,0 +1,195 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Window;
+import java.util.List;
+import java.util.function.Supplier;
+
+
+/**
+ * Modal dialog that lets the user rename or delete saved bookmarks.
+ */
+public final class BookmarkManagerDialog extends JDialog{
+
+	private final BookmarkStore store;
+	private final Supplier<FLEFModel> modelSupplier;
+	private final Supplier<String> filePathSupplier;
+	private final DefaultListModel<Bookmark> model = new DefaultListModel<>();
+	private final JList<Bookmark> list = new JList<>(model);
+
+
+	public BookmarkManagerDialog(final Window owner, final BookmarkStore store, final Supplier<FLEFModel> modelSupplier,
+			final Supplier<String> filePathSupplier){
+		super(owner, I18N.t("dialog.bookmarks.title"), ModalityType.APPLICATION_MODAL);
+
+		GUIHelper.installEscapeToClose(this);
+
+		this.store = store;
+		this.modelSupplier = modelSupplier;
+		this.filePathSupplier = filePathSupplier;
+
+		buildUI();
+		reload();
+
+		setSize(480, 360);
+		setLocationRelativeTo(owner);
+	}
+
+
+	private void buildUI(){
+		setLayout(new BorderLayout());
+
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setCellRenderer((l, value, index, isSelected, cellHasFocus) -> {
+			final JPanel row = new JPanel(new MigLayout("ins 4,gapx 8,fillx", "[grow][right]", "[]0[]"));
+			row.setOpaque(true);
+			row.setBackground(isSelected? l.getSelectionBackground(): l.getBackground());
+
+			final JLabel title = new JLabel(value.name());
+			title.setFont(l.getFont().deriveFont(Font.BOLD));
+			title.setForeground(isSelected? l.getSelectionForeground(): l.getForeground());
+
+			final JLabel subtitle = new JLabel(value.type().displayName() + " — " + value.rootLabel(modelSupplier.get()));
+			subtitle.setFont(l.getFont().deriveFont(Font.PLAIN, l.getFont().getSize() - 1f));
+			subtitle.setForeground(isSelected? l.getSelectionForeground(): Color.GRAY);
+
+			row.add(title, "growx,wrap");
+			row.add(subtitle, "growx");
+			return row;
+		});
+
+		final JScrollPane scroll = new JScrollPane(list);
+		add(scroll, BorderLayout.CENTER);
+
+		final JPanel buttons = new JPanel(new MigLayout("ins 6,gapx 6", "[]8[]8[grow,fill][]8[]", "[]"));
+		final JButton rename = new JButton(I18N.t("button.rename"));
+		final JButton delete = new JButton(I18N.t("button.delete"));
+
+		rename.addActionListener(e -> onRename());
+		delete.addActionListener(e -> onDelete());
+
+		//the buttons act on the selected bookmark: disabled when nothing is selected (including an empty list)
+		final Runnable updateButtons = () -> {
+			final boolean selected = (list.getSelectedValue() != null);
+			rename.setEnabled(selected);
+			delete.setEnabled(selected);
+		};
+		list.addListSelectionListener(e -> updateButtons.run());
+		model.addListDataListener(new ListDataListener(){
+			@Override
+			public void intervalAdded(final ListDataEvent e){
+				updateButtons.run();
+			}
+
+			@Override
+			public void intervalRemoved(final ListDataEvent e){
+				updateButtons.run();
+			}
+
+			@Override
+			public void contentsChanged(final ListDataEvent e){
+				updateButtons.run();
+			}
+		});
+		updateButtons.run();
+
+		buttons.add(rename);
+		buttons.add(delete);
+		buttons.add(new JPanel(), "growx");
+
+		add(buttons, BorderLayout.SOUTH);
+	}
+
+
+	private void reload(){
+		model.clear();
+		//the bookmarks of the records hidden by the privacy policy are not listed
+		final List<Bookmark> all = store.visible(modelSupplier.get(), filePathSupplier.get());
+		for(final Bookmark b : all)
+			model.addElement(b);
+	}
+
+	private void onRename(){
+		final Bookmark selected = list.getSelectedValue();
+		if(selected == null)
+			return;
+
+		final String newName = JOptionPane.showInputDialog(this, I18N.l("dialog.bookmark.rename.prompt"), selected.name());
+		if(StringUtils.isBlank(newName))
+			return;
+
+		final String trimmed = newName.trim();
+		final boolean taken = store.visible(modelSupplier.get(), filePathSupplier.get()).stream()
+			.anyMatch(other -> !other.id().equals(selected.id()) && other.name().equalsIgnoreCase(trimmed));
+		if(taken){
+			JOptionPane.showMessageDialog(this, I18N.tf("dialog.bookmark.duplicate.message", trimmed),
+				I18N.t("dialog.bookmark.replace.title"), JOptionPane.INFORMATION_MESSAGE);
+
+			return;
+		}
+
+		store.rename(selected.id(), trimmed);
+		reload();
+	}
+
+	private void onDelete(){
+		final Bookmark selected = list.getSelectedValue();
+		if(selected == null)
+			return;
+
+		final int confirm = JOptionPane.showConfirmDialog(this,
+			I18N.tf("confirmation.delete.bookmark.message", selected.name()),
+			I18N.t("confirmation.delete.bookmark.title"),
+			JOptionPane.YES_NO_OPTION,
+			JOptionPane.WARNING_MESSAGE);
+		if(confirm != JOptionPane.YES_OPTION)
+			return;
+
+		store.remove(selected.id());
+		reload();
+	}
+
+}

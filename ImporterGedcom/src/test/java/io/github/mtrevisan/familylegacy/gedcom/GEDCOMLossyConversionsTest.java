@@ -1,0 +1,904 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.gedcom;
+
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+
+/** Conversions that used to lose information: NOTE sources, CHAN, PLAC.FORM, custom tags, custom names, SLGC, ages, evidence. */
+class GEDCOMLossyConversionsTest{
+
+	private static final String NO_SOURCE_LINES = "";
+
+	private static final String EVIDENCE_TYPE = FLEFRecordHelper.composePath(SourceCitationReader.TAG_EVIDENCE,
+		EvidenceQualifiersReader.TAG_EVIDENCE_TYPE);
+	private static final String EVIDENCE_INFORMATION_TYPE = FLEFRecordHelper.composePath(SourceCitationReader.TAG_EVIDENCE,
+		EvidenceQualifiersReader.TAG_INFORMATION_TYPE);
+	private static final String EVENT_CITATION_SOURCE = FLEFRecordHelper.composePath(EventReader.TAG_SOURCE, SourceCitationReader.TAG_SOURCE);
+	private static final String EVENT_DATE_POINT = FLEFRecordHelper.composePath(EventReader.TAG_DATE, DateReader.TAG_VALUE_POINT,
+		DateReader.TAG_VALUE, DateReader.TAG_FULL_DATE);
+	private static final String PARTICIPATION_NOTE_TEXT = FLEFRecordHelper.composePath(EventParticipationReader.TAG_NOTE, NoteReader.TAG_TEXT);
+
+
+	private static FLEFModel convert(final String body) throws IOException{
+		return convert(body, "");
+	}
+
+	/** @param headerLines	The lines of the header (level 1 and below). */
+	private static FLEFModel convert(final String body, final String headerLines) throws IOException{
+		final String gedcom = "0 HEAD\n1 CHAR UTF-8\n" + headerLines + body + "0 TRLR\n";
+		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader(gedcom));
+		return new GEDCOMToFLEFConverter().convert(roots);
+	}
+
+	@Test
+	void repositoriesWithTheSameNameAreOneRepository() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME State Archive
+			0 @R2@ REPO
+			1 NAME  state   ARCHIVE
+			1 PHON 123
+			0 @R3@ REPO
+			1 NAME Other Archive
+			0 @S1@ SOUR
+			1 TITL Book
+			1 REPO @R1@
+			1 REPO @R2@
+			0 @S2@ SOUR
+			1 TITL Register
+			1 REPO @R2@
+			""");
+
+		Assertions.assertEquals(2, model.getRecordsByType("REPOSITORY").size());
+		Assertions.assertFalse(model.hasRecord("R2"));
+		final FLEFRecord book = model.getRecordById("S1");
+		Assertions.assertEquals(List.of("R1"), FLEFRecordHelper.findChildren(book, "repository").stream()
+			.map(citation -> FLEFRecordHelper.getChildValue(citation, "repository")).toList());
+		final FLEFRecord register = model.getRecordById("S2");
+		Assertions.assertEquals("R1", FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(register, "repository"), "repository"));
+		Assertions.assertEquals(1, FLEFRecordHelper.findChildren(model.getRecordById("R1"), "contact").size());
+	}
+
+	@Test
+	void contactTypeIsCorrectedFromTheValue() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME Archivio di Stato di Treviso
+			1 PHON as-tv@beniculturali.it
+			1 PHON 0422 1234
+			1 PHON https://www.facebook.com/archivio
+			1 FAX 0422 5678
+			""");
+
+		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(model.getRecordById("R1"), "contact");
+		final List<String> types = contacts.stream().map(contact -> FLEFRecordHelper.getChildValue(contact, "type")).toList();
+		Assertions.assertEquals(List.of("email", "phone", "social", "fax"), types);
+	}
+
+	@Test
+	void placesWrittenInDifferentWaysAreOnePlace() throws IOException{
+		final FLEFModel model = convert("""
+			0 @R1@ REPO
+			1 NAME Archive
+			1 PLAC Treviso,Italia
+			0 @S1@ SOUR
+			1 TITL Book
+			1 DATA
+			2 EVEN BIRT
+			3 PLAC  treviso ,  ITALIA
+			0 @I1@ INDI
+			1 NAME A /B/
+			1 BIRT
+			2 PLAC Treviso, Italia
+			1 DEAT
+			2 PLAC TREVISO,   Italia
+			""");
+
+		final List<String> names = model.getRecordsByType("PLACE").stream()
+			.map(place -> FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(place, "name"), "value")).toList();
+		Assertions.assertEquals(2, names.size(), names.toString());
+		Assertions.assertEquals(1, model.getRecordsByType("PLACE_RELATIONSHIP").size());
+	}
+
+	@Test
+	void placesWithTheSameNameAndCoordinatesAreOnePlace() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME A /B/
+			1 BIRT
+			2 PLAC Canizzano, Treviso, Italia
+			3 MAP
+			4 LATI N45.650556
+			4 LONG E12.213333
+			1 DEAT
+			2 PLAC Canizzano, Treviso, Veneto, Italia
+			3 MAP
+			4 LATI N45.650556
+			4 LONG E12.213333
+			1 BURI
+			2 PLAC Canizzano, Venezia, Italia
+			3 MAP
+			4 LATI N45.7
+			4 LONG E12.2
+			""");
+
+		final List<FLEFRecord> canizzano = model.getRecordsByType("PLACE").stream()
+			.filter(place -> "Canizzano".equals(FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(place, "name"), "value"))).toList();
+		//the third one has other coordinates
+		Assertions.assertEquals(2, canizzano.size());
+		final Set<String> ids = new HashSet<>();
+		for(final FLEFRecord record : model.getRecords())
+			collectPlaceReferences(record, ids);
+		for(final String id : ids)
+			Assertions.assertTrue(model.hasRecord(id), id);
+	}
+
+	private static void collectPlaceReferences(final FLEFRecord node, final Set<String> ids){
+		if("place".equalsIgnoreCase(node.getTag()) && node.getValue() != null)
+			ids.add(node.getValue());
+		for(final FLEFRecord child : node.getChildren())
+			collectPlaceReferences(child, ids);
+	}
+
+	private static FLEFRecord eventOfType(final FLEFModel model, final String type){
+		return eventsOfType(model, type).stream()
+			.findFirst()
+			.orElse(null);
+	}
+
+	private static List<FLEFRecord> eventsOfType(final FLEFModel model, final String type){
+		return model.getRecordsByType(EventReader.TYPE).stream()
+			.filter(event -> type.equals(FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE)))
+			.toList();
+	}
+
+	private static FLEFRecord participation(final FLEFModel model, final FLEFRecord event, final String individualId){
+		return model.getRecordsByType(EventParticipationReader.TYPE).stream()
+			.filter(participation -> event.getId().equals(FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT))
+				&& individualId.equals(FLEFRecordHelper.getChildValue(participation, FLEFRecordHelper.composePath(
+				EventParticipationReader.TAG_PARTICIPANT, EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL))))
+			.findFirst()
+			.orElse(null);
+	}
+
+	private static List<String> placeTypes(final FLEFModel model, final String name){
+		final List<String> types = new ArrayList<>();
+		for(final FLEFRecord place : model.getRecordsByType(PlaceReader.TYPE))
+			if(name.equals(FLEFRecordHelper.getChildValue(place, FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE))))
+				types.add(FLEFRecordHelper.getChildValue(place, PlaceReader.TAG_TYPE));
+		return types;
+	}
+
+
+	//---- 1. NOTE record: SOUR ----
+
+	@Test
+	void sourceCitationsOfANoteRecord() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Register
+			0 @N1@ NOTE Shared note
+			1 SOUR @S1@
+			2 PAGE 5
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 NOTE @N1@
+			""");
+
+		final FLEFRecord note = FLEFRecordHelper.findChild(model.getRecordById("I1"), NoteReader.TAG_NOTE);
+		Assertions.assertEquals("Shared note", FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT));
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(note, FLEFRecordHelper.composePath(NoteReader.TAG_SOURCE,
+			SourceCitationReader.TAG_SOURCE)));
+		Assertions.assertEquals("5", FLEFRecordHelper.getChildValue(note, FLEFRecordHelper.composePath(NoteReader.TAG_SOURCE,
+			SourceCitationReader.TAG_LOCATOR)));
+		//the audit is the last field of the note
+		Assertions.assertEquals(NoteReader.TAG_AUDIT, note.getChildren().getLast().getTag());
+	}
+
+
+	//---- 2. CHAN ----
+
+	@Test
+	void changeWithoutCreationIsTheCreationAndNotAnUpdate() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 CHAN
+			2 DATE 5 MAR 2020
+			3 TIME 10:00:00
+			2 NOTE Edited
+			""");
+
+		final FLEFRecord audit = FLEFRecordHelper.findChild(model.getRecordById("I1"), AuditReader.TAG_AUDIT);
+		Assertions.assertEquals("2020-03-05T10:00:00Z", FLEFRecordHelper.getChildValue(audit, AuditReader.TAG_CREATION_DATE));
+		//a creation is not an update: with no CREA the date of the change is the creation, and there is no update
+		Assertions.assertNull(FLEFRecordHelper.findChild(audit, AuditReader.TAG_UPDATE));
+		Assertions.assertEquals("Edited", FLEFRecordHelper.getChildValue(audit, FLEFRecordHelper.composePath(AuditReader.TAG_CREATION,
+			AuditReader.TAG_COMMENT)));
+	}
+
+
+	@Test
+	void anElementWithoutADateIsAsOldAsItsRecordOrAsTheFile() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			1 CHAN
+			2 DATE 5 MAR 2020
+			3 TIME 10:00:00
+			0 @I2@ INDI
+			1 NAME Luigi /Rossi/
+			1 DEAT
+			2 DATE 1950
+			""", """
+			1 DATE 1 JAN 2021
+			2 TIME 08:30:00
+			""");
+
+		//the birth has no change of its own: it takes the one of its individual
+		Assertions.assertEquals("2020-03-05T10:00:00Z", creationOfEvent(model, EventReader.ENUM_TYPE_BIRTH));
+		//the individual has none, neither: the one of the file
+		Assertions.assertEquals("2021-01-01T08:30:00Z", creationOfEvent(model, EventReader.ENUM_TYPE_DEATH));
+	}
+
+	private static String creationOfEvent(final FLEFModel model, final String type){
+		return FLEFRecordHelper.getChildValue(eventOfType(model, type), FLEFRecordHelper.composePath(AuditReader.TAG_AUDIT,
+			AuditReader.TAG_CREATION, AuditReader.TAG_DATE));
+	}
+
+
+	//---- 3. PLAC.FORM ----
+
+	@Test
+	void placeLevelsAreTypedByTheForm() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Treviso, Treviso, Veneto, Italia
+			3 FORM City, County, State, Country
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Padova, Pd
+			3 FORM Locality, Region
+			""");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_PROVINCE), placeTypes(model, "Veneto"));
+		Assertions.assertTrue(placeTypes(model, "Treviso").containsAll(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY)));
+		//an unknown level stays untyped
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_REGION), placeTypes(model, "Pd"));
+		Assertions.assertEquals(1, placeTypes(model, "Padova").size());
+		Assertions.assertNull(placeTypes(model, "Padova").getFirst());
+	}
+
+	@Test
+	void headerFormIsTheDefaultOne() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Treviso, Italia
+			""", "1 PLAC\n2 FORM City, Country\n");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY), placeTypes(model, "Treviso"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+	}
+
+
+	@Test
+	void aNameShorterThanTheFormStillEndsWithTheCountry() throws IOException{
+		//a tool that leaves out the levels it does not know: "Sarmede, Treviso, Italia" for "City, County, State, Country"
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC France
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Bordeaux, Gironde, France
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "France"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY), placeTypes(model, "Bordeaux"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Gironde"));
+	}
+
+	@Test
+	void aNameLongerThanTheFormCountsTheLevelsFromTheCountry() throws IOException{
+		//the hamlet before the city is a level the form does not name: the city of Sacile in the district of Sacile stays a city,
+		//and the district a county, whichever of the two names comes first
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Cavolano, Sacile, Sacile, Pordenone, Italia
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(1, placeTypes(model, "Cavolano").size());
+		Assertions.assertNull(placeTypes(model, "Cavolano").getFirst());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Sacile").stream()
+			.sorted()
+			.toList());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_PROVINCE), placeTypes(model, "Pordenone"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+	}
+
+	@Test
+	void aCityIsNotTheDistrictWithItsName() throws IOException{
+		//the same city written in two eras: in the province, and in the district of the same name in the province; the city of
+		//the shorter name is not the district of the longer one, and the province, whose level the shorter name does not tell,
+		//stays one place with the type of the longer name
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Sacile, Pordenone, Italia
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY),
+			placeTypes(model, "Sacile").stream()
+				.sorted()
+				.toList());
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_PROVINCE), placeTypes(model, "Pordenone"));
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_COUNTRY), placeTypes(model, "Italia"));
+
+		//the city of the birth is in the province, the city of the death in the district
+		final String birthPlace = eventPlace(model, "birth");
+		final String deathPlace = eventPlace(model, "death");
+		Assertions.assertNotEquals(birthPlace, deathPlace);
+		Assertions.assertEquals(List.of("Pordenone"), containerNames(model, birthPlace));
+		Assertions.assertEquals(List.of("Sacile"), containerNames(model, deathPlace));
+	}
+
+	@Test
+	void theSameCityWithTheSameCoordinatesIsOnePlaceInBothJurisdictions() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 PLAC Sacile, Pordenone, Italia
+			3 MAP
+			4 LATI N45.95
+			4 LONG E12.5
+			1 DEAT
+			2 DATE 1980
+			2 PLAC Sacile, Sacile, Pordenone, Italia
+			3 MAP
+			4 LATI N45.95
+			4 LONG E12.5
+			""", "1 PLAC\n2 FORM City, County, State, Country\n");
+
+		//the city, and the district
+		Assertions.assertEquals(List.of(PlaceReader.ENUM_TYPE_CITY, PlaceReader.ENUM_TYPE_COUNTY), placeTypes(model, "Sacile").stream()
+			.sorted()
+			.toList());
+		final String city = eventPlace(model, "birth");
+		Assertions.assertEquals(city, eventPlace(model, "death"));
+		Assertions.assertEquals(List.of("Pordenone", "Sacile"), containerNames(model, city).stream()
+			.sorted()
+			.toList());
+	}
+
+	private static String eventPlace(final FLEFModel model, final String type){
+		return FLEFRecordHelper.getChildValue(eventOfType(model, type), FLEFRecordHelper.composePath(EventReader.TAG_PLACE,
+			PlaceCitationReader.TAG_PLACE));
+	}
+
+	private static List<String> containerNames(final FLEFModel model, final String placeId){
+		final List<String> names = new ArrayList<>();
+		for(final FLEFRecord relationship : model.getRecordsByType(PlaceRelationshipReader.TYPE))
+			if(placeId.equals(FLEFRecordHelper.getChildValue(relationship, FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_SUBJECT,
+					PlaceReader.TYPE))))
+				names.add(FLEFRecordHelper.getChildValue(model.getRecordById(FLEFRecordHelper.getChildValue(relationship,
+					FLEFRecordHelper.composePath(PlaceRelationshipReader.TAG_TARGET, PlaceReader.TYPE))),
+					FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+		return names;
+	}
+
+
+	//---- 4. custom tags of individuals and families ----
+
+	@Test
+	void todoBecomesAResearchTask() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 _TODO Find the baptism record
+			0 @I2@ INDI
+			1 NAME Bruno /Verdi/
+			0 @F1@ FAM
+			1 HUSB @I2@
+			1 _TODO
+			2 DESC Check the will
+			""");
+
+		final List<FLEFRecord> tasks = model.getRecordsByType(ResearchTaskReader.TYPE);
+		Assertions.assertEquals(List.of("Check the will", "Find the baptism record"), tasks.stream()
+			.map(task -> FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_DESCRIPTION))
+			.sorted()
+			.toList());
+		Assertions.assertTrue(tasks.stream()
+			.allMatch(task -> ResearchTaskReader.ENUM_STATUS_OPEN.equals(FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_STATUS))));
+
+		// each task is linked to a question that targets the individual or the family the to-do belongs to
+		final FLEFRecord individualTask = tasks.stream()
+			.filter(task -> "Find the baptism record".equals(FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_DESCRIPTION)))
+			.findFirst().orElseThrow();
+		final FLEFRecord individualQuestion = model.getRecordById(FLEFRecordHelper.getChildValue(individualTask, ResearchTaskReader.TAG_QUESTION));
+		Assertions.assertTrue(IndividualReader.isOfType(model.getRecordById(FLEFRecordHelper.getChildValue(individualQuestion,
+			FLEFRecordHelper.composePath(ResearchQuestionReader.TAG_TARGET, AgentReader.TAG_INDIVIDUAL)))));
+		final FLEFRecord groupTask = tasks.stream()
+			.filter(task -> "Check the will".equals(FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_DESCRIPTION)))
+			.findFirst().orElseThrow();
+		final FLEFRecord groupQuestion = model.getRecordById(FLEFRecordHelper.getChildValue(groupTask, ResearchTaskReader.TAG_QUESTION));
+		Assertions.assertTrue(GroupReader.isOfType(model.getRecordById(FLEFRecordHelper.getChildValue(groupQuestion,
+			FLEFRecordHelper.composePath(ResearchQuestionReader.TAG_TARGET, AgentReader.TAG_GROUP)))));
+	}
+
+	@Test
+	void customTagsWithDataBecomeEvents() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 _MILT
+			2 DATE 1915
+			2 PLAC Roma
+			1 _UID 1234
+			1 _FLAG Y
+			1 _CRE
+			2 DATE 1 JAN 2020
+			""");
+
+		final FLEFRecord military = eventOfType(model, "milt");
+		Assertions.assertNotNull(military);
+		Assertions.assertEquals("1915", FLEFRecordHelper.getChildValue(military, EVENT_DATE_POINT));
+		Assertions.assertNotNull(participation(model, military, "I1"));
+		//the tags without data stay skipped
+		Assertions.assertEquals(1, model.getRecordsByType(EventReader.TYPE).size());
+	}
+
+
+	//---- 5. custom names ----
+
+	@Test
+	void customNames() throws IOException{
+		final FLEFRecord individual = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 _MARNM Anna /Bianchi/
+			1 _AKA Annie /Rossi/
+			""").getRecordById("I1");
+
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_NAME);
+		final FLEFRecord married = names.stream()
+			.filter(name -> NameReader.ENUM_PERSONAL_TYPE_MARRIED.equals(FLEFRecordHelper.getChildValue(name, NameReader.TAG_TYPE)))
+			.findFirst()
+			.orElseThrow();
+		Assertions.assertEquals(List.of("Anna", "Bianchi"), FLEFRecordHelper.findChildren(married, NameReader.TAG_PART).stream()
+			.map(part -> FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE))
+			.toList());
+		final FLEFRecord alias = names.stream()
+			.filter(name -> NameReader.ENUM_PERSONAL_TYPE_ALIAS.equals(FLEFRecordHelper.getChildValue(name, NameReader.TAG_TYPE)))
+			.findFirst()
+			.orElseThrow();
+		Assertions.assertEquals("Annie", FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChildren(alias, NameReader.TAG_PART).get(0),
+			NameReader.TAG_PART_VALUE));
+	}
+
+
+	//---- 6. SLGC.FAMC ----
+
+	@Test
+	void sealingToAFamilyLinksTheGroup() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 SLGC
+			2 DATE 1 JAN 1950
+			2 FAMC @F1@
+			0 @F1@ FAM
+			1 CHIL @I1@
+			""");
+
+		final FLEFRecord sealing = eventOfType(model, GEDCOMMapper.mapEvent(GEDCOMMapper.TAG_SEALING_CHILD, GEDCOMMapper.TAG_SEALING_CHILD));
+		Assertions.assertNotNull(sealing);
+		//the FAM becomes a group: the link points to the id the group got
+		final String groupId = model.getRecordsByType(GroupReader.TYPE).get(0).getId();
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(sealing, EventReader.TAG_NOTE).stream()
+			.anyMatch(note -> FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT).contains(GEDCOMMapper.FLEF_LINK_PREFIX + groupId)));
+	}
+
+
+	//---- age at an event: calculated birth ----
+
+	private static final String CENSUS_WITH_AGE = """
+		0 @S1@ SOUR
+		1 TITL Census book
+		0 @I1@ INDI
+		1 NAME Anna /Rossi/
+		1 CENS
+		2 DATE 1850
+		2 AGE %s
+		2 SOUR @S1@
+		3 PAGE 7
+		""";
+
+	@Test
+	void ageBecomesACalculatedBirth() throws IOException{
+		final FLEFModel model = convert(CENSUS_WITH_AGE.formatted("25y"));
+
+		final FLEFRecord birth = eventOfType(model, EventReader.ENUM_TYPE_BIRTH);
+		Assertions.assertEquals("1825", FLEFRecordHelper.getChildValue(birth, EVENT_DATE_POINT));
+		Assertions.assertEquals(DateReader.ENUM_BASIS_CALCULATED, FLEFRecordHelper.getChildValue(birth, FLEFRecordHelper.composePath(
+			EventReader.TAG_DATE, DateReader.TAG_VALUE_POINT, DateReader.TAG_APPROXIMATE, DateReader.TAG_BASIS)));
+		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, FLEFRecordHelper.getChildValue(birth, EventReader.TAG_CONFIDENCE));
+		//the sources are those of the census, as indirect evidence
+		Assertions.assertEquals("S1", FLEFRecordHelper.getChildValue(birth, EVENT_CITATION_SOURCE));
+		Assertions.assertEquals("7", FLEFRecordHelper.getChildValue(birth, FLEFRecordHelper.composePath(EventReader.TAG_SOURCE,
+			SourceCitationReader.TAG_LOCATOR)));
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT, FLEFRecordHelper.getChildValue(
+			FLEFRecordHelper.findChild(birth, EventReader.TAG_SOURCE), EVIDENCE_TYPE));
+		final FLEFRecord birthParticipation = participation(model, birth, "I1");
+		Assertions.assertNotNull(birthParticipation);
+		Assertions.assertEquals(EventParticipationReader.ENUM_ROLE_PRINCIPAL, FLEFRecordHelper.getChildValue(birthParticipation,
+			EventParticipationReader.TAG_ROLE));
+
+		//the note of the census participation says that the age was converted
+		final String note = FLEFRecordHelper.getChildValue(participation(model, eventOfType(model, "census"), "I1"), PARTICIPATION_NOTE_TEXT);
+		Assertions.assertTrue(note.startsWith("25y") && note.contains(birth.getId()));
+	}
+
+	@Test
+	void lessThanAgeIsALowerBound() throws IOException{
+		final FLEFModel model = convert(CENSUS_WITH_AGE.formatted("< 8y"));
+
+		final FLEFRecord birth = eventOfType(model, EventReader.ENUM_TYPE_BIRTH);
+		Assertions.assertEquals("1842", FLEFRecordHelper.getChildValue(birth, FLEFRecordHelper.composePath(EventReader.TAG_DATE,
+			DateReader.TAG_VALUE_BOUNDED_NOT_BEFORE, DateReader.TAG_VALUE, DateReader.TAG_FULL_DATE)));
+		Assertions.assertNull(FLEFRecordHelper.findChild(birth, FLEFRecordHelper.composePath(EventReader.TAG_DATE, DateReader.TAG_VALUE_POINT)));
+	}
+
+	@Test
+	void childAgeStaysANote() throws IOException{
+		final FLEFModel model = convert(CENSUS_WITH_AGE.formatted("CHILD"));
+
+		Assertions.assertTrue(eventsOfType(model, EventReader.ENUM_TYPE_BIRTH).isEmpty());
+		Assertions.assertEquals("CHILD", FLEFRecordHelper.getChildValue(participation(model, eventOfType(model, "census"), "I1"),
+			PARTICIPATION_NOTE_TEXT));
+	}
+
+	@Test
+	void ageOfAnIndividualWithADatedBirthStaysANote() throws IOException{
+		final FLEFModel model = convert(CENSUS_WITH_AGE.formatted("25y") + "1 BIRT\n2 DATE 12 MAR 1826\n");
+
+		Assertions.assertEquals(1, eventsOfType(model, EventReader.ENUM_TYPE_BIRTH).size());
+		Assertions.assertEquals("25y", FLEFRecordHelper.getChildValue(participation(model, eventOfType(model, "census"), "I1"),
+			PARTICIPATION_NOTE_TEXT));
+	}
+
+	@Test
+	void ageWithoutSourceLinksTheEvent() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 CENS
+			2 DATE 1850
+			2 AGE 25y
+			""");
+
+		final FLEFRecord census = eventOfType(model, "census");
+		final FLEFRecord birth = eventOfType(model, EventReader.ENUM_TYPE_BIRTH);
+		Assertions.assertNull(FLEFRecordHelper.findChild(birth, EventReader.TAG_SOURCE));
+		Assertions.assertTrue(FLEFRecordHelper.getChildValue(birth, FLEFRecordHelper.composePath(EventReader.TAG_NOTE, NoteReader.TAG_TEXT))
+			.contains(GEDCOMMapper.FLEF_LINK_PREFIX + census.getId()));
+	}
+
+	@Test
+	void fullDateIsCalculatedFromFullAge() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 CENS
+			2 DATE 10 MAR 1850
+			2 AGE 25y 2m 3d
+			""");
+
+		Assertions.assertEquals("7 JAN 1825", FLEFRecordHelper.getChildValue(eventOfType(model, EventReader.ENUM_TYPE_BIRTH), EVENT_DATE_POINT));
+	}
+
+
+	//---- evidence qualifiers by the event cited ----
+
+	/** Converts an event of an individual citing a source, and returns the evidence type of the citation. */
+	private static String citationEvidence(final String event, final String eventLines, final String sourceLines) throws IOException{
+		final FLEFModel model = convert("0 @S1@ SOUR\n1 TITL Register\n" + sourceLines + "0 @I1@ INDI\n1 NAME Anna /Rossi/\n1 " + event
+			+ "\n2 DATE 1900\n2 SOUR @S1@\n" + eventLines);
+		return FLEFRecordHelper.getChildValue(FLEFRecordHelper.findChild(model.getRecordsByType(EventReader.TYPE).getFirst(),
+			EventReader.TAG_SOURCE), EVIDENCE_TYPE);
+	}
+
+	@Test
+	void citedEventEqualToTheEventIsDirect() throws IOException{
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT, citationEvidence("BIRT", "3 EVEN BIRT\n", NO_SOURCE_LINES));
+	}
+
+	@Test
+	void citedEventDifferentFromTheEventIsIndirect() throws IOException{
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT, citationEvidence("BIRT", "3 EVEN DEAT\n", NO_SOURCE_LINES));
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT, citationEvidence("DEAT", "3 EVEN BURI\n", NO_SOURCE_LINES));
+	}
+
+	@Test
+	void primaryInformationOfADifferentEventIsSecondary() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Register
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 BIRT
+			2 DATE 1900
+			2 SOUR @S1@
+			3 EVEN CHR
+			3 QUAY 3
+			""");
+
+		final FLEFRecord citation = FLEFRecordHelper.findChild(eventOfType(model, EventReader.ENUM_TYPE_BIRTH), EventReader.TAG_SOURCE);
+		Assertions.assertEquals(EvidenceQualifiersReader.INFORMATION_TYPE_SECONDARY, FLEFRecordHelper.getChildValue(citation,
+			EVIDENCE_INFORMATION_TYPE));
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT, FLEFRecordHelper.getChildValue(citation, EVIDENCE_TYPE));
+	}
+
+	@Test
+	void eventsCoveredByTheSource() throws IOException{
+		//the source covers christenings only
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_INDIRECT, citationEvidence("BIRT", "", "1 DATA\n2 EVEN CHR\n"));
+		//the source covers births too
+		Assertions.assertEquals(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT, citationEvidence("BIRT", "", "1 DATA\n2 EVEN CHR, BIRT\n"));
+	}
+
+	@Test
+	void withoutCitedEventTheEvidenceIsUnchanged() throws IOException{
+		Assertions.assertNull(citationEvidence("BIRT", "", NO_SOURCE_LINES));
+	}
+
+
+	//---- 12. Data without a field of its own is kept as notes ----
+
+	@Test
+	void keptNotesFollowTheOtherNotesAndPrecedeTheAudit() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 REFN 123
+			1 _FOO bar
+			1 NOTE A note
+			1 SEX X
+			""");
+
+		final FLEFRecord individual = model.getRecordById("I1");
+		final List<String> tags = individual.getChildren().stream()
+			.map(FLEFRecord::getTag)
+			.toList();
+		Assertions.assertEquals(AuditReader.TAG_AUDIT, tags.getLast());
+		final List<String> titles = FLEFRecordHelper.findChildren(individual, NoteReader.TAG_NOTE).stream()
+			.map(note -> FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE))
+			.toList();
+		Assertions.assertEquals(Arrays.asList(null, "REFN", "Sex", "GEDCOM _FOO"), titles);
+		//the notes are contiguous
+		final int first = tags.indexOf(NoteReader.TAG_NOTE);
+		Assertions.assertEquals(first + 3, tags.lastIndexOf(NoteReader.TAG_NOTE));
+	}
+
+
+	//---- 13. A note of a source that is a date, or a place and a date ----
+
+	@Test
+	void sourceNoteThatIsOnlyADateIsTheDateOfTheSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE 1954
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1954", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWithPlaceAndYearGivesThePlaceAndTheDate() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE Padova : 1954
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1954", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWithPlaceOfPublicationAndDateOfPublication() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 NOTE Treviso : 1992
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		final FLEFRecord place = model.getRecordById(FLEFRecordHelper.getChildValue(source, "place.place"));
+		Assertions.assertEquals("Treviso", FLEFRecordHelper.getChildValue(place, FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void sourceNoteWrittenAsTheCataloguesDo() throws IOException{
+		//the date as the catalogues write it: with a final period, supplied in brackets, with the copyright mark, over some years
+		for(final String[] noteAndDate : new String[][]{{"Treviso : 1992.", "1992"}, {"Treviso : [1992]", "1992"},
+				{"Treviso : c1992", "1992"}, {"Treviso : cop. 1992", "1992"}, {"Treviso : marzo 1992", "MAR 1992"}}){
+			final FLEFRecord source = convert("0 @S1@ SOUR\n1 TITL Storia di Treviso\n1 NOTE " + noteAndDate[0] + "\n")
+				.getRecordById("S1");
+
+			Assertions.assertEquals(noteAndDate[1], FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"), noteAndDate[0]);
+			Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"), noteAndDate[0]);
+			Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE), noteAndDate[0]);
+		}
+
+		final FLEFRecord volumes = convert("0 @S1@ SOUR\n1 TITL Storia di Treviso\n1 NOTE Treviso : 1992-93\n").getRecordById("S1");
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(volumes, "date.value.spanning.from.value.full_date"));
+		Assertions.assertEquals("1993", FLEFRecordHelper.getChildValue(volumes, "date.value.spanning.to.value.full_date"));
+	}
+
+	@Test
+	void sourceNoteWithPlacePublisherAndDate() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 NOTE Treviso : Canova, 1992
+			0 @S2@ SOUR
+			1 TITL Storia di Venezia
+			1 PUBL Marsilio
+			1 NOTE Venezia : Canova, 1992
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertEquals("Canova", FLEFRecordHelper.getChildValue(source, "publisher"));
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(source, "date.value.point.value.full_date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+		//another publisher than the one of the source: the note says something else, and stays a note
+		final FLEFRecord other = model.getRecordById("S2");
+		Assertions.assertEquals("Marsilio", FLEFRecordHelper.getChildValue(other, "publisher"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(other, "date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(other, NoteReader.TAG_NOTE));
+	}
+
+	@Test
+	void thePublicationFactsAreThePlaceThePublisherAndTheDateOfTheSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Storia di Treviso
+			1 PUBL Treviso : Canova, 1992
+			0 @S2@ SOUR
+			1 TITL Storia di Venezia
+			1 PUBL Marsilio, 1985
+			0 @S3@ SOUR
+			1 TITL Storia di Padova
+			1 PUBL Padova : Antenore
+			0 @S4@ SOUR
+			1 TITL Storia di Vicenza
+			1 PUBL Neri Pozza
+			""");
+
+		final FLEFRecord treviso = model.getRecordById("S1");
+		Assertions.assertEquals("Canova", FLEFRecordHelper.getChildValue(treviso, SourceReader.TAG_PUBLISHER));
+		Assertions.assertEquals("1992", FLEFRecordHelper.getChildValue(treviso, "date.value.point.value.full_date"));
+		final FLEFRecord place = model.getRecordById(FLEFRecordHelper.getChildValue(treviso, "place.place"));
+		Assertions.assertEquals("Treviso", FLEFRecordHelper.getChildValue(place, FLEFRecordHelper.composePath(PlaceReader.TAG_NAME, NameReader.TAG_VALUE)));
+
+		final FLEFRecord venezia = model.getRecordById("S2");
+		Assertions.assertEquals("Marsilio", FLEFRecordHelper.getChildValue(venezia, SourceReader.TAG_PUBLISHER));
+		Assertions.assertEquals("1985", FLEFRecordHelper.getChildValue(venezia, "date.value.point.value.full_date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(venezia, "place"));
+
+		final FLEFRecord padova = model.getRecordById("S3");
+		Assertions.assertEquals("Antenore", FLEFRecordHelper.getChildValue(padova, SourceReader.TAG_PUBLISHER));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(padova, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(padova, "date"));
+
+		//a publisher alone stays as it is
+		final FLEFRecord vicenza = model.getRecordById("S4");
+		Assertions.assertEquals("Neri Pozza", FLEFRecordHelper.getChildValue(vicenza, SourceReader.TAG_PUBLISHER));
+		Assertions.assertNull(FLEFRecordHelper.findChild(vicenza, "place"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(vicenza, "date"));
+	}
+
+	@Test
+	void sourceNoteThatIsAnythingElseStaysANote() throws IOException{
+		final FLEFModel model = convert("""
+			0 @S1@ SOUR
+			1 TITL Parish registers
+			1 NOTE Kept in the sacristy
+			""");
+
+		final FLEFRecord source = model.getRecordById("S1");
+		Assertions.assertNull(FLEFRecordHelper.findChild(source, "date"));
+		Assertions.assertNotNull(FLEFRecordHelper.findChild(source, NoteReader.TAG_NOTE));
+	}
+
+}

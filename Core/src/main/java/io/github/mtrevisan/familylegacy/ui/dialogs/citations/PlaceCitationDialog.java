@@ -1,0 +1,195 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.Window;
+
+
+/**
+ * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.2.0.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct PlaceCitation {
+ *   place: Xref&lt;PlaceRecord&gt;
+ *   original_text?: Text
+ *   source*: SourceCitation
+ *   confidence?: Confidence
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): original text, confidence
+ * Tab 7 (Sources): source
+ */
+public class PlaceCitationDialog extends BaseRecordDialog{
+
+	private final JPanel propertiesPanel;
+
+	private final BoundTextField placeField;
+	private final BoundTextField originalTextField;
+	private final BoundComboBox<String> confidenceCombo;
+
+
+	public static PlaceCitationDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, PlaceCitationDialog::new);
+	}
+
+	public static PlaceCitationDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, PlaceCitationDialog::new);
+	}
+
+
+	private PlaceCitationDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, PlaceCitationHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		placeField = new BoundTextField(PlaceHandler.TYPE);
+		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ORIGINAL_TEXT);
+		confidenceCombo = new BoundComboBox<>(PlaceCitationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, this.record)
+			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.build();
+
+		components.bind(placeField);
+		components.bind(originalTextField);
+		components.bind(confidenceCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// original text
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.original_text"), originalTextField);
+
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.confidence"), confidenceCombo);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+
+	public void setPlace(final String placeId){
+		if(StringUtils.isNotEmpty(placeId)){
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.getInstance().getLabel()))
+				return;
+
+			placeField.setText(placeId);
+		}
+	}
+
+
+	@Override
+	protected void loadData(){
+		components.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected boolean validData(){
+		if(placeField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", PlaceHandler.getInstance().getLabel()),
+				tabbedPane, propertiesPanel, placeField);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		FLEFRecordHelper.updateChildValue(record, PlaceHandler.TYPE, placeField.getText());
+
+		components.save(record);
+	}
+
+
+	static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord place = FLEFRecord.createMainRecord("P1", PlaceHandler.TYPE);
+			model.addRecord(place);
+
+			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);
+			dialog.setPlace("P1");
+			dialog.setVisible(true);
+		});
+	}
+
+}

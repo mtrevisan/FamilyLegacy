@@ -1,0 +1,218 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+
+import javax.swing.JPanel;
+import java.awt.Window;
+import java.io.IOException;
+
+
+/**
+ * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.2.0.
+ * <p>
+ * Structure:
+ * <pre>
+ * record RepositoryRecord {
+ *   name+: NameStructure
+ *   type?: enum { archive, library, church, cemetery, website, collection, private_collection, bookstore, government, museum, university, institution } | Text
+ *   custodian?: Agent
+ *   place?: PlaceCitation
+ *   contact*: ContactStructure
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, type, custodian, place, contact
+ * Tab 7 (Sources): SourceRecord (repository references this repository)
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class RepositoryRecordDialog extends BaseRecordDialog{
+
+	private final JPanel propertiesPanel;
+
+	private final EntityListPanel namePanel;
+	private final BoundComboBox<String> typeCombo;
+	private final EntityListPanel custodianPanel;
+	private final EntityField placeField;
+	private final EntityListPanel contactPanel;
+
+
+	public static RepositoryRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, RepositoryRecordDialog::new);
+	}
+
+	public static RepositoryRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, RepositoryRecordDialog::new);
+	}
+
+
+	private RepositoryRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, RepositoryHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]5[]10[]");
+
+		namePanel = EntityListPanel.createForStructure(RepositoryReader.TAG_NAME, this, GUIHelper.requiredTitle("dialog.repository.name"), model, NameHandler.class);
+		typeCombo = new BoundComboBox<>(RepositoryReader.TAG_TYPE, GUIHelper.fillCombo(RepositoryReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.repository.type");
+		typeCombo.setEditable(true);
+		custodianPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CUSTODIAN, this, I18N.t("dialog.repository.custodian"), model,
+			AgentHandler.class);
+		placeField = EntityField.createForStructureWithReference(RepositoryReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		contactPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, this.record)
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.NOTE, RepositoryReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, RepositoryReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, RepositoryReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(typeCombo);
+
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// name
+		GUIHelper.addComponent(propertiesPanel, namePanel);
+
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.repository.type"), typeCombo);
+
+		// custodian
+		GUIHelper.addComponent(propertiesPanel, custodianPanel);
+
+		// place
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place"), placeField);
+
+		// contact
+		GUIHelper.addComponent(propertiesPanel, contactPanel);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_ON_REPOSITORY);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	protected void loadData(){
+		components.load(record);
+
+		namePanel.load(record);
+		custodianPanel.load(record);
+		placeField.load(record);
+		contactPanel.load(record);
+	}
+
+	@Override
+	protected boolean validData(){
+		if(!namePanel.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.at_least_one", I18N.t("dialog.repository.name")),
+				tabbedPane, propertiesPanel, namePanel);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		components.save(record);
+
+		namePanel.save(record);
+		custodianPanel.save(record);
+		placeField.saveReferences(record);
+		contactPanel.save(record);
+	}
+
+
+	static void main(final String[] args) throws IOException{
+		GUIHelper.launch(RepositoryRecordDialog::createEdit, "/tests/test.flef", "R1");
+	}
+
+}

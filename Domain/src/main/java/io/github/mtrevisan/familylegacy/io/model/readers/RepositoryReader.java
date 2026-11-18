@@ -1,0 +1,128 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+
+import java.util.List;
+
+
+/**
+ * Handler for REPOSITORY records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
+ * record RepositoryRecord {
+ *   name+: NameStructure                 // the official name of the archive in which the stated source material is stored
+ *   type?: enum {
+ *     archive, library, church, cemetery, website, collection, private_collection, bookstore, government, museum, university, institution
+ *   } | Text
+ *   custodian?: Agent                    // the current custodian of the repository or of its material
+ *   place?: PlaceCitation                // the location of the repository
+ *   contact*: ContactStructure
+ *   note*: NoteStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ *
+ * Agent = oneof {
+ *  individual: Xref&lt;IndividualRecord&gt;   // the author is an individual described in this file
+ *  group: Xref&lt;GroupRecord&gt;             // the author is a group or organization described in this file (e.g. a parish, a confraternity)
+ *  text: Text                           // the author is not described in this file (e.g. a publisher's editor, an unidentified clerk)
+ * }
+ * </pre>
+ */
+public final class RepositoryReader{
+
+	public static final String TYPE = "REPOSITORY";
+	public static final String ID_PREFIX = "R";
+
+	public static final String TAG_NAME = "name";
+	public static final String TAG_TYPE = "type";
+	public static final String TAG_CUSTODIAN = "custodian";
+	public static final String TAG_PLACE = "place";
+	public static final String TAG_CONTACT = "contact";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_PRIVACY = "privacy";
+	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_TYPE_ARCHIVE = "archive";
+	public static final String ENUM_TYPE_LIBRARY = "library";
+	public static final String ENUM_TYPE_CHURCH = "church";
+	public static final String ENUM_TYPE_CEMETERY = "cemetery";
+	public static final String ENUM_TYPE_WEBSITE = "website";
+	public static final String ENUM_TYPE_COLLECTION = "collection";
+	public static final String ENUM_TYPE_PRIVATE_COLLECTION = "private_collection";
+	public static final String ENUM_TYPE_BOOKSTORE = "bookstore";
+	public static final String ENUM_TYPE_GOVERNMENT = "government";
+	public static final String ENUM_TYPE_MUSEUM = "museum";
+	public static final String ENUM_TYPE_UNIVERSITY = "university";
+	public static final String ENUM_TYPE_INSTITUTION = "institution";
+	public static final String[] TYPES = new String[]{
+		ENUM_TYPE_ARCHIVE, ENUM_TYPE_LIBRARY, ENUM_TYPE_CHURCH, ENUM_TYPE_CEMETERY, ENUM_TYPE_WEBSITE, ENUM_TYPE_COLLECTION,
+		ENUM_TYPE_PRIVATE_COLLECTION, ENUM_TYPE_BOOKSTORE, ENUM_TYPE_GOVERNMENT, ENUM_TYPE_MUSEUM, ENUM_TYPE_UNIVERSITY, ENUM_TYPE_INSTITUTION
+	};
+
+
+	private RepositoryReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+
+
+	/**
+	 * Extracts names from an RepositoryRecord.
+	 *
+	 * @param repository the RepositoryRecord
+	 * @return a list of name strings with excluded parts omitted
+	 */
+	public static List<String> extractNames(final FLEFRecord repository){
+		return GroupReader.extractNames(repository);
+	}
+
+	/** @return	The primary name of the repository, or its id if it has no name, or the empty string. */
+	public static String displayName(final FLEFRecord repository){
+		return NameAnatomyService.displayGenericName(repository);
+	}
+
+	public static String extractPrimaryName(final FLEFRecord repository){
+		return NameAnatomyService.extractPrimaryGenericName(repository);
+	}
+
+	/** @return the type of the repository (one of {@link #TYPES} or a custom token), or {@code null} */
+	public static String extractType(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+	}
+
+	public static String extractCustodian(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_CUSTODIAN);
+	}
+
+}

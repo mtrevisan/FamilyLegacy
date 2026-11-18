@@ -1,0 +1,170 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+
+
+/**
+ * Handler for RESEARCH ACTIVITY records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // Documents a single research action performed at a specific point in time.
+ * // Activities represent the work of the researcher rather than genealogical facts themselves.
+ * record ResearchActivityRecord {
+ *   question*: Xref&lt;ResearchQuestionRecord&gt;          // research questions to which this activity contributes
+ *   activity_type: enum {
+ *     search,           // searched a repository, index, catalog, or collection
+ *     review,           // examined a specific source or record
+ *     analysis,         // analyzed evidence or correlations
+ *     correspondence,   // exchanged messages with archives, institutions, or individuals
+ *     interview,        // interviewed a person
+ *     hypothesis        // formulated or refined a research hypothesis
+ *   }
+ *   status: enum {
+ *     planned,
+ *     in_progress,
+ *     completed,
+ *     abandoned
+ *   }
+ *   action: Text                                     // description of the work performed
+ *
+ *   target?: ResearchTarget                          // person, family, event, place, or record being investigated
+ *   search_scope?: struct {                          // primarily applicable to search and review activities
+ *     type: enum {
+ *       entire_source,     // complete source reviewed
+ *       index_only,        // only the index was examined
+ *       partial_source,    // a limited portion of the source was examined
+ *       selected_entries   // specific entries were reviewed
+ *     }
+ *     detail?: Text   // details about pages, years, volumes, entries, etc.
+ *   }
+ *
+ *   result?: enum {
+ *     positive,       // relevant information was found
+ *     negative,       // search completed with no relevant findings
+ *     inconclusive,   // findings exist but do not answer the question
+ *     conflicting,    // findings conflict with other evidence
+ *     unavailable     // source was inaccessible, unreadable, lost, etc.
+ *   }
+ *   observation?: Text                               // objective notes describing what was observed
+ *   conclusion?: Text                                // interpretation or conclusion drawn from the observations
+ *   conclusion_confidence?: enum { low, medium, high }   // confidence in the interpretation produced by this activity
+ *
+ *   source*: SourceCitation                          // sources consulted, examined, or discovered
+ *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;   // previous activity from which this activity originated
+ *   follow_up*: Xref&lt;ResearchTaskRecord&gt;             // tasks that should start when this activity is completed; independent of the tasks' CREATED_BY
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ */
+public final class ResearchActivityReader{
+
+	public static final String TYPE = "RESEARCH_ACTIVITY";
+	public static final String ID_PREFIX = "RA";
+
+	public static final String TAG_QUESTION = "question";
+	public static final String TAG_ACTIVITY_TYPE = "activity_type";
+	public static final String TAG_STATUS = "status";
+	public static final String TAG_ACTION = "action";
+
+	public static final String TAG_TARGET = "target";
+	private static final String TAG_SEARCH_SCOPE = "search_scope";
+	private static final String TAG_TYPE = "type";
+	private static final String TAG_DETAIL = "detail";
+	public static final String TAG_SEARCH_SCOPE_TYPE = FLEFRecordHelper.composePath(TAG_SEARCH_SCOPE, TAG_TYPE);
+	public static final String TAG_SEARCH_SCOPE_DETAIL = FLEFRecordHelper.composePath(TAG_SEARCH_SCOPE, TAG_DETAIL);
+
+	public static final String TAG_RESULT = "result";
+	public static final String TAG_OBSERVATION = "observation";
+	public static final String TAG_CONCLUSION = "conclusion";
+	public static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
+
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_PARENT_ACTIVITY = "parent_activity";
+	public static final String TAG_FOLLOW_UP = "follow_up";
+	public static final String TAG_PRIVACY = "privacy";
+	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_ACTIVITY_TYPE_REVIEW = "review";
+	public static final String[] TYPES = new String[]{
+		"search", ENUM_ACTIVITY_TYPE_REVIEW, "analysis", "correspondence", "interview", "hypothesis"
+	};
+	public static final String ENUM_STATUS_PLANNED = "planned";
+	public static final String ENUM_STATUS_IN_PROGRESS = "in_progress";
+	public static final String ENUM_STATUS_COMPLETED = "completed";
+	public static final String ENUM_STATUS_ABANDONED = "abandoned";
+	public static final String[] STATUSES = new String[]{
+		ENUM_STATUS_PLANNED, ENUM_STATUS_IN_PROGRESS, ENUM_STATUS_COMPLETED, ENUM_STATUS_ABANDONED
+	};
+	public static final String[] SEARCH_SCOPES = new String[]{
+		"entire_source",
+		"index_only",
+		"partial_source",
+		"selected_entries"
+	};
+	public static final String ENUM_RESULT_POSITIVE = "positive";
+	public static final String ENUM_RESULT_NEGATIVE = "negative";
+	public static final String ENUM_RESULT_INCONCLUSIVE = "inconclusive";
+	public static final String ENUM_RESULT_CONFLICTING = "conflicting";
+	public static final String ENUM_RESULT_UNAVAILABLE = "unavailable";
+	public static final String[] RESULTS = new String[]{
+		ENUM_RESULT_POSITIVE, ENUM_RESULT_NEGATIVE, ENUM_RESULT_INCONCLUSIVE, ENUM_RESULT_CONFLICTING, ENUM_RESULT_UNAVAILABLE
+	};
+
+
+	private ResearchActivityReader(){}
+
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+
+
+	public static String extractAction(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_ACTION);
+	}
+
+	public static String extractActivityType(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
+	}
+
+	public static String extractStatus(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_STATUS);
+	}
+
+	public static String extractResult(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_RESULT);
+	}
+
+	public static String extractObservation(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_OBSERVATION);
+	}
+
+}

@@ -1,0 +1,947 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.shell;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.ChildrenOrder;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
+import io.github.mtrevisan.familylegacy.preferences.PartnerOrder;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkMenu;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceMenu;
+import io.github.mtrevisan.familylegacy.ui.preferences.SettingsMenu;
+import io.github.mtrevisan.familylegacy.ui.tools.dates.DateToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.events.EventToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
+import io.github.mtrevisan.familylegacy.ui.tools.files.FileToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
+import io.github.mtrevisan.familylegacy.ui.tools.maintenance.MaintenanceToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DescendantReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GroupSheetOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IndividualSummaryOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchProgressOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;
+import io.github.mtrevisan.familylegacy.ui.tools.sources.SourceToolRegistry;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+
+/**
+ * Builds the full menu bar of the application and wires each item to the
+ * corresponding operation.
+ * <p>
+ * The class exists to keep {@link FamilyLegacyFrame} focused on its
+ * responsibilities (managing the split pane, the dossiers, and the
+ * projections). Menu construction is a self-contained concern with its
+ * own vocabulary (mnemonics, accelerators, separators, dynamic enable
+ * state) and it belongs in a dedicated collaborator.
+ * <p>
+ * <b>Structure.</b> Each top-level menu has its own factory method. The
+ * menus that are backed by a registry of tools ({@link FileToolRegistry},
+ * {@link IndividualToolRegistry}, {@link GroupToolRegistry},
+ * {@link PlaceToolRegistry}, {@link SourceToolRegistry},
+ * {@link EventToolRegistry}, {@link ResearchToolRegistry}) iterate over
+ * the registry and produce one item per tool. The menus that are not
+ * (File, Edit, View, Navigate, Bookmarks, Help) contain their items
+ * inline, because their vocabulary is small and does not benefit from a
+ * registry.
+ * <p>
+ * <b>File menu.</b> The File menu is the only menu with shared state:
+ * the current file and the dirty flag, owned by a
+ * {@link FileMenuController}. Every item in the menu delegates to that
+ * controller.
+ * <p>
+ * <b>Tool context.</b> Every menu item that triggers a tool obtains its
+ * context from {@link FamilyLegacyFrame#createToolContext()}, so the
+ * tools are always wired to the same model, owner, and callbacks.
+ */
+final class ApplicationMenuBar{
+
+	private final FamilyLegacyFrame frame;
+
+
+	ApplicationMenuBar(final FamilyLegacyFrame frame){
+		this.frame = frame;
+	}
+
+
+	/* ======================================================================
+	 *                          Build
+	 * ====================================================================== */
+
+	JMenuBar build(final GenealogyRepository repository){
+		final JMenuBar bar = new JMenuBar();
+		bar.add(createFileMenu());
+		bar.add(createEditMenu());
+		bar.add(createViewMenu());
+		bar.add(createIndividualMenu(repository));
+		bar.add(createGroupMenu());
+		bar.add(createPlaceMenu());
+		bar.add(createSourceMenu());
+		bar.add(createEventMenu());
+		final JMenu research = createResearchMenu();
+		//no research tool at this level: no menu (the Research Assistant still reaches them)
+		if(research.getMenuComponentCount() > 0)
+			bar.add(research);
+		bar.add(createReportsMenu());
+		bar.add(createToolsMenu());
+		bar.add(createNavigateMenu());
+		bar.add(createBookmarkMenu());
+		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
+		final ResearchAssistantPort assistant = frame.assistant();
+		bar.add(SettingsMenu.create(frame, (assistant != null? () -> assistant.openSettings(frame): null)));
+		bar.add(new HelpMenu(frame)
+			.create());
+		for(int i = 0; i < bar.getMenuCount(); i ++)
+			reserveArrowSpace(bar.getMenu(i));
+		return bar;
+	}
+
+	/**
+	 * The system look and feel does not count the arrow of a submenu when it measures the item, so that the widest one has the arrow over
+	 * its text: room is added to every submenu (the menus of the bar are left alone).
+	 */
+	private static void reserveArrowSpace(final JMenu menu){
+		for(final java.awt.Component component : menu.getMenuComponents())
+			if(component instanceof JMenu submenu){
+				reserveArrowSpace(submenu);
+				final java.awt.Dimension size = submenu.getPreferredSize();
+				submenu.setPreferredSize(new java.awt.Dimension(size.width + 24, size.height));
+			}
+	}
+
+
+	/* ======================================================================
+	 *                          File
+	 * ====================================================================== */
+
+	private JMenu createFileMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.file"));
+		menu.setMnemonic(KeyEvent.VK_F);
+
+		final FileMenuController fileController = frame.fileController();
+
+		final JMenuItem newFile = new JMenuItem(ShortcutRegistry.FILE_NEW.action(), ShortcutRegistry.FILE_NEW.keyStrokeCode());
+		newFile.setAccelerator(ShortcutRegistry.FILE_NEW.keyStroke());
+		newFile.addActionListener(e -> fileController.newFile());
+		menu.add(newFile);
+
+		final JMenuItem openFile = new JMenuItem(ShortcutRegistry.FILE_OPEN.action(), ShortcutRegistry.FILE_OPEN.keyStrokeCode());
+		openFile.setAccelerator(ShortcutRegistry.FILE_OPEN.keyStroke());
+		openFile.addActionListener(e -> fileController.openFile());
+		menu.add(openFile);
+
+		menu.add(createRecentFilesMenu(fileController));
+
+		menu.add(new JSeparator());
+
+		final JMenuItem saveAs = new JMenuItem(ShortcutRegistry.FILE_SAVE_AS.action(), ShortcutRegistry.FILE_SAVE_AS.keyStrokeCode());
+		saveAs.setAccelerator(ShortcutRegistry.FILE_SAVE_AS.keyStroke());
+		saveAs.addActionListener(e -> fileController.saveAs());
+		menu.add(saveAs);
+
+		menu.add(new JSeparator());
+
+		//the backup needs a model: enabled or not each time the menu is opened
+		final List<ToolItemBinding> fileBindings = new ArrayList<>();
+		addToolsToMenu(menu, FileToolRegistry.maintenanceTools(), fileBindings);
+		bindDynamicEnablement(menu, fileBindings);
+
+		menu.add(new JSeparator());
+
+		final JMenu importMenu = new JMenu(I18N.t("menu.file.import"));
+		importMenu.setMnemonic(KeyEvent.VK_I);
+		for(final ToolOperation tool : FileToolRegistry.importTools())
+			importMenu.add(toolItem(tool, 0));
+		menu.add(importMenu);
+
+		final JMenu exportMenu = new JMenu(I18N.t("menu.file.export"));
+		exportMenu.setMnemonic(KeyEvent.VK_E);
+		for(final ToolOperation tool : FileToolRegistry.exportTools())
+			exportMenu.add(toolItem(tool, 0));
+		menu.add(exportMenu);
+
+		menu.add(new JSeparator());
+
+		final JMenuItem properties = new JMenuItem(I18N.t("menu.file.properties"), KeyEvent.VK_P);
+		properties.addActionListener(e -> fileController.showProperties());
+		menu.add(properties);
+
+		menu.add(new JSeparator());
+
+		final JMenuItem exit = new JMenuItem(ShortcutRegistry.FILE_EXIT.action(), ShortcutRegistry.FILE_EXIT.keyStrokeCode());
+		exit.setAccelerator(ShortcutRegistry.FILE_EXIT.keyStroke());
+		exit.addActionListener(e -> frame.exitApplication());
+		menu.add(exit);
+
+		return menu;
+	}
+
+	/**
+	 * Builds the "Open Recent" submenu from the recent files manager.
+	 * <p>
+	 * The submenu is rebuilt every time it is opened, so it reflects the
+	 * current list without needing a listener on the manager. A "Clear
+	 * list" entry is added at the bottom when the list is not empty.
+	 */
+	private JMenu createRecentFilesMenu(final FileMenuController fileController){
+		final JMenu menu = new JMenu(I18N.t("menu.file.open_recent"));
+		menu.setMnemonic(KeyEvent.VK_R);
+
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				menu.removeAll();
+
+				final List<File> recent = fileController.recentFiles()
+					.list();
+				if(recent.isEmpty()){
+					final JMenuItem empty = new JMenuItem(I18N.t("menu.file.open_recent.empty"));
+					empty.setEnabled(false);
+					menu.add(empty);
+					return;
+				}
+
+				for(final File file : recent){
+					final JMenuItem item = new JMenuItem(RecentFilesManager.label(file, recent));
+					item.setToolTipText(file.getAbsolutePath());
+					item.addActionListener(a -> fileController.openRecent(file));
+					menu.add(item);
+				}
+
+				menu.addSeparator();
+				final JMenuItem clear = new JMenuItem(I18N.t("menu.file.open_recent.clear"));
+				clear.addActionListener(a -> fileController.recentFiles().clear());
+				menu.add(clear);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Edit
+	 * ====================================================================== */
+
+	private JMenu createEditMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.edit"));
+		menu.setMnemonic(KeyEvent.VK_E);
+
+		final JMenuItem undo = historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo);
+		final JMenuItem redo = historyItem(ShortcutRegistry.EDIT_REDO, frame::redo);
+		menu.add(undo);
+		menu.add(redo);
+		//active only when there is something to undo or redo
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				undo.setEnabled(frame.canUndo());
+				redo.setEnabled(frame.canRedo());
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+		undo.setEnabled(false);
+		redo.setEnabled(false);
+		//the accelerators work only on enabled items: follow the history, not only the opening of the menu
+		frame.addHistoryListener(() -> {
+			undo.setEnabled(frame.canUndo());
+			redo.setEnabled(frame.canRedo());
+		});
+		final JMenuItem recentChanges = new JMenuItem(I18N.t("menu.edit.recent_changes"));
+		recentChanges.addActionListener(e -> frame.showRecentChanges());
+		menu.add(recentChanges);
+
+		//what is done to an individual, a group or a place (relocate, delete, ...) is in the menu of each of them, not here
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          View
+	 * ====================================================================== */
+
+	private JMenu createViewMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view"));
+		menu.setMnemonic(KeyEvent.VK_V);
+
+		final JMenu projections = new JMenu(I18N.t("menu.view.projection"));
+		projections.setMnemonic(KeyEvent.VK_P);
+
+		final JRadioButtonMenuItem treeItem = projectionItem(ShortcutRegistry.VIEW_BIOLOGICAL_TREE.action(), ProjectionType.BIOLOGICAL_TREE, ShortcutRegistry.VIEW_BIOLOGICAL_TREE.keyStrokeCode());
+		final JRadioButtonMenuItem graphItem = projectionItem(ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.action(), ProjectionType.SUGIYAMA_GRAPH, ShortcutRegistry.VIEW_SUGIYAMA_GRAPH.keyStrokeCode());
+		final JRadioButtonMenuItem egoItem = projectionItem(ShortcutRegistry.VIEW_EGO_NETWORK.action(), ProjectionType.EGO_NETWORK, ShortcutRegistry.VIEW_EGO_NETWORK.keyStrokeCode());
+		final JRadioButtonMenuItem chronomapItem = projectionItem(ShortcutRegistry.VIEW_CHRONOMAP.action(), ProjectionType.CHRONOMAP, ShortcutRegistry.VIEW_CHRONOMAP.keyStrokeCode());
+
+		final ButtonGroup projectionGroup = new ButtonGroup();
+		projectionGroup.add(treeItem);
+		projectionGroup.add(graphItem);
+		projectionGroup.add(egoItem);
+		projectionGroup.add(chronomapItem);
+
+		projections.add(treeItem);
+		projections.add(graphItem);
+		projections.add(egoItem);
+		projections.add(chronomapItem);
+
+		// Refresh the selected radio button every time the submenu is
+		// opened, so it reflects the active projection even when the
+		// switch was triggered by Ctrl+1/2/3/4 or by the toolbar toggles.
+		projections.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				switch(frame.switcher().getCurrentProjectionType()){
+					case BIOLOGICAL_TREE -> treeItem.setSelected(true);
+					case SUGIYAMA_GRAPH -> graphItem.setSelected(true);
+					case EGO_NETWORK -> egoItem.setSelected(true);
+					case CHRONOMAP -> chronomapItem.setSelected(true);
+				}
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
+		menu.add(projections);
+
+		menu.add(new JSeparator());
+
+		final JCheckBoxMenuItem fullScreen = new JCheckBoxMenuItem(ShortcutRegistry.VIEW_FULLSCREEN.action());
+		fullScreen.setMnemonic(KeyEvent.VK_F);
+		fullScreen.setAccelerator(KeyStroke.getKeyStroke(ShortcutRegistry.VIEW_FULLSCREEN.keyStrokeCode(), 0));
+		fullScreen.setSelected(frame.isFullScreen());
+		fullScreen.addActionListener(e -> frame.toggleFullScreen());
+		menu.add(fullScreen);
+
+		menu.add(new JSeparator());
+
+		final JCheckBoxMenuItem showToolbar = new JCheckBoxMenuItem(I18N.t("menu.view.show.toolbar"));
+		showToolbar.setMnemonic(KeyEvent.VK_T);
+		showToolbar.setSelected(frame.isToolbarVisible());
+		showToolbar.addActionListener(e -> frame.setToolbarVisible(showToolbar.isSelected()));
+		menu.add(showToolbar);
+
+		final JCheckBoxMenuItem showSidebar = new JCheckBoxMenuItem(I18N.t("menu.view.show.sidebar"));
+		showSidebar.setMnemonic(KeyEvent.VK_B);
+		showSidebar.setSelected(frame.isSidebarVisible());
+		showSidebar.addActionListener(e -> frame.setSidebarVisible(showSidebar.isSelected()));
+		menu.add(showSidebar);
+
+		//the research tasks still to be done: only where the research is part of the interface
+		final JCheckBoxMenuItem showTasks = new JCheckBoxMenuItem(I18N.t("menu.view.show.tasks"));
+		showTasks.setMnemonic(KeyEvent.VK_K);
+		showTasks.setSelected(frame.isTasksPanelVisible());
+		showTasks.addActionListener(e -> frame.setTasksPanelVisible(showTasks.isSelected()));
+		if(frame.isTasksPanelAvailable())
+			menu.add(showTasks);
+
+		menu.add(new JSeparator());
+
+		menu.add(createPrivacyMenu());
+		menu.add(createOrderMenu());
+
+		// Synchronize checkbox states when the menu is selected
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				fullScreen.setSelected(frame.isFullScreen());
+				showToolbar.setSelected(frame.isToolbarVisible());
+				showSidebar.setSelected(frame.isSidebarVisible());
+				showTasks.setSelected(frame.isTasksPanelVisible());
+			}
+
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/**
+	 * How the views order children and partners. It is a view preference, stored in the user preferences and never in the genealogy:
+	 * choosing an order does not touch any record.
+	 */
+	private JMenu createOrderMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view.order"));
+		menu.setMnemonic(KeyEvent.VK_O);
+
+		final JMenu childrenMenu = createEnumMenu("menu.view.order.children", ChildrenOrder.class, OrderPreferences::children,
+			OrderPreferences::setChildren);
+		final JMenu partnersMenu = createEnumMenu("menu.view.order.partners", PartnerOrder.class, OrderPreferences::partners,
+			OrderPreferences::setPartners);
+		final JMenu dossierEventsMenu = createEnumMenu("menu.view.order.dossier_events", DossierOrder.class,
+			OrderPreferences::dossierEvents, OrderPreferences::setDossierEvents);
+		final JMenu dossierAttributesMenu = createEnumMenu("menu.view.order.dossier_attributes", DossierOrder.class,
+			OrderPreferences::dossierAttributes, OrderPreferences::setDossierAttributes);
+		menu.add(childrenMenu);
+		menu.add(partnersMenu);
+		menu.addSeparator();
+		menu.add(dossierEventsMenu);
+		menu.add(dossierAttributesMenu);
+		return menu;
+	}
+
+	private static <E extends Enum<E>> JMenu createEnumMenu(final String key, final Class<E> type, final Supplier<E> current,
+			final Consumer<E> setter){
+		final JMenu menu = new JMenu(I18N.t(key));
+
+		final ButtonGroup group = new ButtonGroup();
+		final Map<E, JRadioButtonMenuItem> items = new EnumMap<>(type);
+		for(final E value : type.getEnumConstants()){
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t(key + "." + value.name().toLowerCase(Locale.ROOT)));
+			item.addActionListener(e -> setter.accept(value));
+			group.add(item);
+			menu.add(item);
+			items.put(value, item);
+		}
+
+		// Reflect the current choice every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				items.get(current.get())
+					.setSelected(true);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/** The privacy policy applied to the views and the searches (editors always show everything). */
+	private JMenu createPrivacyMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.view.privacy"));
+		menu.setMnemonic(KeyEvent.VK_Y);
+
+		final ButtonGroup group = new ButtonGroup();
+		final Map<PrivacyPolicy, JRadioButtonMenuItem> items = new EnumMap<>(PrivacyPolicy.class);
+		for(final PrivacyPolicy policy : PrivacyPolicy.values()){
+			final JRadioButtonMenuItem item = new JRadioButtonMenuItem(I18N.t("menu.view.privacy." + policy.name().toLowerCase(Locale.ROOT)));
+			item.addActionListener(e -> PrivacyService.setPolicy(policy));
+			group.add(item);
+			menu.add(item);
+			items.put(policy, item);
+		}
+
+		// Reflect the current policy every time the submenu is opened
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				items.get(PrivacyService.policy())
+					.setSelected(true);
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Individual
+	 * ====================================================================== */
+
+	private JMenu createIndividualMenu(final GenealogyRepository repository){
+		final JMenu menu = new JMenu(I18N.t("menu.individual"));
+		menu.setMnemonic(KeyEvent.VK_I);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, IndividualToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.relationshipTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.secondaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.tertiaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(repository), bindings);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Group
+	 * ====================================================================== */
+
+	private JMenu createGroupMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.group"));
+		menu.setMnemonic(KeyEvent.VK_G);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, GroupToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.relationshipTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.secondaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.tertiaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.navigationTools(), bindings);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Place
+	 * ====================================================================== */
+
+	private JMenu createPlaceMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.place"));
+		menu.setMnemonic(KeyEvent.VK_P);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, PlaceToolRegistry.primaryTools(), bindings);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Source
+	 * ====================================================================== */
+
+	private JMenu createSourceMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.source"));
+		menu.setMnemonic(KeyEvent.VK_S);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, SourceToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, SourceToolRegistry.repositoryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, SourceToolRegistry.documentTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, SourceToolRegistry.citationTools(), bindings);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Event
+	 * ====================================================================== */
+
+	private JMenu createEventMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.event"));
+		menu.setMnemonic(KeyEvent.VK_T);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, EventToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, EventToolRegistry.referenceTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, EventToolRegistry.analysisTools(), bindings);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Research
+	 * ====================================================================== */
+
+	private JMenu createResearchMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.research"));
+		menu.setMnemonic(KeyEvent.VK_R);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		//the workflow, then the reasoning on the evidence (conclusions, hypotheses), then the context it is read in, then the reports; a group
+		//with one tool left at the level of the user joins the previous one instead of standing alone between two separators
+		addToolGroups(menu, bindings, List.of(ResearchToolRegistry.planningTools(), ResearchToolRegistry.analysisTools(),
+			ResearchToolRegistry.contextTools(), ResearchToolRegistry.reportTools()), true);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Tools
+	 * ====================================================================== */
+
+	/* ======================================================================
+	 *                          Reports
+	 * ====================================================================== */
+
+	/**
+	 * @return	The reports in the groups of the menu: the ones about people and groups (they need one selected), the ones about a place, a
+	 * 	source or a research question (picked from a list), the bibliography and the research progress (about the selected record) and
+	 * 	the ones about the whole file.
+	 */
+	static List<List<ToolOperation>> reportOperationGroups(){
+		return List.of(
+			List.of(new AncestorReportOperation(), new DescendantReportOperation(), new IndividualSummaryOperation(),
+				new RelationshipReportOperation(), new GroupSheetOperation()),
+			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation()),
+			List.of(new BibliographyOperation(), new ResearchProgressOperation()),
+			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new SurnamesOperation()));
+	}
+
+	private JMenu createReportsMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.reports"));
+		menu.setMnemonic(KeyEvent.VK_O);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		//the reports are in groups, by what they start from, each one separated from the next
+		addToolGroups(menu, bindings, reportOperationGroups(), false);
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+	/* ======================================================================
+	 *                          Tools
+	 * ====================================================================== */
+
+	private JMenu createToolsMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.tools"));
+		menu.setMnemonic(KeyEvent.VK_L);
+
+		final List<ToolItemBinding> bindings = new ArrayList<>();
+
+		addToolsToMenu(menu, MaintenanceToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, MaintenanceToolRegistry.validationTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, MaintenanceToolRegistry.analysisTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, DateToolRegistry.tools(), bindings);
+
+		final ResearchAssistantPort assistant = frame.assistant();
+		if(assistant != null){
+			menu.add(new JSeparator());
+			final JMenuItem researchAssistant = new JMenuItem(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.action());
+			researchAssistant.setAccelerator(ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.keyStroke());
+			researchAssistant.addActionListener(e -> assistant.open());
+			menu.add(researchAssistant);
+		}
+
+		bindDynamicEnablement(menu, bindings);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Navigate
+	 * ====================================================================== */
+
+	private JMenu createNavigateMenu(){
+		final JMenu menu = new JMenu(I18N.t("menu.navigate"));
+		menu.setMnemonic(KeyEvent.VK_N);
+
+		final JMenuItem back = new JMenuItem(ShortcutRegistry.NAV_BACK.action(), KeyEvent.VK_B);
+		back.setAccelerator(ShortcutRegistry.NAV_BACK.keyStroke());
+		back.addActionListener(e -> {
+			if(frame.switcher().canGoBack())
+				frame.switcher()
+					.navigateBack();
+		});
+		menu.add(back);
+
+		final JMenuItem forward = new JMenuItem(ShortcutRegistry.NAV_FORWARD.action(), KeyEvent.VK_F);
+		forward.setAccelerator(ShortcutRegistry.NAV_FORWARD.keyStroke());
+		forward.addActionListener(e -> {
+			if(frame.switcher().canGoForward())
+				frame.switcher()
+					.navigateForward();
+		});
+		menu.add(forward);
+
+		menu.add(new JSeparator());
+
+		final JMenuItem jumpTo = new JMenuItem(ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.action(), KeyEvent.VK_J);
+		jumpTo.setAccelerator(ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.keyStroke());
+		jumpTo.addActionListener(e -> openJumpToDialog());
+		menu.add(jumpTo);
+
+		final JMenuItem findRecord = new JMenuItem(ShortcutRegistry.NAV_FIND_RECORD.action(), KeyEvent.VK_R);
+		findRecord.setAccelerator(ShortcutRegistry.NAV_FIND_RECORD.keyStroke());
+		findRecord.addActionListener(e -> frame.openFindDialog());
+		menu.add(findRecord);
+
+		menu.add(new JSeparator());
+
+		final JMenuItem clearHistory = new JMenuItem(I18N.t("menu.navigate.clear.history"), KeyEvent.VK_C);
+		clearHistory.addActionListener(e -> {
+			//the entry is grey from now on: nothing else to say
+			frame.switcher()
+				.clearHistory();
+		});
+		menu.add(clearHistory);
+
+		// The enabled state of Back, Forward and Clear History depends on
+		// the current history. A MenuListener refreshes the state every
+		// time the menu is opened, so no global history listener is needed.
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				final boolean canGoBack = frame.switcher()
+					.canGoBack();
+				final boolean canGoForward = frame.switcher()
+					.canGoForward();
+				back.setEnabled(canGoBack);
+				forward.setEnabled(canGoForward);
+				clearHistory.setEnabled(canGoBack || canGoForward);
+
+				// The jump-to dialog offers different record types
+				// depending on the active projection.
+				final boolean ego = (frame.switcher().getCurrentProjectionType() == ProjectionType.EGO_NETWORK);
+				jumpTo.setText(ego
+					? ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL_OR_GROUP.action()
+					: ShortcutRegistry.NAV_JUMP_TO_INDIVIDUAL.action());
+			}
+
+			@Override public void menuDeselected(final MenuEvent e){}
+			@Override public void menuCanceled(final MenuEvent e){}
+		});
+
+		// Initial state, consistent with an empty history.
+		back.setEnabled(false);
+		forward.setEnabled(false);
+		clearHistory.setEnabled(false);
+
+		return menu;
+	}
+
+	private void openJumpToDialog(){
+		final String id = JumpToIndividualDialog.showAndGet(frame, frame.model(),
+			frame.switcher().getCurrentProjectionType() == ProjectionType.EGO_NETWORK);
+		if(id != null)
+			frame.loadRoot(id);
+	}
+
+
+	/* ======================================================================
+	 *                          Bookmarks
+	 * ====================================================================== */
+
+	private JMenu createBookmarkMenu(){
+		//the menu rebuilds its items every time it is opened, so that it follows the bookmarks and the privacy policy
+		final BookmarkMenu menu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::model, frame::bookmarkFilePath, frame::captureCurrentState,
+			frame::applyBookmark);
+		menu.setText(I18N.t("menu.bookmarks"));
+		menu.setMnemonic(KeyEvent.VK_B);
+
+		return menu;
+	}
+
+
+	/* ======================================================================
+	 *                          Helpers
+	 * ====================================================================== */
+
+	/** Adds the groups of tools that are shown at the current level, separating each group from the next (an empty group leaves no separator). */
+	private void addToolGroups(final JMenu menu, final List<ToolItemBinding> bindings, final List<List<ToolOperation>> groups,
+			final boolean joinSingles){
+		boolean first = true;
+		for(final List<ToolOperation> group : visibleGroups(groups, FeatureVisibilityService.shared(), joinSingles)){
+			if(!first)
+				menu.add(new JSeparator());
+			first = false;
+
+			addToolsToMenu(menu, group, bindings);
+		}
+	}
+
+	/**
+	 * @param groups      the groups of tools of a menu, in order
+	 * @param features    what tells the level of the user
+	 * @param joinSingles whether a group with a single tool shown joins the previous group (the first group never joins)
+	 * @return the groups with only the tools shown at the level of the user, without the empty ones
+	 */
+	static List<List<ToolOperation>> visibleGroups(final List<List<ToolOperation>> groups, final FeatureVisibilityService features,
+			final boolean joinSingles){
+		final List<List<ToolOperation>> visible = new ArrayList<>();
+		for(final List<ToolOperation> group : groups){
+			final List<ToolOperation> shown = group.stream()
+				.filter(tool -> features.isVisible(tool.minimumLevel()))
+				.toList();
+			if(shown.isEmpty())
+				continue;
+
+			if(joinSingles && shown.size() == 1 && !visible.isEmpty())
+				visible.getLast().addAll(shown);
+			else
+				visible.add(new ArrayList<>(shown));
+		}
+		return visible;
+	}
+
+	private static boolean isVisible(final ToolOperation tool){
+		return FeatureVisibilityService.shared()
+			.isVisible(tool.minimumLevel());
+	}
+
+	private void addToolsToMenu(final JMenu menu, final List<ToolOperation> tools, final List<ToolItemBinding> bindings){
+		for(final ToolOperation tool : tools){
+			if(!isVisible(tool))
+				continue;
+
+			final JMenuItem item = toolItem(tool, 0);
+			if(tool.getAccelerator() != null)
+				item.setAccelerator(tool.getAccelerator());
+			menu.add(item);
+
+			if(bindings != null)
+				bindings.add(new ToolItemBinding(item, tool));
+		}
+	}
+
+	/** Returns the platform menu shortcut mask (Ctrl on Windows/Linux, Cmd on macOS). */
+	private static int menuShortcutMask(){
+		return Toolkit.getDefaultToolkit()
+			.getMenuShortcutKeyMaskEx();
+	}
+
+	/**
+	 * Creates a menu item bound to the given tool. The tool runs with a
+	 * fresh context built from the frame's current state.
+	 */
+	private JMenuItem toolItem(final ToolOperation tool, final int mnemonic){
+		final JMenuItem item = new JMenuItem(tool.getName(), mnemonic);
+		item.addActionListener(e -> tool.run(frame.createToolContext()));
+		item.setEnabled(tool.isEnabled(frame.createToolContext()));
+		return item;
+	}
+
+	/**
+	 * Binds a MenuListener to dynamically update the enabled state of all tool items
+	 * based on ToolOperation#isEnabled(ToolContext).
+	 */
+	private void bindDynamicEnablement(final JMenu menu, final List<ToolItemBinding> bindings){
+		menu.addMenuListener(new MenuListener(){
+			@Override
+			public void menuSelected(final MenuEvent e){
+				final ToolContext context = frame.createToolContext();
+				for(final ToolItemBinding binding : bindings)
+					binding.item()
+						.setEnabled(binding.tool().isEnabled(context));
+			}
+
+			@Override
+			public void menuDeselected(final MenuEvent e){}
+
+			@Override
+			public void menuCanceled(final MenuEvent e){}
+		});
+	}
+
+	private record ToolItemBinding(JMenuItem item, ToolOperation tool){}
+
+	/** Creates an Undo/Redo item acting on the application history. */
+	private JMenuItem historyItem(final ShortcutRegistry.ShortcutDefinition shortcut, final Runnable action){
+		final JMenuItem item = new JMenuItem(shortcut.action());
+		item.setAccelerator(shortcut.keyStroke());
+		item.addActionListener(e -> action.run());
+		return item;
+	}
+
+	/** Creates a menu item that switches the active projection. */
+	private JRadioButtonMenuItem projectionItem(final String text, final ProjectionType projection, final int keyCode){
+		final JRadioButtonMenuItem item = new JRadioButtonMenuItem(text);
+		item.setAccelerator(KeyStroke.getKeyStroke(keyCode, menuShortcutMask()));
+		item.addActionListener(e -> frame.switcher().setProjection(projection));
+		return item;
+	}
+
+}

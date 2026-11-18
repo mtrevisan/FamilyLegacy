@@ -1,0 +1,111 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.handlers;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+
+import java.awt.Window;
+import java.util.List;
+
+
+/**
+ * Handler for IdentityHypothesisRecord.
+ */
+public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<RecordDialog>{
+
+	public static final String TYPE = IdentityHypothesisReader.TYPE;
+	public static final String ID_PREFIX = IdentityHypothesisReader.ID_PREFIX;
+
+
+	private static final class SingletonHelper{
+		private static final IdentityHypothesisHandler INSTANCE = new IdentityHypothesisHandler();
+	}
+
+
+	public static IdentityHypothesisHandler getInstance(){
+		return SingletonHelper.INSTANCE;
+	}
+
+
+	@Override
+	public String getType(){
+		return TYPE;
+	}
+
+	public static boolean isOfType(final FLEFRecord record){
+		return IdentityHypothesisReader.isOfType(record);
+	}
+
+	@Override
+	public String getIdPrefix(){
+		return ID_PREFIX;
+	}
+
+	@Override
+	public String getLabel(){
+		return I18N.t("confirmation.exist_record.identity_hypothesis");
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null)
+			return "--";
+
+		String identity1Text = null;
+		String identity2Text = null;
+
+		final List<FLEFRecord> identities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, IdentityHypothesisReader.TAG_IDENTITY, model);
+		final FLEFRecord identity1 = (!identities.isEmpty()? identities.get(0): null);
+		if(identity1 != null)
+			identity1Text = HandlerRegistry.getHandler(identity1.getTag())
+				.getDisplayText(identity1, model);
+
+		final FLEFRecord identity2 = (identities.size() > 1? identities.get(1): null);
+		if(identity2 != null)
+			identity2Text = HandlerRegistry.getHandler(identity2.getTag())
+				.getDisplayText(identity2, model);
+
+		if(identity1Text != null && identity2Text != null)
+			return identity1Text + " ↔ " + identity2Text;
+		return (record.getId() != null? record.getId(): "(unnamed)");
+	}
+
+	@Override
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
+	}
+
+	@Override
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
+	}
+
+
+}

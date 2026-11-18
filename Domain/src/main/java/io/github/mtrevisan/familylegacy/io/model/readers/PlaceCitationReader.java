@@ -1,0 +1,83 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import org.apache.commons.lang3.StringUtils;
+
+
+
+/**
+ * Handler for PLACE CITATION records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // Reference to a PLACE record together with location-specific citations and evidence qualifiers.
+ * // Implementations SHOULD prevent cyclic expansion of citation metadata (PlaceCitation > SourceCitation > SourceRecord > PlaceCitation).
+ * struct PlaceCitation {
+ *   place: Xref&lt;PlaceRecord&gt;
+ *   original_text?: Text   // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
+ *   source*: SourceCitation
+ *   confidence?: Confidence
+ * }
+ * </pre>
+ */
+public final class PlaceCitationReader{
+
+	public static final String TYPE = "PLACE_CITATION";
+
+	public static final String TAG_PLACE = "place";
+	public static final String TAG_ORIGINAL_TEXT = "original_text";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_CONFIDENCE = "confidence";
+
+	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceReader.TYPE, PlaceReader.TYPE);
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
+
+
+	private PlaceCitationReader(){}
+
+
+	/**
+	 * @param event	the record that has the place citation (an event, a repository, a source...)
+	 * @param model	the model
+	 * @return	the name of the place, or the text of the citation if the place is not a record, or {@code null} if there is none
+	 */
+	public static String extractPlace(final FLEFRecord event, final RecordLookup model){
+		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
+		if(placeId == null){
+			final String originalText = FLEFRecordHelper.getChildValue(event, TAG_PLACE_ORIGINAL_TEXT);
+			return (StringUtils.isNotEmpty(originalText)? originalText: null);
+		}
+
+		final FLEFRecord placeRecord = model.getRecordById(placeId);
+		if(placeRecord != null)
+			return PlaceReader.extractPrimaryName(placeRecord);
+		return null;
+	}
+
+}

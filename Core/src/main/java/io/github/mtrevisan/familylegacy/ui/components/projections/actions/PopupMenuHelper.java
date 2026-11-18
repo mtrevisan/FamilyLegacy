@@ -1,0 +1,146 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.actions;
+
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
+import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
+import java.util.function.Consumer;
+
+
+public class PopupMenuHelper{
+
+	private PopupMenuHelper(){}
+
+
+	/**
+	 * Checks if pasting an individual from the clipboard is permitted, verifying gender compatibility
+	 * if placed inside a {@code PartnersPanel}.
+	 */
+	public static boolean isPasteAllowed(final FLEFModel model, final IndividualPanel panel){
+		final ToolContext context = new ToolContext(model, null, panel, null);
+		if(context.canPaste()){
+			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(panel.getParent());
+			if(partnersPanel == null)
+				return true;
+
+			final Side side = partnersPanel.getSideOf(panel);
+			if(side == null)
+				return true;
+
+			final IndividualSummary otherData = (side == Side.LEFT
+				? partnersPanel.getMotherData()
+				: partnersPanel.getFatherData());
+			if(otherData == null || otherData.isEmpty())
+				return true;
+
+			final FLEFRecord clipped = context.clippedRecord();
+			if(clipped == null)
+				return false;
+
+			final String clippedSex = PreferredSex.rawOf(clipped, model);
+			final String otherSex = otherData.getSex()
+				.getRawSex();
+			final String requiredSex = IndividualReader.getOppositeSex(otherSex);
+			return requiredSex.equals(clippedSex);
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if pasting a group from the clipboard is permitted.
+	 */
+	public static boolean isPasteAllowed(final FLEFModel model, final GroupPanel panel){
+		final ToolContext context = new ToolContext(model, null, panel, null);
+		if(context.canPaste()){
+			final GroupData otherData = panel.getData();
+			if(otherData == null || otherData.isEmpty())
+				return true;
+
+			return (context.clippedRecord() != null);
+		}
+		return false;
+	}
+
+
+	public static void addMenuItem(final JPopupMenu popup, final JMenuItem item, final IndividualPanel panel,
+			final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			final IndividualSummary data = panel.getData();
+			action.accept(data != null? data.getIndividual(): null);
+		});
+		popup.add(item);
+	}
+
+	/**
+	 * Adds an item to a submenu, bound to the individual shown by the panel.
+	 */
+	public static void addMenuItem(final JMenu submenu, final JMenuItem item, final IndividualPanel panel,
+			final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			final IndividualSummary data = panel.getData();
+			action.accept(data != null? data.getIndividual(): null);
+		});
+		submenu.add(item);
+	}
+
+	/**
+	 * Enables the submenu only if at least one of its entries is enabled (an all-grey submenu leads nowhere), and makes it visible
+	 * only if at least one of its entries is.
+	 */
+	public static void syncSubmenuState(final JMenu submenu){
+		boolean anyEnabled = false;
+		boolean anyVisible = false;
+		for(final Component component : submenu.getMenuComponents())
+			if(component instanceof JMenuItem item && item.isVisible()){
+				anyVisible = true;
+				anyEnabled |= item.isEnabled();
+			}
+		submenu.setVisible(anyVisible);
+		submenu.setEnabled(anyEnabled);
+	}
+
+	public static void addMenuItem(final JPopupMenu popup, final JMenuItem item, final GroupPanel panel,
+			final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			final GroupData data = panel.getData();
+			action.accept(data != null? data.getGroup(): null);
+		});
+		popup.add(item);
+	}
+
+}

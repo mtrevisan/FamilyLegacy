@@ -1,0 +1,166 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.handlers;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import java.awt.Window;
+import java.util.List;
+
+
+/**
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.2.0.
+ * <p>
+ * This handler provides the necessary operations for managing name structures:
+ * creation, editing, display name generation, and type identification.
+ * <p>
+ * Structure:
+ * <pre>
+ * ???
+ * </pre>
+ */
+public class PersonalNameHandler extends AbstractRecordTypeHandler<RecordDialog>{
+
+	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
+	public static final String CITED_TYPE = "PERSONAL_NAME";
+
+
+	private static final class SingletonHelper{
+		private static final PersonalNameHandler INSTANCE = new PersonalNameHandler();
+	}
+
+
+	public static PersonalNameHandler getInstance(){
+		return SingletonHelper.INSTANCE;
+	}
+
+
+	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
+	public String getLabel(){
+		return I18N.t("confirmation.exist_record.personal_name");
+	}
+
+	@Override
+	public String getType(){
+		return TYPE;
+	}
+
+	@Override
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null)
+			return "--";
+
+		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(record, NameReader.TAG_PART);
+		final StringBuilder fullName = new StringBuilder();
+
+		for(final FLEFRecord part : parts){
+			final String val = NameReader.extractPartValue(part);
+			if(StringUtils.isNotEmpty(val)){
+				if(!fullName.isEmpty())
+					fullName.append(StringUtils.SPACE);
+				fullName.append(val);
+			}
+		}
+
+		String result = fullName.toString();
+		if(result.isBlank())
+			return "-- [" + record.getId() + "]";
+
+		result = GUIHelper.limitTextLength(result);
+		final String type = NameReader.extractType(record);
+		if(StringUtils.isNotEmpty(type))
+			result += " (" + type + ")";
+
+		return result;
+	}
+
+	/**
+	 * The text of a name as HTML, where the nicknames (the name parts of type nickname or family nickname, or all of a name of
+	 * type nickname) are in italic.
+	 *
+	 * @param record	The personal name.
+	 * @return	The HTML, or {@code null} if there is no nickname (the plain text is enough).
+	 */
+	public String getRichDisplayText(final FLEFRecord record){
+		if(record == null)
+			return null;
+
+		final boolean nicknameName = NameReader.ENUM_PERSONAL_TYPE_NICKNAME.equals(NameReader.extractType(record));
+		boolean hasNickname = nicknameName;
+		final StringBuilder sb = new StringBuilder("<html>");
+		boolean first = true;
+		for(final FLEFRecord part : FLEFRecordHelper.findChildren(record, NameReader.TAG_PART)){
+			final String value = NameReader.extractPartValue(part);
+			if(StringUtils.isEmpty(value))
+				continue;
+
+			final String partType = NameReader.extractPartType(part);
+			final boolean nickname = (nicknameName || NameReader.ENUM_PART_TYPE_NICKNAME.equals(partType)
+				|| NameReader.ENUM_PART_TYPE_FAMILY_NICKNAME.equals(partType));
+			hasNickname |= nickname;
+			if(!first)
+				sb.append(StringUtils.SPACE);
+			first = false;
+			final String escaped = StringUtils.replaceEach(value, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
+			sb.append(nickname? "<i>" + escaped + "</i>": escaped);
+		}
+		if(!hasNickname || first)
+			return null;
+
+		final String type = NameReader.extractType(record);
+		if(StringUtils.isNotEmpty(type))
+			sb.append(" (").append(type).append(')');
+		return sb.append("</html>").toString();
+	}
+
+	@Override
+	public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+		return RecordDialogs.createNew(TYPE, parent, model);
+	}
+
+	@Override
+	public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return RecordDialogs.createEdit(TYPE, parent, model, record);
+	}
+
+
+}

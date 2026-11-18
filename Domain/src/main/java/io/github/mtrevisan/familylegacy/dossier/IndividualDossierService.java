@@ -1,0 +1,917 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.dossier;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.Name;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameAnatomyService;
+import io.github.mtrevisan.familylegacy.io.model.readers.NamePart;
+import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.DossierOrder;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
+import io.github.mtrevisan.familylegacy.tree.PresentationOrder;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+
+/**
+ * Builds an {@link IndividualDossier} from a FLEF model.
+ * <p>
+ * The service reads every record type that carries information about an
+ * individual and produces a compact, sectioned view. Record types are
+ * identified by their FLEF protocol tag, so the service works with any
+ * model produced by a compliant parser.
+ * <p>
+ * The service is stateless apart from the model reference, the
+ * pre-computed event index, the name-anatomy service, the shared
+ * formatting helpers, and the conclusion index. Not thread-safe; use
+ * it from the Swing Event Dispatch Thread.
+ */
+public final class IndividualDossierService{
+
+	private static final String TAG_SOURCE = SourceCitationReader.TAG_SOURCE;
+	private static final String TAG_LOCATOR = SourceCitationReader.TAG_LOCATOR;
+	private static final String TAG_NOTE = EventReader.TAG_NOTE;
+	private static final String TAG_EVIDENCE = EvidenceQualifiersReader.TAG_EVIDENCE;
+
+
+	private final FLEFModel model;
+
+	private final Map<String, List<FLEFRecord>> eventMap;
+
+	private final DossierFormatting formatting;
+
+	/** Reverse index: assertion record id -> proof status. */
+	private final Map<String, ProofStatus> conclusionIndex;
+
+
+	public IndividualDossierService(final FLEFModel model){
+		this.model = model;
+		this.eventMap = buildEventMap();
+
+		this.formatting = new DossierFormatting(model);
+		this.conclusionIndex = buildConclusionIndex();
+	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
+
+	/**
+	 * Builds the dossier for the given individual.
+	 *
+	 * @param individualId the individual id; may be {@code null}
+	 * @return the dossier, or {@link IndividualDossier#empty()} when the
+	 * id is {@code null} or does not resolve to a record
+	 */
+	public IndividualDossier build(final String individualId){
+		if(StringUtils.isEmpty(individualId))
+			return IndividualDossier.empty();
+
+		final FLEFRecord individual = model.getRecordById(individualId);
+		//the dossier of an individual hidden by the privacy policy is not shown
+		if(individual == null || PrivacyService.isHidden(model, individual))
+			return IndividualDossier.empty();
+
+		final IndividualSummary data = IndividualSummary.create(individual, eventMap, model);
+		final String displayName = (!data.isEmpty()
+			? data.getNameText()
+			: individualId);
+
+		final Map<DossierSectionType, List<DossierEntry>> sections =
+			new EnumMap<>(DossierSectionType.class);
+		sections.put(DossierSectionType.IDENTITY, buildIdentity(individual, data));
+		sections.put(DossierSectionType.EVENTS, buildEvents(individualId));
+		sections.put(DossierSectionType.ATTRIBUTES, buildAttributes(individualId));
+		sections.put(DossierSectionType.RELATIONSHIPS, buildRelationships(individualId));
+		sections.put(DossierSectionType.SOURCES, buildSources(individual, individualId));
+		sections.put(DossierSectionType.CONTEXT, buildContext(individualId));
+		sections.put(DossierSectionType.IDENTITY_HYPOTHESES, buildIdentityHypotheses(individualId));
+		sections.put(DossierSectionType.RESEARCH, buildResearch(individualId));
+		sections.put(DossierSectionType.NOTES, buildNotes(individual, individualId));
+
+		return new IndividualDossier(individual, data, displayName, sections);
+	}
+
+
+	/* ======================================================================
+	 *                          Identity
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildIdentity(final FLEFRecord individual, final IndividualSummary data){
+		final List<DossierEntry> entries = new ArrayList<>();
+
+		// Names: use the NameAnatomyService so the parsing logic is shared
+		// with NameAnatomyPanel. Each name produces a header row and one
+		// row per part.
+		final List<Name> names = NameAnatomyService.extractForIndividual(individual);
+		for(final Name name : names){
+			final FLEFRecord nameRecord = name.sourceRecord();
+			entries.add(DossierEntry.nameHeader(name.displayType(), individual)
+				.withFocus(EditorTab.PROPERTIES, nameRecord));
+
+			if(name.hasParts()){
+				for(final NamePart part : name.parts())
+					if(StringUtils.isNotEmpty(part.value()))
+						entries.add(DossierEntry.namePart(part.displayType(), part.value(), individual)
+							.withFocus(EditorTab.PROPERTIES, nameRecord));
+			}
+			else if(StringUtils.isNotEmpty(name.value())){
+				entries.add(DossierEntry.namePart(NameReader.TAG_PART_VALUE, name.value(), individual)
+					.withFocus(EditorTab.PROPERTIES, nameRecord));
+			}
+		}
+
+		// Fallback: keep the old joined-string behavior if the anatomy
+		// service returned nothing (e.g. malformed record).
+		if(names.isEmpty()){
+			for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_NAME)){
+				final String value = extractNameValue(nameStruct);
+				if(StringUtils.isNotEmpty(value)){
+					final String type = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_TYPE);
+					final String label = (StringUtils.isNotEmpty(type)
+						? enumLabel("enum.name.type", type)
+						: I18N.t("text.dossier.name"));
+					entries.add(DossierEntry.of(label, value, individual)
+						.withFocus(EditorTab.PROPERTIES, nameStruct));
+				}
+			}
+		}
+
+		// Preferred image.
+		final String uri = IndividualReader.extractPreferredImageUri(individual, model);
+		if(StringUtils.isNotEmpty(uri))
+			entries.add(DossierEntry.of(I18N.t("text.dossier.photo"), uri, individual)
+				.withFocus(EditorTab.PROPERTIES, null));
+
+		// Sex is an attribute: it is shown in the attributes section, not in the identity.
+
+		// Vital dates.
+		if(data != null && !data.isEmpty()){
+			final String info = data.getInfoText();
+			if(StringUtils.isNotEmpty(info))
+				entries.add(DossierEntry.of(I18N.t("text.dossier.vital"), info, individual));
+		}
+
+		// Privacy.
+		final FLEFRecord privacy = FLEFRecordHelper.findChild(individual, IndividualReader.TAG_PRIVACY);
+		if(privacy != null){
+			final String level = FLEFRecordHelper.getChildValue(privacy, PrivacyReader.TAG_LEVEL);
+			if(StringUtils.isNotEmpty(level))
+				entries.add(DossierEntry.of(I18N.t("text.dossier.privacy"), enumLabel("enum.privacy.level", level), individual)
+					.withFocus(EditorTab.PRIVACY, null));
+		}
+
+		return entries;
+	}
+
+	private static String extractNameValue(final FLEFRecord nameStruct){
+		final String direct = FLEFRecordHelper.getChildValue(nameStruct, NameReader.TAG_VALUE);
+		if(StringUtils.isNotEmpty(direct))
+			return direct;
+
+		final StringBuilder sb = new StringBuilder();
+		for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, NameReader.TAG_PART)){
+			final String v = FLEFRecordHelper.getChildValue(part, NameReader.TAG_PART_VALUE);
+			if(StringUtils.isNotEmpty(v)){
+				if(!sb.isEmpty())
+					sb.append(' ');
+				sb.append(v);
+			}
+		}
+		return sb.toString();
+	}
+
+
+	/* ======================================================================
+	 *                          Events
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildEvents(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationReader.TYPE));
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String participantId = EventParticipationReader.extractParticipantRef(eventParticipation);
+			if(!individualId.equals(participantId))
+				continue;
+
+			final DossierEntry entry = buildEventEntry(eventParticipation);
+			if(entry != null)
+				entries.add(entry);
+		}
+		return ordered(entries, OrderPreferences.dossierEvents(), EventReader.TAG_DATE);
+	}
+
+	/**
+	 * Orders the dated rows of a section as chosen by the user; the date of a row is the one of the record behind it (a point, or
+	 * the start of a period; the end when there is no start). A presentation choice only: no record is touched.
+	 */
+	static List<DossierEntry> ordered(final List<DossierEntry> entries, final DossierOrder order, final String dateTag){
+		return PresentationOrder.dossier(entries, order, entry -> {
+			final FLEFRecord record = entry.editRecord();
+			final FLEFRecord dateStruct = (record != null? FLEFRecordHelper.findChild(record, dateTag): null);
+			final TemporalSpan span = (dateStruct != null? DateNormalizer.normalize(dateStruct): null);
+			if(span == null)
+				return null;
+
+			final NormalizedDate start = span.start();
+			return (start != null? start: span.end());
+		});
+	}
+
+	private DossierEntry buildEventEntry(final FLEFRecord eventParticipation){
+		final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
+		if(eventId == null)
+			return null;
+
+		final FLEFRecord event = model.getRecordById(eventId);
+		if(event == null)
+			return null;
+
+		final String eventType = FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE);
+		final String label = (StringUtils.isNotEmpty(eventType)
+			? enumLabel("enum.event.type", eventType)
+			: I18N.t("text.dossier.event"));
+
+		final String date = formatting.formatDate(event);
+		final String place = formatting.resolvePlaceName(event);
+		final StringBuilder value = new StringBuilder();
+		if(StringUtils.isNotEmpty(date))
+			value.append(date);
+		if(StringUtils.isNotEmpty(place)){
+			if(!value.isEmpty())
+				value.append(" — ");
+			value.append(place);
+		}
+
+		final StringBuilder subtitle = new StringBuilder();
+		final String role = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_ROLE);
+		if(StringUtils.isNotEmpty(role))
+			subtitle.append(I18N.tf("text.dossier.role", enumLabel("enum.event_participation.role", role)));
+		final String description = FLEFRecordHelper.getChildValue(event, EventReader.TAG_DESCRIPTION);
+		if(StringUtils.isNotEmpty(description)){
+			if(!subtitle.isEmpty())
+				subtitle.append(" · ");
+			subtitle.append(description);
+		}
+
+		return new DossierEntry(label, value.toString(), subtitle.toString(),
+			buildEvidenceBadge(event), event, DossierEntry.Kind.NORMAL,
+			proofStatusFor(event));
+	}
+
+
+	/* ======================================================================
+	 *                          Attributes
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildAttributes(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final List<FLEFRecord> individualAttributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
+		for(final FLEFRecord individualAttribute : individualAttributes){
+			final String ownerId = FLEFRecordHelper.getChildValue(individualAttribute, IndividualReader.TYPE);
+			if(!individualId.equals(ownerId))
+				continue;
+
+			entries.add(buildAttributeEntry(individualAttribute));
+		}
+		return ordered(entries, OrderPreferences.dossierAttributes(), IndividualAttributeReader.TAG_VALID_FROM);
+	}
+
+	private DossierEntry buildAttributeEntry(final FLEFRecord individualAttribute){
+		final String type = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE);
+		final String label = (StringUtils.isNotEmpty(type)
+			? enumLabel("enum.individual_attribute.type", type)
+			: I18N.t("text.dossier.attribute"));
+		final String value = FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_VALUE);
+
+		final String validity = formatting.formatValidity(individualAttribute, IndividualAttributeReader.TAG_VALID_FROM,
+			IndividualAttributeReader.TAG_VALID_TO);
+		final String place = formatting.resolvePlaceName(individualAttribute);
+		final StringBuilder subtitle = new StringBuilder();
+		if(StringUtils.isNotEmpty(validity))
+			subtitle.append(validity);
+		if(StringUtils.isNotEmpty(place)){
+			if(!subtitle.isEmpty())
+				subtitle.append(" · ");
+			subtitle.append(place);
+		}
+
+		return new DossierEntry(label, (value != null? value: StringUtils.EMPTY), subtitle.toString(),
+			buildEvidenceBadge(individualAttribute), individualAttribute, DossierEntry.Kind.NORMAL,
+			proofStatusFor(individualAttribute));
+	}
+
+
+	/* ======================================================================
+	 *                          Relationships
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildRelationships(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
+		for(final FLEFRecord relationship : relationships){
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
+			final boolean isSubject = individualId.equals(subjectId);
+			final boolean isTarget = individualId.equals(objectId);
+			if(!isSubject && !isTarget)
+				continue;
+
+			entries.add(buildRelationshipEntry(relationship, isSubject));
+		}
+		return ordered(entries, DossierOrder.CHRONOLOGICAL, RelationshipReader.TAG_VALID_FROM);
+	}
+
+	private DossierEntry buildRelationshipEntry(final FLEFRecord relationship, final boolean isSubject){
+		final String type = RelationshipReader.extractType(relationship);
+		final String typeLabel = (StringUtils.isNotEmpty(type)
+			? enumLabel("enum.relationship.type", type)
+			: I18N.t("text.dossier.relationship"));
+
+		final String otherId = (isSubject
+			? EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET)
+			: EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT));
+		final String otherName = resolveParticipantName(otherId);
+
+		final String direction = (isSubject? "→ ": "← ");
+		final String label = direction + typeLabel;
+		final String value = (otherName != null? otherName: otherId != null? otherId: "?");
+
+		final StringBuilder subtitle = new StringBuilder();
+		final String role = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_ROLE);
+		if(StringUtils.isNotEmpty(role))
+			subtitle.append(I18N.tf("text.dossier.role", role));
+		final String validity = formatting.formatValidity(relationship, RelationshipReader.TAG_VALID_FROM,
+			RelationshipReader.TAG_VALID_TO);
+		if(StringUtils.isNotEmpty(validity)){
+			if(!subtitle.isEmpty())
+				subtitle.append(" · ");
+			subtitle.append(validity);
+		}
+
+		return new DossierEntry(label, value, subtitle.toString(),
+			buildEvidenceBadge(relationship), relationship, DossierEntry.Kind.NORMAL,
+			proofStatusFor(relationship));
+	}
+
+
+	/* ======================================================================
+	 *                          Sources
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildSources(final FLEFRecord individual, final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final Set<String> seenSourceIds = new HashSet<>();
+
+		collectSources(individual, I18N.t("text.dossier.individual"), entries, seenSourceIds);
+
+		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
+			collectSources(event, I18N.t("text.dossier.event"), entries, seenSourceIds);
+
+		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
+		for(final FLEFRecord attribute : attributes){
+			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
+			if(individualId.equals(ownerId))
+				collectSources(attribute, I18N.t("text.dossier.attribute"), entries, seenSourceIds);
+		}
+
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
+		for(final FLEFRecord relationship : relationships){
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
+			if(individualId.equals(subjectId) || individualId.equals(objectId))
+				collectSources(relationship, I18N.t("text.dossier.relationship"), entries, seenSourceIds);
+		}
+
+		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
+		for(final FLEFRecord impact : impacts){
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
+			if(individualId.equals(targetId))
+				collectSources(impact, I18N.t("text.dossier.context"), entries, seenSourceIds);
+		}
+
+		return entries;
+	}
+
+	private void collectSources(final FLEFRecord parent, final String origin,
+		final List<DossierEntry> entries, final Set<String> seenSourceIds){
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(parent, TAG_SOURCE);
+		for(final FLEFRecord citation : citations){
+			final String sourceId = extractRef(citation, TAG_SOURCE);
+			//the same source may both support and contradict
+			final boolean contradicting = SourceCitationReader.isContradicting(citation);
+			if(sourceId == null
+					|| !seenSourceIds.add(sourceId + (contradicting? "|" + SourceCitationReader.STANCE_CONTRADICTS: StringUtils.EMPTY)))
+				continue;
+
+			final FLEFRecord source = model.getRecordById(sourceId);
+			if(source == null)
+				continue;
+
+			final String title = resolveSourceTitle(source);
+			final String locator = FLEFRecordHelper.getChildValue(citation, TAG_LOCATOR);
+			final String label = I18N.tf(contradicting? "text.dossier.source_contradicting": "text.dossier.source", origin);
+			final String subtitle = joinSubtitle(describeOwner(parent), (StringUtils.isNotEmpty(locator)? I18N.tf("text.dossier.locator", locator): null));
+
+			entries.add(new DossierEntry(label, title, subtitle,
+				buildEvidenceBadge(citation), source, DossierEntry.Kind.NORMAL,
+				proofStatusFor(citation)));
+		}
+	}
+
+	private static String resolveSourceTitle(final FLEFRecord source){
+		final String value = SourceReader.extractPrimaryTitle(source);
+		if(StringUtils.isNotEmpty(value))
+			return value;
+		final String id = source.getId();
+		return (id != null? id: "?");
+	}
+
+
+	/* ======================================================================
+	 *                          Context
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildContext(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
+		for(final FLEFRecord impact : impacts){
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
+			if(!individualId.equals(targetId))
+				continue;
+
+			final String contextId = extractRef(impact, ContextImpactReader.TAG_CONTEXT);
+			if(contextId == null)
+				continue;
+
+			final FLEFRecord context = model.getRecordById(contextId);
+			if(context == null)
+				continue;
+
+			final String impactType = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_IMPACT_TYPE);
+			final String label = (StringUtils.isNotEmpty(impactType)
+				? enumLabel("enum.context_impact.type", impactType)
+				: I18N.t("text.dossier.context"));
+			final String contextTitle = resolveContextTitle(context);
+			final String rationale = FLEFRecordHelper.getChildValue(impact, ContextImpactReader.TAG_RATIONALE);
+			final String subtitle = (StringUtils.isNotEmpty(rationale)
+				? rationale
+				: context.getTag() != null? enumLabel("text.context.kind", context.getTag()): StringUtils.EMPTY);
+
+			entries.add(new DossierEntry(label, contextTitle, subtitle,
+				buildEvidenceBadge(impact), context, DossierEntry.Kind.NORMAL,
+				proofStatusFor(impact)));
+		}
+		return entries;
+	}
+
+	private static String resolveContextTitle(final FLEFRecord context){
+		String title = null;
+		if(CulturalNormReader.isOfType(context))
+			title = CulturalNormReader.extractTitle(context);
+		else if(HistoricEventReader.isOfType(context))
+			title = HistoricEventReader.extractTitle(context);
+		if(StringUtils.isNotEmpty(title))
+			return title;
+
+		final String id = context.getId();
+		return (id != null? id: "?");
+	}
+
+
+	/* ======================================================================
+	 *                          Identity hypotheses
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildIdentityHypotheses(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+		final List<FLEFRecord> hypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisReader.TYPE));
+		for(final FLEFRecord hypothesis : hypotheses){
+			final List<String> candidateIds = new ArrayList<>();
+			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY)){
+				final String id = extractRef(candidate, null);
+				if(id != null)
+					candidateIds.add(id);
+			}
+			if(!candidateIds.contains(individualId))
+				continue;
+
+			String otherId = null;
+			for(final String id : candidateIds)
+				if(!individualId.equals(id)){
+					otherId = id;
+					break;
+				}
+
+			final String otherName = (otherId != null? resolveParticipantName(otherId): "?");
+			final String comment = FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_RATIONALE);
+
+			entries.add(new DossierEntry(I18N.t("text.dossier.possible_duplicate"),
+				(otherName != null? otherName: otherId),
+				(comment != null? comment: StringUtils.EMPTY),
+				buildEvidenceBadge(hypothesis), hypothesis, DossierEntry.Kind.NORMAL,
+				proofStatusFor(hypothesis)));
+		}
+		return entries;
+	}
+
+
+	/* ======================================================================
+	 *                          Research
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildResearch(final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+
+		final List<FLEFRecord> questions = PrivacyService.visible(model, model.getRecordsByType(ResearchQuestionReader.TYPE));
+		for(final FLEFRecord question : questions){
+			boolean targets = false;
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET))
+				if(individualId.equals(extractRef(target, null))){
+					targets = true;
+					break;
+				}
+			if(!targets)
+				continue;
+
+			final String title = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_TITLE);
+			final String questionText = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_QUESTION);
+			final String status = FLEFRecordHelper.getChildValue(question, ResearchQuestionReader.TAG_STATUS);
+
+			final StringBuilder subtitle = new StringBuilder();
+			if(StringUtils.isNotEmpty(status))
+				subtitle.append(enumLabel("enum.research_question.status", status));
+			if(StringUtils.isNotEmpty(questionText)){
+				if(!subtitle.isEmpty())
+					subtitle.append(" · ");
+				subtitle.append(questionText);
+			}
+
+			entries.add(new DossierEntry(I18N.t("text.dossier.research_question"),
+				(StringUtils.isNotEmpty(title)? title: questionText),
+				subtitle.toString(), StringUtils.EMPTY, question, DossierEntry.Kind.NORMAL,
+				proofStatusFor(question)));
+		}
+
+		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
+		for(final FLEFRecord conclusion : conclusions){
+			boolean targets = false;
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
+				if(individualId.equals(extractRef(target, null))){
+					targets = true;
+					break;
+				}
+			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
+				targets = true;
+			if(!targets)
+				continue;
+
+			final String issue = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE);
+			final String proof = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
+			entries.add(new DossierEntry(I18N.t("text.dossier.conclusion"),
+				(StringUtils.isNotEmpty(issue)? issue: "?"),
+				(StringUtils.isNotEmpty(proof)? enumLabel("enum.proof_status", proof): StringUtils.EMPTY), StringUtils.EMPTY, conclusion, DossierEntry.Kind.NORMAL,
+				ProofStatus.fromCode(proof)));
+		}
+
+		return entries;
+	}
+
+
+	/* ======================================================================
+	 *                          Notes
+	 * ====================================================================== */
+
+	private List<DossierEntry> buildNotes(final FLEFRecord individual, final String individualId){
+		final List<DossierEntry> entries = new ArrayList<>();
+
+		collectNotes(individual, I18N.t("text.dossier.individual"), entries);
+
+		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
+			collectNotes(event, I18N.t("text.dossier.event"), entries);
+
+		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
+		for(final FLEFRecord attribute : attributes){
+			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
+			if(individualId.equals(ownerId))
+				collectNotes(attribute, I18N.t("text.dossier.attribute"), entries);
+		}
+
+		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
+		for(final FLEFRecord relationship : relationships){
+			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
+			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
+			if(individualId.equals(subjectId) || individualId.equals(objectId))
+				collectNotes(relationship, I18N.t("text.dossier.relationship"), entries);
+		}
+
+		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
+		for(final FLEFRecord impact : impacts){
+			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
+			if(individualId.equals(targetId))
+				collectNotes(impact, I18N.t("text.dossier.context"), entries);
+		}
+
+		final List<FLEFRecord> hypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisReader.TYPE));
+		for(final FLEFRecord hypothesis : hypotheses){
+			boolean targets = false;
+			for(final FLEFRecord candidate : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY))
+				if(individualId.equals(extractRef(candidate, null))){
+					targets = true;
+					break;
+				}
+			if(targets)
+				collectNotes(hypothesis, I18N.t("text.dossier.identity_hypothesis"), entries);
+		}
+
+		final List<FLEFRecord> questions = PrivacyService.visible(model, model.getRecordsByType(ResearchQuestionReader.TYPE));
+		for(final FLEFRecord question : questions){
+			boolean targets = false;
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET))
+				if(individualId.equals(extractRef(target, null))){
+					targets = true;
+					break;
+				}
+			if(targets)
+				collectNotes(question, I18N.t("text.dossier.research_question"), entries);
+		}
+
+		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
+		for(final FLEFRecord conclusion : conclusions){
+			boolean targets = false;
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
+				if(individualId.equals(extractRef(target, null))){
+					targets = true;
+					break;
+				}
+			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
+				targets = true;
+			if(targets)
+				collectNotes(conclusion, I18N.t("text.dossier.conclusion"), entries);
+		}
+
+		return entries;
+	}
+
+	/**
+	 * @param parent	The record a note or a source citation is attached to.
+	 * @return	What tells which one it is, to tell apart the several events (or attributes, or relationships) of the same kind (for
+	 * 	example {@code "of birth, 19 Nov 1926"}); {@code null} for the other records, that the label of the row already identifies.
+	 */
+	private String describeOwner(final FLEFRecord parent){
+		final String tag = parent.getTag();
+		final String description;
+		if(EventReader.TYPE.equalsIgnoreCase(tag)){
+			final String type = FLEFRecordHelper.getChildValue(parent, EventReader.TAG_TYPE);
+			description = joinWith(", ", (type != null? enumLabel("enum.event.type", type): null), formatting.formatDate(parent));
+		}
+		else if(IndividualAttributeReader.TYPE.equalsIgnoreCase(tag)){
+			final String type = FLEFRecordHelper.getChildValue(parent, IndividualAttributeReader.TAG_TYPE);
+			description = joinWith(": ", (type != null? enumLabel("enum.individual_attribute.type", type): null),
+				FLEFRecordHelper.getChildValue(parent, IndividualAttributeReader.TAG_VALUE));
+		}
+		else if(RelationshipReader.TYPE.equalsIgnoreCase(tag)){
+			final String type = RelationshipReader.extractType(parent);
+			description = (type != null? enumLabel("enum.relationship.type", type): null);
+		}
+		else
+			return null;
+
+		return (StringUtils.isNotEmpty(description)? I18N.tf("text.dossier.owner", description): null);
+	}
+
+	/** The translation of an enumerated value, or the value itself (underscores as spaces) when it has none. */
+	static String enumLabel(final String prefix, final String code){
+		return I18N.t(prefix + "." + code, code.replace('_', ' '));
+	}
+
+	private static String joinWith(final String separator, final String first, final String second){
+		return (StringUtils.isNotEmpty(first) && StringUtils.isNotEmpty(second)
+			? first + separator + second
+			: StringUtils.defaultString(StringUtils.isNotEmpty(first)? first: second));
+	}
+
+	private static String joinSubtitle(final String owner, final String detail){
+		return joinWith(" · ", owner, detail);
+	}
+
+	private void collectNotes(final FLEFRecord parent, final String origin, final List<DossierEntry> entries){
+		for(final FLEFRecord note : FLEFRecordHelper.findChildren(parent, TAG_NOTE)){
+			final String title = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE);
+			final String text = NoteReader.extractText(note);
+			final String label = I18N.tf("text.dossier.note", origin);
+			final String value = (StringUtils.isNotEmpty(title)? title: text);
+			final String subtitle = joinSubtitle(describeOwner(parent), (StringUtils.isNotEmpty(title)? text: null));
+
+			entries.add(new DossierEntry(label, value, subtitle, StringUtils.EMPTY, parent,
+				DossierEntry.Kind.NORMAL, proofStatusFor(parent))
+				.withFocus(EditorTab.NOTES, note));
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Conclusion index
+	 * ====================================================================== */
+
+	/**
+	 * Builds the reverse index that maps each assertion record id to the
+	 * proof status of the conclusion that resolves it.
+	 * <p>
+	 * A conclusion may resolve one or more targets via {@code resolves},
+	 * and may name a {@code preferred} target. Every resolved target and
+	 * the preferred target are indexed under the same status.
+	 */
+	private Map<String, ProofStatus> buildConclusionIndex(){
+		final Map<String, ProofStatus> index = new HashMap<>();
+		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
+		for(final FLEFRecord conclusion : conclusions){
+			final ProofStatus status = ProofStatus.fromCode(FLEFRecordHelper.getChildValue(conclusion,
+				ConclusionReader.TAG_PROOF_STATUS));
+
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES)){
+				final String targetId = extractRef(target, null);
+				if(targetId != null)
+					index.put(targetId, status);
+			}
+
+			final String preferredId = extractRef(conclusion, ConclusionReader.TAG_PREFERRED);
+			if(preferredId != null)
+				index.put(preferredId, status);
+		}
+		return index;
+	}
+
+	private ProofStatus proofStatusFor(final FLEFRecord record){
+		if(record == null)
+			return null;
+
+		final String id = record.getId();
+		return (id != null? conclusionIndex.get(id): null);
+	}
+
+
+	/* ======================================================================
+	 *                          Event index
+	 * ====================================================================== */
+
+	private Map<String, List<FLEFRecord>> buildEventMap(){
+		final Map<String, List<FLEFRecord>> result = new HashMap<>();
+		final List<FLEFRecord> eventParticipations = PrivacyService.visible(model, model.getRecordsByType(EventParticipationReader.TYPE));
+		for(final FLEFRecord eventParticipation : eventParticipations){
+			final String eventParticipantId = EventParticipationReader.extractParticipantRef(eventParticipation);
+			if(eventParticipantId == null)
+				continue;
+
+			final String eventId = FLEFRecordHelper.getChildValue(eventParticipation, EventParticipationReader.TAG_EVENT);
+			if(eventId == null)
+				continue;
+
+			final FLEFRecord event = model.getRecordById(eventId);
+			if(event == null)
+				continue;
+
+			//the same event is listed once per participant, even with several participations in it
+			final List<FLEFRecord> events = result.computeIfAbsent(eventParticipantId, k -> new ArrayList<>());
+			if(events.stream().noneMatch(known -> known == event))
+				events.add(event);
+		}
+		return result;
+	}
+
+	private static String extractRef(final FLEFRecord parent, final String tag){
+		final FLEFRecord field = (tag != null? FLEFRecordHelper.findChild(parent, tag): parent);
+		if(field == null)
+			return null;
+
+		final FLEFRecord child = field.getTheOnlyChild();
+		if(child != null && child.getValue() != null)
+			return child.getValue();
+		if(field.getValue() != null)
+			return field.getValue();
+
+		for(final FLEFRecord candidate : field.getChildren()){
+			final FLEFRecord inner = candidate.getTheOnlyChild();
+			if(inner != null && inner.getValue() != null)
+				return inner.getValue();
+		}
+		return null;
+	}
+
+
+	/* ======================================================================
+	 *                          Participant name
+	 * ====================================================================== */
+
+	private String resolveParticipantName(final String id){
+		if(id == null)
+			return null;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record == null)
+			return id;
+
+		try{
+			if(GroupReader.isOfType(record))
+				return RecordDisplay.describe(record, model);
+
+			return IndividualReader.displayText(record);
+		}
+		catch(final RuntimeException ignored){
+			return id;
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Evidence badge
+	 * ====================================================================== */
+
+	/**
+	 * Builds a compact evidence badge (e.g. {@code "orig/prim/dir"}) from
+	 * the {@code evidence} child of the given record. Returns an empty
+	 * string when no evidence qualifiers are present.
+	 */
+	static String buildEvidenceBadge(final FLEFRecord parent){
+		final FLEFRecord evidence = FLEFRecordHelper.findChild(parent, TAG_EVIDENCE);
+		if(evidence == null)
+			return StringUtils.EMPTY;
+
+		final String sourceType = EvidenceQualifiersReader.extractSourceType(evidence);
+		final String infoType = EvidenceQualifiersReader.extractInformationType(evidence);
+		final String evidenceType = EvidenceQualifiersReader.extractEvidenceType(evidence);
+
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotEmpty(sourceType))
+			sb.append(I18N.t("enum.evidence.source_type.abbreviation." + sourceType));
+		if(StringUtils.isNotEmpty(infoType)){
+			if(!sb.isEmpty())
+				sb.append('/');
+			sb.append(I18N.t("enum.evidence.information_type.abbreviation." + infoType));
+		}
+		if(StringUtils.isNotEmpty(evidenceType)){
+			if(!sb.isEmpty())
+				sb.append('/');
+			sb.append(I18N.t("enum.evidence.evidence_type.abbreviation." + evidenceType));
+		}
+		return sb.toString();
+	}
+
+}

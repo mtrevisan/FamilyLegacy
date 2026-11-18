@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>Ephemeris</artifactId>
+	<packaging>jar</packaging>
+
+	<profiles>
+		<profile>
+			<!-- How to call it (from the repository root; the phase process-classes is enough, no tests are run):
+					mvn -pl Ephemeris process-classes -Pupdate-deltat
+				or, from the Ephemeris folder:
+					mvn process-classes -Pupdate-deltat
+				(any later phase works too, e.g. "mvn package -Pupdate-deltat")
+				Downloads the IERS table of ΔT from the U.S. Naval Observatory (see DeltaTUpdater) into
+				src/main/resources/deltat.data, and into target/classes so that this build already contains it.
+				Opt-in on purpose: the build stays reproducible and works offline, and a download failure never breaks it
+				(run the class with the strict option to make it fail). Run it once in a while, and commit the new file. -->
+			<id>update-deltat</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.5.0</version>
+						<executions>
+							<execution>
+								<id>update-deltat</id>
+								<phase>process-classes</phase>
+								<goals><goal>java</goal></goals>
+								<configuration>
+									<mainClass>io.github.mtrevisan.ephemeris.tools.DeltaTUpdater</mainClass>
+									<arguments>
+										<argument>${project.basedir}/src/main/resources/deltat.data</argument>
+										<argument>${project.build.outputDirectory}/deltat.data</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<!-- mvn clean package -Pwindows-exe -DskipTests
+				Builds the Windows installer, a single self-contained file (it bundles a Java runtime):
+				Core/target/windows-exe/FamilyLegacy-<version>.exe
+				Requires the WiX Toolset on the PATH. -Dpackage.type=msi builds an MSI instead.
+				This module is built after Core, which stages the input of jpackage (Core/target/jpackage-input): here the plugin is added to it
+				(it goes to app/plugins of the installed application), then jpackage runs. -->
+			<id>windows-exe</id>
+			<properties>
+				<package.type>exe</package.type>
+				<package.name>FamilyLegacy</package.name>
+				<package.version>1.0.0</package.version>
+				<package.mainClass>io.github.mtrevisan.familylegacy.FamilyLegacyApplication</package.mainClass>
+				<!-- must never change: it lets a new version upgrade the installed one -->
+				<package.upgradeUuid>5d3f2c1e-8a47-4b6e-9c1d-2f7a9e0b6c41</package.upgradeUuid>
+				<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>plugin-into-windows-exe</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+									<!-- The installer is light: it carries only the core of the program. The plugins (ephemeris, report formats, importers, face detector) and the
+										fonts are NOT copied into jpackage-input: the application downloads them from Help > Optional Components... (components/catalog.json).
+										The empty folders are created, with a note in them, because the application looks for them to know where to install. -->
+									<mkdir dir="${package.coreTarget}/jpackage-input/plugins"/>
+									<echo file="${package.coreTarget}/jpackage-input/plugins/README.txt">Plugins (.jar) are installed here by Help > Optional Components... of the application.</echo>
+									<mkdir dir="${package.coreTarget}/jpackage-input/fonts"/>
+									<echo file="${package.coreTarget}/jpackage-input/fonts/README.txt">Fonts for the PDF reports are installed here by Help > Optional Components... of the application.</echo>
+										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
+											application itself; outside jpackage-input, otherwise it would be copied into the application -->
+										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
+											  jvm="${java.home}/bin/java" classpath="${package.coreTarget}/jpackage-input/Core.jar">
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+										</java>
+										<!-- an antivirus may keep the previous output locked for a moment -->
+										<retry retrycount="10" retrydelay="3000">
+											<delete dir="${package.coreTarget}/windows-exe"/>
+										</retry>
+										<exec executable="${java.home}/bin/jpackage" failonerror="true">
+											<arg value="--type"/>
+											<arg value="${package.type}"/>
+											<arg value="--name"/>
+											<arg value="${package.name}"/>
+											<arg value="--app-version"/>
+											<arg value="${package.version}"/>
+											<arg value="--vendor"/>
+											<arg value="Mauro Trevisan"/>
+											<arg value="--input"/>
+											<arg value="${package.coreTarget}/jpackage-input"/>
+											<arg value="--main-jar"/>
+											<arg value="Core.jar"/>
+											<arg value="--main-class"/>
+											<arg value="${package.mainClass}"/>
+											<!-- the icon of the executable and of its shortcuts, drawn from images/app-icon*.png -->
+											<arg value="--icon"/>
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+											<!-- the automatic detection of the modules does not see through a fat jar: the list is the one of
+												the print-module-deps output of jdeps on the shaded jar of Core, plus the ones that are
+												loaded dynamically (locale data, charsets, zip file system); update it if the code starts using other modules -->
+											<arg value="--add-modules"/>
+											<arg value="java.base,java.compiler,java.desktop,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
+											<!-- the default options plus the compression of the runtime image -->
+											<arg value="--jlink-options"/>
+											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
+											<arg value="--java-options"/>
+											<arg value="-Dfile.encoding=UTF-8"/>
+											<!-- JavaCPP (face detector plugin) loads native libraries through System::load: without this the JVM warns -->
+											<arg value="--java-options"/>
+											<arg value="--enable-native-access=ALL-UNNAMED"/>
+											<!-- Calendars is the host of the plugins (JPMS modules): it must be a module for them to resolve against -->
+											<arg value="--java-options"/>
+											<arg value="--module-path=$APPDIR/modules"/>
+											<arg value="--java-options"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars,io.github.mtrevisan.reports"/>
+											<arg value="--java-options"/>
+											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
+											<arg value="--win-menu"/>
+											<arg value="--win-shortcut"/>
+											<arg value="--win-dir-chooser"/>
+											<!-- no administrator rights needed -->
+											<arg value="--win-per-user-install"/>
+											<arg value="--win-upgrade-uuid"/>
+											<arg value="${package.upgradeUuid}"/>
+											<arg value="--dest"/>
+											<arg value="${package.coreTarget}/windows-exe"/>
+										</exec>
+										<!-- jpackage leaves the output read-only, which makes "mvn clean" fail -->
+										<attrib readonly="false">
+											<fileset dir="${package.coreTarget}/windows-exe"/>
+										</attrib>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>windows-standalone</id>
+			<!-- mvn clean package -Pwindows-standalone -DskipTests
+                 Crea un'immagine applicativa stand-alone (cartella con .exe + runtime incorporato)
+                 in Core/target/windows-standalone/FamilyLegacy/. Nessun installer, nessuna
+                 richiesta di WiX. Distribuisci l'intera cartella FamilyLegacy/ -->
+			<properties>
+				<package.type>app-image</package.type>
+				<package.name>FamilyLegacy</package.name>
+				<package.version>1.0.0</package.version>
+				<package.mainClass>io.github.mtrevisan.familylegacy.FamilyLegacyApplication</package.mainClass>
+				<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.5.0</version>
+						<executions>
+							<execution>
+								<id>update-deltat</id>
+								<!-- process-classes comes before the shade (package): the shaded plugin contains the fresh table.
+									A download failure never breaks the build (the table already in place is kept) -->
+								<phase>process-classes</phase>
+								<goals><goal>java</goal></goals>
+								<configuration>
+									<mainClass>io.github.mtrevisan.ephemeris.tools.DeltaTUpdater</mainClass>
+									<arguments>
+										<argument>${project.basedir}/src/main/resources/deltat.data</argument>
+										<argument>${project.build.outputDirectory}/deltat.data</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>jdeps-modules</id>
+								<!-- eseguito dopo lo shade (package) ma prima di jpackage (anch'esso package) -->
+								<phase>package</phase>
+								<goals><goal>exec</goal></goals>
+								<configuration>
+									<executable>${java.home}/bin/jdeps</executable>
+									<arguments>
+										<argument>--print-module-deps</argument>
+										<argument>--ignore-missing-deps</argument>
+										<argument>${package.coreTarget}/jpackage-input/Core.jar</argument>
+									</arguments>
+									<outputFile>${project.build.directory}/jdeps-modules.txt</outputFile>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>${maven-antrun-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>plugin-into-standalone</id>
+								<phase>package</phase>
+								<goals><goal>run</goal></goals>
+								<configuration>
+									<target>
+									<!-- The installer is light: it carries only the core of the program. The plugins (ephemeris, report formats, importers, face detector) and the
+										fonts are NOT copied into jpackage-input: the application downloads them from Help > Optional Components... (components/catalog.json).
+										The empty folders are created, with a note in them, because the application looks for them to know where to install. -->
+									<mkdir dir="${package.coreTarget}/jpackage-input/plugins"/>
+									<echo file="${package.coreTarget}/jpackage-input/plugins/README.txt">Plugins (.jar) are installed here by Help > Optional Components... of the application.</echo>
+									<mkdir dir="${package.coreTarget}/jpackage-input/fonts"/>
+									<echo file="${package.coreTarget}/jpackage-input/fonts/README.txt">Fonts for the PDF reports are installed here by Help > Optional Components... of the application.</echo>
+										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
+											application itself; outside jpackage-input, otherwise it would be copied into the application -->
+										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
+											  jvm="${java.home}/bin/java" classpath="${package.coreTarget}/jpackage-input/Core.jar">
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+										</java>
+
+										<!-- 2. Rimuovi l'output precedente (l'antivirus può tenerlo lockato) -->
+										<retry retrycount="10" retrydelay="3000">
+											<delete dir="${package.coreTarget}/windows-standalone"/>
+										</retry>
+
+										<!-- 3. jpackage: app-image (niente opzioni \-\-win-*) -->
+										<exec executable="${java.home}/bin/jpackage" failonerror="true">
+											<arg value="--type"/>
+											<arg value="${package.type}"/>
+											<arg value="--name"/>
+											<arg value="${package.name}"/>
+											<arg value="--app-version"/>
+											<arg value="${package.version}"/>
+											<arg value="--vendor"/>
+											<arg value="Mauro Trevisan"/>
+											<arg value="--input"/>
+											<arg value="${package.coreTarget}/jpackage-input"/>
+											<arg value="--main-jar"/>
+											<arg value="Core.jar"/>
+											<arg value="--main-class"/>
+											<arg value="${package.mainClass}"/>
+											<!-- the icon of the executable and of its shortcuts, drawn from images/app-icon*.png -->
+											<arg value="--icon"/>
+											<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+											<!-- Lista moduli: aggiornala con l'output di target/jdeps-modules.txt -->
+											<arg value="--add-modules"/>
+											<arg value="java.base,java.compiler,java.desktop,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml.crypto,jdk.xml.dom"/>
+											<arg value="--jlink-options"/>
+											<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
+											<arg value="--java-options"/>
+											<arg value="-Dfile.encoding=UTF-8"/>
+											<arg value="--java-options"/>
+											<arg value="--module-path=$APPDIR/modules"/>
+											<arg value="--java-options"/>
+											<arg value="--add-modules=io.github.mtrevisan.calendars,io.github.mtrevisan.reports"/>
+											<arg value="--java-options"/>
+											<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
+											<arg value="--dest"/>
+											<arg value="${package.coreTarget}/windows-standalone"/>
+											<arg value="--verbose"/>
+										</exec>
+
+										<!-- jpackage lascia l'output read-only: "mvn clean" fallirebbe -->
+										<attrib readonly="false">
+											<fileset dir="${package.coreTarget}/windows-standalone"/>
+										</attrib>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<outputFile>${project.build.directory}/ephemeris-shaded.jar</outputFile>
+							<minimizeJar>false</minimizeJar>
+<!--							<shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--							<shadedClassifierName>shaded</shadedClassifierName>-->
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+
+							<!-- Relocate Apache Commons package to avoid JPMS split package conflicts -->
+							<relocations>
+								<relocation>
+									<pattern>org.apache.commons.lang3</pattern>
+									<shadedPattern>io.github.mtrevisan.ephemeris.internal.lang3</shadedPattern>
+								</relocation>
+							</relocations>
+
+							<!-- Force overriding parent transformers configuration -->
+							<transformers combine.self="override">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<X-Compile-Source-JDK>${maven.compiler.release}</X-Compile-Source-JDK>
+										<X-Compile-Target-JDK>${maven.compiler.release}</X-Compile-Target-JDK>
+										<X-Compile-Release-JDK>${maven.compiler.release}</X-Compile-Release-JDK>
+										<Built-By>Mauro Trevisan</Built-By>
+										<Build-Jdk>${java.version} (${java.vendor} ${java.vm.version})</Build-Jdk>
+										<Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+
+							<filters combine.self="override">
+								<filter>
+									<artifact>org.apache.commons:commons-lang3</artifact>
+									<includes>
+										<include>org/apache/commons/lang3/StringUtils*.class</include>
+										<include>org/apache/commons/lang3/ArrayUtils*.class</include>
+										<include>org/apache/commons/lang3/CharUtils*.class</include>
+									</includes>
+								</filter>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+						<!-- useful for deploy / Poi in antrun usa ${project.build.directory}/${project.build.finalName}-shaded.jar (questa) oppure ${project.build.directory}/ephemeris-shaded.jar (quella sopra-->
+<!--						<configuration>-->
+<!--							<shadedArtifactAttached>true</shadedArtifactAttached>-->
+<!--							<shadedClassifierName>shaded</shadedClassifierName>-->
+<!--							<minimizeJar>false</minimizeJar>-->
+<!--							<createDependencyReducedPom>false</createDependencyReducedPom>-->
+<!--							&lt;!&ndash; rimuovi outputFile &ndash;&gt;-->
+<!--						</configuration>-->
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<mkdir dir="${project.basedir}/../Core/plugins"/>
+
+								<!-- Inject module-info.class into shaded JAR -->
+								<jar destfile="${project.build.directory}/ephemeris-shaded.jar" update="true">
+									<fileset dir="${project.build.directory}/classes" includes="module-info.class"/>
+								</jar>
+
+								<!-- Copy updated JAR to target plugins directory -->
+								<copy file="${project.build.directory}/ephemeris-shaded.jar"
+										tofile="${project.basedir}/../Core/plugins/ephemeris.jar"
+										overwrite="true"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>
+						--add-reads io.github.mtrevisan.ephemeris=org.junit.jupiter.api
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.engine=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.helpers=org.junit.platform.commons
+						--add-opens io.github.mtrevisan.ephemeris/io.github.mtrevisan.ephemeris.tools=org.junit.platform.commons
+					</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- Depend on the Calendars module (the SPI) only at compile-time (provided by Host application) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Calendars</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

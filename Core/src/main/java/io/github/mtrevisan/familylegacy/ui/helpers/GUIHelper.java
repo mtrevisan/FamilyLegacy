@@ -1,0 +1,832 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.helpers;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.FLEFValidator;
+import io.github.mtrevisan.familylegacy.io.FLEFWriter;
+import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarValidator;
+import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRootPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.TransferHandler;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
+
+
+/**
+ * Utilities for installing UI behaviors (popup menus, double‑click, keyboard shortcuts).
+ */
+public final class GUIHelper{
+
+	/**
+	 * Number formats used across the dialogs: the groups of three digits and the decimal part are separated as the language of the
+	 * application does it (a comma and a dot in English, a dot and a comma in Italian), the same as every number in a message.
+	 * <p>
+	 * {@link java.text.DecimalFormat} is not thread-safe, but every call to these
+	 * formatters happens on the EDT, so the instances can be shared.
+	 */
+	private static final DecimalFormatSymbols SYMBOLS = DecimalFormatSymbols.getInstance(Locale.getDefault());
+
+	private static final DecimalFormat INTEGER_FORMAT = new DecimalFormat("#,##0", SYMBOLS);
+	private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("#,##0.0'%'", SYMBOLS);
+
+
+	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
+	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+
+	private static final int MENU_MASK = Toolkit.getDefaultToolkit()
+		.getMenuShortcutKeyMaskEx();
+
+	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, MENU_MASK);
+	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, MENU_MASK);
+
+	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
+
+	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+
+	/** [px] */
+	private static final int TOOLTIP_WIDTH = 340;
+
+	private static final String ACTION_MOVE_UP = "moveUp";
+	private static final String ACTION_MOVE_DOWN = "moveDown";
+
+	public static final int SCROLLBAR_UNIT_INCREMENT = 20;
+
+
+	private GUIHelper(){}
+
+
+	/* ======================================================================
+	 *                          Number formatting
+	 * ====================================================================== */
+
+	public static String format(final String format, final Object... args){
+		final StringBuilder outFormat = new StringBuilder();
+		final List<Object> outArgs = new ArrayList<>();
+		int argIndex = 0;
+		int i = 0;
+
+		while(i < format.length()){
+			final char c = format.charAt(i);
+			if(c != '%'){
+				outFormat.append(c);
+				i ++;
+				continue;
+			}
+
+			if(i + 1 < format.length() && format.charAt(i + 1) == '%'){
+				outFormat.append("%%");
+				i += 2;
+				continue;
+			}
+
+			final int start = i;
+			i ++;
+
+			int explicitIndex = -1;
+			int j = i;
+			while(j < format.length() && Character.isDigit(format.charAt(j))) j ++;
+			if(j > i && j < format.length() && format.charAt(j) == '$'){
+				explicitIndex = Integer.parseInt(format.substring(i, j)) - 1;
+				i = j + 1;
+			}
+
+			boolean grouping = false;
+			while(i < format.length() && "-+ 0,#".indexOf(format.charAt(i)) >= 0){
+				if(format.charAt(i) == ',') grouping = true;
+				i ++;
+			}
+
+			while(i < format.length() && Character.isDigit(format.charAt(i)))
+				i ++;
+
+			int precision = -1;
+			if(i < format.length() && format.charAt(i) == '.'){
+				i ++;
+				final int pStart = i;
+				while(i < format.length() && Character.isDigit(format.charAt(i))) i ++;
+				precision = Integer.parseInt(format.substring(pStart, i));
+			}
+
+			if(i >= format.length())
+				throw new IllegalArgumentException("Invalid format: " + format);
+
+			final char conv = format.charAt(i);
+			i ++;
+
+			//a line separator does not take an argument
+			if(conv == 'n'){
+				outFormat.append("%n");
+				continue;
+			}
+
+			final int currentArg = (explicitIndex >= 0? explicitIndex: argIndex ++);
+			final Object arg = args[currentArg];
+
+			if("doxX".indexOf(conv) >= 0){
+				final long val = ((Number)arg).longValue();
+				final String s = (grouping? INTEGER_FORMAT.format(val): Long.toString(val));
+				outFormat.append("%s");
+				outArgs.add(s);
+			}
+			else if("eEfgG".indexOf(conv) >= 0){
+				final double val = ((Number)arg).doubleValue();
+				final int dec = (precision >= 0? precision: 6);
+				final String s = formatDouble(val, dec, grouping);
+				outFormat.append("%s");
+				outArgs.add(s);
+			}
+			else{
+				outFormat.append(format, start, i);
+				outArgs.add(arg);
+			}
+		}
+
+		return String.format(Locale.ROOT, outFormat.toString(), outArgs.toArray());
+	}
+
+	/**
+	 * The bar at the bottom of a window with a table or a list, the same in all of them: what the window shows (how many rows, how far
+	 * a search is, what is selected) at the <b>left</b>, and the buttons at the right.
+	 *
+	 * @param status	What is shown at the left: a label, or a panel with a label and a progress bar.
+	 * @param buttons	The buttons at the right, in order.
+	 */
+	public static JPanel createStatusFooter(final Component status, final Component... buttons){
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		for(final Component button : buttons)
+			buttonPanel.add(button);
+
+		final JPanel footer = new JPanel(new BorderLayout(8, 0));
+		footer.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 6));
+		footer.add(status, BorderLayout.WEST);
+		footer.add(buttonPanel, BorderLayout.EAST);
+		return footer;
+	}
+
+	public static String formatDouble(final double value, final int decimals, final boolean grouping){
+		final StringBuilder pattern = new StringBuilder(grouping? "#,##0": "0");
+		if(decimals > 0)
+			pattern.append('.')
+				.repeat("0", decimals);
+		return new DecimalFormat(pattern.toString(), SYMBOLS).format(value);
+	}
+
+	public static String formatDouble(final double value, final int decimals){
+		return formatDouble(value, decimals, true);
+	}
+
+	/**
+	 * Formats a percentage with one decimal place and a dot as the
+	 * decimal separator.
+	 *
+	 * @param value the percentage value (e.g. 45.3)
+	 * @return the formatted string, e.g. {@code "45.3%"}
+	 */
+	public static String formatPercent(final double value){
+		return PERCENT_FORMAT.format(value);
+	}
+
+
+	public static JScrollPane createScrollPane(final JList<?> list){
+		final JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
+	}
+
+	public static JScrollPane createScrollPane(final JTextComponent area){
+		return new JScrollPane(new ScrollableContainerHost(area,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+	}
+
+	public static JScrollPane createScrollPane(final JComponent area){
+		return new JScrollPane(new ScrollableContainerHost(area,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+	}
+
+
+
+	public static String limitTextLength(final String text){
+		return (text.length() > 50? text.substring(0, 49) + ELLIPSIS: text);
+	}
+
+
+
+	/**
+	 * Creates a panel with a two‑column layout using MigLayout.
+	 * Each row consists of a label and a field.
+	 * The layout uses {@code wrap 1} to force each component onto its own row,
+	 * and {@code split 2} to place label and field on the same row.
+	 *
+	 * @param rowConstraints	The row constraints (e.g. "[]10[]")
+	 * @return	A new JPanel with the specified layout
+	 */
+	/** The space, in pixels, between the content of a dialog and its border: no content touches the edge of a dialog. */
+	public static final int DIALOG_MARGIN = 10;
+
+	public static JPanel createLabelFieldPanel(final int insets, final String rowConstraints){
+		return new JPanel(createLabelFieldLayout(insets, rowConstraints));
+	}
+
+	public static MigLayout createLabelFieldLayout(final int insets, final String rowConstraints){
+		return new MigLayout("ins " + insets + ",hidemode 3,fillx,top,wrap 2",
+			"[right]rel[grow,fill]",
+			rowConstraints);
+	}
+
+	/**
+	 * Adds a labeled field to a panel that uses the two‑column layout.
+	 * The label is added with {@code split 2} and the field with {@code growx,pushx}.
+	 *
+	 * @param container	The panel (must have been created with {@link #createLabelFieldPanel})
+	 * @param labelText	The text for the label
+	 * @param field	The field component
+	 */
+	public static void addLabeledComponent(final Container container, final String labelText, final JComponent field){
+		//the label shows the tooltip of its field, whenever it is set
+		final JLabel label = new JLabel(labelText){
+			@Override
+			public String getToolTipText(){
+				return field.getToolTipText();
+			}
+		};
+		ToolTipManager.sharedInstance()
+			.registerComponent(label);
+		label.setLabelFor(field);
+		field.putClientProperty(PROPERTY_ASSOCIATED_LABEL, label);
+
+		container.add(label, "align label");
+		container.add((field instanceof JTextArea? createScrollPane(field): field), "growx");
+	}
+
+	/**
+	 * Returns the localized text of {@code key} formatted as the label of a mandatory field (separator and mandatory
+	 * marker included, see {@code format.label_required}).
+	 */
+	public static String requiredLabel(final String key){
+		return I18N.tf("format.label_required", I18N.t(key));
+	}
+
+	/** Returns the localized title of a panel that holds a mandatory field (mandatory marker included). */
+	public static String requiredTitle(final String key){
+		return I18N.tf("format.title_required", I18N.t(key));
+	}
+
+	/**
+	 * Adds a labeled field to a panel that uses the two‑column layout.
+	 * The label is added with {@code split 2} and the field with {@code growx,pushx}.
+	 *
+	 * @param container	The panel (must have been created with {@link #createLabelFieldPanel})
+	 * @param field	The field component
+	 */
+	public static void addComponent(final Container container, final JComponent field){
+		container.add((field instanceof JTextArea? createScrollPane(field): field), "span 2,growx");
+	}
+
+	/**
+	 * Builds the HTML of a tooltip made of wrapped paragraphs (a plain tooltip is a single, unwrapped, line).
+	 *
+	 * @param paragraphs	The plain texts; blank ones are skipped.
+	 * @return	The HTML text, or {@code null} if there is nothing to show.
+	 */
+	public static String tooltipHtml(final String... paragraphs){
+		final StringBuilder sb = new StringBuilder();
+		for(final String paragraph : paragraphs)
+			if(StringUtils.isNotBlank(paragraph)){
+				if(!sb.isEmpty())
+					sb.append("<br><br>");
+				sb.append(paragraph.strip()
+					.replace("&", "&amp;")
+					.replace("<", "&lt;")
+					.replace(">", "&gt;")
+					.replace(StringUtils.LF, "<br>"));
+			}
+		return (sb.isEmpty()? null: "<html><body style='width: " + TOOLTIP_WIDTH + "px'>" + sb + "</body></html>");
+	}
+
+	/**
+	 * Explains when a type of record is to be used.
+	 *
+	 * @param recordType	The type of the record, as returned by the handler (e.g. {@code CONCLUSION}).
+	 * @return	The HTML tooltip, or {@code null} if the translations do not define it.
+	 */
+	public static String usageTooltip(final String recordType){
+		return tooltipHtml(I18N.t("record.usage." + recordType.toLowerCase(Locale.ROOT), null));
+	}
+
+	/**
+	 * Sets the tooltip of a component to the (wrapped) localized text.
+	 *
+	 * @param component	The component.
+	 * @param key	The i18n key of the tooltip text.
+	 * @return	The component.
+	 */
+	public static <C extends JComponent> C withTooltip(final C component, final String key){
+		final String text = I18N.t(key);
+		//a combo composes the tooltip with the explanation of the selected value, so it needs the plain text
+		component.setToolTipText(component instanceof ComposesOwnTooltip? text: tooltipHtml(text));
+		return component;
+	}
+
+	public static void setComponentEnabled(final JComponent field, final boolean visible){
+		final JLabel label = (JLabel)field.getClientProperty(PROPERTY_ASSOCIATED_LABEL);
+		if(label != null)
+			label.setEnabled(visible);
+		field.setEnabled(visible);
+
+		final Container parent = field.getParent();
+		if(parent != null && parent.isShowing()){
+			parent.revalidate();
+			parent.repaint();
+		}
+	}
+
+	public static JLabel getLabeledComponent(final JComponent field){
+		final Object property = field.getClientProperty(GUIHelper.PROPERTY_ASSOCIATED_LABEL);
+		return (property instanceof JLabel label? label: null);
+	}
+
+
+	/**
+	 * Displays the JPopupMenu associated with the specified component, positioning it directly beneath its lower edge.
+	 *
+	 * @param component	The component source.
+	 */
+	private static void showPopupMenu(final JComponent component){
+		if(component != null)
+			showPopupMenu(component, 0, component.getHeight());
+	}
+
+	/**
+	 * Displays the JPopupMenu associated with the specified component.
+	 *
+	 * @param component	The component source.
+	 * @param x	The X position relative to the component where the menu should be shown.
+	 * @param y	The Y position relative to the component where the menu should be shown.
+	 */
+	private static void showPopupMenu(final JComponent component, final int x, final int y){
+		if(component == null || !component.isEnabled())
+			return;
+
+		final JPopupMenu popup = component.getComponentPopupMenu();
+		if(popup != null)
+			popup.show(component, x, y);
+	}
+
+
+	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
+			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
+		JOptionPane.showMessageDialog(parentComponent,
+			message,
+			I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+		if(tabbedPane != null && tabbedPanel != null){
+			tabbedPane.requestFocusInWindow();
+			tabbedPane.setSelectedComponent(tabbedPanel);
+		}
+		SwingUtilities.invokeLater(component::requestFocusInWindow);
+	}
+
+
+	/**
+	 * The buttons of a dialog that asks to confirm: the one that confirms, and nothing to cancel with. A dialog is cancelled with ESC
+	 * (or with the close button of its window): both run {@code cancel}, and the dialog never closes in any other way.
+	 */
+	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
+		return createButtonPanel(dialog, I18N.t("button.ok"), save, cancel);
+	}
+
+	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save, final Runnable cancel){
+		final JButton saveButton = new JButton(saveLabel);
+
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		buttonPanel.add(saveButton);
+
+		saveButton.addActionListener(e -> save.run());
+
+		final JRootPane rootPane = dialog.getRootPane();
+		rootPane.setDefaultButton(saveButton);
+
+		final Action escapeAction = new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				cancel.run();
+			}
+		};
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(ESCAPE_STROKE, "escape");
+		final ActionMap actionMap = rootPane.getActionMap();
+		actionMap.put("escape", escapeAction);
+
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(final WindowEvent e){
+				cancel.run();
+			}
+		});
+
+		return buttonPanel;
+	}
+
+
+	public static void drawX(final Graphics2D graphics2D, final Point enterPoint){
+		graphics2D.setColor(Color.RED);
+		graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10,
+			enterPoint.x + 10, enterPoint.y + 10);
+		graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10,
+			enterPoint.x - 10, enterPoint.y + 10);
+		graphics2D.setColor(Color.BLACK);
+	}
+
+
+	public static <T> void setupReorderingShortcuts(final JList<T> list, final DefaultListModel<T> listModel){
+		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
+		final ActionMap actionMap = list.getActionMap();
+
+		// Keybindings: CTRL + UP / CTRL + DOWN
+		inputMap.put(GUIHelper.CTRL_UP_STROKE, ACTION_MOVE_UP);
+		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, ACTION_MOVE_DOWN);
+
+		actionMap.put(ACTION_MOVE_UP, new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemUp(list, listModel);
+			}
+		});
+
+		actionMap.put(ACTION_MOVE_DOWN, new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemDown(list, listModel);
+			}
+		});
+	}
+
+	/**
+	 * Moves the currently selected item up by one position.
+	 */
+	public static <T> void moveSelectedItemUp(final JList<T> list, final DefaultListModel<T> listModel){
+		final int idx = list.getSelectedIndex();
+		if(idx > 0)
+			swapItems(list, listModel, idx, idx - 1);
+	}
+
+	/**
+	 * Moves the currently selected item down by one position.
+	 */
+	public static <T> void moveSelectedItemDown(final JList<T> list, final DefaultListModel<T> listModel){
+		final int idx = list.getSelectedIndex();
+		if(idx >= 0 && idx < listModel.size() - 1)
+			swapItems(list, listModel, idx, idx + 1);
+	}
+
+	private static <T> void swapItems(final JList<T> list, final DefaultListModel<T> listModel, final int index1,
+			final int index2){
+		final T temp = listModel.get(index1);
+		listModel.set(index1, listModel.get(index2));
+		listModel.set(index2, temp);
+
+		// Keep the moved item selected and visible
+		list.setSelectedIndex(index2);
+		list.ensureIndexIsVisible(index2);
+	}
+
+	public static <E, T> void setupDragAndDrop(final JList<E> list, final DefaultListModel<T> listModel){
+		list.setDragEnabled(true);
+		list.setDropMode(DropMode.INSERT);
+
+		// Ensure selection on mouse press (if none selected)
+		list.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent e){
+				if(list.getSelectedIndex() < 0 && SwingUtilities.isLeftMouseButton(e)){
+					final int index = list.locationToIndex(e.getPoint());
+					if(index >= 0)
+						list.setSelectedIndex(index);
+				}
+			}
+		});
+
+		list.setTransferHandler(new TransferHandler(){
+			private int sourceIndex = -1;
+
+
+			@Override
+			public int getSourceActions(final JComponent c){
+				return MOVE;
+			}
+
+			@Override
+			protected Transferable createTransferable(final JComponent c){
+				sourceIndex = list.getSelectedIndex();
+				if(sourceIndex < 0)
+					return null;
+
+				// Export the index as a string; only the originator will use it
+				return new StringSelection(String.valueOf(sourceIndex));
+			}
+
+			@Override
+			public boolean canImport(final TransferSupport support){
+				// Accept drops from the same list only
+				if(!(support.getComponent() instanceof JList))
+					return false;
+
+				// Only accept string data (our own format)
+				return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+			}
+
+			@Override
+			public boolean importData(final TransferSupport support){
+				if(!support.isDrop())
+					return false;
+				// Only accept drops from the same list
+				if(!(support.getComponent() instanceof JList))
+					return false;
+
+				final JList.DropLocation dropLocation = (JList.DropLocation)support.getDropLocation();
+				// index where the item would be inserted
+				final int dropIndex = dropLocation.getIndex();
+				if(dropIndex == -1)
+					return false;
+
+				// If sourceIndex is invalid, abort
+				if(sourceIndex < 0 || sourceIndex >= listModel.size())
+					return false;
+
+				// Adjust drop index when moving downwards: after removing the source,
+				// the target index shifts by one.
+				final int targetIndex = (dropIndex > sourceIndex? dropIndex - 1: dropIndex);
+				if(targetIndex == sourceIndex)
+					return false;
+
+				// Perform the move
+				moveItem(listModel, sourceIndex, targetIndex);
+				list.setSelectedIndex(targetIndex);
+				list.ensureIndexIsVisible(targetIndex);
+				return true;
+			}
+
+			@Override
+			protected void exportDone(final JComponent source, final Transferable data, final int action){
+				// Nothing else to clean up
+			}
+		});
+	}
+
+	/**
+	 * Moves an item from one index to another within the list.
+	 * Updates both the display model and the underlying items list.
+	 */
+	private static <T> void moveItem(final DefaultListModel<T> listModel, final int fromIndex,
+			final int toIndex){
+		if(fromIndex == toIndex)
+			return;
+
+		final T item = listModel.remove(fromIndex);
+		listModel.add(toIndex, item);
+	}
+
+
+	public static File selectDocumentFile(final Component parentComponent, final String currentUriPath){
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogTitle(I18N.t("dialog.select_image.title"));
+		final String[] imageExtensions = ImageIO.getReaderFileSuffixes();
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter(
+				I18N.tf("text.file_filter.images", String.join(", ", imageExtensions)),
+				imageExtensions)
+		);
+		fileChooser.addChoosableFileFilter(
+			new FileNameExtensionFilter(I18N.t("text.file_filter.pdf"), "pdf")
+		);
+		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
+
+		if(StringUtils.isNotEmpty(currentUriPath)){
+			final String dirPath = FilenameUtils.getFullPath(currentUriPath);
+			if(StringUtils.isNotEmpty(dirPath)){
+				final File parentDir = new File(dirPath);
+				if(parentDir.exists() && parentDir.isDirectory())
+					fileChooser.setCurrentDirectory(parentDir);
+			}
+		}
+
+		final int userSelection = fileChooser.showOpenDialog(parentComponent);
+		if(userSelection != JFileChooser.APPROVE_OPTION)
+			return null;
+
+		final File selectedFile = fileChooser.getSelectedFile();
+		if(selectedFile == null || !selectedFile.exists()){
+			JOptionPane.showMessageDialog(parentComponent,
+				I18N.t("message.file_not_found"),
+				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+
+		return selectedFile;
+	}
+
+
+	public static String[] fillCombo(final String[] base, final String addedItem){
+		final List<String> types = new ArrayList<>(List.of(base));
+		types.removeIf(StringUtils::isEmpty);
+		types.addFirst(addedItem);
+		return types.toArray(String[]::new);
+	}
+
+
+	/**
+	 * Launches a standalone test window for a record dialog, replacing the identical
+	 * {@code UIManager.setLookAndFeel(...) + SwingUtilities.invokeLater(...)} boilerplate that used to be duplicated
+	 * in every dialog's {@code public static void main(String[])}. Usage:
+	 * <pre>
+	 * public static void main(final String[] args){
+	 *     GUIHelper.launch(NoteRecordDialog::createNew);
+	 * }
+	 * </pre>
+	 *
+	 * @param dialogFactory	Reference to the dialog's own {@code createNew(Dialog, FLEFModel)} factory method.
+	 */
+	public static void launch(final CreateNewFunction dialogFactory){
+		final FLEFModel model = new FLEFModel();
+
+		launch(dialogFactory, model);
+	}
+
+	public static void launch(final EditFunction dialogFactory, final FLEFRecord record){
+		final FLEFModel model = new FLEFModel();
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
+	}
+
+	public static void launch(final EditFunction dialogFactory, final Consumer<FLEFModel> modelFiller,
+			final FLEFRecord record){
+		final FLEFModel model = new FLEFModel();
+		modelFiller.accept(model);
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
+	}
+
+	public static void launch(final EditFunction dialogFactory, final String modelUri, final String recordId)
+			throws IOException{
+		final String content;
+		try(final InputStream is = GUIHelper.class.getResourceAsStream(modelUri)){
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+		validate(model);
+
+		final FLEFRecord record = model.getRecordById(recordId);
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
+	}
+
+	private static void validate(FLEFModel model) throws IOException{
+		final FLEFGrammar grammar = MergeGrammar.instance();
+		for(final String warning : grammar.getParseWarnings())
+			System.err.println(warning);
+
+		final FLEFGrammarValidator.ValidationResult validationResult = FLEFGrammarValidator.validate(grammar);
+		for(final String error : validationResult.errors())
+			System.err.println(error);
+		for(final String warning : validationResult.warnings())
+			System.err.println(warning);
+
+		final FLEFValidator validator = new FLEFValidator(grammar);
+		final List<String> errorsSchema = validator.validateSchema(model);
+		for(final String error : errorsSchema)
+			System.err.println(error);
+
+		final List<String> errorsIntegrity = validator.validateIntegrity(model);
+		for(final String error : errorsIntegrity)
+			System.err.println(error);
+	}
+
+	public static void launch(final CreateNewFunction dialogFactory, final FLEFModel model){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		SwingUtilities.invokeLater(() -> {
+			final RecordDialog dialog = dialogFactory.apply(null, model);
+			dialog.setVisible(true);
+
+			System.out.println(FLEFWriter.createCompact().writeToString(model));
+		});
+	}
+
+
+	/**
+	 * Makes the escape key close the dialog (it is disposed as if the Cancel button had been clicked: any unsaved change is discarded).
+	 * The binding is registered on the root pane with {@link JComponent#WHEN_IN_FOCUSED_WINDOW}; the call is idempotent.
+	 *
+	 * @param dialog	The dialog to install the binding on.
+	 */
+	public static void installEscapeToClose(final JDialog dialog){
+		final JRootPane rootPane = dialog.getRootPane();
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = rootPane.getActionMap();
+		dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		inputMap.put(ESCAPE_STROKE, "closeDialog");
+		actionMap.put("closeDialog", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				dialog.dispose();
+			}
+		});
+	}
+
+}

@@ -1,0 +1,215 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.preferences;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+
+import javax.swing.JOptionPane;
+import java.awt.Window;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+
+
+/**
+ * Restarts the running application by spawning a new JVM with the same
+ * command line and terminating the current process.
+ *
+ * <p>The new process is started with {@code inheritIO()} so its stdout,
+ * stderr and stdin are connected to the same console as the current one.
+ * A short pause lets the new process attach to the console before the
+ * current JVM exits, which avoids the console window flashing closed on
+ * Windows.</p>
+ *
+ * <p>If the restart cannot be performed — for example, when the JVM was
+ * launched with a wrapper that does not report a command line, or when the
+ * process spawn fails — the user is told to restart manually. In every case
+ * the caller can count on {@link #restart(Window, String)} returning
+ * before the JVM exits.</p>
+ */
+public final class ApplicationRestarter{
+
+	/** Delay before {@code System.exit}, in milliseconds. */
+	private static final int EXIT_DELAY_MS = 300;
+
+	/** Prefix of the property that records the launcher command. */
+	public static final String PROP_LAUNCH_COMMAND = "app.launch.command";
+
+
+	private ApplicationRestarter(){
+	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
+
+	/**
+	 * Notifies the user that a restart is required, then restarts the
+	 * application. The dialog is modal and blocking: the method does not
+	 * return until the user has acknowledged it.
+	 *
+	 * @param owner  the window that owns the dialog; may be {@code null}
+	 * @param reason a short sentence explaining why the restart is needed
+	 */
+	public static void restart(final Window owner, final String reason){
+		restart(owner, reason, null);
+	}
+
+	/**
+	 * The same as {@link #restart(Window, String)}, and the application opens the given file when it starts again, in the place of the one
+	 * it was launched with.
+	 *
+	 * @param owner  the window that owns the dialog; may be {@code null}
+	 * @param reason a short sentence explaining why the restart is needed
+	 * @param file   the file the document is on, to open again; {@code null} if the document has none
+	 */
+	public static void restart(final Window owner, final String reason, final File file){
+		JOptionPane.showMessageDialog(owner,
+			reason + "\n\n" + I18N.t("dialog.restart.message"), I18N.t("dialog.restart.title"),
+			JOptionPane.INFORMATION_MESSAGE);
+
+		if(!tryRestart(file))
+			JOptionPane.showMessageDialog(owner,
+				I18N.t("dialog.restart.failed.message"), I18N.t("dialog.restart.failed.title"),
+				JOptionPane.WARNING_MESSAGE);
+	}
+
+
+	/* ======================================================================
+	 *                          Internals
+	 * ====================================================================== */
+
+	/**
+	 * @param command	The command line the application was started with.
+	 * @param file	The file to open when it starts again, or {@code null}.
+	 * @return	The command line with the file in the place of the one the application was launched with (a last argument that is a FLEF
+	 * 	file): without it, the application would start with an empty document, or with the file it was launched with, not the open one.
+	 */
+	static List<String> withFile(final List<String> command, final File file){
+		final List<String> result = new ArrayList<>(command);
+		if(!result.isEmpty() && result.getLast().toLowerCase(Locale.ROOT).endsWith(".flef"))
+			result.removeLast();
+		if(file != null)
+			result.add(file.getAbsolutePath());
+		return result;
+	}
+
+	private static boolean tryRestart(final File file){
+		final List<String> launch = resolveLaunchCommand();
+		if(launch.isEmpty())
+			return false;
+
+		final List<String> command = withFile(launch, file);
+
+		try{
+			final ProcessBuilder pb = new ProcessBuilder(command)
+				.inheritIO();
+			pb.start();
+
+			// Give the new process a moment to attach to the console
+			// before we exit, so the console window does not flash.
+			try{
+				Thread.sleep(EXIT_DELAY_MS);
+			}
+			catch(final InterruptedException ignored){
+				Thread.currentThread().interrupt();
+			}
+			System.exit(0);
+			return true;
+		}
+		catch(final IOException ignored){
+			return false;
+		}
+	}
+
+
+	/**
+	 * Reconstructs the command line used to launch the current JVM.
+	 *
+	 * <p>Two sources are consulted, in order:</p>
+	 * <ol>
+	 *   <li>the {@link #PROP_LAUNCH_COMMAND} system property, if the
+	 *       application was launched through a wrapper that set it;</li>
+	 *   <li>{@link ProcessHandle.Info#commandLine()} of the current
+	 *       process, which returns the exact command line as the OS sees
+	 *       it. This works on Linux, macOS and Windows on JDK 9+.</li>
+	 * </ol>
+	 *
+	 * @return the command as a list of tokens, or an empty list when the
+	 * command line cannot be determined
+	 */
+	private static List<String> resolveLaunchCommand(){
+		final String property = System.getProperty(PROP_LAUNCH_COMMAND);
+		if(property != null && !property.isBlank())
+			return tokenize(property);
+
+		final Optional<String> commandLine = ProcessHandle.current()
+			.info()
+			.commandLine();
+		if(commandLine.isPresent() && !commandLine.get().isBlank())
+			return tokenize(commandLine.get());
+
+		return List.of();
+	}
+
+
+	/**
+	 * Splits a command line into tokens, honoring double quotes. This is a
+	 * minimal parser good enough for the command lines generated by
+	 * standard JVM launchers; it does not handle escaped quotes inside
+	 * quoted segments, which do not appear in practice on any of the
+	 * supported platforms.
+	 */
+	private static List<String> tokenize(final String commandLine){
+		final List<String> out = new ArrayList<>();
+		final StringBuilder buf = new StringBuilder();
+		boolean inQuote = false;
+
+		for(int i = 0; i < commandLine.length(); i ++){
+			final char c = commandLine.charAt(i);
+			if(c == '"'){
+				inQuote = !inQuote;
+			}
+			else if(c == ' ' && !inQuote){
+				if(!buf.isEmpty()){
+					out.add(buf.toString());
+					buf.setLength(0);
+				}
+			}
+			else{
+				buf.append(c);
+			}
+		}
+		if(!buf.isEmpty())
+			out.add(buf.toString());
+
+		return out;
+	}
+
+}

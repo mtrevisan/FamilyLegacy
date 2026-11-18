@@ -1,0 +1,634 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.ephemeris.engine;
+
+import io.github.mtrevisan.ephemeris.engine.coordinates.Converter;
+import io.github.mtrevisan.ephemeris.engine.coordinates.EclipticCoordinates;
+import io.github.mtrevisan.ephemeris.helpers.JulianDate;
+import io.github.mtrevisan.ephemeris.helpers.MathHelper;
+import io.github.mtrevisan.ephemeris.readers.ElpCoefficients;
+import io.github.mtrevisan.ephemeris.readers.ElpParameters;
+import io.github.mtrevisan.ephemeris.readers.ElpSeriesReader;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+
+/**
+ * Geocentric lunar position computed from the ELP/MPP02 truncated series.
+ *
+ * <p>The class is a singleton: the 14 coefficient files are read once and
+ * kept in memory. Two parameter sets are available, fitted respectively to
+ * the LLR observations and to the JPL DE405/DE406 ephemerides; the default
+ * is {@code LLR}, which is the more accurate set for recent centuries.</p>
+ *
+ * <p><b>Coordinate system.</b> The natural output of the ELP/MPP02 theory
+ * is the geocentric ecliptic longitude V, latitude U and distance r
+ * referred to the <em>mean ecliptic of date</em>. The
+ * {@link #rectangular(double)} method rotates the result to the
+ * <em>mean ecliptic and equinox of J2000.0</em>, which is the frame used
+ * by VSOP2013 and by the rest of the project.</p>
+ *
+ * <p><b>Time argument.</b> The series are evaluated at the Julian
+ * century of Barycentric Dynamical Time (TDB) from J2000:
+ * {@code T = (JD − 2451545.) / 36525}. For civil dates, TDB is
+ * approximated by Terrestrial Time, which in turn is obtained from UT by
+ * adding ΔT.</p>
+ *
+ * <p><b>Accuracy.</b> With the full series loaded (no truncation), the
+ * agreement with DE405/DE406 is better than 0.03″ in longitude and
+ * latitude and 30 m in distance over the interval −3000 to +3000.</p>
+ *
+ * <p><b>Reference.</b> Chapront &amp; Francou (2003), <i>The lunar theory
+ * ELP revisited. Introduction of new planetary perturbations</i>,
+ * A&amp;A 404, 735–742.</p>
+ */
+public final class MoonPosition{
+
+	/* ======================================================================
+	 *                          Constants
+	 * ====================================================================== */
+
+	/** Arcsecond-to-radian conversion factor. */
+	private static final double SEC = StrictMath.PI / 648_000.;
+
+	/**
+	 * Ratio of the ELP semi-major axis to the DE405 semi-major axis,
+	 * applied to the distance series so that the output is in the same
+	 * length unit as the JPL ephemerides (km).
+	 */
+	private static final double RA0 = 384747.961370173 / 384747.980674318;
+
+	/* ======================================================================
+	 *                          Argument array layout
+	 * ====================================================================== */
+
+	/**
+	 * The argument array carries the 13 fundamental arguments of the
+	 * ELP/MPP02 theory followed by the Moon mean longitude W1. The layout
+	 * matches the order of the multipliers in the perturbation files, so
+	 * {@code args[i]} can be used directly with {@code multipliers[i]}
+	 * for {@code i} in {@code [0, 12]}.
+	 */
+	private static final int ARG_D    = 0;   // mean elongation of the Moon from the Sun
+	private static final int ARG_F    = 1;   // mean argument of latitude of the Moon
+	private static final int ARG_L    = 2;   // mean anomaly of the Moon
+	private static final int ARG_LP   = 3;   // mean anomaly of the Sun
+	private static final int ARG_ME   = 4;   // Mercury mean longitude
+	private static final int ARG_VE   = 5;   // Venus mean longitude
+	private static final int ARG_EM   = 6;   // Earth mean longitude
+	private static final int ARG_MA   = 7;   // Mars mean longitude
+	private static final int ARG_JU   = 8;   // Jupiter mean longitude
+	private static final int ARG_SA   = 9;   // Saturn mean longitude
+	private static final int ARG_UR   = 10;  // Uranus mean longitude
+	private static final int ARG_NE   = 11;  // Neptune mean longitude
+	private static final int ARG_ZETA = 12;  // precession argument
+	private static final int ARG_W1   = 13;  // Moon mean longitude
+	private static final int ARG_COUNT = 14;
+
+	/* ======================================================================
+	 *                          Fundamental arguments (eqs. 5–22)
+	 * ====================================================================== */
+
+	/* W1 — Moon mean longitude */
+	private static final double[] W1_COEFFS = {
+		MathHelper.toDegrees(218, 18, 59.95571) * JulianDate.SECONDS_PER_HOUR,
+		1732559343.73604, -6.8084, 0.006604, -0.00003169
+	};
+	/* W2 — Sun mean longitude */
+	private static final double[] W2_COEFFS = {
+		MathHelper.toDegrees(83, 21, 11.67475) * JulianDate.SECONDS_PER_HOUR,
+		14643420.3171, -38.2631, -0.045047, 0.00021301
+	};
+	/* W3 — Mean longitude of the lunar ascending node */
+	private static final double[] W3_COEFFS = {
+		MathHelper.toDegrees(125, 2, 40.39816) * JulianDate.SECONDS_PER_HOUR,
+		-6967919.5383, 6.359, 0.007625, -0.00003586
+	};
+	/* Ea — Earth mean longitude */
+	private static final double[] EA_COEFFS = {
+		MathHelper.toDegrees(100, 27, 59.13885) * JulianDate.SECONDS_PER_HOUR,
+		129597742.293, -0.0202, 9e-6, 1.5e-7
+	};
+	/* perigee — Solar perigee */
+	private static final double[] PERIGEE_COEFFS = {
+		MathHelper.toDegrees(102, 56, 14.45766) * JulianDate.SECONDS_PER_HOUR,
+		1161.24342, 0.529265, -1.1814e-4, 1.1379e-5
+	};
+	/* ζ — Precession argument */
+	private static final double[] ZETA_COEFFS = {
+		0., 5028.79695, 0., 0., 0.
+	};
+
+	/* ----- Planetary mean longitudes (eqs. 14–21) ------------------- */
+
+	private static final double[] ME_COEFFS = {
+		MathHelper.toDegrees(252, 15, 3.216919) * JulianDate.SECONDS_PER_HOUR, 538101628.66888, 0., 0., 0.
+	};
+	private static final double[] VE_COEFFS = {
+		MathHelper.toDegrees(181, 58, 44.758419) * JulianDate.SECONDS_PER_HOUR, 210664136.45777, 0., 0., 0.
+	};
+	private static final double[] EM_COEFFS = {
+		MathHelper.toDegrees(100, 27, 59.13885) * JulianDate.SECONDS_PER_HOUR, 129597742.293, 0., 0., 0.
+	};
+	private static final double[] MA_COEFFS = {
+		MathHelper.toDegrees(355, 26, 3.642778) * JulianDate.SECONDS_PER_HOUR, 68905077.65936, 0., 0., 0.
+	};
+	private static final double[] JU_COEFFS = {
+		MathHelper.toDegrees(34, 21, 5.379392) * JulianDate.SECONDS_PER_HOUR, 10925660.57335, 0., 0., 0.
+	};
+	private static final double[] SA_COEFFS = {
+		MathHelper.toDegrees(50, 4, 38.902495) * JulianDate.SECONDS_PER_HOUR, 4399609.33632, 0., 0., 0.
+	};
+	private static final double[] UR_COEFFS = {
+		MathHelper.toDegrees(314, 3, 4.354234) * JulianDate.SECONDS_PER_HOUR, 1542482.57845, 0., 0., 0.
+	};
+	private static final double[] NE_COEFFS = {
+		MathHelper.toDegrees(304, 20, 56.808371) * JulianDate.SECONDS_PER_HOUR, 786547.897, 0., 0., 0.
+	};
+
+	/* ======================================================================
+	 *                          Singleton
+	 * ====================================================================== */
+
+	private static final class SingletonHelperLLR{
+		private static final MoonPosition INSTANCE = new MoonPosition(ElpParameters.LLR,
+			loadFromClasspath(ElpParameters.LLR));
+	}
+	private static final class SingletonHelperDE405{
+		private static final MoonPosition INSTANCE = new MoonPosition(ElpParameters.DE405,
+			loadFromClasspath(ElpParameters.DE405));
+	}
+
+	/*
+	 * The loaded coefficients, flattened into primitive arrays for fast evaluation. The perturbation series are indexed
+	 * by power of T.
+	 */
+	private final MainSeries mainLongitude;
+	private final MainSeries mainLatitude;
+	private final MainSeries mainDistance;
+	private final PerturbationSeries[] perturbationLongitude;
+	private final PerturbationSeries[] perturbationLatitude;
+	private final PerturbationSeries[] perturbationDistance;
+
+	/*
+	 * Pre-computed polynomial coefficient arrays. These carry the
+	 * corrections of the chosen parameter set and are immutable after
+	 * construction, so they are computed once here rather than on every
+	 * call to {@link #arguments(double)}.
+	 */
+	private final double[] w1Corr;
+	private final double[] w2Corr;
+	private final double[] w3Corr;
+	private final double[] eaCorr;
+	private final double[] perigeeCorr;
+
+
+	/* ======================================================================
+	 *                          Construction
+	 * ====================================================================== */
+
+
+	/** LLR */
+	public static MoonPosition getInstanceLLR(){
+		return SingletonHelperLLR.INSTANCE;
+	}
+
+	/** DE405/DE406 */
+	public static MoonPosition getInstanceDE405(){
+		return SingletonHelperDE405.INSTANCE;
+	}
+
+
+	private MoonPosition(final ElpParameters params, final ElpCoefficients coefs){
+		mainLongitude = MainSeries.of(coefs.mainLongitude());
+		mainLatitude = MainSeries.of(coefs.mainLatitude());
+		mainDistance = MainSeries.of(coefs.mainDistance());
+		perturbationLongitude = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationLongitudeT0()), PerturbationSeries.of(coefs.perturbationLongitudeT1()),
+			PerturbationSeries.of(coefs.perturbationLongitudeT2()), PerturbationSeries.of(coefs.perturbationLongitudeT3())};
+		perturbationLatitude = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationLatitudeT0()), PerturbationSeries.of(coefs.perturbationLatitudeT1()),
+			PerturbationSeries.of(coefs.perturbationLatitudeT2())};
+		perturbationDistance = new PerturbationSeries[]{
+			PerturbationSeries.of(coefs.perturbationDistanceT0()), PerturbationSeries.of(coefs.perturbationDistanceT1()),
+			PerturbationSeries.of(coefs.perturbationDistanceT2()), PerturbationSeries.of(coefs.perturbationDistanceT3())};
+
+		// One-time construction of the corrected coefficient arrays. The
+		// base arrays are the static constants defined above; each clone
+		// applies the parameter-set corrections to its first five entries.
+		this.w1Corr = corr(W1_COEFFS,
+			params.Dw1_0, params.Dw1_1, params.Dw1_2,
+			params.Dw1_3, params.Dw1_4);
+		this.w2Corr = corr(W2_COEFFS,
+			params.Dw2_0, params.Dw2_1 + params.Cw2_1,
+			params.Dw2_2, params.Dw2_3, 0.);
+		this.w3Corr = corr(W3_COEFFS,
+			params.Dw3_0, params.Dw3_1 + params.Cw3_1,
+			params.Dw3_2, params.Dw3_3, 0.);
+		this.eaCorr = corr(EA_COEFFS,
+			params.Deart_0, params.Deart_1, 0., 0., 0.);
+		this.perigeeCorr = corr(PERIGEE_COEFFS,
+			params.Dperi, 0., 0., 0., 0.);
+	}
+
+
+	private static ElpCoefficients loadFromClasspath(final ElpParameters params){
+		return new ElpCoefficients(
+			readMainResource("elp_main.long", params),
+			readMainResource("elp_main.lat", params),
+			readMainResource("elp_main.dist", params),
+			readPertResource("elp_pert.longT0"),
+			readPertResource("elp_pert.longT1"),
+			readPertResource("elp_pert.longT2"),
+			readPertResource("elp_pert.longT3"),
+			readPertResource("elp_pert.latT0"),
+			readPertResource("elp_pert.latT1"),
+			readPertResource("elp_pert.latT2"),
+			readPertResource("elp_pert.distT0"),
+			readPertResource("elp_pert.distT1"),
+			readPertResource("elp_pert.distT2"),
+			readPertResource("elp_pert.distT3"));
+	}
+
+	private static List<ElpCoefficients.MainTerm> readMainResource(final String name, final ElpParameters params){
+		try(final InputStream in = MoonPosition.class.getResourceAsStream("/" + name)){
+			if(in == null)
+				throw new IllegalStateException("Missing ELP coefficient resource: " + name);
+
+			return ElpSeriesReader.readMain(in, params);
+		}
+		catch(final IOException e){
+			throw new IllegalStateException("Cannot read ELP coefficient resource: " + name, e);
+		}
+	}
+
+	private static List<ElpCoefficients.PertTerm> readPertResource(final String name){
+		try(final InputStream in = MoonPosition.class.getResourceAsStream("/" + name)){
+			if(in == null)
+				throw new IllegalStateException("Missing ELP coefficient resource: " + name);
+
+			return ElpSeriesReader.readPert(in);
+		}
+		catch(final IOException e){
+			throw new IllegalStateException("Cannot read ELP coefficient resource: " + name, e);
+		}
+	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Moon.
+	 *
+	 * @param jce      Julian Ephemeris Century of TDB from J2000.0
+	 * @param deltaPsi nutation in longitude [rad]
+	 * @return apparent moon longitude [rad]
+	 */
+	public static double computeApparentMoonLongitude(final double jce, final double deltaPsi){
+		// The class native method returns the longitude on the mean ecliptic of date from the departure point, the
+		// general precession brings it to the mean equinox of date
+		final double lambdaMean = toEquinoxOfDate(getInstanceLLR().longitudeFromDeparturePoint(jce), jce);
+
+		return apparentLongitude(lambdaMean, deltaPsi);
+	}
+
+	/**
+	 * Computes the apparent ecliptic longitude of the Moon from an already computed position.
+	 *
+	 * @param eclipticOfDate the position of the Moon referred to the mean ecliptic of date, as returned by
+	 *                       {@link #eclipticOfDate(double)}
+	 * @param deltaPsi       nutation in longitude [rad]
+	 * @return apparent moon longitude [rad]
+	 */
+	public static double computeApparentMoonLongitude(final EclipticCoordinates eclipticOfDate, final double deltaPsi){
+		return apparentLongitude(eclipticOfDate.longitude(), deltaPsi);
+	}
+
+	/** Counts a longitude on the ecliptic of date from the mean equinox of date instead of the departure point. */
+	private static double toEquinoxOfDate(final double longitudeFromDeparturePoint, final double jce){
+		return MathHelper.mod2pi(longitudeFromDeparturePoint + Converter.generalPrecessionInLongitude(jce));
+	}
+
+	private static double apparentLongitude(final double lambdaMean, final double deltaPsi){
+		// Apply nutation (aberration is negligible for the Moon)
+		return MathHelper.mod2pi(lambdaMean + deltaPsi);
+	}
+
+	/**
+	 * Geocentric ecliptic coordinates of the Moon referred to the mean ecliptic and equinox of date.
+	 *
+	 * @param t Julian centuries of TDB from J2000: {@code (JD_TDB − 2451545.) / 36525}
+	 * @return the position
+	 */
+	public EclipticCoordinates eclipticOfDate(final double t){
+		// One argument array is built and shared by the three coordinate
+		// computations. This is the only allocation in the hot path.
+		final double[] args = arguments(t);
+		final double latitude = latitudeOfDate(t, args);
+		final double longitude = toEquinoxOfDate(longitudeFromDeparturePoint(t, args), t);
+		final double distance = distance(t, args);
+		return new EclipticCoordinates(latitude, longitude, distance);
+	}
+
+	/**
+	 * Geocentric rectangular coordinates referred to the <em>mean ecliptic
+	 * and equinox of J2000.0</em>. This is the frame used by VSOP2013.
+	 *
+	 * @param jce Julian Ephemeris Century of Barycentric Dynamical Time from J2000.0.
+	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
+	 */
+	public double[] rectangular(final double jce){
+		return rectangular(jce, eclipticOfDate(jce));
+	}
+
+	/**
+	 * Geocentric rectangular coordinates referred to the <em>mean ecliptic
+	 * and equinox of J2000.0</em>, from an already computed position.
+	 *
+	 * @param jce Julian Ephemeris Century of Barycentric Dynamical Time from J2000.0.
+	 * @param sph the position referred to the mean ecliptic of date at {@code jce}, as returned by
+	 *            {@link #eclipticOfDate(double)}
+	 * @return a three-element array {@code [X, Y, Z]}, in kilometres
+	 */
+	public static double[] rectangular(final double jce, final EclipticCoordinates sph){
+		// The rotation of Chapront & Francou expects the longitude counted from the departure point
+		final double v = sph.longitude() - Converter.generalPrecessionInLongitude(jce);
+		final double rCosVcosU = sph.distance() * StrictMath.cos(v)
+			* StrictMath.cos(sph.latitude());
+		final double rSinVcosU = sph.distance() * StrictMath.sin(v)
+			* StrictMath.cos(sph.latitude());
+		final double rSinU = sph.distance() * StrictMath.sin(sph.latitude());
+		return Converter.toRectangularFromDateToJ2000(jce, rCosVcosU, rSinVcosU, rSinU);
+	}
+
+	/**
+	 * Geocentric ecliptic longitude of the Moon referred to the mean ecliptic of date, counted from the departure point.
+	 *
+	 * @param t Julian centuries of TDB from J2000
+	 * @return longitude [rad], in the interval [0, 2π)
+	 */
+	private double longitudeFromDeparturePoint(final double t){
+		return longitudeFromDeparturePoint(t, arguments(t));
+	}
+
+
+	/* ======================================================================
+	 *                          Fundamental arguments
+	 * ====================================================================== */
+
+	/**
+	 * Evaluates the thirteen fundamental arguments plus the Moon mean
+	 * longitude at the given time.
+	 *
+	 * <p>The result is a 14-element array. Its layout is documented by the
+	 * {@code ARG_*} constants: indices 0..12 are the fundamental arguments
+	 * in the same order as the perturbation multipliers, index 13 is the
+	 * Moon mean longitude {@code W1}.</p>
+	 * <p>Order: {@code [D, F, l, l', Me, Ve, EM, Ma, Ju, Sa, Ur, Ne, ζ]}.
+	 * All values are in radians, reduced to {@code [0, 2π)}.</p>
+	 */
+	private double[] arguments(final double t){
+		final double[] a = new double[ARG_COUNT];
+
+		// ----- Mean longitudes (with parameter corrections) --------------
+		final double w1 = MathHelper.mod2pi(MathHelper.polynomial(t, w1Corr) * SEC);
+		final double w2 = MathHelper.mod2pi(MathHelper.polynomial(t, w2Corr) * SEC);
+		final double w3 = MathHelper.mod2pi(MathHelper.polynomial(t, w3Corr) * SEC);
+		final double ea = MathHelper.mod2pi(MathHelper.polynomial(t, eaCorr) * SEC);
+		final double perigee = MathHelper.mod2pi(MathHelper.polynomial(t, perigeeCorr) * SEC);
+
+		// ----- Delaunay arguments (eqs. 10–13) --------------------------
+		a[ARG_D] = MathHelper.mod2pi(w1 - ea + StrictMath.PI);
+		a[ARG_F] = MathHelper.mod2pi(w1 - w3);
+		a[ARG_L] = MathHelper.mod2pi(w1 - w2);
+		a[ARG_LP] = MathHelper.mod2pi(ea - perigee);
+
+		// ----- Planetary mean longitudes --------------------------------
+		a[ARG_ME] = MathHelper.mod2pi(MathHelper.polynomial(t, ME_COEFFS) * SEC);
+		a[ARG_VE] = MathHelper.mod2pi(MathHelper.polynomial(t, VE_COEFFS) * SEC);
+		a[ARG_EM] = MathHelper.mod2pi(MathHelper.polynomial(t, EM_COEFFS) * SEC);
+		a[ARG_MA] = MathHelper.mod2pi(MathHelper.polynomial(t, MA_COEFFS) * SEC);
+		a[ARG_JU] = MathHelper.mod2pi(MathHelper.polynomial(t, JU_COEFFS) * SEC);
+		a[ARG_SA] = MathHelper.mod2pi(MathHelper.polynomial(t, SA_COEFFS) * SEC);
+		a[ARG_UR] = MathHelper.mod2pi(MathHelper.polynomial(t, UR_COEFFS) * SEC);
+		a[ARG_NE] = MathHelper.mod2pi(MathHelper.polynomial(t, NE_COEFFS) * SEC);
+
+		// ----- Precession argument (eq. 22) -----------------------------
+		a[ARG_ZETA] = MathHelper.mod2pi(w1 + MathHelper.polynomial(t, ZETA_COEFFS) * SEC);
+
+		// ----- Moon mean longitude --------------------------------------
+		a[ARG_W1] = w1;
+
+		return a;
+	}
+
+	/**
+	 * Returns a copy of {@code base} whose first five coefficients are
+	 * incremented by the given corrections.
+	 */
+	private static double[] corr(final double[] base, final double c0, final double c1, final double c2, final double c3,
+			final double c4){
+		final double[] out = base.clone();
+		out[0] += c0;
+		out[1] += c1;
+		out[2] += c2;
+		out[3] += c3;
+		out[4] += c4;
+		return out;
+	}
+
+
+	/* ======================================================================
+	 *                          Coordinate computation
+	 * ====================================================================== */
+
+	/**
+	 * Longitude {@code V = W1 + main series + perturbation series}, on the mean ecliptic of date counted from the
+	 * departure point (the ELP/MPP02 mean longitude W1 does not include the precession of the equinox).
+	 *
+	 * <p>The three perturbation series are summed, then combined by Horner
+	 * evaluation. No temporary array is allocated: the four coefficients
+	 * are held in local variables.</p>
+	 */
+	private double longitudeFromDeparturePoint(final double t, final double[] args){
+		final double p0 = perturbationSum(perturbationLongitude[0], args);
+		final double p1 = perturbationSum(perturbationLongitude[1], args);
+		final double p2 = perturbationSum(perturbationLongitude[2], args);
+		final double p3 = perturbationSum(perturbationLongitude[3], args);
+		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
+
+		return MathHelper.mod2pi(args[ARG_W1]
+			+ mainSum(mainLongitude, args, true)
+			+ pert);
+	}
+
+	private double latitudeOfDate(final double t, final double[] args){
+		final double p0 = perturbationSum(perturbationLatitude[0], args);
+		final double p1 = perturbationSum(perturbationLatitude[1], args);
+		final double p2 = perturbationSum(perturbationLatitude[2], args);
+		final double pert = p0 + t * (p1 + t * p2);
+
+		return mainSum(mainLatitude, args, true) + pert;
+	}
+
+	private double distance(final double t, final double[] args){
+		final double p0 = perturbationSum(perturbationDistance[0], args);
+		final double p1 = perturbationSum(perturbationDistance[1], args);
+		final double p2 = perturbationSum(perturbationDistance[2], args);
+		final double p3 = perturbationSum(perturbationDistance[3], args);
+		final double pert = p0 + t * (p1 + t * (p2 + t * p3));
+
+		return RA0 * (mainSum(mainDistance, args, false) + pert);
+	}
+
+
+	/* ======================================================================
+	 *                          Series evaluation
+	 * ====================================================================== */
+
+	/**
+	 * Sums a main-problem series. The argument of each term is
+	 * {@code i1·D + i2·F + i3·l + i4·l'}; the amplitude has already been
+	 * corrected at load time. Longitude and latitude are sine series,
+	 * distance is a cosine series.
+	 */
+	private static double mainSum(final MainSeries series, final double[] args, final boolean sine){
+		final double d = args[ARG_D];
+		final double f = args[ARG_F];
+		final double l = args[ARG_L];
+		final double lp = args[ARG_LP];
+
+		final double[] i1 = series.i1;
+		final double[] i2 = series.i2;
+		final double[] i3 = series.i3;
+		final double[] i4 = series.i4;
+		final double[] amplitude = series.amplitude;
+		double sum = 0.;
+		//hot loops: Math (JIT intrinsic) is several times faster than StrictMath here
+		if(sine)
+			for(int i = 0, n = amplitude.length; i < n; i ++)
+				sum += amplitude[i] * Math.sin(i1[i] * d + i2[i] * f + i3[i] * l + i4[i] * lp);
+		else
+			for(int i = 0, n = amplitude.length; i < n; i ++)
+				sum += amplitude[i] * Math.cos(i1[i] * d + i2[i] * f + i3[i] * l + i4[i] * lp);
+		return sum;
+	}
+
+	/**
+	 * Sums a perturbation series. The argument of each term is {@code Σ iⱼ·argⱼ + φ₀}; the amplitude is multiplied by
+	 * {@code sin(argument)}.
+	 */
+	private static double perturbationSum(final PerturbationSeries series, final double[] args){
+		final double[] amplitude = series.amplitude;
+		final double[] phase = series.phase;
+		final int[] argumentStart = series.argumentStart;
+		final byte[] argumentIndex = series.argumentIndex;
+		final int[] argumentMultiplier = series.argumentMultiplier;
+		double sum = 0.;
+		for(int k = 0, n = amplitude.length; k < n; k ++){
+			double arg = phase[k];
+			for(int j = argumentStart[k], end = argumentStart[k + 1]; j < end; j ++)
+				arg += argumentMultiplier[j] * args[argumentIndex[j]];
+			sum += amplitude[k] * Math.sin(arg);
+		}
+		return sum;
+	}
+
+
+	/**
+	 * A main-problem series in flat primitive arrays: the argument of term {@code k} is
+	 * {@code i1[k]·D + i2[k]·F + i3[k]·l + i4[k]·l'}.
+	 */
+	private static final class MainSeries{
+		private final double[] i1;
+		private final double[] i2;
+		private final double[] i3;
+		private final double[] i4;
+		private final double[] amplitude;
+
+		private MainSeries(final int size){
+			i1 = new double[size];
+			i2 = new double[size];
+			i3 = new double[size];
+			i4 = new double[size];
+			amplitude = new double[size];
+		}
+
+		private static MainSeries of(final List<ElpCoefficients.MainTerm> terms){
+			final MainSeries series = new MainSeries(terms.size());
+			for(int k = 0, n = terms.size(); k < n; k ++){
+				final ElpCoefficients.MainTerm term = terms.get(k);
+				series.i1[k] = term.i1();
+				series.i2[k] = term.i2();
+				series.i3[k] = term.i3();
+				series.i4[k] = term.i4();
+				series.amplitude[k] = term.amplitude();
+			}
+			return series;
+		}
+	}
+
+	/**
+	 * A perturbation series in flat primitive arrays, keeping only the non-zero multipliers: the multipliers of term
+	 * {@code k} are {@code argumentMultiplier[j]} applied to argument {@code argumentIndex[j]}, for {@code j} in
+	 * {@code [argumentStart[k], argumentStart[k + 1])}.
+	 */
+		private record PerturbationSeries(double[] amplitude, double[] phase, int[] argumentStart, byte[] argumentIndex,
+													 int[] argumentMultiplier){
+
+		private static PerturbationSeries of(final List<ElpCoefficients.PertTerm> terms){
+			final int size = terms.size();
+			final double[] amplitude = new double[size];
+			final double[] phase = new double[size];
+			final int[] argumentStart = new int[size + 1];
+			final byte[] argumentIndex = new byte[size * (ARG_COUNT - 1)];
+			final int[] argumentMultiplier = new int[size * (ARG_COUNT - 1)];
+			int arguments = 0;
+			for(int k = 0; k < size; k++){
+				final ElpCoefficients.PertTerm term = terms.get(k);
+				amplitude[k] = term.amplitude();
+				phase[k] = term.phase();
+				argumentStart[k] = arguments;
+				final int[] m = term.multipliers();
+				for(int j = 0; j < ARG_COUNT - 1; j++)
+					if(m[j] != 0){
+						argumentIndex[arguments] = (byte)j;
+						argumentMultiplier[arguments] = m[j];
+						arguments++;
+					}
+			}
+			argumentStart[size] = arguments;
+			return new PerturbationSeries(amplitude, phase, argumentStart, Arrays.copyOf(argumentIndex, arguments),
+				Arrays.copyOf(argumentMultiplier, arguments));
+		}
+
+	}
+
+}

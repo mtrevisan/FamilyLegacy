@@ -1,0 +1,322 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+
+import javax.swing.JPanel;
+import java.awt.Window;
+import java.io.IOException;
+
+
+/**
+ * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.2.0.
+ * <p>
+ * Structure:
+ * <pre>
+ * record EventRecord {
+ *   type: enum {
+ *     birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
+ *     guardianship, coroner_report, cremation, burial, education, retirement,
+ *     military_induction, military_muster_roll, military_service, military_award,
+ *     military_release, military_discharge, military_resignation, military_retirement,
+ *     prison, pardon, jury_duty, illness, hospitalization, medical_procedure, honor,
+ *     deportation, internment, liberation, emancipation, relocation, emigration,
+ *     census, deed, escrow, chancery, will, probate,
+ *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
+ *     marriage, separation, divorce_filed, divorce_decree, divorce, annulment
+ *   } | Text
+ *   description?: Text
+ *   date?: DateStructure
+ *   place?: PlaceCitation
+ *   cause?: struct {
+ *     reason: Text
+ *     source*: SourceCitation
+ *     confidence?: Confidence
+ *   }
+ *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   confidence?: Confidence
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): type, description, date, place, confidence
+ * Tab 1bis (Cause): cause
+ * Tab 4 (Participations): EventParticipationRecord (event = this event)
+ * Tab 5 (Context): ContextImpactRecord (target[event] = this event)
+ * Tab 6 (Research): ConclusionRecord (resolves = this event), ResearchQuestionRecord (target[event] = this event)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class EventRecordDialog extends BaseRecordDialog{
+
+	private final JPanel propertiesPanel;
+	private JPanel causePanel;
+
+	private final BoundComboBox<String> typeCombo;
+	private final BoundTextArea descriptionArea;
+	private final DateField dateField;
+	private final EntityField placeField;
+	private final BoundTextField causeReasonField;
+	private final BoundComboBox<String> causeConfidenceCombo;
+	private final BoundComboBox<String> confidenceCombo;
+
+
+	public static EventRecordDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, EventRecordDialog::new);
+	}
+
+	public static EventRecordDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, EventRecordDialog::new);
+	}
+
+
+	private EventRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, EventHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]");
+
+		typeCombo = new BoundComboBox<>(EventReader.TAG_TYPE, GUIHelper.fillCombo(EventReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.event.type");
+		typeCombo.setEditable(true);
+		descriptionArea = new BoundTextArea(EventReader.TAG_DESCRIPTION, 3, 25);
+		dateField = DateField.createWithWrapperTag(EventReader.TAG_DATE, this, I18N.t("dialog.event.date"), model);
+		placeField = EntityField.createForStructureWithReference(EventReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
+		//the date assistant starts from the reform of the place of the event (the user can still choose another one)
+		dateField.withPlace(() -> (placeField.hasData()
+			? FLEFRecordHelper.getChildValue(placeField.getEntity(), PlaceCitationReader.TAG_PLACE): null));
+		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
+		causeConfidenceCombo = new BoundComboBox<>(EventReader.TAG_CAUSE_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		causeConfidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo = new BoundComboBox<>(EventReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
+		confidenceCombo.setI18NPrefix("enum.confidence");
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, this.record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, EventParticipationHandler.TYPE, I18N.t("dialog.component.event.participations"))
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.SOURCE, EventReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.SOURCE_FOR_CAUSE, EventReader.TAG_CAUSE_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.NOTE, EventReader.TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, EventReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, EventReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(descriptionArea);
+		components.bind(causeReasonField);
+		components.bind(causeConfidenceCombo);
+		components.bind(confidenceCombo);
+
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.event.type"), typeCombo);
+
+		// description
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.description"), descriptionArea);
+
+		// date
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.date"), dateField);
+
+		// place
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place"), placeField);
+
+		// confidence
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.event.confidence"), confidenceCombo);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createCausePanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+		causePanel = panel;
+
+		GUIHelper.addLabeledComponent(panel, GUIHelper.requiredLabel("dialog.event.cause.reason"), causeReasonField);
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_CAUSE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.event.cause.evidence"), causeConfidenceCombo);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	protected void loadData(){
+		components.load(record);
+
+		dateField.load(record);
+		placeField.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	@Override
+	protected boolean validData(){
+		if(!typeCombo.isValued()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.event.type")),
+				tabbedPane, propertiesPanel, typeCombo);
+
+			return false;
+		}
+
+		//the reason of the cause is required only when a cause is given (its sources or its confidence)
+		final EntityListPanel causeSourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE_FOR_CAUSE);
+		if(causeReasonField.isEmpty() && (causeConfidenceCombo.isValued() || (causeSourcePanel != null && causeSourcePanel.hasData()))){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.event.cause.reason")),
+				tabbedPane, causePanel, causeReasonField);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		components.save(record);
+
+		dateField.save(record);
+		placeField.saveReferences(record);
+	}
+
+
+
+	static void main(final String[] args) throws IOException{
+		GUIHelper.launch(EventRecordDialog::createEdit, "/tests/test.flef", "E1");
+	}
+
+}

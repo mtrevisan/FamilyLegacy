@@ -1,0 +1,129 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.io.model.readers;
+
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+
+
+/**
+ * Handler for CONTEXT IMPACT records.
+ * <p>
+ * Structure:
+ * <pre>
+ * // Links a contextual factor to a genealogical entity, assertion, or research outcome that it influences, explains, constrains, motivates, or causes.
+ * // Contextual factors may include cultural norms, historical events, legal frameworks, social customs, environmental conditions, or other external influences represented
+ * // through CONTEXT.
+ * // This record is intended to document interpretative relationships rather than direct evidence of participation or ownership. It explicitly captures how broader context
+ * // helps explain, influence, or justify genealogical conclusions and assertions.
+ * //
+ * // Recommended usage:
+ * //  - Historic events commonly EXPLAIN, INFLUENCE, MOTIVATE or CAUSE.
+ * //  - Cultural norms commonly EXPLAIN, INFLUENCE or CONSTRAIN.
+ * // Implementations SHOULD warn when a combination appears semantically unusual.
+ * // Implementations SHOULD index ContextImpactRecord by both CONTEXT and TARGET.
+ * record ContextImpactRecord {
+ *   context: ContextSource    // The contextual factor exerting the influence.
+ *   target: ImpactTarget      // The entity, assertion, attribute, relationship, or conclusion affected by the context.
+ *   impact_type?: enum {
+ *     explains,     // Provides explanatory context for the target.
+ *     influences,   // Exerts a general influence on the target.
+ *     constrains,   // Limits or restricts what was possible or likely.
+ *     motivates,    // Encourages, promotes, or makes the target more likely.
+ *     causes        // Directly contributes to the occurrence or existence of the target.
+ *   } | Text
+ *   rationale?: Text          // Explanation of how and why the contextual factor influences, explains, constrains, motivates, or causes the target.
+ *   source*: SourceCitation   // Sources supporting the existence or interpretation of this contextual relationship.
+ *   confidence?: Confidence
+ *   evidence?: EvidenceQualifiers
+ *   audit: AuditStructure
+ * }
+ *
+ * // A contextual factor that may influence or explain genealogical information.
+ * // Context sources are not themselves evidence that a target participated in an event or followed a practice; they provide historical, cultural, legal, social,
+ * // environmental, or interpretative context.
+ * ContextSource = oneof {
+ *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
+ *   historic_event: Xref&lt;HistoricEventRecord&gt;
+ * }
+ *
+ * ImpactTarget = oneof {
+ *   individual: Xref&lt;IndividualRecord&gt;
+ *   group: Xref&lt;GroupRecord&gt;
+ *   place: Xref&lt;PlaceRecord&gt;
+ *   event: Xref&lt;EventRecord&gt;
+ *   relationship: Xref&lt;RelationshipRecord&gt;
+ *   individual_attribute: Xref&lt;IndividualAttributeRecord&gt;
+ *   group_attribute: Xref&lt;GroupAttributeRecord&gt;
+ *   conclusion: Xref&lt;ConclusionRecord&gt;
+ *   event_participation: Xref&lt;EventParticipationRecord&gt;
+ *   place_relationship: Xref&lt;PlaceRelationshipRecord&gt;
+ *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
+ * }
+ * </pre>
+ */
+public final class ContextImpactReader{
+
+	public static final String TYPE = "CONTEXT_IMPACT";
+	public static final String ID_PREFIX = "CI";
+
+	public static final String TAG_CONTEXT = "context";
+	public static final String TAG_TARGET = "target";
+	public static final String TAG_IMPACT_TYPE = "impact_type";
+	public static final String TAG_RATIONALE = "rationale";
+	public static final String TAG_SOURCE = "source";
+	public static final String TAG_CONFIDENCE = "confidence";
+	public static final String TAG_AUDIT = "audit";
+
+	public static final String ENUM_IMPACT_TYPE_EXPLAINS = "explains";
+	public static final String ENUM_IMPACT_TYPE_INFLUENCES = "influences";
+	public static final String ENUM_IMPACT_TYPE_CONSTRAINS = "constrains";
+	public static final String ENUM_IMPACT_TYPE_MOTIVATES = "motivates";
+	public static final String ENUM_IMPACT_TYPE_CAUSES = "causes";
+	public static final String[] IMPACT_TYPES = new String[]{
+		ENUM_IMPACT_TYPE_EXPLAINS,
+		ENUM_IMPACT_TYPE_INFLUENCES,
+		ENUM_IMPACT_TYPE_CONSTRAINS,
+		ENUM_IMPACT_TYPE_MOTIVATES,
+		ENUM_IMPACT_TYPE_CAUSES
+	};
+
+
+	private ContextImpactReader(){}
+
+
+	public static String extractImpactType(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_IMPACT_TYPE);
+	}
+
+//	public static String extractType(final FLEFRecord record){
+//		return FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+//	}
+//
+//	public static String extractName(final FLEFRecord record){
+//		return FLEFRecordHelper.getChildValue(record, TAG_NAME);
+//	}
+
+}

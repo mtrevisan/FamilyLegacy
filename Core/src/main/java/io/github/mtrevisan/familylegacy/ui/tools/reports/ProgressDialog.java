@@ -1,0 +1,167 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.tools.reports;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+
+/**
+ * Modal dialog showing the progress of a long-running report generation.
+ *
+ * <p>The dialog is purely passive: it displays a message and a percentage,
+ * and exposes a cancellation flag that the background task is expected to
+ * poll between major steps. Closing the dialog via the window close button
+ * or pressing Escape sets the same flag, so the user can abort (there is no button for that: Escape is the way).
+ * The task is also told at once, by the action given to {@link #onCancel(Runnable)}: the dialog stays open until the task
+ * is over, so waiting for it to close would never tell the task to stop.</p>
+ *
+ * <p>All mutating methods are safe to call from any thread; they marshal
+ * to the Event Dispatch Thread internally.</p>
+ */
+public final class ProgressDialog extends JDialog{
+
+	//the message does not dictate the width of the dialog: a text too long is cut by the label itself, with an ellipsis ("...")
+	private final JLabel messageLabel = new JLabel(StringUtils.SPACE){
+		@Override
+		public Dimension getPreferredSize(){
+			return new Dimension(0, super.getPreferredSize().height);
+		}
+
+		@Override
+		public Dimension getMinimumSize(){
+			return new Dimension(0, super.getMinimumSize().height);
+		}
+
+		@Override
+		public void setText(final String text){
+			super.setText(text);
+			setToolTipText(text);
+		}
+	};
+	private final JProgressBar progressBar = new JProgressBar(0, 100);
+	private final AtomicBoolean cancelled = new AtomicBoolean(false);
+	private volatile Runnable cancelAction;
+
+
+	public ProgressDialog(final Window owner, final String title){
+		super(owner, title, ModalityType.APPLICATION_MODAL);
+
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		setLayout(new BorderLayout(0, 0));
+
+		final JPanel content = new JPanel(new MigLayout(
+			"ins 16,wrap 1,fillx", "[grow,fill]", "[]12[]"));
+		content.add(messageLabel, "growx");
+		progressBar.setStringPainted(true);
+		content.add(progressBar, "growx, h 22!");
+
+
+		// Escape cancels: the task is told to stop and the dialog closes when it is over (it does nothing once the cancellation has been requested).
+		getRootPane().registerKeyboardAction(e -> requestCancel(), GUIHelper.ESCAPE_STROKE,
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		add(content, BorderLayout.CENTER);
+
+		// Closing the window also means "cancel".
+		addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(final WindowEvent e){
+				requestCancel();
+			}
+		});
+
+		//only the width is chosen: the height is the one the content needs (a fixed height of the window, which counts the title bar,
+		//left too little to the bar, that was cut and had the percentage low)
+		setMinimumSize(new Dimension(360, 0));
+		pack();
+		setLocationRelativeTo(owner);
+	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
+
+	/**
+	 * @param action	What to do when the user asks to cancel (once): stop the task. It is called on the event dispatch thread.
+	 */
+	public void onCancel(final Runnable action){
+		cancelAction = action;
+	}
+
+	/** The user asks to cancel: the flag, the message, and the task is told (only the first time). */
+	private void requestCancel(){
+		if(!cancelled.compareAndSet(false, true))
+			return;
+
+		messageLabel.setText(I18N.t("text.cancelling"));
+		final Runnable action = cancelAction;
+		if(action != null)
+			action.run();
+	}
+
+	/** Whether the user has asked to cancel the running task. */
+	public boolean isCancelled(){
+		return cancelled.get();
+	}
+
+	/**
+	 * Updates the dialog with the current percentage and message. Thread-safe:
+	 * the actual UI mutation is marshalled to the EDT.
+	 */
+	public void update(final int percent, final String message){
+		SwingUtilities.invokeLater(() -> {
+			progressBar.setValue(Math.clamp(percent, 0, 100));
+			if(message != null && !message.isBlank())
+				messageLabel.setText(message);
+		});
+	}
+
+	/**
+	 * Convenience adapter so the dialog can be used directly as a
+	 * {@link ReportProgressListener}.
+	 */
+	public ReportProgressListener asListener(){
+		return this::update;
+	}
+
+}

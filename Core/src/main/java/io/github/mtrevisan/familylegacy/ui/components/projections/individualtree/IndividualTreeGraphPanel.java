@@ -1,0 +1,712 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
+import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
+import io.github.mtrevisan.familylegacy.tree.Side;
+import io.github.mtrevisan.familylegacy.tree.TreeChangeListener;
+import io.github.mtrevisan.familylegacy.tree.TreeMutator;
+import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.tree.TreeService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.SpatialNavigation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeLayout;
+import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.KinshipDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualDialogProvider;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.LayoutEngine;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.TreeLayoutBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.sugiyama.GraphLayoutEngine;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.CollapsibleBar;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.MultiLifespanStripPanel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.RelationshipOperationCoordinator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EntityTreePopupMenuFactory;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.ViewportCentering;
+import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Window;
+import java.awt.geom.Path2D;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Consumer;
+
+
+/**
+ * Generalized panel responsible for rendering an N-generation genealogical
+ * tree layout dynamically.
+ * <p>
+ * The panel is a thin orchestrator: it owns the root state, delegates
+ * layout and rendering to {@link TreeLayoutBuilder} and
+ * {@link LayoutEngine}, and delegates the other concerns to dedicated
+ * collaborators:
+ * <ul>
+ *   <li>{@link IndividualTreeGraphListener} handles the interaction events
+ *       (edit, remove, add, unlink, paste);</li>
+ *   <li>{@link TreeSelectionController} manages the visual selection
+ *       and the spatial navigation;</li>
+ *   <li>{@link PedigreeCollapseController} detects collapses and
+ *       decorates the affected panels;</li>
+ *   <li>{@link LifespanStripController} manages the bottom strip;</li>
+ *   <li>{@link TreeShortcutInstaller} installs the keyboard shortcuts.</li>
+ * </ul>
+ * The panel keeps only the wiring, the root lifecycle, and the UI
+ * composition.
+ */
+public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListener{
+
+	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
+	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
+
+
+	private final FLEFModel model;
+	private final GenealogyRepository genealogyRepository;
+
+	private final TreeService treeService;
+	/** Mutator exposed to the tools through the ToolContext. */
+	private final TreeMutator treeMutator;
+	/** Per-root partner selection: rootIndividualId → chosen partnerId. */
+	private final Map<String, String> partnerSelectionMap = new HashMap<>();
+
+	/** Interaction listener installed on every created panel. */
+	private final IndividualTreeGraphListener treeListener;
+	/** Visual selection and spatial navigation. */
+	private final TreeSelectionController selectionController;
+	/** Pedigree collapse detection and badge application. */
+	private final PedigreeCollapseController collapses;
+	/** Bottom lifespan strip. */
+	private final LifespanStripController lifespanStrip;
+
+	private TreeLayout treeLayout;
+	private LayoutEngine layoutEngine;
+	private boolean showPartner;
+
+	private String currentRootIndividualId;
+	private int currentMaxAncestors;
+	private TreeNode rootNode;
+
+	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new LinkedHashMap<>();
+	private SiblingsPanel childrenPanel;
+
+	private Path2D cachedTreePath;
+	/** Per-individual preferred parents, recorded when the user navigates
+	 *  from a couple view to one of its children. */
+	private final Map<String, ParentCouple> preferredParentsMap = new HashMap<>();
+
+	private record ParentCouple(String fatherId, String motherId){}
+
+	private final JPanel treeCanvas = new TreeCanvas();
+	private final JPanel centeringWrapper = new JPanel(new GridBagLayout());
+	private final JScrollPane treeScroll;
+
+	private Consumer<String> selectionCallback;
+	private Consumer<String> navigationCallback;
+	private boolean suppressNavigationNotification;
+	/** What the tree shown last was centered for (the root, the layout, the engine): another one is centered again. */
+	private String centeredKey;
+
+
+	public IndividualTreeGraphPanel(final TreeLayout treeLayout, final LayoutEngine layoutEngine,
+			final GenealogyRepository genealogyRepository, final FLEFModel model){
+		this.treeLayout = treeLayout;
+		this.layoutEngine = layoutEngine;
+
+		this.model = model;
+		this.genealogyRepository = genealogyRepository;
+
+		treeService = new TreeService(genealogyRepository, model);
+		treeMutator = new TreeMutator(treeService, this, model);
+		final IndividualDialogProvider dialogProvider = new IndividualDialogProvider(model);
+		final RelationshipOperationCoordinator operationCoordinator = new RelationshipOperationCoordinator(model,
+			treeMutator, genealogyRepository.getRelationshipAllowedTypes());
+
+		selectionController = new TreeSelectionController(
+			this::notifySelection,
+			this::rootConfirmSelection);
+		collapses = new PedigreeCollapseController(model);
+
+		final MultiLifespanStripPanel strip = new MultiLifespanStripPanel(model);
+		final CollapsibleBar toggleBar = new CollapsibleBar(I18N.t("text.lifespans"));
+		lifespanStrip = new LifespanStripController(strip, toggleBar, this::revalidate);
+		toggleBar.withListener(lifespanStrip::toggle);
+
+		treeListener = new IndividualTreeGraphListener(model, treeService, treeMutator,
+			dialogProvider, operationCoordinator, this,
+			this::getRootIndividualId,
+			() -> nodeToPanelMap,
+			this::notifySelection);
+
+		setBackground(BACKGROUND_COLOR);
+		setOpaque(true);
+		setLayout(new BorderLayout());
+
+		centeringWrapper.setBackground(BACKGROUND_COLOR);
+		centeringWrapper.setOpaque(true);
+		centeringWrapper.add(treeCanvas);
+
+		treeScroll = new JScrollPane(centeringWrapper,
+			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		treeScroll.setBorder(null);
+		final JViewport viewport = treeScroll.getViewport();
+		viewport.setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
+		viewport.setBackground(BACKGROUND_COLOR);
+		treeScroll.getVerticalScrollBar()
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
+		treeScroll.getHorizontalScrollBar()
+			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
+		add(treeScroll, BorderLayout.CENTER);
+
+		final JPanel bottom = new JPanel(new BorderLayout());
+		bottom.add(toggleBar, BorderLayout.NORTH);
+		bottom.add(strip, BorderLayout.CENTER);
+		add(bottom, BorderLayout.SOUTH);
+
+		TreeShortcutInstaller.installAll(this,
+			this::toggleLayout,
+			this::openKinshipDialog,
+			() -> collapses.showDialog(SwingUtilities.getWindowAncestor(this)),
+			lifespanStrip::toggle);
+	}
+
+
+	/* ======================================================================
+	 *                          Public API
+	 * ====================================================================== */
+
+	public IndividualTreeGraphPanel withLayoutEngine(final LayoutEngine layoutEngine){
+		this.layoutEngine = layoutEngine;
+
+		refreshTree();
+
+		return this;
+	}
+
+	public IndividualTreeGraphPanel withShowPartner(){
+		showPartner = true;
+
+		return this;
+	}
+
+	public IndividualTreeGraphPanel withSelectionCallback(final Consumer<String> callback){
+		selectionCallback = callback;
+
+		return this;
+	}
+
+	public IndividualTreeGraphPanel withNavigationCallback(final Consumer<String> callback){
+		navigationCallback = callback;
+
+		return this;
+	}
+
+	/** Loads the given root without notifying the navigation callback. */
+	public void navigateTo(final String individualId){
+		suppressNavigationNotification = true;
+		try{
+			load(individualId, currentMaxAncestors);
+		}
+		finally{
+			suppressNavigationNotification = false;
+		}
+	}
+
+	public void load(final String rootIndividualId, final int maxAncestors){
+		//NOTE: do not return early when the root is unchanged, otherwise paste of individual does not trigger a reload
+
+		// Capture the currently displayed couple BEFORE the rebuild. At this
+		// point rootNode still refers to the old tree, so if the new root is
+		// one of its children we can remember the couple the user was looking
+		// at and restore it above the new root.
+		if(rootIndividualId != null && !Objects.equals(currentRootIndividualId, rootIndividualId)
+				&& rootNode != null && rootNode.getFather() != null && rootNode.getMother() != null){
+			final String fatherId = rootNode.getFather()
+				.getIndividualId();
+			final String motherId = rootNode.getMother()
+				.getIndividualId();
+			if(fatherId != null && motherId != null && isChildOf(rootIndividualId, fatherId, motherId))
+				preferredParentsMap.put(rootIndividualId, new ParentCouple(fatherId, motherId));
+		}
+
+		currentRootIndividualId = rootIndividualId;
+		currentMaxAncestors = maxAncestors;
+
+		refreshTree();
+
+		if(!suppressNavigationNotification && navigationCallback != null && rootIndividualId != null)
+			navigationCallback.accept(rootIndividualId);
+	}
+
+	public String getRootIndividualId(){
+		return currentRootIndividualId;
+	}
+
+	public String[] getRootIds(){
+		if(rootNode == null)
+			return new String[2];
+
+		final TreeNode fatherNode = rootNode.getFather();
+		final TreeNode motherNode = rootNode.getMother();
+		return new String[]{
+			(fatherNode != null? fatherNode.getIndividualId(): null),
+			(motherNode != null? motherNode.getIndividualId(): null)
+		};
+	}
+
+	public String getSelectedIndividualId(){
+		return selectionController.selectedId();
+	}
+
+	/** Opens the editor for the currently selected individual. */
+	public void editEntity(final String id){
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			treeListener.onEntityEdit(record);
+	}
+
+	/** Moves the visual selection in the given direction. */
+	public void moveSelection(final SpatialNavigation.Direction direction){
+		selectionController.move(direction, treeCanvas, currentRootIndividualId);
+	}
+
+	/** Confirms the selection, re-rooting the tree on it. */
+	public void rootConfirmSelection(final String selectedId){
+		if(selectedId == null)
+			return;
+
+		// If the new root is a child of the currently displayed couple, carry
+		// that couple over, so the ancestors above the new root match what the
+		// user was just looking at.
+		if(rootNode != null && rootNode.getFather() != null && rootNode.getMother() != null){
+			final String fatherId = rootNode.getFather().getIndividualId();
+			final String motherId = rootNode.getMother().getIndividualId();
+			if(fatherId != null && motherId != null && isChildOf(selectedId, fatherId, motherId))
+				preferredParentsMap.put(selectedId, new ParentCouple(fatherId, motherId));
+		}
+
+		onTreeStructureChanged(selectedId);
+	}
+
+	private boolean isChildOf(final String childId, final String fatherId, final String motherId){
+		final List<FLEFRecord> parents = genealogyRepository.getParents(childId);
+		boolean hasFather = false;
+		boolean hasMother = false;
+		for(final FLEFRecord parent : parents){
+			final String id = parent.getId();
+			if(fatherId.equals(id))
+				hasFather = true;
+			else if(motherId.equals(id))
+				hasMother = true;
+		}
+		return hasFather && hasMother;
+	}
+
+	@Override
+	public void onTreeStructureChanged(final String rootIndividualId){
+		if(rootIndividualId == null){
+			// The deleted individual was the root and had no usable
+			// relative: ask the user to pick a new root through the
+			// Jump to Individual dialog. Deferred so the tree canvas has
+			// time to clear the old root before the modal dialog opens.
+			SwingUtilities.invokeLater(this::openJumpToDialogAfterDeletion);
+
+			return;
+		}
+
+		SwingUtilities.invokeLater(() -> load(rootIndividualId, currentMaxAncestors));
+	}
+
+	/**
+	 * Opens the Jump to Individual dialog after a deletion that left no
+	 * fallback root, and loads the chosen individual. Does nothing when
+	 * the user cancels.
+	 */
+	private void openJumpToDialogAfterDeletion(){
+		final Window owner = SwingUtilities.getWindowAncestor(this);
+		// Here the panel is either the tree or the Sugiyama graph; both
+		// offer only individuals, so ProjectionType.TREE is fine.
+		final String chosen = JumpToIndividualDialog.showAndGet(owner, model, false);
+		if(chosen != null)
+			load(chosen, currentMaxAncestors);
+	}
+
+	/**
+	 * Removes the specified entity from the tree model and refreshes the layout.
+	 *
+	 * @param id the id of the individual or entity to remove
+	 */
+	public void removeEntity(final String id){
+		if(id == null)
+			return;
+
+		final FLEFRecord record = model.getRecordById(id);
+		if(record != null)
+			treeListener.onEntityRemove(record);
+	}
+
+
+	/* ======================================================================
+	 *                          Tree lifecycle
+	 * ====================================================================== */
+
+	private void refreshTree(){
+		if(!SwingUtilities.isEventDispatchThread()){
+			SwingUtilities.invokeLater(this::refreshTree);
+
+			return;
+		}
+
+		final String preferredPartnerId = partnerSelectionMap.get(currentRootIndividualId);
+		final ParentCouple preferredParents = preferredParentsMap.get(currentRootIndividualId);
+		final TreeNode rootIndividualNode = treeService.buildTree(
+			currentRootIndividualId,
+			preferredPartnerId,
+			(preferredParents != null? preferredParents.fatherId(): null),
+			(preferredParents != null? preferredParents.motherId(): null),
+			showPartner, currentMaxAncestors);
+
+		centeringWrapper.setVisible(false);
+
+		try{
+			nodeToPanelMap.clear();
+			treeCanvas.removeAll();
+			selectionController.clear();
+
+			rootNode = rootIndividualNode;
+			if(rootIndividualNode != null && showPartner){
+				final IndividualSummary partnerData = rootIndividualNode.getPartnerData();
+				final String partnerId = (partnerData != null? partnerData.getId(): null);
+				final TreeNode partnerNode = (partnerId != null
+					? treeService.buildTree(partnerId, null, false, currentMaxAncestors)
+					: null);
+				final SexType sex = rootIndividualNode.getIndividualData().getSex();
+
+				rootNode = new TreeNode(rootIndividualNode.getBiologicalChildrenData());
+				if(sex == SexType.FEMALE){
+					rootNode.setFather(partnerNode);
+					rootNode.setMother(rootIndividualNode);
+				}
+				else{
+					rootNode.setFather(rootIndividualNode);
+					rootNode.setMother(partnerNode);
+				}
+			}
+
+			collapses.detect(rootNode);
+			buildLayout();
+			// Force the wrapper to recompute its preferred size (which includes the
+			// canvas), so the scroll pane updates its view size and shows scrollbars
+			// when needed. The canvas is either stretched (content smaller than the
+			// viewport) or scrolled (content larger), never clipped.
+			centeringWrapper.doLayout();
+			treeScroll.revalidate();
+			collapses.apply(nodeToPanelMap);
+
+			selectionController.updateTree(nodeToPanelMap, childrenPanel);
+			if(selectionController.selectedId() == null && currentRootIndividualId != null)
+				selectionController.setSelectedId(currentRootIndividualId);
+			selectionController.apply();
+
+			lifespanStrip.update(treeCanvas);
+
+			// Pan support: idempotent on the persistent parts of the
+			// hierarchy, fresh on the panels that were just recreated.
+			ViewportPanSupport.install(treeScroll, centeringWrapper,
+				c -> (c instanceof JScrollPane && c != treeScroll));
+		}
+		finally{
+			centeringWrapper.setVisible(true);
+		}
+
+		treeCanvas.revalidate();
+		treeCanvas.repaint();
+		revalidate();
+		repaint();
+
+		//a tree starts centered horizontally (the layout centers it when it is narrower than the window, the scroll pane would start from
+		//the left edge when it is wider); an edit that keeps the same tree does not take the user's position away
+		final String centeringKey = currentRootIndividualId + "|" + treeLayout + "|" + layoutEngine.getClass().getName() + "|" + showPartner;
+		if(!centeringKey.equals(centeredKey)){
+			centeredKey = centeringKey;
+			centerNow();
+			ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
+		}
+
+		SwingUtilities.invokeLater(() -> {
+			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+
+			treeCanvas.repaint();
+		});
+	}
+
+	/** Centers before the first paint of the rebuilt tree, so it does not show at the old position and then jump. */
+	private void centerNow(){
+		treeScroll.validate();
+		ViewportCentering.centerOn(treeScroll, treeCanvas, true, false);
+	}
+
+	private void buildLayout(){
+		final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory = new EntityTreePopupMenuFactory();
+		childrenPanel = layoutEngine.buildLayout(treeCanvas, rootNode, showPartner, currentMaxAncestors, model,
+			genealogyRepository, nodeToPanelMap, treeListener, popupFactory, treeLayout, this::handlePartnerCycle);
+	}
+
+	private void notifySelection(final String id){
+		if(id != null){
+			selectionController.setSelectedId(id);
+			selectionController.apply();
+		}
+		if(selectionCallback != null && id != null)
+			selectionCallback.accept(id);
+	}
+
+	public Component getSelectedPanel(){
+		return selectionController.getSelectedPanel();
+	}
+
+
+	/* ======================================================================
+	 *                          Actions
+	 * ====================================================================== */
+
+	private void toggleLayout(){
+		treeLayout = (treeLayout == TreeLayout.VERTICAL? TreeLayout.HORIZONTAL: TreeLayout.VERTICAL);
+
+		refreshLayoutOnly();
+
+		//NOTE if resize of the window is requested:
+//		final Window window = SwingUtilities.getWindowAncestor(this);
+//		if(window != null){
+//			window.pack();
+//			window.setLocationRelativeTo(null);
+//		}
+	}
+
+	private void refreshLayoutOnly(){
+		if(rootNode == null){
+			refreshTree();
+
+			return;
+		}
+
+		centeringWrapper.setVisible(false);
+		try{
+			nodeToPanelMap.clear();
+			treeCanvas.removeAll();
+
+			buildLayout();
+
+			centeringWrapper.doLayout();
+			treeScroll.revalidate();
+			collapses.apply(nodeToPanelMap);
+
+			selectionController.updateTree(nodeToPanelMap, childrenPanel);
+			selectionController.apply();
+			lifespanStrip.update(treeCanvas);
+		}
+		finally{
+			centeringWrapper.setVisible(true);
+		}
+
+		treeCanvas.revalidate();
+		treeCanvas.repaint();
+
+		//the other layout is another tree to the eye: it starts centered too
+		centerNow();
+		ViewportCentering.centerWhenReady(treeScroll, () -> treeCanvas, true, false);
+
+		SwingUtilities.invokeLater(() -> {
+			cachedTreePath = layoutEngine.buildTreePath(treeLayout, rootNode, nodeToPanelMap, childrenPanel, treeCanvas);
+
+			treeCanvas.repaint();
+		});
+	}
+
+	/**
+	 * Invoked when the user cycles a partner in one of the panels. Only the
+	 * root individual's partner cycles the whole tree: ancestors keep their
+	 * biological pairing, so changing their partner would have no structural
+	 * meaning.
+	 */
+	private void handlePartnerCycle(final TreeNode anchorNode, final Side side, final IndividualSummary newPartner){
+		if(anchorNode == null || newPartner == null)
+			return;
+
+		final String anchorId = anchorNode.getIndividualId();
+		if(anchorId == null)
+			return;
+
+		partnerSelectionMap.put(anchorId, newPartner.getId());
+
+		if(layoutEngine instanceof GraphLayoutEngine)
+//			refreshLayoutOnly();
+			refreshTree();
+		else if(currentRootIndividualId != null && currentRootIndividualId.equals(anchorId))
+			// Tree: only the root couple is cyclable (the factory enables the
+			// listener only at depth 0). Changing partner rebuilds the subtree.
+			refreshTree();
+		// Tree + non-root anchor: the listener is never attached, so this
+		// branch is unreachable; left empty on purpose.
+	}
+
+	private void openKinshipDialog(){
+		final Window parent = SwingUtilities.getWindowAncestor(this);
+		final FLEFRecord initialA = (currentRootIndividualId != null? model.getRecordById(currentRootIndividualId): null);
+		final KinshipDialog dialog = new KinshipDialog(parent, model, treeService, initialA, null);
+		dialog.setVisible(true);
+	}
+
+	public LayoutEngine getLayoutEngine(){
+		return layoutEngine;
+	}
+
+	public void setLayoutEngine(final LayoutEngine layoutEngine){
+		this.layoutEngine = layoutEngine;
+
+		refreshTree();
+	}
+
+	public ProjectionMutator getMutator(){
+		return treeMutator;
+	}
+
+
+	/* ======================================================================
+	 *                          Canvas
+	 * ====================================================================== */
+
+	private final class TreeCanvas extends JPanel{
+
+		TreeCanvas(){
+			setBackground(BACKGROUND_COLOR);
+			setOpaque(true);
+		}
+
+		/**
+		 * The views start centered and the user moves them: nothing else does. A text field of a panel that gets its text (the caret
+		 * asks to be shown) would carry the window to itself, and the view would start wherever the last panel was filled.
+		 */
+		@Override
+		public void scrollRectToVisible(final Rectangle rect){
+			//ignored on purpose
+		}
+
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
+
+			if(!(g instanceof Graphics2D g2))
+				return;
+
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+			g2.setColor(CONNECTION_LINE_COLOR);
+			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
+
+			if(cachedTreePath != null)
+				g2.draw(cachedTreePath);
+		}
+
+	}
+
+
+	static void main(final String[] args) throws IOException{
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+//		final String modelUri = "/tests/TGMZ.flef";
+//		final String rootIndividualId = "I1";
+		final String modelUri = "/tests/out.flef";
+		final String rootIndividualId = "I4321";
+		final int maxAncestors = 2;
+
+		final String content;
+		try(final InputStream is = IndividualTreeGraphPanel.class.getResourceAsStream(modelUri)){
+			content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+		SwingUtilities.invokeLater(() -> {
+//			final LayoutEngine layoutEngine = new TreeLayoutEngine();
+			final LayoutEngine layoutEngine = new GraphLayoutEngine();
+			final String[] relationshipAllowedTypes = RelationshipReader.BIOLOGICAL;
+			final GenealogyRepository repository = new GenealogyRepository(relationshipAllowedTypes, model);
+			final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL,
+					layoutEngine, repository, model)
+				.withShowPartner();
+			panel.load(rootIndividualId, maxAncestors);
+
+			final JFrame frame = new JFrame();
+			frame.setLayout(new BorderLayout());
+			frame.add(panel, BorderLayout.CENTER);
+			frame.pack();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

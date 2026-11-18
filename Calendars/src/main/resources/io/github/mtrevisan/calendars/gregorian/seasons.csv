@@ -1,0 +1,286 @@
+#language;autumn;winter;spring;summer
+# collision (season wins): pay = autumn (az, ku, ku-TR); July in nus ("Pay", abbreviation of "Pay yie̱tni"); November in ast ("pay", abbreviation of "de payares")
+# collision (season wins): pro = spring (bs/hr/sr-Latn-BA/sr-Latn-ME, sr, sr-Latn, sr-Latn-RS/sr-Latn-XK); December in cs ("pro", abbreviation of "prosince"); December in hr ("pro", abbreviation of "prosinca")
+# collision (season wins): pri = spring (ca, ca-ES-VALENCIA, eo, es, fr, fur, gl, ia, it, it-CH, oc, oc-ES/oc-FR, pt, pt-AO/pt-BR/pt-CH/pt-CV/pt-GQ/pt-GW/pt-LU/pt-MO/pt-MZ/pt-PT/pt-ST/pt-TL, rm, ro, ro-MD/ro-RO); April in sq ("pri", abbreviation of "prill")
+# collision (month wins): est = August in kw ("Est"); summer in ca, ca-ES-VALENCIA, ia, ia-001, it, it-CH, oc, oc-ES/oc-FR
+# collision (month wins): hydref = October in cy ("Hydref"); autumn in cy
+# collision (season wins): hyd = autumn (cy); October in cy ("Hyd", abbreviation of "Hydref")
+# collision (season wins): her = autumn (de, gsw, lb, lb-LU, nl, nl-BE/nl-BQ/nl-CW/nl-NL/nl-SR/nl-SX); September in wae ("Her", abbreviation of "Herbštmánet")
+# collision (season wins): win = winter (de, en, fy, gsw, lb, nds, nds-DE/nds-NL, nl, nl-AW, nl-BE/nl-BQ/nl-CW/nl-NL/nl-SR/nl-SX); November in wae ("Win", abbreviation of "Wintermánet")
+# collision (season wins): oto = autumn (es); October in vec ("oto", abbreviation of "otobre")
+# collision (season wins): kev = spring (et, fi, fi-FI); December in kw ("Kev", abbreviation of "mis Kevardhu")
+# collision (season wins): kesä = summer (fi, fi-FI); June in fi ("kesä", abbreviation of "kesäkuuta")
+# collision (month wins): mai = May in bal/cy/de/fur/gsw/kok/ksh/nds ("Mai") and May in et/fo/fr/ht/nb/nn/no/ro ("mai"); spring in fy
+# collision (season wins): samh = summer (ga, gd); November in ga ("Samh", abbreviation of "Samhain"); November in gd ("Samh", abbreviation of "dhen t-Samhain")
+# collision (season wins): sam = summer (ga, gd); January in wo ("Sam", abbreviation of "Samwiyee")
+# collision (month wins): out = August in mfe ("out"); autumn in gl, pt, pt-AO/pt-BR/pt-CH/pt-CV/pt-GQ/pt-GW/pt-LU/pt-MO/pt-MZ/pt-PT/pt-ST/pt-TL
+# collision (season wins): kel = winter (mdf, mdf-RU); February in kam ("Kel", abbreviation of "Mwai wa kelĩ"); October in ee ("kel", abbreviation of "kele")
+# collision (season wins): nga = autumn (mi, mi-NZ); October in ewo ("nga", abbreviation of "ngɔn awóm")
+# collision (season wins): len = spring (nl, nl-BE/nl-BQ/nl-CW/nl-NL/nl-SR/nl-SX); July in sg ("Len", abbreviation of "Lengua")
+# collision (season wins): sta = summer (rm); November in sc ("stA", abbreviation of "santandria")
+# collision (season wins): ber = spring (sc, sc-IT); December in ku, ku-TR ("ber", abbreviation of "berfanbarê", up to JDK 17 at least; "brf" in JDK 25)
+# collision (season wins): dal = winter (se); January in mas ("Dal", abbreviation of "Oladalʉ́")
+# collision (season wins): pom = spring (sl, sl-SI); November in blo ("pom", abbreviation of "acapomka kaŋɔrɔ")
+# collision (season wins): čohčâ = autumn (smn, smn-FI); September in smn ("čohčâ", abbreviation of "čohčâmáánu")
+# collision (season wins): kesi = summer (smn, smn-FI); June in smn ("kesi", abbreviation of "kesimáánu")
+af;herfs,najaar;winter;lente,voorjaar;somer
+# to be verified
+ar;الخريف,خريف,al-kharif,kharif;الشتاء,شتاء,al-shita,shita;الربيع,ربيع,al-rabi,rabi;الصيف,القيظ,صيف,al-sayf,sayf,qayz
+as;শৰৎ,শৰৎকাল,xorot,xarot;শীত,শীতকাল,xit,xitkal;বসন্ত,বসন্তকাল,bosonto;গ্ৰীষ্ম,গ্ৰীষ্মকাল,grishmo
+ast;otoñu,seronda;iviernu,iñerndu;primavera,prim;branu,veranu
+az;payız,payiz,pay;qış,qis;bahar,yaz;yay
+az-Cyrl;пајыз;гыш;баһар,јаз;јај
+be;восень,vosen,vosien,вос;зіма,zima,зім;вясна,viasna,vjasna,вяс,vias;лета,leta,лет
+be-TARASK;восень,vosen,вос;зіма,zima,зім;вясна,viasna,вяс;лета,leta,лет
+bg;есен,esen;зима,zima;пролет,prolet;лято,lyato,liato
+# to be verified
+bho;शरद,शरद ऋतु,sharad,पतझड़;जाड़,शीत ऋतु,जाड़ा;बसंत,बसंत ऋतु,basant;गर्मी,ग्रीष्म ऋतु,garmi,grishma
+# to be verified
+bho-Deva-IN;शरद,शरद ऋतु,sharad;जाड़,शीत ऋतु;बसंत,बसंत ऋतु,basant;ग्रीष्म ऋतु,garmi,grishma,गर्मी
+# to be verified
+bho-IN;शरद,शरद ऋतु,sharad;जाड़,शीत ऋतु;बसंत,बसंत ऋतु,basant;गर्मी,ग्रीष्म ऋतु,garmi,grishma
+bn;শরৎ,শরৎকাল,shorot;শীত,শীতকাল,shit;বসন্ত,বসন্তকাল,bosonto,bashanta;গ্রীষ্ম,গ্রীষ্মকাল,grishmo,grishma
+br;diskar-amzer,diskaramzer,diskar;goañv,goanv;primpoent,nevez-amzer,nevezamzer,nevez;hañv,hanv
+bs/hr/sr-Latn-BA/sr-Latn-ME;jesen,jes;zima,zim;proljeće,proljece,pro;ljeto,lje
+bs-Cyrl/sr-BA/sr-ME;јесен,jesen,јес;зима,zima,зим;прољеће,proljece,про;љето,ljeto,ље
+ca;tardor,tard;hivern,hiv;primavera,prim,pri;estiu,est
+ca-ES-VALENCIA;tardor,rereverò,tard;hivern,hiv;primavera,prim,pri;estiu,est
+ce;guyre,guire,гуьйре;ӏа;бӏаьсте,baeste,baste;аьхке,aexke,axke
+ce-RU;гуьйре,guyre;ӏа;бӏаьсте,baeste;аьхке,aexke
+chr;ꭴꮆꭺꮀꮝꮧ;ꭺꮃ;ꭺꭸᏹ;ꭺꭹ
+ckb;پاییز,payiz,paeez;زستان,zistan;بەهار,bahar;هاوین,hawin
+ckb-IQ/ckb-IR;پاییز,payiz;زستان,zistan;بەهار,bahar;هاوین,hawin
+cs;podzim,pod;zima,zim;jaro,jar;léto,leto,let
+cv;кӗркунне,kerkunni,кӗр;хӗл,khel;ҫуркунне,surkunni,ҫур;ҫулла,sulla,ҫул
+cy;hydref,hyd;gaeaf;gwanwyn,gwa;haf
+da;efterår,efteraar,eft;vinter,vin;forår,foraar,for;sommer,som
+da-DK/da-GL;efterår,efteraar,eft;vinter,vin;forår,foraar,for;sommer,som
+de;herbst,her;winter,win;frühling,fruehling,frühjahr,früh,frü;sommer,som
+dsb/hsb;nazymje,naz,nazyma;zymje,zym,zyma;nalěto,nal,nalěśe,nalěćo;lěśe,lěćo
+el;φθινόπωρο,φθινόπωρον,phthinoporo,phthinoporon,φθιν;χειμώνας,χειμών,cheimonas,cheimon,χειμ;άνοιξη,ἔαρ,ἄνοιξις,anoixi,ear,άνοιξ;καλοκαίρι,θέρος,kalokairi,theros,καλοκ
+el-CY/el-GR;φθινόπωρο,phthinoporo,φθιν;χειμώνας,cheimonas,χειμ;άνοιξη,anoixi,άνοιξ;καλοκαίρι,kalokairi,καλοκ
+el-POLYTON;φθινόπωρον,phthinoporon,φθιν;χειμών,cheimon,χειμ;ἔαρ,ear;θέρος,theros
+en;autumn,fall,aut,fal;winter,win;spring,spr;summer,sum
+eo;aŭtuno,autuno,aŭt,aut;vintro,vin;printempo,pri;somero,som
+es;otoño,otono,oto,otoñ;invierno,inv;primavera,prim,pri;verano,estío,estio,ver
+et;sügis,süg;talv,tal;kevad,kev;suvi,suv
+eu;udazkena,udazken,udaz;negua,negu;udaberria,udaberri,udab;uda
+fa;پاییز,خزان,payiz,paeez,khazan;زمستان,zemestan,zemestoon,زمست;بهار,bahar;تابستان,tabestan,tabestoon,تابست
+fa-AF;payiz,khazan,پاییز;زمستان,zemestan;bahar,بهار;تابستان,tabestan
+fa-IR;پاییز,خزان,payiz,paeez,khazan;زمستان,zemestan;بهار,bahar;تابستان,tabestan
+fi;syksy,syk;talvi,talvella,tal;kevät,kevaet,kevat,kev;kesä,kesae,kesa,kes
+fi-FI;syksy,syk;talvi,tal;kevät,kevaet,kev;kesä,kesae,kes
+fil;taglagas,lagas;taglamig,tag-lamig,lamig;tagsibol,tag-sibol,sibol;tag-init,taginit,tinginit,tag-araw,init,araw
+fil-PH;taglagas,lagas;taglamig,lamig;tagsibol,sibol;tag-init,taginit,tag-araw,init,araw
+fo;heyst;vetur;vár;summar,sum
+fr;automne,aut;hiver,hiv;printemps,pri,prin;été,ete
+frr;harsf,harst,hast,hārefst,harewst;wonter,wunter,wunt;wos;klooker,somer
+fur;autun,aut,sierade;unvier,unv,unviêr;primavere,pri,primevere,vierte;istât,istat,ist
+fy;hjerst,hje;winter,win;maitiid,mai;simmer,sim
+ga;fómhar,fomhar,fómh,fom;geimhreadh,geim,gei;earrach,earr,ear;samhradh,samh,sam
+gd;foghar,fogh,fog;geamhradh,geam;earrach,earr,ear;samhradh,samh,sam
+gl;outono,out;inverno,inv;primavera,prim,pri;verán,verano,veran,ver
+gsw;herbst,herbscht,her;winter,win;früelig,fruehling,frühlig,frü,frue;summer,sum
+gu;શરદ,શરદ ઋતુ,sharad,sharad ritu,પાનખર;શિયાળો,shiyalo,siyalo;વસંત,vasant,vasanta;ઉનાળો,unalo,unhalo
+gu-Gujr-IN;શરદ,શરદ ઋતુ,sharad,sharad ritu;શિયાળો,shiyalo;વસંત,vasant;ઉનાળો,unalo
+gu-IN;શરદ,શરદ ઋતુ,sharad,sharad ritu;શિયાળો,shiyalo;વસંત,vasant;unalo,ઉનાળો
+gv;fowar,fouyr;geurey,geu;arr,arragh;sourey,sou
+# to be verified
+he;סתיו,תקופת תשרי,tekufat tishrei,tekufat tishri,stav;חורף,תקופת טבת,tekufat tevet,tekufat tebeth,horef;אביב,תקופת ניסן,tekufat nisan,tekufat nissan,aviv;קיץ,תקופת תמוז,tekufat tammuz,tekufat tamuz,kayitz
+# to be verified
+he-IL;סתיו,תקופת תשרי,tekufat tishrei,stav;חורף,תקופת טבת,tekufat tevet,horef;אביב,תקופת ניסן,tekufat nisan,aviv;קיץ,תקופת תמוז,tekufat tammuz,kayitz
+# to be verified
+hi;शरद,शरद ऋतु,sharad,sharad ritu;जाड़ा,शीत ऋतु,jara,jada,shit ritu,शीत;बसंत,वसन्त,वसन्त ऋतु,basant,vasant,vasanta,वसंत;गर्मी,ग्रीष्म,ग्रीष्म ऋतु,garmi,grishma
+# to be verified
+hi-IN;शरद,शरद ऋतु,sharad;जाड़ा,शीत ऋतु,jara,shit;बसंत,वसन्त,basant,vasant;गर्मी,ग्रीष्म,garmi,grishma
+hi-Latn;sharad,sharad ritu;jara,shit ritu;basant,vasant;garmi,grishma
+hu;ősz,osz;tél,tel;tavasz,tav;nyár,nyar,nyá
+hu-HU;ősz,osz;tél,tel;tavasz,tav;nyár,nyar,nyá
+# to be verified
+hy;աշուն,ashun,ashnan,asoon;ձմեռ,ձմռան,dzmer,dzmran,jmer,zmer;գարուն,գարնան,garun,garnan,karun,garoon;ամառ,ամռան,amar,amran,amarvan
+# to be verified
+hy-AM;աշուն,ashun;ձմեռ,dzmer;գարուն,garun;ամառ,amar
+ia;autumno,aut;hiberno,inverno,hib,inv;primavera,prim,pri;estate,estivo,est
+ia-001;autumno,aut;hiberno,hib;primavera,prim;estate,est
+id;gugur,musim gugur;dingin,musim dingin;semi,musim semi;panas,musim panas
+id-ID/ms-BN/ms-ID/ms-MY/ms-SG;gugur,musim gugur;dingin,musim dingin;semi,musim semi;panas,musim panas
+is;haust;vetur,vet;vor;sumar,sum
+it;autunno,aut;inverno,inv;primavera,pri,prim;estate,est
+it-CH;autunno,aut;inverno,inv;primavera,pri;estate,est
+ja;秋,あき,aki;冬,ふゆ,fuyu;春,はる,haru;夏,なつ,natsu
+ja-JP;秋,あき;冬,ふゆ;春,はる;夏,なつ
+jv;gugur,musim gugur,mangsa gugur;bedhidhing,rendeng,dingin,bed,mangsa adhem,mangsa asrep;semi,musim semi,mangsa semi;ketiga,terang,panas,pan,mangsa panas
+jv-ID;gugur,musim gugur,mangsa gugur;bedhidhing,bed,mangsa adhem;semi,musim semi,mangsa semi;ketiga,ket,mangsa panas
+ka;შემოდგომა,shemodgoma,შემ,shem;ზამთარი,zamtari,ზამ,zam;გაზაფხული,gazafkhuli,გაზ,gaz;ზაფხული,zafkhuli,ზაფ,zaf
+ka-GE;შემოდგომა,shemodgoma,შემ;ზამთარი,zamtari,ზამ;გაზაფხული,gazafkhuli,გაზ;ზაფხული,zafkhuli,ზაფ
+kab;amawan,amaw,amwan;tagrest,tagr;tafsut,tafs;anebdhu,aneb,anebdu
+kk;күз,kuz;қыс,qys;көктем,koktem,kok;жаз,zhaz
+kk-KZ;күз,kuz;қыс,qys;көктем,koktem;жаз,zhaz
+kl;ukiaq;ukioq;upernaaq,upe;aasaq,aas
+kl-GL;ukiaq;ukioq;upernaaq;aasaq
+# to be verified
+km;សរទរដូវ,រដូវស្លឹកឈើជ្រុះ,sorodorodov,សរទ,សរទៈ;រដូវរងា,រដូវរងារ,rodovrognia,រងា,ហេមន្ត;វសន្តរដូវ,រដូវផ្ការីក,vosontorodov,វសន្ត,ឧតុរាជ;គិម្ហរដូវ,រដូវក្ដៅ,kimhorodov,គិម្ហ,គិម្ហន្ត
+# to be verified
+km-KH;សរទរដូវ,sorodorodov,សរទ;រដូវរងា,rodovrognia,រងា;វសន្តរដូវ,vosontorodov,វសន្ត;គិម្ហរដូវ,kimhorodov,គិម្ហ
+# to be verified
+km-Khmr-KH;សរទរដូវ,sorodorodov,សរទ;រដូវរងា,rodovrognia,រងា;វសន្តរដូវ,vosontorodov,វសន្ត;គិម្ហរដូវ,kimhorodov,គិម្ហ
+kn;ಶರದ್,ಶರದ್ ಋತು,sharad,sharad ritu,ಶರತ್ಕಾಲ;ಚಳಿಗಾಲ,ಶೀತ ಋತು,chaligala,shita,ಚಳಿ,chal;ವಸಂತ,ವಸಂತ ಋತು,vasant,vasanta;ಬೇಸಿಗೆಗಾಲ,ಗ್ರೀಷ್ಮ,besigegala,grishma,ಬೇಸಿಗೆ,besi
+kn-IN;ಶರದ್,sharad,ಶರತ್ಕಾಲ;ಚಳಿಗಾಲ,chaligala,ಚಳಿ;ವಸಂತ,vasant;ಬೇಸಿಗೆಗಾಲ,besigegala,ಬೇಸಿಗೆ
+ko;가을,gaeul;겨울,gyeoul,gye;봄,bom;여름,yeoreum,yeo
+ko-KP;가을,gaeul;겨울,gyeoul;봄,bom;여름,yeoreum
+ks;ہَرُد,ہرُد;وَنٛدٕ,شِشُر;سونٛتھ,بَہار,bahar;رؠتہٕ کول,رؠتہٕ کال,گرٛیٚشِم
+ks-Arab;ہرُد;وَنٛدٕ;سونٛتھ;رؠتہٕ کول
+ks-IN;ہرُد;وَنٛدٕ;سونٛتھ;رؠتہٕ کول
+ksh;hervist,herv;wintor,wint,wengkter;fröhjohr,fröhjahr,fröh,vröschjoohr;sommer,som
+ku;payîz,payiz,pay;zivistan;bihar,bahar,bih;havîn,hawin,hav
+ku-TR;payîz,payiz,pay;zivistan;bihar,bahar,bih;havîn,hawin,hav
+kw;kynnyf,kynnyav;gwav,goav;gwenton;hav
+ky;күз,kuz;кыш,qysh;жаз,jaz;жай,jai
+ky-KG;күз,kuz;кыш,qysh;жаз,jaz;жай,jai
+lb;herbscht,herbst,her,hierscht;wanter,winter,wan,win;fréijoer,fruehling,fré;summer,sommer,sum,som
+lb-LU;herbscht,herbst,her,hierscht;wanter,winter,wan;fréijoer,fruehling,fré;summer,sommer,sum
+lt;ruduo,rud;žiema,ziema,žie,zie;pavasaris,pav;vasara,vas
+lt-LT;ruduo,rud;žiema,ziema,žie;pavasaris,pav;vasara,vas
+lv;rudens,rud;ziema,zie;pavasaris,pav;vasara,vas
+# to be verified
+mai;शरद,शरद ऋतु,sharad,sharad ritu;शीत,शीत ऋतु,shit,shita,jado;बसंत,वसन्त,basant,vasant;गर्मी,ग्रीष्म,गर्मी ऋतु,garmi,grishma
+# to be verified
+mdf;сюкссь,syuks,сёксе,сёксесь;кель,kel,тяла,тялось;турун,turun,тунда,тундась;киза,kiza,кизось
+# to be verified
+mdf-RU;сюкссь,syuks,сёксе;кель,kel,тяла;турун,turun,тунда;киза,kiza
+mg;fararano,far;ririnin-dasa,ririnina,ririnin,rir;lohataona,loh;fahavaratra,fah
+mg-MG;fararano,far;ririnin-dasa,ririnina,rir;lohataona,loh;fahavaratra,fah
+mi;ngahuru,nga;takurua,tak,makariri;poututerangi,kōanga,koanga;raumati,rau
+mi-NZ;ngahuru,nga;takurua,tak;poututerangi,kōanga,koanga;raumati,rau
+mk;есен,esen,есе;зима,zima,зим;пролет,prolet,про;лето,leto,лет
+mk-MK;есен,esen;зима,zima;пролет,prolet;лето,leto
+ml;ശരത്,ശരത് കാലം,sharad,ശരത്കാലം;ശീതകാലം,മഞ്ഞുകാലം,shitakalam,ശീത,shita;വസന്തം,വസന്തകാലം,vasantam,vasanta,vasan;വേനൽക്കാലം,വേനൽ,venalkalam,grishma,venal
+ml-IN;ശരത്,sharad;ശീതകാലം,shitakalam,ശീത;വസന്തം,vasantam;വേനൽക്കാലം,venalkalam,വേനൽ
+mn;намар,namar,нам;өвөл,uvel,ovol,uve;хавар,khavar,havar,хав;зун,zun
+mn-MN;намар,namar;өвөл,uvel;хавар,khavar;зун,zun
+# to be verified
+mr;शरद,शरद ऋतु,sharad,sharad ritu;हिवाळा,शीत ऋतु,hivala,shita,hiva;वसंत,वसन्त,वसन्त ऋतु,vasant,vasanta;उन्हाळा,ग्रीष्म,unhala,grishma,unha
+mr-IN;शरद,sharad;हिवाळा,hivala;वसंत,vasant;उन्हाळा,unhala
+ms;gugur,musim gugur,musim luruh;dingin,musim dingin,tengkujuh,musim sejuk;semi,musim semi,musim bunga;panas,musim panas
+mt;ħarifa,harifa,ħar,har;xitwa,xit;rebbiegħa,rebbiegha,reb;sajf,saj
+mt-MT;ħarifa,harifa,ħar;xitwa,xit;rebbiegħa,rebbiegha,reb;sajf,saj
+mzn;پاییز,payiz,paeez,پئیز;زمستون,zemestan;باهار,bahar;تابستون,tabestan
+mzn-IR;پاییز,payiz,پئیز;زمستون,zemestan;باهار,bahar;تابستون,tabestan
+nb/no;høst,hoest,høs;vinter,vin;vår,forår;sommer,som
+nb-NO/nb-SJ/no-NO;høst,hoest;vinter,vin;vår;sommer,som
+nds;harvst,harbst,hervst,harb;winter,wenter,win;fröhjahr,vörjaar,froehjahr,fröh,vör,fröhjohr;sommer,som,sümmer
+nds-DE/nds-NL;harvst,harbst;winter,wenter,win;fröhjahr,vörjaar,fröh,fröhjohr;sommer,som,sümmer
+# to be verified
+ne;शरद,शरद ऋतु,sharad,sharad ritu;जाडो,शीत ऋतु,jado,shit ritu,शिशिर;बसन्त,वसन्त,वसन्त ऋतु,basant,vasant,vasanta;गर्मी,ग्रीष्म,गर्मी ऋतु,garmi,grishma
+ne-IN/ne-NP;शरद,sharad;जाडो,jado;बसन्त,basant;गर्मी,garmi
+nl;herfst,najaar,her;winter,win;lente,voorjaar,len;zomer,zom
+nl-AW;herfst,najaar;winter,win;lente,voorjaar;zomer
+nl-BE/nl-BQ/nl-CW/nl-NL/nl-SR/nl-SX;herfst,najaar,her;winter,win;lente,voorjaar,len;zomer,zom
+nn;haust,hau;vinter,vin;vår;sommar,sommer,som,sumar
+nn-NO;haust;vinter,vin;vår;sommar
+oc;auton,tardor,aut;ivèrn,ivern,ivè;primavera,pri,prima;estiu,est
+oc-ES/oc-FR;auton,aut;ivèrn,ivern,ivè;primavera,pri,prima;estiu,est
+om/so;birraa,dayr;ganna,jiilaal;arfaasaa,arf;bona,xagaa
+om;birraa;ganna;arfaasaa,arf;bona
+or;ଶରତ୍,ଶରତ୍କାଳ,sharad;ଶୀତକାଳ,ଶୀତ,shitakala,shita;ବସନ୍ତ,ବସନ୍ତକାଳ,vasanta,vasant;ଗ୍ରୀଷ୍ମ,ଗ୍ରୀଷ୍ମକାଳ,grishma,ଖରାଦିନ
+or-IN;ଶରତ୍,sharad;ଶୀତକାଳ,shitakala,ଶୀତ;ବସନ୍ତ,vasanta;ଗ୍ରୀଷ୍ମ,grishma
+or-Orya-IN;ଶରତ୍,sharad;ଶୀତକାଳ,shitakala,ଶୀତ;ବସନ୍ତ,vasanta;ଗ୍ରୀଷ୍ମ,grishma
+os;фӕззӕг,faezzaeg,фӕз;зымӕг,zymaeg,зым;уалдзӕг;сӕрд,saerd,сӕр
+os-GE/os-RU;фӕззӕг,faezzaeg,фӕз;зымӕг,zymaeg,зым;уалдзӕг;сӕрд,saerd,сӕр
+pa;ਖ਼ਰੀਫ਼,ਪਤਝੜ,kharif,patjhar,sharad,shrad;ਸਿਆਲ,ਸਰਦੀ,siyal,sardi;ਬਹਾਰ,basant,vasant,vasanta,ਬਸੰਤ;ਗਰਮੀ,garmi,grishma
+pa-Arab;خریف,پت جھڑ,sharad,خزاں;سیال,سردی,siyal;بہار,basant,بھار;garmi,گرمی
+pa-Arab-PK;خریف,sharad;سیال,siyal;بہار,basant,بھار;garmi,گرمی
+pa-Guru;ਖ਼ਰੀਫ਼,ਪਤਝੜ,sharad;ਸਿਆਲ,ਸਰਦੀ,siyal;ਬਹਾਰ,basant;ਗਰਮੀ,garmi
+pa-Guru-IN;ਖ਼ਰੀਫ਼,sharad;ਸਿਆਲ,siyal;ਬਹਾਰ,basant;garmi,ਗਰਮੀ
+pa-IN;ਖ਼ਰੀਫ਼,ਪਤਝੜ,sharad;ਸਿਆਲ,ਸਰਦੀ,siyal;ਬਹਾਰ,basant;ਗਰਮੀ,garmi
+pa-PK;خریف,sharad,پت جھڑ;سیال,سردی,siyal;بہار,basant,بھار;گرمی,garmi
+pl;jesień,jesien,jes;zima,zim;wiosna,wio;lato,lat
+ps;منی,پاڼې رژېدل,manay,khazan;ژمی,zhamay;پسرلی,bahar,psarlay;دوبی,dobay
+ps-AF;منی,manay;ژمی,zhamay;پسرلی,psarlay;دوبی,dobay
+pt;outono,out;inverno,inv;primavera,pri,prim;verão,verao,estio,ver
+pt-AO/pt-BR/pt-CH/pt-CV/pt-GQ/pt-GW/pt-LU/pt-MO/pt-MZ/pt-PT/pt-ST/pt-TL;outono,out;inverno,inv;primavera,pri;verão,verao,ver
+qu;jawkay,puquy;chiri;puka;rupay,ruphay
+qu-BO/qu-EC/qu-PE;jawkay,puquy;chiri;puka;rupay,ruphay
+rm;autun,aut,atun;hiviern,hiv,enviern;primavera,pri,primavaira;stad,sta
+ro;toamnă,toamna,toa;iarnă,iarna,iar;primăvară,primavara,pri;vară,estival,vara,var
+ro-MD/ro-RO;toamnă,toamna,toa;iarnă,iarna,iar;primăvară,primavara,pri;vară,vara,var
+ru/ru-RU/ru-UA;осень,осен,osen;зима,zima,зим;весна,vesna,вес;лето,leto,лет
+ru-BY/ru-KG/ru-KZ/ru-MD;осень,osen;зима,zima;весна,vesna;лето,leto
+# to be verified
+sa;शरद,शरद्,शरद ऋतु,sharad,sharad ritu;शिशिर,शीत,शीत ऋतु,shishira,shita,shishi;वसन्त,वसन्त ऋतु,vasanta,vasant,vasan;ग्रीष्म,ग्रीष्म ऋतु,grishma,grish
+sa-IN;शरद,sharad;शिशिर,shishira;वसन्त,vasanta;ग्रीष्म,grishma
+sah;күһүн,kuhun;кыһын,kyhin;саас,saas;сайын,saiyn
+sat-Olck;ᱦᱮᱢᱟᱞ ᱨᱤᱛᱩ;ᱨᱟᱵᱟᱝ,ᱨᱟᱵ,ᱨᱟᱵᱟᱝ ᱨᱤᱛᱩ;ᱱᱤᱨᱚᱱ,ᱱᱤᱨ,ᱱᱤᱨᱚᱱ ᱨᱤᱛᱩ;ᱥᱤᱛᱩᱝ,ᱥᱤᱛ,ᱥᱤᱛᱩᱝ ᱨᱤᱛᱩ
+sc;atungiu,atunzu,atung;ierru,ier;beranu,ber;istiu,ist
+sc-IT;atungiu,atunzu,atung;ierru,ier;beranu,ber;istiu,ist
+sd;خريف,شرد,शरद,sharad,kharif,سرء;سيارو,جيت رتو,siyaro;بهار,وسنت,बसंत,بسنت,bahar,vasant;اونهارو,گرمي,उन्हार,unharo,garmi,grishma
+sd-Arab;خريف,kharif;سيارو,siyaro;بهار,bahar;اونهارو,unharo
+sd-Deva;शरद,sharad;siyaro;बसंत,vasant;उन्हार,unharo
+sd-IN/sd-PK;خريف,शरद,sharad;سيارو,siyaro;بهار,बसंत,bahar,vasant;اونهارو,उन्हार,unharo
+sd-IN;خريف,शरद,sharad;سيارو,siyaro;بهار,بسنت,bahar,vasant;اونهارو,उन्हार,unharo
+se;čakča,cakca,cak;dálvi,dalvi,dal;giđđat,giddat,gid,giđđa;geassi
+se-FI/se-NO/se-SE;čakča,cakca;dálvi,dalvi;giđđat,giddat;geassi
+shi;تمنزوت,tamenzut,amawan;تگرست,tagrest;تفسوت,tafsut;أنبدو,anebdhu
+shi-Latn/tzm-Latn-MA;tamenzut,amawan;tagrest,tagr;tafsut,tafs;anebdhu,aneb
+shi-Latn;tamenzut,amawan;tagrest,tagr;tafsut,tafs;anebdhu,aneb
+shi-MA/tzm-MA;تمنزوت,tamenzut;تگرست,tagrest;تفسوت,tafsut;أنبدو,anebdhu
+shi-Tfng;ⵜⴰⵎⴻⵏⵣⵓⵜ,amawan,ⵜⴰⵎ;ⵜⴰⴳⵔⴻⵙⵜ,tagrest,ⵜⴰⴳ;ⵜⴰⴼⵙⵓⵜ,tafsut,ⵜⴰⴼ;ⴰⵏⴻⴱⴷⵀⵓ,anebdhu,ⴰⵏⴻ
+shi-Tfng-MA;ⵜⴰⵎⴻⵏⵣⵓⵜ,amawan,ⵜⴰⵎ;ⵜⴰⴳⵔⴻⵙⵜ,tagrest,ⵜⴰⴳ;ⵜⴰⴼⵙⵓⵜ,tafsut,ⵜⴰⴼ;ⴰⵏⴻⴱⴷⵀⵓ,anebdhu,ⴰⵏⴻ
+si;ශරත්,ශරත් ඍතුව,sharad,sharath,සරත් ඍතුව;හේමන්ත,ශීත ඍතුව,hemanta,shitha,heman,ශිශිර ඍතුව;වසන්ත,වසන්ත ඍතුව,vasanta,wasantha,wasan;ග්‍රීෂ්ම,ගිම්හාන ඍතුව,grishma,gimhana,gimha,ගිම්හානය
+si-LK;ශරත්,sharath;හේමන්ත,shitha;වසන්ත,wasan;ග්‍රීෂ්ම,gimha
+sk;jeseň,jesen,jes;zima,zim;jar,jaro;leto,let
+sk-SK;jeseň,jesen;zima,zim;jar,jaro;leto,let
+sl;jesen,jes;zima,zim;pomlad,pom;poletje,leto,pol
+sl-SI;jesen;zima,zim;pomlad,pom;poletje,pol
+smn;čohčâ;tälvi,talvi,tal;kiđđâ,gidda,gid;kesi,kes,keesi
+smn-FI;čohčâ;tälvi,talvi;kiđđâ,gidda;kesi,keesi
+sms;čiččâm,čič,čõhčč;tâlʹvv,tâl,täʹlvv;keđggi,keđ,ǩiđđ;ǩieʹss,ǩie
+sq;vjeshtë,vjeshte,vje;dimër,dimer,dim;pranverë,pranvere,pra;verë,vere,ver
+sq-AL/sq-MK/sq-XK;vjeshtë,vjeshte,vje;dimër,dimer,dim;pranverë,pranvere,pra;verë,vere,ver
+sr;јесен,jesen,јес,jes;зима,zima,зим,zim;пролеће,прољеће,prolece,proljece,про,pro;лето,љето,leto,ljeto,лет,lje
+sr-CS/sr-RS;јесен,jesen,јес;зима,zima,зим;пролеће,prolece,про;лето,leto,лет
+sr-Cyrl;јесен,jesen,јес;зима,zima,зим;пролеће,прољеће,prolece,про;лето,љето,ljeto,лет
+sr-Latn;jesen,jes;zima,zim;proljeće,proleće,proljece,pro;ljeto,leto,lje
+sr-Latn-RS/sr-Latn-XK;jesen,jes;zima,zim;proleće,prolece,pro;leto,let
+su;gugur,musim gugur;tiis,musim tiis,usum tiris;semi,musim semi;panas,musim panas
+su-ID;gugur,musim gugur;tiis,musim tiis;semi,musim semi;panas,musim panas
+sv;höst,hoest,hös;vinter,vin;vår,vor,vaar;sommar,som
+sv-AX/sv-FI/sv-SE;höst,hoest;vinter,vin;vår,vor;sommar,som
+sw;pukutiko,puk,vuli;kipupwe,kip;mchipuko,masika;kiangazi,kia
+sw-CD/sw-KE/sw-TZ/sw-UG;pukutiko,puk,vuli;kipupwe,kip;mchipuko,masika;kiangazi,kia
+ta;இலையுதிர் காலம்,இலையுதிர்,ilayuthir,இலையுதிர்காலம்;குளிர் காலம்,kulir,குளிர்காலம்;இளவேனில் காலம்,இளவேனில்,ilavenil,இளவேனிற்காலம்;கோடை காலம்,கோடை,kodai,கோடைகாலம்
+ta-IN/ta-LK/ta-MY/ta-SG;இலையுதிர் காலம்,ilayuthir;குளிர் காலம்,kulir;இளவேனில் காலம்,ilavenil;கோடை காலம்,kodai
+te;శరదృతువు,శరద్,sharad,sharad ritu,శరత్కాలం;శీతాకాలం,శీతఋతువు,chitalu,shita,శీతా,చలికాలం;వసంతఋతువు,vasantam,vasanta,వసంతం,vasant,వసంత ఋతువు;వేసవికాలం,గ్రీష్మ,vesavi,grishma,వేసవి,vesa,వేసవి కాలం
+te-IN;శరదృతువు,sharad,శరద్,శరత్కాలం;శీతాకాలం,chitalu,శీతా;vasantam,వసంతం;వేసవికాలం,vesavi
+tg;хазон,тирамоҳ,khazon,tiramoh,тир;зимистон,zimiston,зим;баҳор,bahor;тобистон,toviston,tobiston,тоб
+tg-TJ;хазон,тирамоҳ,khazon;зимистон,zimiston,зим;баҳор,bahor;тобистон,tobiston,тоб
+ti;ቀውዒ;ክረምቲ,kiremt,bega;tshay,tsedai,tseday;ሓጋይ,hagay
+ti-ER/ti-ET;ቀውዒ;ክረምቲ,kiremt;tsedai;ሓጋይ,hagay
+tk;güýz,guyz;gyş,gys;bahar,yaz;tomus
+tk-TM;güýz,guyz;gyş,gys;bahar,yaz;tomus
+tr;güz,sonbahar,hazon;kış,kis,zemheri;bahar,ilkbahar;yaz
+tr-CY/tr-TR;güz,sonbahar;kış,kis;bahar,ilkbahar;yaz
+tt;көш,көз,koz,kuz;кыш,qysh,qis;яз,jaz;җәй,jai
+tt-RU;көз,koz;кыш,qysh;яз,jaz;җәй,jai
+tzm;تمنزوت,amawan,tamenzut;تگرست,tagrest;تفسوت,tafsut;أنبدو,anebdhu
+ug;كۈز,kuz;قىش,qish;باھار,bahar;ياز,yaz
+uk;осінь,osin,осі;зима,zima,зим;весна,vesna,вес;літо,літ
+uk-UA;осінь,osin;зима,zima;весна,vesna;літо
+ur;خریف,پت جھڑ,sharad,patjhar;سردیاں,جاڑا,siyal,sardi,jara;بہار,basant,bahar;گرمیاں,garmi,garmiyan
+ur-Arab-PK;خریف,patjhar;سردیاں,sardi;بہار,bahar,بهار;گرمیاں,garmiyan
+ur-IN/ur-PK;خریف,پت جھڑ,sharad;سردیاں,sardi,jara;بہار,basant,bahar;گرمیاں,garmi,garmiyan
+uz;kuz,куз;qish,қиш;bahor,баҳор,баҳ;yoz,ёз
+uz-AF;خریف,kuz;qish;bahor;yoz
+uz-Arab;خریف,kuz;qish;bahor;yoz
+uz-Cyrl;куз,kuz;қиш,qish;баҳор,bahor;ёз,yoz
+uz-Latn;kuz;qish;bahor;yoz
+uz-UZ;kuz,куз;qish,қиш;bahor,баҳор,баҳ;yoz,ёз
+vi;thu,mùa thu;đông,mùa đông;xuân,mùa xuân;hè,mùa hè,mùa hạ,hạ
+vi-VN;thu,mùa thu;đông,mùa đông;xuân,mùa xuân;hè,mùa hè
+xh;ukwindla;ubusika;intwasahlobo;ihlobo
+yi;האַרבסט;ווינטער;פרילינג;זומער
+yo;àwákà,àwá,ìgbà ìwọ́wé;ìgbà òtútù,òtú;ìgbà àràbà,àrà,ìgbà ìrúwé;ìgbà ẹ̀rùn,ẹ̀rù
+yue/zh;秋天,秋,秋季;冬天,冬,冬季;春天,春,春季;夏天,夏,夏季
+zgh;ⴰⵎⵡⴰⵏ,ⴰⵎⵡ;ⵜⴰⴳⵔⵙⵜ,ⵜⴰⴳ;ⵜⴰⴼⵙⵓⵜ,ⵜⴰⴼ;ⴰⵏⴱⴷⵓ,ⴰⵏⴱ
+zgh-Tfng-MA;ⴰⵎⵡⴰⵏ,ⴰⵎⵡ;ⵜⴰⴳ,ⵜⴰⴳⵔⵙⵜ;ⵜⴰⴼⵙⵓⵜ,ⵜⴰⴼ;ⴰⵏⴱⴷⵓ,ⴰⵏⴱ
+zu;ikwindla,ikw;ubusika,ubu;intwasahlobo,int;ihlobo,ihl

@@ -1,0 +1,201 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
+
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ContactNameHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.Window;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+
+
+/**
+ * Structure:
+ * <pre>
+ * struct ContactStructure {
+ *   uri: Text
+ *   type?: enum { email, phone, mobile, fax, website, blog, social, postal, messaging } | Text
+ *   name?: struct {
+ *     value: Text
+ *     variant*: TextValueVariant
+ *   }
+ *   remark?: Text
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
+ * }
+ * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): uri, type, name
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
+ */
+public class ContactStructureDialog extends BaseRecordDialog{
+
+	private final JPanel propertiesPanel;
+
+	private final BoundTextField valueField;
+	private final BoundComboBox<String> typeCombo;
+	private final EntityListPanel namePanel;
+	private final BoundTextArea remarkArea;
+	private final JScrollPane noteAreaScroll;
+
+
+	public static ContactStructureDialog createNew(final Window parent, final FLEFModel model){
+		return createNew(parent, model, ContactStructureDialog::new);
+	}
+
+	public static ContactStructureDialog createEdit(final Window parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, ContactStructureDialog::new);
+	}
+
+
+	private ContactStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, ContactHandler.getInstance());
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
+
+		valueField = new BoundTextField(ContactReader.TAG_VALUE);
+		typeCombo = new BoundComboBox<>(ContactReader.TAG_TYPE, GUIHelper.fillCombo(ContactReader.TYPES, null));
+		typeCombo.setI18NPrefix("enum.contact.type");
+		namePanel = EntityListPanel.createForStructure(ContactReader.TAG_NAME, this, I18N.t("dialog.name.name"), model,
+			ContactNameHandler.class);
+		remarkArea = new BoundTextArea(ContactReader.TAG_REMARK, 3, 25);
+		remarkArea.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
+		noteAreaScroll = new JScrollPane(remarkArea);
+		noteAreaScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.name.note")));
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, this.record)
+			.withComponent(PanelKey.PRIVACY, ContactReader.TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, ContactReader.TAG_AUDIT, null)
+			.build();
+
+		components.bind(valueField);
+		components.bind(typeCombo);
+		components.bind(remarkArea);
+
+		//an address, a telephone number, a web address ... tells its own type: set it when the field is left, if the user has not chosen one
+		valueField.addFocusListener(new FocusAdapter(){
+			@Override
+			public void focusLost(final FocusEvent e){
+				inferType();
+			}
+		});
+
+
+		finalizeDialog(parent);
+	}
+
+
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// address
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.name.value"), valueField);
+
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.name.type"), typeCombo);
+
+		// name
+		GUIHelper.addComponent(propertiesPanel, namePanel);
+
+		// note
+		GUIHelper.addComponent(propertiesPanel, noteAreaScroll);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
+	protected void loadData(){
+		components.load(record);
+
+		namePanel.load(record);
+	}
+
+	@Override
+	protected boolean validData(){
+		if(valueField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				I18N.tf("validation.required", I18N.t("dialog.name.value")),
+				tabbedPane, propertiesPanel, valueField);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private void inferType(){
+		if(StringUtils.isNotBlank(typeCombo.getText()))
+			return;
+
+		final String type = ContactReader.inferType(valueField.getText());
+		if(type != null)
+			typeCombo.setText(type);
+	}
+
+	@Override
+	protected void saveData(){
+		inferType();
+		components.save(record);
+
+		namePanel.save(record);
+	}
+
+
+	static void main(final String[] args){
+		GUIHelper.launch(ContactStructureDialog::createNew);
+	}
+
+}

@@ -1,0 +1,249 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.ephemeris.engine;
+
+import io.github.mtrevisan.ephemeris.helpers.JulianDate;
+import io.github.mtrevisan.ephemeris.helpers.MathHelper;
+import io.github.mtrevisan.ephemeris.readers.NutationReader;
+import io.github.mtrevisan.ephemeris.readers.NutationReader.NutationTerm;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.List;
+
+
+public final class NutationCorrections{
+
+	/** Number of fundamental arguments: {@code l, l', F, D, Ω}, 8 planetary mean longitudes, general precession. */
+	private static final int FUNDAMENTAL_ARGUMENTS = 14;
+
+	/*
+	 * The series flattened into primitive arrays for fast evaluation, split by power of time (index 0: j = 0, index 1:
+	 * j = 1).
+	 */
+	private static final NutationSeries[] NUTATION_PSI_SERIES;
+	private static final NutationSeries[] NUTATION_EPS_SERIES;
+	static{
+		List<NutationTerm> psiTerms;
+		List<NutationTerm> epsTerms;
+		try{
+			psiTerms = NutationReader.readIau2000a("tab5.3a.txt");
+			epsTerms = NutationReader.readIau2000a("tab5.3b.txt");
+		}
+		catch(final IOException e){
+			throw new UncheckedIOException("Cannot read the IAU 2000A nutation series", e);
+		}
+		NUTATION_PSI_SERIES = new NutationSeries[]{NutationSeries.of(psiTerms, 0), NutationSeries.of(psiTerms, 1)};
+		NUTATION_EPS_SERIES = new NutationSeries[]{NutationSeries.of(epsTerms, 0), NutationSeries.of(epsTerms, 1)};
+	}
+
+	/**
+	 * Fundamental arguments IAU 2000 / IERS 2010 (in arcseconds).
+	 * Order of coefficients: [t^0, t^1, t^2, t^3, t^4]
+	 */
+	// `l`: Mean anomaly of the Moon
+	private static final double[] MOON_MEAN_ANOMALY = {
+		485868.249036, 1717915923.2178, 31.8792, 0.051635, -0.00024470
+	};
+	// `l'`: Mean anomaly of the Sun
+	private static final double[] SUN_MEAN_ANOMALY = {
+		1287102.740744, 129596581.0481, -0.5532, 0.000136, -0.00001149
+	};
+	// `F`: Mean argument of latitude of the Moon
+	private static final double[] MOON_ARGUMENT_LATITUDE = {
+		335779.526232, 1739527262.8478, -12.7512, -0.001037, 0.00000417
+	};
+	// `D`: Mean elongation of the Moon from the Sun
+	private static final double[] MOON_ELONGATION_SUN = {
+		1072260.703692, 1602961601.2090, -6.3706, 0.006593, -0.00003169
+	};
+	// `Ω`: Mean longitude of the ascending node of the Moon
+	private static final double[] MOON_LONGITUDE_NODE = {
+		450160.398036, -6962890.5431, 7.4722, 0.007702, -0.00005939
+	};
+
+	// Mean obliquity of the ecliptic ε_A, IAU 2006 (arcseconds)
+	private static final double[] MEAN_OBLIQUITY = {
+		84381.406, -46.836769, -0.0001831, 0.00200340, -0.000000576, -0.0000000434
+	};
+
+	// Planetary arguments (indices 5 to 12) & General precession in longitude (index 13), IERS Conventions 2003
+	// (same as eq. 5.44 of the IERS Conventions 2010)
+	// Order of coefficients: [t^0, t^1, t^2], in radians and Julian centuries from J2000.0
+	private static final double[][] PLANETARY_ARGUMENTS = {
+		// Mercury mean longitude (L_Me)
+		{4.402608842, 2608.7903141574},
+		// Venus mean longitude (L_Ve)
+		{3.176146697, 1021.3285546211},
+		// Earth mean longitude (L_E)
+		{1.753470314, 628.3075849991},
+		// Mars mean longitude (L_Ma)
+		{6.203480913, 334.0612426700},
+		// Jupiter mean longitude (L_J)
+		{0.599546497, 52.9690962641},
+		// Saturn mean longitude (L_Sa)
+		{0.874016757, 21.3299104960},
+		// Uranus mean longitude (L_U)
+		{5.481293872, 7.4781598567},
+		// Neptune mean longitude (L_Ne)
+		{5.311886287, 3.8133035638},
+		// General precession in longitude (p_A)
+		{0., 0.024381750, 0.00000538691}
+	};
+
+	private final double jc;
+	private final double[] lunisolarFundamentalArgs;
+
+
+	public static NutationCorrections calculate(final double jc){
+		return new NutationCorrections(jc);
+	}
+
+
+	/**
+	 * Calculate IAU 2000A Nutation corrections.
+	 *
+	 * @param jc Julian Century of Terrestrial Time from J2000.0 (t = (JD - 2451545.) / 36525).
+	 */
+	private NutationCorrections(final double jc){
+		// Calculate Delaunay fundamental arguments in radians
+		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
+
+		// 1. Calculate Lunisolar fundamental arguments [rad]
+		lunisolarFundamentalArgs = new double[FUNDAMENTAL_ARGUMENTS];
+		// L
+		lunisolarFundamentalArgs[0] = MathHelper.polynomial(jc, MOON_MEAN_ANOMALY) * arcsecToRad;
+		// L'
+		lunisolarFundamentalArgs[1] = MathHelper.polynomial(jc, SUN_MEAN_ANOMALY) * arcsecToRad;
+		// F
+		lunisolarFundamentalArgs[2] = MathHelper.polynomial(jc, MOON_ARGUMENT_LATITUDE) * arcsecToRad;
+		// D
+		lunisolarFundamentalArgs[3] = MathHelper.polynomial(jc, MOON_ELONGATION_SUN) * arcsecToRad;
+		// Ω
+		lunisolarFundamentalArgs[4] = MathHelper.polynomial(jc, MOON_LONGITUDE_NODE) * arcsecToRad;
+
+		// 2. Calculate Planetary and Precession arguments (indices 5 to 13) [rad]
+		this.jc = jc;
+		for(int i = 0, size = PLANETARY_ARGUMENTS.length; i < size; i ++)
+			lunisolarFundamentalArgs[5 + i] = MathHelper.polynomial(jc, PLANETARY_ARGUMENTS[i]);
+	}
+
+	private static double evaluateSeries(final NutationSeries[] series, final double[] fundArgs, final double jc){
+		// 3. Evaluate IAU 2000A series terms (j = 1 terms are multiplied by time (jc))
+		return evaluateSeries(series[0], fundArgs)
+			+ evaluateSeries(series[1], fundArgs) * jc;
+	}
+
+	private static double evaluateSeries(final NutationSeries series, final double[] fundArgs){
+		final double[] bSin = series.bSin;
+		final double[] bCos = series.bCos;
+		final int[] argumentStart = series.argumentStart;
+		final byte[] argumentIndex = series.argumentIndex;
+		final int[] argumentMultiplier = series.argumentMultiplier;
+		double sum = 0.;
+		for(int i = 0, size = bSin.length; i < size; i ++){
+			// Argument = i1 × L + i2 × L' + i3 × F + i4 × D + i5 × Ω + planetary terms
+			double arg = 0.;
+			for(int k = argumentStart[i], end = argumentStart[i + 1]; k < end; k ++)
+				arg += argumentMultiplier[k] * fundArgs[argumentIndex[k]];
+
+			// Component evaluation (bSin corresponds to B", bCos corresponds to B)
+			//hot loop: Math (JIT intrinsic) is several times faster than StrictMath here
+			sum += bCos[i] * Math.cos(arg) + bSin[i] * Math.sin(arg);
+		}
+		return sum;
+	}
+
+
+	/**
+	 * A nutation series in flat primitive arrays, keeping only the non-zero multipliers: the multipliers of term
+	 * {@code i} are {@code argumentMultiplier[k]} applied to argument {@code argumentIndex[k]}, for {@code k} in
+	 * {@code [argumentStart[i], argumentStart[i + 1])}.
+	 */
+		private record NutationSeries(double[] bSin, double[] bCos, int[] argumentStart, byte[] argumentIndex,
+												int[] argumentMultiplier){
+
+		/**
+		 * Collects the terms with the given power of time.
+		 */
+			private static NutationSeries of(final List<NutationTerm> terms, final int j){
+				final List<NutationTerm> selected = terms.stream()
+					.filter(term -> term.j() == j)
+					.toList();
+				final int size = selected.size();
+				final double[] bSin = new double[size];
+				final double[] bCos = new double[size];
+				final int[] argumentStart = new int[size + 1];
+				final byte[] argumentIndex = new byte[size * FUNDAMENTAL_ARGUMENTS];
+				final int[] argumentMultiplier = new int[size * FUNDAMENTAL_ARGUMENTS];
+				int arguments = 0;
+				for(int i = 0; i < size; i++){
+					final NutationTerm term = selected.get(i);
+					bSin[i] = term.bSin();
+					bCos[i] = term.bCos();
+					argumentStart[i] = arguments;
+					for(int k = 0; k < FUNDAMENTAL_ARGUMENTS; k++)
+						if(term.arguments()[k] != 0){
+							argumentIndex[arguments] = (byte)k;
+							argumentMultiplier[arguments] = term.arguments()[k];
+							arguments++;
+						}
+				}
+				argumentStart[size] = arguments;
+				return new NutationSeries(bSin, bCos, argumentStart, Arrays.copyOf(argumentIndex, arguments),
+					Arrays.copyOf(argumentMultiplier, arguments));
+			}
+
+	}
+
+
+	/**
+	 * Mean obliquity of the ecliptic, IAU 2006 (IERS Conventions 2010, eq. 5.40).
+	 *
+	 * @param jc Julian Century of Terrestrial Time from J2000.0.
+	 * @return the mean obliquity [rad]
+	 */
+	public static double meanObliquity(final double jc){
+		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
+		return MathHelper.polynomial(jc, MEAN_OBLIQUITY) * arcsecToRad;
+	}
+
+	public static double moonLongitudeAscendingNode(final double jc){
+		final double arcsecToRad = StrictMath.PI / (180. * JulianDate.SECONDS_PER_HOUR);
+		return MathHelper.mod2pi(MathHelper.polynomial(jc, MOON_LONGITUDE_NODE) * arcsecToRad);
+	}
+
+	/** @return Nutation in longitude (Δψ) [rad]. */
+	public double getDeltaPsi(){
+		return evaluateSeries(NUTATION_PSI_SERIES, lunisolarFundamentalArgs, jc);
+	}
+
+	/** @return Nutation in obliquity (Δε) [rad]. */
+	public double getDeltaEpsilon(){
+		return evaluateSeries(NUTATION_EPS_SERIES, lunisolarFundamentalArgs, jc);
+	}
+
+}
