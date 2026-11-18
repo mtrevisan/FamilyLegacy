@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -40,6 +44,21 @@ public interface AssistantContributor{
 	/** @return the sources of diagnostics of the assistant */
 	default List<DiagnosticProvider> diagnosticProviders(){
 		return List.of();
+	}
+
+	/**
+	 * @return what identifies the assistant in the settings of the user (that switch it off): the name of its class without the
+	 * {@code AssistantContributor} suffix, in lower case (e.g. {@code chronology})
+	 */
+	default String id(){
+		final String name = (getClass().getSimpleName().isEmpty()? getClass().getName(): getClass().getSimpleName());
+		final String stripped = StringUtils.removeEnd(StringUtils.removeEnd(name, "AssistantContributor"), "Contributor");
+		return stripped.toLowerCase(Locale.ROOT);
+	}
+
+	/** @return the name of the assistant, as the user sees it (in the settings, and when it fails) */
+	default String name(){
+		return I18N.t("assistant.name." + id(), id());
 	}
 
 }

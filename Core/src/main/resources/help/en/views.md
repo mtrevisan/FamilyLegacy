@@ -23,7 +23,7 @@ The selected box has an orange-red border. Empty placeholder boxes (an unknown p
 
 ## Tree
 
-The **Biological Tree** is a classic pedigree: one box per individual, couples side by side, an unknown ancestor or partner is not drawn (there is no empty box): add the missing person from the context menu of the person that is there (**Add Parent...**, **Add Partner...**, or their **Connect** versions).
+The **Biological Tree** is a classic pedigree: one box per individual, couples side by side, an unknown ancestor or partner is not drawn (there is no empty box): add the missing person from the context menu of the person that is there (**Add > Parent...**, **Add > Partner...**, or their **Connect** versions).
 
 - A solid thin line joins a birth connection; a **dashed line** joins an adoptive or other non-birth connection.
 - The small square between the two partners is the **union**. Hover it to see every marriage the two share (civil, religious, ...), each with its date and place, earliest first. Its border is **solid** when at least one marriage is recorded and **dashed** when none is.
@@ -50,13 +50,15 @@ The **Sugiyama Graph** shows the same pedigree as a layered graph. A person reac
 
 Right-click a box:
 
-- **Edit Individual...**, **Add Individual...**, **Connect Individual...**
-- **Add Partner...**, **Connect Partner...**, **Add Parent...**, **Connect Parent...**, **Add Child...**, **Connect Child...**, **Paste as Partner**, **Paste as Parent**, **Paste as Child**
-- **Relocate**, **Paste**, **Delete**
-- **Unlink Relationships...**
-- **Memberships Over Time...**, **Provenance...** (from the *Standard* level of features), **Consanguinity Loops...**
+- **Edit Individual...**
+- **Add** (submenu): **Partner...**, **Parent...**, **Child...**
+- **Connect** (submenu): **Partner...**, **Parent...**, **Child...**
+- **Paste as** (submenu): **Partner**, **Parent**, **Child**
+- **Relocate**, **Paste**
+- **Unlink Relationships...**, **Delete**
+- **Analyze** (submenu): **Memberships Over Time...**, **Provenance...** (from the *Standard* level of features), **Consanguinity Loops...**
 
-The entries are enabled or disabled according to the box. *Add Partner...* and *Add Parent...* open the "new individual" dialog, then ask the type of the relationship and create it; *Connect Partner...* and *Connect Parent...* do the same with an existing person. The partner entries are always available (a person may have several partners); the parent entries only while the person has fewer than two parents. What they do is explained in [Relationships](relationships.md). *Paste as Partner*, *Paste as Parent* and *Paste as Child* use the person copied with **Relocate**: they detach it from everyone and link it to the selected person (as in [Relationships](relationships.md#moving-and-removing-links)). When the selected person already has a parent of a known sex, a new parent must be of the opposite sex: *Add Parent...* creates the person with that sex and the editor does not save another one, and *Connect Parent...* and *Paste as Parent* refuse a person of the same sex.
+The entries are enabled or disabled according to the box (a submenu is grey when nothing in it applies). *Add > Partner...* and *Add > Parent...* open the "new individual" dialog, then ask the type of the relationship and create it; *Connect > Partner...* and *Connect > Parent...* do the same with an existing person. The partner entries are always available (a person may have several partners); the parent entries only while the person has fewer than two parents. What they do is explained in [Relationships](relationships.md). *Paste as > Partner*, *Paste as > Parent* and *Paste as > Child* use the person copied with **Relocate**: they detach it from everyone and link it to the selected person (as in [Relationships](relationships.md#moving-and-removing-links)). When the selected person already has a parent of a known sex, a new parent must be of the opposite sex: *Add > Parent...* creates the person with that sex and the editor does not save another one, and *Connect > Parent...* and *Paste as > Parent* refuse a person of the same sex.
 
 ## Ego network
 
@@ -67,7 +69,7 @@ The **Ego Network** is a hub with spokes around one individual or group, the *eg
 - All the lines are drawn dotted in this version.
 - **Jump to** also finds groups in this view.
 
-Context menu of a **person**: *Edit Individual...*, *Add Partner...*, *Connect Partner...*, *Add Parent...*, *Connect Parent...*, *Add Child...*, *Connect Child...*, *Paste as Partner*, *Paste as Parent* and *Paste as Child* (only for the ego), *Delete*, *Paste*, *Unlink Relationships...*, *Memberships Over Time...*, *Provenance...*, *Consanguinity Loops...*. Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
+Context menu of a **person**: *Edit Individual...*, the submenus *Add*, *Connect* and *Paste as* (Partner, Parent, Child; only for the ego), *Paste*, *Unlink Relationships...*, *Delete*, and the submenu *Analyze* (*Memberships Over Time...*, *Provenance...*, *Consanguinity Loops...*). Of a **group**: *Edit Group...*, *Add Members...*, *Delete*, *Paste*, *Unlink Relationships...*, *Group Timeline...*, *Group Network...*.
 
 ## The sidebar
 

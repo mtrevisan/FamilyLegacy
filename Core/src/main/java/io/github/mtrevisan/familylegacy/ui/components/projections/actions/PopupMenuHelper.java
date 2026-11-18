@@ -35,8 +35,10 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPan
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import java.awt.Component;
 import java.util.function.Consumer;
 
 
@@ -102,6 +104,34 @@ public class PopupMenuHelper{
 			action.accept(data != null? data.getIndividual(): null);
 		});
 		popup.add(item);
+	}
+
+	/**
+	 * Adds an item to a submenu, bound to the individual shown by the panel.
+	 */
+	public static void addMenuItem(final JMenu submenu, final JMenuItem item, final IndividualPanel panel,
+			final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			final IndividualSummary data = panel.getData();
+			action.accept(data != null? data.getIndividual(): null);
+		});
+		submenu.add(item);
+	}
+
+	/**
+	 * Enables the submenu only if at least one of its entries is enabled (an all-grey submenu leads nowhere), and makes it visible
+	 * only if at least one of its entries is.
+	 */
+	public static void syncSubmenuState(final JMenu submenu){
+		boolean anyEnabled = false;
+		boolean anyVisible = false;
+		for(final Component component : submenu.getMenuComponents())
+			if(component instanceof JMenuItem item && item.isVisible()){
+				anyVisible = true;
+				anyEnabled |= item.isEnabled();
+			}
+		submenu.setVisible(anyVisible);
+		submenu.setEnabled(anyEnabled);
 	}
 
 	public static void addMenuItem(final JPopupMenu popup, final JMenuItem item, final GroupPanel panel,

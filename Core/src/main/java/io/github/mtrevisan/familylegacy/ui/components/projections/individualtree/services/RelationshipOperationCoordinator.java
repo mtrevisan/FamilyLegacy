@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.CoParentSex;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.TreeMutator;
+import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;

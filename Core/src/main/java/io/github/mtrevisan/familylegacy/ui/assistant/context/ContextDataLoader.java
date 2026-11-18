@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.assistant.PlaceAncestors;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -113,7 +114,7 @@ final class ContextDataLoader{
 			if(type == null)
 				continue;
 			final DateRange range = range(event, EventReader.TAG_DATE);
-			final String who = String.join(", ", entry.getValue().stream().map(names::get).toList());
+			final String who = Sentences.list(entry.getValue().stream().map(names::get).toList());
 			final String what = I18N.t("enum.event.type." + type, String.valueOf(type));
 			final boolean bounded = (range != null && range.min() != Long.MIN_VALUE && range.max() != Long.MAX_VALUE);
 			events.add(new ContextData.Event(entry.getKey(), type, range, FLEFRecordHelper.getChildValue(event, PLACE_OF),

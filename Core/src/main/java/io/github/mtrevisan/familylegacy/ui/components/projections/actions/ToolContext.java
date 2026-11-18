@@ -115,10 +115,6 @@ public record ToolContext(
 		dispatcher.paste();
 	}
 
-	public void performConnectIndividual(){
-		dispatcher.connectIndividual();
-	}
-
 	public void performConnectChild(){
 		dispatcher.connectChild();
 	}

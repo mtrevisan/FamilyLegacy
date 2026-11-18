@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
 
 import java.awt.BasicStroke;
@@ -115,7 +116,7 @@ public final class TemporalContextRenderer{
 			while(text.length() > 1 && fm.stringWidth(text) > maxWidth)
 				text = text.substring(0, text.length() - 1);
 			if(text.length() < label.length())
-				text = text.substring(0, Math.max(0, text.length() - 1)) + "…";
+				text = text.substring(0, Math.max(0, text.length() - 1)) + I18N.t("dialog.ellipsis");
 
 			g.setColor(COLOR_BAND_LABEL);
 			g.drawString(text, rect.x + 3, rect.y + fm.getAscent() + 1 + (index % LABEL_LINES) * fm.getHeight());

@@ -33,11 +33,13 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EntityTr
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.MenuElement;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import java.awt.Component;
 import java.lang.reflect.Proxy;
 
 
@@ -58,8 +60,28 @@ class IndividualPopupMenusTest{
 	private static void assertOnlyAddingItemsEnabled(final JPopupMenu popup){
 		for(final MenuElement element : popup.getSubElements())
 			if(element instanceof JMenuItem item)
-				Assertions.assertFalse(item.isEnabled() && !mayActOnEmptyBox(item.getText()),
-					"enabled on an empty box: " + item.getText());
+				assertOnlyAddingItemsEnabled(item, "");
+	}
+
+	/** An item inside a submenu is judged together with the names of its submenus ("Add > Child..."). */
+	private static void assertOnlyAddingItemsEnabled(final JMenuItem item, final String path){
+		final String name = path + " " + item.getText();
+		if(item instanceof JMenu menu){
+			//a submenu is grey exactly when nothing inside it is enabled
+			Assertions.assertEquals(anyChildEnabled(menu), menu.isEnabled(), "submenu state:" + name);
+			for(final Component child : menu.getMenuComponents())
+				if(child instanceof JMenuItem childItem)
+					assertOnlyAddingItemsEnabled(childItem, name);
+		}
+		else
+			Assertions.assertFalse(item.isEnabled() && !mayActOnEmptyBox(name), "enabled on an empty box:" + name);
+	}
+
+	private static boolean anyChildEnabled(final JMenu menu){
+		for(final Component child : menu.getMenuComponents())
+			if(child instanceof JMenuItem item && item.isEnabled())
+				return true;
+		return false;
 	}
 
 	/** Adding, connecting and pasting are the only things offered on an empty box (paste stays disabled when the clipboard is empty). */

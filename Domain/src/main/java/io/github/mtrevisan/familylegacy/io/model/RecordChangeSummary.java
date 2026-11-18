@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.io.model;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -55,7 +56,7 @@ public final class RecordChangeSummary{
 	private static final String CHANGED = "~ ";
 	private static final String REMOVED = "- ";
 	private static final String ARROW = " → ";
-	private static final String ELLIPSIS = "…";
+	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 	private static final int MAX_LINES = 20;
 	private static final int MAX_VALUE_LENGTH = 60;

@@ -53,7 +53,7 @@ import java.util.Set;
  */
 final class FontChooserDialog extends JDialog{
 
-	private static final String SAMPLE = "The quick brown fox jumps over the lazy dog 0123456789";
+	private static final String SAMPLE = I18N.t("font.sample");
 
 
 	private final DefaultListModel<String> model = new DefaultListModel<>();

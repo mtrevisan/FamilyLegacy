@@ -67,7 +67,8 @@ import java.util.Set;
  * {@code latest}, the default), whose SHA-256 is the one GitHub publishes, or a {@code url} (HTTPS) with its {@code sha256}. A file ending in
  * {@code .zip} is unpacked (only plain files of the kinds the target accepts), any other is copied as it is. {@code target} is {@code fonts}
  * (the fonts of the PDF reports) or {@code plugins}. {@code files} are optional: when they are all in the target folder the component counts
- * as installed even if the application did not install it. A line that is not understood is skipped, not an error.
+ * as installed even if the application did not install it. {@code requires} (optional) lists the ids, of the same target, of the components
+ * that this one needs: they are installed with it, and removed after it. A line that is not understood is skipped, not an error.
  */
 public final class ComponentCatalog{
 
@@ -101,7 +102,7 @@ public final class ComponentCatalog{
 	public static ComponentCatalog fallback(){
 		return new ComponentCatalog(List.of(new Component("fonts", Map.of("en", "Fonts for the PDF reports"),
 			Map.of("en", "Noto fonts for Chinese, Japanese, Korean, Arabic, Hebrew, Thai, Hindi and Bengali"), "fonts", Component.LATEST,
-			"fonts.zip", null, null, -1, null, List.of("NotoSans-Regular.ttf"))));
+			"fonts.zip", null, null, -1, null, List.of("NotoSans-Regular.ttf"), List.of())));
 	}
 
 	/**
@@ -189,9 +190,16 @@ public final class ComponentCatalog{
 
 			files.add(name);
 		}
+		final List<String> requires = new ArrayList<>();
+		for(final Object required : Json.asArray(entry.get("requires"))){
+			if(!(required instanceof final String requiredId) || !isPlainId(requiredId))
+				return null;
+
+			requires.add(requiredId);
+		}
 		final long size = (entry.get("size") instanceof final Double value && value >= 0? value.longValue(): -1);
 		return new Component(id, names, localized(entry.get("description")), target, release, asset, url, sha256, size,
-			Json.asString(entry.get("minVersion")), files);
+			Json.asString(entry.get("minVersion")), files, requires);
 	}
 
 	/** @return	The text by language tag: a plain text is the English one. */

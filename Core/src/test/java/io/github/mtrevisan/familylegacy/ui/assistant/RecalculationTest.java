@@ -201,8 +201,10 @@ class RecalculationTest{
 
 		final ResearchAssistantService.Recalculation recalculation = service.recalculate(context(null), List.of());
 
-		Assertions.assertFalse(recalculation.isChanged());
-		Assertions.assertTrue(recalculation.findings().isEmpty());
+		//the failure is not hidden: it is a finding of its own, the only new one, and the recalculation itself goes on
+		Assertions.assertEquals(1, recalculation.added());
+		Assertions.assertEquals(1, recalculation.findings().size());
+		Assertions.assertEquals(ResearchAssistantService.KIND_FAILED, recalculation.findings().getFirst().kind());
 	}
 
 }

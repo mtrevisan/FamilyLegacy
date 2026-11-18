@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.CreateResearchDraftAction;
@@ -33,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDataLoader;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -42,6 +44,19 @@ import java.util.List;
  * unless the user saves it.
  */
 public final class PlannerAssistantContributor implements AssistantContributor{
+
+	private final Supplier<AssistantTuning> tuning;
+
+
+	public PlannerAssistantContributor(){
+		this(AssistantTuning::load);
+	}
+
+	/** @param tuning gives the numbers of the user (the tests give the defaults, not the preferences) */
+	public PlannerAssistantContributor(final Supplier<AssistantTuning> tuning){
+		this.tuning = tuning;
+	}
+
 
 	@Override
 	public List<AssistantAction> actions(){
@@ -54,7 +69,7 @@ public final class PlannerAssistantContributor implements AssistantContributor{
 			if(context.model() == null)
 				return List.of();
 
-			return PlannerChecker.findings(GapDataLoader.load(context.model(), LocalDate.now())).stream()
+			return PlannerChecker.findings(GapDataLoader.load(context.model(), LocalDate.now()), tuning.get()).stream()
 				.map(finding -> {
 					final Diagnostic diagnostic = finding.diagnostic();
 					return (finding.draft() != null

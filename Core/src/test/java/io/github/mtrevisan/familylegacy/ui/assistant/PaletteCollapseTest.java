@@ -157,4 +157,46 @@ class PaletteCollapseTest{
 		});
 	}
 
+	@Test
+	void theCategoryLimitsTheFindingsThatAreListed() throws Exception{
+		onEventDispatchThread(() -> {
+			final ResearchAssistantService service = new ResearchAssistantService();
+			final ResearchAssistantService.Recalculation recalculation = new ResearchAssistantService.Recalculation(findings(), 0, 0);
+			final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+
+			final List<String> places = new ResearchAssistantPalette(service, context, recalculation,
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of(), false, AssistantCategory.PLACES)).rows();
+			final List<String> identity = new ResearchAssistantPalette(service, context, recalculation,
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of(), false, AssistantCategory.IDENTITY)).rows();
+			final List<String> all = new ResearchAssistantPalette(service, context, recalculation,
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of(), false, null)).rows();
+
+			//the findings of the test are about places: the other categories have nothing of them
+			Assertions.assertEquals(all, places);
+			Assertions.assertFalse(places.isEmpty());
+			Assertions.assertTrue(identity.stream().noneMatch(row -> row.contains("Self A") || row.contains("Warnings")), identity.toString());
+		});
+	}
+
+	@Test
+	void theFindingsIgnoredByAKindAreInTheIgnoredViewNotInTheOthers() throws Exception{
+		onEventDispatchThread(() -> {
+			final ResearchAssistantService service = new ResearchAssistantService();
+			service.ignoredFindings().ignoreKind(null, findings().get(1));
+			final ResearchAssistantService.Recalculation recalculation = new ResearchAssistantService.Recalculation(findings(), 0, 0);
+			final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+
+			final List<String> active = new ResearchAssistantPalette(service, context, recalculation,
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("k:WARNING:place.possible_duplicate"), false)).rows();
+			final List<String> ignored = new ResearchAssistantPalette(service, context, recalculation,
+				new ResearchAssistantPalette.State("", Set.of(), true, null, 0, Set.of(), false)).rows();
+
+			//both findings of the kind are put away together
+			Assertions.assertFalse(active.contains("Duplicate A") || active.contains("Duplicate B"), active.toString());
+			Assertions.assertTrue(active.stream().anyMatch(row -> row.contains("Inverted A") || row.contains("Warnings")), active.toString());
+			Assertions.assertTrue(ignored.contains("Duplicate A") && ignored.contains("Duplicate B"), ignored.toString());
+			Assertions.assertFalse(ignored.contains("Self A"), ignored.toString());
+		});
+	}
+
 }

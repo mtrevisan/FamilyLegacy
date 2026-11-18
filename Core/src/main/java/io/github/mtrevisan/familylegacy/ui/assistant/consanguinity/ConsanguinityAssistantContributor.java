@@ -26,11 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.assistant.consanguinity;
 
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguineousUnionDetector;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -47,13 +52,26 @@ public final class ConsanguinityAssistantContributor implements AssistantContrib
 
 	@Override
 	public List<DiagnosticProvider> diagnosticProviders(){
-		return List.of(context -> {
-			final FLEFModel model = context.model();
-			if(model == null)
-				return List.of();
+		return List.of(new DiagnosticProvider(){
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context){
+				final FLEFModel model = context.model();
+				if(model == null)
+					return List.of();
 
-			return ConsanguinityChecker.findings(ConsanguineousUnionDetector.detect(model),
-				id -> ConsanguineousUnionDetector.nameOf(model, id));
+				return ConsanguinityChecker.findings(ConsanguineousUnionDetector.detect(model),
+					id -> ConsanguineousUnionDetector.nameOf(model, id));
+			}
+
+			/**
+			 * The slowest of the assistants after the identity one (minutes on a big file): the descent is read from the individuals
+			 * (their names too) and from the relationships, and from nothing else, so an edit of an event, a place or a source does not
+			 * make it start again.
+			 */
+			@Override
+			public Set<String> dependsOn(){
+				return Set.of(IndividualReader.TYPE, RelationshipReader.TYPE);
+			}
 		});
 	}
 

@@ -80,30 +80,13 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.build.directory}/ephemeris-shaded.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
-											overwrite="true"/>
-										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
-										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
-										<!-- the fonts of the PDF reports, beside the plugins (the application can download them too, if they are missing) -->
-										<copy todir="${package.coreTarget}/jpackage-input/fonts" overwrite="true">
-											<fileset dir="${project.basedir}/../ReportPdf/fonts"/>
-										</copy>
-										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-epub.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ReportSite/target/ReportSite-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-site.jar" overwrite="true"/>
-										<!-- the importers, plugins too (the one of Gramps needs the one of GEDCOM: they are read by the same class loader) -->
-										<copy file="${project.basedir}/../ImporterGedcom/target/ImporterGedcom-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
-										<!-- the face detector (OpenCV, native libraries of the platform that builds it: some tens of MB) -->
-										<copy file="${project.basedir}/../FaceDetector/target/FaceDetector-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/face-detector.jar" overwrite="true"/>
+									<!-- The installer is light: it carries only the core of the program. The plugins (ephemeris, report formats, importers, face detector) and the
+										fonts are NOT copied into jpackage-input: the application downloads them from Help > Optional Components... (components/catalog.json).
+										The empty folders are created, with a note in them, because the application looks for them to know where to install. -->
+									<mkdir dir="${package.coreTarget}/jpackage-input/plugins"/>
+									<echo file="${package.coreTarget}/jpackage-input/plugins/README.txt">Plugins (.jar) are installed here by Help > Optional Components... of the application.</echo>
+									<mkdir dir="${package.coreTarget}/jpackage-input/fonts"/>
+									<echo file="${package.coreTarget}/jpackage-input/fonts/README.txt">Fonts for the PDF reports are installed here by Help > Optional Components... of the application.</echo>
 										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
 											application itself; outside jpackage-input, otherwise it would be copied into the application -->
 										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
@@ -236,31 +219,13 @@
 								<goals><goal>run</goal></goals>
 								<configuration>
 									<target>
-										<!-- 1. Copia il plugin shaded in jpackage-input/plugins/ -->
-										<copy file="${project.build.directory}/ephemeris-shaded.jar"
-											  tofile="${package.coreTarget}/jpackage-input/plugins/ephemeris.jar"
-											  overwrite="true"/>
-										<!-- the report formats that are plugins, built by their modules (before Core, so not in the way of its clean) -->
-										<copy file="${project.basedir}/../ReportPdf/target/ReportPdf-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-pdf.jar" overwrite="true"/>
-										<!-- the fonts of the PDF reports, beside the plugins (the application can download them too, if they are missing) -->
-										<copy todir="${package.coreTarget}/jpackage-input/fonts" overwrite="true">
-											<fileset dir="${project.basedir}/../ReportPdf/fonts"/>
-										</copy>
-										<copy file="${project.basedir}/../ReportDocx/target/ReportDocx-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-docx.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ReportEpub/target/ReportEpub-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-epub.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ReportSite/target/ReportSite-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/report-site.jar" overwrite="true"/>
-										<!-- the importers, plugins too (the one of Gramps needs the one of GEDCOM: they are read by the same class loader) -->
-										<copy file="${project.basedir}/../ImporterGedcom/target/ImporterGedcom-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gedcom.jar" overwrite="true"/>
-										<copy file="${project.basedir}/../ImporterGramps/target/ImporterGramps-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/importer-gramps.jar" overwrite="true"/>
-										<!-- the face detector (OpenCV, native libraries of the platform that builds it: some tens of MB) -->
-										<copy file="${project.basedir}/../FaceDetector/target/FaceDetector-${project.version}-plugin.jar"
-											tofile="${package.coreTarget}/jpackage-input/plugins/face-detector.jar" overwrite="true"/>
+									<!-- The installer is light: it carries only the core of the program. The plugins (ephemeris, report formats, importers, face detector) and the
+										fonts are NOT copied into jpackage-input: the application downloads them from Help > Optional Components... (components/catalog.json).
+										The empty folders are created, with a note in them, because the application looks for them to know where to install. -->
+									<mkdir dir="${package.coreTarget}/jpackage-input/plugins"/>
+									<echo file="${package.coreTarget}/jpackage-input/plugins/README.txt">Plugins (.jar) are installed here by Help > Optional Components... of the application.</echo>
+									<mkdir dir="${package.coreTarget}/jpackage-input/fonts"/>
+									<echo file="${package.coreTarget}/jpackage-input/fonts/README.txt">Fonts for the PDF reports are installed here by Help > Optional Components... of the application.</echo>
 										<!-- the icon of the executable (.ico, as jpackage wants it on Windows), drawn from images/app-icon*.png by the
 											application itself; outside jpackage-input, otherwise it would be copied into the application -->
 										<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"

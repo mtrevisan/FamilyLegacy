@@ -67,7 +67,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serial;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,9 +86,6 @@ import java.util.function.Supplier;
  * </p>
  */
 public final class TasksPanel extends JPanel{
-
-	@Serial
-	private static final long serialVersionUID = 4_213_809_518_772_044_215L;
 
 	private static final String ENUM_STATUS_PREFIX = "enum.research_task.status.";
 	private static final String ENUM_PRIORITY_PREFIX = "enum.research_task.priority.";
@@ -227,9 +223,6 @@ public final class TasksPanel extends JPanel{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), EDIT_ACTION);
 		table.getActionMap()
 			.put(EDIT_ACTION, new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = -1_908_457_335_113_682_734L;
-
 				@Override
 				public void actionPerformed(final ActionEvent e){
 					editTask(selectedTask());
@@ -459,9 +452,6 @@ public final class TasksPanel extends JPanel{
 	/** The rows of the table: one task each, the texts computed once. */
 	private static final class TaskTableModel extends AbstractTableModel{
 
-		@Serial
-		private static final long serialVersionUID = 6_402_355_978_018_532_161L;
-
 		private transient List<OpenTasks.Task> tasks = List.of();
 		private transient List<String[]> rows = List.of();
 
@@ -521,10 +511,6 @@ public final class TasksPanel extends JPanel{
 
 	/** Writes the due date of an overdue task in red, and shows the whole text of a cell as its tooltip. */
 	private final class TaskRenderer extends DefaultTableCellRenderer{
-
-		@Serial
-		private static final long serialVersionUID = -3_778_118_270_662_513_041L;
-
 
 		@Override
 		public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,

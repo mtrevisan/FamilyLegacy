@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.DoubleConsumer;
 
 
@@ -51,6 +52,31 @@ public interface DiagnosticProvider{
 	 */
 	default List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
 		return diagnose(context);
+	}
+
+	/**
+	 * The kinds of record (their tags, e.g. {@code individual}, {@code event}) the findings are computed from. A provider that says
+	 * so promises that its findings depend <b>only</b> on the records of these kinds (and on {@link #environment()} and on the date of
+	 * today): when none of them changed since the last time, the findings of the last time are given again without computing them.
+	 * <p>
+	 * It is only an optimization, and a wrong list gives stale findings, so the default is {@code null}: the findings may depend on
+	 * anything (the records of other kinds, the header, the record selected by the user), and they are computed every time.
+	 * </p>
+	 *
+	 * @return the tags of the records the findings depend on, or {@code null} if they cannot be told
+	 */
+	default Set<String> dependsOn(){
+		return null;
+	}
+
+	/**
+	 * What else the findings depend on, besides the records (the settings of the user): the findings of the last time are given again
+	 * only if this is equal to what it was then.
+	 *
+	 * @return the settings the findings depend on ({@code null} if none)
+	 */
+	default Object environment(){
+		return null;
 	}
 
 }

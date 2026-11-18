@@ -198,6 +198,48 @@ class ComponentManagerTest{
 	}
 
 	@Test
+	void aSingleFileComponentCanBeUninstalledAndInstalledAgainAndAZipCannot(@TempDir final Path directory) throws Exception{
+		final Path fonts = directory.resolve("app/fonts");
+		final Path plugins = directory.resolve("app/plugins");
+		final String catalogUrl = "https://example.org/catalog.json";
+		final Map<String, byte[]> content = new HashMap<>();
+		content.put(catalogUrl, text("""
+			{"components":[
+			 {"id":"cjk","name":"CJK","target":"fonts","asset":"fonts-cjk.zip","release":"components"},
+			 {"id":"base","name":"Base","target":"plugins","asset":"base.jar","release":"components","files":["base.jar"]},
+			 {"id":"extra","name":"Extra","target":"plugins","asset":"extra.jar","release":"components","requires":["base"]},
+			 {"id":"bad","name":"Bad requirement","target":"plugins","asset":"bad.jar","requires":["../x"]}
+			]}"""));
+		final byte[] fontsZip = zip("a.otf", "a font");
+		final byte[] base = text("base");
+		final byte[] extra = text("extra");
+		content.put(TAG_API, text(release("components", Map.of("fonts-cjk.zip", fontsZip, "base.jar", base, "extra.jar", extra))));
+		content.put(DOWNLOADS + "components/fonts-cjk.zip", fontsZip);
+		content.put(DOWNLOADS + "components/base.jar", base);
+		content.put(DOWNLOADS + "components/extra.jar", extra);
+		final ComponentManager manager = manager(serving(content), fonts, plugins, catalogUrl);
+
+		List<ComponentManager.Entry> entries = manager.list("1.0.0");
+		Assertions.assertEquals(3, entries.size(), "the entry with an invalid requirement is skipped");
+		Assertions.assertEquals(List.of("base"), entries.get(2).component().requires());
+		Assertions.assertFalse(entries.get(1).canUninstall(), "not installed");
+		for(final ComponentManager.Entry entry : entries)
+			manager.install(entry, null, null);
+
+		entries = manager.list("1.0.0");
+		Assertions.assertFalse(entries.get(0).canUninstall(), "a zip is unpacked into many files");
+		Assertions.assertTrue(entries.get(1).canUninstall());
+		manager.uninstall(entries.get(1));
+		Assertions.assertFalse(Files.exists(plugins.resolve("base.jar")));
+		Assertions.assertTrue(Files.exists(plugins.resolve("extra.jar")), "only its own file");
+		Assertions.assertEquals(ComponentManager.State.AVAILABLE, manager.list("1.0.0").get(1).state());
+		Assertions.assertThrows(IOException.class, () -> manager.uninstall(manager.list("1.0.0").get(1)));
+
+		manager.install(manager.list("1.0.0").get(1), null, null);
+		Assertions.assertEquals(ComponentManager.State.INSTALLED, manager.list("1.0.0").get(1).state());
+	}
+
+	@Test
 	void fontsThatAreThereWithoutTheApplicationHavingInstalledThemCountAsInstalled(@TempDir final Path directory) throws Exception{
 		final Path fonts = directory.resolve("app/fonts");
 		Files.createDirectories(fonts);

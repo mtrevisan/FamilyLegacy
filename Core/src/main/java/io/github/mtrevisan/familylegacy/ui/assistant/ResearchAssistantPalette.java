@@ -38,26 +38,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.MenuElement;
+import javax.swing.MenuSelectionManager;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -75,6 +83,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -131,7 +142,15 @@ final class ResearchAssistantPalette extends JDialog{
 	 */
 	record State(String query, Set<SearchMode> modes, boolean showIgnored, String selectedIdentity, int selectedIndex,
 			Set<String> toggled,
-			boolean selectedOnly){}
+			boolean selectedOnly, AssistantCategory category){
+
+		/** The state of a palette that was not limited to a category. */
+		State(final String query, final Set<SearchMode> modes, final boolean showIgnored, final String selectedIdentity,
+				final int selectedIndex, final Set<String> toggled, final boolean selectedOnly){
+			this(query, modes, showIgnored, selectedIdentity, selectedIndex, toggled, selectedOnly, null);
+		}
+
+	}
 
 
 	/** The width of the text of the detail, in pixels. */
@@ -150,6 +169,11 @@ final class ResearchAssistantPalette extends JDialog{
 	private static final String ACTION_TOGGLE_IGNORED = "toggleIgnored";
 	private static final String ACTION_WHERE_USED = "whereUsed";
 	private static final String ACTION_EXPORT = "export";
+	private static final String ACTION_IGNORE_MORE = "ignoreMore";
+	private static final String ACTION_SHOW_IN_VIEW = "showInView";
+	private static final String ACTION_NEXT_CATEGORY = "nextCategory";
+	/** The ways to put a finding aside for a while: the unit and how many of them. */
+	private static final List<Integer> SNOOZE_DAYS = List.of(7, 30, 90, 365);
 	/** The start of the address of a link to a record, in the detail. */
 	private static final String RECORD_LINK = "record:";
 	private static final String ACTION_CLOSE = "close";
@@ -164,6 +188,11 @@ final class ResearchAssistantPalette extends JDialog{
 	private final JCheckBox fuzzyCheckBox = new JCheckBox(I18N.t("search.mode.fuzzy"), false);
 	/** Limits the findings to the ones about the record selected in the main window (only there when there is one). */
 	private final JCheckBox selectedOnlyCheckBox = new JCheckBox();
+	/** Limits the actions and the findings to one category (the first item is "all"). */
+	private final JComboBox<Object> categoryComboBox = new JComboBox<>();
+	/** What is done with the ignored findings of the file: save them to give them to another file, add the ones of a file. */
+	private final JButton exportIgnoredButton = new JButton(I18N.t("assistant.ignored.export"));
+	private final JButton importIgnoredButton = new JButton(I18N.t("assistant.ignored.import"));
 	private final DefaultListModel<Row> rowsModel = new DefaultListModel<>();
 	private final JList<Row> rowsList = new JList<>(rowsModel);
 	/** The tallest detail shown so far: the detail never gets shorter, so that the list does not change size while it is scrolled. */
@@ -252,6 +281,7 @@ final class ResearchAssistantPalette extends JDialog{
 			wholeWordCheckBox.setSelected(state.modes().contains(SearchMode.WHOLE_WORD));
 			fuzzyCheckBox.setSelected(state.modes().contains(SearchMode.FUZZY));
 			selectedOnlyCheckBox.setSelected(state.selectedOnly());
+			categoryComboBox.setSelectedItem(state.category() != null? state.category(): categoryComboBox.getItemAt(0));
 			refresh();
 			selectFinding(state);
 		}
@@ -320,8 +350,31 @@ final class ResearchAssistantPalette extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				//a double click runs what is under it, or opens or closes a heading (a single click only selects it)
-				if(e.getClickCount() == 2)
+				if(e.getClickCount() == 2 && !SwingUtilities.isRightMouseButton(e))
 					runSelected(0);
+			}
+
+			@Override
+			public void mousePressed(final MouseEvent e){
+				showPopupOf(e);
+			}
+
+			@Override
+			public void mouseReleased(final MouseEvent e){
+				showPopupOf(e);
+			}
+
+			/** The menu of the ways to ignore a finding opens on the right click, on the row that was clicked. */
+			private void showPopupOf(final MouseEvent e){
+				if(!e.isPopupTrigger())
+					return;
+
+				final int index = rowsList.locationToIndex(e.getPoint());
+				if(index < 0 || !rowsList.getCellBounds(index, index).contains(e.getPoint()))
+					return;
+
+				rowsList.setSelectedIndex(index);
+				showIgnoreMenu(e.getPoint());
 			}
 		});
 
@@ -348,6 +401,30 @@ final class ResearchAssistantPalette extends JDialog{
 			selectedOnlyCheckBox.addActionListener(e -> refresh());
 			modes.add(selectedOnlyCheckBox);
 		}
+		//the category limits the actions and the findings (typing its name does too, but the list of the categories shows what there is)
+		categoryComboBox.addItem(I18N.t("assistant.category.all"));
+		for(final AssistantCategory category : AssistantCategory.values())
+			categoryComboBox.addItem(category);
+		categoryComboBox.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public java.awt.Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean selected, final boolean focus){
+				return super.getListCellRendererComponent(list, (value instanceof AssistantCategory category? category.title(): value), index,
+					selected, focus);
+			}
+		});
+		categoryComboBox.setFocusable(false);
+		categoryComboBox.setToolTipText(I18N.tf("assistant.category.filter", shortcut("L")));
+		categoryComboBox.addActionListener(e -> refresh());
+		modes.add(categoryComboBox);
+		//what can be done with the ignored findings, only while they are shown
+		for(final JButton button : List.of(exportIgnoredButton, importIgnoredButton)){
+			button.setFocusable(false);
+			button.setVisible(false);
+			modes.add(button);
+		}
+		exportIgnoredButton.addActionListener(e -> exportIgnored());
+		importIgnoredButton.addActionListener(e -> importIgnored());
 		content.add(modes);
 		content.add(new JScrollPane(rowsList));
 		content.add(detailLabel);
@@ -461,7 +538,14 @@ final class ResearchAssistantPalette extends JDialog{
 			ACTION_TOGGLE_IGNORED);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_U, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_WHERE_USED);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_E, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_EXPORT);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D,
+			Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK), ACTION_IGNORE_MORE);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_G, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_SHOW_IN_VIEW);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_NEXT_CATEGORY);
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), ACTION_CLOSE);
+		actionMap.put(ACTION_IGNORE_MORE, new SimpleAction(() -> showIgnoreMenu(null)));
+		actionMap.put(ACTION_SHOW_IN_VIEW, new SimpleAction(this::showInView));
+		actionMap.put(ACTION_NEXT_CATEGORY, new SimpleAction(this::nextCategory));
 		actionMap.put(ACTION_IGNORE, new SimpleAction(this::toggleIgnoreSelected));
 		actionMap.put(ACTION_TOGGLE_IGNORED, new SimpleAction(this::toggleIgnoredView));
 		actionMap.put(ACTION_WHERE_USED, new SimpleAction(this::showWhereUsed));
@@ -503,8 +587,40 @@ final class ResearchAssistantPalette extends JDialog{
 			})
 			.thenAccept(found -> SwingUtilities.invokeLater(() -> {
 				diagnostics = found;
+				countShown(found);
 				refresh();
 			}));
+	}
+
+	/** Counts the findings that the palette lists (the ones to look at, by kind): what the user does is compared with them. */
+	private void countShown(final List<Diagnostic> found){
+		final AssistantStatistics statistics = service.statistics();
+		if(!statistics.isEnabled())
+			return;
+
+		final Map<String, Long> byKind = new LinkedHashMap<>();
+		for(final Diagnostic d : service.ignoredFindings().split(context.scope(), found).active())
+			byKind.merge(d.kind(), 1L, Long::sum);
+		byKind.forEach((kind, amount) -> statistics.add(kind, AssistantStatistics.Event.SHOWN, amount, -1));
+	}
+
+	/** Counts what the user did with a finding (only its kind and where it was in the list: nothing about the research). */
+	private void count(final Diagnostic finding, final AssistantStatistics.Event event){
+		final AssistantStatistics statistics = service.statistics();
+		if(!statistics.isEnabled())
+			return;
+
+		int position = -1;
+		int seen = 0;
+		for(int i = 0; i < rowsModel.size(); i ++)
+			if(rowsModel.get(i) instanceof DiagnosticRow row){
+				if(row.diagnostic() == finding){
+					position = seen;
+					break;
+				}
+				seen ++;
+			}
+		statistics.record(finding.kind(), event, position);
 	}
 
 	/** Shows how far the computation is (it is told from the thread that computes, so it hands over to the event dispatch thread). */
@@ -537,7 +653,10 @@ final class ResearchAssistantPalette extends JDialog{
 		rowsModel.clear();
 
 		//the commands are not about findings: they are not listed with the ignored ones
-		final List<ResearchAssistantService.RankedAction> actions = (showIgnored? List.of(): service.search(query, searchModes(), context));
+		final AssistantCategory category = selectedCategory();
+		final List<ResearchAssistantService.RankedAction> actions = (showIgnored? List.of(): service.search(query, searchModes(), context).stream()
+			.filter(a -> category == null || a.action().category() == category)
+			.toList());
 		if(!actions.isEmpty()){
 			rowsModel.addElement(new Header(I18N.t("assistant.section.actions")));
 			actions.forEach(a -> rowsModel.addElement(new ActionRow(a.action())));
@@ -549,6 +668,7 @@ final class ResearchAssistantPalette extends JDialog{
 		//most severe first (the sort is stable): within the same severity the ones about the selected record come first
 		final List<Diagnostic> matching = aboutSelected(ResearchAssistantService.filter(query, searchModes(),
 				(showIgnored? split.ignored(): split.active()))).stream()
+			.filter(d -> category == null || d.category() == category)
 			.sorted(Comparator.comparing(Diagnostic::severity))
 			.toList();
 		if(!matching.isEmpty())
@@ -584,7 +704,7 @@ final class ResearchAssistantPalette extends JDialog{
 					for(final List<Diagnostic> group : ofKind.values()){
 						final String kindId = kindId(group.getFirst());
 						final boolean kindOpen = isOpen(kindId);
-						rowsModel.addElement(new Header(kindLabel(group.getFirst()) + " (" + group.size() + ")", kindId, kindOpen));
+						rowsModel.addElement(new Header(I18N.tf("assistant.group.count", kindLabel(group.getFirst()), group.size()), kindId, kindOpen));
 						if(kindOpen)
 							group.forEach(d -> rowsModel.addElement(new DiagnosticRow(d)));
 					}
@@ -594,11 +714,14 @@ final class ResearchAssistantPalette extends JDialog{
 			? I18N.tf("assistant.ignored.showing", shortcut("I"))
 			: (split.ignored().isEmpty()? "": I18N.tf("assistant.ignored.count", split.ignored().size(), shortcut("I"))));
 		final String exportStatus = (found == null || found.isEmpty()? "": I18N.tf("assistant.export.hint", shortcut("E")));
-		final String status = String.join(" · ", Stream.of(notice, ignoredStatus, exportStatus)
+		final String status = Sentences.status(Stream.of(notice, ignoredStatus, exportStatus)
 			.filter(part -> !part.isEmpty())
 			.toList());
 		final boolean loading = (found == null);
 		loadingBar.setVisible(loading);
+		exportIgnoredButton.setVisible(showIgnored);
+		importIgnoredButton.setVisible(showIgnored);
+		exportIgnoredButton.setEnabled(service.ignoredFindings().count(context.scope()) > 0);
 		statusLabel.setText(loading? I18N.t("assistant.loading"): (status.isEmpty()? StringUtils.SPACE: status));
 		if(loading && rowsModel.isEmpty())
 			detailLabel.setText(null);
@@ -646,12 +769,170 @@ final class ResearchAssistantPalette extends JDialog{
 			return;
 
 		final int index = rowsList.getSelectedIndex();
+		count(row.diagnostic(), showIgnored? AssistantStatistics.Event.RESTORED: AssistantStatistics.Event.IGNORED);
 		if(showIgnored)
 			service.ignoredFindings().restore(context.scope(), row.diagnostic());
 		else
 			service.ignoredFindings().ignore(context.scope(), row.diagnostic());
 		refresh();
 		selectNear(index);
+	}
+
+	/** @return the category the actions and the findings are limited to, or {@code null} for all of them */
+	private AssistantCategory selectedCategory(){
+		return (categoryComboBox.getSelectedItem() instanceof AssistantCategory category? category: null);
+	}
+
+	/** Limits to the next category (after the last one, to all of them). */
+	private void nextCategory(){
+		final int next = (categoryComboBox.getSelectedIndex() + 1) % categoryComboBox.getItemCount();
+		categoryComboBox.setSelectedIndex(next);
+	}
+
+	/**
+	 * Does something to the ignored findings of the file for the selected finding, then lists them again with the selection where it was.
+	 */
+	private void changeIgnored(final Runnable change){
+		final int index = rowsList.getSelectedIndex();
+		change.run();
+		refresh();
+		selectNear(index);
+	}
+
+	/**
+	 * The other ways to ignore the selected finding, in a menu next to it (Ctrl+Shift+D, or the right click): all the findings of its
+	 * kind, all the ones about its first record, putting it aside for a while. Among the ignored findings it shows it again.
+	 *
+	 * @param at where the menu opens, in the coordinates of the list ({@code null}: under the selected row)
+	 */
+	private void showIgnoreMenu(final Point at){
+		if(!(rowsList.getSelectedValue() instanceof DiagnosticRow row) || !row.diagnostic().isIgnorable())
+			return;
+
+		final Diagnostic finding = row.diagnostic();
+		final String scope = context.scope();
+		final IgnoredFindings ignored = service.ignoredFindings();
+		final JPopupMenu menu = new JPopupMenu();
+		if(showIgnored){
+			final boolean byRule = ignored.isIgnoredByRule(scope, finding);
+			menu.add(menuItem((byRule? I18N.t("assistant.restore.with_rule"): I18N.t("assistant.restore")),
+				() -> changeIgnored(() -> {
+					count(finding, AssistantStatistics.Event.RESTORED);
+					ignored.restore(scope, finding);
+				})));
+		}
+		else{
+			menu.add(menuItem(I18N.t("assistant.ignore"), () -> changeIgnored(() -> {
+				count(finding, AssistantStatistics.Event.IGNORED);
+				ignored.ignore(scope, finding);
+			})));
+			menu.add(menuItem(I18N.tf("assistant.ignore.kind", kindLabel(finding)), () -> changeIgnored(() -> {
+				count(finding, AssistantStatistics.Event.IGNORED_KIND);
+				ignored.ignoreKind(scope, finding);
+			})));
+			if(!finding.recordIds().isEmpty() && context.model() != null){
+				final String recordId = finding.recordIds().getFirst();
+				final FLEFRecord record = context.model().getRecordById(recordId);
+				final String name = (record != null? RecordDisplay.describe(record, context.model()): recordId);
+				menu.add(menuItem(I18N.tf("assistant.ignore.record", name), () -> changeIgnored(() -> {
+					count(finding, AssistantStatistics.Event.IGNORED_RECORD);
+					ignored.ignoreRecord(scope, recordId);
+				})));
+			}
+			menu.addSeparator();
+			for(final int days : SNOOZE_DAYS)
+				menu.add(menuItem(I18N.tf("assistant.snooze", snoozeLabel(days)),
+					() -> changeIgnored(() -> {
+						count(finding, AssistantStatistics.Event.SNOOZED);
+						ignored.snooze(scope, finding, LocalDate.now().plusDays(days));
+					})));
+		}
+
+		final int index = rowsList.getSelectedIndex();
+		final Rectangle cell = rowsList.getCellBounds(index, index);
+		final Point where = (at != null? at: new Point(cell != null? cell.x + 24: 0, cell != null? cell.y + cell.height: 0));
+		menu.show(rowsList, where.x, where.y);
+		//from the keyboard: the arrows move in the menu, Enter chooses
+		if(menu.getComponentCount() > 0 && menu.getComponent(0) instanceof JMenuItem first)
+			MenuSelectionManager.defaultManager().setSelectedPath(new MenuElement[]{menu, first});
+	}
+
+	private static JMenuItem menuItem(final String text, final Runnable action){
+		final JMenuItem item = new JMenuItem(text);
+		item.addActionListener(e -> action.run());
+		return item;
+	}
+
+	private static String snoozeLabel(final int days){
+		return switch(days){
+			case 7 -> I18N.t("assistant.snooze.week");
+			case 30 -> I18N.t("assistant.snooze.month");
+			case 90 -> I18N.t("assistant.snooze.quarter");
+			default -> I18N.t("assistant.snooze.year");
+		};
+	}
+
+	/**
+	 * Shows the record of the selected finding in the main window (the individual it is about, selected in its view). The palette closes
+	 * first, as for the actions of a finding. Nothing changes in the research.
+	 */
+	private void showInView(){
+		if(!(rowsList.getSelectedValue() instanceof DiagnosticRow row))
+			return;
+
+		final String id = service.viewableRecord(context.model(), row.diagnostic().recordIds());
+		if(id == null)
+			return;
+
+		count(row.diagnostic(), AssistantStatistics.Event.VIEWED);
+		dispose();
+		SwingUtilities.invokeLater(() -> service.showRecord(id));
+	}
+
+	/** Saves what is ignored in the file in a small text file, to give it to the same file once it is renamed or moved, or on another machine. */
+	private void exportIgnored(){
+		final JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle(I18N.t("assistant.ignored.export"));
+		chooser.setSelectedFile(new File("assistant-ignored.txt"));
+		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+			return;
+
+		final File file = chooser.getSelectedFile();
+		if(file.exists() && JOptionPane.showConfirmDialog(this, I18N.tf("assistant.export.overwrite", file.getName()),
+				I18N.t("assistant.ignored.export"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
+			return;
+
+		try{
+			Files.writeString(file.toPath(), service.ignoredFindings().export(context.scope()), StandardCharsets.UTF_8);
+			SavedFileNotice.show(this, I18N.t("assistant.ignored.export"), I18N.tf("assistant.ignored.exported",
+				service.ignoredFindings().count(context.scope()), file.getName()), file);
+		}
+		catch(final IOException ioe){
+			LOGGER.warn("Cannot export the ignored findings: {}", ioe.toString());
+			JOptionPane.showMessageDialog(this, I18N.t("assistant.export.error") + "\n" + ioe.getMessage(), I18N.t("assistant.ignored.export"),
+				JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/** Adds to what is ignored in the file what a file written by {@link #exportIgnored()} holds. */
+	private void importIgnored(){
+		final JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle(I18N.t("assistant.ignored.import"));
+		if(chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
+			return;
+
+		try{
+			final int added = service.ignoredFindings().importFrom(context.scope(),
+				Files.readString(chooser.getSelectedFile().toPath(), StandardCharsets.UTF_8));
+			refresh();
+			JOptionPane.showMessageDialog(this, I18N.tf("assistant.ignored.imported", added), I18N.t("assistant.ignored.import"),
+				JOptionPane.INFORMATION_MESSAGE);
+		}
+		catch(final IOException | IllegalArgumentException e){
+			LOGGER.warn("Cannot import the ignored findings: {}", e.toString());
+			JOptionPane.showMessageDialog(this, I18N.t("assistant.ignored.import.error"), I18N.t("assistant.ignored.import"),
+				JOptionPane.ERROR_MESSAGE);
+		}
 	}
 
 	/**
@@ -810,7 +1091,7 @@ final class ResearchAssistantPalette extends JDialog{
 		return new State(searchField.getText(), searchModes(), showIgnored, switch(rowsList.getSelectedValue()){
 			case DiagnosticRow d -> ResearchAssistantService.identity(d.diagnostic());
 			case null, default -> null;
-		}, rowsList.getSelectedIndex(), Set.copyOf(toggled), selectedOnlyCheckBox.isSelected());
+		}, rowsList.getSelectedIndex(), Set.copyOf(toggled), selectedOnlyCheckBox.isSelected(), selectedCategory());
 	}
 
 	/**
@@ -827,15 +1108,29 @@ final class ResearchAssistantPalette extends JDialog{
 		split.active().forEach(d -> entries.add(new FindingsExport.Entry(d, false)));
 		split.ignored().forEach(d -> entries.add(new FindingsExport.Entry(d, true)));
 
+		//a table (CSV) to filter and sort, or a page (HTML) to read and to send
+		final FileNameExtensionFilter csv = new FileNameExtensionFilter(I18N.t("assistant.export.format.csv"), "csv");
+		final FileNameExtensionFilter html = new FileNameExtensionFilter(I18N.t("assistant.export.format.html"), "html", "htm");
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle(I18N.t("assistant.export"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.addChoosableFileFilter(csv);
+		chooser.addChoosableFileFilter(html);
+		chooser.setFileFilter(csv);
 		chooser.setSelectedFile(new File("assistant-findings.csv"));
+		//the name follows the format the user chooses, until they type their own
+		chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, e -> {
+			final File selected = chooser.getSelectedFile();
+			if(selected != null && selected.getName().startsWith("assistant-findings."))
+				chooser.setSelectedFile(new File("assistant-findings." + (chooser.getFileFilter() == html? "html": "csv")));
+		});
 		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 
 		File file = chooser.getSelectedFile();
-		if(!file.getName().toLowerCase(Locale.ROOT).endsWith(".csv"))
-			file = new File(file.getParentFile(), file.getName() + ".csv");
+		final String lowerName = file.getName().toLowerCase(Locale.ROOT);
+		if(!lowerName.endsWith(".csv") && !lowerName.endsWith(".html") && !lowerName.endsWith(".htm"))
+			file = new File(file.getParentFile(), file.getName() + (chooser.getFileFilter() == html? ".html": ".csv"));
 		if(file.exists() && JOptionPane.showConfirmDialog(this, I18N.tf("assistant.export.overwrite", file.getName()),
 				I18N.t("assistant.export"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
 			return;
@@ -844,7 +1139,7 @@ final class ResearchAssistantPalette extends JDialog{
 		final File target = file;
 		CompletableFuture.runAsync(() -> {
 			try{
-				FindingsExport.write(target.toPath(), entries);
+				FindingsExport.writeAs(target.toPath(), entries);
 			}
 			catch(final IOException ioe){
 				throw new UncheckedIOException(ioe);
@@ -899,6 +1194,8 @@ final class ResearchAssistantPalette extends JDialog{
 				final List<DiagnosticAction> actions = DiagnosticActions.of(d.diagnostic());
 				//the editor the action opens is modal: when it returns the user is done, and the findings may have changed
 				final DiagnosticAction chosen = DiagnosticActions.forSlot(actions, index);
+				if(chosen != null)
+					count(d.diagnostic(), AssistantStatistics.Event.ACTED);
 				yield (chosen != null
 					? () -> {
 						chosen.execute(context);
@@ -974,6 +1271,8 @@ final class ResearchAssistantPalette extends JDialog{
 
 		final List<Diagnostic> before = diagnostics;
 		final State state = currentState();
+		if(rowsList.getSelectedValue() instanceof DiagnosticRow row)
+			count(row.diagnostic(), AssistantStatistics.Event.OPENED);
 		dispose();
 		SwingUtilities.invokeLater(() -> {
 			OpenRecordsAction.open(context.owner(), model, records.getFirst());
@@ -998,9 +1297,15 @@ final class ResearchAssistantPalette extends JDialog{
 		}
 		if(!diagnostic.recordIds().isEmpty())
 			hints.append("<br><b>").append(escape(I18N.tf("assistant.diagnostic.key", shortcut("U"), I18N.t("assistant.where_used")))).append("</b>");
-		if(diagnostic.isIgnorable())
+		//the main window can show the individual of the finding in its view
+		if(service.viewableRecord(context.model(), diagnostic.recordIds()) != null)
+			hints.append("<br><b>").append(escape(I18N.tf("assistant.diagnostic.key", shortcut("G"), I18N.t("assistant.show_in_view")))).append("</b>");
+		if(diagnostic.isIgnorable()){
 			hints.append("<br><b>").append(escape(I18N.tf("assistant.diagnostic.key", shortcut("D"),
 				I18N.t(showIgnored? "assistant.restore": "assistant.ignore")))).append("</b>");
+			hints.append("<br><b>").append(escape(I18N.tf("assistant.diagnostic.key", shortcut("Shift+D"), I18N.t("assistant.ignore.more"))))
+				.append("</b>");
+		}
 		//an empty line separates the keys from the description
 		return (hints.isEmpty()? "": "<br>" + hints);
 	}

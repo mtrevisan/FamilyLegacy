@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -207,7 +208,7 @@ public class CitationAssistantDialog extends JDialog{
 			sb.append(part.label()).append(": ").append(part.value()).append('\n');
 		if(!result.unrecognized().isEmpty())
 			sb.append('\n').append(I18N.t("dialog.citation_assistant.unrecognized")).append(':').append(' ')
-				.append(String.join("; ", result.unrecognized())).append('\n');
+				.append(Sentences.items(result.unrecognized())).append('\n');
 		for(final String note : result.notes())
 			sb.append('\n').append(note);
 		findingsArea.setText(sb.toString());

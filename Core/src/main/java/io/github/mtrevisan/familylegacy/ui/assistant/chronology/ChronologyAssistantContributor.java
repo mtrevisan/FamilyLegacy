@@ -26,9 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -36,6 +38,19 @@ import java.util.List;
  * diagnostics of the Research Assistant. It only reports and explains: it never changes the data.
  */
 public final class ChronologyAssistantContributor implements AssistantContributor{
+
+	private final Supplier<AssistantTuning> tuning;
+
+
+	public ChronologyAssistantContributor(){
+		this(AssistantTuning::load);
+	}
+
+	/** @param tuning gives the numbers of the user (the ages and the gestation: the tests give the defaults, not the preferences) */
+	public ChronologyAssistantContributor(final Supplier<AssistantTuning> tuning){
+		this.tuning = tuning;
+	}
+
 
 	@Override
 	public List<AssistantAction> actions(){
@@ -45,7 +60,7 @@ public final class ChronologyAssistantContributor implements AssistantContributo
 	@Override
 	public List<DiagnosticProvider> diagnosticProviders(){
 		return List.of(context -> (context.model() != null
-			? ChronologyChecker.check(ChronologyDataLoader.load(context.model()))
+			? ChronologyChecker.check(ChronologyDataLoader.load(context.model()), ChronologyChecker.Rules.of(tuning.get()))
 			: List.of()));
 	}
 

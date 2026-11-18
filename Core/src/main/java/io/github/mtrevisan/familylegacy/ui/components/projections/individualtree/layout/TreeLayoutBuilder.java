@@ -82,6 +82,9 @@ public final class TreeLayoutBuilder{
 
 
 	public static final int GENERATION_SEPARATOR_SIZE = 20;
+	/** Canvas insets shared with the Sugiyama view, so both views have the same extents. */
+	public static final int VERTICAL_INSETS = 0;
+	public static final int HORIZONTAL_INSETS = 10;
 
 
 	private TreeLayoutBuilder(){}
@@ -120,7 +123,7 @@ public final class TreeLayoutBuilder{
 		final int maxLeafUnits = (rootNode != null? (1 << maxDepth): 1);
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
-		final String mainPanelConstraints = (isVertical? "ins 0": "ins 10");
+		final String mainPanelConstraints = (isVertical? "ins " + VERTICAL_INSETS: "ins " + HORIZONTAL_INSETS);
 		final String primaryConstraints = buildPrimaryConstraints(maxDepth);
 		final String secondaryConstraints = buildSecondaryConstraints(maxLeafUnits);
 		if(isVertical)
@@ -224,7 +227,8 @@ public final class TreeLayoutBuilder{
 			final TreeNode current = stack.pop();
 			final int currentDepth = depthMap.get(current);
 
-			if(currentDepth > maxDepth)
+			//a node without parents shows an empty couple: a row of only those would be an empty gap above the tree
+			if(currentDepth > maxDepth && (current.getFather() != null || current.getMother() != null))
 				maxDepth = currentDepth;
 
 			if(currentDepth < maxAncestors){
@@ -286,7 +290,7 @@ public final class TreeLayoutBuilder{
 		for(int i = 0; i < totalLeafUnits; i ++){
 			if(i > 0)
 				constraints.append(PartnersPanel.GROUP_SEPARATION);
-			constraints.append("[grow,center]");
+			constraints.append("[grow,center,sg col]");
 		}
 		return constraints.toString();
 	}

@@ -71,6 +71,22 @@ The assistant window and its counter in the toolbar follow the level too: a basi
 - **View > Privacy**: what the views show, according to the privacy of each record. See [Navigating the tree](navigating.md#privacy).
 - **View > Order of Children, Partners and Dossier**: how children, partners and the events and attributes of the dossier are sorted. See [Navigating the tree](navigating.md#order-of-children-partners-and-dossier).
 
+## Research Assistant
+
+**Settings > Research Assistant...** is how you decide what the [Research Assistant](assistant.md) shows and when. It never changes the data; every choice is kept as soon as you make it, and used the next time the findings are computed.
+
+| Setting | Default | Meaning |
+|---|---|---|
+| Show the count of the findings in the toolbar | on | The **Assistant** indicator. When it is hidden it computes nothing in the background; the palette still computes its findings when you open it. |
+| The indicator blinks when a new error appears | on | A few seconds, once, when the number of errors goes up (not at the first count). |
+| The palette opens again after an action when the findings changed | on | After you act on a finding and close its editor. Off: you are left to your work. |
+| Assistants that look for findings: **Palette** | all on | An assistant switched off is not asked for its findings, which saves its time on a large file; its tools stay in the palette. |
+| Assistants that look for findings: **Indicator** | all on | The indicator can count only some of the assistants (the ones that are slow, for instance) while the palette has them all. An assistant that is off for the palette is off for the indicator too. |
+| **Last time** | | Next to each assistant, how long it took the last time it looked for findings: on a large file it tells which one to switch off (the comparison of the individuals and the consanguinity are the slow ones). An assistant is not asked again while the records it reads are the same ones, so after an edit of something it does not read (an event, for the consanguinity) the time is the one of the last real look. |
+| Keep counts of what I do with the findings | off | Counts, for each **kind** of finding, how many were listed and how many you acted on, opened, showed in the window, ignored, put aside or showed again, and how high in the list the ones you acted on were. **Nothing about your tree** is counted: no name, date, identifier or text, only the kind of a finding (the same in every language) and a number. The counts are kept in the file `assistant-statistics.txt`, in the folder of the preferences (**Settings > Open preferences folder...**), and **add up over the runs**; they are kept apart for each set of numbers of the assistants, since counts made with other weights say something else. **Statistics...** shows them in a table, **Copy as Text** copies them to give them to whoever asks for them, and **Start Again** forgets them. They are never sent anywhere. |
+
+The other tabs of the same window (**Chronology**, **Gaps**, **Plan**, **Context**) hold the numbers that those assistants use as conventions, each in its range (hover a number to see the range and the default). **Chronology**: the youngest and oldest age of a mother and of a father at a birth, the longest time from the death of the father to a birth, the longest lifespan taken to be possible, the shortest time between the births of children of the same mother and the longest between twins. **Gaps**: the years after the birth from which an individual is probably or certainly dead, the years of a generation, the usefulness from which a gap is high or medium, and the weight (0 to 100) of each kind of gap. **Plan** and **Context**: the same for the steps of the plan and for the impacts of the historic context. They are rules of thumb that are not calibrated on real research, which is why you can change them; they only change what is suggested and in which order, never the data, and **Defaults** in each tab restores its numbers. A limit that would be out of order (a medium level above the high one, a probable death after the certain one) is brought back.
+
 ## Identity Assistant
 
 **Settings > Identity Assistant...** sets what the [Identity Assistant](assistant.md) proposes. It changes only which possible duplicates are shown, never the data; the values are conventions that are not calibrated on real data, which is why you can change them. The values are saved when you close the dialog (with OK or Esc). 
@@ -81,6 +97,6 @@ The assistant window and its counter in the toolbar follow the level too: a basi
 | Most pairs of individuals proposed | 100 | The ones with the highest score. |
 | Similarity of a strong candidate (high confidence) | 90 | From this score a pair is a warning and the confidence proposed for its hypothesis is high. |
 | Similarity of medium confidence | 70 | From this score the confidence proposed is medium; below it, low. It cannot be above the previous one. |
-| Match probability (%) from which other records are proposed | 70 | For groups, places, sources, repositories, media, cultural norms and historic events. From 50 to 99. |
+| Match probability (%) from which other records are proposed | 70 | For groups, sources, repositories, media, cultural norms and historic events. From 50 to 99. |
 
 **Defaults** restores the values of the table. The new values are used the next time the findings are computed.

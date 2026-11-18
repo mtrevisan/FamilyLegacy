@@ -141,8 +141,11 @@ public class FamilyLegacyFrame extends JFrame{
 		this.treeType = treeType;
 
 		this.model = model;
-		if(assistant != null)
+		if(assistant != null){
 			assistant.install(this::model, this::readOnlyModel, this::currentFilePath, this::currentSelectionId);
+			//the assistant can show the individual of a finding in the view
+			assistant.installRecordViewer(this::loadRoot);
+		}
 		DialogEscapeSupport.install();
 		DialogPlacement.install();
 		history = new ModelHistory(model);

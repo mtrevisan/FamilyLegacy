@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -307,7 +308,7 @@ final class RelationshipChecker{
 					ids.addAll(parent.getValue());
 					ids.addAll(marriage);
 					findings.add(finding(Diagnostic.Severity.ERROR, "child_married_to_parent", ids, null, name(data, childId),
-						name(data, parentId), String.join(", ", parent.getValue()), String.join(", ", marriage)));
+						name(data, parentId), Sentences.list(parent.getValue()), Sentences.list(marriage)));
 				}
 
 				final Map<String, List<String>> grandparents = parentsOf.get(parentId);
@@ -323,8 +324,8 @@ final class RelationshipChecker{
 					ids.addAll(grandparents.get(commonId));
 					ids.addAll(parents.get(commonId));
 					findings.add(finding(Diagnostic.Severity.ERROR, "sibling_and_parent", ids, null,
-						name(data, childId), name(data, parentId), name(data, commonId), String.join(", ", parent.getValue()),
-						String.join(", ", grandparents.get(commonId)), String.join(", ", parents.get(commonId))));
+						name(data, childId), name(data, parentId), name(data, commonId), Sentences.list(parent.getValue()),
+						Sentences.list(grandparents.get(commonId)), Sentences.list(parents.get(commonId))));
 				}
 			}
 		}
@@ -346,7 +347,7 @@ final class RelationshipChecker{
 
 		/** @return the identifiers, to put in a text between brackets (several are separated by commas) */
 		String ids(){
-			return String.join(", ", idList());
+			return Sentences.list(idList());
 		}
 
 		List<String> idList(){
@@ -363,7 +364,7 @@ final class RelationshipChecker{
 
 	/** @return the identifiers of the relationships, to put in a text between brackets (several are separated by commas) */
 	private static String idsOf(final List<RelationshipData.Relationship> relationships){
-		return String.join(", ", relationships.stream()
+		return Sentences.list(relationships.stream()
 			.map(RelationshipData.Relationship::id)
 			.toList());
 	}
@@ -515,7 +516,7 @@ final class RelationshipChecker{
 			return null;
 
 		return (civil? new MarriageEvidence(CIVIL_SPOUSE, (license? EVENT_LICENSE: civilSources.getFirst()))
-			: new MarriageEvidence(RELIGIOUS_SPOUSE, String.join(", ", religious.stream().distinct().toList())));
+			: new MarriageEvidence(RELIGIOUS_SPOUSE, Sentences.list(religious.stream().distinct().toList())));
 	}
 
 	/** The first day of 1806, the year the civil marriage of the Napoleonic Kingdom of Italy came into force (a Julian Day Number). */

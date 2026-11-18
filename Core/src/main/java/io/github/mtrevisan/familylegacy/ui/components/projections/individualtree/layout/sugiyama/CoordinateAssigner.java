@@ -88,8 +88,8 @@ public class CoordinateAssigner{
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
 		final String layoutConstraints = (isVertical
-			? "fillx,ins " + PartnersPanel.GROUP_SEPARATION + ",gap " + PartnersPanel.GROUP_SEPARATION + StringUtils.SPACE + TreeLayoutBuilder.GENERATION_SEPARATOR_SIZE
-			: "filly,ins " + PartnersPanel.GROUP_SEPARATION + ",gap " + TreeLayoutBuilder.GENERATION_SEPARATOR_SIZE + StringUtils.SPACE + PartnersPanel.GROUP_SEPARATION);
+			? "fillx,ins " + TreeLayoutBuilder.VERTICAL_INSETS + ",gap " + PartnersPanel.GROUP_SEPARATION + StringUtils.SPACE + TreeLayoutBuilder.GENERATION_SEPARATOR_SIZE
+			: "filly,ins " + TreeLayoutBuilder.HORIZONTAL_INSETS + ",gap " + TreeLayoutBuilder.GENERATION_SEPARATOR_SIZE + StringUtils.SPACE + PartnersPanel.GROUP_SEPARATION);
 		canvas.setLayout(new MigLayout(layoutConstraints, StringUtils.EMPTY, StringUtils.EMPTY));
 
 		final Map<String, TreeNode> treeNodeById = buildTreeNodeIndex(layers);
@@ -166,7 +166,8 @@ public class CoordinateAssigner{
 			final PartnersPanelFactory panelFactory, final ParentPanelIndex parentIndex, final boolean isVertical,
 			final int startGridRow, final Map<TreeNode, PartnersPanel> existingPanels, final TreeLayout treeLayout,
 			final GenealogyRepository genealogyRepository, final PartnerCycleHandler partnerCycleHandler, final Map<TreeNode, PartnersPanel> nodeToPanelMap){
-		final String layerLayout = (isVertical? "ins 0,gapx 40,flowx": "ins 0,gapy 40,flowy");
+		final String layerLayout = (isVertical? "ins 0,gapx " + PartnersPanel.GROUP_SEPARATION + ",flowx"
+			: "ins 0,gapy " + PartnersPanel.GROUP_SEPARATION + ",flowy");
 		final Map<String, PartnersPanel> byCoupleKey = new HashMap<>();
 
 		int gridRow = startGridRow;

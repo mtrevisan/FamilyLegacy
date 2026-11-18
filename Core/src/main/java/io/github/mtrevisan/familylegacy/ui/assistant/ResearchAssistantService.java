@@ -24,7 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -40,15 +45,21 @@ import java.awt.Dialog;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -78,9 +89,17 @@ public final class ResearchAssistantService{
 
 
 	private final List<AssistantAction> actions = new CopyOnWriteArrayList<>();
-	private final List<DiagnosticProvider> diagnosticProviders = new CopyOnWriteArrayList<>();
+	private final List<Registered> diagnosticProviders = new CopyOnWriteArrayList<>();
 
 	private final IgnoredFindings ignoredFindings;
+	private final AssistantSettings settings;
+	private final AssistantStatistics statistics;
+	/** How long each assistant took the last time (see {@link #lastDurationsMillis()}); by identifier. */
+	private final Map<String, Long> durations = new ConcurrentHashMap<>();
+	/** From how long a computation of all the assistants is written in the log, even if the log is not in debug. */
+	private static final long SLOW_MILLIS = 2_000L;
+	/** Shows a record in the main window (installed by the window; {@code null} if it cannot). */
+	private volatile Consumer<String> recordViewer;
 	/** The last computation made on a copy of the model (see {@link #diagnose(AssistantContext, DoubleConsumer)}); guarded by this. */
 	private Computation computation;
 
@@ -100,12 +119,90 @@ public final class ResearchAssistantService{
 	}
 
 	public ResearchAssistantService(final IgnoredFindings ignoredFindings){
+		this(ignoredFindings, AssistantSettings.inMemory());
+	}
+
+	public ResearchAssistantService(final IgnoredFindings ignoredFindings, final AssistantSettings settings){
+		this(ignoredFindings, settings, AssistantStatistics.inMemory(settings::isStatisticsEnabled, settings::tuning));
+	}
+
+	public ResearchAssistantService(final IgnoredFindings ignoredFindings, final AssistantSettings settings,
+			final AssistantStatistics statistics){
 		this.ignoredFindings = ignoredFindings;
+		this.settings = settings;
+		this.statistics = statistics;
+	}
+
+	/** @return the counts of what the user does with the findings (collected only if the user turned it on) */
+	public AssistantStatistics statistics(){
+		return statistics;
 	}
 
 	/** @return the findings the user ignored */
 	public IgnoredFindings ignoredFindings(){
 		return ignoredFindings;
+	}
+
+	/** @return what the user decided about the assistant itself */
+	public AssistantSettings settings(){
+		return settings;
+	}
+
+	/** An assistant that looks for findings, and one of its sources. */
+	private record Registered(AssistantContributor contributor, DiagnosticProvider provider){}
+
+	/** Who is asking for the findings: the palette, or the indicator of the main window (that the user can limit to some assistants). */
+	public enum Audience{
+		PALETTE,
+		INDICATOR
+	}
+
+	/** @return the assistants that look for findings (the ones the user can switch off), in the order they were registered */
+	public List<AssistantContributor> assistantsWithFindings(){
+		return diagnosticProviders.stream()
+			.map(Registered::contributor)
+			.distinct()
+			.toList();
+	}
+
+	/** @return the sources of findings that are switched on for the audience */
+	private List<Registered> providersFor(final Audience audience){
+		return diagnosticProviders.stream()
+			.filter(registered -> (audience == Audience.INDICATOR
+				? settings.isEnabledForIndicator(registered.contributor().id())
+				: settings.isEnabled(registered.contributor().id())))
+			.toList();
+	}
+
+	/**
+	 * Tells the assistant how to show a record in the main window (the window does: it selects the individual in its view).
+	 *
+	 * @param viewer shows the record whose identifier it is given, on the event dispatch thread; {@code null} if it cannot
+	 */
+	public void setRecordViewer(final Consumer<String> viewer){
+		recordViewer = viewer;
+	}
+
+	/**
+	 * @param model     the model
+	 * @param recordIds the records of a finding
+	 * @return the first of them that the main window can show (an individual), or {@code null} if none can, or if the window cannot
+	 */
+	public String viewableRecord(final FLEFModel model, final List<String> recordIds){
+		if(recordViewer == null || model == null)
+			return null;
+
+		for(final String id : recordIds)
+			if(IndividualReader.isOfType(model.getRecordById(id)))
+				return id;
+		return null;
+	}
+
+	/** Shows the record in the main window, if the window can (call it on the event dispatch thread). */
+	public void showRecord(final String recordId){
+		final Consumer<String> viewer = recordViewer;
+		if(viewer != null && recordId != null)
+			viewer.accept(recordId);
 	}
 
 
@@ -122,7 +219,8 @@ public final class ResearchAssistantService{
 				throw new IllegalArgumentException("Duplicate assistant action: " + action.id());
 
 		actions.addAll(contributor.actions());
-		diagnosticProviders.addAll(contributor.diagnosticProviders());
+		for(final DiagnosticProvider provider : contributor.diagnosticProviders())
+			diagnosticProviders.add(new Registered(contributor, provider));
 	}
 
 	/**
@@ -193,18 +291,30 @@ public final class ResearchAssistantService{
 	 * @return the findings, the most serious first
 	 */
 	public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+		return diagnose(context, progress, Audience.PALETTE);
+	}
+
+	/**
+	 * The same, for the audience that asks: the palette gets the findings of every assistant the user did not switch off, the indicator
+	 * only of the ones the user did not exclude from it either.
+	 *
+	 * @param audience who asks for the findings
+	 */
+	public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress, final Audience audience){
+		final List<Registered> providers = providersFor(audience);
 		//what is computed on a copy of the model that nobody changes is true as long as the copy is the same one: the indicator of the
 		//window and the palette ask for the findings of the same copy (the history gives the same one until the model changes), so the
-		//palette does not compute them again, and if the indicator is still computing it waits for it instead of starting over
+		//palette does not compute them again, and if the indicator is still computing it waits for it instead of starting over (only if
+		//they ask for the same assistants: the user can limit the indicator to some of them)
 		if(!context.isReadingCopy())
-			return compute(context, progress);
+			return compute(context, providers, progress);
 
 		final Computation mine;
 		final boolean owner;
 		synchronized(this){
-			owner = (computation == null || computation.model != context.model());
+			owner = (computation == null || computation.model != context.model() || !computation.providers.equals(providers));
 			if(owner)
-				computation = new Computation(context.model());
+				computation = new Computation(context.model(), providers);
 			mine = computation;
 		}
 		mine.listeners.add(progress);
@@ -215,12 +325,12 @@ public final class ResearchAssistantService{
 			}
 			catch(final CompletionException ce){
 				//the one that was computing failed: this one computes for itself
-				return compute(context, progress);
+				return compute(context, providers, progress);
 			}
 		}
 
 		try{
-			final List<Diagnostic> result = List.copyOf(compute(context, fraction -> {
+			final List<Diagnostic> result = List.copyOf(compute(context, providers, fraction -> {
 				mine.progress = fraction;
 				for(final DoubleConsumer listener : mine.listeners)
 					listener.accept(fraction);
@@ -242,40 +352,142 @@ public final class ResearchAssistantService{
 	private static final class Computation{
 
 		private final FLEFModel model;
+		/** The sources of findings it asked: another set is another computation. */
+		private final List<Registered> providers;
 		private final CompletableFuture<List<Diagnostic>> future = new CompletableFuture<>();
 		private final List<DoubleConsumer> listeners = new CopyOnWriteArrayList<>();
 		private volatile double progress;
 
 
-		private Computation(final FLEFModel model){
+		private Computation(final FLEFModel model, final List<Registered> providers){
 			this.model = model;
+			this.providers = providers;
 		}
 
 	}
 
-	private List<Diagnostic> compute(final AssistantContext context, final DoubleConsumer progress){
+	private List<Diagnostic> compute(final AssistantContext context, final List<Registered> providers, final DoubleConsumer progress){
 		final List<Diagnostic> result = new ArrayList<>();
-		final int count = diagnosticProviders.size();
+		final Map<String, Long> spent = new LinkedHashMap<>();
+		final int count = providers.size();
 		int done = 0;
 		progress.accept(0.);
-		for(final DiagnosticProvider provider : diagnosticProviders){
+		for(final Registered registered : providers){
 			final int index = done;
+			final long start = System.nanoTime();
 			try{
-				result.addAll(provider.diagnose(context, fraction -> progress.accept((index + Math.max(0., Math.min(1., fraction))) / count)));
+				final List<Diagnostic> kept = keptFindings(registered.provider(), context);
+				if(kept != null)
+					result.addAll(kept);
+				else{
+					final List<Diagnostic> computed = registered.provider().diagnose(context,
+						fraction -> progress.accept((index + Math.max(0., Math.min(1., fraction))) / count));
+					result.addAll(computed);
+					keep(registered.provider(), context, computed);
+				}
 			}
 			catch(final RuntimeException re){
-				LOGGER.warn("Diagnostic provider {} failed: {}", provider.getClass().getName(), re.toString());
+				LOGGER.warn("Diagnostic provider {} failed: {}", registered.provider().getClass().getName(), re.toString());
 				LOGGER.debug("Diagnostic provider failure", re);
+				keptFindings.remove(registered.provider());
+				//a broken assistant must not be mistaken for an assistant with nothing to say: the user is told, and the log has the cause
+				result.add(failure(registered.contributor()));
 			}
+			spent.merge(registered.contributor().id(), (System.nanoTime() - start) / 1_000_000L, Long::sum);
 			done ++;
 			progress.accept((double)done / count);
 		}
+		recordDurations(spent);
 		//the most serious first; among the same severity, the ones of the same category and kind together; among the same kind, the ones that matter
 		//more (e.g. the more likely duplicates), then by title
 		result.sort(Comparator.comparing(Diagnostic::severity).thenComparing(Diagnostic::category).thenComparing(Diagnostic::kind)
 			.thenComparing(Diagnostic::rank, Comparator.reverseOrder())
 			.thenComparing(Diagnostic::title));
 		return result;
+	}
+
+	/** What a provider found the last time, and what it was found from (see {@link DiagnosticProvider#dependsOn()}). */
+	private record Kept(FLEFModel model, Object environment, LocalDate day, List<Diagnostic> findings){}
+
+	/** The findings the providers that say what they depend on gave the last time, on a copy of the model that nobody changes. */
+	private final Map<DiagnosticProvider, Kept> keptFindings = new ConcurrentHashMap<>();
+
+	/** @return whether the findings of a provider can be kept and given again: the model is a copy that nobody changes, and what it
+	 * says it depends on is only the records */
+	private static boolean isKeepable(final DiagnosticProvider provider, final AssistantContext context){
+		//what is hidden by the privacy depends on the relatives of a record, not only on the kinds a provider names
+		return (context.isReadingCopy() && provider.dependsOn() != null && PrivacyService.policy() == PrivacyPolicy.SHOW_ALL);
+	}
+
+	/** @return the findings of the last time if none of the records they depend on changed since, otherwise {@code null} */
+	private List<Diagnostic> keptFindings(final DiagnosticProvider provider, final AssistantContext context){
+		if(!isKeepable(provider, context))
+			return null;
+
+		final Kept kept = keptFindings.get(provider);
+		if(kept == null || !Objects.equals(kept.environment(), provider.environment()) || !LocalDate.now().equals(kept.day())
+				|| !sameRecords(kept.model(), context.model(), provider.dependsOn()))
+			return null;
+
+		return kept.findings();
+	}
+
+	private void keep(final DiagnosticProvider provider, final AssistantContext context, final List<Diagnostic> findings){
+		if(isKeepable(provider, context))
+			keptFindings.put(provider, new Kept(context.model(), provider.environment(), LocalDate.now(), List.copyOf(findings)));
+		else
+			keptFindings.remove(provider);
+	}
+
+	/**
+	 * @return whether the records of the kinds are the very same ones in the two copies of the model: the copies that the history gives
+	 * share the records that did not change, and nobody changes them, so the same record is the same content (the other way round is
+	 * not true: the same content may be another record, and then the findings are computed again)
+	 */
+	static boolean sameRecords(final FLEFModel before, final FLEFModel after, final Set<String> kinds){
+		if(before == after)
+			return true;
+
+		for(final String kind : kinds){
+			final List<FLEFRecord> previous = before.getRecordsByType(kind);
+			final List<FLEFRecord> current = after.getRecordsByType(kind);
+			if(previous.size() != current.size())
+				return false;
+
+			for(int i = 0, size = previous.size(); i < size; i ++)
+				if(previous.get(i) != current.get(i))
+					return false;
+		}
+		return true;
+	}
+
+	/**
+	 * @return how long each assistant took, in milliseconds, the last time it was asked for its findings (by the identifier of the
+	 * assistant): it tells which one is slow on a big file. An assistant that was not asked since the start has no entry.
+	 */
+	public Map<String, Long> lastDurationsMillis(){
+		return Map.copyOf(durations);
+	}
+
+	private void recordDurations(final Map<String, Long> spent){
+		durations.putAll(spent);
+		if(LOGGER.isDebugEnabled())
+			LOGGER.debug("Time of the assistants (ms): {}", spent);
+		final long total = spent.values().stream().mapToLong(Long::longValue).sum();
+		//a computation that is long is worth knowing about, with the assistant that took the most
+		if(total >= SLOW_MILLIS)
+			LOGGER.info("The assistants took {} ms: {}", total, spent);
+	}
+
+	/** The kind of the finding that says that an assistant failed. */
+	static final String KIND_FAILED = "assistant.provider_failed";
+
+	/** @return the finding that tells the user an assistant could not check the model (the cause is in the log) */
+	private static Diagnostic failure(final AssistantContributor contributor){
+		return new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.DIAGNOSTICS,
+			I18N.tf("assistant.provider_failed.title", contributor.name()),
+			I18N.tf("assistant.provider_failed.explanation", contributor.name()), List.of(), null,
+			DiagnosticKeys.of(KIND_FAILED, List.of(), contributor.id()));
 	}
 
 	/** @return the diagnostics that match a query (all of them if the query is empty) */
@@ -448,7 +660,8 @@ public final class ResearchAssistantService{
 	 */
 	void reopenIfChanged(final AssistantContext context, final List<Diagnostic> before,
 			final ResearchAssistantPalette.State state){
-		if(before == null)
+		//the user may not want the palette to come back (see the settings)
+		if(before == null || !settings.isReopenAfterAction())
 			return;
 
 		//the copy of the model is taken now, on the event dispatch thread and after the edit, and read away from it

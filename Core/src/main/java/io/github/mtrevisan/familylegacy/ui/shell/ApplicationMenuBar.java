@@ -151,7 +151,8 @@ final class ApplicationMenuBar{
 		bar.add(createNavigateMenu());
 		bar.add(createBookmarkMenu());
 		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
-		bar.add(SettingsMenu.create(frame));
+		final ResearchAssistantPort assistant = frame.assistant();
+		bar.add(SettingsMenu.create(frame, (assistant != null? () -> assistant.openSettings(frame): null)));
 		bar.add(new HelpMenu(frame)
 			.create());
 		for(int i = 0; i < bar.getMenuCount(); i ++)

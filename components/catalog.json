@@ -6,7 +6,72 @@
 			"description": "Noto fonts for Chinese, Japanese, Korean, Arabic, Hebrew, Thai, Hindi and Bengali",
 			"target": "fonts",
 			"asset": "fonts.zip",
+			"release": "components",
 			"files": ["NotoSans-Regular.ttf"]
+		},
+		{
+			"id": "ephemeris",
+			"name": "Astronomical ephemeris",
+			"description": "Precise positions of the Sun and the Moon: seasons, lunar months and the astronomical calendars (without it a simpler calculation is used)",
+			"target": "plugins",
+			"asset": "ephemeris.jar",
+			"release": "components",
+			"files": ["ephemeris.jar"]
+		},
+		{
+			"id": "importer-gedcom",
+			"name": "GEDCOM importer",
+			"description": "Opens GEDCOM files (.ged)",
+			"target": "plugins",
+			"asset": "importer-gedcom.jar",
+			"release": "components",
+			"files": ["importer-gedcom.jar"]
+		},
+		{
+			"id": "importer-gramps",
+			"name": "Gramps importer",
+			"description": "Opens Gramps XML files (.gramps); it needs the GEDCOM importer, that is installed with it",
+			"target": "plugins",
+			"asset": "importer-gramps.jar",
+			"release": "components",
+			"files": ["importer-gramps.jar"],
+			"requires": ["importer-gedcom"]
+		},
+		{
+			"id": "report-pdf",
+			"name": "PDF reports",
+			"description": "Prints the reports and the charts as PDF files",
+			"target": "plugins",
+			"asset": "report-pdf.jar",
+			"release": "components",
+			"files": ["report-pdf.jar"]
+		},
+		{
+			"id": "report-docx",
+			"name": "Word reports",
+			"description": "Writes the reports as Word documents (.docx)",
+			"target": "plugins",
+			"asset": "report-docx.jar",
+			"release": "components",
+			"files": ["report-docx.jar"]
+		},
+		{
+			"id": "report-epub",
+			"name": "EPUB reports",
+			"description": "Writes the reports as e-books (.epub)",
+			"target": "plugins",
+			"asset": "report-epub.jar",
+			"release": "components",
+			"files": ["report-epub.jar"]
+		},
+		{
+			"id": "report-site",
+			"name": "Web site reports",
+			"description": "Writes the reports as a web site, a folder of HTML pages",
+			"target": "plugins",
+			"asset": "report-site.jar",
+			"release": "components",
+			"files": ["report-site.jar"]
 		},
 		{
 			"id": "facedetector",

@@ -31,6 +31,7 @@ import java.awt.Window;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
@@ -64,6 +65,16 @@ public interface ResearchAssistantPort{
 	 */
 	void install(Supplier<FLEFModel> modelSupplier, Supplier<FLEFModel> snapshotSupplier, Supplier<String> scopeSupplier,
 		Supplier<String> selectionSupplier);
+
+	/**
+	 * Tells the assistant how to show a record in the window: it is what a finding offers with "Show in the main window".
+	 *
+	 * @param viewer shows the individual whose identifier it is given in the view (called on the event dispatch thread)
+	 */
+	default void installRecordViewer(final Consumer<String> viewer){}
+
+	/** Opens the settings of the assistant (the indicator, the palette, the assistants that look for findings). */
+	default void openSettings(final Window owner){}
 
 	/** Opens the assistant on what the user is doing now. */
 	void open();

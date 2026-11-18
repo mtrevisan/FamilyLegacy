@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.Normalizer;
@@ -232,7 +233,7 @@ final class PlaceChecker{
 
 		final Diagnostic diagnostic = new Diagnostic((sameType? Diagnostic.Severity.WARNING: Diagnostic.Severity.INFORMATION),
 			AssistantCategory.PLACES, I18N.tf("place.possible_duplicate.title", label(left), label(right)),
-			I18N.tf("place.possible_duplicate.explanation", label(left), label(right), String.join("; ", why)),
+			I18N.tf("place.possible_duplicate.explanation", label(left), label(right), Sentences.items(why)),
 			List.of(left.id(), right.id()), null,
 			DiagnosticKeys.of("place.possible_duplicate", List.of(left.id(), right.id()), name, left.type(), right.type()))
 			.withRank(left.usage() + right.usage());
@@ -335,7 +336,7 @@ final class PlaceChecker{
 			data.relations().stream()
 				.filter(r -> types.contains(r.type()) && component.contains(r.subjectId()) && component.contains(r.targetId()))
 				.forEach(r -> ids.add(r.id()));
-			final String names = String.join(", ", component.stream().map(byId::get).map(p -> p.label() + " [" + p.id() + "]").sorted().toList());
+			final String names = Sentences.list(component.stream().map(byId::get).map(p -> p.label() + " [" + p.id() + "]").sorted().toList());
 			findings.add(finding(severity, kind, new ArrayList<>(ids), I18N.tf(kind + ".title", names),
 				I18N.tf(kind + ".explanation", names), 0., null, String.valueOf(component.size())));
 		}
@@ -503,7 +504,7 @@ final class PlaceChecker{
 
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "place.no_source", List.of(place.id()),
 				I18N.tf("place.no_source.title", label(place)),
-				I18N.tf("place.no_source.explanation", label(place), String.valueOf(place.usage())),
+				I18N.tf("place.no_source.explanation", label(place), place.usage()),
 				place.usage(), null, null));
 		}
 		return findings;

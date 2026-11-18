@@ -469152,7 +469152,7 @@ event_participation EP6150 {
 event E6151 {
 	type deed
 	date.value.point {
-		value.full_date 16 APR 15010
+		value.full_date 16 APR 1510
 		calendar gregorian
 	}
 	source {
@@ -526984,7 +526984,7 @@ media M4747 {
 	kind image
 	description Gallinaro Paola 20080319
 	date.value.point {
-		value.full_date 20080319
+		value.full_date 19 MAR 2008
 		calendar gregorian
 	}
 	note {

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
@@ -148,6 +149,29 @@ class IdentityOtherKindsTest{
 				.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TYPE, "IH1"))));
 
 		Assertions.assertEquals(1, found(model).size());
+	}
+
+	/** The Place Assistant owns the possible duplicate places (it has the rules for them): the Identity Assistant leaves them alone. */
+	@Test
+	void thePlacesAreLeftToThePlaceAssistant() throws IOException{
+		final List<GEDCOMNode> roots = new GEDCOMParser().parse(new StringReader("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME John /Smith/
+			1 BIRT
+			2 DATE 1850
+			2 PLAC Treviso, Veneto, Italy
+			"""));
+		final FLEFModel model = new GEDCOMToFLEFConverter().convert(roots);
+		final FLEFRecord place = model.getRecordsByType(PlaceReader.TYPE).getFirst();
+		final FLEFRecord copy = FLEFRecord.createMainRecord("P99", PlaceReader.TYPE);
+		place.deepCopyTo(copy);
+		copy.setId("P99");
+		model.addRecord(copy);
+
+		Assertions.assertTrue(found(model).isEmpty(), found(model).stream().map(Diagnostic::title).toList().toString());
+		Assertions.assertFalse(IdentityOtherKinds.KINDS.contains(PlaceReader.TYPE.toLowerCase(java.util.Locale.ROOT)));
 	}
 
 	@Test

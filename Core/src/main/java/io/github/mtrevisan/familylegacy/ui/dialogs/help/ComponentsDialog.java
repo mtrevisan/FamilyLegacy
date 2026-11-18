@@ -83,6 +83,7 @@ public final class ComponentsDialog extends JDialog{
 	private final EntriesModel model = new EntriesModel();
 	private final JLabel status = new JLabel(" ");
 	private final JButton install = new JButton(I18N.t("dialog.components.install"));
+	private final JButton uninstall = new JButton(I18N.t("dialog.components.uninstall"));
 	private final JButton refresh = new JButton(I18N.t("dialog.components.refresh"));
 
 
@@ -106,22 +107,26 @@ public final class ComponentsDialog extends JDialog{
 		column(table, DESCRIPTION, 380);
 		column(table, SIZE, 70);
 		column(table, STATE, 130);
-		model.addTableModelListener(e -> install.setEnabled(model.selected() > 0));
+		model.addTableModelListener(e -> updateButtons());
 
 		final JScrollPane scroll = new JScrollPane(table);
-		scroll.setPreferredSize(new Dimension(880, 300));
+		scroll.setPreferredSize(new Dimension(800, 300));
 
-		final JLabel intro = new JLabel("<html>" + I18N.t("dialog.components.intro") + "</html>");
+		//(a fixed width makes the text wrap: otherwise the label is as wide as its longest line, and so is the window)
+		final JLabel intro = new JLabel("<html><body style='width: 760px'>" + I18N.t("dialog.components.intro") + "</body></html>");
 		final JPanel north = new JPanel(new BorderLayout());
 		north.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
 		north.add(intro, BorderLayout.CENTER);
 
 		install.setEnabled(false);
+		uninstall.setEnabled(false);
 		install.addActionListener(e -> installSelected());
+		uninstall.addActionListener(e -> uninstallSelected());
 		refresh.addActionListener(e -> reload());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(install);
+		buttons.add(uninstall);
 		buttons.add(refresh);
 		final JPanel south = new JPanel(new BorderLayout());
 		south.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
@@ -191,6 +196,7 @@ public final class ComponentsDialog extends JDialog{
 	void reload(){
 		status.setText(I18N.t("dialog.components.loading"));
 		install.setEnabled(false);
+		uninstall.setEnabled(false);
 		refresh.setEnabled(false);
 		final String version = ProjectInfo.getAppVersion();
 		new SwingWorker<List<ComponentManager.Entry>, Void>(){
@@ -220,9 +226,49 @@ public final class ComponentsDialog extends JDialog{
 		}.execute();
 	}
 
-	/** Installs the ticked components one after the other, each with its own progress dialog, then reads the state again. */
+	private void updateButtons(){
+		install.setEnabled(!model.selectedToInstall().isEmpty());
+		uninstall.setEnabled(!model.selectedToUninstall().isEmpty());
+	}
+
+	/** Removes the ticked components, and the installed ones that need them, after asking; then reads the state again. */
+	private void uninstallSelected(){
+		final List<ComponentManager.Entry> selected = model.withDependents(model.selectedToUninstall());
+		final List<String> names = new ArrayList<>();
+		for(final ComponentManager.Entry entry : selected)
+			names.add(nameOf(entry.component()));
+		if(selected.isEmpty() || JOptionPane.showConfirmDialog(this, I18N.tf("dialog.components.uninstall.confirm", String.join(", ", names)),
+				I18N.t("dialog.components.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION)
+			return;
+
+		final List<String> removed = new ArrayList<>();
+		final List<String> failures = new ArrayList<>();
+		for(final ComponentManager.Entry entry : selected){
+			final String name = nameOf(entry.component());
+			try{
+				manager.uninstall(entry);
+				removed.add(name);
+			}
+			catch(final IOException e){
+				failures.add(I18N.tf("dialog.components.uninstall.error", name, e.getMessage()));
+			}
+		}
+
+		reload();
+		final StringBuilder message = new StringBuilder();
+		if(!removed.isEmpty())
+			message.append(I18N.tf("dialog.components.removed", String.join(", ", removed)))
+				.append("\n\n").append(I18N.t("dialog.components.restart_removed"));
+		for(final String failure : failures)
+			message.append("\n\n").append(failure);
+		if(!message.isEmpty())
+			JOptionPane.showMessageDialog(this, message.toString().strip(), I18N.t("dialog.components.title"),
+				(failures.isEmpty()? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
+	}
+
+	/** Installs the ticked components (and the ones they need) one after the other, each with its own progress dialog, then reads the state again. */
 	private void installSelected(){
-		final List<ComponentManager.Entry> selected = model.selectedEntries();
+		final List<ComponentManager.Entry> selected = model.withRequirements(model.selectedToInstall());
 		final List<String> installed = new ArrayList<>();
 		final List<String> failures = new ArrayList<>();
 		boolean restart = false;
@@ -310,20 +356,58 @@ public final class ComponentsDialog extends JDialog{
 			fireTableDataChanged();
 		}
 
-		int selected(){
-			int count = 0;
-			for(final boolean tick : ticked)
-				if(tick)
-					count ++;
-			return count;
-		}
-
-		List<ComponentManager.Entry> selectedEntries(){
+		List<ComponentManager.Entry> selectedToInstall(){
 			final List<ComponentManager.Entry> selected = new ArrayList<>();
 			for(int i = 0; i < entries.size(); i ++)
 				if(ticked[i] && entries.get(i).canInstall())
 					selected.add(entries.get(i));
 			return selected;
+		}
+
+		List<ComponentManager.Entry> selectedToUninstall(){
+			final List<ComponentManager.Entry> selected = new ArrayList<>();
+			for(int i = 0; i < entries.size(); i ++)
+				if(ticked[i] && entries.get(i).canUninstall())
+					selected.add(entries.get(i));
+			return selected;
+		}
+
+		/** @return	The entries, each one preceded by the ones it requires that are not installed yet (without duplicates). */
+		List<ComponentManager.Entry> withRequirements(final List<ComponentManager.Entry> selected){
+			final List<ComponentManager.Entry> result = new ArrayList<>();
+			for(final ComponentManager.Entry entry : selected)
+				addWithRequirements(entry, result, 0);
+			return result;
+		}
+
+		private void addWithRequirements(final ComponentManager.Entry entry, final List<ComponentManager.Entry> result, final int depth){
+			if(result.contains(entry) || depth > entries.size())
+				return;
+
+			for(final String id : entry.component().requires())
+				for(final ComponentManager.Entry other : entries)
+					if(other.component().id().equals(id) && other.component().target().equals(entry.component().target()) && other.canInstall())
+						addWithRequirements(other, result, depth + 1);
+			result.add(entry);
+		}
+
+		/** @return	The entries, each one preceded by the installed ones that require it (without duplicates). */
+		List<ComponentManager.Entry> withDependents(final List<ComponentManager.Entry> selected){
+			final List<ComponentManager.Entry> result = new ArrayList<>();
+			for(final ComponentManager.Entry entry : selected)
+				addWithDependents(entry, result, 0);
+			return result;
+		}
+
+		private void addWithDependents(final ComponentManager.Entry entry, final List<ComponentManager.Entry> result, final int depth){
+			if(result.contains(entry) || depth > entries.size())
+				return;
+
+			for(final ComponentManager.Entry other : entries)
+				if(other.component().requires().contains(entry.component().id()) && other.component().target().equals(entry.component().target())
+						&& other.canUninstall())
+					addWithDependents(other, result, depth + 1);
+			result.add(entry);
 		}
 
 		@Override
@@ -354,7 +438,7 @@ public final class ComponentsDialog extends JDialog{
 
 		@Override
 		public boolean isCellEditable(final int row, final int column){
-			return (column == 0 && entries.get(row).canInstall());
+			return (column == 0 && (entries.get(row).canInstall() || entries.get(row).canUninstall()));
 		}
 
 		@Override

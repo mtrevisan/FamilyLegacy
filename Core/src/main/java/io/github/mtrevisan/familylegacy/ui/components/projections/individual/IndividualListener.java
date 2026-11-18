@@ -45,8 +45,6 @@ public interface IndividualListener extends EntityListener{
 	 */
 	void onIndividualSelected(IndividualPanel selectedPanel, FLEFRecord individual);
 
-	void onIndividualAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation);
-
 	void onChildAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation);
 
 	void onIndividualUnlink(IndividualPanel selectedPanel, FLEFRecord individual);

@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.tree.Side;
 import io.github.mtrevisan.familylegacy.tree.TreeMutator;
 import io.github.mtrevisan.familylegacy.tree.TreeNode;
 import io.github.mtrevisan.familylegacy.tree.TreeOperation;
@@ -160,24 +159,6 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	/* ======================================================================
 	 *                          Add and connect
 	 * ====================================================================== */
-
-	@Override
-	public void onIndividualAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
-		final Function<SexType, FLEFRecord> fn = (operation == TreeOperation.ADD
-			? this::showCreateIndividualDialog: this::showSearchIndividualDialog);
-
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
-			nodeToPanelMapSupplier.get());
-		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
-			return;
-
-		final SexType sex = (ctx.side == Side.LEFT? SexType.MALE: SexType.FEMALE);
-		final FLEFRecord individual = fn.apply(sex);
-		if(individual == null)
-			return;
-
-		performParentRelationOperation(individual, ctx, false, currentRootId.get());
-	}
 
 	@Override
 	public void onChildAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){

@@ -74,7 +74,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<RecordDialog>{
 		final String value = NoteReader.extractText(record);
 		if(StringUtils.isNotEmpty(value))
 			return GUIHelper.limitTextLength(StringUtils.replaceChars(value, '\n', '|'));
-		return "…";
+		return I18N.t("dialog.ellipsis");
 	}
 
 	@Override

@@ -36,8 +36,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;

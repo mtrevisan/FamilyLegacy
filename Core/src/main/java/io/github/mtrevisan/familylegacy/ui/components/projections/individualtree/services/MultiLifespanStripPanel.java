@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.EventIndex;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -1062,16 +1063,11 @@ public final class MultiLifespanStripPanel extends JPanel{
 		String current = text;
 		while(current.length() > 1 && fm.stringWidth(current + "…") > maxWidth)
 			current = current.substring(0, current.length() - 1);
-		return current + "…";
+		return current + I18N.t("dialog.ellipsis");
 	}
 
 	private static String escape(final String s){
-		if(s == null)
-			return StringUtils.EMPTY;
-
-		return s.replace("&", "&amp;")
-			.replace("<", "&lt;")
-			.replace(">", "&gt;");
+		return ReportDialog.escape(s);
 	}
 
 	/**

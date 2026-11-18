@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
@@ -133,7 +134,7 @@ final class ConclusionChecker{
 				continue;
 
 			final String type = events.getFirst().type();
-			final String dates = String.join("; ", events.stream()
+			final String dates = Sentences.items(events.stream()
 				.map(e -> e.eventId() + ": " + (e.dateText() != null && !e.dateText().isBlank()? e.dateText(): "?")
 					+ (e.placeId() != null? " @ " + e.placeId(): StringUtils.EMPTY))
 				.toList());
@@ -218,7 +219,7 @@ final class ConclusionChecker{
 			if(isResolved(competing, data.conclusions()))
 				continue;
 
-			final String names = String.join(", ", parents.keySet().stream()
+			final String names = Sentences.list(parents.keySet().stream()
 				.map(id -> data.persons().get(id).name())
 				.toList());
 			if(parents.size() > MAX_BIOLOGICAL_PARENTS)
@@ -249,7 +250,7 @@ final class ConclusionChecker{
 			ids.addAll(competing);
 			findings.add(finding(Diagnostic.Severity.WARNING, "conflicting_relationships", ids, "relationship_type", competing,
 				child.name(), parent.name(),
-				String.join(", ", types),
+				Sentences.list(types),
 				suggestion(links.stream().collect(Collectors.toMap(ConclusionData.ParentLink::relationshipId,
 					ConclusionData.ParentLink::backing, (a, b) -> a, LinkedHashMap::new)))));
 		}
@@ -292,7 +293,7 @@ final class ConclusionChecker{
 			ids.addAll(relationships);
 			findings.add(finding(Diagnostic.Severity.ERROR, "own_ancestor", ids, "parentage", relationships,
 				data.persons().get(id).name(),
-				String.join(", ", cycle.stream().map(c -> data.persons().get(c).name()).toList())));
+				Sentences.list(cycle.stream().map(c -> data.persons().get(c).name()).toList())));
 		}
 	}
 
@@ -379,9 +380,9 @@ final class ConclusionChecker{
 		final String title = I18N.tf("conclusion." + key + ".title", arguments);
 		final String explanation = I18N.tf("conclusion." + key + ".explanation", arguments);
 		return new ConclusionFinding(new Diagnostic(severity, AssistantCategory.CONCLUSIONS, title,
-			explanation + StringUtils.SPACE + I18N.t("conclusion.suggest.draft"), recordIds, null,
+			Sentences.join(explanation, I18N.t("conclusion.suggest.draft")), recordIds, null,
 			DiagnosticKeys.of("conclusion." + key, recordIds, keyData(key, arguments))),
-			new ConclusionDraft(issue, List.copyOf(resolves), title + ". " + explanation));
+			new ConclusionDraft(issue, List.copyOf(resolves), Sentences.titled(title, explanation)));
 	}
 
 }

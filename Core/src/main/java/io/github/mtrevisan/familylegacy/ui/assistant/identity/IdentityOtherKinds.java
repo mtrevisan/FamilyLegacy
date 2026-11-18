@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -57,7 +56,7 @@ import java.util.stream.Stream;
 
 
 /**
- * The records that are not individuals and may be the same entity: groups, places, sources, repositories, media, cultural norms and
+ * The records that are not individuals and may be the same entity: groups, sources, repositories, media, cultural norms and
  * historic events, the other kinds an identity hypothesis can be about. The comparison is the one of the automatic merge
  * ({@link RecordAbsorber#duplicatePairs}: names, jurisdictions, coordinates, titles, authors, files...), which has its own for each kind;
  * the pairs that a conclusion has disproven are not proposed, and neither are those with a hypothesis already.
@@ -68,8 +67,11 @@ import java.util.stream.Stream;
  */
 final class IdentityOtherKinds{
 
-	/** The kinds, in the order they are listed. */
-	static final List<String> KINDS = Stream.of(GroupReader.TYPE, PlaceReader.TYPE, SourceReader.TYPE, RepositoryReader.TYPE, MediaReader.TYPE,
+	/**
+	 * The kinds, in the order they are listed. The places are NOT here: the Place Assistant owns them (it has the rules for the
+	 * hierarchy, the types and the distance), so the same pair is never proposed twice.
+	 */
+	static final List<String> KINDS = Stream.of(GroupReader.TYPE, SourceReader.TYPE, RepositoryReader.TYPE, MediaReader.TYPE,
 			CulturalNormReader.TYPE, HistoricEventReader.TYPE)
 		.map(kind -> kind.toLowerCase(Locale.ROOT))
 		.toList();

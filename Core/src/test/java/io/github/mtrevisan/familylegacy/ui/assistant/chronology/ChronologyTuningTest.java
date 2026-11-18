@@ -22,24 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
+package io.github.mtrevisan.familylegacy.ui.assistant.chronology;
 
-import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning.Parameter;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 
-/** Connects an existing individual to the selected (empty) individual box. */
-public final class ConnectIndividualTool implements ToolOperation{
+/** The ages and the times of the chronology are the ones of the user, and the defaults are what they always were. */
+class ChronologyTuningTest{
 
-	@Override
-	public String getName(){
-		return I18N.t("menu.individual.connect.individual");
+	@Test
+	void theDefaultRulesAreTheOnesTheAssistantAlwaysHad(){
+		Assertions.assertEquals(ChronologyChecker.Rules.DEFAULT, ChronologyChecker.Rules.of(AssistantTuning.DEFAULTS));
 	}
 
-	@Override
-	public void run(final ToolContext context){
-		context.performConnectIndividual();
+	@Test
+	void theRulesFollowTheNumbersOfTheUser(){
+		final AssistantTuning tuning = AssistantTuning.DEFAULTS.with(Parameter.MIN_MOTHER_AGE, 15).with(Parameter.MAX_FATHER_AGE, 70)
+			.with(Parameter.MAX_GESTATION_DAYS, 280).with(Parameter.MAX_LIFESPAN_YEARS, 110).with(Parameter.MAX_TWIN_GAP_DAYS, 3);
+
+		final ChronologyChecker.Rules rules = ChronologyChecker.Rules.of(tuning);
+
+		Assertions.assertEquals(new ChronologyChecker.Rules(15, 14, 55, 70, 280, 110, 270, 3), rules);
 	}
 
 }

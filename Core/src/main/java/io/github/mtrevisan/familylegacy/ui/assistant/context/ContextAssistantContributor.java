@@ -26,12 +26,14 @@ package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -41,6 +43,19 @@ import java.util.List;
  * only suggests: no record is created or changed, nothing is saved unless the user saves it in the usual editor.
  */
 public final class ContextAssistantContributor implements AssistantContributor{
+
+	private final Supplier<AssistantTuning> tuning;
+
+
+	public ContextAssistantContributor(){
+		this(AssistantTuning::load);
+	}
+
+	/** @param tuning gives the numbers of the user (the tests give the defaults, not the preferences) */
+	public ContextAssistantContributor(final Supplier<AssistantTuning> tuning){
+		this.tuning = tuning;
+	}
+
 
 	@Override
 	public List<AssistantAction> actions(){
@@ -53,7 +68,7 @@ public final class ContextAssistantContributor implements AssistantContributor{
 			if(context.model() == null)
 				return List.of();
 
-			final List<Diagnostic> findings = new ArrayList<>(ContextChecker.findings(ContextDataLoader.load(context.model())).stream()
+			final List<Diagnostic> findings = new ArrayList<>(ContextChecker.findings(ContextDataLoader.load(context.model()), tuning.get()).stream()
 				.map(ContextAssistantContributor::withAction)
 				.toList());
 			//the dates estimated by a custom, with no cultural norm that justifies them

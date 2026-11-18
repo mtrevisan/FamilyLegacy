@@ -44,9 +44,10 @@ import java.util.Map;
  * @param size	The size in bytes of the file, if the catalog says it, or -1.
  * @param minVersion	The oldest version of the application that can use it, or {@code null}.
  * @param files	The files that tell that the component is installed (may be empty).
+ * @param requires	The ids (of the same target) of the components that this one needs in order to work (may be empty).
  */
 public record Component(String id, Map<String, String> names, Map<String, String> descriptions, String target, String release, String asset,
-		URI url, String sha256, long size, String minVersion, List<String> files){
+		URI url, String sha256, long size, String minVersion, List<String> files, List<String> requires){
 
 	/** The release whose files are the ones of the latest published version of the application. */
 	public static final String LATEST = "latest";

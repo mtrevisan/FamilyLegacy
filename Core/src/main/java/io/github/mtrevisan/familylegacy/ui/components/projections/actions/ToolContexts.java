@@ -96,12 +96,6 @@ public final class ToolContexts{
 			}
 
 			@Override
-			public void connectIndividual(){
-				if(listener instanceof IndividualListener indListener && component instanceof IndividualPanel panel)
-					indListener.onIndividualAddOrConnect(panel, TreeOperation.CONNECT);
-			}
-
-			@Override
 			public void connectChild(){
 				if(listener instanceof IndividualListener indListener && component instanceof IndividualPanel panel)
 					indListener.onChildAddOrConnect(panel, TreeOperation.CONNECT);

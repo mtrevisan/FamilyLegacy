@@ -152,16 +152,6 @@ public final class EgoNetworkListener implements IndividualListener, GroupListen
 	}
 
 	@Override
-	public void onIndividualAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
-		actionHandler.performRelationOperation(
-			(operation == TreeOperation.ADD
-				? () -> actionHandler.showCreateRecordDialog(IndividualHandler.class)
-				: () -> actionHandler.showSearchRecordDialog(IndividualHandler.class)),
-			false, RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_SOCIAL_TYPES, contextProvider.getCurrentEgoId(),
-			contextProvider.getRootEgoNode(), this);
-	}
-
-	@Override
 	public void onChildAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
 		actionHandler.performRelationOperation(
 			(operation == TreeOperation.ADD

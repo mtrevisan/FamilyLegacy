@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.app;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantStatistics;
 import io.github.mtrevisan.familylegacy.ui.assistant.DateAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
@@ -52,7 +54,7 @@ import java.util.ServiceLoader;
  */
 public final class DefaultResearchAssistant{
 
-	private static final ResearchAssistantService INSTANCE = createDefault(IgnoredFindings.usingPreferences());
+	private static final ResearchAssistantService INSTANCE = createDefault(IgnoredFindings.usingPreferences(), AssistantSettings.usingPreferences(), true);
 
 
 	private DefaultResearchAssistant(){}
@@ -68,7 +70,23 @@ public final class DefaultResearchAssistant{
 	 * @return a service with the built-in assistants and the ones provided by plugins
 	 */
 	public static ResearchAssistantService createDefault(final IgnoredFindings ignoredFindings){
-		final ResearchAssistantService service = new ResearchAssistantService(ignoredFindings);
+		return createDefault(ignoredFindings, AssistantSettings.inMemory());
+	}
+
+	/**
+	 * @param ignoredFindings where the findings ignored by the user are kept ({@link IgnoredFindings#inMemory()} for the tests)
+	 * @param settings what the user decided about the assistant ({@link AssistantSettings#inMemory()} for the tests)
+	 * @return a service with the built-in assistants and the ones provided by plugins
+	 */
+	public static ResearchAssistantService createDefault(final IgnoredFindings ignoredFindings, final AssistantSettings settings){
+		return createDefault(ignoredFindings, settings, false);
+	}
+
+	/** @param statisticsInFile whether the counts of the user are kept in a file (the application) or only in memory (the tests) */
+	private static ResearchAssistantService createDefault(final IgnoredFindings ignoredFindings, final AssistantSettings settings,
+			final boolean statisticsInFile){
+		final ResearchAssistantService service = new ResearchAssistantService(ignoredFindings, settings,
+			(statisticsInFile? AssistantStatistics.usingFile(settings): AssistantStatistics.inMemory(settings::isStatisticsEnabled, settings::tuning)));
 		service.register(new DateAssistantContributor());
 		service.register(new ChronologyAssistantContributor());
 		service.register(new ConclusionAssistantContributor());

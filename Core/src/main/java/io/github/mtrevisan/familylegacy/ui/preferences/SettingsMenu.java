@@ -58,10 +58,25 @@ public final class SettingsMenu{
 	 * @return the menu, never {@code null}
 	 */
 	public static JMenu create(final Window owner){
+		return create(owner, null);
+	}
+
+	/**
+	 * @param owner the window that will own any dialog shown by the menu; may be {@code null}
+	 * @param researchAssistantSettings what opens the settings of the Research Assistant, or {@code null} if the application has none
+	 * @return the menu, never {@code null}
+	 */
+	public static JMenu create(final Window owner, final Runnable researchAssistantSettings){
 		final JMenu menu = new JMenu(I18N.t("menu.settings"));
 		menu.add(createLevelMenu());
 		menu.add(createSuggestionsItem());
 		menu.add(new JSeparator());
+		//the indicator of the toolbar and the assistants that look for findings, at every level (it is how the indicator is hidden)
+		if(researchAssistantSettings != null){
+			final JMenuItem item = new JMenuItem(I18N.t("menu.settings.research_assistant"));
+			item.addActionListener(a -> researchAssistantSettings.run());
+			menu.add(item);
+		}
 		//the thresholds of the proposals of identity hypotheses: from the standard level
 		if(FeatureVisibilityService.shared().isVisible(UxLevel.STANDARD)){
 			menu.add(createIdentityItem(owner));

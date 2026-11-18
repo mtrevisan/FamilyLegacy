@@ -27,11 +27,13 @@ package io.github.mtrevisan.familylegacy.ui.assistant.app;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantIndicator;
+import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantSettingsDialog;
 import io.github.mtrevisan.familylegacy.ui.shell.ResearchAssistantPort;
 
 import javax.swing.JComponent;
 import java.awt.Window;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
@@ -42,6 +44,17 @@ public final class FrameAssistantPort implements ResearchAssistantPort{
 	public void install(final Supplier<FLEFModel> modelSupplier, final Supplier<FLEFModel> snapshotSupplier,
 			final Supplier<String> scopeSupplier, final Supplier<String> selectionSupplier){
 		DefaultResearchAssistant.getInstance().install(modelSupplier, snapshotSupplier, scopeSupplier, selectionSupplier);
+	}
+
+	@Override
+	public void installRecordViewer(final Consumer<String> viewer){
+		DefaultResearchAssistant.getInstance()
+			.setRecordViewer(viewer);
+	}
+
+	@Override
+	public void openSettings(final Window owner){
+		ResearchAssistantSettingsDialog.show(owner, DefaultResearchAssistant.getInstance());
 	}
 
 	@Override

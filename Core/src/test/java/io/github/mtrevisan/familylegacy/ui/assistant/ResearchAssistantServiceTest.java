@@ -266,7 +266,7 @@ class ResearchAssistantServiceTest{
 	}
 
 	@Test
-	void aFailingDiagnosticProviderIsSkipped(){
+	void aFailingDiagnosticProviderDoesNotStopTheOthersAndIsReported(){
 		final ResearchAssistantService service = new ResearchAssistantService();
 		service.register(contributor(List.of(), List.of(
 			context -> {
@@ -276,7 +276,9 @@ class ResearchAssistantServiceTest{
 
 		final List<Diagnostic> diagnostics = service.diagnose(new AssistantContext(null, null, null));
 
-		Assertions.assertEquals(1, diagnostics.size());
+		//the one that works gives its finding, and the one that fails is told to the user (not mistaken for nothing to say)
+		Assertions.assertEquals(2, diagnostics.size());
+		Assertions.assertTrue(diagnostics.stream().anyMatch(d -> ResearchAssistantService.KIND_FAILED.equals(d.kind())));
 	}
 
 	@Test

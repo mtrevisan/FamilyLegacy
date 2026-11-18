@@ -31,9 +31,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,7 +90,13 @@ final class GapChecker{
 	private static final int MAX_PLACES_LISTED = 3;
 
 
-	private GapChecker(){}
+	/** The numbers of the user: the years after which an individual is taken to be dead, and the weights of the usefulness. */
+	private final AssistantTuning tuning;
+
+
+	private GapChecker(final AssistantTuning tuning){
+		this.tuning = tuning;
+	}
 
 
 	/** @return the findings, without the drafts */
@@ -101,6 +108,15 @@ final class GapChecker{
 
 	/** @return the findings, each with the draft of the question or of the task that would start to fill the gap */
 	static List<GapFinding> findings(final GapData data){
+		return findings(data, AssistantTuning.DEFAULTS);
+	}
+
+	/** @return the findings with the numbers of the user */
+	static List<GapFinding> findings(final GapData data, final AssistantTuning tuning){
+		return new GapChecker(tuning).run(data);
+	}
+
+	private List<GapFinding> run(final GapData data){
 		final List<GapFinding> findings = new ArrayList<>();
 		final Map<String, Integer> children = new HashMap<>();
 		data.parents().forEach(link -> children.merge(link.parentId(), 1, Integer::sum));
@@ -118,14 +134,18 @@ final class GapChecker{
 
 	/** @return how useful it would be to fill a gap with that estimated usefulness: high, medium or low */
 	static String level(final int usefulness){
-		if(usefulness >= HIGH_USEFULNESS)
+		return level(usefulness, AssistantTuning.DEFAULTS);
+	}
+
+	static String level(final int usefulness, final AssistantTuning tuning){
+		if(usefulness >= tuning.get(AssistantTuning.Parameter.GAP_HIGH))
 			return ConfidenceReader.ENUM_HIGH;
-		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
+		return (usefulness >= tuning.get(AssistantTuning.Parameter.GAP_MEDIUM)? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 
 	/** The death of an individual who is certainly (or probably) dead: they were born a century ago, and no death is recorded. */
-	private static void checkDeaths(final GapData data, final List<GapFinding> findings){
+	private void checkDeaths(final GapData data, final List<GapFinding> findings){
 		final List<GapFinding> group = new ArrayList<>();
 		final Map<String, List<String>> childrenOf = new HashMap<>();
 		final Map<String, List<String>> parentsOf = new HashMap<>();
@@ -137,6 +157,9 @@ final class GapChecker{
 		}
 
 		final int thisYear = data.today().getYear();
+		final int certainlyDeadYears = tuning.get(AssistantTuning.Parameter.GAP_CERTAINLY_DEAD_YEARS);
+		final int probablyDeadYears = tuning.get(AssistantTuning.Parameter.GAP_PROBABLY_DEAD_YEARS);
+		final int generationYears = tuning.get(AssistantTuning.Parameter.GAP_GENERATION_YEARS);
 		for(final GapData.Person person : data.persons().values()){
 			if(person.hasDeath())
 				continue;
@@ -148,9 +171,9 @@ final class GapChecker{
 			if(year == null){
 				year = latestBirthYear(person.id(), data, childrenOf, parentsOf, new HashSet<>());
 				key = "no_death_%s_relatives";
-				if(year == null || thisYear - year < PROBABLY_DEAD_YEARS){
+				if(year == null || thisYear - year < probablyDeadYears){
 					parentYear = latestParentBirthYear(person.id(), data, parentsOf);
-					year = (parentYear != null? parentYear + GENERATION_YEARS: null);
+					year = (parentYear != null? parentYear + generationYears: null);
 					key = "no_death_probable_estimated";
 				}
 			}
@@ -158,8 +181,9 @@ final class GapChecker{
 				continue;
 
 			final int age = thisYear - year;
-			final boolean certain = (age >= CERTAINLY_DEAD_YEARS && !key.endsWith("_estimated"));
-			final int usefulness = (certain? 85: (age >= PROBABLY_DEAD_YEARS? 55: 0));
+			final boolean certain = (age >= certainlyDeadYears && !key.endsWith("_estimated"));
+			final int usefulness = (certain? tuning.get(AssistantTuning.Parameter.GAP_DEATH_CERTAIN)
+				: (age >= probablyDeadYears? tuning.get(AssistantTuning.Parameter.GAP_DEATH_PROBABLE): 0));
 			if(usefulness == 0)
 				continue;
 
@@ -170,7 +194,7 @@ final class GapChecker{
 			group.add(finding(Diagnostic.Severity.INFORMATION, key, List.of(person.id()), usefulness,
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.death.title", person.name()),
 					I18N.tf("gap.draft.death.question", person.name()), List.of(person.id()), null),
-				person.name() + " [" + person.id() + "]", String.valueOf(year), age, String.valueOf(parentYear), GENERATION_YEARS));
+				person.name() + " [" + person.id() + "]", String.valueOf(year), age, String.valueOf(parentYear), generationYears));
 		}
 		findings.addAll(group);
 	}
@@ -220,17 +244,17 @@ final class GapChecker{
 	}
 
 	/** The birth of an individual the research is about (they have children, or events): where do they come from? */
-	private static void checkBirths(final GapData data, final Map<String, Integer> children, final List<GapFinding> findings){
+	private void checkBirths(final GapData data, final Map<String, Integer> children, final List<GapFinding> findings){
 		final List<GapFinding> group = new ArrayList<>();
 		for(final GapData.Person person : data.persons().values()){
 			final int sons = children.getOrDefault(person.id(), 0);
 			if(person.hasBirth() || (sons == 0 && person.eventCount() == 0))
 				continue;
 
-			final int usefulness = 45 + (sons > 0? 10: 0) + (person.eventCount() > 0? 5: 0);
+			final int usefulness = tuning.get(AssistantTuning.Parameter.GAP_BIRTH) + (sons > 0? 10: 0) + (person.eventCount() > 0? 5: 0);
 			if(!person.places().isEmpty()){
 				//a place is known but not the birth record: the registers of that place are where to start
-				final String places = String.join(", ", person.places().stream()
+				final String places = Sentences.list(person.places().stream()
 					.limit(MAX_PLACES_LISTED)
 					.toList());
 				group.add(finding(Diagnostic.Severity.INFORMATION, "no_birth_place", List.of(person.id()), usefulness + 5,
@@ -249,7 +273,7 @@ final class GapChecker{
 	}
 
 	/** The parents of a child with no union between them, and no marriage event: children exist, but no marriage is known. */
-	private static void checkMarriages(final GapData data, final List<GapFinding> findings){
+	private void checkMarriages(final GapData data, final List<GapFinding> findings){
 		final Map<String, List<String>> parentsOf = new LinkedHashMap<>();
 		for(final GapData.ParentLink link : data.parents()){
 			final List<String> parents = parentsOf.computeIfAbsent(link.childId(), k -> new ArrayList<>());
@@ -289,7 +313,8 @@ final class GapChecker{
 			final List<String> ids = new ArrayList<>(couple);
 			ids.addAll(entry.getValue());
 			group.add(finding(Diagnostic.Severity.INFORMATION, "children_without_marriage", ids,
-				Math.min(70, 45 + 5 * entry.getValue().size()),
+				Math.min(tuning.get(AssistantTuning.Parameter.GAP_CHILDREN_WITHOUT_MARRIAGE) + 25,
+					tuning.get(AssistantTuning.Parameter.GAP_CHILDREN_WITHOUT_MARRIAGE) + 5 * entry.getValue().size()),
 				new GapDraft(GapDraft.Kind.QUESTION, I18N.tf("gap.draft.marriage.title", first, second),
 					I18N.tf("gap.draft.marriage.question", first, second), couple, null),
 				first + " [" + couple.get(0) + "]", second + " [" + couple.get(1) + "]", entry.getValue().size()));
@@ -298,7 +323,7 @@ final class GapChecker{
 	}
 
 	/** The vital events (birth, death, marriage) that no source cites: the assertions with nothing behind them. One finding for each. */
-	private static void checkSources(final GapData data, final List<GapFinding> findings){
+	private void checkSources(final GapData data, final List<GapFinding> findings){
 		for(final GapData.Event event : data.events()){
 			if(!VITAL_EVENTS.contains(event.type()) || event.sourceCount() != 0)
 				continue;
@@ -308,7 +333,7 @@ final class GapChecker{
 			final String who = (event.principals().isEmpty() || !data.persons().containsKey(event.principals().getFirst())
 				? event.id()
 				: data.persons().get(event.principals().getFirst()).name() + " [" + event.principals().getFirst() + "]");
-			findings.add(finding(Diagnostic.Severity.INFORMATION, "unsourced_vital_event", ids, 70,
+			findings.add(finding(Diagnostic.Severity.INFORMATION, "unsourced_vital_event", ids, tuning.get(AssistantTuning.Parameter.GAP_UNSOURCED_EVENT),
 				new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.source.task", event.type(), who), event.principals(),
 					ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 				event.type(), who, event.id()));
@@ -316,17 +341,18 @@ final class GapChecker{
 	}
 
 	/** The people found in a census who have no residence recorded: the census says where they lived. One finding for each. */
-	private static void checkCensusResidences(final GapData data, final List<GapFinding> findings){
+	private void checkCensusResidences(final GapData data, final List<GapFinding> findings){
 		for(final GapData.Person person : data.persons().values())
 			if(person.hasCensus() && !person.hasResidence())
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "census_without_residence", List.of(person.id()), 40,
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "census_without_residence", List.of(person.id()),
+						tuning.get(AssistantTuning.Parameter.GAP_CENSUS_WITHOUT_RESIDENCE),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.census.task", person.name()), List.of(person.id()),
 						ResearchTaskReader.ENUM_PRIORITY_LOW),
 					person.name() + " [" + person.id() + "]"));
 	}
 
 	/** The open questions that nobody works on, or that have run out of things to do. */
-	private static void checkQuestions(final GapData data, final List<GapFinding> findings){
+	private void checkQuestions(final GapData data, final List<GapFinding> findings){
 		for(final GapData.Question question : data.questions()){
 			if(!OPEN_QUESTIONS.contains(question.status()))
 				continue;
@@ -336,7 +362,8 @@ final class GapChecker{
 				.toList();
 			if(activities.isEmpty()){
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_without_activities", List.of(question.id()),
-					(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status())? 75: 45),
+					(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status())
+						? tuning.get(AssistantTuning.Parameter.GAP_QUESTION_WITHOUT_ACTIVITIES): tuning.get(AssistantTuning.Parameter.GAP_QUESTION_ON_HOLD)),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.activity.task", question.title()),
 						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					question.title() + " [" + question.id() + "]", question.status()));
@@ -347,7 +374,8 @@ final class GapChecker{
 			final boolean somethingPlanned = data.tasks().stream()
 				.anyMatch(t -> t.questionIds().contains(question.id()) && ACTIVE_TASKS.contains(t.status()));
 			if(ResearchQuestionReader.ENUM_STATUS_OPEN.equals(question.status()) && allOver && !somethingPlanned && !question.hasConclusion())
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_stalled", List.of(question.id()), 65,
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "question_stalled", List.of(question.id()),
+						tuning.get(AssistantTuning.Parameter.GAP_QUESTION_STALLED),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.stalled.task", question.title()),
 						List.of(question.id()), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					question.title() + " [" + question.id() + "]", activities.size()));
@@ -355,7 +383,7 @@ final class GapChecker{
 	}
 
 	/** A search that found nothing (or could not be done) and led to nothing; and the completed activities with no result. */
-	private static void checkActivities(final GapData data, final List<GapFinding> findings){
+	private void checkActivities(final GapData data, final List<GapFinding> findings){
 		final Map<String, GapData.Question> questions = new HashMap<>();
 		data.questions().forEach(q -> questions.put(q.id(), q));
 
@@ -364,7 +392,8 @@ final class GapChecker{
 				continue;
 
 			if(activity.result() == null){
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "activities_without_result", List.of(activity.id()), 25, null,
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "activities_without_result", List.of(activity.id()),
+						tuning.get(AssistantTuning.Parameter.GAP_ACTIVITY_WITHOUT_RESULT), null,
 					activity.action() + " [" + activity.id() + "]"));
 				continue;
 			}
@@ -374,7 +403,7 @@ final class GapChecker{
 			if(UNSUCCESSFUL_RESULTS.contains(activity.result()) && !activity.hasFollowUp() && !activity.isParent() && concerned){
 				final List<String> ids = new ArrayList<>(List.of(activity.id()));
 				ids.addAll(activity.questionIds());
-				findings.add(finding(Diagnostic.Severity.INFORMATION, "no_follow_up", ids, 50,
+				findings.add(finding(Diagnostic.Severity.INFORMATION, "no_follow_up", ids, tuning.get(AssistantTuning.Parameter.GAP_NO_FOLLOW_UP),
 					new GapDraft(GapDraft.Kind.TASK, "", I18N.tf("gap.draft.follow_up.task", activity.action(), activity.result()),
 						activity.questionIds(), ResearchTaskReader.ENUM_PRIORITY_NORMAL),
 					activity.action() + " [" + activity.id() + "]", activity.result()));
@@ -383,7 +412,7 @@ final class GapChecker{
 	}
 
 	/** A task that is not done and past its due date. */
-	private static void checkTasks(final GapData data, final List<GapFinding> findings){
+	private void checkTasks(final GapData data, final List<GapFinding> findings){
 		final long today = data.today().toEpochDay() + UNIX_EPOCH_JDN;
 		for(final GapData.Task task : data.tasks()){
 			if(!ACTIVE_TASKS.contains(task.status()) || task.due() == null || task.due().max() >= today)
@@ -393,7 +422,7 @@ final class GapChecker{
 			final int bonus = (ResearchTaskReader.ENUM_PRIORITY_HIGH.equals(task.priority())? 15: (ResearchTaskReader.ENUM_PRIORITY_NORMAL.equals(task.priority())? 5: 0));
 			final List<String> ids = new ArrayList<>(List.of(task.id()));
 			ids.addAll(task.questionIds());
-			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, 70 + bonus, null, task.description() + " [" + task.id() + "]", days));
+			findings.add(finding(Diagnostic.Severity.WARNING, "overdue_task", ids, tuning.get(AssistantTuning.Parameter.GAP_OVERDUE_TASK) + bonus, null, task.description() + " [" + task.id() + "]", days));
 		}
 	}
 
@@ -406,12 +435,12 @@ final class GapChecker{
 	 * @param usefulness how useful it would be to fill the gap, from 0 to 100: it orders the findings
 	 * @param draft      the question or the task that would start to fill it ({@code null} if there is none)
 	 */
-	private static GapFinding finding(final Diagnostic.Severity severity, final String key, final List<String> recordIds,
+	private GapFinding finding(final Diagnostic.Severity severity, final String key, final List<String> recordIds,
 			final int usefulness, final GapDraft draft, final Object... arguments){
-		final String level = level(usefulness);
+		final String level = level(usefulness, tuning);
 		final Diagnostic diagnostic = new Diagnostic(severity, AssistantCategory.RESEARCH, I18N.tf("gap." + key + ".title", arguments),
-			I18N.tf("gap." + key + ".explanation", arguments) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
-				usefulness),
+			Sentences.join(I18N.tf("gap." + key + ".explanation", arguments),
+				I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level), usefulness)),
 			recordIds, null, DiagnosticKeys.of("gap." + key, recordIds, arguments), List.of(), usefulness);
 		return new GapFinding(diagnostic, draft);
 	}

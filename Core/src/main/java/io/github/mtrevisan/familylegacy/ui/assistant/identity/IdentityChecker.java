@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 
 import java.util.List;
 
@@ -98,10 +99,10 @@ final class IdentityChecker{
 		final String confidence = settings.confidence(score);
 
 		final List<String> similarityLines = candidate.matches().stream()
-			.map(m -> m.feature() + ": " + m.detail() + " (+" + m.score() + ")")
+			.map(m -> I18N.tf("identity.match.line", m.feature(), m.detail(), m.score()))
 			.toList();
-		final String similarities = String.join("; ", similarityLines);
-		final String differences = String.join("; ", candidate.differences());
+		final String similarities = Sentences.items(similarityLines);
+		final String differences = Sentences.items(candidate.differences());
 		final String why = (similarities.isEmpty()? "-": similarities);
 		final String differ = (differences.isEmpty()? "-": differences);
 

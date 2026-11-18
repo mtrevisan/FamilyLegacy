@@ -58,7 +58,7 @@ public final class EventSummary{
 	private static final int MAX_PARTICIPANTS = 3;
 	private static final int MAX_DESCRIPTION_LENGTH = 60;
 	private static final String SEPARATOR = " – ";
-	private static final String ELLIPSIS = "…";
+	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 
 	private record Index(WeakReference<FLEFModel> model, int recordCount, long builtAt, PlaceNameResolver places,

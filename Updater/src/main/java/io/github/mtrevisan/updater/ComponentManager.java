@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -94,6 +95,11 @@ public final class ComponentManager{
 		/** @return	Whether {@link ComponentManager#install} can be called. */
 		public boolean canInstall(){
 			return (state == State.AVAILABLE || state == State.OUTDATED);
+		}
+
+		/** @return	Whether {@link ComponentManager#uninstall} can be called: it is installed and is a single file (not an unpacked zip). */
+		public boolean canUninstall(){
+			return ((state == State.INSTALLED || state == State.OUTDATED) && directory != null && !removableFiles(component).isEmpty());
 		}
 
 	}
@@ -223,6 +229,37 @@ public final class ComponentManager{
 		}
 	}
 
+	/**
+	 * Removes the file of an installed component and forgets it.
+	 *
+	 * @param entry	A component that {@link Entry#canUninstall() can be uninstalled}.
+	 * @throws IOException	If the file cannot be deleted (on Windows, for instance, a plugin that is loaded cannot: the application must be closed).
+	 */
+	public void uninstall(final Entry entry) throws IOException{
+		if(!entry.canUninstall())
+			throw new IOException("The component " + entry.component().id() + " cannot be uninstalled");
+
+		final Path directory = entry.directory();
+		for(final String name : removableFiles(entry.component())){
+			final Path file = directory.resolve(name).normalize();
+			//(the names are plain, but the check costs nothing)
+			if(!directory.normalize().equals(file.getParent()))
+				throw new IOException("Unexpected file: " + name);
+
+			Files.deleteIfExists(file);
+		}
+		forget(directory, key(entry.component()));
+	}
+
+	/** @return	The file the component put in its folder, if it is a single one (empty for a zip, that is unpacked into many). */
+	private static List<String> removableFiles(final Component component){
+		final String name = (component.asset() != null? component.asset(): (component.url() != null? ComponentCatalog.fileName(component.url()): null));
+		if(name == null || name.toLowerCase(Locale.ROOT).endsWith(".zip"))
+			return List.of();
+
+		return List.of(name);
+	}
+
 	private static void copy(final Path file, final Path directory, final Set<String> accepted) throws IOException{
 		final String name = file.getFileName().toString();
 		if(!isAccepted(name, accepted))
@@ -320,10 +357,18 @@ public final class ComponentManager{
 		return registry;
 	}
 
-	private static synchronized void remember(final Path directory, final String key, final String sha256) throws IOException{
+	private static void remember(final Path directory, final String key, final String sha256) throws IOException{
+		update(directory, registry -> registry.setProperty(key, sha256));
+	}
+
+	private static void forget(final Path directory, final String key) throws IOException{
+		update(directory, registry -> registry.remove(key));
+	}
+
+	private static synchronized void update(final Path directory, final Consumer<Properties> change) throws IOException{
 		final Path file = registryFile(directory);
 		final Properties registry = readRegistry(file);
-		registry.setProperty(key, sha256);
+		change.accept(registry);
 
 		Files.createDirectories(file.getParent());
 		final Path staging = Files.createTempFile(file.getParent(), ".registry-", ".part");

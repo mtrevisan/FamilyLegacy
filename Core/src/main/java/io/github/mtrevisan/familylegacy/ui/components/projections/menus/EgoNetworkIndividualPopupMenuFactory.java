@@ -36,13 +36,13 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectChildTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectParentTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConnectPartnerTool;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsChildTool;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsParentTool;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsPartnerTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.ConsanguinityLoopsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.DeleteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.EditIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.IndividualCareerTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsChildTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsParentTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteAsPartnerTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
@@ -54,6 +54,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
@@ -61,6 +62,10 @@ import javax.swing.event.PopupMenuEvent;
 
 /**
  * Creates the popup menu tailored for an {@link IndividualPanel} within an {@code EgoNetworkPanel} projection.
+ * <p>
+ * As in the tree menu, the actions that share a verb are grouped in the submenus <em>Add</em>, <em>Connect</em> and
+ * <em>Paste as</em> (only for the ego), and the read-only tools in <em>Analyze</em>.
+ * </p>
  */
 public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFactory<IndividualPanel, IndividualListener>{
 
@@ -86,18 +91,26 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 			final FLEFModel model){
 		final JMenuItem editItem = new JMenuItem(I18N.t("menu.individual.edit.individual"), 'E');
 		editItem.setAccelerator(ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.keyStroke());
-		final JMenuItem addPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.add.partner")): null);
-		final JMenuItem addParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.add.parent")): null);
-		final JMenuItem connectPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.connect.partner")): null);
-		final JMenuItem connectParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.connect.parent")): null);
-		final JMenuItem addChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.add.child"), 'A'): null);
-		final JMenuItem connectChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.connect.child"), 'C'): null);
-		final JMenuItem pasteAsPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.paste.as.partner")): null);
-		final JMenuItem pasteAsParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.paste.as.parent")): null);
-		final JMenuItem pasteAsChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.paste.as.child")): null);
+		final JMenu addMenu = (isEgo? new JMenu(I18N.t("menu.individual.submenu.add")): null);
+		final JMenuItem addPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.partner")): null);
+		final JMenuItem addParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.parent")): null);
+		final JMenuItem addChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.child")): null);
+		final JMenu connectMenu = (isEgo? new JMenu(I18N.t("menu.individual.submenu.connect")): null);
+		final JMenuItem connectPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.partner")): null);
+		final JMenuItem connectParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.parent")): null);
+		final JMenuItem connectChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.child")): null);
+		final JMenu pasteAsMenu = (isEgo? new JMenu(I18N.t("menu.individual.submenu.paste_as")): null);
+		final JMenuItem pasteAsPartnerItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.as.partner")): null);
+		final JMenuItem pasteAsParentItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.as.parent")): null);
+		final JMenuItem pasteAsChildItem = (isEgo? new JMenuItem(I18N.t("menu.individual.sub.as.child")): null);
+		if(isEgo){
+			addMenu.setMnemonic('A');
+			connectMenu.setMnemonic('C');
+		}
 		final JMenuItem deleteItem = new JMenuItem(I18N.t("menu.individual.delete"), 'D');
 		final JMenuItem pasteItem = new JMenuItem(I18N.t("menu.individual.paste"), 'P');
 		final JMenuItem unlinkItem = new JMenuItem(I18N.t("menu.individual.unlink.relationships"), 'U');
+		final JMenu analyzeMenu = new JMenu(I18N.t("menu.individual.submenu.analyze"));
 		final JMenuItem careerItem = new JMenuItem(I18N.t("menu.individual.group_career"));
 		final JMenuItem provenanceItem = new JMenuItem(I18N.t("menu.source_citation.provenance"));
 		final JMenuItem loopsItem = new JMenuItem(I18N.t("menu.individual.consanguinity_loops"));
@@ -145,8 +158,13 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 					pasteAsPartnerItem.setEnabled(hasData && new PasteAsPartnerTool().isEnabled(selected));
 					pasteAsParentItem.setEnabled(hasData && data.getParentCount() < 2 && new PasteAsParentTool().isEnabled(selected));
 					pasteAsChildItem.setEnabled(hasData && new PasteAsChildTool().isEnabled(selected));
+
+					PopupMenuHelper.syncSubmenuState(addMenu);
+					PopupMenuHelper.syncSubmenuState(connectMenu);
+					PopupMenuHelper.syncSubmenuState(pasteAsMenu);
 				}
 				deleteItem.setEnabled(hasData);
+				PopupMenuHelper.syncSubmenuState(analyzeMenu);
 			}
 		});
 
@@ -157,52 +175,56 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				.run(context);
 		});
 		if(isEgo){
-			popup.addSeparator();
-			PopupMenuHelper.addMenuItem(popup, addPartnerItem, panel, record -> {
+			PopupMenuHelper.addMenuItem(addMenu, addPartnerItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new AddPartnerTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, addParentItem, panel, record -> {
+			PopupMenuHelper.addMenuItem(addMenu, addParentItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new AddParentTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, connectPartnerItem, panel, record -> {
-				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-				new ConnectPartnerTool()
-					.run(context);
-			});
-			PopupMenuHelper.addMenuItem(popup, connectParentItem, panel, record -> {
-				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-				new ConnectParentTool()
-					.run(context);
-			});
-			PopupMenuHelper.addMenuItem(popup, addChildItem, panel, record -> {
+			PopupMenuHelper.addMenuItem(addMenu, addChildItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new AddChildTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, connectChildItem, panel, record -> {
+			popup.add(addMenu);
+
+			PopupMenuHelper.addMenuItem(connectMenu, connectPartnerItem, panel, record -> {
+				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+				new ConnectPartnerTool()
+					.run(context);
+			});
+			PopupMenuHelper.addMenuItem(connectMenu, connectParentItem, panel, record -> {
+				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+				new ConnectParentTool()
+					.run(context);
+			});
+			PopupMenuHelper.addMenuItem(connectMenu, connectChildItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new ConnectChildTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, pasteAsPartnerItem, panel, record -> {
+			popup.add(connectMenu);
+
+			PopupMenuHelper.addMenuItem(pasteAsMenu, pasteAsPartnerItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new PasteAsPartnerTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, pasteAsParentItem, panel, record -> {
+			PopupMenuHelper.addMenuItem(pasteAsMenu, pasteAsParentItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new PasteAsParentTool()
 					.run(context);
 			});
-			PopupMenuHelper.addMenuItem(popup, pasteAsChildItem, panel, record -> {
+			PopupMenuHelper.addMenuItem(pasteAsMenu, pasteAsChildItem, panel, record -> {
 				final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 				new PasteAsChildTool()
 					.run(context);
 			});
+			popup.add(pasteAsMenu);
 		}
 		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> {
@@ -211,32 +233,33 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				.run(context);
 		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
-			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-			new DeleteIndividualTool()
-				.run(context);
-		});
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new UnlinkIndividualRelationshipsTool()
 				.run(context);
 		});
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteIndividualTool()
+				.run(context);
+		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, careerItem, panel, record -> {
+		PopupMenuHelper.addMenuItem(analyzeMenu, careerItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new IndividualCareerTool()
 				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, provenanceItem, panel, record -> {
+		PopupMenuHelper.addMenuItem(analyzeMenu, provenanceItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new ProvenanceTool()
 				.run(context);
 		});
-		PopupMenuHelper.addMenuItem(popup, loopsItem, panel, record -> {
+		PopupMenuHelper.addMenuItem(analyzeMenu, loopsItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new ConsanguinityLoopsTool()
 				.run(context);
 		});
+		popup.add(analyzeMenu);
 
 		return popup;
 	}

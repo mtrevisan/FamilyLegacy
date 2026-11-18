@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.quality.DateConsistency;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
 
@@ -71,6 +72,14 @@ final class ChronologyChecker{
 			int maxLifespanYears, int minBirthIntervalDays, int maxTwinGapDays){
 
 		static final Rules DEFAULT = new Rules(12, 14, 55, 90, 300, 120, 270, 7);
+
+		/** @return the rules with the numbers of the user (the defaults are the ones of {@link #DEFAULT}) */
+		static Rules of(final AssistantTuning tuning){
+			return new Rules(tuning.get(AssistantTuning.Parameter.MIN_MOTHER_AGE), tuning.get(AssistantTuning.Parameter.MIN_FATHER_AGE),
+				tuning.get(AssistantTuning.Parameter.MAX_MOTHER_AGE), tuning.get(AssistantTuning.Parameter.MAX_FATHER_AGE),
+				tuning.get(AssistantTuning.Parameter.MAX_GESTATION_DAYS), tuning.get(AssistantTuning.Parameter.MAX_LIFESPAN_YEARS),
+				tuning.get(AssistantTuning.Parameter.MIN_BIRTH_INTERVAL_DAYS), tuning.get(AssistantTuning.Parameter.MAX_TWIN_GAP_DAYS));
+		}
 
 	}
 

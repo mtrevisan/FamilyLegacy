@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
@@ -80,7 +81,7 @@ public final class TemporalRowRenderer{
 
 
 	private static final int LABEL_PADDING = 6;
-	private static final String TRUNCATION_SUFFIX = "…";
+	private static final String TRUNCATION_SUFFIX = I18N.t("dialog.ellipsis");
 
 
 	private TemporalRowRenderer(){

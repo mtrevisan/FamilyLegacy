@@ -80,4 +80,39 @@ class FindingsExportTest{
 		Assertions.assertTrue(new String(bytes, StandardCharsets.UTF_8).contains("Città"));
 	}
 
+	@Test
+	void thePageHasAnEscapedRowForEachFindingAndMarksTheIgnoredOnes(){
+		final String html = FindingsExport.toHtml(List.of(
+			new FindingsExport.Entry(finding(Diagnostic.Severity.WARNING, "Treviso <1> & \"Padova\"", "line one\nline two", List.of("P1", "P2"),
+				"place.possible_duplicate|P1,P2|x"), false),
+			new FindingsExport.Entry(finding(Diagnostic.Severity.ERROR, "Self", "why", List.of("P3"), "place.self_relation|P3|"), true)));
+
+		Assertions.assertTrue(html.startsWith("<!DOCTYPE html>"), html);
+		Assertions.assertTrue(html.contains("<title>Research Assistant findings</title>"), html);
+		Assertions.assertTrue(html.contains("2 findings"), html);
+		Assertions.assertTrue(html.contains("Treviso &lt;1&gt; &amp; &quot;Padova&quot;"), html);
+		Assertions.assertFalse(html.contains("<1>"), html);
+		Assertions.assertTrue(html.contains("<td class=\"warning\">warning</td>"), html);
+		Assertions.assertTrue(html.contains("<tr class=\"ignored\"><td class=\"error\">error</td>"), html);
+		Assertions.assertTrue(html.contains("<td>P1 P2</td>"), html);
+		//a page that reads on its own: no script, nothing to load
+		Assertions.assertFalse(html.contains("<script") || html.contains("http://") || html.contains("https://"), html);
+	}
+
+	@Test
+	void theNameOfTheFileSaysWhetherItIsAPageOrATable(@TempDir final Path directory) throws IOException{
+		final List<FindingsExport.Entry> entries = List.of(new FindingsExport.Entry(
+			finding(Diagnostic.Severity.INFORMATION, "Città", "why", List.of("P1"), "k|P1|"), false));
+		final Path page = directory.resolve("findings.HTML");
+		final Path table = directory.resolve("findings.csv");
+
+		FindingsExport.writeAs(page, entries);
+		FindingsExport.writeAs(table, entries);
+
+		Assertions.assertTrue(FindingsExport.isHtml(page));
+		Assertions.assertFalse(FindingsExport.isHtml(table));
+		Assertions.assertTrue(Files.readString(page, StandardCharsets.UTF_8).contains("<table>"));
+		Assertions.assertTrue(Files.readString(table, StandardCharsets.UTF_8).contains("Severity;Category"));
+	}
+
 }

@@ -26,11 +26,13 @@ package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -40,6 +42,19 @@ import java.util.List;
  * the usual ones and nothing is saved unless the user saves it.
  */
 public final class GapAssistantContributor implements AssistantContributor{
+
+	private final Supplier<AssistantTuning> tuning;
+
+
+	public GapAssistantContributor(){
+		this(AssistantTuning::load);
+	}
+
+	/** @param tuning gives the numbers of the user (the tests give the defaults, not the preferences) */
+	public GapAssistantContributor(final Supplier<AssistantTuning> tuning){
+		this.tuning = tuning;
+	}
+
 
 	@Override
 	public List<AssistantAction> actions(){
@@ -52,7 +67,7 @@ public final class GapAssistantContributor implements AssistantContributor{
 			if(context.model() == null)
 				return List.of();
 
-			return GapChecker.findings(GapDataLoader.load(context.model(), LocalDate.now())).stream()
+			return GapChecker.findings(GapDataLoader.load(context.model(), LocalDate.now()), tuning.get()).stream()
 				.map(finding -> {
 					final Diagnostic diagnostic = finding.diagnostic();
 					return (finding.draft() != null

@@ -70,6 +70,30 @@ zip ../fonts-cjk.zip *.otf *.txt
 - A plugin built for a version of the application that changed the plugin API must not be offered to older ones: write the oldest compatible
   version in `minVersion`.
 
+## What the installer carries, and what is downloaded
+
+The installer (`-Pwindows-exe`, see the `Ephemeris` module) is light on purpose: it holds the core of the program and an **empty** `plugins` and
+`fonts` folder (each with a `README.txt`, because the application looks for the folder to know where to install). Every other part is a
+component of the catalog, uploaded to the `components` release:
+
+| Catalog `id` | Asset | Built by |
+|--------------|-------|----------|
+| `fonts` | `fonts.zip` | `ReportPdf/target/fonts.zip` |
+| `ephemeris` | `ephemeris.jar` | `Ephemeris/target/ephemeris-shaded.jar` (copied to `Core/plugins/ephemeris.jar`) |
+| `importer-gedcom` | `importer-gedcom.jar` | `Core/plugins/importer-gedcom.jar` |
+| `importer-gramps` | `importer-gramps.jar` (`"requires": ["importer-gedcom"]`) | `Core/plugins/importer-gramps.jar` |
+| `report-pdf`, `report-docx`, `report-epub`, `report-site` | `report-*.jar` | `Core/plugins/report-*.jar` |
+| `facedetector` | `face-detector.jar` | `Core/plugins/face-detector.jar` |
+
+After a build, upload what changed (the users see *Update available* for a file whose SHA-256 changed; delete the old asset first):
+
+```
+gh release upload components Core/plugins/*.jar ReportPdf/target/fonts.zip --repo mtrevisan/FamilyLegacy --clobber
+```
+
+A plugin that is installed can be uninstalled from the application (a single file; a `.zip` such as the fonts cannot). `requires` in the catalog
+lists the ids, of the same target, that must be installed with a component and that are removed after it.
+
 ## Checklist for a new component
 
 1. Make the file (a zip without folders, or a single `.jar`) and check its content.

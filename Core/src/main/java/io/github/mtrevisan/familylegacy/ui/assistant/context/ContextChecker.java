@@ -33,9 +33,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -126,7 +127,13 @@ final class ContextChecker{
 		Map.entry(CulturalNormReader.ENUM_TYPE_MILITARY_SERVICE_AGE, new Rule(Set.of(EventReader.ENUM_TYPE_MILITARY_INDUCTION, EventReader.ENUM_TYPE_MILITARY_SERVICE), ContextImpactReader.ENUM_IMPACT_TYPE_CONSTRAINS, "military")));
 
 
-	private ContextChecker(){}
+	/** The numbers of the user: the weights of the usefulness, and the limits of the levels. */
+	private final AssistantTuning tuning;
+
+
+	private ContextChecker(final AssistantTuning tuning){
+		this.tuning = tuning;
+	}
 
 
 	/**
@@ -134,21 +141,31 @@ final class ContextChecker{
 	 * @return the findings, in no particular order (each has its usefulness as rank)
 	 */
 	static List<ContextFinding> findings(final ContextData data){
+		return findings(data, AssistantTuning.DEFAULTS);
+	}
+
+	/** @return the findings with the numbers of the user */
+	static List<ContextFinding> findings(final ContextData data, final AssistantTuning tuning){
+		final ContextChecker checker = new ContextChecker(tuning);
 		final List<ContextFinding> findings = new ArrayList<>();
-		findings.addAll(candidates(data));
-		findings.addAll(clusters(data));
+		findings.addAll(checker.candidates(data));
+		findings.addAll(checker.clusters(data));
 		return findings;
 	}
 
 	/** @return how useful a suggestion with that estimated usefulness is: high, medium or low */
 	static String level(final int usefulness){
-		if(usefulness >= HIGH_USEFULNESS)
+		return level(usefulness, AssistantTuning.DEFAULTS);
+	}
+
+	static String level(final int usefulness, final AssistantTuning tuning){
+		if(usefulness >= tuning.get(AssistantTuning.Parameter.CONTEXT_HIGH))
 			return ConfidenceReader.ENUM_HIGH;
-		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
+		return (usefulness >= tuning.get(AssistantTuning.Parameter.CONTEXT_MEDIUM)? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 
-	private static List<ContextFinding> candidates(final ContextData data){
+	private List<ContextFinding> candidates(final ContextData data){
 		final Set<String> existing = new HashSet<>();
 		for(final ContextData.Impact impact : data.impacts())
 			existing.add(impact.contextId() + "|" + impact.targetId());
@@ -183,7 +200,7 @@ final class ContextChecker{
 		return ((range != null && (range.min() != Long.MIN_VALUE || range.max() != Long.MAX_VALUE)) || context.placeId() != null);
 	}
 
-	private static ContextFinding candidate(final ContextData.Context context, final Rule rule, final ContextData.Event event,
+	private ContextFinding candidate(final ContextData.Context context, final Rule rule, final ContextData.Event event,
 			final ContextData data){
 		final DateRange range = event.range();
 		if(range == null || range.min() == Long.MIN_VALUE || range.max() == Long.MAX_VALUE || range.max() - range.min() > MAX_EVENT_SPAN)
@@ -195,13 +212,13 @@ final class ContextChecker{
 		//a context with no dates (a norm of a place) is in effect all the time
 		final boolean inside = (period != null && period.min() <= range.min() && range.max() <= period.max());
 
-		int usefulness = 35;
+		int usefulness = tuning.get(AssistantTuning.Parameter.CONTEXT_WITHOUT_PLACE);
 		final String where;
 		if(context.placeId() != null){
 			if(!isIn(event.placeId(), context.placeId(), data))
 				return null;
 
-			usefulness = 55;
+			usefulness = tuning.get(AssistantTuning.Parameter.CONTEXT_WITH_PLACE);
 			where = I18N.tf("context.why.place", data.placeLabels().getOrDefault(context.placeId(), context.placeId()) + " [" + context.placeId() + "]");
 		}
 		else
@@ -210,12 +227,12 @@ final class ContextChecker{
 			usefulness += 10;
 
 		final String when = (period != null? I18N.tf("context.why.period", period(period)): I18N.t("context.why.no_period"));
-		final String why = when + "; " + where;
+		final String why = I18N.tf("context.why.join", when, where);
 		final String hint = I18N.t("context.hint." + (context.historic()? "historic.": "norm.") + rule.hint());
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
 			I18N.tf("context.candidate.title", context.title() + " [" + context.id() + "]", event.label() + " [" + event.id() + "]"),
-			I18N.tf("context.candidate.explanation", context.title() + " [" + context.id() + "]", event.label() + " [" + event.id() + "]", why, hint) + StringUtils.SPACE
-				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
+			Sentences.join(I18N.tf("context.candidate.explanation", context.title() + " [" + context.id() + "]", event.label() + " [" + event.id() + "]", why, hint),
+				I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness, tuning)), String.valueOf(usefulness))),
 			List.of(context.id(), event.id()), null,
 			DiagnosticKeys.of("context.candidate", List.of(context.id(), event.id()), rule.impact()))
 			.withRank(usefulness);
@@ -239,7 +256,7 @@ final class ContextChecker{
 
 
 	/** Deaths that follow one another in a place within a short time, and that no historic event of the model explains. */
-	private static List<ContextFinding> clusters(final ContextData data){
+	private List<ContextFinding> clusters(final ContextData data){
 		final Map<String, List<ContextData.Event>> byPlace = new HashMap<>();
 		for(final ContextData.Event event : data.events())
 			if(DEATH_EVENTS.contains(event.type()) && event.placeId() != null && event.range() != null
@@ -274,7 +291,7 @@ final class ContextChecker{
 		return findings;
 	}
 
-	private static ContextFinding cluster(final String placeId, final List<ContextData.Event> cluster, final int persons,
+	private ContextFinding cluster(final String placeId, final List<ContextData.Event> cluster, final int persons,
 			final ContextData data){
 		final DateRange span = cluster.getFirst().range().hull(cluster.getLast().range());
 		for(final ContextData.Context context : data.contexts())
@@ -285,14 +302,15 @@ final class ContextChecker{
 		final String place = data.placeLabels().getOrDefault(placeId, placeId) + " [" + placeId + "]";
 		final String years = (year(span.min()) == year(span.max())? String.valueOf(year(span.min()))
 			: year(span.min()) + "–" + year(span.max()));
-		final int usefulness = Math.min(70, 40 + 5 * persons);
+		final int usefulness = Math.min(tuning.get(AssistantTuning.Parameter.CONTEXT_CLUSTER) + 30,
+			tuning.get(AssistantTuning.Parameter.CONTEXT_CLUSTER) + 5 * persons);
 		final List<String> ids = new ArrayList<>();
 		ids.add(placeId);
 		cluster.forEach(event -> ids.add(event.id()));
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.CONTEXT,
 			I18N.tf("context.cluster.title", place, years),
-			I18N.tf("context.cluster.explanation", String.valueOf(persons), place, years) + StringUtils.SPACE
-				+ I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness)), String.valueOf(usefulness)),
+			Sentences.join(I18N.tf("context.cluster.explanation", String.valueOf(persons), place, years),
+				I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level(usefulness, tuning)), String.valueOf(usefulness))),
 			ids, null, DiagnosticKeys.of("context.cluster", List.of(placeId), years, persons)).withRank(usefulness);
 		return new ContextFinding(diagnostic, null, new ContextFinding.HistoricDraft(HistoricEventReader.ENUM_TYPE_EPIDEMIC, I18N.tf("context.cluster.draft.title",
 			place, years)));

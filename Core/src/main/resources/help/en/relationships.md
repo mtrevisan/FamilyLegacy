@@ -58,9 +58,9 @@ On OK the editor refuses a relationship with no subject, no target or no type, a
 **Same-sex parents.** Two people of the same sex cannot be the biological parents of the same child. Saving a *biological child* link whose other biological parent has the same sex is refused; if the link or the other one is the generic *child* (which does not say whether the parentage is biological) you get a warning and can save anyway. Use *adoptive child*, *foster child* or *step child* for such a family. The same rule applies when you add a parent or a child from the family tree or the relationship graph, when you change the sex of a parent (see [Individual attributes](editors-people.md#individual-attribute)), and an import lists such children in its report.
 4. Repeat for the second parent.
 
-In the tree and in the graph, right-click the child and choose **Add Parent...** (a new person) or **Connect Parent...** (an existing one): you confirm the type of the relationship (*biological child* is the default). Both are offered only while the child has fewer than two parents.
+In the tree and in the graph, right-click the child and choose **Add > Parent...** (a new person) or **Connect > Parent...** (an existing one): you confirm the type of the relationship (*biological child* is the default). Both are offered only while the child has fewer than two parents.
 
-The same menu has **Add Partner...** and **Connect Partner...** for a partner. The views do not draw empty boxes for missing people.
+The same menu has **Add > Partner...** and **Connect > Partner...** for a partner. The views do not draw empty boxes for missing people.
 
 ### A marriage or a partnership
 
@@ -97,7 +97,7 @@ The same can be done from the editor of the individual: the subject is already t
 ## Moving and removing links
 
 - **Relocate** (`Ctrl+X`) only copies the selected individual or group to a clipboard. It changes nothing by itself.
-- **Paste as Partner**, **Paste as Parent** and **Paste as Child** are in the context menu of a person of the tree, of the graph and of the ego network (and **Paste** on an empty box where there is one). It **removes every link between the pasted person and other individuals** (parents, children, partners, associates; links to groups are not touched), without asking, and then creates the new links, asking for the type as **Connect Individual...** does. Moving a person is therefore: *detach from everyone, then reattach in the new place*. In the ego network, paste replaces all the relationships between the ego and the pasted record.
+- **Paste as > Partner**, **Paste as > Parent** and **Paste as > Child** are in the context menu of a person of the tree, of the graph and of the ego network (and **Paste** on an empty box where there is one). It **removes every link between the pasted person and other individuals** (parents, children, partners, associates; links to groups are not touched), without asking, and then creates the new links, asking for the type as **Connect > Parent...** does. Moving a person is therefore: *detach from everyone, then reattach in the new place*. In the ego network, paste replaces all the relationships between the ego and the pasted record.
 - **Unlink Relationships...** opens a dialog that lists what is linked to the selected individual, grouped as *Parents*, *Partners*, *Groups*, *Associates* and *Children* (for a group: *Members*, *Subgroups*, *Supergroups*), each marked as *Direct*, *Inverse* or *Bidirectional*. Tick what you want to remove and confirm: the relationship records are deleted, the people stay. The dialog may list other records that refer to the entity, with their own tabs; read them before confirming.
 - **Delete** removes an individual together with every relationship that involves it, its event participations and its attributes.
 

@@ -37,5 +37,6 @@ GitHub release and a line to this catalog: **the application does not change**.
 | `files` | Optional. The files that tell that the component is installed, even if the application did not install it. |
 | `size` | Optional, in bytes, shown for a `url` file (an asset has it from GitHub). |
 | `minVersion` | Optional. A program older than this does not list the component. |
+| `requires` | Optional. The ids, of the same target, of the components this one needs: they are installed with it, and removed after it. |
 
 An entry that is not understood is skipped. A plugin is loaded at startup, so it needs a restart of the application.

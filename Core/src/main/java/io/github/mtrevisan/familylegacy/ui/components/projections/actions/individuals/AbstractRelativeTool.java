@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.RelationshipTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.RelationshipTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogs;
@@ -206,8 +206,30 @@ abstract class AbstractRelativeTool implements ToolOperation{
 			case CREATE -> true;
 			case SEARCH -> context.model().hasRecordsByType(IndividualHandler.TYPE);
 			case CLIPBOARD -> (context.canPaste() && IndividualHandler.isOfType(context.clippedRecord())
-				&& !context.selectedEntityId().equals(context.clippedRecord().getId()));
+				&& !context.selectedEntityId().equals(context.clippedRecord().getId())
+				&& !isAlreadyLinked(context.selectedEntityId(), context.clippedRecord().getId(), context.model()));
 		};
+	}
+
+	/** @return	Whether the other individual already has, with the selected one, the very role this tool would give (nothing would change). */
+	private boolean isAlreadyLinked(final String selectedId, final String otherId, final FLEFModel model){
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipReader.TYPE)){
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String targetId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			if(subjectId == null || targetId == null)
+				continue;
+
+			final String type = RelationshipReader.extractType(relationship);
+			final boolean linked = switch(role){
+				case PARTNER -> RelationshipReader.isTypePartner(type)
+					&& (selectedId.equals(subjectId) && otherId.equals(targetId) || selectedId.equals(targetId) && otherId.equals(subjectId));
+				case PARENT -> RelationshipReader.isTypeChild(type) && selectedId.equals(subjectId) && otherId.equals(targetId);
+				case CHILD -> RelationshipReader.isTypeChild(type) && otherId.equals(subjectId) && selectedId.equals(targetId);
+			};
+			if(linked)
+				return true;
+		}
+		return false;
 	}
 
 }

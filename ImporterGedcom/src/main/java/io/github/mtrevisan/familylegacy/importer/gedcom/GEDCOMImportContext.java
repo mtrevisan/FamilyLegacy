@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.importer.gedcom;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportReasons;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.importer.PendingFile;
@@ -42,7 +43,7 @@ import java.util.Map;
 public final class GEDCOMImportContext{
 
 	private static final int MAX_ITEM_LENGTH = 80;
-	private static final String ELLIPSIS = "…";
+	private static final String ELLIPSIS = I18N.t("dialog.ellipsis");
 
 
 	private static ImportReport report = new ImportReport();

@@ -114,7 +114,7 @@ class AssistantIndicatorTest{
 		Assertions.assertEquals(4, counts.total());
 		Assertions.assertFalse(counts.isClean());
 		Assertions.assertEquals("✖ 1  ⚠ 2  ℹ 1", counts.label());
-		Assertions.assertEquals("1 error(s), 2 warning(s), 1 note(s)", counts.summary());
+		Assertions.assertEquals("1 error, 2 warnings, 1 note", counts.summary());
 	}
 
 	@Test
@@ -280,5 +280,78 @@ class AssistantIndicatorTest{
 		Assertions.assertTrue(indicator.tooltip().contains("Ctrl+Shift+A"), indicator.tooltip());
 		final List<Object> listeners = new ArrayList<>(List.of(((JButton)indicator.component()).getActionListeners()));
 		Assertions.assertEquals(1, listeners.size());
+	}
+
+	@Test
+	void aHiddenIndicatorComputesNothingAndComesBackWhenItIsShownAgain() throws IOException{
+		final FLEFModel model = convert();
+		final AtomicInteger computations = new AtomicInteger();
+		final ResearchAssistantService service = service(computations, new AtomicLong(), 0);
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+		Assertions.assertTrue(indicator.isVisible());
+
+		service.settings().setIndicatorVisible(false);
+		Assertions.assertFalse(indicator.isVisible());
+		indicator.onTimer();
+		Assertions.assertEquals(0, computations.get());
+		Assertions.assertNull(indicator.counts());
+
+		service.settings().setIndicatorVisible(true);
+		Assertions.assertTrue(indicator.isVisible());
+		indicator.onTimer();
+		Assertions.assertEquals(1, computations.get());
+		Assertions.assertNotNull(indicator.counts());
+	}
+
+	@Test
+	void theIndicatorCountsOnlyTheAssistantsItIsLimitedTo() throws IOException{
+		final FLEFModel model = convert();
+		final ResearchAssistantService service = service(new AtomicInteger(), new AtomicLong(), 0);
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+		indicator.onTimer();
+		final int all = indicator.counts().total();
+		Assertions.assertTrue(all > 0);
+
+		//the Chronology and the Conclusion assistants are what finds something in this model
+		service.settings().setEnabledForIndicator("chronology", false);
+		service.settings().setEnabledForIndicator("conclusion", false);
+		indicator.onTimer();
+
+		Assertions.assertEquals(0, indicator.counts().total());
+		//the palette still has them
+		Assertions.assertEquals(all, service.diagnose(new AssistantContext(null, null, model, FILE)).size());
+	}
+
+	@Test
+	void theColourOfTheIndicatorFollowsTheMostSeriousFinding(){
+		final java.awt.Color neutral = AssistantIndicator.severityColor(null);
+
+		Assertions.assertEquals(neutral, AssistantIndicator.severityColor(new FindingCounts(0, 0, 0)));
+		Assertions.assertEquals(neutral, AssistantIndicator.severityColor(new FindingCounts(0, 0, 7)));
+		final java.awt.Color warning = AssistantIndicator.severityColor(new FindingCounts(0, 2, 7));
+		final java.awt.Color error = AssistantIndicator.severityColor(new FindingCounts(1, 2, 7));
+		Assertions.assertNotEquals(neutral, warning);
+		Assertions.assertNotEquals(neutral, error);
+		Assertions.assertNotEquals(warning, error);
+		Assertions.assertEquals(error, AssistantIndicator.severityColor(new FindingCounts(3, 0, 0)));
+	}
+
+	@Test
+	void theIndicatorBlinksAndThenStopsByItself(){
+		final AssistantIndicator indicator = new AssistantIndicator(new ResearchAssistantService(),
+			() -> new AssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+		Assertions.assertFalse(indicator.isBlinking());
+
+		indicator.startBlink();
+		try{
+			Assertions.assertTrue(indicator.isBlinking());
+			indicator.stopBlink();
+			Assertions.assertFalse(indicator.isBlinking());
+		}
+		finally{
+			indicator.stopBlink();
+		}
 	}
 }

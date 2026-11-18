@@ -31,8 +31,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.ui.assistant.Sentences;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapData;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +116,13 @@ final class PlannerChecker{
 	private record Candidate(Step step, GapData.Person person, int usefulness, String year, String count){}
 
 
-	private PlannerChecker(){}
+	/** The numbers of the user: the weights of the usefulness of each step, and the limits of the levels. */
+	private final AssistantTuning tuning;
+
+
+	private PlannerChecker(final AssistantTuning tuning){
+		this.tuning = tuning;
+	}
 
 
 	/**
@@ -122,28 +130,43 @@ final class PlannerChecker{
 	 * @return the suggestions, in no particular order (each has its usefulness as rank)
 	 */
 	static List<PlannerFinding> findings(final GapData data){
+		return findings(data, AssistantTuning.DEFAULTS);
+	}
+
+	/** @return the suggestions with the numbers of the user */
+	static List<PlannerFinding> findings(final GapData data, final AssistantTuning tuning){
+		final PlannerChecker checker = new PlannerChecker(tuning);
 		final List<PlannerFinding> findings = new ArrayList<>();
-		findings.addAll(steps(data));
-		findings.addAll(brickWalls(data));
+		findings.addAll(checker.steps(data));
+		findings.addAll(checker.brickWalls(data));
 		return findings;
 	}
 
 	/** @return how useful a suggestion with that estimated usefulness is: high, medium or low */
 	static String level(final int usefulness){
-		if(usefulness >= HIGH_USEFULNESS)
+		return level(usefulness, AssistantTuning.DEFAULTS);
+	}
+
+	static String level(final int usefulness, final AssistantTuning tuning){
+		if(usefulness >= tuning.get(AssistantTuning.Parameter.PLANNER_HIGH))
 			return ConfidenceReader.ENUM_HIGH;
-		return (usefulness >= MEDIUM_USEFULNESS? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
+		return (usefulness >= tuning.get(AssistantTuning.Parameter.PLANNER_MEDIUM)? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW);
 	}
 
 	/** @return the priority to propose for a task with that estimated usefulness */
 	static String priority(final int usefulness){
-		if(usefulness >= HIGH_USEFULNESS)
+		return priority(usefulness, AssistantTuning.DEFAULTS);
+	}
+
+	static String priority(final int usefulness, final AssistantTuning tuning){
+		if(usefulness >= tuning.get(AssistantTuning.Parameter.PLANNER_HIGH))
 			return ResearchTaskReader.ENUM_PRIORITY_HIGH;
-		return (usefulness >= MEDIUM_USEFULNESS? ResearchTaskReader.ENUM_PRIORITY_NORMAL: ResearchTaskReader.ENUM_PRIORITY_LOW);
+		return (usefulness >= tuning.get(AssistantTuning.Parameter.PLANNER_MEDIUM)
+			? ResearchTaskReader.ENUM_PRIORITY_NORMAL: ResearchTaskReader.ENUM_PRIORITY_LOW);
 	}
 
 
-	private static List<PlannerFinding> steps(final GapData data){
+	private List<PlannerFinding> steps(final GapData data){
 		final List<PlannerFinding> findings = new ArrayList<>();
 		for(final GapData.Question question : data.questions()){
 			if(!isOpen(question) || question.hasConclusion())
@@ -206,7 +229,7 @@ final class PlannerChecker{
 			&& data.activities().stream().noneMatch(activity -> activity.questionIds().contains(question.id())));
 	}
 
-	private static List<Candidate> candidates(final GapData.Person person, final GapData data, final boolean nothingStarted){
+	private List<Candidate> candidates(final GapData.Person person, final GapData data, final boolean nothingStarted){
 		final List<Candidate> candidates = new ArrayList<>();
 		final int bonus = (nothingStarted? 5: 0);
 		final Integer birthYear = person.birthYear();
@@ -214,34 +237,34 @@ final class PlannerChecker{
 
 		final List<GapData.Event> births = eventsOf(person, data, EventReader.ENUM_TYPE_BIRTH);
 		if(births.isEmpty() && !person.hasBirth())
-			candidates.add(new Candidate(Step.BIRTH_MISSING, person, 80 + bonus, year, ""));
+			candidates.add(new Candidate(Step.BIRTH_MISSING, person, tuning.get(AssistantTuning.Parameter.PLANNER_BIRTH_MISSING) + bonus, year, ""));
 		//a source that cites the parentage (usually the birth or baptism record) is a source of the birth too
 		else if(births.stream().allMatch(event -> event.sourceCount() == 0) && data.parents().stream()
 				.noneMatch(link -> link.childId().equals(person.id()) && link.sourceCount() > 0))
-			candidates.add(new Candidate(Step.BIRTH_UNSOURCED, person, 65 + bonus, year, ""));
+			candidates.add(new Candidate(Step.BIRTH_UNSOURCED, person, tuning.get(AssistantTuning.Parameter.PLANNER_BIRTH_UNSOURCED) + bonus, year, ""));
 
 		final boolean parentsKnown = data.parents().stream().anyMatch(link -> link.childId().equals(person.id()));
 		final boolean married = data.unions().stream().anyMatch(union -> union.firstId().equals(person.id())
 			|| union.secondId().equals(person.id()));
 		final List<GapData.Event> marriages = eventsOf(person, data, EventReader.ENUM_TYPE_MARRIAGE);
 		if(!parentsKnown){
-			candidates.add(new Candidate(Step.PARENTS, person, 75 + bonus, year, ""));
+			candidates.add(new Candidate(Step.PARENTS, person, tuning.get(AssistantTuning.Parameter.PLANNER_PARENTS) + bonus, year, ""));
 			if(birthYear != null)
-				candidates.add(new Candidate(Step.BAPTISMS, person, 55 + bonus, year, ""));
+				candidates.add(new Candidate(Step.BAPTISMS, person, tuning.get(AssistantTuning.Parameter.PLANNER_BAPTISMS) + bonus, year, ""));
 		}
 		//the same for a source that cites the marriage relationship
 		else if(married && (marriages.isEmpty() || marriages.stream().allMatch(event -> event.sourceCount() == 0)) && data.unions().stream()
 				.noneMatch(union -> (union.firstId().equals(person.id()) || union.secondId().equals(person.id())) && union.sourceCount() > 0))
-			candidates.add(new Candidate(Step.MARRIAGE, person, 60 + bonus, year, ""));
+			candidates.add(new Candidate(Step.MARRIAGE, person, tuning.get(AssistantTuning.Parameter.PLANNER_MARRIAGE) + bonus, year, ""));
 
 		final List<GapData.Event> deaths = eventsOf(person, data, EventReader.ENUM_TYPE_DEATH);
 		final boolean deathUnknown = (deaths.isEmpty() && !person.hasDeath());
 		final boolean deathUnsourced = (!deaths.isEmpty() && deaths.stream().allMatch(event -> event.sourceCount() == 0));
 		if((deathUnknown || deathUnsourced) && birthYear != null && data.today().getYear() - birthYear >= DEAD_AGE)
-			candidates.add(new Candidate(Step.DEATH, person, 55 + bonus, year, ""));
+			candidates.add(new Candidate(Step.DEATH, person, tuning.get(AssistantTuning.Parameter.PLANNER_DEATH) + bonus, year, ""));
 
 		if(!person.hasCensus() && birthYear != null && birthYear >= FIRST_CENSUS_YEAR && birthYear <= LAST_CENSUS_YEAR)
-			candidates.add(new Candidate(Step.CENSUS, person, 40 + bonus, year, ""));
+			candidates.add(new Candidate(Step.CENSUS, person, tuning.get(AssistantTuning.Parameter.PLANNER_CENSUS) + bonus, year, ""));
 		return candidates;
 	}
 
@@ -252,37 +275,37 @@ final class PlannerChecker{
 	}
 
 	/** Searches that found nothing are the sign that the records are not where they were looked for: it is time to ask the archive. */
-	private static void addArchive(final GapData.Question question, final GapData.Person person, final GapData data,
+	private void addArchive(final GapData.Question question, final GapData.Person person, final GapData data,
 			final List<Candidate> candidates){
 		final long fruitless = data.activities().stream()
 			.filter(activity -> activity.questionIds().contains(question.id()) && ResearchActivityReader.ENUM_STATUS_COMPLETED.equals(activity.status())
 				&& activity.result() != null && !ResearchActivityReader.ENUM_RESULT_POSITIVE.equals(activity.result()))
 			.count();
 		if(fruitless >= FRUITLESS_SEARCHES)
-			candidates.add(new Candidate(Step.ARCHIVE, person, 50, "", String.valueOf(fruitless)));
+			candidates.add(new Candidate(Step.ARCHIVE, person, tuning.get(AssistantTuning.Parameter.PLANNER_ARCHIVE), "", String.valueOf(fruitless)));
 	}
 
-	private static PlannerFinding step(final GapData.Question question, final Candidate candidate){
+	private PlannerFinding step(final GapData.Question question, final Candidate candidate){
 		final Step step = candidate.step();
 		final String name = candidate.person().name() + " [" + candidate.person().id() + "]";
 		final String task = I18N.tf("planner.step." + step.key + ".task", name, candidate.year());
 		final String why = I18N.tf("planner.step." + step.key + ".why", name, candidate.year(), candidate.count());
 		final String title = (question.title() != null && !question.title().isBlank()? question.title() + " [" + question.id() + "]": question.id());
-		final String level = level(candidate.usefulness());
+		final String level = level(candidate.usefulness(), tuning);
 
 		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
 			I18N.tf("planner.next_step.title", task),
-			I18N.tf("planner.next_step.explanation", title, why) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
-				String.valueOf(candidate.usefulness())),
+			Sentences.join(I18N.tf("planner.next_step.explanation", title, why),
+				I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level), String.valueOf(candidate.usefulness()))),
 			List.of(question.id(), candidate.person().id()), null,
 			DiagnosticKeys.of("planner.next_step", List.of(question.id(), candidate.person().id()), step.key))
 			.withRank(candidate.usefulness());
 		return new PlannerFinding(diagnostic, new GapDraft(GapDraft.Kind.TASK, "", task, List.of(question.id()),
-			priority(candidate.usefulness())));
+			priority(candidate.usefulness(), tuning)));
 	}
 
 
-	private static List<PlannerFinding> brickWalls(final GapData data){
+	private List<PlannerFinding> brickWalls(final GapData data){
 		final Map<String, List<String>> children = new HashMap<>();
 		final Set<String> withParents = new HashSet<>();
 		for(final GapData.ParentLink link : data.parents()){
@@ -303,15 +326,16 @@ final class PlannerChecker{
 			if(descendants == 0)
 				continue;
 
-			final int usefulness = Math.min(85, 40 + Math.min(30, descendants * 3) + (person.birthYear() != null? 10: 0)
+			final int usefulness = Math.min(tuning.get(AssistantTuning.Parameter.PLANNER_BRICK_WALL) + 45,
+				tuning.get(AssistantTuning.Parameter.PLANNER_BRICK_WALL) + Math.min(30, descendants * 3) + (person.birthYear() != null? 10: 0)
 				+ (person.eventCount() > 0? 5: 0));
 			final String year = (person.birthYear() != null? String.valueOf(person.birthYear()): StringUtils.EMPTY);
-			final String level = level(usefulness);
+			final String level = level(usefulness, tuning);
 			final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
 				I18N.tf("planner.brick_wall.title", person.name() + " [" + person.id() + "]"),
-				I18N.tf((person.birthYear() != null? "planner.brick_wall.explanation.year": "planner.brick_wall.explanation"),
-					person.name() + " [" + person.id() + "]", String.valueOf(descendants), year) + StringUtils.SPACE + I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level),
-					String.valueOf(usefulness)),
+				Sentences.join(I18N.tf((person.birthYear() != null? "planner.brick_wall.explanation.year": "planner.brick_wall.explanation"),
+					person.name() + " [" + person.id() + "]", String.valueOf(descendants), year),
+					I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level), String.valueOf(usefulness))),
 				List.of(person.id()), null, DiagnosticKeys.of("planner.brick_wall", List.of(person.id()), descendants))
 				.withRank(usefulness);
 			findings.add(new PlannerFinding(diagnostic, new GapDraft(GapDraft.Kind.QUESTION,

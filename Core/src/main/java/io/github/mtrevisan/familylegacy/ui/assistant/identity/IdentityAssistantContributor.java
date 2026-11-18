@@ -25,6 +25,15 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
@@ -35,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
@@ -46,6 +56,11 @@ import java.util.function.Supplier;
  * it opens is the usual one and nothing is saved unless the user saves it.
  */
 public final class IdentityAssistantContributor implements AssistantContributor{
+
+	/** The kinds of record the comparison of the individuals reads (see {@link DiagnosticProvider#dependsOn()}). */
+	private static final Set<String> INDIVIDUALS_DEPEND_ON = Set.of(IndividualReader.TYPE, RelationshipReader.TYPE,
+		EventParticipationReader.TYPE, EventReader.TYPE, IndividualAttributeReader.TYPE, PlaceReader.TYPE, SourceReader.TYPE,
+		IdentityHypothesisReader.TYPE, ConclusionReader.TYPE);
 
 	private final Supplier<IdentitySettings> settings;
 
@@ -78,6 +93,23 @@ public final class IdentityAssistantContributor implements AssistantContributor{
 			@Override
 			public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
 				return individuals(context, progress);
+			}
+
+			/**
+			 * The slowest of the assistants (minutes on a big file): the kinds of record the comparison of the individuals reads
+			 * ({@code DuplicateFinderService}: the individuals, their relationships, the events and who took part in them, the
+			 * attributes, the places and the sources, the hypotheses that exclude a pair, and the conclusions that choose the sex).
+			 * An edit of anything else (a task, a media, a repository...) does not make it start again.
+			 */
+			@Override
+			public Set<String> dependsOn(){
+				return INDIVIDUALS_DEPEND_ON;
+			}
+
+			/** The thresholds of the user change what is proposed. */
+			@Override
+			public Object environment(){
+				return settings.get();
 			}
 		}, this::otherKinds);
 	}

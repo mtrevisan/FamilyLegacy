@@ -504,7 +504,7 @@ class GapCheckerTest{
 		Assertions.assertEquals(Diagnostic.Severity.WARNING, finding.diagnostic().severity());
 		Assertions.assertEquals("Overdue task: do t [t]", finding.diagnostic().title());
 		Assertions.assertEquals(85., finding.diagnostic().rank());
-		Assertions.assertTrue(finding.diagnostic().explanation().contains("1 day(s) ago"));
+		Assertions.assertTrue(finding.diagnostic().explanation().contains("1 day ago"));
 		Assertions.assertEquals(List.of("t", "q"), finding.diagnostic().recordIds());
 		//the task is there already: there is no draft to start
 		Assertions.assertNull(finding.draft());
