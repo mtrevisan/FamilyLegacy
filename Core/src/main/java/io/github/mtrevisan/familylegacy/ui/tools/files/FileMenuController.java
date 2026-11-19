@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.io.FilenameUtils;
@@ -419,7 +420,7 @@ public final class FileMenuController{
 	 */
 	private void reportMissingFile(final File file){
 		if(!recentFiles.contains(file)){
-			JOptionPane.showMessageDialog(owner, I18N.tf("error.file.not_found", file.getAbsolutePath()), I18N.t("error.file.title"),
+			MessageDialogs.show(owner, I18N.tf("error.file.not_found", file.getAbsolutePath()), I18N.t("error.file.title"),
 				JOptionPane.ERROR_MESSAGE);
 
 			return;
@@ -621,7 +622,7 @@ public final class FileMenuController{
 	}
 
 	private void showError(final String message, final Exception ex){
-		JOptionPane.showMessageDialog(owner,
+		MessageDialogs.show(owner,
 			message + ":" + StringUtils.LF + ex.getMessage(),
 			I18N.t("error.file.title"), JOptionPane.ERROR_MESSAGE);
 	}

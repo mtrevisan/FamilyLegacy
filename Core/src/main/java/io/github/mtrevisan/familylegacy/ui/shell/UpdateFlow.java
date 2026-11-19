@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.UpdateDownloadDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.updater.GitHubReleases;
 import io.github.mtrevisan.updater.InstallerDownloader;
@@ -175,8 +176,8 @@ final class UpdateFlow{
 			return;
 		}
 
-		final Object[] options = {I18N.t("menu.help.check.updates.install"), I18N.t("menu.help.check.updates.page"),
-			I18N.t("menu.help.check.updates.later")};
+		//Esc (or closing the window) is "later": it needs no button
+		final Object[] options = {I18N.t("menu.help.check.updates.install"), I18N.t("menu.help.check.updates.page")};
 		final int choice = JOptionPane.showOptionDialog(frame, message(headline, release),
 			I18N.t("menu.help.check.updates.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if(choice == 0)
@@ -256,7 +257,8 @@ final class UpdateFlow{
 			return;
 		}
 
-		final Object[] options = {I18N.t("menu.help.check.updates.run"), I18N.t("menu.help.check.updates.later")};
+		//Esc (or closing the window) is "later": it needs no button
+		final Object[] options = {I18N.t("menu.help.check.updates.run")};
 		final int choice = JOptionPane.showOptionDialog(frame,
 			I18N.tf("menu.help.check.updates.downloaded", release.version().toString()), I18N.t("menu.help.check.updates.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
@@ -299,16 +301,16 @@ final class UpdateFlow{
 				//falls through to the message
 			}
 		}
-		JOptionPane.showMessageDialog(frame, I18N.tf("error.unable_to_open_url", url, ""),
+		MessageDialogs.show(frame, I18N.tf("error.unable_to_open_url", url, ""),
 			I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 	}
 
 	private void info(final String message){
-		JOptionPane.showMessageDialog(frame, message, I18N.t("menu.help.check.updates.title"), JOptionPane.INFORMATION_MESSAGE);
+		MessageDialogs.show(frame, message, I18N.t("menu.help.check.updates.title"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void error(final String key, final Object... arguments){
-		JOptionPane.showMessageDialog(frame, I18N.tf(key, arguments), I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
+		MessageDialogs.show(frame, I18N.tf(key, arguments), I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 	}
 
 }

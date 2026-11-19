@@ -29,7 +29,7 @@ The sidebar (the *Dossier*) lists everything recorded about the selected individ
 
 ## Bookmarks
 
-**Bookmarks** saves the current view, that is the active view plus the current root, so that you can come back to it later. **Bookmark current view...** (`Ctrl+D`) adds one and **Manage bookmarks...** renames or deletes them. What is stored, and why a bookmark is not tied to one file, is in [Jump to, Find record and bookmarks](searching.md#bookmarks).
+**Navigate > Bookmarks** saves the current view, that is the active view plus the current root, so that you can come back to it later. **Bookmark current view...** (`Ctrl+D`) adds one and **Manage bookmarks...** renames or deletes them. What is stored, and why a bookmark is not tied to one file, is in [Jump to, Find record and bookmarks](searching.md#bookmarks).
 
 ## Privacy
 

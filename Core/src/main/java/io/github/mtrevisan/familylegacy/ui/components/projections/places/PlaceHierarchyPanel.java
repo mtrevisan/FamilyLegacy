@@ -47,6 +47,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -669,7 +670,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			absorber.absorb(model, placeId, other.getId(), String.format(Locale.ROOT,
 				"confirmed in the place hierarchy (match probability %.3f: %s)", candidate.probability(), candidate.rationale()));
 			if(!conflicts.isEmpty())
-				JOptionPane.showMessageDialog(owner, I18N.al(I18N.tf("dialog.merge.places.conflicts", placeId)) + StringUtils.LF
+				MessageDialogs.show(owner, I18N.al(I18N.tf("dialog.merge.places.conflicts", placeId)) + StringUtils.LF
 					+ String.join(StringUtils.LF, conflicts), I18N.t("dialog.merge.places.title"), JOptionPane.INFORMATION_MESSAGE);
 			return other.getId();
 		}

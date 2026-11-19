@@ -77,7 +77,7 @@ public final class FamilyBookGenerator{
 	}
 
 	public ReportDocument generate(final ReportProgressListener listener){
-		final ReportLabels labels = new ReportLabels(config.language());
+		final ReportLabels labels = new ReportLabels(config.language(), config.dateFormat());
 		final String title = labels.sections().familyBookTitle();
 
 		final List<FLEFRecord> everybody = model.getRecordsByType(IndividualReader.TYPE);

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.util.PluginLoader;
 import io.github.mtrevisan.updater.Component;
@@ -262,7 +263,7 @@ public final class ComponentsDialog extends JDialog{
 		for(final String failure : failures)
 			message.append("\n\n").append(failure);
 		if(!message.isEmpty())
-			JOptionPane.showMessageDialog(this, message.toString().strip(), I18N.t("dialog.components.title"),
+			MessageDialogs.show(this, message.toString().strip(), I18N.t("dialog.components.title"),
 				(failures.isEmpty()? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
 	}
 
@@ -295,7 +296,7 @@ public final class ComponentsDialog extends JDialog{
 		for(final String failure : failures)
 			message.append("\n\n").append(failure);
 		if(!message.isEmpty())
-			JOptionPane.showMessageDialog(this, message.toString().strip(), I18N.t("dialog.components.title"),
+			MessageDialogs.show(this, message.toString().strip(), I18N.t("dialog.components.title"),
 				(failures.isEmpty()? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
 	}
 

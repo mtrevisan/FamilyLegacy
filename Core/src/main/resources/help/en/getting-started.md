@@ -35,5 +35,5 @@ This is why, to change a date of birth, you edit the birth *event* of the person
 
 - **Undo and Redo** (`Ctrl+Z`, `Ctrl+Y`) are in the **Edit** menu, together with **Recent Changes...**, which lists what changed.
 - Every dialog closes with `Esc`, and only the dialog that has the focus.
-- Your preferences (language, font, how media paths are shown) are in the **Appearance** menu. See [Preferences](preferences.md).
+- Your preferences (language, font, how media paths are shown) are in the **Settings > Appearance** menu. See [Preferences](preferences.md).
 - The [shortcuts](shortcuts.md) can also be seen from **Help > Keyboard Shortcuts...**.

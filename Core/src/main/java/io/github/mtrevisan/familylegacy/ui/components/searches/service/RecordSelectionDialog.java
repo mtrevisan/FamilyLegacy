@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -60,6 +61,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -72,7 +74,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -83,7 +84,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -102,7 +102,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,14 +174,9 @@ public class RecordSelectionDialog extends JDialog{
 
 	// UI Components
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
-	private final JTextField searchField = new JTextField();
-
-	// Search modifiers: two independent checkboxes. Either, both, or
-	// neither can be selected. The combination determines the effective
-	// search mode, computed by currentMode().
-	private final JCheckBox fuzzyCheckBox = new JCheckBox(I18N.t("search.mode.fuzzy"), false);
-	private final JCheckBox wholeWordCheckBox = new JCheckBox(I18N.t("search.mode.whole_word"), false);
-	private final JCheckBox notesCheckBox = new JCheckBox(I18N.t("search.mode.notes_and_citations"), false);
+	// The text and the search modifiers (whole word, fuzzy, notes and citations): independent options, either, both, or neither can be
+	// on. The text is debounced by the dialog itself, so the box is listened to through its document and its option changes.
+	private final SearchBox searchBox = new SearchBox(20, true);
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
@@ -326,7 +320,7 @@ public class RecordSelectionDialog extends JDialog{
 			}
 		});
 		combo.addActionListener(e -> {
-			searchField.setText(StringUtils.EMPTY);
+			searchBox.field().setText(StringUtils.EMPTY);
 
 			updateFilterPanel();
 
@@ -347,21 +341,12 @@ public class RecordSelectionDialog extends JDialog{
 			topPanel.add(typeCombo, "growx");
 		}
 		topPanel.add(new JLabel(I18N.l("search.search_text")));
-		topPanel.add(searchField, "growx");
+		topPanel.add(searchBox, "growx");
 
-		// Search modifiers: two independent checkboxes. Both start
-		// unselected, which means "plain substring match". Selecting one
-		// or both narrows the search according to the semantics
-		// documented on the class.
-		topPanel.add(wholeWordCheckBox, "span 2,left");
-		topPanel.add(fuzzyCheckBox, "span 2,left");
-		// Not a way to match a token: it widens the text the query is looked for in, to the notes of the record.
-		topPanel.add(notesCheckBox, "span 2,left");
-
-		// Every change to a checkbox reschedules the search.
-		fuzzyCheckBox.addActionListener(e -> scheduleSearch());
-		wholeWordCheckBox.addActionListener(e -> scheduleSearch());
-		notesCheckBox.addActionListener(e -> scheduleSearch());
+		// Search modifiers: all start off, which means "plain substring match". Switching one on narrows the search according to the
+		// semantics documented on the class (the notes are not a way to match a token: they widen the text the query is looked for in).
+		// Every change to an option reschedules the search.
+		searchBox.onOptionChange(this::scheduleSearch);
 
 		add(topPanel, "growx,wrap");
 
@@ -434,7 +419,7 @@ public class RecordSelectionDialog extends JDialog{
 		add(bottomPanel, "growx");
 
 		// Listeners
-		final Document document = searchField.getDocument();
+		final Document document = searchBox.field().getDocument();
 		document.addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
@@ -549,21 +534,12 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	/**
-	 * Returns the search mode implied by the current combination of the
-	 * two independent checkboxes.
+	 * Returns the search mode implied by the current combination of the independent options.
 	 *
 	 * @return the effective search mode
 	 */
 	private Set<SearchMode> currentMode(){
-		final Set<SearchMode> modes = EnumSet.noneOf(SearchMode.class);
-		if(fuzzyCheckBox.isSelected())
-			modes.add(SearchMode.FUZZY);
-		if(wholeWordCheckBox.isSelected())
-			modes.add(SearchMode.WHOLE_WORD);
-		if(notesCheckBox.isSelected())
-			modes.add(SearchMode.NOTES_AND_CITATIONS);
-
-		return modes;
+		return searchBox.modes();
 	}
 
 	/**
@@ -630,11 +606,8 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void updateControlsVisibility(){
-		searchField.setVisible(true);
+		searchBox.setVisible(true);
 		filterPanelHolder.setVisible(true);
-		wholeWordCheckBox.setVisible(true);
-		fuzzyCheckBox.setVisible(true);
-		notesCheckBox.setVisible(true);
 	}
 
 	private void rebuildDynamicFilterPanel(final RecordTypeHandler<?> handler){
@@ -673,7 +646,7 @@ public class RecordSelectionDialog extends JDialog{
 		SourceUsage.invalidate();
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		final SearchCriteria searchCriteria = new SearchCriteria(handler.getType(), searchField.getText().trim(), currentMode());
+		final SearchCriteria searchCriteria = new SearchCriteria(handler.getType(), searchBox.query(), currentMode());
 
 		initialFilters.forEach(searchCriteria::withFilter);
 
@@ -788,7 +761,7 @@ public class RecordSelectionDialog extends JDialog{
 		}
 
 		final boolean rebuildStarted = placeHierarchyPanel.setFilters(
-			currentMode(), searchField.getText().trim(), relationType);
+			currentMode(), searchBox.query(), relationType);
 
 		if(rebuildStarted){
 			progressBar.setIndeterminate(false);
@@ -862,7 +835,7 @@ public class RecordSelectionDialog extends JDialog{
 
 			final FLEFRecord selectedRelationship = placeHierarchyPanel.getSelectedPlaceRecord();
 			if(selectedRelationship == null){
-				JOptionPane.showMessageDialog(this,
+				MessageDialogs.show(this,
 					I18N.t("search.no_selection.place_relationship"),
 					I18N.t("search.no_selection.title"), JOptionPane.INFORMATION_MESSAGE);
 
@@ -900,7 +873,7 @@ public class RecordSelectionDialog extends JDialog{
 			}
 		}
 		else
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("search.no_selection.message"),
 				I18N.t("search.no_selection.title"), JOptionPane.INFORMATION_MESSAGE);
 	}

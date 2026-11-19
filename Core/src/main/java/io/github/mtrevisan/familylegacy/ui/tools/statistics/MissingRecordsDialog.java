@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -122,7 +123,7 @@ final class MissingRecordsDialog extends JDialog{
 		final String tag = selected.getTag();
 		final RecordTypeHandler<?> handler = (tag != null? HandlerRegistry.getHandler(tag): null);
 		if(handler == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("message.no_editor_for_type", tag), I18N.t("dialog.statistics.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;

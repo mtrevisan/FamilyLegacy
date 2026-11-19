@@ -8,7 +8,7 @@ Each example puts together commands that are explained one by one in the other p
 2. **File > Import**, choose GEDCOM or Gramps XML, confirm, answer the question about the open document, and choose where to save the new `.flef`. The new file opens. See [Importing from GEDCOM and Gramps](import.md).
 3. **Tools > Validate File...** and fix what it lists, validating again (the report refreshes when you save a record opened from it) until it says the file is valid. See [When something goes wrong](troubleshooting.md).
 4. Look for what the conversion could not express. It leaves **notes** on the records: *Date* (a date that was not understood), *TO BE REVISED* on a spouse relationship that came from a GEDCOM family (decide whether it is civil or religious, and replace the generic type), *Additional file* (a media object with more than one file).
-5. Check the **media**: the paths are exactly as in the original file. Open **Source > Manage Media...** and see whether the files exist. If they are all under one folder, set **Appearance > Media paths** to *Relative to the base directory*. See [Preferences](preferences.md#media-paths).
+5. Check the **media**: the paths are exactly as in the original file. Open **Source > Manage Media...** and see whether the files exist. If they are all under one folder, set **Settings > Appearance > Media paths** to *Relative to the base directory*. See [Preferences](preferences.md#media-paths).
 6. Look for **duplicates**: see example 4.
 7. Open the [Research Assistant](assistant.md) (`Ctrl+Shift+A`) to see what it flags: dates that cannot be right, missing sex, couples with no children.
 8. Check the **privacy** of living people: see example 6.

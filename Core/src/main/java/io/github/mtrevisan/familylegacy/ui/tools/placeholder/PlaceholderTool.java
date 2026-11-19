@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.placeholder;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
@@ -58,7 +59,7 @@ public final class PlaceholderTool implements ToolOperation{
 
 	@Override
 	public void run(final ToolContext context){
-		JOptionPane.showMessageDialog(context.owner(),
+		MessageDialogs.show(context.owner(),
 			I18N.tf("message.not_implemented", getName().replace("…", StringUtils.EMPTY).trim()), I18N.t("title.feature_not_available"),
 			JOptionPane.INFORMATION_MESSAGE);
 	}

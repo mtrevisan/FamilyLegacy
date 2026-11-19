@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -285,7 +286,7 @@ final class RecentChangesDialog extends JDialog{
 
 		final ModelHistory.RevertPlan plan = history.planRevert(row.entry());
 		if(plan.state() == ModelHistory.RevertState.UNAVAILABLE){
-			JOptionPane.showMessageDialog(this, I18N.t("recent_changes.revert.unavailable"), I18N.t("recent_changes.revert.title"),
+			MessageDialogs.show(this, I18N.t("recent_changes.revert.unavailable"), I18N.t("recent_changes.revert.title"),
 				JOptionPane.WARNING_MESSAGE);
 			refresh();
 			return;
@@ -323,14 +324,14 @@ final class RecentChangesDialog extends JDialog{
 		final FLEFModel model = modelSupplier.get();
 		final FLEFRecord record = model.getRecordById(row.change().id());
 		if(record == null){
-			JOptionPane.showMessageDialog(this, I18N.tf("recent_changes.record_missing", row.change().id()),
+			MessageDialogs.show(this, I18N.tf("recent_changes.record_missing", row.change().id()),
 				getTitle(), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		if(handler == null){
-			JOptionPane.showMessageDialog(this, I18N.tf("recent_changes.no_editor", record.getTag()),
+			MessageDialogs.show(this, I18N.tf("recent_changes.no_editor", record.getTag()),
 				getTitle(), JOptionPane.WARNING_MESSAGE);
 			return;
 		}

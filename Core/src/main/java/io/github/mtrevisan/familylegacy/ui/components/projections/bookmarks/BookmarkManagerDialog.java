@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -165,7 +166,7 @@ public final class BookmarkManagerDialog extends JDialog{
 		final boolean taken = store.visible(modelSupplier.get(), filePathSupplier.get()).stream()
 			.anyMatch(other -> !other.id().equals(selected.id()) && other.name().equalsIgnoreCase(trimmed));
 		if(taken){
-			JOptionPane.showMessageDialog(this, I18N.tf("dialog.bookmark.duplicate.message", trimmed),
+			MessageDialogs.show(this, I18N.tf("dialog.bookmark.duplicate.message", trimmed),
 				I18N.t("dialog.bookmark.replace.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			return;

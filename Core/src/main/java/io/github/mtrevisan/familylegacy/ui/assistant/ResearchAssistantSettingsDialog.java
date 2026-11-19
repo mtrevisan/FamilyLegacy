@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -60,7 +61,7 @@ public final class ResearchAssistantSettingsDialog{
 
 	/** Shows the dialog. */
 	public static void show(final Window owner, final ResearchAssistantService service){
-		JOptionPane.showMessageDialog(owner, tabs(service), I18N.t("dialog.assistant_settings.title"), JOptionPane.PLAIN_MESSAGE);
+		MessageDialogs.show(owner, tabs(service), I18N.t("dialog.assistant_settings.title"), JOptionPane.PLAIN_MESSAGE);
 	}
 
 	/** @return the settings in tabs: the general ones, then the numbers of each assistant that has some */

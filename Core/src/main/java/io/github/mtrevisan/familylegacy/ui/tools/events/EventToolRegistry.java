@@ -41,8 +41,8 @@ public final class EventToolRegistry{
 	/** Primary operations, in menu order. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new ManageEventsTool(),
-			new NewEventTool()
+			new NewEventTool(),
+			new ManageEventsTool()
 		);
 	}
 

@@ -984,6 +984,36 @@ public final class SectionLabelProvider{
 		return labels.getString("TO_VERIFY_COLUMN_" + columnKey);
 	}
 
+	public String familyGroupTitle(){
+		return labels.getString("FAMILY_GROUP_TITLE");
+	}
+
+	public String familyGroupParents(){
+		return labels.getString("FAMILY_GROUP_PARENTS");
+	}
+
+	public String familyGroupMarriage(){
+		return labels.getString("FAMILY_GROUP_MARRIAGE");
+	}
+
+	public String familyGroupChildren(){
+		return labels.getString("FAMILY_GROUP_CHILDREN");
+	}
+
+	public String familyGroupNoChildren(){
+		return labels.getString("FAMILY_GROUP_NO_CHILDREN");
+	}
+
+	/** @return	What stands where the other parent of the children is not known. */
+	public String familyGroupNoPartner(){
+		return labels.getString("FAMILY_GROUP_NO_PARTNER");
+	}
+
+	/** @param columnKey	{@code NAME}, {@code BORN}, {@code BIRTH_PLACE}, {@code DIED} or {@code DEATH_PLACE}. */
+	public String familyGroupColumn(final String columnKey){
+		return labels.getString("FAMILY_GROUP_COLUMN_" + columnKey);
+	}
+
 	public String surnamesTitle(){
 		return labels.getString("SURNAMES_TITLE");
 	}

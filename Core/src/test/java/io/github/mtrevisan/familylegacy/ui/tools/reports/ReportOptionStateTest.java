@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import io.github.mtrevisan.reports.ReportDocument;
@@ -78,6 +79,7 @@ class ReportOptionStateTest{
 			case COLLATERAL_SCOPE -> (value? scopes[scopes.length - 1]: CollateralScope.NONE);
 			case GENERATIONS -> (value? 2: 0);
 			case PERSON_ORDER -> (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL);
+			case DATE_FORMAT -> (value? ReportDateFormat.DAY_MONTH_YEAR: ReportDateFormat.AS_RECORDED);
 			default -> value;
 		});
 	}

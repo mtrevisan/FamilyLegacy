@@ -37,7 +37,6 @@ module io.github.mtrevisan.familylegacy.core {
 	requires org.apache.commons.text;
 	requires com.ibm.icu;
 	requires org.apache.commons.io;
-	requires org.apache.tika.core;
 	requires java.net.http;
 	requires java.prefs;
 	requires org.jxmapviewer.jxmapviewer2;

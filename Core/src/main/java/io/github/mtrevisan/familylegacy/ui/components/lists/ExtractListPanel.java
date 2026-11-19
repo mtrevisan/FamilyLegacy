@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.handlers.ExtractHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
@@ -133,7 +134,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			if(!listed.contains(extract))
 				choices.add(new Choice(extract, getDisplayText(extract) + " [" + extract.getId() + "]"));
 		if(choices.isEmpty()){
-			JOptionPane.showMessageDialog(parent,
+			MessageDialogs.show(parent,
 				I18N.tf("dialog.extract.none_of_source", source.getId()),
 				I18N.t("dialog.source_citation.extract.title"),
 				JOptionPane.INFORMATION_MESSAGE);
@@ -161,7 +162,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final String sourceId = citedSource.get();
 		final FLEFRecord source = (StringUtils.isNotEmpty(sourceId)? model.getRecordById(sourceId): null);
 		if(source == null)
-			JOptionPane.showMessageDialog(parent,
+			MessageDialogs.show(parent,
 				I18N.t("dialog.extract.source_first"),
 				I18N.t("dialog.source_citation.extract.title"),
 				JOptionPane.INFORMATION_MESSAGE);

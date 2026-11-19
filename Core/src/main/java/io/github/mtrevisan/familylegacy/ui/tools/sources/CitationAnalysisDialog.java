@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -545,7 +546,7 @@ final class CitationAnalysisDialog extends JDialog{
 			Files.writeString(target.toPath(), "﻿" + CsvFormat.format(rows), StandardCharsets.UTF_8);
 		}
 		catch(final IOException e){
-			JOptionPane.showMessageDialog(this, I18N.tf("error.csv.export", target.getAbsolutePath(), e.getMessage()),
+			MessageDialogs.show(this, I18N.tf("error.csv.export", target.getAbsolutePath(), e.getMessage()),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}

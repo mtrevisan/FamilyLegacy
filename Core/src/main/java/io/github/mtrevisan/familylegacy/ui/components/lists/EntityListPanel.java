@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -472,7 +473,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent,
+			MessageDialogs.show(parent,
 				I18N.t("error.record_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 

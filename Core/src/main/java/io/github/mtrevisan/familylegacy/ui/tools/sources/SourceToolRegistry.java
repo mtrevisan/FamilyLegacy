@@ -45,16 +45,16 @@ public final class SourceToolRegistry{
 	/** Sources subgroup, in menu order. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new SourceManagerTool(),
-			new NewSourceTool()
+			new NewSourceTool(),
+			new SourceManagerTool()
 		);
 	}
 
 	/** Repositories subgroup. */
 	public static List<ToolOperation> repositoryTools(){
 		return List.of(
-			new RepositoryManagerTool(),
-			new NewRepositoryTool()
+			new NewRepositoryTool(),
+			new RepositoryManagerTool()
 		);
 	}
 
@@ -68,7 +68,13 @@ public final class SourceToolRegistry{
 	/** Citation subgroup. */
 	public static List<ToolOperation> citationTools(){
 		return List.of(
-			new AddCitationTool(),
+			new AddCitationTool()
+		);
+	}
+
+	/** Analysis of the citations. */
+	public static List<ToolOperation> analysisTools(){
+		return List.of(
 			new CitationAnalysisTool(),
 			new ProvenanceTool()
 		);

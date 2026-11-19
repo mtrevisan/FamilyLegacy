@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -230,7 +231,7 @@ public class PreferredImagePanel extends JPanel{
 		catch(final IOException ioe){
 			ioe.printStackTrace();
 
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("error.image", MediaPathDisplay.display(uri)),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}

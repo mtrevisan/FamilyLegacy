@@ -52,17 +52,17 @@ public final class IndividualToolRegistry{
 			new AddChildTool(),
 			new ConnectPartnerTool(),
 			new ConnectParentTool(),
+			new ConnectChildTool(),
 			new PasteAsPartnerTool(),
 			new PasteAsParentTool(),
 			new PasteAsChildTool()
 		);
 	}
 
-	/** CRUD tools. */
+	/** Moving tools. */
 	public static List<ToolOperation> secondaryTools(){
 		return List.of(
-			new RelocateIndividualTool(),
-			new DeleteIndividualTool()
+			new RelocateIndividualTool()
 		);
 	}
 
@@ -73,13 +73,20 @@ public final class IndividualToolRegistry{
 		);
 	}
 
-	/** Navigation tools. */
+	/** Navigation and analysis tools. */
 	public static List<ToolOperation> navigationTools(final GenealogyRepository repository){
 		return List.of(
 			new SetAsRootTool(),
 			new KinshipCalculatorTool(repository),
 			new IndividualCareerTool(),
 			new ConsanguinityLoopsTool()
+		);
+	}
+
+	/** The tool that removes the individual: last in the menu. */
+	public static List<ToolOperation> deleteTools(){
+		return List.of(
+			new DeleteIndividualTool()
 		);
 	}
 

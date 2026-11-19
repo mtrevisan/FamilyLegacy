@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -1775,7 +1776,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 	}
 
 	private void showError(final String title, final String body){
-		JOptionPane.showMessageDialog(this, body, title, JOptionPane.ERROR_MESSAGE);
+		MessageDialogs.show(this, body, title, JOptionPane.ERROR_MESSAGE);
 	}
 
 

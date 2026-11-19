@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -76,7 +77,7 @@ public final class BackupTool implements ToolOperation{
 
 		final FLEFModel model = context.model();
 		if(model == null){
-			JOptionPane.showMessageDialog(context.owner(),
+			MessageDialogs.show(context.owner(),
 				I18N.t("message.no_model_loaded"), I18N.t("dialog.backup.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
@@ -135,7 +136,7 @@ public final class BackupTool implements ToolOperation{
 				}
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-					JOptionPane.showMessageDialog(context.owner(),
+					MessageDialogs.show(context.owner(),
 						I18N.l("dialog.backup.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.backup.title"),
 						JOptionPane.ERROR_MESSAGE);
 				}

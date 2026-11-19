@@ -173,7 +173,7 @@ public final class ReportContext{
 		this.model = model;
 		this.root = root;
 		this.config = config;
-		this.labels = new ReportLabels(config.language());
+		this.labels = new ReportLabels(config.language(), config.dateFormat());
 		this.index = (sharedIndex != null? sharedIndex: RelationIndex.build(model, this::isVisible));
 		this.rootKind = detectRootKind(root);
 	}

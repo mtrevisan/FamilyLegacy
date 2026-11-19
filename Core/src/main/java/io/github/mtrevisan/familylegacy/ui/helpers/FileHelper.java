@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.helpers;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +48,6 @@ public final class FileHelper{
 
 
 	private static final String URL_CONNECTIVITY_TEST = "https://www.google.com/";
-
-	private static final Tika TIKA = new Tika();
 
 
 	private FileHelper(){}
@@ -75,16 +72,6 @@ public final class FileHelper{
 				file = new File(fileURL.getPath());
 		}
 		return file;
-	}
-
-	public static boolean isPhoto(final File file){
-		try{
-			final String mimeType = TIKA.detect(file);
-			return (mimeType != null && mimeType.startsWith("image/"));
-		}
-		catch(final IOException ignored){
-			return false;
-		}
 	}
 
 

@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.function.UnaryOperator;
 
 
 public class DateService{
@@ -47,6 +48,15 @@ public class DateService{
 	 * - SPANNING (with FROM/TO, each containing a date)
 	 */
 	public static String getDateDisplayText(final FLEFRecord record){
+		return getDateDisplayText(record, UnaryOperator.identity());
+	}
+
+	/**
+	 * @param record	The record that has the date.
+	 * @param fullDateWriter	Writes the value of a full date of the Gregorian calendar (the others are left as they are).
+	 * @return	The same text as {@link #getDateDisplayText(FLEFRecord)}, with the full dates written by the writer.
+	 */
+	public static String getDateDisplayText(final FLEFRecord record, final UnaryOperator<String> fullDateWriter){
 		if(record == null)
 			return StringUtils.EMPTY;
 
@@ -57,17 +67,17 @@ public class DateService{
 		// Check for POINT
 		final FLEFRecord point = FLEFRecordHelper.findChild(valueRecord, DateReader.TAG_POINT);
 		if(point != null)
-			return getPointDisplayText(point);
+			return getPointDisplayText(point, fullDateWriter);
 
 		// Check for BOUNDED
 		final FLEFRecord bounded = FLEFRecordHelper.findChild(valueRecord, DateReader.TAG_BOUNDED);
 		if(bounded != null)
-			return getBoundedDisplayText(bounded);
+			return getBoundedDisplayText(bounded, fullDateWriter);
 
 		// Check for SPANNING
 		final FLEFRecord spanning = FLEFRecordHelper.findChild(valueRecord, DateReader.TAG_SPANNING);
 		if(spanning != null)
-			return getSpanningDisplayText(spanning);
+			return getSpanningDisplayText(spanning, fullDateWriter);
 
 		return null;
 	}
@@ -100,8 +110,8 @@ public class DateService{
 	 * Extracts a single date string from a node that may contain FULL_DATE, DECADE, or CENTURY
 	 * and optional APPROXIMATE.
 	 */
-	private static String getPointDisplayText(final FLEFRecord singleDateRecord){
-		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(singleDateRecord));
+	private static String getPointDisplayText(final FLEFRecord singleDateRecord, final UnaryOperator<String> fullDateWriter){
+		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(singleDateRecord, fullDateWriter));
 		if(dateStr.isEmpty())
 			return "--";
 
@@ -140,7 +150,7 @@ public class DateService{
 	/**
 	 * Extracts the actual date value from FULL_DATE, DECADE, or CENTURY (including CALENDAR).
 	 */
-	private static String getSingleDateDisplayText(final FLEFRecord singleDateRecord){
+	private static String getSingleDateDisplayText(final FLEFRecord singleDateRecord, final UnaryOperator<String> fullDateWriter){
 		if(singleDateRecord == null)
 			return StringUtils.EMPTY;
 
@@ -151,7 +161,8 @@ public class DateService{
 
 		final FLEFRecord fullDate = FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE);
 		if(fullDate != null){
-			final String value = fullDate.getValue();
+			final boolean gregorian = (calendar == null || "gregorian".equalsIgnoreCase(calendar));
+			final String value = (gregorian? fullDateWriter.apply(fullDate.getValue()): fullDate.getValue());
 			return value + calendarSuffix(calendar);
 		}
 
@@ -176,11 +187,11 @@ public class DateService{
 		return StringUtils.EMPTY;
 	}
 
-	private static String getBoundedDisplayText(final FLEFRecord boundedRecord){
+	private static String getBoundedDisplayText(final FLEFRecord boundedRecord, final UnaryOperator<String> fullDateWriter){
 		final FLEFRecord notBeforeRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_BEFORE);
-		final String notBefore = getSingleDateDisplayText(notBeforeRecord);
+		final String notBefore = getSingleDateDisplayText(notBeforeRecord, fullDateWriter);
 		final FLEFRecord notAfterRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_AFTER);
-		final String notAfter = getSingleDateDisplayText(notAfterRecord);
+		final String notAfter = getSingleDateDisplayText(notAfterRecord, fullDateWriter);
 		if(!notBefore.isEmpty() && !notAfter.isEmpty())
 			return I18N.tf("dialog.date.description.between.and", notBefore, notAfter);
 		if(!notBefore.isEmpty())
@@ -190,11 +201,11 @@ public class DateService{
 		return null;
 	}
 
-	private static String getSpanningDisplayText(final FLEFRecord spanningRecord){
+	private static String getSpanningDisplayText(final FLEFRecord spanningRecord, final UnaryOperator<String> fullDateWriter){
 		final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_FROM);
-		final String from = getSingleDateDisplayText(fromRecord);
+		final String from = getSingleDateDisplayText(fromRecord, fullDateWriter);
 		final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, DateReader.TAG_TO);
-		final String to = getSingleDateDisplayText(toRecord);
+		final String to = getSingleDateDisplayText(toRecord, fullDateWriter);
 		if(!from.isEmpty() && !to.isEmpty())
 			return I18N.tf("dialog.date.description.from.to", from, to);
 		if(!from.isEmpty())

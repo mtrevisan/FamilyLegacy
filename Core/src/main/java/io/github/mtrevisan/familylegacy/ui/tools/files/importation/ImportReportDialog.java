@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportIssue;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import org.apache.commons.lang3.StringUtils;
 
@@ -165,7 +166,7 @@ public final class ImportReportDialog extends JDialog{
 				I18N.tf("dialog.file.saved", chooser.getSelectedFile().getAbsolutePath()), chooser.getSelectedFile());
 		}
 		catch(final IOException ioe){
-			JOptionPane.showMessageDialog(this, I18N.t("dialog.import.report.save.error") + StringUtils.LF + ioe.getMessage(),
+			MessageDialogs.show(this, I18N.t("dialog.import.report.save.error") + StringUtils.LF + ioe.getMessage(),
 				I18N.t("dialog.import.report.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantStatistics.Event;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -55,7 +56,7 @@ public final class AssistantStatisticsDialog{
 
 	/** Shows the page. */
 	public static void show(final Window owner, final ResearchAssistantService service){
-		JOptionPane.showMessageDialog(owner, panel(service.statistics()), I18N.t("dialog.assistant_statistics.title"),
+		MessageDialogs.show(owner, panel(service.statistics()), I18N.t("dialog.assistant_statistics.title"),
 			JOptionPane.PLAIN_MESSAGE);
 	}
 

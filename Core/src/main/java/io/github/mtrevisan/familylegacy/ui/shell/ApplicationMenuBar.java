@@ -54,6 +54,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorRepo
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DescendantReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyGroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IndividualSummaryOperation;
@@ -137,6 +138,7 @@ final class ApplicationMenuBar{
 		bar.add(createFileMenu());
 		bar.add(createEditMenu());
 		bar.add(createViewMenu());
+		bar.add(createNavigateMenu());
 		bar.add(createIndividualMenu(repository));
 		bar.add(createGroupMenu());
 		bar.add(createPlaceMenu());
@@ -148,11 +150,11 @@ final class ApplicationMenuBar{
 			bar.add(research);
 		bar.add(createReportsMenu());
 		bar.add(createToolsMenu());
-		bar.add(createNavigateMenu());
-		bar.add(createBookmarkMenu());
-		bar.add(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile));
 		final ResearchAssistantPort assistant = frame.assistant();
-		bar.add(SettingsMenu.create(frame, (assistant != null? () -> assistant.openSettings(frame): null)));
+		final JMenu settings = SettingsMenu.create(frame, (assistant != null? () -> assistant.openSettings(frame): null));
+		//what is about the look of the application (language, font, media paths) is a part of the settings
+		settings.insert(AppearanceMenu.create(frame, frame.fileController()::confirmDiscardChanges, frame.fileController()::currentFile), 0);
+		bar.add(settings);
 		bar.add(new HelpMenu(frame)
 			.create());
 		for(int i = 0; i < bar.getMenuCount(); i ++)
@@ -212,11 +214,8 @@ final class ApplicationMenuBar{
 
 		menu.add(new JSeparator());
 
-		final JMenu importMenu = new JMenu(I18N.t("menu.file.import"));
-		importMenu.setMnemonic(KeyEvent.VK_I);
-		for(final ToolOperation tool : FileToolRegistry.importTools())
-			importMenu.add(toolItem(tool, 0));
-		menu.add(importMenu);
+		//one entry for all the formats: the file chooser lists them and the importer is found from the file
+		menu.add(toolItem(FileToolRegistry.importTool(), KeyEvent.VK_I));
 
 		final JMenu exportMenu = new JMenu(I18N.t("menu.file.export"));
 		exportMenu.setMnemonic(KeyEvent.VK_E);
@@ -530,10 +529,11 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, IndividualToolRegistry.relationshipTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.secondaryTools(), bindings);
-		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.tertiaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(repository), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, IndividualToolRegistry.deleteTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -555,11 +555,11 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.relationshipTools(), bindings);
 		menu.add(new JSeparator());
-		addToolsToMenu(menu, GroupToolRegistry.secondaryTools(), bindings);
-		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.tertiaryTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, GroupToolRegistry.navigationTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, GroupToolRegistry.deleteTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -578,6 +578,8 @@ final class ApplicationMenuBar{
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
 		addToolsToMenu(menu, PlaceToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, PlaceToolRegistry.analysisTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -602,6 +604,8 @@ final class ApplicationMenuBar{
 		addToolsToMenu(menu, SourceToolRegistry.documentTools(), bindings);
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, SourceToolRegistry.citationTools(), bindings);
+		menu.add(new JSeparator());
+		addToolsToMenu(menu, SourceToolRegistry.analysisTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
 
@@ -668,7 +672,7 @@ final class ApplicationMenuBar{
 	static List<List<ToolOperation>> reportOperationGroups(){
 		return List.of(
 			List.of(new AncestorReportOperation(), new DescendantReportOperation(), new IndividualSummaryOperation(),
-				new RelationshipReportOperation(), new GroupSheetOperation()),
+				new RelationshipReportOperation(), new FamilyGroupSheetOperation(), new GroupSheetOperation()),
 			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation()),
 			List.of(new BibliographyOperation(), new ResearchProgressOperation()),
 			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new SurnamesOperation()));
@@ -769,6 +773,9 @@ final class ApplicationMenuBar{
 		});
 		menu.add(clearHistory);
 
+		menu.add(new JSeparator());
+		menu.add(createBookmarkMenu());
+
 		// The enabled state of Back, Forward and Clear History depends on
 		// the current history. A MenuListener refreshes the state every
 		// time the menu is opened, so no global history listener is needed.
@@ -820,7 +827,8 @@ final class ApplicationMenuBar{
 		final BookmarkMenu menu = new BookmarkMenu(frame, frame.bookmarkStore(), frame::model, frame::bookmarkFilePath, frame::captureCurrentState,
 			frame::applyBookmark);
 		menu.setText(I18N.t("menu.bookmarks"));
-		menu.setMnemonic(KeyEvent.VK_B);
+		//Back has the B in the Navigate menu, where the bookmarks now are
+		menu.setMnemonic(KeyEvent.VK_K);
 
 		return menu;
 	}

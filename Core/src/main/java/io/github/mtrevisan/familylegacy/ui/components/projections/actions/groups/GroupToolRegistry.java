@@ -50,8 +50,8 @@ public final class GroupToolRegistry{
 		);
 	}
 
-	/** CRUD tools. */
-	public static List<ToolOperation> secondaryTools(){
+	/** The tool that removes the group: last in the menu. */
+	public static List<ToolOperation> deleteTools(){
 		return List.of(
 			new DeleteGroupTool()
 		);

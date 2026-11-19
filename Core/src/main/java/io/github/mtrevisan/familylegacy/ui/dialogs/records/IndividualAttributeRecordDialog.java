@@ -50,6 +50,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -344,7 +345,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(parentEntity.isEmpty()){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("validation.required", I18N.t("validation.required_parent_field")),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 

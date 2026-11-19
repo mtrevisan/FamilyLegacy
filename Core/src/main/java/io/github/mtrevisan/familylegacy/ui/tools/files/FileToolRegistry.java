@@ -24,16 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.files;
 
-import io.github.mtrevisan.familylegacy.importer.FileImporter;
 import io.github.mtrevisan.familylegacy.importer.FileImporters;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.files.exportation.ExportFlefTool;
 import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportFileTool;
-import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportUnavailableTool;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.BackupTool;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.RestoreFromBackupTool;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -53,20 +50,11 @@ public final class FileToolRegistry{
 	}
 
 	/**
-	 * @return	One entry for each format that can be imported: the importers are plugins, so the ones that are installed give the
-	 * 	entries, and for the formats the application knows and whose plugin is not there an entry says so.
+	 * @return	The only entry of the import: the importers are plugins, so the ones that are installed give the formats its file chooser
+	 * 	offers (it is disabled if there is none).
 	 */
-	public static List<ToolOperation> importTools(){
-		final List<ToolOperation> tools = new ArrayList<>();
-		final List<String> found = new ArrayList<>();
-		for(final FileImporter importer : FileImporters.available()){
-			tools.add(new ImportFileTool(importer));
-			found.add(importer.id());
-		}
-		for(final String id : FileImporters.KNOWN_IDS)
-			if(!found.contains(id))
-				tools.add(new ImportUnavailableTool(id));
-		return tools;
+	public static ToolOperation importTool(){
+		return new ImportFileTool(FileImporters.available());
 	}
 
 	public static List<ToolOperation> exportTools(){

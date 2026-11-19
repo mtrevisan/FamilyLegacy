@@ -25,6 +25,7 @@
 package io.github.mtrevisan.reports.pdf;
 
 import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -371,4 +372,39 @@ class PdfReportRendererTest{
 		}
 	}
 
+	@Test
+	void theLayoutSetsThePaperTheMarginTheFootnoteAndTheCoverText(@TempDir final Path directory) throws IOException{
+		final Path file = directory.resolve("layout.pdf");
+		renderer.render(document(new ReportSection.Paragraph("body text")), file, null,
+			new ReportLayout(ReportLayout.PaperSize.LETTER, 30, true, "Draft footnote", "Prepared for the family"));
+
+		final PdfReader reader = new PdfReader(Files.readAllBytes(file));
+		try{
+			Assertions.assertEquals(ReportLayout.PaperSize.LETTER.widthPoints(), reader.getPageSize(1).getWidth(), 1);
+			Assertions.assertEquals(ReportLayout.PaperSize.LETTER.heightPoints(), reader.getPageSize(1).getHeight(), 1);
+		}
+		finally{
+			reader.close();
+		}
+		final String text = text(file);
+		Assertions.assertTrue(text.contains("Draft footnote"), text);
+		Assertions.assertTrue(text.contains("Prepared for the family"), text);
+	}
+
+	@Test
+	void theTitleAtTheTopOfThePagesCanBeTurnedOff(@TempDir final Path directory) throws IOException{
+		final List<ReportSection> sections = new ArrayList<>();
+		for(int i = 0; i < 120; i ++)
+			sections.add(new ReportSection.Paragraph("paragraph number " + i));
+		final ReportDocument doc = new ReportDocument("RUNNINGTITLE", null, sections);
+		final Path with = directory.resolve("with.pdf");
+		final Path without = directory.resolve("without.pdf");
+
+		renderer.render(doc, with, null, new ReportLayout(ReportLayout.PaperSize.A4, 0, true, "", ""));
+		renderer.render(doc, without, null, new ReportLayout(ReportLayout.PaperSize.A4, 0, false, "", ""));
+
+		//the title is written once as the title of the document, and once at the top of every following page
+		Assertions.assertTrue(StringUtils.countMatches(text(with), "RUNNINGTITLE") > 1, text(with));
+		Assertions.assertEquals(1, StringUtils.countMatches(text(without), "RUNNINGTITLE"), text(without));
+	}
 }

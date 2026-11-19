@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
@@ -133,7 +134,7 @@ public final class SettingsMenu{
 			final Path folder = AppPreferences.filePath().getParent();
 			if(!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN)){
 				//the folder cannot be opened from here: at least the user is told where it is
-				JOptionPane.showMessageDialog(owner, I18N.tf("message.preferences_folder.unsupported", folder),
+				MessageDialogs.show(owner, I18N.tf("message.preferences_folder.unsupported", folder),
 					I18N.t("error.title"), JOptionPane.INFORMATION_MESSAGE);
 
 				return;
@@ -142,7 +143,7 @@ public final class SettingsMenu{
 			Desktop.getDesktop().open(folder.toFile());
 		}
 		catch(final Exception ex){
-			JOptionPane.showMessageDialog(owner,
+			MessageDialogs.show(owner,
 				I18N.t("message.preferences_folder.open_failed") + ":\n" + ex.getMessage(),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -379,7 +380,7 @@ public final class ValidationReportDialog extends JDialog{
 
 		final FLEFRecord record = model.getRecordById(err.recordId());
 		if(record == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("message.record_not_in_model", err.recordId()), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
@@ -387,7 +388,7 @@ public final class ValidationReportDialog extends JDialog{
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		if(handler == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("message.no_editor_for_type", record.getTag()), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;

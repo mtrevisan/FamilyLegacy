@@ -48,6 +48,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -289,7 +290,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		//the sex is edited in the Attributes tab: every assertion must say the required one (none at all is fine, the preset is saved)
 		for(final FLEFRecord assertion : PreferredSex.assertions(record.getId(), model))
 			if(SexType.fromRaw(FLEFRecordHelper.getChildValue(assertion, IndividualAttributeReader.TAG_VALUE)) != requiredSex){
-				JOptionPane.showMessageDialog(this, requiredSexReason, I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+				MessageDialogs.show(this, requiredSexReason, I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 				return false;
 			}

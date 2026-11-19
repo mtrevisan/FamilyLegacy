@@ -43,6 +43,7 @@ public enum ReportOption{
 	COLLATERAL_SCOPE(ReportConfig::collateralScope),
 	GENERATIONS(ReportConfig::generations),
 	PERSON_ORDER(ReportConfig::personOrder),
+	DATE_FORMAT(ReportConfig::dateFormat),
 	NOTES(ReportConfig::notes),
 	SOURCES(ReportConfig::sources),
 	MEDIA(ReportConfig::media),

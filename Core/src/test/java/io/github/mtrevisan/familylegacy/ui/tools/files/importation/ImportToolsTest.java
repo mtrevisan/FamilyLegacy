@@ -24,47 +24,65 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
 
+import io.github.mtrevisan.familylegacy.importer.FileImporter;
 import io.github.mtrevisan.familylegacy.importer.FileImporters;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileToolRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
 import java.util.List;
 
 
-/** The entries of the File > Import menu follow the importers that are installed: only those can be used. */
+/** The File > Import menu is one entry for all the formats: the importers that are installed give the formats of its file chooser. */
 class ImportToolsTest{
 
 	@Test
-	void everyInstalledImporterGivesAnEnabledEntry(){
+	void theInstalledImportersGiveOneEnabledEntry(){
 		final List<String> installed = FileImporters.available().stream()
 			.map(importer -> importer.id())
 			.toList();
 		Assertions.assertEquals(FileImporters.KNOWN_IDS, installed, "the plugins of the tests are the GEDCOM and the Gramps ones");
 
-		final List<ToolOperation> tools = FileToolRegistry.importTools();
+		final ToolOperation tool = FileToolRegistry.importTool();
 
-		Assertions.assertEquals(installed.size(), tools.size());
-		for(final ToolOperation tool : tools){
-			Assertions.assertInstanceOf(ImportFileTool.class, tool);
-			Assertions.assertTrue(tool.isEnabled(null), tool.getName());
-		}
+		Assertions.assertInstanceOf(ImportFileTool.class, tool);
+		Assertions.assertTrue(tool.isEnabled(null), tool.getName());
 	}
 
 	@Test
-	void aFormatWithoutItsJarIsShownButDisabled(){
-		final ToolOperation tool = new ImportUnavailableTool("gedcom");
+	void withoutImportersTheEntryIsShownButDisabled(){
+		final ToolOperation tool = new ImportFileTool(List.of());
 
 		Assertions.assertFalse(tool.isEnabled(null));
-		Assertions.assertTrue(tool.getName().contains("GEDCOM"), tool.getName());
-		Assertions.assertTrue(tool.getName().contains("not installed"), tool.getName());
+		Assertions.assertTrue(tool.getName().contains("no importer installed"), tool.getName());
+	}
+
+	@Test
+	void aFileIsRecognisedFromItsExtensionIgnoringTheCase(){
+		final List<FileImporter> importers = FileImporters.available();
+
+		Assertions.assertEquals(List.of("gedcom"), idsAccepting(importers, "family.ged"));
+		Assertions.assertEquals(List.of("gedcom"), idsAccepting(importers, "FAMILY.GED"));
+		Assertions.assertEquals(List.of("gramps"), idsAccepting(importers, "tree.gramps"));
+		Assertions.assertEquals(List.of("gramps"), idsAccepting(importers, "tree.gpkg"));
+		Assertions.assertEquals(List.of(), idsAccepting(importers, "tree.flef"));
+		Assertions.assertEquals(List.of(), idsAccepting(importers, "ged"));
 	}
 
 	@Test
 	void theNameOfTheJarOfAFormatIsTheOneTheBuildProduces(){
 		Assertions.assertEquals("importer-gedcom.jar", FileImporters.pluginFileName("gedcom"));
 		Assertions.assertEquals("importer-gramps.jar", FileImporters.pluginFileName("gramps"));
+	}
+
+
+	private static List<String> idsAccepting(final List<FileImporter> importers, final String fileName){
+		return importers.stream()
+			.filter(importer -> importer.accepts(Path.of(fileName)))
+			.map(FileImporter::id)
+			.toList();
 	}
 
 }

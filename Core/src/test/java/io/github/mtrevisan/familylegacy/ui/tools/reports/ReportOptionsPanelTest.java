@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -55,6 +56,7 @@ class ReportOptionsPanelTest{
 			defaults.collateralScope(),
 			defaults.generations() + 3,
 			PersonOrder.BIRTH_DATE,
+			ReportDateFormat.DAY_MONTH_YEAR,
 			!defaults.notes(),
 			!defaults.sources(),
 			!defaults.media(),

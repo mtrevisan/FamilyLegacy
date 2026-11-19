@@ -25,6 +25,7 @@
 package io.github.mtrevisan.reports.docx;
 
 import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -129,14 +130,9 @@ public final class DocxReportRenderer implements ReportRenderer{
 	private static final int IMAGE_SPACING_AFTER = 80;  //  4 pt
 	private static final int RULE_SPACING = 120;  //  6 pt
 
-	/** A4 page, in twips. */
-	private static final int PAGE_WIDTH = 11_906;
-	private static final int PAGE_HEIGHT = 16_838;
-	/** Margins of the page (2.5 cm) and distance of the footer (1.25 cm), in twips. */
+	/** Margins of the page when the layout has none (2.5 cm) and distance of the footer (1.25 cm), in twips. */
 	private static final int PAGE_MARGIN = 1_418;
 	private static final int FOOTER_DISTANCE = 709;
-	/** Width of the text, in twips. */
-	private static final int TEXT_WIDTH = PAGE_WIDTH - 2 * PAGE_MARGIN;
 	/** Bounds of the weight (the length of the longest text) of a column of a table, so that none is too thin or too wide. */
 	private static final int COLUMN_WEIGHT_MIN = 4;
 	private static final int COLUMN_WEIGHT_MAX = 40;
@@ -203,11 +199,21 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 
 	@Override
+	public boolean hasPages(){
+		return true;
+	}
+
+	@Override
 	public void render(final ReportDocument doc, final Path target) throws IOException{
+		render(doc, target, null, ReportLayout.DEFAULT);
+	}
+
+	@Override
+	public void render(final ReportDocument doc, final Path target, final String font, final ReportLayout layout) throws IOException{
 		//the document is built in memory, so that a failure does not leave a truncated file (or erase the previous one)
 		final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 		try(final XWPFDocument d = new XWPFDocument()){
-			new Builder(d, doc.isRightToLeft())
+			new Builder(d, doc.isRightToLeft(), (layout != null? layout: ReportLayout.DEFAULT))
 				.build(doc);
 			d.write(buffer);
 		}
@@ -230,14 +236,23 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 		private final XWPFDocument d;
 		private final boolean rightToLeft;
+		private final ReportLayout layout;
+		private final int pageWidth;
+		private final int pageMargin;
+		/** Width of the text, in twips. */
+		private final int textWidth;
 		private BigInteger bulletNumId;
 		/** A page break asked and not yet applied: the next paragraph starts a new page (no empty paragraph is needed). */
 		private boolean pendingPageBreak;
 
 
-		private Builder(final XWPFDocument d, final boolean rightToLeft){
+		private Builder(final XWPFDocument d, final boolean rightToLeft, final ReportLayout layout){
 			this.d = d;
 			this.rightToLeft = rightToLeft;
+			this.layout = layout;
+			pageWidth = layout.paper().widthTwips();
+			pageMargin = (layout.marginMm() > 0? (int)Math.round(layout.marginMm() / 25.4 * 1440): PAGE_MARGIN);
+			textWidth = pageWidth - 2 * pageMargin;
 		}
 
 
@@ -247,7 +262,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 			applyLanguage(styles, doc.language());
 			defineStyles(styles);
 			defineBulletNumbering();
-			writePageNumbers();
+			writeHeadersAndFooters(doc);
 			d.getProperties()
 				.getCoreProperties()
 				.setTitle(StringUtils.defaultString(doc.title()));
@@ -262,11 +277,11 @@ public final class DocxReportRenderer implements ReportRenderer{
 		private void setPageSize(){
 			final CTSectPr section = (d.getDocument().getBody().isSetSectPr()? d.getDocument().getBody().getSectPr(): d.getDocument().getBody().addNewSectPr());
 			final CTPageSz size = (section.isSetPgSz()? section.getPgSz(): section.addNewPgSz());
-			size.setW(BigInteger.valueOf(PAGE_WIDTH));
-			size.setH(BigInteger.valueOf(PAGE_HEIGHT));
+			size.setW(BigInteger.valueOf(pageWidth));
+			size.setH(BigInteger.valueOf(layout.paper().heightTwips()));
 
 			final CTPageMar margins = (section.isSetPgMar()? section.getPgMar(): section.addNewPgMar());
-			final BigInteger margin = BigInteger.valueOf(PAGE_MARGIN);
+			final BigInteger margin = BigInteger.valueOf(pageMargin);
 			margins.setTop(margin);
 			margins.setBottom(margin);
 			margins.setLeft(margin);
@@ -276,9 +291,30 @@ public final class DocxReportRenderer implements ReportRenderer{
 			margins.setGutter(BigInteger.ZERO);
 		}
 
-		/** The number of the page, centered at the bottom of each page. */
-		private void writePageNumbers(){
-			final XWPFFooter footer = d.createFooter(HeaderFooterType.DEFAULT);
+		/**
+		 * The number of the page, centered at the bottom of each page, with the footnote of the layout under it; and the title of the report at
+		 * the top of each page but the first, if the layout asks for it.
+		 */
+		private void writeHeadersAndFooters(final ReportDocument doc){
+			writePageFooter(d.createFooter(HeaderFooterType.DEFAULT));
+
+			if(layout.pageHeadings() && doc.title() != null && !doc.title().isBlank()){
+				final CTSectPr section = d.getDocument().getBody().getSectPr();
+				//a different first page: it has the footer, not the header
+				section.addNewTitlePg();
+				writePageFooter(d.createFooter(HeaderFooterType.FIRST));
+				d.createHeader(HeaderFooterType.FIRST)
+					.createParagraph();
+
+				final XWPFParagraph p = d.createHeader(HeaderFooterType.DEFAULT)
+					.createParagraph();
+				p.setAlignment(rightToLeft? ParagraphAlignment.LEFT: ParagraphAlignment.RIGHT);
+				markRightToLeft(p);
+				run(p, doc.title(), CAPTION_SIZE, false, true, MUTED_COLOR, false);
+			}
+		}
+
+		private void writePageFooter(final XWPFFooter footer){
 			final XWPFParagraph p = footer.createParagraph();
 			p.setAlignment(ParagraphAlignment.CENTER);
 			markRightToLeft(p);
@@ -289,6 +325,13 @@ public final class DocxReportRenderer implements ReportRenderer{
 			field.addNewR()
 				.addNewT()
 				.setStringValue("1");
+
+			if(!layout.footnote().isBlank()){
+				final XWPFParagraph note = footer.createParagraph();
+				note.setAlignment(ParagraphAlignment.CENTER);
+				markRightToLeft(note);
+				run(note, layout.footnote(), CAPTION_SIZE, false, true, MUTED_COLOR, false);
+			}
 		}
 
 
@@ -453,6 +496,13 @@ public final class DocxReportRenderer implements ReportRenderer{
 				sub.setSpacingAfter(HEADING_SPACING_BEFORE);
 				run(sub, doc.subtitle(), SUBTITLE_SIZE, false, true, MUTED_COLOR, false);
 			}
+
+			if(!layout.coverText().isBlank())
+				for(final String line : StringUtils.split(layout.coverText(), "\r\n")){
+					final XWPFParagraph cover = paragraph();
+					cover.setAlignment(ParagraphAlignment.CENTER);
+					run(cover, line, SUBTITLE_SIZE, false, false, MUTED_COLOR, false);
+				}
 		}
 
 
@@ -671,7 +721,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 		 * The columns share the width of the text in proportion to the length of their longest text (within bounds), instead of being all
 		 * of the same width.
 		 */
-		private static void applyColumnWidths(final XWPFTable table, final ReportSection.Table t, final int cols){
+		private void applyColumnWidths(final XWPFTable table, final ReportSection.Table t, final int cols){
 			final int[] weights = new int[cols];
 			for(int c = 0; c < cols; c ++){
 				int longest = longestLine(cellText(t.headers(), c));
@@ -685,7 +735,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 			final CTTblGrid grid = table.getCTTbl().getTblGrid();
 			for(int c = 0; c < cols; c ++){
-				final int width = (int)((long)TEXT_WIDTH * weights[c] / total);
+				final int width = (int)((long)textWidth * weights[c] / total);
 				if(grid != null && grid.sizeOfGridColArray() == cols)
 					grid.getGridColArray(c)
 						.setW(BigInteger.valueOf(width));

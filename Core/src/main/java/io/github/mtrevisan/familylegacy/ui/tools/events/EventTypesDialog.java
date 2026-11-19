@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -210,7 +211,7 @@ public final class EventTypesDialog extends JDialog{
 	private void showEventsOfSelectedType(){
 		final int viewRow = table.getSelectedRow();
 		if(viewRow < 0){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("message.select_type_first"), I18N.t("dialog.event_types.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}

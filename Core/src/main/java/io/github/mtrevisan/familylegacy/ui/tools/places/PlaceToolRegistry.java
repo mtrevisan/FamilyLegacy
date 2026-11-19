@@ -43,8 +43,14 @@ public final class PlaceToolRegistry{
 	/** Tools that perform real work, in menu order. */
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
-			new PlaceManagerTool(),
 			new NewPlaceTool(),
+			new PlaceManagerTool()
+		);
+	}
+
+	/** Views of the places. */
+	public static List<ToolOperation> analysisTools(){
+		return List.of(
 			new JurisdictionTimelineTool()
 		);
 	}

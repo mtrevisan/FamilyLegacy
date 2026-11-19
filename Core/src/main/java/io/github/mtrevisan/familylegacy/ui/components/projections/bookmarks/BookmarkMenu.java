@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.apache.commons.lang3.StringUtils;
 
@@ -130,7 +131,7 @@ public final class BookmarkMenu extends JMenu{
 
 	private void onSave(final ActionEvent e){
 		if(filePathSupplier.get() == null){
-			JOptionPane.showMessageDialog(this, I18N.t("dialog.bookmark.no_file.message"), I18N.t("dialog.bookmark.empty.title"),
+			MessageDialogs.show(this, I18N.t("dialog.bookmark.no_file.message"), I18N.t("dialog.bookmark.empty.title"),
 				JOptionPane.INFORMATION_MESSAGE);
 
 			return;
@@ -145,7 +146,7 @@ public final class BookmarkMenu extends JMenu{
 		final String trimmed = name.trim();
 		final Bookmark b = capture.capture(trimmed);
 		if(b == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("dialog.bookmark.empty.message"), I18N.t("dialog.bookmark.empty.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			return;

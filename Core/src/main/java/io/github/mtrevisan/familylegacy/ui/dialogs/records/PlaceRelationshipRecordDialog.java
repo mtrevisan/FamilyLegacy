@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
@@ -249,7 +250,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
-		JOptionPane.showMessageDialog(this,
+		MessageDialogs.show(this,
 			I18N.tf("error.cannot_set_parent.message", PlaceRelationshipHandler.getInstance().getLabel()),
 			I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 

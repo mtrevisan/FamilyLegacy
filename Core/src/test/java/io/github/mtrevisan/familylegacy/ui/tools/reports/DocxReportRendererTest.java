@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.reports.renderers.ReportRenderers;
 import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
 import org.junit.jupiter.api.Assertions;
@@ -279,4 +280,33 @@ class DocxReportRendererTest{
 		Assertions.assertTrue(entry(target, "docProps/core.xml").contains("Title"), "the title of the properties");
 	}
 
+	@Test
+	void theLayoutSetsThePaperTheFootnoteTheHeaderAndTheCoverText(@TempDir final Path directory) throws IOException{
+		final Path file = directory.resolve("layout.docx");
+		renderer().render(new ReportDocument("Report title", "Subtitle", List.of(new ReportSection.Paragraph("body")), "en", "Contents"), file, null,
+			new ReportLayout(ReportLayout.PaperSize.LETTER, 30, true, "Draft footnote", "Prepared for the family"));
+
+		final String document = entry(file, "word/document.xml");
+		Assertions.assertTrue(document.contains("Prepared for the family"), document);
+		Assertions.assertTrue(document.contains("w:w=\"" + ReportLayout.PaperSize.LETTER.widthTwips() + "\""), "the width of the paper: " + document);
+		Assertions.assertTrue(document.contains("w:titlePg"), "a different first page: " + document);
+		Assertions.assertTrue(hasEntryStartingWith(file, "word/header"), "the title at the top of the pages");
+		final StringBuilder footers = new StringBuilder();
+		for(int i = 1; i <= 3; i ++){
+			final String footer = entry(file, "word/footer" + i + ".xml");
+			if(footer != null)
+				footers.append(footer);
+		}
+		Assertions.assertTrue(footers.toString().contains("Draft footnote"), footers.toString());
+	}
+
+	@Test
+	void withoutTheTitleAtTheTopThereIsNoHeader(@TempDir final Path directory) throws IOException{
+		final Path file = directory.resolve("noheader.docx");
+		renderer().render(new ReportDocument("Report title", null, List.of(new ReportSection.Paragraph("body")), "en", "Contents"), file, null,
+			new ReportLayout(ReportLayout.PaperSize.A5, 0, false, "", ""));
+
+		Assertions.assertFalse(hasEntryStartingWith(file, "word/header"));
+		Assertions.assertFalse(entry(file, "word/document.xml").contains("w:titlePg"));
+	}
 }

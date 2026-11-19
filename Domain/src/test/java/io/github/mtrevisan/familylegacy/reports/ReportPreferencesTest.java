@@ -25,8 +25,10 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
+import io.github.mtrevisan.reports.ReportLayout;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -198,4 +200,73 @@ class ReportPreferencesTest{
 		Assertions.assertEquals(0, ReportConfig.defaults().with(ReportOption.GENERATIONS, -3).generations());
 	}
 
+	@Test
+	void theDateFormatIsRememberedWithTheOtherOptions(){
+		final ReportConfig chosen = ReportConfig.defaults().with(ReportOption.DATE_FORMAT, ReportDateFormat.MONTH_DAY_YEAR);
+
+		preferences().setOptions(ReportType.INDIVIDUAL, chosen, List.of(ReportOption.DATE_FORMAT));
+
+		Assertions.assertEquals(ReportDateFormat.MONTH_DAY_YEAR,
+			preferences().options(ReportType.INDIVIDUAL, ReportConfig.defaults()).dateFormat());
+	}
+
+	@Test
+	void aSetOfOptionsIsSavedUnderANameAndGivesThemBack(){
+		final ReportPreferences preferences = preferences();
+		final ReportConfig chosen = ReportConfig.defaults().with(ReportOption.NOTES, false).with(ReportOption.GENERATIONS, 4);
+
+		preferences.savePreset(ReportType.ANCESTOR, "  Short ", chosen, List.of(ReportOption.NOTES, ReportOption.GENERATIONS));
+		preferences.savePreset(ReportType.ANCESTOR, "all", ReportConfig.defaults(), List.of(ReportOption.NOTES));
+
+		Assertions.assertEquals(List.of("all", "Short"), preferences().presetNames(ReportType.ANCESTOR));
+		Assertions.assertEquals(List.of(), preferences().presetNames(ReportType.DESCENDANT));
+		final ReportConfig base = ReportConfig.defaults().withLivingPrivacy(io.github.mtrevisan.familylegacy.privacy.LivingPrivacy.HIDE);
+		final ReportConfig applied = preferences().preset(ReportType.ANCESTOR, "Short", base);
+		Assertions.assertFalse(applied.notes());
+		Assertions.assertEquals(4, applied.generations());
+		//what a set does not keep is what the options were
+		Assertions.assertEquals(io.github.mtrevisan.familylegacy.privacy.LivingPrivacy.HIDE, applied.livingPrivacy());
+		Assertions.assertSame(base, preferences().preset(ReportType.ANCESTOR, "missing", base));
+	}
+
+	@Test
+	void aSetOfOptionsIsReplacedAndDeleted(){
+		final ReportPreferences preferences = preferences();
+		preferences.savePreset(ReportType.ANCESTOR, "Mine", ReportConfig.defaults().with(ReportOption.NOTES, false), List.of(ReportOption.NOTES));
+		preferences.savePreset(ReportType.ANCESTOR, "mine", ReportConfig.defaults().with(ReportOption.NOTES, true), List.of(ReportOption.NOTES));
+
+		Assertions.assertEquals(1, preferences().presetNames(ReportType.ANCESTOR).size());
+		Assertions.assertTrue(preferences().preset(ReportType.ANCESTOR, "MINE", ReportConfig.defaults().with(ReportOption.NOTES, false)).notes());
+
+		preferences().deletePreset(ReportType.ANCESTOR, "Mine");
+
+		Assertions.assertEquals(List.of(), preferences().presetNames(ReportType.ANCESTOR));
+		Assertions.assertTrue(values.keySet().stream().noneMatch(key -> key.startsWith("reports.preset.")), values.toString());
+	}
+
+	@Test
+	void aBlankNameSavesNothing(){
+		preferences().savePreset(ReportType.ANCESTOR, "   ", ReportConfig.defaults(), List.of(ReportOption.NOTES));
+
+		Assertions.assertEquals(List.of(), preferences().presetNames(ReportType.ANCESTOR));
+		Assertions.assertTrue(values.isEmpty(), values.toString());
+	}
+
+	@Test
+	void theLayoutOfThePagesIsRememberedAndDefaultsToTheStandardOne(){
+		Assertions.assertEquals(ReportLayout.DEFAULT, preferences().layout());
+
+		final ReportLayout chosen = new ReportLayout(ReportLayout.PaperSize.LETTER, 25, false, "Draft", "Prepared by me\nfor you");
+		preferences().setLayout(chosen);
+
+		Assertions.assertEquals(chosen, preferences().layout());
+	}
+
+	@Test
+	void aDamagedLayoutIsTheDefaultOne(){
+		values.put("reports.layout.paper", "TABLOID");
+		values.put("reports.layout.margin", "wide");
+
+		Assertions.assertEquals(ReportLayout.DEFAULT, preferences().layout());
+	}
 }

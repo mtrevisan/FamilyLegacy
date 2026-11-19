@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.index.EventIndex;
@@ -398,7 +397,7 @@ public final class PlacesSection implements SectionBuilder{
 		final String type = FLEFRecordHelper.getChildValue(owner, TAG_TYPE);
 
 		// Events carry "date"; attributes carry "valid_from".
-		String date = DateService.getDateDisplayText(owner);
+		String date = ctx.labels.dateText(owner);
 		if(date == null)
 			date = GenealogicalDateHelper.formatDateStructure(
 				owner, TAG_VALID_FROM, ctx.labels, contextLabels);

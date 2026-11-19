@@ -53,6 +53,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -229,7 +230,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final FLEFRecord identity1Ref = identity1Field.getEntity();
 		final FLEFRecord identity2Ref = identity2Field.getEntity();
 		if(identity1Ref == null || identity1Ref.getId() == null || identity2Ref == null || identity2Ref.getId() == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("error.identities_set"),
 				I18N.t("error.title"),
 				JOptionPane.WARNING_MESSAGE);
@@ -240,7 +241,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final FLEFRecord identity1 = model.getRecordById(identity1Ref.getId());
 		final FLEFRecord identity2 = model.getRecordById(identity2Ref.getId());
 		if(identity1 == null || identity2 == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("error.identities_not_present"),
 				I18N.t("error.title"),
 				JOptionPane.WARNING_MESSAGE);

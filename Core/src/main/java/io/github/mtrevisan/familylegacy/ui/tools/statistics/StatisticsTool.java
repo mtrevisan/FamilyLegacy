@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.quality.StatisticsCalculator;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public final class StatisticsTool implements ToolOperation{
 
 		final FLEFModel model = context.model();
 		if(model == null){
-			JOptionPane.showMessageDialog(context.owner(),
+			MessageDialogs.show(context.owner(),
 				I18N.t("message.no_model_loaded"), I18N.t("dialog.statistics.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
@@ -94,7 +95,7 @@ public final class StatisticsTool implements ToolOperation{
 				catch(final ExecutionException ex){
 					LOGGER.error("Statistics computation failed", ex);
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-					JOptionPane.showMessageDialog(context.owner(),
+					MessageDialogs.show(context.owner(),
 						I18N.l("dialog.statistics.error") + StringUtils.LF + cause.getMessage(), I18N.t("dialog.statistics.title"), JOptionPane.ERROR_MESSAGE);
 				}
 			}

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpBrowserDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.HelpTopics;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.KeyboardShortcutsDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
@@ -137,25 +138,25 @@ final class HelpMenu{
 			desktop.browse(new URI(url));
 		}
 		catch(final URISyntaxException e){
-			JOptionPane.showMessageDialog(frame,
+			MessageDialogs.show(frame,
 				I18N.tf("error.invalid_url", url),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 		catch(final IOException e){
-			JOptionPane.showMessageDialog(frame,
+			MessageDialogs.show(frame,
 				I18N.tf("error.unable_to_open_url", url, e.getMessage()),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	private void showUnsupportedBrowserMessage(){
-		JOptionPane.showMessageDialog(frame,
+		MessageDialogs.show(frame,
 			I18N.t("error.not_supported.message"),
 			I18N.t("error.not_supported.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
 	private void showAboutDialog(){
-		JOptionPane.showMessageDialog(frame, I18N.tf("menu.help.about.message", ProjectInfo.getAppVersion()),
+		MessageDialogs.show(frame, I18N.tf("menu.help.about.message", ProjectInfo.getAppVersion()),
 			I18N.t("menu.help.about.title"), JOptionPane.INFORMATION_MESSAGE, AppIcon.icon(ABOUT_ICON_SIZE));
 	}
 

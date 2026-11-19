@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.preferences;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -85,7 +86,7 @@ final class IdentitySettingsDialog{
 		panel.add(defaults, constraints);
 
 		//there is no Cancel: whatever way the dialog is closed (OK or Esc), the values shown are the settings
-		JOptionPane.showMessageDialog(owner, panel, I18N.t("dialog.identity_settings.title"), JOptionPane.PLAIN_MESSAGE);
+		MessageDialogs.show(owner, panel, I18N.t("dialog.identity_settings.title"), JOptionPane.PLAIN_MESSAGE);
 		read(threshold, maxPairs, high, medium, other)
 			.save();
 	}

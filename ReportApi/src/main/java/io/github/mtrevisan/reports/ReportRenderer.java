@@ -102,4 +102,22 @@ public interface ReportRenderer{
 		render(doc, target);
 	}
 
+	/**
+	 * Writes the document with a font and a layout of the pages.
+	 *
+	 * @param doc	The document.
+	 * @param target	The file, or the directory, to write.
+	 * @param font	See {@link #render(ReportDocument, Path, String)}.
+	 * @param layout	The layout of the pages; ignored by a format without pages (the default).
+	 * @throws IOException	If the output cannot be written.
+	 */
+	default void render(final ReportDocument doc, final Path target, final String font, final ReportLayout layout) throws IOException{
+		render(doc, target, font);
+	}
+
+	/** @return	Whether the format has pages, that {@link ReportLayout} lays out; by default, it does not. */
+	default boolean hasPages(){
+		return false;
+	}
+
 }

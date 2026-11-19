@@ -10,7 +10,7 @@
 
 ## The steps
 
-1. **File > Import** and choose **GEDCOM 5.5.x / 7.0...** or **Gramps XML 1.7.2...**. A file chooser opens (GEDCOM files `*.ged`; Gramps files `*.gramps` and `*.gpkg`). Each format is an add-on: if its file `importer-<format>.jar` is not in the `plugins` folder of the application, its entry is shown greyed out and ends with *(plugin not installed)*, and that format cannot be imported.
+1. **File > Import...** opens a file chooser, the same for all the formats. By default it shows every file that can be imported (GEDCOM files `*.ged`; Gramps files `*.gramps` and `*.gpkg`); the type list narrows it to one format. The format is recognised from the file you pick; if you choose a format in the type list, that one is used. If the file fits more than one format you are asked which it is, and if it fits none you are told which formats are supported. Each format is an add-on: if its file `importer-<format>.jar` is not in the `plugins` folder of the application, that format is not in the list and cannot be imported (with no add-on at all, the entry is greyed out and says *no importer installed*).
 2. A confirmation says that the import will convert the file into a new FLEF file that replaces the current document. Answer **Yes**.
 3. A progress window follows the stages: reading, parsing, registering identifiers, parsing records, resolving family links, building the model.
 4. If the GEDCOM 5.5 file embeds binary files (`BLOB`), a question asks where to save them: choose a folder and each file is written there (an existing file is never overwritten: a number is added to the name) and its media is linked to it. If you cancel the choice of the folder (or press **Esc** on the question), the media keep no file and are listed in the report.

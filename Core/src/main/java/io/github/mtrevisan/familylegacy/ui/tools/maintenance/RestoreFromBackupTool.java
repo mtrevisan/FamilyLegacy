@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
@@ -74,7 +75,7 @@ public final class RestoreFromBackupTool implements ToolOperation{
 		if(file == null)
 			return;
 		if(!file.exists()){
-			JOptionPane.showMessageDialog(context.owner(), I18N.tf("error.file.not_found", file.getAbsolutePath()),
+			MessageDialogs.show(context.owner(), I18N.tf("error.file.not_found", file.getAbsolutePath()),
 				I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
 
 			return;
@@ -119,7 +120,7 @@ public final class RestoreFromBackupTool implements ToolOperation{
 				}
 				catch(final ExecutionException ex){
 					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-					JOptionPane.showMessageDialog(context.owner(),
+					MessageDialogs.show(context.owner(),
 						I18N.l(cause instanceof IOException? "dialog.restore.error.read": "dialog.restore.error.invalid") + StringUtils.LF
 							+ cause.getMessage(), I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
 				}

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.preferences;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;
@@ -90,12 +91,12 @@ public final class ApplicationRestarter{
 	 * @param file   the file the document is on, to open again; {@code null} if the document has none
 	 */
 	public static void restart(final Window owner, final String reason, final File file){
-		JOptionPane.showMessageDialog(owner,
+		MessageDialogs.show(owner,
 			reason + "\n\n" + I18N.t("dialog.restart.message"), I18N.t("dialog.restart.title"),
 			JOptionPane.INFORMATION_MESSAGE);
 
 		if(!tryRestart(file))
-			JOptionPane.showMessageDialog(owner,
+			MessageDialogs.show(owner,
 				I18N.t("dialog.restart.failed.message"), I18N.t("dialog.restart.failed.title"),
 				JOptionPane.WARNING_MESSAGE);
 	}

@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -152,7 +153,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 			catch(final IOException ioe){
 				ioe.printStackTrace();
 
-				JOptionPane.showMessageDialog(parent,
+				MessageDialogs.show(parent,
 					I18N.tf("error.image", MediaPathDisplay.display(uri)),
 					I18N.t("error.title"),
 					JOptionPane.ERROR_MESSAGE);
@@ -229,7 +230,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 						catch(final IOException ioe){
 							ioe.printStackTrace();
 
-							JOptionPane.showMessageDialog(parent,
+							MessageDialogs.show(parent,
 								I18N.tf("error.image", MediaPathDisplay.display(uri)),
 								I18N.t("error.title"),
 								JOptionPane.ERROR_MESSAGE);
@@ -304,7 +305,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent,
+			MessageDialogs.show(parent,
 				I18N.t("error.record_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 

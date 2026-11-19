@@ -67,7 +67,7 @@ public final class FullBibliographyGenerator{
 	}
 
 	public ReportDocument generate(final ReportProgressListener listener){
-		final ReportLabels labels = new ReportLabels(config.language());
+		final ReportLabels labels = new ReportLabels(config.language(), config.dateFormat());
 		final String title = labels.sections().fullBibliographyTitle();
 		final String language = labels.language().locale().toLanguageTag();
 

@@ -83,8 +83,6 @@
 		<apache.commons-lang3.version>3.22.0</apache.commons-lang3.version>
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
-		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
-		<apache.tika-core.version>4.2.0</apache.tika-core.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-text -->
 		<apache.commons-text.version>1.15.0</apache.commons-text.version>
 		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
@@ -94,21 +92,9 @@
 		<!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
 		<coobird.thumbnailator.version>0.4.21</coobird.thumbnailator.version>
 
-		<!-- Jakarta -->
-		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
-		<jakarta.persistence.version>3.2.0</jakarta.persistence.version>
-		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
-		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
-
-		<!-- Time4J / Dates -->
-		<!-- https://mvnrepository.com/artifact/org.threeten/threeten-extra -->
-		<threeten.extra.version>1.11.0</threeten.extra.version>
+		<!-- Dates -->
 		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
 		<ibm.icu.version>79.1</ibm.icu.version>
-
-		<!-- Hibernate -->
-		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.16.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -120,18 +106,6 @@
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/javacpp -->
 		<bytedeco.javacpp.version>1.5.14</bytedeco.javacpp.version>
 		<javacpp.platform>windows-x86_64</javacpp.platform>
-
-		<!-- Database -->
-		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-		<h2.version>2.5.252</h2.version>
-
-		<!-- Graphs -->
-		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
-		<org.jgrapht.version>1.5.3</org.jgrapht.version>
-
-		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-core -->
-		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-ui-swing -->
-		<org.graphstream-core.version>2.0</org.graphstream-core.version>
 
 		<!-- Map -->
 		<!-- https://mvnrepository.com/artifact/org.jxmapviewer/jxmapviewer2 -->
@@ -364,11 +338,6 @@
 				<version>${apache.commons-validator.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.tika</groupId>
-				<artifactId>tika-core</artifactId>
-				<version>${apache.tika-core.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-text</artifactId>
 				<version>${apache.commons-text.version}</version>
@@ -386,49 +355,13 @@
 				<version>${coobird.thumbnailator.version}</version>
 			</dependency>
 
-			<!-- Jakarta -->
-			<dependency>
-				<groupId>jakarta.persistence</groupId>
-				<artifactId>jakarta.persistence-api</artifactId>
-				<version>${jakarta.persistence.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>jakarta.transaction</groupId>
-				<artifactId>jakarta.transaction-api</artifactId>
-				<version>${jakarta.transaction.version}</version>
-			</dependency>
-
 			<!-- Date -->
-			<dependency>
-				<groupId>org.threeten</groupId>
-				<artifactId>threeten-extra</artifactId>
-				<version>${threeten.extra.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>com.ibm.icu</groupId>
 				<artifactId>icu4j</artifactId>
 				<version>${ibm.icu.version}</version>
 			</dependency>
 
-			<!-- Hibernate -->
-			<dependency>
-				<groupId>org.hibernate.orm</groupId>
-				<artifactId>hibernate-core</artifactId>
-				<version>${hibernate.hibernate-core.version}</version>
-			</dependency>
-
-			<!-- Database -->
-			<dependency>
-				<groupId>com.h2database</groupId>
-				<artifactId>h2</artifactId>
-				<version>${h2.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.jgrapht</groupId>
-				<artifactId>jgrapht-core</artifactId>
-				<version>${org.jgrapht.version}</version>
-			</dependency>
 
 			<!-- Layout -->
 			<dependency>
@@ -517,16 +450,6 @@
 				<groupId>org.bytedeco</groupId>
 				<artifactId>opencv</artifactId>
 				<version>${bytedeco.opencv.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.graphstream</groupId>
-				<artifactId>gs-core</artifactId>
-				<version>${org.graphstream-core.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.graphstream</groupId>
-				<artifactId>gs-ui-swing</artifactId>
-				<version>${org.graphstream-core.version}</version>
 			</dependency>
 
 			<!-- Map -->

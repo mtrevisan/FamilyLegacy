@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.dialogs.Relati
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
 
 import javax.swing.JOptionPane;
@@ -97,7 +98,7 @@ abstract class AbstractRelativeTool implements ToolOperation{
 			return;
 
 		if(requiredSex != null && PreferredSex.of(other, model) == oppositeOf(requiredSex)){
-			JOptionPane.showMessageDialog(owner, parentSexMessage(selectedId, requiredSex, model), I18N.t("validation.title"),
+			MessageDialogs.show(owner, parentSexMessage(selectedId, requiredSex, model), I18N.t("validation.title"),
 				JOptionPane.ERROR_MESSAGE);
 
 			return;

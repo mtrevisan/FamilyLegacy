@@ -1,16 +1,16 @@
 # Preferences
 
-Your preferences are in the **Appearance** and **Settings** menus and in some entries of the **View** menu. They are kept between sessions in a plain text file, `preferences.properties`, in the folder `.familylegacy` of your home directory. **Settings > Open preferences folder...** opens it.
+Your preferences are in the **Settings** menu (the look of the application is in its **Appearance** submenu) and in some entries of the **View** menu. They are kept between sessions in a plain text file, `preferences.properties`, in the folder `.familylegacy` of your home directory. **Settings > Open preferences folder...** opens it.
 
 None of these preferences is stored in the genealogy: they change how the data is *shown*, never the data.
 
 ## Language
 
-**Appearance > Language** lists the languages the application has been translated into. Choosing one is saved at once, and the application restarts, because some labels are only set when a window is created. Before it closes, what the document has still to write is written; when it starts again it **opens the file that was open**. If that cannot be done (the file cannot be written and you do not want to go on) the language is left as it was.
+**Settings > Appearance > Language** lists the languages the application has been translated into. Choosing one is saved at once, and the application restarts, because some labels are only set when a window is created. Before it closes, what the document has still to write is written; when it starts again it **opens the file that was open**. If that cannot be done (the file cannot be written and you do not want to go on) the language is left as it was.
 
 ## Font
 
-**Appearance > Font...** opens a dialog to choose the font of the whole interface.
+**Settings > Appearance > Font...** opens a dialog to choose the font of the whole interface.
 
 - The list contains only the installed fonts that can draw every character used by the interface in the current language, so no label ends up with missing glyphs.
 - Type in the search box to narrow the list of installed fonts (word by word, with the *whole words* and *fuzzy* options as in the record selection); each font is drawn in its own face.
@@ -20,7 +20,7 @@ None of these preferences is stored in the genealogy: they change how the data i
 
 ## Media paths
 
-A media record points to a file (see [Sources and media](sources-and-media.md#media)). Full paths are long, and mostly the same at the beginning, so **Appearance > Media paths** decides how a location is *shown* wherever the application lists media:
+A media record points to a file (see [Sources and media](sources-and-media.md#media)). Full paths are long, and mostly the same at the beginning, so **Settings > Appearance > Media paths** decides how a location is *shown* wherever the application lists media:
 
 - **Full path**: exactly as stored (the default).
 - **File name only**: just the name of the file. Short, but two files with the same name in different folders look alike.

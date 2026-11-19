@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -308,7 +309,7 @@ public class SingleDatePanel extends JPanel{
 		if(selected != null){
 			final BoundTextField activeField = fieldMap.get(selected);
 			if(activeField != null && activeField.isEmpty()){
-				JOptionPane.showMessageDialog(this,
+				MessageDialogs.show(this,
 					selected.getErrorMessage(),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
@@ -318,7 +319,7 @@ public class SingleDatePanel extends JPanel{
 
 		final String calendar = (String)calendarCombo.getSelectedItem();
 		if(StringUtils.isEmpty(calendar)){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("validation.required", I18N.t("dialog.date.calendar")),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
@@ -374,7 +375,8 @@ public class SingleDatePanel extends JPanel{
 		readingButtons.getFirst()
 			.setSelected(true);
 
-		final Object[] options = {I18N.t("validation.date.ambiguous.choose"), I18N.t("validation.date.ambiguous.edit")};
+		//Esc (or closing the window) is "edit the date": it needs no button
+		final Object[] options = {I18N.t("validation.date.ambiguous.choose")};
 		final int choice = JOptionPane.showOptionDialog(this, messagePanel, I18N.t("validation.date.ambiguous.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		if(choice != 0){

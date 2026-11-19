@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import net.miginfocom.swing.MigLayout;
@@ -89,7 +91,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -182,10 +183,9 @@ final class ResearchAssistantPalette extends JDialog{
 	private final ResearchAssistantService service;
 	private final AssistantContext context;
 
-	private final JTextField searchField = new JTextField();
-	//the same modes of the record selection dialog (they are not in the tab order: the keyboard stays in the search field)
-	private final JCheckBox wholeWordCheckBox = new JCheckBox(I18N.t("search.mode.whole_word"), false);
-	private final JCheckBox fuzzyCheckBox = new JCheckBox(I18N.t("search.mode.fuzzy"), false);
+	//the same modes of the record selection dialog (the button of the options is not in the tab order: the keyboard stays in the search field)
+	private final SearchBox searchBox = new SearchBox(0, false);
+	private final JTextField searchField = searchBox.field();
 	/** Limits the findings to the ones about the record selected in the main window (only there when there is one). */
 	private final JCheckBox selectedOnlyCheckBox = new JCheckBox();
 	/** Limits the actions and the findings to one category (the first item is "all"). */
@@ -278,8 +278,8 @@ final class ResearchAssistantPalette extends JDialog{
 				if(ResearchAssistantService.identity(d).equals(state.selectedIdentity()) && !isOpen(kindId(d)))
 					toggled.add(kindId(d));
 			searchField.setText(state.query());
-			wholeWordCheckBox.setSelected(state.modes().contains(SearchMode.WHOLE_WORD));
-			fuzzyCheckBox.setSelected(state.modes().contains(SearchMode.FUZZY));
+			searchBox.setSelected(SearchMode.WHOLE_WORD, state.modes().contains(SearchMode.WHOLE_WORD));
+			searchBox.setSelected(SearchMode.FUZZY, state.modes().contains(SearchMode.FUZZY));
 			selectedOnlyCheckBox.setSelected(state.selectedOnly());
 			categoryComboBox.setSelectedItem(state.category() != null? state.category(): categoryComboBox.getItemAt(0));
 			refresh();
@@ -298,7 +298,8 @@ final class ResearchAssistantPalette extends JDialog{
 	private void initComponents(){
 		setUndecorated(true);
 
-		searchField.putClientProperty("JTextField.placeholderText", I18N.t("assistant.search.placeholder"));
+		searchBox.setHint(I18N.t("assistant.search.placeholder"));
+		searchBox.onOptionChange(this::refresh);
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
@@ -381,14 +382,9 @@ final class ResearchAssistantPalette extends JDialog{
 		final JPanel content = new JPanel(new MigLayout("fill,wrap 1,ins 8", "[grow,fill,500::]", "[]3[]5[grow,fill]5[]5[]15[]"));
 		content.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")),
 			BorderFactory.createEmptyBorder(4, 4, 4, 4)));
-		content.add(searchField);
+		content.add(searchBox);
 		final JPanel modes = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		modes.setOpaque(false);
-		for(final JCheckBox mode : List.of(wholeWordCheckBox, fuzzyCheckBox)){
-			mode.setFocusable(false);
-			mode.addActionListener(e -> refresh());
-			modes.add(mode);
-		}
 		final String selectedId = context.selectedRecord()
 			.map(FLEFRecord::getId)
 			.orElse(null);
@@ -640,12 +636,7 @@ final class ResearchAssistantPalette extends JDialog{
 	}
 
 	private Set<SearchMode> searchModes(){
-		final Set<SearchMode> modes = EnumSet.noneOf(SearchMode.class);
-		if(fuzzyCheckBox.isSelected())
-			modes.add(SearchMode.FUZZY);
-		if(wholeWordCheckBox.isSelected())
-			modes.add(SearchMode.WHOLE_WORD);
-		return modes;
+		return searchBox.modes();
 	}
 
 	private void refresh(){
@@ -909,7 +900,7 @@ final class ResearchAssistantPalette extends JDialog{
 		}
 		catch(final IOException ioe){
 			LOGGER.warn("Cannot export the ignored findings: {}", ioe.toString());
-			JOptionPane.showMessageDialog(this, I18N.t("assistant.export.error") + "\n" + ioe.getMessage(), I18N.t("assistant.ignored.export"),
+			MessageDialogs.show(this, I18N.t("assistant.export.error") + "\n" + ioe.getMessage(), I18N.t("assistant.ignored.export"),
 				JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -925,12 +916,12 @@ final class ResearchAssistantPalette extends JDialog{
 			final int added = service.ignoredFindings().importFrom(context.scope(),
 				Files.readString(chooser.getSelectedFile().toPath(), StandardCharsets.UTF_8));
 			refresh();
-			JOptionPane.showMessageDialog(this, I18N.tf("assistant.ignored.imported", added), I18N.t("assistant.ignored.import"),
+			MessageDialogs.show(this, I18N.tf("assistant.ignored.imported", added), I18N.t("assistant.ignored.import"),
 				JOptionPane.INFORMATION_MESSAGE);
 		}
 		catch(final IOException | IllegalArgumentException e){
 			LOGGER.warn("Cannot import the ignored findings: {}", e.toString());
-			JOptionPane.showMessageDialog(this, I18N.t("assistant.ignored.import.error"), I18N.t("assistant.ignored.import"),
+			MessageDialogs.show(this, I18N.t("assistant.ignored.import.error"), I18N.t("assistant.ignored.import"),
 				JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -1150,7 +1141,7 @@ final class ResearchAssistantPalette extends JDialog{
 			else{
 				final Throwable cause = (error.getCause() != null? error.getCause(): error);
 				LOGGER.warn("Cannot export the findings: {}", cause.toString());
-				JOptionPane.showMessageDialog(this, I18N.t("assistant.export.error") + "\n" + cause.getMessage(), I18N.t("assistant.export"),
+				MessageDialogs.show(this, I18N.t("assistant.export.error") + "\n" + cause.getMessage(), I18N.t("assistant.export"),
 					JOptionPane.ERROR_MESSAGE);
 			}
 		}));

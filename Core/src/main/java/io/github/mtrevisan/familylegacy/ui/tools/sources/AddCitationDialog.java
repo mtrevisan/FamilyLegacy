@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -222,12 +223,12 @@ public final class AddCitationDialog extends JDialog{
 
 	private void onContinue(){
 		if(targetRecord == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("dialog.add_citation.no_target"), I18N.t("dialog.add_citation.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 		if(sourceRecord == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.t("dialog.add_citation.no_source"), I18N.t("dialog.add_citation.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
@@ -245,7 +246,7 @@ public final class AddCitationDialog extends JDialog{
 				JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 			editor.setVisible(true);
 		else if(editor == null)
-			JOptionPane.showMessageDialog(context.owner(), message, I18N.t("dialog.add_citation.title"), JOptionPane.INFORMATION_MESSAGE);
+			MessageDialogs.show(context.owner(), message, I18N.t("dialog.add_citation.title"), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/** Adds to the record a citation of the source, as its editor would: the locator is kept only if it is not blank. */

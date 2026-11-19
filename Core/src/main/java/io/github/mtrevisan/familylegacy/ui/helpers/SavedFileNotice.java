@@ -61,14 +61,15 @@ public final class SavedFileNotice{
 		if(GraphicsEnvironment.isHeadless())
 			return;
 
-		final Object[] options = {I18N.t("button.ok"), I18N.t("button.open.directory")};
+		//only the action: Esc (or closing the window) dismisses the message, an Ok button would add nothing
+		final Object[] options = {I18N.t("button.open.directory")};
 		final String text = (message.contains(file.getName()) || message.contains(file.getAbsolutePath())
 			? message
 			: message + StringUtils.LF + file.getAbsolutePath());
 		final int choice = JOptionPane.showOptionDialog(owner, text, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
 			null, options, options[0]);
-		if(choice == 1 && !reveal(file))
-			JOptionPane.showMessageDialog(owner, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + file.getParent(),
+		if(choice == 0 && !reveal(file))
+			MessageDialogs.show(owner, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + file.getParent(),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 	}
 

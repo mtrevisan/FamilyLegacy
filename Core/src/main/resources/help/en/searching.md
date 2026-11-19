@@ -24,7 +24,7 @@ Both open the same dialog, *Select Record*:
 
 - **Type**: only when more than one type is searchable.
 - **Search text**.
-- **Whole word** and **Fuzzy**, both off.
+- The **funnel button** at the end of the field: its options **Whole word**, **Fuzzy** and **Search in notes and citations**, all off.
 - A box of **filters** for the type. For individuals: *Sex* (the preferred sex of the person; a person whose sex is undetermined is not excluded), *Event Type*, *Date From* and *Date To* (each with its calendar), and *Place*. For groups: *Name* and *Type*. The filters on events, dates and places apply to the events of the individual.
 - **Results**: the list, with a status line (*Found N record(s)*) and a progress bar while it searches.
 - Buttons **Edit...**, **Unlink** and **Delete** (on the selected result), and **Select**. `Esc` closes the dialog.
@@ -57,11 +57,11 @@ The result list shows, for individuals, the sex (`[M]`, `[F]`, `[U]`), the name,
 
 ### Search fields in the lists and boards
 
-The search field of **Manage Media**, **Event Types**, **Research Log**, **Research Board**, **Context Board**, **Find Duplicates** and **Citation Analysis** works as the one of *Find record*: the text is matched word by word, a row with more of the words ranks higher, and the check boxes next to the field narrow the search to **Whole word** or widen it to typos (**Fuzzy**). In the list of uncited assertions of **Citation Analysis**, **Search in notes and citations** looks in the notes too, and the best matches come first.
+The search field of **Manage Media**, **Event Types**, **Research Log**, **Research Board**, **Context Board**, **Find Duplicates** and **Citation Analysis** works as the one of *Find record*: the text is matched word by word, a row with more of the words ranks higher. The field shows a grey hint (*Search…*) while it is empty, and a tooltip explains how it works. The small **funnel button** at its right end (or `Alt+Down` in the field) opens a menu of options that narrow the search to **Whole word** or widen it to typos (**Fuzzy**); the menu stays open while you switch several options, and the funnel shows a dot while one is on (its tooltip lists them). In the list of uncited assertions of **Citation Analysis**, **Search in notes and citations** looks in the notes too, and the best matches come first.
 
 ## Bookmarks
 
-**Bookmarks** saves a view so that you can return to it.
+**Navigate > Bookmarks** saves a view so that you can return to it.
 
 - **Bookmark current view...** (`Ctrl+D`) asks for a name; a name of spaces is not accepted. If nothing is loaded it says there is no view to bookmark; in a document that has no file yet it asks you to choose a file first, because a bookmark belongs to a file. If the file already has a bookmark with that name you are asked whether to replace it: two bookmarks with one name could not be told apart.
 - The menu lists the bookmarks of **the open file**, oldest first; the tooltip of each gives its view and the **name** of the root.

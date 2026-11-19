@@ -232,15 +232,9 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 			new PasteIndividualTool()
 				.run(context);
 		});
-		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, unlinkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new UnlinkIndividualRelationshipsTool()
-				.run(context);
-		});
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
-			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-			new DeleteIndividualTool()
 				.run(context);
 		});
 		popup.addSeparator();
@@ -260,6 +254,12 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				.run(context);
 		});
 		popup.add(analyzeMenu);
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteIndividualTool()
+				.run(context);
+		});
 
 		return popup;
 	}

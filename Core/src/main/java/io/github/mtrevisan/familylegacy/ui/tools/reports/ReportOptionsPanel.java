@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
@@ -157,6 +158,7 @@ public final class ReportOptionsPanel extends JPanel{
 	 *                          Style
 	 * ====================================================================== */
 
+	private final JComboBox<ReportDateFormat> dateFormat = createDateFormatCombo();
 	private final JCheckBox descriptions = cb("include_descriptions");
 	private final JCheckBox pictures = cb("include_pictures");
 
@@ -245,6 +247,7 @@ public final class ReportOptionsPanel extends JPanel{
 		idxIndividuals.setSelected(initial.indexIndividuals());
 		idxPlaces.setSelected(initial.indexPlaces());
 
+		dateFormat.setSelectedItem(initial.dateFormat());
 		descriptions.setSelected(initial.includeDescriptions());
 		pictures.setSelected(initial.includePictures());
 
@@ -283,6 +286,7 @@ public final class ReportOptionsPanel extends JPanel{
 			(CollateralScope)collaterals.getSelectedItem(),
 			(generations.getSelectedItem() instanceof final Integer count? count: 0),
 			(PersonOrder)personOrder.getSelectedItem(),
+			(ReportDateFormat)dateFormat.getSelectedItem(),
 			notes.isSelected(),
 			sources.isSelected(),
 			media.isSelected(),
@@ -314,6 +318,21 @@ public final class ReportOptionsPanel extends JPanel{
 			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 					final boolean isSelected, final boolean cellHasFocus){
 				final Object text = (value instanceof PersonOrder order? I18N.t("enum.person_order." + order.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
+	/** The ways of writing the dates ("as recorded", "1 May 1888", ...), in the language of the user. */
+	private static JComboBox<ReportDateFormat> createDateFormatCombo(){
+		final JComboBox<ReportDateFormat> combo = ComboBoxSearch.searchable(new JComboBox<>(ReportDateFormat.values()));
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof ReportDateFormat format
+					? I18N.t("enum.date_format." + format.name().toLowerCase(Locale.ROOT)): value);
 				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
 			}
 		});
@@ -476,6 +495,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private JPanel styleGroup(){
 		final JPanel p = singleColumn("border.style");
+		addCombo(p, ReportOption.DATE_FORMAT, "label.date_format", "tooltip.report.date_format", dateFormat);
 		addOption(p, ReportOption.INCLUDE_DESCRIPTIONS, descriptions);
 		addOption(p, ReportOption.INCLUDE_PICTURES, pictures);
 		return nonEmpty(p);

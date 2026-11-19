@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 
@@ -60,6 +61,8 @@ public record ReportConfig(
 	int generations,
 	/** How the persons of the Family Book are put in order. */
 	PersonOrder personOrder,
+	/** How the dates are written. */
+	ReportDateFormat dateFormat,
 	boolean notes,
 	boolean sources,
 	boolean media,
@@ -90,6 +93,7 @@ public record ReportConfig(
 		Objects.requireNonNull(privacyPolicy, "privacyPolicy");
 		Objects.requireNonNull(livingPrivacy, "livingPrivacy");
 		Objects.requireNonNull(personOrder, "personOrder");
+		Objects.requireNonNull(dateFormat, "dateFormat");
 		generations = Math.max(0, generations);
 	}
 
@@ -107,7 +111,7 @@ public record ReportConfig(
 
 	/**
 	 * @param option	The option to change.
-	 * @param value	Its new value: a {@code Boolean}, an {@code Integer} (the generations) or a {@link CollateralScope}.
+	 * @param value	Its new value: a {@code Boolean}, an {@code Integer} (the generations) or a constant of the enumeration the option is.
 	 * @return	A copy of this configuration with the option changed.
 	 */
 	public ReportConfig with(final ReportOption option, final Object value){
@@ -146,7 +150,7 @@ public record ReportConfig(
 	public static ReportConfig uniform(final boolean value, final ReportLanguage language, final PrivacyPolicy privacyPolicy){
 		final CollateralScope[] scopes = CollateralScope.values();
 		return new ReportConfig(language, privacyPolicy, LivingPrivacy.NAME_AND_ROLE, value, value, value, value, value, value, value, value, value,
-			(value? scopes[scopes.length - 1]: CollateralScope.NONE), 0, (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL), value, value,
+			(value? scopes[scopes.length - 1]: CollateralScope.NONE), 0, (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL), ReportDateFormat.AS_RECORDED, value, value,
 			value, value, value, value, value, value, value,
 			value, value, value, value, value, value, value, value, value, value, value);
 	}
@@ -168,6 +172,7 @@ public record ReportConfig(
 			CollateralScope.NONE,
 			0,
 			PersonOrder.ALPHABETICAL,
+			ReportDateFormat.AS_RECORDED,
 			true,
 			true,
 			true,

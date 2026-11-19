@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.common.Placeho
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.TreeIcons;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.shell.FamilyLegacyFrame;
 import io.github.mtrevisan.familylegacy.ui.shell.SplashWindow;
@@ -85,7 +86,7 @@ public final class FamilyLegacyApplication{
 			//apply persisted language and font before any window is created
 			AppearanceManager.applySaved();
 
-			FLEFRecord.onMultipleChildren(record -> JOptionPane.showMessageDialog(null,
+			FLEFRecord.onMultipleChildren(record -> MessageDialogs.show(null,
 				"Record with more than one child: " + record, I18N.t("error.title"), JOptionPane.ERROR_MESSAGE));
 
 			final SplashWindow splash = new SplashWindow();

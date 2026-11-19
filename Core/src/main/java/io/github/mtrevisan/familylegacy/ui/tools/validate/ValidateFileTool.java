@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.quality.FileValidation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,14 +72,14 @@ public final class ValidateFileTool implements ToolOperation{
 
 		final FLEFModel model = context.model();
 		if(model == null){
-			JOptionPane.showMessageDialog(context.owner(),
+			MessageDialogs.show(context.owner(),
 				I18N.t("message.no_model_loaded"), I18N.t("dialog.validate.title"), JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
 		final FLEFGrammar grammar = grammar();
 		if(grammar == null){
-			JOptionPane.showMessageDialog(context.owner(),
+			MessageDialogs.show(context.owner(),
 				I18N.t("dialog.validate.no_grammar"), I18N.t("dialog.validate.title"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}

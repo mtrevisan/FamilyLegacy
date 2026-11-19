@@ -38,8 +38,8 @@ class PortraitCropsTest{
 	void headIsWiderThanTheFaceAndInThePortraitProportions(){
 		final Rectangle crop = PortraitCrops.headCrop(new Rectangle(400, 300, 100, 125), 1000, 1000);
 
-		Assertions.assertEquals(180, crop.width);
-		Assertions.assertEquals(240, crop.height);
+		Assertions.assertEquals(140, crop.width);
+		Assertions.assertEquals(187, crop.height);
 		//the face is inside, about at the center
 		Assertions.assertTrue(crop.contains(new Rectangle(400, 300, 100, 125)));
 		Assertions.assertEquals(450., crop.getCenterX(), 1.);
@@ -49,7 +49,7 @@ class PortraitCropsTest{
 	void cropStaysInsideThePictureKeepingTheProportions(){
 		//a face at the corner of the picture
 		final Rectangle corner = PortraitCrops.headCrop(new Rectangle(0, 0, 100, 125), 1000, 1000);
-		Assertions.assertEquals(new Rectangle(0, 0, 180, 240), corner);
+		Assertions.assertEquals(new Rectangle(0, 0, 140, 187), corner);
 
 		//a face too big for the picture: the crop is made smaller, 3:4 all the same
 		final Rectangle big = PortraitCrops.headCrop(new Rectangle(10, 10, 300, 300), 400, 400);

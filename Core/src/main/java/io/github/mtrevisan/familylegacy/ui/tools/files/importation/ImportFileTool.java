@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +40,16 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Window;
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 
 /**
@@ -60,28 +67,54 @@ public final class ImportFileTool implements ToolOperation{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImportFileTool.class);
 
 
-	private final FileImporter importer;
+	private final List<FileImporter> importers;
 
 
-	public ImportFileTool(final FileImporter importer){
-		this.importer = importer;
+	/**
+	 * @param importers	the importers that are installed (see {@link io.github.mtrevisan.familylegacy.importer.FileImporters#available()})
+	 */
+	public ImportFileTool(final List<FileImporter> importers){
+		this.importers = List.copyOf(importers);
 	}
 
 
 	@Override
 	public String getName(){
-		return importer.menuLabel();
+		return I18N.t(importers.isEmpty()? "import.format.none": "menu.file.import");
+	}
+
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return !importers.isEmpty();
 	}
 
 	@Override
 	public void run(final ToolContext context){
+		//one chooser for all the formats: the first filter shows everything that can be imported, the others narrow it to a format
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle(importer.dialogTitle());
-		chooser.setFileFilter(new FileNameExtensionFilter(importer.fileDescription(), importer.fileExtensions().toArray(String[]::new)));
+		chooser.setDialogTitle(I18N.t("dialog.import.title"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		final FileNameExtensionFilter allFormats = new FileNameExtensionFilter(I18N.t("import.files.all"), allExtensions());
+		chooser.addChoosableFileFilter(allFormats);
+		final Map<FileFilter, FileImporter> filters = new HashMap<>(importers.size());
+		for(final FileImporter candidate : importers){
+			final FileNameExtensionFilter filter = new FileNameExtensionFilter(candidate.fileDescription(),
+				candidate.fileExtensions().toArray(String[]::new));
+			chooser.addChoosableFileFilter(filter);
+			filters.put(filter, candidate);
+		}
+		chooser.setFileFilter(allFormats);
 		if(chooser.showOpenDialog(context.owner()) != JFileChooser.APPROVE_OPTION)
 			return;
 
 		final File file = chooser.getSelectedFile();
+
+		//a format chosen in the filter is the user's word; otherwise the format is recognised from the file
+		final FileImporter importer = (filters.containsKey(chooser.getFileFilter())
+			? filters.get(chooser.getFileFilter())
+			: recognise(context, file));
+		if(importer == null)
+			return;
 
 		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
 			I18N.tf("confirmation.overwrite.import.message", file.getName()),
@@ -132,7 +165,7 @@ public final class ImportFileTool implements ToolOperation{
 				catch(final ExecutionException ee){
 					LOGGER.error("Import of {} failed", file, ee);
 					final Throwable cause = (ee.getCause() != null? ee.getCause(): ee);
-					JOptionPane.showMessageDialog(context.owner(),
+					MessageDialogs.show(context.owner(),
 						importer.invalidFileMessage() + StringUtils.LF + cause.getMessage(), I18N.t("error.import.title"),
 						JOptionPane.ERROR_MESSAGE);
 				}
@@ -142,6 +175,47 @@ public final class ImportFileTool implements ToolOperation{
 		worker.execute();
 		//modal: it blocks the caller until done() disposes the dialog
 		progress.setVisible(true);
+	}
+
+	private String[] allExtensions(){
+		return importers.stream()
+			.flatMap(importer -> importer.fileExtensions().stream())
+			.distinct()
+			.toArray(String[]::new);
+	}
+
+	/**
+	 * Finds the importer of the file among the installed ones: the one that accepts it, or the one the user picks when more than one does.
+	 * A file that no importer accepts is told to the user, with the formats that can be imported.
+	 *
+	 * @return	The importer, or {@code null} if there is none (already told to the user) or the user closed the question.
+	 */
+	private FileImporter recognise(final ToolContext context, final File file){
+		final List<FileImporter> candidates = importers.stream()
+			.filter(importer -> importer.accepts(file.toPath()))
+			.toList();
+		if(candidates.size() == 1)
+			return candidates.get(0);
+
+		if(candidates.isEmpty()){
+			final String supported = importers.stream()
+				.map(FileImporter::fileDescription)
+				.map(description -> "- " + description)
+				.collect(Collectors.joining(StringUtils.LF));
+			MessageDialogs.show(context.owner(), I18N.tf("error.import.unsupported", file.getName(), supported),
+				I18N.t("error.import.title"), JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+
+		final String[] names = candidates.stream()
+			.map(FileImporter::menuLabel)
+			.toArray(String[]::new);
+		final Object choice = JOptionPane.showInputDialog(context.owner(), I18N.t("import.format.choose.message"),
+			I18N.t("import.format.choose.title"), JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
+		if(choice == null)
+			return null;
+		return candidates.get(Arrays.asList(names)
+			.indexOf(choice));
 	}
 
 	/**

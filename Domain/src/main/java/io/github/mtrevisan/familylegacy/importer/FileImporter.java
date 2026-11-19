@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -57,7 +58,7 @@ public interface FileImporter{
 	/** @return	What identifies the format and names the jar of its plugin ({@code importer-<id>.jar}): {@code "gedcom"}, {@code "gramps"}. */
 	String id();
 
-	/** @return	The (localized) label of the entry of the menu, including the trailing ellipsis. */
+	/** @return	The (localized) name of the format, to tell it to the user (in the question asked when a file fits several formats). */
 	String menuLabel();
 
 	/** @return	The (localized) title of the dialogs of the import. */
@@ -68,6 +69,24 @@ public interface FileImporter{
 
 	/** @return	The extensions of the files of the format, without the dot and in lower case. */
 	List<String> fileExtensions();
+
+	/**
+	 * Tells whether the file looks like one of the format, so that the single entry of the menu can find the importer of a file. The
+	 * default compares the extension (case-insensitive) with {@link #fileExtensions()}; an importer whose extension is shared with other
+	 * formats (e.g. {@code xml}) overrides it, looking at the content.
+	 *
+	 * @param file	the file chosen by the user
+	 * @return	Whether this importer can be used for the file.
+	 */
+	default boolean accepts(final Path file){
+		final String name = file.getFileName()
+			.toString()
+			.toLowerCase(Locale.ROOT);
+		for(final String extension : fileExtensions())
+			if(name.endsWith("." + extension))
+				return true;
+		return false;
+	}
 
 	/** @return	The (localized) message to show when the file is not a valid document of the format. */
 	String invalidFileMessage();

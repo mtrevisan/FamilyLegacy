@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
@@ -84,14 +83,14 @@ public final class GroupNarrator{
 		final List<FLEFRecord> unions = findEvents(events, EventReader.ENUM_TYPE_MARRIAGE);
 
 		if(founding != null){
-			final String d = DateService.getDateDisplayText(founding);
+			final String d = labels.dateText(founding);
 			final String p = PlaceCitationReader.extractPlace(founding, model);
 			sentences.add(labels.narrative().groupNarrativeFounding(displayName, d, p));
 		}
 		else if(!unions.isEmpty()){
 			for(final FLEFRecord unionEvt : unions){
 				final String type = FLEFRecordHelper.getChildValue(unionEvt, EventReader.TAG_TYPE);
-				final String d = DateService.getDateDisplayText(unionEvt);
+				final String d = labels.dateText(unionEvt);
 				final String p = PlaceCitationReader.extractPlace(unionEvt, model);
 
 				final String typeLabel = (type != null? labels.enumValue("enum.event.type", type): labels.narrative().groupUnionDefaultType());
@@ -132,7 +131,7 @@ public final class GroupNarrator{
 		// 4. Dissolution
 		final FLEFRecord dissolution = findEvent(events, EventReader.ENUM_TYPE_DIVORCE);
 		if(dissolution != null){
-			final String d = DateService.getDateDisplayText(dissolution);
+			final String d = labels.dateText(dissolution);
 			final String p = PlaceCitationReader.extractPlace(dissolution, model);
 			sentences.add(labels.narrative().groupNarrativeDissolution(displayName, d, p));
 		}

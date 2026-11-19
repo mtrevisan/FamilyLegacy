@@ -63,7 +63,7 @@ Some words are a month in one language and a season, or another month, in anothe
 
 - The dialog **Ambiguous Date** lists the readings, one per line, each with its meaning; the first is the one the parser would have chosen.
 - **Use Selected** replaces the text in the field with the chosen reading, which ends with the language in parentheses, for example `est 1850 (Cornish)`.
-- **Edit Date** goes back to the field without saving.
+- `Esc` (or closing the window) goes back to the field to edit the date, without saving.
 
 You can avoid the question by writing the language yourself at the end of the date, in parentheses: `1 pay 2006 (asturiano)`. The language can be given by its name in any language or by its code (`Asturian`, `asturiano`, `ast`). A word that is a different season in different languages (such as `yaz`) is rejected unless you give the language. When a month word belongs to several languages and none of the rules above settles it, the choice is always the same for the same text (it does not depend on the order of the languages inside the application). In `1850 (ca)` the `(ca)` after a bare year is not read as a language (Catalan): it is *circa*, and the date is not rejected for it. The language in parentheses is understood by the Gregorian-family parsers; for the other calendars, check the result in the display text after saving.
 

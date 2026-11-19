@@ -22,44 +22,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
+package io.github.mtrevisan.familylegacy.ui.tools.reports.operations;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.importer.FileImporters;
+import io.github.mtrevisan.familylegacy.reports.ReportType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 
 
-/**
- * The entry of the menu of a format whose importer is not installed (its jar, {@code importer-<id>.jar}, is not in the {@code plugins}
- * folder): it is shown, so that the user knows the format exists, but it is disabled: the import is possible only if the jar is there.
- */
-public final class ImportUnavailableTool implements ToolOperation{
-
-	private final String label;
-
-
-	/**
-	 * @param id  the identifier of the format (see {@link FileImporters#KNOWN_IDS})
-	 */
-	public ImportUnavailableTool(final String id){
-		label = I18N.t("import.format." + id);
-	}
-
+public final class FamilyGroupSheetOperation implements ToolOperation{
 
 	@Override
 	public String getName(){
-		return I18N.tf("import.format.unavailable", label);
-	}
-
-	@Override
-	public void run(final ToolContext context){
-		//disabled: nothing to do
+		return I18N.t("menu.reports.family.group.sheet");
 	}
 
 	@Override
 	public boolean isEnabled(final ToolContext context){
-		return false;
+		return (context != null && context.hasSelectedIndividual());
+	}
+
+	@Override
+	public void run(final ToolContext context){
+		ReportDialog.showDialog(context, ReportType.FAMILY_GROUP_SHEET);
 	}
 
 }

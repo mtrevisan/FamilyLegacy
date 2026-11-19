@@ -52,6 +52,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.AppIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogPlacement;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
@@ -709,7 +710,7 @@ public class FamilyLegacyFrame extends JFrame{
 
 		//the root can be gone (deleted since the bookmark was made)
 		if(!bookmark.rootId().isEmpty() && !model.hasRecord(bookmark.rootId())){
-			JOptionPane.showMessageDialog(this, I18N.tf("dialog.bookmark.missing_root.message", bookmark.name()),
+			MessageDialogs.show(this, I18N.tf("dialog.bookmark.missing_root.message", bookmark.name()),
 				I18N.t("dialog.bookmark.missing_root.title"), JOptionPane.INFORMATION_MESSAGE);
 
 			return;

@@ -190,7 +190,7 @@ public final class MultiPersonReportGenerator{
 	private ReportDocument placeholder(){
 		final List<ReportSection> sections = new ArrayList<>();
 		sections.add(new ReportSection.Heading(1, title));
-		final ReportLabels labels = new ReportLabels(config.language());
+		final ReportLabels labels = new ReportLabels(config.language(), config.dateFormat());
 		sections.add(new ReportSection.Paragraph(labels.narrative().noIndividualAvailable()));
 		return new ReportDocument(title, null, sections, labels.language().locale().toLanguageTag(), labels.sections().contents());
 	}

@@ -73,7 +73,7 @@ class ReportOptionsPanelStatesTest{
 	void withEveryOptionEditableTheWholeFormIsThere(){
 		final JPanel panel = new ReportOptionsPanel(ReportConfig.defaults());
 
-		Assertions.assertEquals(ReportOption.values().length - 3, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 4, checkBoxes(panel).size());
 		Assertions.assertTrue(checkBoxes(panel).stream().allMatch(JCheckBox::isEnabled));
 	}
 
@@ -85,7 +85,7 @@ class ReportOptionsPanelStatesTest{
 		Assertions.assertNull(find(panel, "chronological_timeline"));
 		Assertions.assertNull(find(panel, "descendants"));
 		Assertions.assertNotNull(find(panel, "introduction"));
-		Assertions.assertEquals(ReportOption.values().length - 3 - 2, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 4 - 2, checkBoxes(panel).size());
 	}
 
 	@Test

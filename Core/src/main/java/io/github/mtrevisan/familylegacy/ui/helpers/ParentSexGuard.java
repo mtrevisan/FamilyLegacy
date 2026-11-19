@@ -59,7 +59,7 @@ public final class ParentSexGuard{
 		final String coParent = IndividualLabel.of(model, clash.coParentId());
 		final String child = IndividualLabel.of(model, clash.childId());
 		if(clash.certain()){
-			JOptionPane.showMessageDialog(owner, I18N.tf("validation.parents_clash", coParent, child, parent),
+			MessageDialogs.show(owner, I18N.tf("validation.parents_clash", coParent, child, parent),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
 			return false;

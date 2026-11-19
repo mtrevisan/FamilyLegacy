@@ -52,6 +52,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.undo.ComboBoxUndoSelectionListener;
 import io.github.mtrevisan.familylegacy.ui.undo.EditableComboAdapter;
@@ -848,7 +849,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 	protected boolean confirmRecordExistsForType(final String participantId, final String participantLabel){
 		if(model.getRecordById(participantId) == null){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("message.unknown_participant_id", participantLabel),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 

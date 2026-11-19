@@ -204,8 +204,14 @@ public final class GenealogicalDateHelper{
 		final ReportLabels labels){
 		// full_date
 		final String full = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_FULL_DATE));
-		if(full != null && !full.isBlank())
-			return full.trim();
+		if(full != null && !full.isBlank()){
+			//only the Gregorian calendar is rewritten: the other ones have their own notations
+			final String calendar = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_CALENDAR));
+			final boolean gregorian = (StringUtils.isEmpty(calendar) || DateReader.ENUM_CALENDAR_GREGORIAN.equals(normalizeCalendar(calendar)));
+			return (gregorian
+				? labels.dateFormat().format(full.trim(), labels.language().locale())
+				: full.trim());
+		}
 
 		// decade
 		final String decade = FLEFRecordHelper.getChildValue(rec, FLEFRecordHelper.composePath(base, DateReader.TAG_VALUE_DECADE));

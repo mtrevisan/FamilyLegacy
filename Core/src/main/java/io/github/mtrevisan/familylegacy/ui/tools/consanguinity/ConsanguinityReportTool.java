@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.dialogs.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +104,7 @@ public final class ConsanguinityReportTool implements ToolOperation{
 	/** Tells that the report could not be made or shown, and why: a tool that does something and then shows nothing is the worst answer. */
 	private static void report(final ToolContext context, final Throwable cause){
 		LOGGER.error("Consanguinity report failed", cause);
-		JOptionPane.showMessageDialog(context.owner(),
+		MessageDialogs.show(context.owner(),
 			I18N.t("dialog.consanguinity_report.error") + StringUtils.LF + (cause.getMessage() != null? cause.getMessage(): cause.toString()),
 			I18N.t("dialog.consanguinity_report.title"), JOptionPane.ERROR_MESSAGE);
 	}

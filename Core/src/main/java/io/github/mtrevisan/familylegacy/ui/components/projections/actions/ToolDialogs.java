@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -168,7 +169,7 @@ public final class ToolDialogs{
 		final String tag = record.getTag();
 		final RecordTypeHandler<?> handler = (tag != null? HandlerRegistry.getHandler(tag): null);
 		if(handler == null){
-			JOptionPane.showMessageDialog(parent, I18N.tf("message.no_editor_for_type", tag), parent.getTitle(),
+			MessageDialogs.show(parent, I18N.tf("message.no_editor_for_type", tag), parent.getTitle(),
 				JOptionPane.WARNING_MESSAGE);
 
 			return;

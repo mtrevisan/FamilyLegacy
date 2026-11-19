@@ -21,7 +21,7 @@ A file can be plain text or compressed (the application recognises it), and is a
 
 ## Importing from other programs
 
-**File > Import** converts data from another format into a new FLEF file:
+**File > Import...** converts data from another format into a new FLEF file; there is one entry for all the formats, and the program recognises the format from the file you choose:
 
 - **GEDCOM** (versions 5.5, 5.5.1 and 7; the version is read from the file itself).
 - **Gramps XML**.

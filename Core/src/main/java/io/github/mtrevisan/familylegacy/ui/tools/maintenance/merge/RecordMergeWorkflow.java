@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.merger.manual.MergePlan;
 import io.github.mtrevisan.familylegacy.io.merger.manual.RecordMerger;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
@@ -121,7 +122,7 @@ public final class RecordMergeWorkflow{
 			if(!result.conflicts().isEmpty())
 				summary.append(StringUtils.LF).append(I18N.t("dialog.merge.records.conflicts")).append(':').append(StringUtils.LF)
 					.append(String.join(StringUtils.LF, result.conflicts()));
-			JOptionPane.showMessageDialog(owner, summary.toString(), I18N.t("dialog.merge.records.title"), JOptionPane.INFORMATION_MESSAGE);
+			MessageDialogs.show(owner, summary.toString(), I18N.t("dialog.merge.records.title"), JOptionPane.INFORMATION_MESSAGE);
 			return true;
 		}
 		catch(final IllegalArgumentException ex){
@@ -151,7 +152,7 @@ public final class RecordMergeWorkflow{
 			final RecordAbsorber.Rejection rejection = merger.reject(source.getId(), target.getId(),
 				(StringUtils.isNotBlank(narrative)? narrative.strip(): I18N.t("dialog.merge.records.different.note")));
 
-			JOptionPane.showMessageDialog(owner,
+			MessageDialogs.show(owner,
 				I18N.tf("dialog.merge.records.different.recorded", rejection.hypothesisId(), rejection.conclusionId()),
 				I18N.t("dialog.merge.records.different.title"), JOptionPane.INFORMATION_MESSAGE);
 			return true;
@@ -170,7 +171,7 @@ public final class RecordMergeWorkflow{
 	}
 
 	private static void warn(final Window owner, final String message){
-		JOptionPane.showMessageDialog(owner, message, I18N.t("dialog.merge.records.title"), JOptionPane.WARNING_MESSAGE);
+		MessageDialogs.show(owner, message, I18N.t("dialog.merge.records.title"), JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**

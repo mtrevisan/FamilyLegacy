@@ -45,18 +45,21 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportLayoutPanel;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportPresetsPanel;
 import io.github.mtrevisan.familylegacy.util.PluginLoader;
 import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportRenderer;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -66,10 +69,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileFilter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,10 +92,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>The dialog exposes:</p>
  * <ul>
  *   <li>a header line showing the root subject;</li>
- *   <li>an output-format selector (Markdown, text, HTML, DOCX, PDF);</li>
  *   <li>a language selector;</li>
  *   <li>the full {@link ReportOptionsPanel};</li>
- *   <li>Generate / Cancel buttons.</li>
+ *   <li>Restore Defaults / Generate buttons: Generate asks where to save the report and in which format (the available renderers).</li>
  * </ul>
  *
  * <p>The {@link ReportType} chosen by the caller drives both the resolution
@@ -102,12 +104,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class ReportDialog extends JDialog{
 
+	/** The longest part of the name of a file that comes from the subject of the report. */
+	private static final int MAX_SUBJECT_NAME = 60;
+
 	private final ToolContext context;
 	private final ReportType reportType;
 	private final ReportOptionsPanel optionsPanel;
+	private final ReportPresetsPanel presetsPanel;
+	private final ReportLayoutPanel layoutPanel;
 	private FLEFRecord selectedEntity;
-
-	private final Map<ReportRenderer, JCheckBox> formatBoxes = new LinkedHashMap<>();
 
 	private final JComboBox<ReportLanguage> language = ComboBoxSearch.searchable(new JComboBox<>(ReportLanguage.available().toArray(ReportLanguage[]::new)));
 	/** The font the user chose the last time ({@code null} for the automatic one): it is offered again when the report needs one. */
@@ -137,6 +142,8 @@ public final class ReportDialog extends JDialog{
 			option -> ReportBuilder.optionState(reportType, selectedEntity, option));
 		language.setSelectedItem(ReportLanguage.orEnglish(preferences.language()));
 		rememberedFont = preferences.font();
+		this.layoutPanel = new ReportLayoutPanel(preferences.layout());
+		this.presetsPanel = new ReportPresetsPanel(preferences, reportType, this::applyPreset, this::savePreset, () -> this);
 
 		initComponents();
 	}
@@ -176,7 +183,7 @@ public final class ReportDialog extends JDialog{
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
-			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP -> {
+			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET -> {
 				if(selectedId != null && selectedId.startsWith(IndividualHandler.ID_PREFIX))
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
@@ -196,7 +203,7 @@ public final class ReportDialog extends JDialog{
 		setLayout(new BorderLayout(0, 0));
 
 		final JPanel mainPanel = new JPanel(new MigLayout(
-			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]5[]20[]10[]"));
+			"ins 10,wrap 1,fillx", "[grow,fill]", "[]10[]5[]10[]"));
 
 		// 1. Header panel displaying report type and targeted root entity
 		String targetText = I18N.t(reportType.isGlobal()? "text.report.whole_file": "text.report.no_subject");
@@ -208,17 +215,20 @@ public final class ReportDialog extends JDialog{
 		headerPanel.add(new JLabel("<html><b>" + I18N.l("label.target_subject") + "</b> " + escapeHtml(targetText) + "</html>"));
 		mainPanel.add(headerPanel);
 
-		// 2. Format selection panel
-		mainPanel.add(createFormatSelectionPanel());
-
-		// 3. The extra fonts of the PDF, to download when they are missing
+		// 2. The extra fonts of the PDF, to download when they are missing
 		mainPanel.add(createFontPackPanel());
 
-		// 4. Language selection panel
+		// 3. Language selection panel
 		mainPanel.add(createLanguageSelectionPanel());
+
+		// 4. The saved sets of options
+		mainPanel.add(presetsPanel);
 
 		// 5. Options configuration panel
 		mainPanel.add(optionsPanel);
+
+		// 6. The layout of the pages (PDF and Word)
+		mainPanel.add(layoutPanel);
 
 		final JScrollPane scrollPane = new JScrollPane(mainPanel);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -242,41 +252,6 @@ public final class ReportDialog extends JDialog{
 		setPreferredSize(new Dimension(580, 680));
 	}
 
-	private JPanel createFormatSelectionPanel(){
-		final Map<String, ReportRenderer> available = new LinkedHashMap<>();
-		for(final ReportRenderer renderer : ReportRenderers.available())
-			available.put(renderer.id(), renderer);
-		//the formats the application knows are always listed, the ones whose plugin is missing are disabled; a format
-		//that only a plugin knows is listed when the plugin is there
-		final List<String> ids = new ArrayList<>(ReportRenderers.KNOWN_IDS);
-		available.keySet().stream()
-			.filter(id -> !ids.contains(id))
-			.forEach(ids::add);
-
-		final List<String> chosen = new ArrayList<>(preferences.formats());
-		chosen.retainAll(available.keySet());
-		if(chosen.isEmpty())
-			chosen.add(ReportRenderers.DEFAULT_ID);
-
-		final JPanel panel = new JPanel(new GridLayout(Math.max(1, (ids.size() + 2) / 3), 3, 8, 4));
-		panel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.output_formats")));
-
-		for(final String id : ids){
-			final ReportRenderer renderer = available.get(id);
-			final String label = I18N.t("checkbox.format_" + id, (renderer != null? renderer.displayName(): id));
-			final JCheckBox checkBox = new JCheckBox(label, renderer != null && chosen.contains(id));
-			if(renderer != null)
-				formatBoxes.put(renderer, checkBox);
-			else{
-				checkBox.setEnabled(false);
-				checkBox.setToolTipText(I18N.tf("tooltip.format_unavailable", ReportRenderers.pluginFileName(id)));
-			}
-			panel.add(checkBox);
-		}
-
-		return panel;
-	}
-
 	/**
 	 * The note that the extra fonts of the PDF (the scripts that the fonts of the system may lack) are not there, with the button that downloads
 	 * them; hidden when they are there, or when no format needs them. The PDF is written without them anyway.
@@ -284,7 +259,7 @@ public final class ReportDialog extends JDialog{
 	private JPanel createFontPackPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 0 8 0 8,fillx", "[grow,fill][]", "[]"));
 		final boolean needed = (PluginLoader.fontsDirectory() != null && !ComponentsDialog.hasFonts()
-			&& formatBoxes.keySet().stream().anyMatch(ReportRenderer::choosesFont));
+			&& ReportRenderers.available().stream().anyMatch(ReportRenderer::choosesFont));
 		panel.setVisible(needed);
 		if(!needed)
 			return panel;
@@ -309,83 +284,194 @@ public final class ReportDialog extends JDialog{
 		return p;
 	}
 
-	private Map<String, ReportRenderer> getSelectedRenderers(){
-		final Map<String, ReportRenderer> renderers = new LinkedHashMap<>();
-		final String baseName = reportType.name()
-			.toLowerCase(Locale.ROOT) + "_report";
+	/** @return	The options the user can choose in this report (the ones a saved set keeps). */
+	private List<ReportOption> editableOptions(){
+		return Arrays.stream(ReportOption.values())
+			.filter(option -> ReportBuilder.optionState(reportType, selectedEntity, option) == OptionState.EDITABLE)
+			.toList();
+	}
 
-		for(final Map.Entry<ReportRenderer, JCheckBox> entry : formatBoxes.entrySet())
-			if(entry.getValue().isSelected())
-				renderers.put(baseName + entry.getKey().extension(), entry.getKey());
+	/** Puts the options of a saved set in the dialog (what the set does not keep, the privacy policy for one, stays as it is). */
+	private void applyPreset(final String name){
+		final ReportConfig current = optionsPanel.toConfig((ReportLanguage)language.getSelectedItem());
+		optionsPanel.reset(preferences.preset(reportType, name, current));
+	}
 
-		return renderers;
+	/** Saves the options as they are in the dialog under the name. */
+	private void savePreset(final String name){
+		preferences.savePreset(reportType, name, optionsPanel.toConfig((ReportLanguage)language.getSelectedItem()), editableOptions());
+	}
+
+	/**
+	 * @return	The name the file of the report is proposed with: the subject and the type of the report ({@code Antonia_Pastrelo_I1430-ancestor_report}),
+	 * 	only the type for a report of the whole file.
+	 */
+	private String suggestedBaseName(){
+		final String type = reportType.name().toLowerCase(Locale.ROOT) + "_report";
+		if(selectedEntity == null)
+			return type;
+
+		final String subject = HandlerRegistry.getHandler(selectedEntity.getTag()).getDisplayText(selectedEntity, context.model());
+		final StringBuilder name = new StringBuilder();
+		for(int i = 0; i < subject.length() && name.length() < MAX_SUBJECT_NAME; i ++){
+			final char c = subject.charAt(i);
+			if(Character.isLetterOrDigit(c))
+				name.append(c);
+			else if(!name.isEmpty() && name.charAt(name.length() - 1) != '_')
+				//what is not a letter or a digit (blanks, brackets, punctuation) is a single underscore: no character that a file name refuses
+				name.append('_');
+		}
+		final String clean = StringUtils.strip(name.toString(), "_");
+		return (clean.isEmpty()? type: clean + "-" + type);
+	}
+
+	/** @return	The label of the format in the dialog that asks where to save the report. */
+	private static String formatLabel(final ReportRenderer renderer){
+		return I18N.t("checkbox.format_" + renderer.id(), renderer.displayName());
+	}
+
+	/**
+	 * Asks where to save the report and in which format: the formats offered are the ones of the available renderers, so a format whose plugin
+	 * is missing is not listed.
+	 *
+	 * @return	The chosen file (or directory, for a format that is one) with the renderer that writes it, {@code null} if the user gave up.
+	 */
+	private Map.Entry<Path, ReportRenderer> askTarget(){
+		final List<ReportRenderer> renderers = ReportRenderers.available();
+		if(renderers.isEmpty()){
+			MessageDialogs.show(this,
+				I18N.t("dialog.report.no_format.message"), I18N.t("dialog.report.no_format.title"), JOptionPane.WARNING_MESSAGE);
+
+			return null;
+		}
+
+		final Map<FileFilter, ReportRenderer> filters = new LinkedHashMap<>();
+		for(final ReportRenderer renderer : renderers)
+			filters.put(new RendererFilter(renderer), renderer);
+
+		final JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle(I18N.t("dialog.report.save.title"));
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		chooser.setAcceptAllFileFilterUsed(false);
+		filters.keySet()
+			.forEach(chooser::addChoosableFileFilter);
+		final String baseName = suggestedBaseName();
+
+		//the format of the last time if it is still available, else the default one, else the first
+		final List<String> remembered = preferences.formats();
+		final String preferred = (!remembered.isEmpty()? remembered.getFirst(): ReportRenderers.DEFAULT_ID);
+		FileFilter initial = filters.keySet().iterator().next();
+		for(final Map.Entry<FileFilter, ReportRenderer> entry : filters.entrySet())
+			if(entry.getValue().id().equals(preferred)){
+				initial = entry.getKey();
+				break;
+			}
+		chooser.setFileFilter(initial);
+
+		final String lastDirectory = preferences.directory();
+		final File directory = (lastDirectory != null? new File(lastDirectory): null);
+		if(directory != null && directory.isDirectory())
+			chooser.setCurrentDirectory(directory);
+		chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), baseName + filters.get(initial).extension()));
+		//changing the format changes the suggested name too
+		chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, event -> {
+			final ReportRenderer renderer = filters.get(chooser.getFileFilter());
+			if(renderer == null)
+				return;
+
+			final File current = chooser.getSelectedFile();
+			final String name = (current != null? current.getName(): baseName);
+			chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), withExtension(name, renderers, renderer)));
+		});
+
+		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION || chooser.getSelectedFile() == null)
+			return null;
+
+		final ReportRenderer renderer = filters.get(chooser.getFileFilter());
+		final File chosen = chooser.getSelectedFile();
+		return Map.entry(new File(chosen.getParentFile(), withExtension(chosen.getName(), renderers, renderer)).toPath(), renderer);
+	}
+
+	/** @return	The name with the extension of the renderer instead of the one of another format (added if there is none). */
+	private static String withExtension(final String name, final List<ReportRenderer> renderers, final ReportRenderer renderer){
+		String base = name;
+		for(final ReportRenderer candidate : renderers)
+			if(base.endsWith(candidate.extension())){
+				base = base.substring(0, base.length() - candidate.extension().length());
+				break;
+			}
+		return base + renderer.extension();
+	}
+
+	/** Shows the files of a format (or the directories, for the format that is one). */
+	private static final class RendererFilter extends FileFilter{
+
+		private final ReportRenderer renderer;
+
+
+		private RendererFilter(final ReportRenderer renderer){
+			this.renderer = renderer;
+		}
+
+		@Override
+		public boolean accept(final File file){
+			return (file.isDirectory() || !renderer.isDirectory() && file.getName().endsWith(renderer.extension()));
+		}
+
+		@Override
+		public String getDescription(){
+			return formatLabel(renderer);
+		}
+
 	}
 
 	private void onGenerate(){
 		//every report is about a record: without one nothing is written (it would be a file with a note and nothing else)
 		if(selectedEntity == null && !reportType.isGlobal()){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("dialog.report.missing_subject.message", reportType.getTitle()), I18N.t("dialog.report.missing_subject.title"), JOptionPane.WARNING_MESSAGE);
 
 			return;
 		}
 
-		final Map<String, ReportRenderer> renderers = getSelectedRenderers();
-		if(renderers.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				I18N.t("dialog.report.no_format.message"), I18N.t("dialog.report.no_format.title"), JOptionPane.WARNING_MESSAGE);
-
-			return;
-		}
-
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle(I18N.t("dialog.report.output_directory.title"));
-		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		final String lastDirectory = preferences.directory();
-		if(lastDirectory != null){
-			final File last = new File(lastDirectory);
-			if(last.isDirectory())
-				chooser.setSelectedFile(last);
-		}
-
-		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+		final Map.Entry<Path, ReportRenderer> target = askTarget();
+		if(target == null)
 			return;
 
-		final File selectedDir = chooser.getSelectedFile();
-		if(selectedDir == null)
-			return;
-
-		final Path outDir = selectedDir.toPath();
+		final Path outDir = target.getKey().getParent();
+		final Map<String, ReportRenderer> renderers = new LinkedHashMap<>();
+		renderers.put(target.getKey().getFileName().toString(), target.getValue());
 		if(!confirmOverwrite(outDir, renderers))
 			return;
 
 		final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
 		final ReportConfig config = optionsPanel.toConfig(selectedLang);
+		final ReportLayout layout = layoutPanel.toLayout();
 
-		remember(outDir, renderers, selectedLang, config);
-		runWithProgress(outDir, renderers, config);
+		remember(outDir, renderers, selectedLang, config, layout);
+		runWithProgress(outDir, renderers, config, layout);
 	}
 
 	/** Keeps what the user chose, to offer it again the next time (not the privacy policy: see {@link ReportPreferences}). */
 	private void remember(final Path outDir, final Map<String, ReportRenderer> renderers, final ReportLanguage selectedLang,
-			final ReportConfig config){
+			final ReportConfig config, final ReportLayout layout){
 		preferences.setDirectory(outDir.toString());
+		preferences.setLayout(layout);
 		preferences.setFormats(renderers.values().stream()
 			.map(ReportRenderer::id)
 			.toList());
 		preferences.setLanguage(selectedLang);
-		preferences.setOptions(reportType, config, Arrays.stream(ReportOption.values())
-			.filter(option -> ReportBuilder.optionState(reportType, selectedEntity, option) == OptionState.EDITABLE)
-			.toList());
+		preferences.setOptions(reportType, config, editableOptions());
 	}
 
 	/** Back to the options, the language and the formats a report starts with when nothing was chosen yet. */
 	private void restoreDefaults(){
 		optionsPanel.reset(ReportConfig.defaults());
+		layoutPanel.reset(ReportLayout.DEFAULT);
 		language.setSelectedItem(ReportLanguage.orEnglish(preferences.defaultLanguage()));
 		rememberedFont = null;
 		preferences.setFont(null);
-		formatBoxes.forEach((renderer, box) -> box.setSelected(ReportRenderers.DEFAULT_ID.equals(renderer.id())));
+		preferences.setFormats(List.of());
 	}
 
 
@@ -420,7 +506,8 @@ public final class ReportDialog extends JDialog{
 
 	private void runWithProgress(final Path outDir,
 		final Map<String, ReportRenderer> renderers,
-		final ReportConfig config){
+		final ReportConfig config,
+		final ReportLayout layout){
 
 		final ProgressDialog progressDialog =
 			new ProgressDialog(this, I18N.tf("dialog.report.generating", reportType.getTitle()));
@@ -519,7 +606,7 @@ public final class ReportDialog extends JDialog{
 						final Path targetFile = outDir.resolve(entry.getKey());
 						written.add(targetFile);
 						entry.getValue()
-							.render(doc, targetFile, (entry.getValue().choosesFont()? font: null));
+							.render(doc, targetFile, (entry.getValue().choosesFont()? font: null), layout);
 						generatedFiles.add(targetFile);
 
 						i ++;
@@ -544,7 +631,7 @@ public final class ReportDialog extends JDialog{
 					progressDialog.dispose();
 
 					if(isCancelled()){
-						JOptionPane.showMessageDialog(ReportDialog.this,
+						MessageDialogs.show(ReportDialog.this,
 							I18N.t("dialog.report.cancelled.message"), I18N.t("dialog.report.cancelled.title"), JOptionPane.INFORMATION_MESSAGE);
 						return;
 					}
@@ -556,7 +643,7 @@ public final class ReportDialog extends JDialog{
 					}
 					catch(final Exception ex){
 						final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
-						JOptionPane.showMessageDialog(ReportDialog.this,
+						MessageDialogs.show(ReportDialog.this,
 							I18N.l("dialog.report.error.message") + StringUtils.LF + cause.getMessage(),
 							I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 					}
@@ -600,7 +687,8 @@ public final class ReportDialog extends JDialog{
 	 * ====================================================================== */
 
 	private void promptOpenFolder(final Path dir, final List<Path> files){
-		final Object[] dialogOptions = {I18N.t("button.ok"), I18N.t("button.open.directory")};
+		//only the action: Esc (or closing the window) dismisses the message, an Ok button would add nothing
+		final Object[] dialogOptions = {I18N.t("button.open.directory")};
 		final StringBuilder msg = new StringBuilder(I18N.l("dialog.report.complete.message"))
 			.append(StringUtils.LF);
 		for(final Path f : files)
@@ -618,8 +706,8 @@ public final class ReportDialog extends JDialog{
 			dialogOptions[0]);
 
 		//the directory is opened with the first file of the report selected, if the system can do it
-		if(choice == 1 && !SavedFileNotice.reveal((files.isEmpty()? dir: files.getFirst()).toFile()))
-			JOptionPane.showMessageDialog(this, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + dir,
+		if(choice == 0 && !SavedFileNotice.reveal((files.isEmpty()? dir: files.getFirst()).toFile()))
+			MessageDialogs.show(this, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + dir,
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 	}
 

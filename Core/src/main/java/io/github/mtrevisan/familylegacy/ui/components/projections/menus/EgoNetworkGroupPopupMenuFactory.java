@@ -103,12 +103,6 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 				.run(context);
 		});
 		popup.addSeparator();
-		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
-			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
-			new DeleteGroupTool()
-				.run(context);
-		});
-		popup.addSeparator();
 		PopupMenuHelper.addMenuItem(popup, pasteItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, null);
 			new PasteGroupTool()
@@ -129,6 +123,12 @@ public class EgoNetworkGroupPopupMenuFactory implements EntityPopupMenuFactory<G
 		PopupMenuHelper.addMenuItem(popup, networkItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new GroupNetworkTool()
+				.run(context);
+		});
+		popup.addSeparator();
+		PopupMenuHelper.addMenuItem(popup, deleteItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new DeleteGroupTool()
 				.run(context);
 		});
 

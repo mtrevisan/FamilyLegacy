@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
-import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
+import io.github.mtrevisan.reports.ReportLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -63,6 +63,11 @@ public final class ReportPreferences{
 	private static final String KEY_FONT = "reports.font";
 	private static final String KEY_DIRECTORY = "reports.directory";
 	private static final String KEY_OPTIONS = "reports.options.";
+	private static final String KEY_PRESETS = "reports.presets.";
+	private static final String KEY_PRESET = "reports.preset.";
+	private static final String KEY_LAYOUT = "reports.layout.";
+	/** Separates the names of the presets, and the lines of the text of a cover (a character no name or line has). */
+	private static final char NAME_SEPARATOR = '\u001E';
 	private static final char LIST_SEPARATOR = ',';
 	private static final char OPTION_SEPARATOR = ';';
 	private static final char VALUE_SEPARATOR = '=';
@@ -163,7 +168,11 @@ public final class ReportPreferences{
 	 * @return	The defaults with the options remembered for the type of report.
 	 */
 	public ReportConfig options(final ReportType type, final ReportConfig defaults){
-		final String value = store.get(optionsKey(type));
+		return withStored(store.get(optionsKey(type)), defaults);
+	}
+
+	/** @return	The defaults with the options of the serialized value (a damaged entry is skipped). */
+	private static ReportConfig withStored(final String value, final ReportConfig defaults){
 		if(value == null)
 			return defaults;
 
@@ -189,15 +198,118 @@ public final class ReportPreferences{
 	 * @param options	The options to remember: the ones the user could choose.
 	 */
 	public void setOptions(final ReportType type, final ReportConfig config, final Collection<ReportOption> options){
+		store.put(optionsKey(type), serialize(config, options));
+	}
+
+	private static String serialize(final ReportConfig config, final Collection<ReportOption> options){
 		final List<String> entries = new ArrayList<>(options.size());
 		for(final ReportOption option : options)
 			entries.add(option.name() + VALUE_SEPARATOR + option.valueIn(config));
-		store.put(optionsKey(type), String.join(String.valueOf(OPTION_SEPARATOR), entries));
+		return String.join(String.valueOf(OPTION_SEPARATOR), entries);
+	}
+
+
+	/* ----- Presets: named sets of options of a type of report ------------- */
+
+	/** @return	The names of the presets saved for the type of report, in alphabetical order. */
+	public List<String> presetNames(final ReportType type){
+		final String value = store.get(KEY_PRESETS + typeKey(type));
+		if(value == null || value.isBlank())
+			return List.of();
+
+		final List<String> names = new ArrayList<>(List.of(StringUtils.split(value, NAME_SEPARATOR)));
+		names.sort(String.CASE_INSENSITIVE_ORDER);
+		return names;
+	}
+
+	/**
+	 * @param type	The type of the report.
+	 * @param name	The name of a preset.
+	 * @param base	The configuration the options of the preset are put on (so that what a preset does not keep, as the privacy policy, stays).
+	 * @return	The base with the options of the preset; the base itself if there is no such preset.
+	 */
+	public ReportConfig preset(final ReportType type, final String name, final ReportConfig base){
+		return withStored(store.get(presetKey(type, name)), base);
+	}
+
+	/**
+	 * Saves the options as a preset, replacing the one with the same name.
+	 *
+	 * @param type	The type of the report.
+	 * @param name	The name of the preset; a blank one saves nothing.
+	 * @param config	The configuration the user chose.
+	 * @param options	The options to keep: the ones the user could choose.
+	 */
+	public void savePreset(final ReportType type, final String name, final ReportConfig config, final Collection<ReportOption> options){
+		final String clean = cleanName(name);
+		if(clean.isEmpty())
+			return;
+
+		store.put(presetKey(type, clean), serialize(config, options));
+		final List<String> names = new ArrayList<>(presetNames(type));
+		if(names.stream().noneMatch(clean::equalsIgnoreCase)){
+			names.add(clean);
+			store.put(KEY_PRESETS + typeKey(type), String.join(String.valueOf(NAME_SEPARATOR), names));
+		}
+	}
+
+	public void deletePreset(final ReportType type, final String name){
+		store.put(presetKey(type, name), StringUtils.EMPTY);
+		final List<String> names = new ArrayList<>(presetNames(type));
+		if(names.removeIf(name::equalsIgnoreCase))
+			store.put(KEY_PRESETS + typeKey(type), String.join(String.valueOf(NAME_SEPARATOR), names));
+	}
+
+	/** @return	The name without the surrounding blanks, and without the character that separates the names. */
+	private static String cleanName(final String name){
+		return (name != null? StringUtils.remove(name, NAME_SEPARATOR).strip(): StringUtils.EMPTY);
+	}
+
+	private static String presetKey(final ReportType type, final String name){
+		return KEY_PRESET + typeKey(type) + "." + cleanName(name).toLowerCase(Locale.ROOT);
+	}
+
+
+	/* ----- Layout of the pages (shared by every type of report) ----------- */
+
+	/** @return	The layout of the pages the user chose the last time, or the default one. */
+	public ReportLayout layout(){
+		ReportLayout.PaperSize paper = ReportLayout.DEFAULT.paper();
+		final String paperName = store.get(KEY_LAYOUT + "paper");
+		for(final ReportLayout.PaperSize candidate : ReportLayout.PaperSize.values())
+			if(candidate.name().equals(paperName))
+				paper = candidate;
+
+		int margin = 0;
+		try{
+			final String value = store.get(KEY_LAYOUT + "margin");
+			if(value != null)
+				margin = Integer.parseInt(value.strip());
+		}
+		catch(final NumberFormatException ignored){
+			//a damaged value is the default one
+		}
+
+		final String headings = store.get(KEY_LAYOUT + "headings");
+		return new ReportLayout(paper, margin, !"false".equalsIgnoreCase(headings), StringUtils.defaultString(store.get(KEY_LAYOUT + "footnote")),
+			StringUtils.replaceChars(StringUtils.defaultString(store.get(KEY_LAYOUT + "cover")), NAME_SEPARATOR, '\n'));
+	}
+
+	public void setLayout(final ReportLayout layout){
+		store.put(KEY_LAYOUT + "paper", layout.paper().name());
+		store.put(KEY_LAYOUT + "margin", String.valueOf(layout.marginMm()));
+		store.put(KEY_LAYOUT + "headings", String.valueOf(layout.pageHeadings()));
+		store.put(KEY_LAYOUT + "footnote", layout.footnote());
+		store.put(KEY_LAYOUT + "cover", StringUtils.replaceChars(StringUtils.remove(layout.coverText(), '\r'), '\n', NAME_SEPARATOR));
 	}
 
 
 	private static String optionsKey(final ReportType type){
-		return KEY_OPTIONS + type.name().toLowerCase(Locale.ROOT);
+		return KEY_OPTIONS + typeKey(type);
+	}
+
+	private static String typeKey(final ReportType type){
+		return type.name().toLowerCase(Locale.ROOT);
 	}
 
 	private static ReportOption optionNamed(final String name){
@@ -224,16 +336,10 @@ public final class ReportPreferences{
 				return null;
 			}
 		}
-		if(example instanceof CollateralScope){
-			for(final CollateralScope scope : CollateralScope.values())
-				if(scope.name().equals(text))
-					return scope;
-		}
-		if(example instanceof PersonOrder){
-			for(final PersonOrder order : PersonOrder.values())
-				if(order.name().equals(text))
-					return order;
-		}
+		if(example instanceof Enum<?> constant)
+			for(final Object candidate : constant.getDeclaringClass().getEnumConstants())
+				if(((Enum<?>)candidate).name().equals(text))
+					return candidate;
 		return null;
 	}
 

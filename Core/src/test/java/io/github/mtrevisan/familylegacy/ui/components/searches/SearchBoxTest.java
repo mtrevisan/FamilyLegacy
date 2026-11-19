@@ -38,6 +38,63 @@ class SearchBoxTest{
 
 
 	@Test
+	void defaultOptionsAreOffAndFollowTheNotesFlag(){
+		final SearchBox plain = new SearchBox(10, false);
+		Assertions.assertEquals(2, plain.popupItemCount());
+		Assertions.assertTrue(plain.modes().isEmpty());
+
+		final SearchBox withNotes = new SearchBox(10, true);
+		Assertions.assertEquals(3, withNotes.popupItemCount());
+		Assertions.assertEquals(SearchMode.NOTES_AND_CITATIONS, withNotes.options().get(2).mode());
+	}
+
+	@Test
+	void selectingAnOptionChangesTheModesAndTellsTheListeners(){
+		final SearchBox box = new SearchBox(10, false);
+		final int[] calls = {0};
+		box.onChange(() -> calls[0] ++);
+
+		box.setSelected(SearchMode.FUZZY, true);
+		Assertions.assertEquals(EnumSet.of(SearchMode.FUZZY), box.modes());
+		Assertions.assertTrue(box.isSelected(SearchMode.FUZZY));
+		Assertions.assertEquals(1, calls[0]);
+
+		//no change, no call
+		box.setSelected(SearchMode.FUZZY, true);
+		Assertions.assertEquals(1, calls[0]);
+
+		box.setSelected(SearchMode.FUZZY, false);
+		Assertions.assertTrue(box.modes().isEmpty());
+		Assertions.assertEquals(2, calls[0]);
+	}
+
+	@Test
+	void modesIsACopy(){
+		final SearchBox box = new SearchBox(10, false);
+		final Set<SearchMode> modes = box.modes();
+		modes.add(SearchMode.WHOLE_WORD);
+		Assertions.assertTrue(box.modes().isEmpty());
+	}
+
+	@Test
+	void anOptionAddedLaterGrowsThePopup(){
+		final SearchBox box = new SearchBox(10);
+		Assertions.assertEquals(0, box.popupItemCount());
+
+		box.addOption(SearchMode.NOTES_AND_CITATIONS, "Notes");
+		Assertions.assertEquals(1, box.popupItemCount());
+		box.setSelected(SearchMode.NOTES_AND_CITATIONS, true);
+		Assertions.assertEquals(EnumSet.of(SearchMode.NOTES_AND_CITATIONS), box.modes());
+	}
+
+	@Test
+	void anOptionIsRegisteredOnce(){
+		final SearchBox box = new SearchBox(10, false);
+		Assertions.assertThrows(IllegalArgumentException.class, () -> box.addOption(SearchMode.FUZZY, "Again"));
+		Assertions.assertThrows(IllegalArgumentException.class, () -> box.setSelected(SearchMode.NOTES_AND_CITATIONS, true));
+	}
+
+	@Test
 	void blankQueryMatchesEverything(){
 		Assertions.assertTrue(SearchBox.matches("", PLAIN, "anything"));
 	}

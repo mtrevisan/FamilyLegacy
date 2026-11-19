@@ -461,7 +461,7 @@ public final class GUIHelper{
 
 	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
 			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
-		JOptionPane.showMessageDialog(parentComponent,
+		MessageDialogs.show(parentComponent,
 			message,
 			I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
@@ -703,7 +703,7 @@ public final class GUIHelper{
 
 		final File selectedFile = fileChooser.getSelectedFile();
 		if(selectedFile == null || !selectedFile.exists()){
-			JOptionPane.showMessageDialog(parentComponent,
+			MessageDialogs.show(parentComponent,
 				I18N.t("message.file_not_found"),
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
 			return null;

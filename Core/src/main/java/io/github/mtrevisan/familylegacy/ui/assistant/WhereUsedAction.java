@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JOptionPane;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ final class WhereUsedAction implements DiagnosticAction{
 				records.add(record);
 		}
 		if(records.isEmpty())
-			JOptionPane.showMessageDialog(context.owner(), I18N.t("assistant.open_records.gone"), title(), JOptionPane.INFORMATION_MESSAGE);
+			MessageDialogs.show(context.owner(), I18N.t("assistant.open_records.gone"), title(), JOptionPane.INFORMATION_MESSAGE);
 		else
 			new WhereUsedDialog(context.owner(), model, records).setVisible(true);
 	}

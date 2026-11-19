@@ -13,7 +13,7 @@ Fields marked with an asterisk are required. **OK** checks the fields that are r
 
 - **Individual > Add Individual...** creates a new individual.
 - **Individual > Add Child...** opens the editor of the selected individual on the **Relationships** tab, where you add the relationship that makes the new person a child of this one.
-- **Individual > Add Partner...** and **Add Parent...** create a new individual and link it to the selected one (the type of the relationship is asked); **Connect Partner...** and **Connect Parent...** do the same with an existing person. **Paste as Partner**, **Paste as Parent** and **Paste as Child** move the person copied with **Relocate**.
+- **Individual > Add Partner...** and **Add Parent...** create a new individual and link it to the selected one (the type of the relationship is asked); **Connect Partner...**, **Connect Parent...** and **Connect Child...** do the same with an existing person. **Paste as Partner**, **Paste as Parent** and **Paste as Child** move the person copied with **Relocate**.
 
 How the links between people are recorded, and the shortcuts of the tree (**Connect > Child...**), are explained in [Relationships](relationships.md).
 

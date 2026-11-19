@@ -158,7 +158,112 @@
 			</build>
 		</profile>
 		<profile>
-			<id>windows-standalone</id>
+			<!-- mvn clean package -Pwindows-inno -DskipTests
+					Builds the Windows installer with jpackage (application image: launcher + bundled runtime, no WiX needed) and Inno Setup (setup wizard):
+					Core/target/windows-inno/FamilyLegacy-<version>-setup.exe
+					Requires Inno Setup 6 (ISCC.exe) on the PATH, or -Dinno.iscc="C:\Program Files (x86)\Inno Setup 6\ISCC.exe".
+					The script is installer/FamilyLegacy.iss. The jpackage options are the ones of windows-exe: keep the module lists equal. -->
+				<id>windows-inno</id>
+				<properties>
+					<package.name>FamilyLegacy</package.name>
+					<package.version>1.0.0</package.version>
+					<package.mainClass>io.github.mtrevisan.familylegacy.FamilyLegacyApplication</package.mainClass>
+					<!-- must never change: it lets a new version upgrade the installed one (same as windows-exe) -->
+					<package.upgradeUuid>5d3f2c1e-8a47-4b6e-9c1d-2f7a9e0b6c41</package.upgradeUuid>
+					<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+					<inno.iscc>ISCC.exe</inno.iscc>
+				</properties>
+				<build>
+					<plugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-antrun-plugin</artifactId>
+							<version>${maven-antrun-plugin.version}</version>
+							<executions>
+								<execution>
+									<id>installer-inno</id>
+									<phase>package</phase>
+									<goals>
+										<goal>run</goal>
+									</goals>
+									<configuration>
+										<target>
+											<!-- only the core of the program: plugins and fonts are downloaded by Help > Optional Components... -->
+											<mkdir dir="${package.coreTarget}/jpackage-input/plugins"/>
+											<echo file="${package.coreTarget}/jpackage-input/plugins/README.txt">Plugins (.jar) are installed here by Help > Optional Components... of the application.</echo>
+											<mkdir dir="${package.coreTarget}/jpackage-input/fonts"/>
+											<echo file="${package.coreTarget}/jpackage-input/fonts/README.txt">Fonts for the PDF reports are installed here by Help > Optional Components... of the application.</echo>
+											<java classname="io.github.mtrevisan.familylegacy.ui.helpers.AppIcon" fork="true" failonerror="true"
+												  jvm="${java.home}/bin/java" classpath="${package.coreTarget}/jpackage-input/Core.jar">
+												<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+											</java>
+											<!-- an antivirus may keep the previous output locked for a moment -->
+											<retry retrycount="10" retrydelay="3000">
+												<delete dir="${package.coreTarget}/windows-inno"/>
+											</retry>
+											<retry retrycount="10" retrydelay="3000">
+												<delete dir="${package.coreTarget}/windows-inno-image"/>
+											</retry>
+											<!-- 1. jpackage: application image only (no win-* options, the installer is Inno Setup's) -->
+											<exec executable="${java.home}/bin/jpackage" failonerror="true">
+												<arg value="--type"/>
+												<arg value="app-image"/>
+												<arg value="--name"/>
+												<arg value="${package.name}"/>
+												<arg value="--app-version"/>
+												<arg value="${package.version}"/>
+												<arg value="--vendor"/>
+												<arg value="Mauro Trevisan"/>
+												<arg value="--input"/>
+												<arg value="${package.coreTarget}/jpackage-input"/>
+												<arg value="--main-jar"/>
+												<arg value="Core.jar"/>
+												<arg value="--main-class"/>
+												<arg value="${package.mainClass}"/>
+												<arg value="--icon"/>
+												<arg value="${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+												<arg value="--add-modules"/>
+												<arg value="java.base,java.compiler,java.desktop,java.management,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.security.jgss,java.sql,java.xml,java.xml.crypto,jdk.unsupported,jdk.localedata,jdk.charsets,jdk.zipfs"/>
+												<arg value="--jlink-options"/>
+												<arg value="--strip-native-commands --strip-debug --no-man-pages --no-header-files --compress=zip-9"/>
+												<arg value="--java-options"/>
+												<arg value="-Dfile.encoding=UTF-8"/>
+												<arg value="--java-options"/>
+												<arg value="--enable-native-access=ALL-UNNAMED"/>
+												<arg value="--java-options"/>
+												<arg value="--module-path=$APPDIR/modules"/>
+												<arg value="--java-options"/>
+												<arg value="--add-modules=io.github.mtrevisan.calendars,io.github.mtrevisan.reports"/>
+												<arg value="--java-options"/>
+												<arg value="-Dcalendars.plugins.dir=$APPDIR/plugins"/>
+												<arg value="--dest"/>
+												<arg value="${package.coreTarget}/windows-inno-image"/>
+											</exec>
+											<!-- jpackage leaves the output read-only, which makes "mvn clean" fail -->
+											<attrib readonly="false">
+												<fileset dir="${package.coreTarget}/windows-inno-image"/>
+											</attrib>
+											<!-- 2. Inno Setup: wraps the image into a setup wizard -->
+											<mkdir dir="${package.coreTarget}/windows-inno"/>
+											<exec executable="${inno.iscc}" failonerror="true">
+												<arg value="/Qp"/>
+												<arg value="/DAppVersion=${package.version}"/>
+												<arg value="/DAppGuid=${package.upgradeUuid}"/>
+												<arg value="/DSourceDir=${package.coreTarget}/windows-inno-image/${package.name}"/>
+												<arg value="/DIconFile=${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
+												<arg value="/DOutputDir=${package.coreTarget}/windows-inno"/>
+												<arg value="${project.basedir}/../installer/FamilyLegacy.iss"/>
+											</exec>
+										</target>
+									</configuration>
+								</execution>
+							</executions>
+						</plugin>
+					</plugins>
+				</build>
+			</profile>
+			<profile>
+				<id>windows-standalone</id>
 			<!-- mvn clean package -Pwindows-standalone -DskipTests
                  Crea un'immagine applicativa stand-alone (cartella con .exe + runtime incorporato)
                  in Core/target/windows-standalone/FamilyLegacy/. Nessun installer, nessuna

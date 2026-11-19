@@ -25,6 +25,7 @@
 package io.github.mtrevisan.reports.pdf;
 
 import io.github.mtrevisan.reports.ReportDocument;
+import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportMarkup;
 import io.github.mtrevisan.reports.ReportRenderer;
 import io.github.mtrevisan.reports.ReportSection;
@@ -37,7 +38,6 @@ import org.openpdf.text.Font;
 import org.openpdf.text.Image;
 import org.openpdf.text.List;
 import org.openpdf.text.ListItem;
-import org.openpdf.text.PageSize;
 import org.openpdf.text.Paragraph;
 import org.openpdf.text.Phrase;
 import org.openpdf.text.Rectangle;
@@ -174,6 +174,11 @@ public final class PdfReportRenderer implements ReportRenderer{
 	}
 
 	@Override
+	public boolean hasPages(){
+		return true;
+	}
+
+	@Override
 	public java.util.List<String> fonts(){
 		return PdfFonts.families(StringUtils.EMPTY);
 	}
@@ -195,6 +200,12 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	@Override
 	public void render(final ReportDocument doc, final Path target, final String font) throws IOException{
+		render(doc, target, font, ReportLayout.DEFAULT);
+	}
+
+	@Override
+	public void render(final ReportDocument doc, final Path target, final String font, final ReportLayout layout) throws IOException{
+		final ReportLayout pageLayout = (layout != null? layout: ReportLayout.DEFAULT);
 		final PdfFonts fonts = new PdfFonts(font, allText(doc), needsMonospaced(doc), doc.language());
 
 		//the table of contents has the page of each heading, that is known only after the layout: the first one finds them (the entries
@@ -202,12 +213,12 @@ public final class PdfReportRenderer implements ReportRenderer{
 		final boolean contents = (contentsHeadings(doc).size() >= TOC_MIN_HEADINGS);
 		Map<Integer, Integer> pages = Map.of();
 		if(contents)
-			pages = new Layout(doc, fonts, pages).write(OutputStream.nullOutputStream());
+			pages = new Layout(doc, fonts, pages, pageLayout).write(OutputStream.nullOutputStream());
 
 		for(int pass = 0; ; pass ++){
 			final Map<Integer, Integer> observed;
 			try(final OutputStream os = Files.newOutputStream(target)){
-				observed = new Layout(doc, fonts, pages).write(os);
+				observed = new Layout(doc, fonts, pages, pageLayout).write(os);
 				// Close while `os` is still open: OpenPDF must flush its
 				// buffered bytes before the channel is closed by try-with-resources.
 			}
@@ -286,6 +297,7 @@ public final class PdfReportRenderer implements ReportRenderer{
 		private final PdfFonts fonts;
 		private final Map<Integer, Integer> pages;
 		private final boolean rtl;
+		private final ReportLayout layout;
 		/** The records that have a heading, that a link can jump to. */
 		private final Set<String> anchors = new HashSet<>();
 		/** The records whose anchor was already written (a destination cannot be defined twice). */
@@ -296,7 +308,8 @@ public final class PdfReportRenderer implements ReportRenderer{
 		private PdfWriter writer;
 
 
-		Layout(final ReportDocument doc, final PdfFonts fonts, final Map<Integer, Integer> pages){
+		Layout(final ReportDocument doc, final PdfFonts fonts, final Map<Integer, Integer> pages, final ReportLayout layout){
+			this.layout = layout;
 			this.doc = doc;
 			this.fonts = fonts;
 			this.pages = pages;
@@ -314,14 +327,16 @@ public final class PdfReportRenderer implements ReportRenderer{
 		 */
 		Map<Integer, Integer> write(final OutputStream os) throws IOException{
 			final Map<Integer, Integer> observed = new HashMap<>();
-			try(final Document document = new Document(PageSize.A4, PAGE_MARGIN_SIDE, PAGE_MARGIN_SIDE, PAGE_MARGIN_VERTICAL,
-					PAGE_MARGIN_VERTICAL)){
+			final float marginSide = (layout.marginMm() > 0? layout.marginMm() / 25.4f * 72: PAGE_MARGIN_SIDE);
+			final float marginVertical = (layout.marginMm() > 0? layout.marginMm() / 25.4f * 72: PAGE_MARGIN_VERTICAL);
+			final Rectangle pageSize = new Rectangle(layout.paper().widthPoints(), layout.paper().heightPoints());
+			try(final Document document = new Document(pageSize, marginSide, marginSide, marginVertical, marginVertical)){
 				pdf = document;
 				writer = PdfWriter.getInstance(document, os);
 				fonts.attach(writer);
 				if(rtl)
 					writer.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
-				writer.setPageEvent(new PageDecorations(fonts, doc.title(), rtl, observed));
+				writer.setPageEvent(new PageDecorations(fonts, (layout.pageHeadings()? doc.title(): null), layout.footnote(), rtl, observed));
 				//the language of the text (screen readers, hyphenation of the viewers) and the properties of the document
 				writer.getExtraCatalog()
 					.put(PdfName.LANG, new PdfString(doc.language()));
@@ -360,6 +375,13 @@ public final class PdfReportRenderer implements ReportRenderer{
 				sub.setSpacingAfter(HEADING_SPACE_BEFORE[0]);
 				pdf.add(sub);
 			}
+
+			if(!layout.coverText().isBlank())
+				for(final String line : StringUtils.split(layout.coverText(), "\r\n")){
+					final Paragraph cover = paragraph(inline(line, SUBTITLE_SIZE, false, false, MUTED_COLOR), SUBTITLE_SIZE * LEADING_FACTOR);
+					cover.setAlignment(Element.ALIGN_CENTER);
+					pdf.add(cover);
+				}
 		}
 
 		/** The table of contents: the entries link to the headings, with their page. */
@@ -740,13 +762,16 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 		private final PdfFonts fonts;
 		private final String title;
+		private final String footnote;
 		private final boolean rtl;
 		private final Map<Integer, Integer> pages;
 
 
-		PageDecorations(final PdfFonts fonts, final String title, final boolean rtl, final Map<Integer, Integer> pages){
+		PageDecorations(final PdfFonts fonts, final String title, final String footnote, final boolean rtl,
+				final Map<Integer, Integer> pages){
 			this.fonts = fonts;
 			this.title = title;
+			this.footnote = footnote;
 			this.rtl = rtl;
 			this.pages = pages;
 		}
@@ -773,9 +798,15 @@ public final class PdfReportRenderer implements ReportRenderer{
 					ColumnText.showTextAligned(cb, Element.ALIGN_RIGHT, phrase, document.right(), document.top() + DECORATION_DISTANCE, 0);
 			}
 
+			final float center = (document.right() + document.left()) / 2;
+			if(footnote != null && !footnote.isBlank()){
+				final String text = fonts.truncate(footnote, HEADER_SIZE, document.right() - document.left());
+				ColumnText.showTextAligned(cb, Element.ALIGN_CENTER, fonts.phrase(text, HEADER_SIZE, false, true, false, DECORATION_COLOR),
+					center, document.bottom() - DECORATION_DISTANCE - FOOTER_SIZE - 2, 0);
+			}
 			ColumnText.showTextAligned(cb, Element.ALIGN_CENTER,
 				fonts.phrase(String.valueOf(writer.getPageNumber()), FOOTER_SIZE, false, false, false, DECORATION_COLOR),
-				(document.right() + document.left()) / 2, document.bottom() - DECORATION_DISTANCE, 0);
+				center, document.bottom() - DECORATION_DISTANCE, 0);
 		}
 
 	}

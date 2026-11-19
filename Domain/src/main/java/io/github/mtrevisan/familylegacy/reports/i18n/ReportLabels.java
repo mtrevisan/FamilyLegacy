@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.reports.i18n;
 import com.ibm.icu.text.MessageFormat;
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipVocabulary;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -43,6 +45,7 @@ public final class ReportLabels{
 	private static final String BUNDLE_BASE = "i18n.report.report_messages";
 
 	private final ReportLanguage language;
+	private final ReportDateFormat dateFormat;
 	private final ResourceBundle bundle;
 
 	private final SectionLabelProvider sectionLabels;
@@ -51,7 +54,16 @@ public final class ReportLabels{
 
 
 	public ReportLabels(final ReportLanguage language){
+		this(language, ReportDateFormat.AS_RECORDED);
+	}
+
+	/**
+	 * @param language	The language of the report.
+	 * @param dateFormat	How the dates are written.
+	 */
+	public ReportLabels(final ReportLanguage language, final ReportDateFormat dateFormat){
 		this.language = Objects.requireNonNull(language, "language");
+		this.dateFormat = Objects.requireNonNull(dateFormat, "dateFormat");
 		this.bundle = loadBundle(language.locale());
 
 		this.sectionLabels = new SectionLabelProvider(this);
@@ -73,6 +85,15 @@ public final class ReportLabels{
 
 	public ReportLanguage language(){
 		return language;
+	}
+
+	public ReportDateFormat dateFormat(){
+		return dateFormat;
+	}
+
+	/** @return	The date of a record (an event, ...) as the report writes it, {@code null} if it has none. */
+	public String dateText(final FLEFRecord record){
+		return DateService.getDateDisplayText(record, value -> dateFormat.format(value, language.locale()));
 	}
 
 	public SectionLabelProvider sections(){

@@ -67,6 +67,7 @@ public final class ReportBuilder{
 			case INDIVIDUAL, GROUP, RELATIONSHIP, PLACE, SOURCE, RESEARCH_QUESTION, BIBLIOGRAPHY, RESEARCH_PROGRESS ->
 				new ReportGenerator(model, root, tailored, type)
 				.generate(listener);
+			case FAMILY_GROUP_SHEET -> new FamilyGroupSheetGenerator(model, root, tailored).generate(listener);
 			case FULL_BIBLIOGRAPHY -> new FullBibliographyGenerator(model, tailored).generate(listener);
 			case FAMILY_BOOK -> new FamilyBookGenerator(model, tailored).generate(listener);
 			case TO_VERIFY -> new ToVerifyGenerator(model, tailored).generate(listener);
@@ -102,7 +103,7 @@ public final class ReportBuilder{
 	 */
 	public static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
 		return switch(type){
-			case INDIVIDUAL, GROUP, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, SURNAMES -> base;
+			case INDIVIDUAL, GROUP, FAMILY_GROUP_SHEET, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, SURNAMES -> base;
 			//one self-contained sub-report per person: the introduction and the life story, no ancestry, descendants or relations (the
 			//persons are the ancestors or the descendants)
 			case ANCESTOR, DESCENDANT, FAMILY_BOOK -> withNarrative(base, true, false, false, false, false, false);
@@ -160,6 +161,11 @@ public final class ReportBuilder{
 			//the relations of a person, with the front matter and the index of the individuals: nothing of the life
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.INTRODUCTION, ReportOption.DIRECT_RELATIONS,
 				ReportOption.INDIRECT_RELATIONS, ReportOption.INDEX_INDIVIDUALS)));
+			return out;
+		}
+		if(type == ReportType.FAMILY_GROUP_SHEET){
+			//the parents and the children of each union: only the front matter and the way the dates are written have a meaning
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.DATE_FORMAT)));
 			return out;
 		}
 		if(type == ReportType.TO_VERIFY || type == ReportType.SURNAMES){

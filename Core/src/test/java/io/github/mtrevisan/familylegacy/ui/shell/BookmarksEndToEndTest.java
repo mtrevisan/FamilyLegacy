@@ -125,9 +125,13 @@ class BookmarksEndToEndTest{
 	}
 
 	private static BookmarkMenu bookmarkMenu(final FamilyLegacyFrame frame){
-		for(int i = 0; i < frame.getJMenuBar().getMenuCount(); i ++)
-			if(frame.getJMenuBar().getMenu(i) instanceof BookmarkMenu menu)
-				return menu;
+		//the bookmarks are a submenu of the Navigate menu
+		for(int i = 0; i < frame.getJMenuBar().getMenuCount(); i ++){
+			final JMenu top = frame.getJMenuBar().getMenu(i);
+			for(int j = 0; j < top.getItemCount(); j ++)
+				if(top.getItem(j) instanceof BookmarkMenu menu)
+					return menu;
+		}
 		throw new AssertionError("no Bookmarks menu");
 	}
 

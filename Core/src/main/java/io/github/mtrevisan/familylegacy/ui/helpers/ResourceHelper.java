@@ -65,6 +65,11 @@ public final class ResourceHelper{
 
 	public static final String EXTENSION_PDF = ".pdf";
 
+	/** Maximum size of an SVG file that is rasterized. */
+	static final long SVG_MAX_BYTES = 5L * 1024 * 1024;
+	/** Maximum width or height (in pixels) an SVG may declare. */
+	static final int SVG_MAX_SIDE = 4096;
+
 
 	private ResourceHelper(){}
 
@@ -418,8 +423,15 @@ public final class ResourceHelper{
 			// Force reader initialization before read(0): some vector
 			// readers materialize the rasterization pipeline on
 			// width/height calls, and read(0) would fail without it.
-			reader.getWidth(0);
-			reader.getHeight(0);
+			final int width = reader.getWidth(0);
+			final int height = reader.getHeight(0);
+			//a vector image declares its own size: a hostile one could ask for gigabytes of pixels
+			if("svg".equalsIgnoreCase(reader.getOriginatingProvider().getFormatNames()[0])){
+				if(input.length() > SVG_MAX_BYTES)
+					throw new IOException("SVG too large: " + input.length() + " bytes (maximum " + SVG_MAX_BYTES + ")");
+				if(width > SVG_MAX_SIDE || height > SVG_MAX_SIDE)
+					throw new IOException("SVG dimensions too large: " + width + "x" + height + " (maximum " + SVG_MAX_SIDE + ")");
+			}
 			return reader.read(0);
 		}
 		finally{

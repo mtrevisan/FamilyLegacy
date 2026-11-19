@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -103,7 +104,7 @@ public final class ExportFlefTool implements ToolOperation{
 					I18N.tf("dialog.export.flef.saved", target.getAbsolutePath()), target);
 		}
 		catch(final IOException ex){
-			JOptionPane.showMessageDialog(context.owner(),
+			MessageDialogs.show(context.owner(),
 				I18N.l("dialog.export.flef.error.message") + StringUtils.LF + ex.getMessage(), I18N.t("dialog.export.flef.error.title"), JOptionPane.ERROR_MESSAGE);
 		}
 	}

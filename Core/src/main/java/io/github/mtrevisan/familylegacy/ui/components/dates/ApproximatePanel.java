@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -183,7 +184,7 @@ public class ApproximatePanel extends JPanel{
 		if(approximateCheck.isSelected()){
 			String basis = (String)basisCombo.getSelectedItem();
 			if(StringUtils.isEmpty(basis)){
-				JOptionPane.showMessageDialog(this,
+				MessageDialogs.show(this,
 					I18N.tf("validation.required", I18N.t("dialog.date.basis")),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
@@ -191,7 +192,7 @@ public class ApproximatePanel extends JPanel{
 			}
 
 			if(DateReader.ENUM_BASIS_CONVENTIONAL.equals(basis) && culturalNormPanel.isEmpty()){
-				JOptionPane.showMessageDialog(this,
+				MessageDialogs.show(this,
 					I18N.tf("validation.required_when_is", I18N.t("dialog.name.cultural.norms"),
 						I18N.t("dialog.date.basis"), I18N.t("enum.date.basis.conventional")),
 					I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);

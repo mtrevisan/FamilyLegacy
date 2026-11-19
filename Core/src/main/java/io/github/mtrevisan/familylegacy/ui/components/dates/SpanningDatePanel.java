@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -123,7 +124,7 @@ public class SpanningDatePanel extends JPanel{
 
 	public boolean validateData(){
 		if(!hasData()){
-			JOptionPane.showMessageDialog(this,
+			MessageDialogs.show(this,
 				I18N.tf("validation.at_least_one_of", I18N.t("dialog.date.spanning_from"), I18N.t("dialog.date.spanning_to")),
 				I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
 
