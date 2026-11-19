@@ -17,6 +17,7 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA.
 
 ### ALTA
+- nella finestra iniziale di ogni report, non far scegliere il formato di output tramite molti checkbox, piuttosto quando si preme Generate proporre e far scegliere all'utente il formato del file in cui si vuole salvare, legando la lista ai Report* disponibili
 - i componenti addizionali da scaricare si trovano censiti nel file catalog.json? sono gestite anche le versioni? checksum?
 - installer: jpackage + Inno Setup
 
