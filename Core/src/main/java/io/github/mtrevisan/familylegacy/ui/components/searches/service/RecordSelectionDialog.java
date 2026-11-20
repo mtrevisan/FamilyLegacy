@@ -98,6 +98,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -157,7 +158,7 @@ public class RecordSelectionDialog extends JDialog{
 	private static final String CARD_HIERARCHY = "card-hierarchy";
 
 
-	private record DisplayItem(FLEFRecord record, String displayText){}
+	private record DisplayItem(FLEFRecord record, String displayText, String explanation){}
 
 
 	private final FLEFModel model;
@@ -365,6 +366,15 @@ public class RecordSelectionDialog extends JDialog{
 				if(value instanceof DisplayItem item)
 					setText(item.displayText());
 				return this;
+			}
+		});
+		//the tooltip of a result tells where the text was found and how relevant the record is
+		resultList.addMouseMotionListener(new MouseMotionAdapter(){
+			@Override
+			public void mouseMoved(final MouseEvent e){
+				final int index = resultList.locationToIndex(e.getPoint());
+				final boolean over = (index >= 0 && resultList.getCellBounds(index, index).contains(e.getPoint()));
+				resultList.setToolTipText(over? listModel.get(index).explanation(): null);
 			}
 		});
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(resultList);
@@ -669,7 +679,7 @@ public class RecordSelectionDialog extends JDialog{
 				// ordered by match quality: number of matched query tokens
 				// first, sum of per-token fuzzy scores second, display text
 				// third.
-				final List<FLEFRecord> records = searchService.search(searchCriteria,
+				final List<SearchService.SearchHit> records = searchService.searchExplained(searchCriteria,
 					progress -> publish(progress / 2));
 				if(isCancelled())
 					return null;
@@ -682,9 +692,10 @@ public class RecordSelectionDialog extends JDialog{
 					if(isCancelled())
 						return null;
 
-					final FLEFRecord record = records.get(i);
+					final SearchService.SearchHit hit = records.get(i);
+					final FLEFRecord record = hit.record();
 					final String text = displayTextCache.computeIfAbsent(record, searchService::getDisplayText);
-					items.add(new DisplayItem(record, text));
+					items.add(new DisplayItem(record, text, hit.explanation()));
 
 					final int progress = 50 + (int)(((i + 1) / (double)total) * 50);
 					publish(progress);
@@ -776,7 +787,7 @@ public class RecordSelectionDialog extends JDialog{
 		listModel.clear();
 
 		if(items.isEmpty()){
-			listModel.addElement(new DisplayItem(null, NO_MATCHING_RECORDS));
+			listModel.addElement(new DisplayItem(null, NO_MATCHING_RECORDS, null));
 
 			resultList.setEnabled(false);
 		}

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -34,9 +35,12 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.places.PlaceNameResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.search.AttachedTextExtractor;
+import io.github.mtrevisan.familylegacy.search.Bm25;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
+import io.github.mtrevisan.familylegacy.search.SearchField;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.search.SearchQuery;
 import io.github.mtrevisan.familylegacy.search.SearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.ConclusionSearchStrategy;
 import io.github.mtrevisan.familylegacy.search.strategies.CulturalNormSearchStrategy;
@@ -75,10 +79,13 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -107,7 +114,6 @@ import java.util.function.Predicate;
 public class SearchService{
 
 	private static final Map<Class<? extends RecordTypeHandler<?>>, SearchStrategy> REGISTRY = new HashMap<>();
-
 	static{
 		REGISTRY.put(ConclusionHandler.class, new ConclusionSearchStrategy());
 		REGISTRY.put(CulturalNormHandler.class, new CulturalNormSearchStrategy());
@@ -142,10 +148,9 @@ public class SearchService{
 	}
 
 	/**
-	 * A record that passed the text stage, together with the score that
-	 * determines its position in the result list.
+	 * A record that passed the text stage, together with what determines its position in the result list.
 	 */
-	private record ScoredRecord(FLEFRecord record, String displayText, SearchMatcher.MatchScore match){}
+	private record ScoredRecord(FLEFRecord record, String displayText, int matchedTerms, double relevance, SearchMatcher.Analysis analysis){}
 
 
 	private final FLEFModel model;
@@ -167,6 +172,15 @@ public class SearchService{
 	}
 
 	/**
+	 * A record found, with its relevance and the reason why it was found.
+	 *
+	 * @param record		The record.
+	 * @param relevance	The BM25 relevance, 0 when there is no text query.
+	 * @param explanation	Html telling which terms were found, where and how relevant the record is; {@code null} when there is no text query.
+	 */
+	public record SearchHit(FLEFRecord record, double relevance, String explanation){}
+
+	/**
 	 * Performs the search according to the given criteria and reports progress.
 	 *
 	 * @param criteria         the search criteria
@@ -174,6 +188,27 @@ public class SearchService{
 	 * @return a list of search results, ordered by match quality
 	 */
 	public List<FLEFRecord> search(final SearchCriteria criteria, final Consumer<Integer> progressCallback){
+		final List<SearchHit> hits = searchExplained(criteria, progressCallback);
+		final List<FLEFRecord> results = new ArrayList<>(hits.size());
+		for(final SearchHit hit : hits)
+			results.add(hit.record());
+		return results;
+	}
+
+	/**
+	 * Performs the search according to the given criteria, and tells why every record was found.
+	 * <p>
+	 * The text is parsed into terms (words, "exact phrases" and wildcards, see {@link SearchQuery}). The records that pass the
+	 * structural filters are the corpus: each is analysed against the terms, the analyses are ranked by {@link Bm25}, and the
+	 * records that matched at least one term are returned, sorted by the number of matched terms first (a record matching both
+	 * words of a two-word query always ranks above one matching a single word), then by BM25 relevance (a rare word counts more
+	 * than a common one, a short text more than a long one, a typo less than an exact word), then by display text.
+	 *
+	 * @param criteria         the search criteria
+	 * @param progressCallback consumer for reporting progress percentage (0-100)
+	 * @return the hits, ordered by match quality
+	 */
+	public List<SearchHit> searchExplained(final SearchCriteria criteria, final Consumer<Integer> progressCallback){
 		if(criteria == null)
 			return List.of();
 
@@ -187,21 +222,26 @@ public class SearchService{
 		final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(handler.getType()));
 
 		// Fast path: no text query. Structural filters only, no ranking.
-		final String query = criteria.query();
-		if(query.isEmpty())
-			return executeStructuralSearch(records, structuralFilter, progressCallback);
+		final SearchQuery query = SearchQuery.parse(criteria.query());
+		if(query.isEmpty()){
+			final List<SearchHit> hits = new ArrayList<>();
+			for(final FLEFRecord record : executeStructuralSearch(records, structuralFilter, progressCallback))
+				hits.add(new SearchHit(record, 0., null));
+			return hits;
+		}
 
-		// Stage 2: text scoring and ranking. The display text used for
-		// scoring is the one returned by the handler, which is what the
-		// old TextSearchHelper path used; the enriched display text of
-		// the strategy (with the "[M] " prefix and the birth/death
+		// Stage 2: text analysis and ranking. The display text used for
+		// scoring is the one returned by the handler; the enriched display
+		// text of the strategy (with the "[M] " prefix and the birth/death
 		// details) is only used for the final rendering, not for the
 		// text match, so that the behaviour of the search is unchanged.
 		final Set<SearchMode> modes = criteria.modes();
 		final boolean inNotes = modes.contains(SearchMode.NOTES_AND_CITATIONS);
 		//a place is also found by the name of the places that contain it ("Treviso Veneto" finds Treviso, part of Veneto)
 		final PlaceNameResolver placeNames = (PlaceReader.TYPE.equals(handler.getType())? new PlaceNameResolver(model): null);
-		final List<ScoredRecord> scored = new ArrayList<>();
+		final List<FLEFRecord> corpusRecords = new ArrayList<>();
+		final List<String> displayTexts = new ArrayList<>();
+		final List<SearchMatcher.Analysis> analyses = new ArrayList<>();
 		final int totalRecords = records.size();
 		int lastProgress = -1;
 		for(int i = 0; i < totalRecords; i ++){
@@ -211,19 +251,22 @@ public class SearchService{
 			final FLEFRecord record = records.get(i);
 			if(structuralFilter.test(record)){
 				final String displayText = handler.getDisplayText(record, model);
-				//with the notes included, the text of the notes is matched together with the display text
-				String target = displayText;
+				final List<SearchMatcher.Segment> segments = new ArrayList<>(4);
+				segments.add(new SearchMatcher.Segment(SearchField.DISPLAY_TEXT, displayText));
 				//a record with several names is found by any of them, not only by the one shown
 				final List<String> names = allNames(handler.getType(), record);
 				if(!names.isEmpty())
-					target += '\n' + String.join("\n", names);
+					segments.add(new SearchMatcher.Segment(SearchField.OTHER_NAMES, String.join("\n", names)));
 				if(placeNames != null)
-					target += '\n' + String.join("\n", placeNames.containerNames(record.getId()));
+					segments.add(new SearchMatcher.Segment(SearchField.CONTAINING_PLACES,
+						String.join("\n", placeNames.containerNames(record.getId()))));
+				//with the notes included, the text of the notes is matched together with the display text
 				if(inNotes)
-					target += '\n' + AttachedTextExtractor.extract(record, model);
-				final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
-				if(match.passes())
-					scored.add(new ScoredRecord(record, displayText, match));
+					segments.add(new SearchMatcher.Segment(SearchField.NOTES_AND_CITATIONS, AttachedTextExtractor.extract(record, model)));
+
+				corpusRecords.add(record);
+				displayTexts.add(displayText);
+				analyses.add(SearchMatcher.analyse(query, segments, modes));
 			}
 
 			if(progressCallback != null){
@@ -236,21 +279,55 @@ public class SearchService{
 			}
 		}
 
-		// Ranking: number of matched query tokens first (a record matching
+		//the statistics of the corpus (how common a word is, how long a text is) come from all the records, not only from the found ones
+		final double[] relevance = Bm25.score(analyses);
+		final List<ScoredRecord> scored = new ArrayList<>();
+		for(int i = 0; i < analyses.size(); i ++){
+			final SearchMatcher.Analysis analysis = analyses.get(i);
+			final int matched = analysis.matchedTerms();
+			if(matched > 0)
+				scored.add(new ScoredRecord(corpusRecords.get(i), displayTexts.get(i), matched, relevance[i], analysis));
+		}
+
+		// Ranking: number of matched query terms first (a record matching
 		// "bort" and "gall" beats a record matching only one of the two),
-		// then the sum of the per-token fuzzy scores (a full match beats
-		// a fuzzy match), then display text for a stable, alphabetical
-		// tie-break.
+		// then the BM25 relevance, then display text for a stable,
+		// alphabetical tie-break.
 		scored.sort(Comparator
-			.comparingInt((ScoredRecord sr) -> sr.match().matchedTokens()).reversed()
-			.thenComparing(Comparator.comparingDouble(
-				(ScoredRecord sr) -> sr.match().score()).reversed())
+			.comparingInt(ScoredRecord::matchedTerms).reversed()
+			.thenComparing(Comparator.comparingDouble(ScoredRecord::relevance).reversed())
 			.thenComparing(ScoredRecord::displayText, String.CASE_INSENSITIVE_ORDER));
 
-		final List<FLEFRecord> results = new ArrayList<>(scored.size());
+		final List<SearchHit> hits = new ArrayList<>(scored.size());
 		for(final ScoredRecord sr : scored)
-			results.add(sr.record());
-		return results;
+			hits.add(new SearchHit(sr.record(), sr.relevance(), explain(sr.analysis(), sr.relevance())));
+		return hits;
+	}
+
+	/** @return	Html that tells, for each term of the query, whether and where it was found, and the relevance of the record. */
+	private static String explain(final SearchMatcher.Analysis analysis, final double relevance){
+		final StringBuilder sb = new StringBuilder("<html>");
+		final List<SearchQuery.Term> terms = analysis.query().terms();
+		for(int t = 0; t < terms.size(); t ++){
+			final String term = escapeHtml(terms.get(t).display());
+			if(analysis.best(t) > 0.){
+				final List<String> found = new ArrayList<>();
+				for(final SearchMatcher.Evidence evidence : analysis.evidence(t))
+					found.add(escapeHtml(evidence.text()) + " ("
+						+ I18N.t("search.explain.field." + evidence.field().name().toLowerCase(Locale.ROOT)) + ")");
+				sb.append(I18N.tf("search.explain.found", term, String.join(", ", found)));
+			}
+			else
+				sb.append(I18N.tf("search.explain.missing", term));
+			sb.append("<br>");
+		}
+		return sb.append(I18N.tf("search.explain.relevance", Math.round(relevance * 100.) / 100.))
+			.append("</html>")
+			.toString();
+	}
+
+	private static String escapeHtml(final String text){
+		return StringUtils.replaceEach(text, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 	}
 
 	/** @return	All the names (titles for a source) of a record that can have several of them, otherwise an empty list. */
