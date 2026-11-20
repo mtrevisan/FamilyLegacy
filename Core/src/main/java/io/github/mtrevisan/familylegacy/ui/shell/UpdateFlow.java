@@ -32,6 +32,7 @@ import io.github.mtrevisan.updater.GitHubReleases;
 import io.github.mtrevisan.updater.InstallerDownloader;
 import io.github.mtrevisan.updater.InstallerLauncher;
 import io.github.mtrevisan.updater.ReleaseInfo;
+import io.github.mtrevisan.updater.SignatureVerifier;
 import io.github.mtrevisan.updater.Transport;
 import io.github.mtrevisan.updater.UpdateCheck;
 import io.github.mtrevisan.updater.UpdateChecker;
@@ -229,7 +230,7 @@ final class UpdateFlow{
 		final SwingWorker<Path, Void> worker = new SwingWorker<>(){
 			@Override
 			protected Path doInBackground() throws IOException{
-				return new InstallerDownloader(transport).download(release, directory, dialog::progress, cancelled::get);
+				return new InstallerDownloader(transport, SignatureVerifier.application()).download(release, directory, dialog::progress, cancelled::get);
 			}
 
 			@Override

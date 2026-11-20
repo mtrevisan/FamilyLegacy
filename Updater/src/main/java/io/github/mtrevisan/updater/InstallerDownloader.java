@@ -67,14 +67,26 @@ public final class InstallerDownloader{
 
 
 	private final Transport transport;
+	/** Checks the signature of the installer; {@code null} to check nothing. */
+	private final SignatureVerifier verifier;
 
 
 	public InstallerDownloader(final Transport transport){
-		this.transport = transport;
+		this(transport, null);
 	}
 
 	/**
-	 * Downloads the installer into a file, that exists only if the download is complete and matches the published size and SHA-256.
+	 * @param transport	How to reach the network.
+	 * @param verifier	Checks the signature of an installer once downloaded; may be {@code null}.
+	 */
+	public InstallerDownloader(final Transport transport, final SignatureVerifier verifier){
+		this.transport = transport;
+		this.verifier = verifier;
+	}
+
+	/**
+	 * Downloads the installer into a file, that exists only if the download is complete, matches the published size and SHA-256 and, if
+	 * a {@link SignatureVerifier} was given, is signed by a known key.
 	 *
 	 * @param release	The release, that has an installer.
 	 * @param directory	Where to put the installer.
@@ -92,8 +104,19 @@ public final class InstallerDownloader{
 		if(release.sha256() == null)
 			throw new IOException("The release " + release.tag() + " does not publish the SHA-256 of its installer");
 
-		return download(new ReleaseAsset(release.installerName(), release.installerUrl(), release.installerSize(), release.sha256()),
-			directory, progress, cancelled);
+		final Path installer = download(new ReleaseAsset(release.installerName(), release.installerUrl(), release.installerSize(),
+			release.sha256()), directory, progress, cancelled);
+		if(verifier != null){
+			//(the SHA-256 only tells that the file is the published one; the signature tells that the publisher is the right one)
+			try{
+				verifier.verify(installer);
+			}
+			catch(final IOException | RuntimeException e){
+				Files.deleteIfExists(installer);
+				throw e;
+			}
+		}
+		return installer;
 	}
 
 	/**

@@ -1,0 +1,9 @@
+# Keys that may sign the Windows installers of Family Legacy.
+#
+# One line for each key: the SHA-256 of the public key of the signing certificate (SubjectPublicKeyInfo), 64 hexadecimal digits, then an
+# optional comment. The same values are published in installer/SIGNING.md and in the notes of every release.
+# Compute one with:  java -cp Updater/target/classes io.github.mtrevisan.updater.SignatureVerifier <signed installer>
+#
+# While there is no line here the update does not check the signature (no key exists yet). As soon as a line is added, an installer that is
+# unsigned, badly signed or signed by another key is refused. To change key, keep the old line until the last release signed with it is no
+# longer offered, so that the installed versions can still update.
