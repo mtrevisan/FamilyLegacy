@@ -24,11 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.context.ContextChecker;
+import io.github.mtrevisan.familylegacy.assistant.context.ContextDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.context.ContextFinding;
+import io.github.mtrevisan.familylegacy.assistant.context.NormEstimateChecker;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 
 import java.util.ArrayList;
@@ -72,7 +76,8 @@ public final class ContextAssistantContributor implements AssistantContributor{
 				.map(ContextAssistantContributor::withAction)
 				.toList());
 			//the dates estimated by a custom, with no cultural norm that justifies them
-			findings.addAll(NormEstimateChecker.findings(context.model().getRecordsByType(EventHandler.TYPE)));
+			for(final Diagnostic finding : NormEstimateChecker.findings(context.model().getRecordsByType(EventHandler.TYPE)))
+				findings.add(finding.withAction(new CreateCulturalNormDraftAction()));
 			return findings;
 		});
 	}

@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
@@ -111,6 +113,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> confidenceCombo;
 
 
+	private final MediaPartListPanel mediaCitationPanel;
+
+
 	public static EventRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, EventRecordDialog::new);
 	}
@@ -141,6 +146,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, ContextImpactHandler.TYPE, I18N.t("dialog.component.context.impacts"))
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
@@ -246,6 +252,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
 
+		//the media attached to the record
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		return panel;
 	}
 
@@ -273,6 +282,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		dateField.load(record);
 		placeField.load(record);
@@ -308,6 +318,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 
 		dateField.save(record);
 		placeField.saveReferences(record);

@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -51,17 +54,17 @@ class SelectedRecordContextTest{
 	void theSelectedRecordIsFoundInTheModel(){
 		final FLEFModel model = modelWith("I1");
 
-		Assertions.assertEquals("I1", new AssistantContext(null, null, model, null, null, "I1").selectedRecord().orElseThrow().getId());
-		Assertions.assertTrue(new AssistantContext(null, null, model, null, null, "I2").selectedRecord().isEmpty(),
+		Assertions.assertEquals("I1", new SwingAssistantContext(null, null, model, null, null, "I1").selectedRecord().orElseThrow().getId());
+		Assertions.assertTrue(new SwingAssistantContext(null, null, model, null, null, "I2").selectedRecord().isEmpty(),
 			"a record that is not there is not selected");
-		Assertions.assertTrue(new AssistantContext(null, null, model).selectedRecord().isEmpty());
-		Assertions.assertTrue(new AssistantContext(null, null, null, null, null, "I1").selectedRecord().isEmpty());
+		Assertions.assertTrue(new SwingAssistantContext(null, null, model).selectedRecord().isEmpty());
+		Assertions.assertTrue(new SwingAssistantContext(null, null, null, null, null, "I1").selectedRecord().isEmpty());
 	}
 
 	@Test
 	void theSelectionSurvivesTheCopyForReading(){
 		final FLEFModel model = modelWith("I1");
-		final AssistantContext context = new AssistantContext(null, null, model, null, () -> modelWith("I1"), "I1");
+		final AssistantContext context = new SwingAssistantContext(null, null, model, null, () -> modelWith("I1"), "I1");
 
 		Assertions.assertEquals("I1", context.forReading().selectedRecordId());
 	}

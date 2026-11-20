@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
@@ -184,6 +185,8 @@ final class EntityMatcher{
 				// sources titled differently are compared when they share a scan, a call number, or a cited entry
 				for(final String media : values(record, TAG_MEDIA))
 					keys.add("m:" + media);
+				for(final String identifier : identifierKeys(record))
+					keys.add("i:" + identifier);
 				for(final Map.Entry<String, Set<String>> callNumbers : callNumbers(record).entrySet())
 					for(final String locator : callNumbers.getValue())
 						keys.add("r:" + callNumbers.getKey() + "|" + locator);
@@ -759,9 +762,20 @@ final class EntityMatcher{
 		if(mediaTypeA != null && mediaTypeB != null)
 			score.add(mediaTypeA.equals(mediaTypeB)? 0.5: -1.5, mediaTypeA.equals(mediaTypeB)? "same media type": "media types differ");
 
+		final String kindA = ModelIndex.value(a, SourceReader.TAG_KIND);
+		final String kindB = ModelIndex.value(b, SourceReader.TAG_KIND);
+		if(kindA != null && kindB != null)
+			score.add(kindA.equals(kindB)? 0.5: -1.5, kindA.equals(kindB)? "same kind": "kinds differ");
+
 		addRecordDates(score, a, b);
 
 		addRepositoryCitations(score, callNumbers(a), callNumbers(b));
+
+		// the identifiers of the source itself (ISBN, ISSN, DOI, URL, microfilm number): the same one makes it probable that the sources
+		// are the same one (different identifiers say nothing: a book has an ISBN for each edition and a DOI for the other one)
+		final int sameIdentifiers = intersection(identifierKeys(a), identifierKeys(b));
+		if(sameIdentifiers > 0)
+			score.add(8., "same identifier");
 
 		// the scans or recordings of the source (media are merged on their resource before sources): the same media make it probable
 		// that the sources are the same one, different media make it certain that they are not
@@ -788,7 +802,7 @@ final class EntityMatcher{
 	}
 
 	/**
-	 * A call number (the locator of a repository citation) identifies an item inside its repository: the same call number in the
+	 * A call number (an identifier of a repository citation) identifies an item inside its repository: the same call number in the
 	 * same repository is the same item, different call numbers are different items.
 	 */
 	private static void addRepositoryCitations(final MatchScore.Builder score, final Map<String, Set<String>> callNumbersA,
@@ -822,7 +836,23 @@ final class EntityMatcher{
 	}
 
 	/**
-	 * The repositories of a source, each with the normalized call numbers it is cited with.
+	 * @param record	A record or a structure that has identifiers (a source, a repository citation).
+	 * @return	The normalized keys of its identifiers: the same identifier written in two ways (an ISBN with or without hyphens, a DOI with
+	 * 	or without its prefix) has the same key.
+	 */
+	private static Set<String> identifierKeys(final FLEFRecord record){
+		final Set<String> keys = new HashSet<>();
+		for(final FLEFRecord identifier : IdentifierReader.extractIdentifiers(record)){
+			final String key = IdentifierReader.normalizedKey(IdentifierReader.extractScheme(identifier), IdentifierReader.extractValue(identifier));
+			if(!key.isEmpty())
+				keys.add(key);
+		}
+		return keys;
+	}
+
+	/**
+	 * The repositories of a source, each with the normalized call numbers it is cited with (the identifiers of the citation, or the
+	 * locator of a file that predates them).
 	 */
 	private static Map<String, Set<String>> callNumbers(final FLEFRecord source){
 		final Map<String, Set<String>> callNumbers = new HashMap<>();
@@ -832,6 +862,13 @@ final class EntityMatcher{
 				continue;
 
 			final Set<String> locators = callNumbers.computeIfAbsent(repository, k -> new HashSet<>());
+			final Set<String> identifiers = identifierKeys(citation);
+			if(!identifiers.isEmpty()){
+				locators.addAll(identifiers);
+				continue;
+			}
+
+			//a file written before the identifiers of a repository citation: the call number is in the locator
 			final String locator = TextSimilarity.normalize(ModelIndex.value(citation, TAG_LOCATOR));
 			if(!locator.isEmpty())
 				locators.add(locator);

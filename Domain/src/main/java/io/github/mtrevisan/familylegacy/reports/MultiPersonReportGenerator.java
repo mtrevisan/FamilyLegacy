@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +56,8 @@ public final class MultiPersonReportGenerator{
 	private final ReportConfig config;
 	private final String title;
 	private final List<SectionBuilder> opening;
+	/** The numbers of the persons and the direct ancestors, for the reports that have them. */
+	private final PersonMarks marks;
 
 
 	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons,
@@ -64,7 +68,12 @@ public final class MultiPersonReportGenerator{
 
 	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final ReportConfig config,
 			final String title, final List<SectionBuilder> opening){
-		this(model, persons, List.of(), config, title, opening);
+		this(model, persons, List.of(), config, title, opening, PersonMarks.NONE);
+	}
+
+	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final ReportConfig config,
+			final String title, final List<SectionBuilder> opening, final PersonMarks marks){
+		this(model, persons, List.of(), config, title, opening, marks);
 	}
 
 
@@ -73,12 +82,18 @@ public final class MultiPersonReportGenerator{
 	 */
 	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final List<FLEFRecord> groups,
 			final ReportConfig config, final String title, final List<SectionBuilder> opening){
+		this(model, persons, groups, config, title, opening, PersonMarks.NONE);
+	}
+
+	MultiPersonReportGenerator(final FLEFModel model, final List<FLEFRecord> persons, final List<FLEFRecord> groups,
+			final ReportConfig config, final String title, final List<SectionBuilder> opening, final PersonMarks marks){
 		this.model = model;
 		this.persons = List.copyOf(persons);
 		this.groups = List.copyOf(groups);
 		this.config = config;
 		this.title = title;
 		this.opening = List.copyOf(opening);
+		this.marks = marks;
 	}
 
 
@@ -93,6 +108,7 @@ public final class MultiPersonReportGenerator{
 
 		//the index is built by a context, so that it hides what the privacy policy hides (the events of a person, ...)
 		final ReportContext first = ReportContext.build(model, (persons.isEmpty()? groups.getFirst(): persons.getFirst()), config);
+		first.useMarks(marks);
 		final RelationIndex sharedIndex = first.index;
 		final List<ReportSection> sections = new ArrayList<>();
 
@@ -107,12 +123,26 @@ public final class MultiPersonReportGenerator{
 			sections.add(new ReportSection.Heading(1, first.labels.sections().indexOfIndividuals()));
 			//each person is a link to the chapter of the person, with the years of birth and death
 			final TreeText text = new TreeText(first);
+			//(the number of the person in the numbering of the report, if it has one, and the years of birth and death, if the report has them)
+			final boolean numbered = persons.stream().anyMatch(person -> first.numberOf(person) != null);
+			final List<String> headers = new ArrayList<>(3);
+			if(numbered)
+				headers.add(first.labels.sections().columnNumber());
+			headers.add(first.labels.sections().columnIndividual());
+			if(config.indexYears())
+				headers.add(first.labels.sections().columnYears());
 			final List<List<String>> rows = new ArrayList<>(persons.size());
-			for(final FLEFRecord person : persons)
-				rows.add(List.of("[" + ReportFormatters.escape(first.displayText(person)) + "](@" + person.getId() + "@)",
-					ReportFormatters.orEmpty(text.years(person))));
-			sections.add(new ReportSection.Table(
-				List.of(first.labels.sections().columnIndividual(), first.labels.sections().columnYears()), rows));
+			for(final FLEFRecord person : persons){
+				final List<String> row = new ArrayList<>(3);
+				if(numbered)
+					row.add(ReportFormatters.orEmpty(first.numberOf(person)));
+				final String link = "[" + ReportFormatters.escape(first.displayText(person)) + "](@" + person.getId() + "@)";
+				row.add(first.isDirectAncestor(person)? "**" + link + "**": link);
+				if(config.indexYears())
+					row.add(ReportFormatters.orEmpty(text.years(person)));
+				rows.add(row);
+			}
+			sections.add(new ReportSection.Table(headers, rows));
 		}
 
 		//the groups have an index of their own, after the one of the persons (the same option decides both)
@@ -134,9 +164,10 @@ public final class MultiPersonReportGenerator{
 				throw new RuntimeException("Report generation cancelled");
 
 			final FLEFRecord person = persons.get(i);
-			final ReportContext ctx = ReportContext.build(model, person, config, sharedIndex);
+			final ReportContext ctx = first.withRoot(person);
 			sections.add(ReportSection.PageBreak.INSTANCE);
-			sections.add(new ReportSection.Heading(1, ctx.displayText(person)));
+			final String number = ctx.numberOf(person);
+			sections.add(new ReportSection.Heading(1, (number != null? number + ". ": StringUtils.EMPTY) + ctx.displayText(person)));
 			sections.addAll(demoted(new IntroductionSection(ctx).build()));
 			sections.addAll(demoted(new IndividualLifeStorySection(ctx).build()));
 
@@ -149,7 +180,7 @@ public final class MultiPersonReportGenerator{
 				throw new RuntimeException("Report generation cancelled");
 
 			final FLEFRecord group = groups.get(i);
-			final ReportContext ctx = ReportContext.build(model, group, config, sharedIndex);
+			final ReportContext ctx = first.withRoot(group);
 			sections.add(ReportSection.PageBreak.INSTANCE);
 			sections.add(new ReportSection.Heading(1, ctx.displayText(group)));
 			sections.addAll(demoted(new GroupIntroductionSection(ctx).build()));
@@ -165,9 +196,18 @@ public final class MultiPersonReportGenerator{
 		final ReportContext all = ReportContext.buildForSubjects(model, config.withIndexIndividuals(false), sharedIndex, subjects);
 		sections.addAll(new RepositorySection(all).build());
 		sections.addAll(new SourcesSection(all).build());
-		sections.addAll(new MediaSection(all).build());
+		//the media: in the chapters of the persons (so that only the ones of the groups are left here), here, as an appendix, or one on a page
+		final MediaPlacement placement = config.mediaPlacement();
+		if(placement == MediaPlacement.INLINE){
+			if(!groups.isEmpty())
+				sections.addAll(new MediaSection(ReportContext.buildForSubjects(model, config.withIndexIndividuals(false), sharedIndex, groups)).build());
+		}
+		else if(placement != MediaPlacement.APPENDIX)
+			sections.addAll(new MediaSection(all).build());
 		sections.addAll(new PlacesSection(all).build());
 		sections.addAll(new IndexSection(all).build());
+		if(placement == MediaPlacement.APPENDIX)
+			sections.addAll(new MediaSection(all, true).build());
 
 		return new ReportDocument(title, null, sections, first.labels.language().locale().toLanguageTag(),
 			first.labels.sections().contents());

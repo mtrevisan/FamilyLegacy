@@ -24,11 +24,11 @@ On OK, the type and the description are required.
 
 | Group | Types |
 |---|---|
-| Life | birth, adoption, death, cremation, burial, coroner report, illness, hospitalization, medical procedure |
+| Life | birth, adoption, death, cremation, burial, funeral, exhumation, reburial, coroner report, illness, hospitalization, medical procedure, name change |
 | Family | engagement, marriage bann, marriage contract, marriage license, marriage settlement, marriage, separation, divorce filed, divorce decree, divorce, annulment |
 | Achievements and service | education, graduation, retirement, military induction, military muster roll, military service, military award, military release, military discharge, military resignation, military retirement, prison, pardon, jury duty, honor, bankruptcy |
 | Nation and government | emigration, immigration, naturalization, deportation, internment, liberation, emancipation, relocation, census |
-| Possessions and titles | deed, escrow, chancery, will, probate, guardianship |
+| Possessions and titles | deed, escrow, chancery, will, probate, guardianship, land purchase, land sale |
 
 ## Event participation
 
@@ -52,7 +52,7 @@ Open it with **Place > New Place...** or **Place > Manage Places...**. **Tabs:**
 **Properties**
 
 - **Names**: the list of the names of the place, each in a [name editor](editors-people.md#name). At least one is required.
-- **Type**: editable. One of: address, building, street, hamlet, village, town, municipality, city, metropolitan area, county, province, department, district, region, macro region, country, empire, parish, diocese, archdiocese, cemetery.
+- **Type**: editable. One of: address, building, street, hamlet, village, town, municipality, city, metropolitan area, county, province, department, district, region, macro region, country, empire, parish, diocese, archdiocese, cemetery, island, archipelago, continent, state, parcel.
 - **Confidence**.
 
 **Location**: the **Coordinates** (free text), the **Sources with Citations** that support the location, and a **Confidence** for the location.

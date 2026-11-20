@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AuditStamp;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -101,6 +103,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private String requiredSexReason;
 
 
+	private final MediaPartListPanel mediaCitationPanel;
+
+
 	public static IndividualRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, IndividualRecordDialog::new);
 	}
@@ -117,6 +122,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
 		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name"), model, PersonalNameHandler.class);
 
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, IndividualAttributeHandler.TYPE, I18N.t("dialog.component.individual.attributes"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.individual.relationships_on_target"))
@@ -225,6 +231,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
 
+		//the media attached to the record
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		return panel;
 	}
 
@@ -304,6 +313,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		personalNamePanel.load(record);
 
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -317,6 +327,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		savePresetSex();
 
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 	}
 
 

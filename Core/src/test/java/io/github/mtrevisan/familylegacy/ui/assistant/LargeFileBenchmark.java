@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguineousUnionDetector;
 import io.github.mtrevisan.familylegacy.consanguinity.ConsanguinityReport;
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipCalculator;
@@ -35,10 +41,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.context.ContextAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
@@ -114,7 +118,7 @@ class LargeFileBenchmark{
 		timed("EgoNetworkService.buildEgoNetwork (first, with a partner)", () -> fresh.buildEgoNetwork(egoWithPartner));
 		timed("EgoNetworkService.buildEgoNetwork (next ego)", () -> fresh.buildEgoNetwork(otherId));
 
-		final AssistantContext context = new AssistantContext(null, null, model, null);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, null);
 		final List<AssistantContributor> contributors = List.of(new ChronologyAssistantContributor(),
 			new ConclusionAssistantContributor(), new RelationshipAssistantContributor(), new ConsanguinityAssistantContributor(),
 			new IdentityAssistantContributor(), new GapAssistantContributor(), new CitationAssistantContributor(),

@@ -52,11 +52,14 @@ import io.github.mtrevisan.familylegacy.ui.tools.maintenance.MaintenanceToolRegi
 import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DescendantReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.EndOfLineOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyGroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GroupSheetOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IdentityHypothesesOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IndividualSummaryOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
@@ -672,10 +675,11 @@ final class ApplicationMenuBar{
 	static List<List<ToolOperation>> reportOperationGroups(){
 		return List.of(
 			List.of(new AncestorReportOperation(), new DescendantReportOperation(), new IndividualSummaryOperation(),
-				new RelationshipReportOperation(), new FamilyGroupSheetOperation(), new GroupSheetOperation()),
+				new RelationshipReportOperation(), new FamilyGroupSheetOperation(), new EndOfLineOperation(), new GroupSheetOperation()),
 			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation()),
 			List.of(new BibliographyOperation(), new ResearchProgressOperation()),
-			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new SurnamesOperation()));
+			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new ConflictsOperation(), new SurnamesOperation(),
+				new IdentityHypothesesOperation()));
 	}
 
 	private JMenu createReportsMenu(){

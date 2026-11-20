@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EvidenceQualifiersReade
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -70,6 +71,7 @@ class TooltipTextsTest{
 		assertAllExplained(missing, "enum.evidence.source_type", EvidenceQualifiersReader.SOURCE_TYPES);
 		assertAllExplained(missing, "enum.evidence.information_type", EvidenceQualifiersReader.INFORMATION_TYPES);
 		assertAllExplained(missing, "enum.evidence.evidence_type", EvidenceQualifiersReader.EVIDENCE_TYPES);
+		assertAllExplained(missing, "enum.source.kind", SourceReader.KINDS);
 
 		Assertions.assertEquals(List.of(), missing);
 	}

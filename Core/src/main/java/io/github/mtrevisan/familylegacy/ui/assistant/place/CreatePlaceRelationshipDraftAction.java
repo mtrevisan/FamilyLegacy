@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
 
 
@@ -67,7 +69,7 @@ final class CreatePlaceRelationshipDraftAction implements DiagnosticAction{
 			return;
 
 		final FLEFRecord target = (draft.targetId() != null? model.getRecordById(draft.targetId()): null);
-		PlaceRelationshipRecordDialog.createNew(context.owner(), model)
+		PlaceRelationshipRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withDraft(subject, target, draft.type())
 			.setVisible(true);
 	}

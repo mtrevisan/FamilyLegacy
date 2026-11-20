@@ -24,13 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.planner.PlannerChecker;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.CreateResearchDraftAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDataLoader;
 
 import java.time.LocalDate;
 import java.util.List;

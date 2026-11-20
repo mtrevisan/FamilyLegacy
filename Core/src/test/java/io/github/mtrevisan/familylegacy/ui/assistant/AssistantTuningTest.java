@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning.Group;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantTuning.Parameter;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning.Group;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning.Parameter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

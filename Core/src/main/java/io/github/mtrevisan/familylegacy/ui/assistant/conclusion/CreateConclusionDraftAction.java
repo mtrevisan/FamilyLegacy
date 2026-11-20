@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 
 
@@ -61,7 +63,7 @@ final class CreateConclusionDraftAction implements DiagnosticAction{
 		if(model == null)
 			return;
 
-		final ConclusionRecordDialog dialog = ConclusionRecordDialog.createNew(context.owner(), model)
+		final ConclusionRecordDialog dialog = ConclusionRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withDraft(null, draft.narrative());
 		//the records of the finding may have changed since it was computed: the ones that are gone are left out
 		for(final String id : draft.resolves()){

@@ -24,6 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityChecker;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityOtherKinds;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
@@ -36,12 +45,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 
 import java.util.List;
 import java.util.Set;

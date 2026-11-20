@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.planner;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -32,8 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -69,7 +69,7 @@ class PlannerAssistantTest{
 	}
 
 	private static List<Diagnostic> diagnose(final FLEFModel model){
-		return new PlannerAssistantContributor().diagnosticProviders().getFirst().diagnose(new AssistantContext(null, null, model));
+		return new PlannerAssistantContributor().diagnosticProviders().getFirst().diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 	private static FLEFRecord question(final String id, final String targetId){
@@ -122,7 +122,7 @@ class PlannerAssistantTest{
 	void aModelWithoutResearchHasNothing(){
 		Assertions.assertTrue(diagnose(new FLEFModel()).isEmpty());
 		Assertions.assertTrue(new PlannerAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, null)).isEmpty());
+			.diagnose(new SwingAssistantContext(null, null, null)).isEmpty());
 	}
 
 }

@@ -111,10 +111,25 @@ public final class IndexSection implements SectionBuilder{
 			.thenComparing(FLEFRecord::getId));
 
 		final TreeText text = new TreeText(ctx);
+		//(the number of the person in the numbering of the report, if it has one, and the years of birth and death, if the report has them)
+		final boolean numbered = individuals.stream().anyMatch(individual -> ctx.numberOf(individual) != null);
+		final List<String> headers = new ArrayList<>(3);
+		if(numbered)
+			headers.add(ctx.labels.sections().columnNumber());
+		headers.add(ctx.labels.sections().columnIndividual());
+		if(ctx.config.indexYears())
+			headers.add(ctx.labels.sections().columnYears());
 		final List<List<String>> rows = new ArrayList<>(individuals.size());
-		for(final FLEFRecord individual : individuals)
-			rows.add(List.of(ReportFormatters.escape(ctx.displayText(individual)), ReportFormatters.orEmpty(text.years(individual))));
-		out.add(new ReportSection.Table(List.of(ctx.labels.sections().columnIndividual(), ctx.labels.sections().columnYears()), rows));
+		for(final FLEFRecord individual : individuals){
+			final List<String> row = new ArrayList<>(3);
+			if(numbered)
+				row.add(ReportFormatters.orEmpty(ctx.numberOf(individual)));
+			row.add(ctx.listedDisplay(individual));
+			if(ctx.config.indexYears())
+				row.add(ReportFormatters.orEmpty(text.years(individual)));
+			rows.add(row);
+		}
+		out.add(new ReportSection.Table(headers, rows));
 		return out;
 	}
 

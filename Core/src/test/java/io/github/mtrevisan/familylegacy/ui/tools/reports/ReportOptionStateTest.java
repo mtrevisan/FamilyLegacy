@@ -34,13 +34,25 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
+import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
+import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
+import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
+import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
+import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
+import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
+import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
+import io.github.mtrevisan.familylegacy.reports.PortraitMode;
+import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
@@ -78,8 +90,26 @@ class ReportOptionStateTest{
 		return config.with(option, switch(option){
 			case COLLATERAL_SCOPE -> (value? scopes[scopes.length - 1]: CollateralScope.NONE);
 			case GENERATIONS -> (value? 2: 0);
+			//(a report that starts from a later generation than the ones the subject has would have no persons)
+			case FIRST_GENERATION -> 0;
+			case GENERATION_ORDER -> (value? GenerationOrder.FARTHEST_FIRST: GenerationOrder.NEAREST_FIRST);
+			case PORTRAIT_ALIGNMENT -> (value? ImageAlignment.WRAP_RIGHT: ImageAlignment.DEFAULT);
 			case PERSON_ORDER -> (value? PersonOrder.BIRTH_DATE: PersonOrder.ALPHABETICAL);
 			case DATE_FORMAT -> (value? ReportDateFormat.DAY_MONTH_YEAR: ReportDateFormat.AS_RECORDED);
+			case NUMBERING -> (value? NumberingSystem.AUTO: NumberingSystem.NONE);
+			case GIVEN_NAMES -> (value? GivenNameStyle.FIRST_AND_INITIALS: GivenNameStyle.ALL);
+			case UNKNOWN_NAME -> (value? "?": "");
+			case NOTES_PLACEMENT, SOURCES_PLACEMENT -> (value? TextPlacement.SECTION: TextPlacement.INLINE);
+			case LONG_TEXT_LINES -> (value? 1: 0);
+			case MEDIA_PLACEMENT -> (value? MediaPlacement.INLINE: MediaPlacement.SECTION);
+			case IMAGES_PER_PAGE, MAX_IMAGE_MEGAPIXELS -> (value? 2: 0);
+			case THUMBNAIL_SIZE -> (value? 200: 0);
+			case PORTRAIT_MODE -> (value? PortraitMode.CROP_WITHOUT_ORIGINAL: PortraitMode.WHOLE);
+			case CONFLICT_FILTER -> (value? ConflictFilter.UNRESOLVED: ConflictFilter.ALL);
+			case CONFLICT_CONFIDENCE -> (value? ConflictConfidence.LOW: ConflictConfidence.ALL);
+			case CONFLICT_RECORD_TYPE -> (value? ConflictRecordType.EVENT: ConflictRecordType.ALL);
+			case HYPOTHESIS_FILTER -> (value? HypothesisFilter.OPEN: HypothesisFilter.ALL);
+			case HYPOTHESIS_RECORD_TYPE -> (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL);
 			default -> value;
 		});
 	}
@@ -96,7 +126,7 @@ class ReportOptionStateTest{
 			case SOURCE -> model.getRecordsByType(SourceReader.TYPE);
 			case RESEARCH_QUESTION -> model.getRecordsByType(ResearchQuestionReader.TYPE);
 			//(about the whole file: any record will do)
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES -> model.getRecords().subList(0, 1);
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES -> model.getRecords().subList(0, 1);
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> model.getRecords();
 			default -> model.getRecordsByType(IndividualReader.TYPE);
 		};
@@ -235,7 +265,8 @@ class ReportOptionStateTest{
 			final FLEFRecord root = subjects(type).getFirst();
 
 			for(final ReportOption option : List.of(ReportOption.INTRODUCTION, ReportOption.PATERNAL_ANCESTRY, ReportOption.DESCENDANTS,
-					ReportOption.DIRECT_RELATIONS, ReportOption.GROUP_MEMBERS, ReportOption.COLLATERAL_SCOPE, ReportOption.GENERATIONS))
+					ReportOption.DIRECT_RELATIONS, ReportOption.GROUP_MEMBERS, ReportOption.COLLATERAL_SCOPE, ReportOption.GENERATIONS,
+					ReportOption.FIRST_GENERATION, ReportOption.GENERATION_ORDER))
 				Assertions.assertEquals(OptionState.HIDDEN, ReportBuilder.optionState(type, root, option), type + StringUtils.SPACE + option);
 			for(final ReportOption option : List.of(ReportOption.NOTES, ReportOption.SOURCES, ReportOption.MEDIA, ReportOption.INDEX_PLACES))
 				Assertions.assertEquals(OptionState.EDITABLE, ReportBuilder.optionState(type, root, option), type + StringUtils.SPACE + option);

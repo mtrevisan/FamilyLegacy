@@ -27,12 +27,15 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -87,6 +90,8 @@ import java.io.IOException;
  *   source*: SourceCitation
  *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;
  *   follow_up*: Xref&lt;ResearchTaskRecord&gt;
+ *   note*: NoteStructure
+ *   media*: MediaCitation
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -95,12 +100,14 @@ import java.io.IOException;
  * Tabs:
  * Tab 1 (Properties): question, activity_type, status, action, target, search_scope, result, observation, conclusion, conclusion_confidence, parent, task
  * Tab 7 (Sources): source
+ * Tab 8 (Notes): note, media
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
+	private final MediaPartListPanel mediaCitationPanel;
 
 	private final BoundComboBox<String> activityTypeCombo;
 	private final BoundComboBox<String> statusCombo;
@@ -158,10 +165,12 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			ResearchActivityHandler.class);
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchActivityReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
 			.withComponent(PanelKey.TASK, ResearchActivityReader.TAG_FOLLOW_UP, I18N.t("dialog.component.research.follow_ups"))
 			.withComponent(PanelKey.SOURCE, ResearchActivityReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
+			.withComponent(PanelKey.NOTE, ResearchActivityReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, ResearchActivityReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchActivityReader.TAG_AUDIT, null)
 			.build();
@@ -290,6 +299,17 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	}
 
 	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.NOTE));
+		//screenshots, documents under evaluation, and other research material
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
+		return panel;
+	}
+
+	@Override
 	protected JPanel createPrivacyPanel(){
 		return components.getPanel(PanelKey.PRIVACY);
 	}
@@ -303,6 +323,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		targetField.load(record);
 		parentActivityField.load(record);
@@ -345,6 +366,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 
 		targetField.saveReferences(record);
 		parentActivityField.saveReferences(record);

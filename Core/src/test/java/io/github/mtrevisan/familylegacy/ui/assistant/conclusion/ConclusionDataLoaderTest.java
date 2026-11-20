@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionChecker;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionData;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -32,8 +37,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -147,7 +151,7 @@ class ConclusionDataLoaderTest{
 		final FLEFModel model = convert();
 
 		final List<Diagnostic> diagnostics = new ConclusionAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 
 		Assertions.assertFalse(diagnostics.isEmpty());
 		for(final Diagnostic diagnostic : diagnostics){
@@ -156,7 +160,7 @@ class ConclusionDataLoaderTest{
 		}
 		//without a model there is nothing to report
 		Assertions.assertTrue(new ConclusionAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, null)).isEmpty());
+			.diagnose(new SwingAssistantContext(null, null, null)).isEmpty());
 	}
 
 	@Test

@@ -49,6 +49,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -60,6 +61,10 @@ import java.util.StringJoiner;
  * privacy. The image, being a UI concern, is added by {@code IndividualImage}.
  */
 public final class IndividualSummary{
+
+	/** Keys of the indexes kept by the model ({@link FLEFModel#derived(Object, java.util.function.Supplier)}). */
+	private static final Object RELATIONSHIPS_KEY = new Object();
+	private static final Object CONCLUSIONS_KEY = new Object();
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -131,7 +136,9 @@ public final class IndividualSummary{
 			nameText = NO_DATA;
 
 		// Check for parent relationships
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipReader.TYPE);
+		//only the relationships of this individual (an index of the model, not a scan of all of them for each individual)
+		final List<FLEFRecord> relationships = model.<Map<String, List<FLEFRecord>>>derived(RELATIONSHIPS_KEY, () -> relationshipsByIndividual(model))
+			.getOrDefault(id, List.of());
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
 			final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
@@ -432,32 +439,32 @@ public final class IndividualSummary{
 		if(candidates.isEmpty())
 			return null;
 
-		// Evaluate ConclusionRecords for preferred assertion selection
-		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionReader.TYPE);
+		// Evaluate ConclusionRecords for preferred assertion selection: only those about this kind of event that name a preferred one
+		//(an index of the model, in the order of the conclusions: the same one the scan of all of them would find)
+		final Map<String, List<ConclusionChoice>> choices = model.<Map<String, Map<String, List<ConclusionChoice>>>>derived(CONCLUSIONS_KEY,
+			() -> conclusionChoices(model)).get(isBirth? EventReader.ENUM_TYPE_BIRTH: EventReader.ENUM_TYPE_DEATH);
 		EventInfo preferredEvent = null;
-		String bestStatus = null;
-
-		for(final FLEFRecord conclusion : conclusions){
-			final String issue = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE);
-			if(issue == null || !issue.toLowerCase(Locale.ROOT).contains(isBirth? EventReader.ENUM_TYPE_BIRTH: EventReader.ENUM_TYPE_DEATH))
-				continue;
-
-			final FLEFRecord preferred = FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED);
-			if(preferred == null)
-				continue;
-			final FLEFRecord ref = preferred.getTheOnlyChild();
-			if(ref == null || ref.getValue() == null)
-				continue;
-
-			final String targetId = ref.getValue();
-			for(final EventInfo candidate : candidates)
-				if(candidate.matchesId(targetId)){
-					final String status = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
-					if(preferredEvent == null || isProofStatusStronger(status, bestStatus)){
-						preferredEvent = candidate;
-						bestStatus = status;
+		if(!choices.isEmpty()){
+			final List<int[]> hits = new ArrayList<>();
+			final List<String> statuses = new ArrayList<>();
+			for(int c = 0; c < candidates.size(); c ++){
+				final List<ConclusionChoice> forCandidate = choices.get(candidates.get(c).eventId());
+				if(forCandidate != null)
+					for(final ConclusionChoice choice : forCandidate){
+						hits.add(new int[]{choice.order(), c, statuses.size()});
+						statuses.add(choice.status());
 					}
+			}
+			//the conclusions are looked at in their order, and for each of them the candidates in theirs
+			hits.sort(Comparator.<int[]>comparingInt(h -> h[0]).thenComparingInt(h -> h[1]));
+			String bestStatus = null;
+			for(final int[] hit : hits){
+				final String status = statuses.get(hit[2]);
+				if(preferredEvent == null || isProofStatusStronger(status, bestStatus)){
+					preferredEvent = candidates.get(hit[1]);
+					bestStatus = status;
 				}
+			}
 		}
 
 		if(preferredEvent != null)
@@ -469,7 +476,56 @@ public final class IndividualSummary{
 			: candidates.stream().max(Comparator.comparing(e -> e.representativeDate().jdn())).orElse(null));
 	}
 
-	private static boolean isProofStatusStronger(final String newStatus, final String currentStatus){
+private record ConclusionChoice(int order, String status){}
+
+/** @return	By kind of event (birth, death) and by the id of the preferred event, the conclusions that choose it, in the order of the model. */
+private static Map<String, Map<String, List<ConclusionChoice>>> conclusionChoices(final FLEFModel model){
+	final Map<String, Map<String, List<ConclusionChoice>>> index = new HashMap<>();
+	index.put(EventReader.ENUM_TYPE_BIRTH, new HashMap<>());
+	index.put(EventReader.ENUM_TYPE_DEATH, new HashMap<>());
+	int order = 0;
+	for(final FLEFRecord conclusion : model.getRecordsByType(ConclusionReader.TYPE)){
+		order ++;
+		final String issue = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_ISSUE);
+		if(issue == null)
+			continue;
+
+		final FLEFRecord preferred = FLEFRecordHelper.findChild(conclusion, ConclusionReader.TAG_PREFERRED);
+		if(preferred == null)
+			continue;
+		final FLEFRecord ref = preferred.getTheOnlyChild();
+		if(ref == null || ref.getValue() == null)
+			continue;
+
+		final String lowerIssue = issue.toLowerCase(Locale.ROOT);
+		final String status = FLEFRecordHelper.getChildValue(conclusion, ConclusionReader.TAG_PROOF_STATUS);
+		for(final Map.Entry<String, Map<String, List<ConclusionChoice>>> kind : index.entrySet())
+			if(lowerIssue.contains(kind.getKey()))
+				kind.getValue().computeIfAbsent(ref.getValue(), k -> new ArrayList<>(1))
+					.add(new ConclusionChoice(order, status));
+	}
+	return index;
+}
+
+/** @return	The relationships of the model by individual (subject and target), in the order of the model. */
+private static Map<String, List<FLEFRecord>> relationshipsByIndividual(final FLEFModel model){
+	final Map<String, List<FLEFRecord>> index = new HashMap<>();
+	for(final FLEFRecord relationship : model.getRecordsByType(RelationshipReader.TYPE)){
+		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+		final String objectId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+		if(subjectId == null || objectId == null)
+			continue;
+
+		index.computeIfAbsent(subjectId, k -> new ArrayList<>(2))
+			.add(relationship);
+		if(!objectId.equals(subjectId))
+			index.computeIfAbsent(objectId, k -> new ArrayList<>(2))
+				.add(relationship);
+	}
+	return index;
+}
+
+private static boolean isProofStatusStronger(final String newStatus, final String currentStatus){
 		return rankOfStatus(newStatus) > rankOfStatus(currentStatus);
 	}
 

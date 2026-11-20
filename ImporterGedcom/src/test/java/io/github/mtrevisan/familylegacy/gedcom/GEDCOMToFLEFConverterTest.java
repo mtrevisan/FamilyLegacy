@@ -422,7 +422,10 @@ class GEDCOMToFLEFConverterTest{
 		Assertions.assertEquals("Parish priest", FLEFRecordHelper.getChildValue(source, "author.text"));
 		Assertions.assertEquals("book", FLEFRecordHelper.getChildValue(source, "media_type"));
 		Assertions.assertEquals("R1", FLEFRecordHelper.getChildValue(source, "repository.repository"));
-		Assertions.assertEquals("12/A", FLEFRecordHelper.getChildValue(source, "repository.locator"));
+		//a call number says where the source is found in the repository: it is an identifier of the citation, not a locator
+		Assertions.assertEquals("call_number", FLEFRecordHelper.getChildValue(source, "repository.identifier.scheme"));
+		Assertions.assertEquals("12/A", FLEFRecordHelper.getChildValue(source, "repository.identifier.value"));
+		Assertions.assertNull(FLEFRecordHelper.getChildValue(source, "repository.locator"));
 		// OBJE.SOUR: the media belongs to the source
 		Assertions.assertEquals("M1", FLEFRecordHelper.getChildValue(source, SourceReader.TAG_MEDIA));
 

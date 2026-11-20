@@ -174,6 +174,10 @@ public final class SourceHelper{
 		return firstTextValue(source, SourceReader.TAG_PUBLISHER);
 	}
 
+	public static String sourceKind(final FLEFRecord source){
+		return firstTextValue(source, SourceReader.TAG_KIND);
+	}
+
 	public static String sourceMediaType(final FLEFRecord source){
 		return firstTextValue(source, SourceReader.TAG_MEDIA_TYPE);
 	}

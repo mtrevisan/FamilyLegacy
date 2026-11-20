@@ -24,16 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.app;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
 import io.github.mtrevisan.familylegacy.ui.assistant.context.CreateCulturalNormDraftAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.CreateResearchDraftAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;

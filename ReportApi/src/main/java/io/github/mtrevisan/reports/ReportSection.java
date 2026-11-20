@@ -87,11 +87,18 @@ public sealed interface ReportSection{
 	/**
 	 * @param file	The image file.
 	 * @param caption	The caption; empty if {@code null}.
+	 * @param alignment	Where the image is put; {@link ImageAlignment#DEFAULT} if {@code null}.
 	 */
-	record Image(Path file, String caption) implements ReportSection{
+	record Image(Path file, String caption, ImageAlignment alignment) implements ReportSection{
 		public Image{
 			Objects.requireNonNull(file, "The image file is required");
 			caption = nullToEmpty(caption);
+			alignment = (alignment != null? alignment: ImageAlignment.DEFAULT);
+		}
+
+		/** An image where the format puts it by default. */
+		public Image(final Path file, final String caption){
+			this(file, caption, ImageAlignment.DEFAULT);
 		}
 	}
 

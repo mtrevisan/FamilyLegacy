@@ -24,11 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.FindingCounts;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -131,7 +137,7 @@ class AssistantIndicatorTest{
 		final FLEFModel model = convert();
 		final Deque<Runnable> pending = new ArrayDeque<>();
 		final AssistantIndicator indicator = new AssistantIndicator(service(new AtomicInteger(), new AtomicLong(), 0),
-			() -> new AssistantContext(null, null, model, FILE), () -> false, pending::add, Runnable::run, System::currentTimeMillis);
+			() -> new SwingAssistantContext(null, null, model, FILE), () -> false, pending::add, Runnable::run, System::currentTimeMillis);
 
 		Assertions.assertEquals("Assistant …", indicator.text());
 		Assertions.assertNull(indicator.counts());
@@ -151,8 +157,8 @@ class AssistantIndicatorTest{
 	void theCountsAreThoseOfTheFindingsOfTheModel() throws IOException{
 		final FLEFModel model = convert();
 		final ResearchAssistantService service = service(new AtomicInteger(), new AtomicLong(), 0);
-		final List<Diagnostic> expected = service.diagnose(new AssistantContext(null, null, model, FILE));
-		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+		final List<Diagnostic> expected = service.diagnose(new SwingAssistantContext(null, null, model, FILE));
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new SwingAssistantContext(null, null, model, FILE),
 			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 
 		indicator.onTimer();
@@ -170,12 +176,12 @@ class AssistantIndicatorTest{
 		final FLEFModel model = convert();
 		final AtomicInteger computations = new AtomicInteger();
 		final ResearchAssistantService service = service(computations, new AtomicLong(), 0);
-		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new SwingAssistantContext(null, null, model, FILE),
 			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 		indicator.onTimer();
 		final int total = indicator.counts().total();
 		Assertions.assertEquals(1, computations.get());
-		final Diagnostic first = service.diagnose(new AssistantContext(null, null, model, FILE)).getFirst();
+		final Diagnostic first = service.diagnose(new SwingAssistantContext(null, null, model, FILE)).getFirst();
 		computations.set(0);
 
 		service.ignoredFindings().ignore(FILE, first);
@@ -193,7 +199,7 @@ class AssistantIndicatorTest{
 		final AtomicInteger computations = new AtomicInteger();
 		final AtomicBoolean busy = new AtomicBoolean(true);
 		final AssistantIndicator indicator = new AssistantIndicator(service(computations, new AtomicLong(), 0),
-			() -> new AssistantContext(null, null, model, FILE), busy::get, Runnable::run, Runnable::run, System::currentTimeMillis);
+			() -> new SwingAssistantContext(null, null, model, FILE), busy::get, Runnable::run, Runnable::run, System::currentTimeMillis);
 
 		indicator.onTimer();
 		Assertions.assertEquals(0, computations.get());
@@ -212,7 +218,7 @@ class AssistantIndicatorTest{
 		final AtomicInteger computations = new AtomicInteger();
 		final Deque<Runnable> pending = new ArrayDeque<>();
 		final AssistantIndicator indicator = new AssistantIndicator(service(computations, new AtomicLong(), 0),
-			() -> new AssistantContext(null, null, model, FILE), () -> false, pending::add, Runnable::run,
+			() -> new SwingAssistantContext(null, null, model, FILE), () -> false, pending::add, Runnable::run,
 			System::currentTimeMillis);
 
 		indicator.onTimer();
@@ -236,7 +242,7 @@ class AssistantIndicatorTest{
 		final AtomicLong clock = new AtomicLong(1_000_000);
 		//a computation that takes ten seconds (a big file)
 		final AssistantIndicator indicator = new AssistantIndicator(service(new AtomicInteger(), clock, 10_000),
-			() -> new AssistantContext(null, null, model, FILE), () -> false, Runnable::run, Runnable::run, clock::get);
+			() -> new SwingAssistantContext(null, null, model, FILE), () -> false, Runnable::run, Runnable::run, clock::get);
 		Assertions.assertEquals(AssistantIndicator.DEBOUNCE_MILLIS, indicator.delayUntilNext());
 
 		indicator.onTimer();
@@ -252,7 +258,7 @@ class AssistantIndicatorTest{
 		final FLEFModel model = convert();
 		final AtomicLong clock = new AtomicLong(1_000_000);
 		final AssistantIndicator indicator = new AssistantIndicator(service(new AtomicInteger(), clock, 50),
-			() -> new AssistantContext(null, null, model, FILE), () -> false, Runnable::run, Runnable::run, clock::get);
+			() -> new SwingAssistantContext(null, null, model, FILE), () -> false, Runnable::run, Runnable::run, clock::get);
 
 		indicator.onTimer();
 
@@ -262,7 +268,7 @@ class AssistantIndicatorTest{
 	@Test
 	void withoutAModelThereIsNothingToLookAt(){
 		final AssistantIndicator indicator = new AssistantIndicator(new ResearchAssistantService(),
-			() -> new AssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+			() -> new SwingAssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 
 		indicator.onTimer();
 
@@ -273,7 +279,7 @@ class AssistantIndicatorTest{
 	@Test
 	void theIndicatorIsAComponentForTheToolbar(){
 		final AssistantIndicator indicator = new AssistantIndicator(new ResearchAssistantService(),
-			() -> new AssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+			() -> new SwingAssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 
 		Assertions.assertNotNull(indicator.component());
 		//the shortcut is in the tooltip, to be learned
@@ -287,7 +293,7 @@ class AssistantIndicatorTest{
 		final FLEFModel model = convert();
 		final AtomicInteger computations = new AtomicInteger();
 		final ResearchAssistantService service = service(computations, new AtomicLong(), 0);
-		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new SwingAssistantContext(null, null, model, FILE),
 			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 		Assertions.assertTrue(indicator.isVisible());
 
@@ -308,7 +314,7 @@ class AssistantIndicatorTest{
 	void theIndicatorCountsOnlyTheAssistantsItIsLimitedTo() throws IOException{
 		final FLEFModel model = convert();
 		final ResearchAssistantService service = service(new AtomicInteger(), new AtomicLong(), 0);
-		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new AssistantContext(null, null, model, FILE),
+		final AssistantIndicator indicator = new AssistantIndicator(service, () -> new SwingAssistantContext(null, null, model, FILE),
 			() -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 		indicator.onTimer();
 		final int all = indicator.counts().total();
@@ -321,7 +327,7 @@ class AssistantIndicatorTest{
 
 		Assertions.assertEquals(0, indicator.counts().total());
 		//the palette still has them
-		Assertions.assertEquals(all, service.diagnose(new AssistantContext(null, null, model, FILE)).size());
+		Assertions.assertEquals(all, service.diagnose(new SwingAssistantContext(null, null, model, FILE)).size());
 	}
 
 	@Test
@@ -341,7 +347,7 @@ class AssistantIndicatorTest{
 	@Test
 	void theIndicatorBlinksAndThenStopsByItself(){
 		final AssistantIndicator indicator = new AssistantIndicator(new ResearchAssistantService(),
-			() -> new AssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
+			() -> new SwingAssistantContext(null, null, null, null), () -> false, Runnable::run, Runnable::run, System::currentTimeMillis);
 		Assertions.assertFalse(indicator.isBlinking());
 
 		indicator.startBlink();

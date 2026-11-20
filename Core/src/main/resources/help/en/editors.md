@@ -15,6 +15,7 @@ Relationships and dates have their own pages: [Relationships](relationships.md) 
 - Every field label ends with a colon. A label with an **asterisk** (`Type*:`) marks a required field, and a list title with an asterisk (`Personal Names*`) marks a list that needs at least one entry.
 - On OK, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on OK: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
 - A combo box that is **editable** accepts a value of your own as well as the listed ones. A combo that is not editable accepts only the listed values. A combo with a blank first item allows "no value". A value without a translation is shown with a capital letter and spaces instead of underscores. When a combo has many values (more than twelve) you can **search** it: with the combo focused, just type, and only the values containing what you typed (word by word, ignoring case) are listed; Backspace removes the last letter, Enter picks the highlighted value, and Esc closes the list.
+- A combo box with many values (more than 12) is **searched while you type**: the list shows only the values that match what you typed (word by word, any case). In an editable combo the text stays as you typed it, and you can keep it if it is none of the listed values.
 - Hovering a value or a field often shows a tooltip that explains it. Hovering the first tab shows a short *when to use this record* hint.
 
 ## The tabs
@@ -39,6 +40,10 @@ If an editor has only the Properties tab, no tab bar is shown.
 ## Sources with Citations
 
 The **Sources** tab lists the citations that support the record. The menu offers **Create New...**, **Add Existing...**, **Edit Record...**, **Edit Citation...** and **Remove**. Under the list, an image carousel shows the images of the selected source, if it has any. See [Sources and media](sources-and-media.md) and [the citation editor](editors-sources.md#source-citation).
+
+## Media of a record
+
+The editors of an individual, group, place, event and repository have a **Media** list (in the *Sources* tab, or under the sources) with the photographs, scans, maps and other media that illustrate the record. Right-click offers *Add Existing...* (choosing or creating a media record, then the page or the crop to use), *Edit Crop...*, *Edit Caption...* and *Remove*. The same media can be listed by several records, or twice by the same one, each time with its own **caption**, crop and page: the caption says what the media shows *for that record* ("Family house" on a place, "Childhood home of Giovanni Rossi" on an individual). Only the **preferred image** of an individual or group is the picture shown in the boxes of the tree; the media list does not change it. The *Media* section of a report also lists the media of the record. A media list is not evidence: that is what the citations are for. To see where a media is used, open it and press **Where Used...**.
 
 ## Confidence
 

@@ -38,7 +38,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  * record EventRecord {
  *   type: enum {                    // The type of event. Custom types are permitted.
  *     // life
- *     birth, adoption, death, cremation, burial, coroner_report, illness, hospitalization, medical_procedure,
+ *     birth, adoption, death, cremation, burial, funeral, exhumation, reburial, coroner_report, illness, hospitalization, medical_procedure, name_change,
  *     // family
  *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement, marriage, separation, divorce_filed, divorce_decree, divorce, annulment,
  *     // achievements
@@ -88,6 +88,12 @@ public final class EventReader{
 	public static final String ENUM_TYPE_DEATH = "death";
 	public static final String ENUM_TYPE_CREMATION = "cremation";
 	public static final String ENUM_TYPE_BURIAL = "burial";
+	public static final String ENUM_TYPE_FUNERAL = "funeral";
+	public static final String ENUM_TYPE_EXHUMATION = "exhumation";
+	public static final String ENUM_TYPE_REBURIAL = "reburial";
+	public static final String ENUM_TYPE_NAME_CHANGE = "name_change";
+	public static final String ENUM_TYPE_LAND_PURCHASE = "land_purchase";
+	public static final String ENUM_TYPE_LAND_SALE = "land_sale";
 	public static final String ENUM_TYPE_MARRIAGE_BANN = "marriage_bann";
 	public static final String ENUM_TYPE_MARRIAGE_CONTRACT = "marriage_contract";
 	public static final String ENUM_TYPE_MARRIAGE_LICENSE = "marriage_license";
@@ -150,7 +156,8 @@ public final class EventReader{
 	public static final String[] TYPES = new String[]{
 		// Life
 		ENUM_TYPE_BIRTH, ENUM_TYPE_ADOPTION, ENUM_TYPE_DEATH, ENUM_TYPE_CREMATION, ENUM_TYPE_BURIAL,
-		ENUM_TYPE_CORONER_REPORT, ENUM_TYPE_ILLNESS, ENUM_TYPE_HOSPITALIZATION, ENUM_TYPE_MEDICAL_PROCEDURE,
+		ENUM_TYPE_FUNERAL, ENUM_TYPE_EXHUMATION, ENUM_TYPE_REBURIAL,
+		ENUM_TYPE_CORONER_REPORT, ENUM_TYPE_ILLNESS, ENUM_TYPE_HOSPITALIZATION, ENUM_TYPE_MEDICAL_PROCEDURE, ENUM_TYPE_NAME_CHANGE,
 		// Family
 		ENUM_TYPE_ENGAGEMENT,
 		ENUM_TYPE_MARRIAGE_BANN, ENUM_TYPE_MARRIAGE_CONTRACT, ENUM_TYPE_MARRIAGE_LICENSE, ENUM_TYPE_MARRIAGE_SETTLEMENT,
@@ -166,7 +173,8 @@ public final class EventReader{
 		ENUM_TYPE_EMIGRATION, ENUM_TYPE_IMMIGRATION, ENUM_TYPE_NATURALIZATION, ENUM_TYPE_DEPORTATION,
 		ENUM_TYPE_INTERNMENT, ENUM_TYPE_LIBERATION, ENUM_TYPE_EMANCIPATION, ENUM_TYPE_RELOCATION, ENUM_TYPE_CENSUS,
 		// Possessions and titles
-		ENUM_TYPE_DEED, ENUM_TYPE_ESCROW, ENUM_TYPE_CHANCERY, ENUM_TYPE_WILL, ENUM_TYPE_PROBATE, ENUM_TYPE_GUARDIANSHIP
+		ENUM_TYPE_DEED, ENUM_TYPE_ESCROW, ENUM_TYPE_CHANCERY, ENUM_TYPE_WILL, ENUM_TYPE_PROBATE, ENUM_TYPE_GUARDIANSHIP,
+		ENUM_TYPE_LAND_PURCHASE, ENUM_TYPE_LAND_SALE
 	};
 
 	public static final String[] DIVORCE_TYPES = {

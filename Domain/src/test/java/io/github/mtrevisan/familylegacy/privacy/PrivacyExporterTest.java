@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.privacy;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -163,6 +165,27 @@ class PrivacyExporterTest{
 		Assertions.assertEquals("b@example.org", FLEFRecordHelper.getChildValue(submitter, "contact.value"));
 		Assertions.assertEquals(2, FLEFRecordHelper.findChildren(FLEFRecordHelper.findChild(model.getHeader(), "submitter"),
 			"contact").size());
+	}
+
+	@Test
+	void theTextWrittenAsItIsFilteredIsTheOneOfTheFilteredModel() throws IOException{
+		final FLEFModel model = parse(record("individual", "I1", PUBLIC_INDIVIDUAL
+				+ "\tsource {\n\t\tlocator page 3\n\t\tprivacy.level restricted\n\t}\n"
+				+ "\tsource {\n\t\tlocator page 4\n\t}\n")
+			+ record("individual", "I2", "\tprivacy.level confidential\n")
+			+ record("relationship", "R1", "\tsubject.individual I1\n\ttarget.individual I2\n\ttype friend\n")
+			+ record("individual", "I3", PUBLIC_INDIVIDUAL));
+
+		for(final PrivacyPolicy policy : PrivacyPolicy.values()){
+			final PrivacyExporter.Result filtered = PrivacyExporter.filter(model, policy);
+			final StringWriter out = new StringWriter();
+
+			final PrivacyExporter.Summary summary = PrivacyExporter.write(model, policy, FLEFWriter.create(), out);
+
+			Assertions.assertEquals(FLEFWriter.create().writeToString(filtered.model()), out.toString(), policy.name());
+			Assertions.assertEquals(filtered.omittedRecords(), summary.omittedRecords(), policy.name());
+			Assertions.assertEquals(filtered.omittedNodes(), summary.omittedNodes(), policy.name());
+		}
 	}
 
 }

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.consanguinity.KinshipCalculator;
+import io.github.mtrevisan.familylegacy.consanguinity.KinshipVocabulary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
@@ -33,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
@@ -59,6 +61,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -114,7 +118,6 @@ public final class ReportContext{
 	private final SharedLookups shared;
 	//lazily initialised, safe for concurrent use: volatile, published fully built (a race only builds a value twice)
 	private volatile Set<String> relatedRecordIds;
-	private volatile PrivacyResolver privacy;
 
 	private volatile KinshipCalculator kinship;
 	private volatile KinshipCalculator legalKinship;
@@ -203,6 +206,60 @@ public final class ReportContext{
 
 		private Map<FLEFRecord, FLEFRecord> owners;
 		private SourceDerivationTree derivations;
+		private PrivacyResolver privacy;
+		private KinshipCalculator kinship;
+		private KinshipCalculator legalKinship;
+		private Map<String, List<FLEFRecord>> relationshipsBySubject;
+		private Map<String, List<FLEFRecord>> participationsByEvent;
+		/** What the report adds to the persons it mentions (their number, the bold of the direct ancestors): set once by the generator. */
+		private volatile PersonMarks marks = PersonMarks.NONE;
+
+
+		/** The kinship calculators are kept with what they computed: the contexts of a report ask the same ones again and again. */
+		synchronized KinshipCalculator kinshipOf(final FLEFModel model, final KinshipVocabulary vocabulary){
+			if(kinship == null)
+				kinship = KinshipCalculator.forModel(model).withVocabulary(vocabulary);
+			return kinship;
+		}
+
+		synchronized KinshipCalculator legalKinshipOf(final FLEFModel model, final KinshipVocabulary vocabulary){
+			if(legalKinship == null)
+				legalKinship = KinshipCalculator.forModelWithLegalParents(model).withVocabulary(vocabulary);
+			return legalKinship;
+		}
+
+		/** @return	The records that the context shows, of a type, by the key (found once, in the order of the model). */
+		private static Map<String, List<FLEFRecord>> groupedBy(final ReportContext context, final String type, final Function<FLEFRecord, String> key){
+			final Map<String, List<FLEFRecord>> result = new HashMap<>();
+			for(final FLEFRecord record : context.visibleRecordsByType(type)){
+				final String id = key.apply(record);
+				if(id != null)
+					result.computeIfAbsent(id, k -> new ArrayList<>(2))
+						.add(record);
+			}
+			return result;
+		}
+
+		synchronized List<FLEFRecord> relationshipsOf(final ReportContext context, final String subjectId){
+			if(relationshipsBySubject == null)
+				relationshipsBySubject = groupedBy(context, RelationshipReader.TYPE,
+					relationship -> relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE));
+			return relationshipsBySubject.getOrDefault(subjectId, List.of());
+		}
+
+		synchronized List<FLEFRecord> participationsOf(final ReportContext context, final String eventId){
+			if(participationsByEvent == null)
+				participationsByEvent = groupedBy(context, EventParticipationReader.TYPE,
+					participation -> FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT));
+			return participationsByEvent.getOrDefault(eventId, List.of());
+		}
+
+
+		synchronized PrivacyResolver privacyOf(final FLEFModel model){
+			if(privacy == null)
+				privacy = new PrivacyResolver(model);
+			return privacy;
+		}
 
 
 		synchronized SourceDerivationTree derivationsOf(final FLEFModel model, final Predicate<FLEFRecord> visible){
@@ -371,13 +428,9 @@ public final class ReportContext{
 			&& privacy().concernsLiving(record));
 	}
 
+	/** The resolver is shared by the contexts of a report: indexing the model for it is done once, not for each person. */
 	private PrivacyResolver privacy(){
-		PrivacyResolver result = privacy;
-		if(result == null){
-			result = new PrivacyResolver(model);
-			privacy = result;
-		}
-		return result;
+		return shared.privacyOf(model);
 	}
 
 	public FLEFRecord visible(final FLEFRecord rec){
@@ -394,6 +447,16 @@ public final class ReportContext{
 
 	public List<FLEFRecord> visibleRecordsByType(final String type){
 		return visible(model.getRecordsByType(type));
+	}
+
+	/** @return	The visible relationships whose subject is the individual, in the order of the model (found once for the contexts of a report). */
+	public List<FLEFRecord> visibleRelationshipsOf(final String subjectId){
+		return (subjectId != null? shared.relationshipsOf(this, subjectId): List.of());
+	}
+
+	/** @return	The visible participations in the event, in the order of the model (found once for the contexts of a report). */
+	public List<FLEFRecord> visibleParticipationsOf(final String eventId){
+		return (eventId != null? shared.participationsOf(this, eventId): List.of());
 	}
 
 	public List<FLEFRecord> visibleChildren(final FLEFRecord parent, final String tag){
@@ -600,7 +663,7 @@ public final class ReportContext{
 	public KinshipCalculator kinship(){
 		KinshipCalculator result = kinship;
 		if(result == null){
-			result = KinshipCalculator.forModel(model).withVocabulary(labels.kinship());
+			result = shared.kinshipOf(model, labels.kinship());
 			kinship = result;
 		}
 		return result;
@@ -610,7 +673,7 @@ public final class ReportContext{
 	public KinshipCalculator legalKinship(){
 		KinshipCalculator result = legalKinship;
 		if(result == null){
-			result = KinshipCalculator.forModelWithLegalParents(model).withVocabulary(labels.kinship());
+			result = shared.legalKinshipOf(model, labels.kinship());
 			legalKinship = result;
 		}
 		return result;
@@ -697,7 +760,69 @@ public final class ReportContext{
 	 *                          Lookups
 	 * ====================================================================== */
 
+	/**
+	 * Sets what the report adds to the persons it mentions; it is shared by the contexts of the same report (the ones of its persons).
+	 *
+	 * @param marks	The numbers of the persons and the direct ancestors.
+	 */
+	void useMarks(final PersonMarks marks){
+		shared.marks = Objects.requireNonNull(marks);
+	}
+
+	/** @return	Whether the person is a direct ancestor of the subject of the report, and the report writes them in bold. */
+	boolean isDirectAncestor(final FLEFRecord person){
+		return shared.marks.isDirectAncestor(person);
+	}
+
+	/** @return	The number the person has in the numbering of the report, {@code null} if the report does not number it. */
+	String numberOf(final FLEFRecord person){
+		return shared.marks.numberOf(person);
+	}
+
+	/**
+	 * @param person	A person.
+	 * @param escape	Whether the name is escaped for the text of the report.
+	 * @return	The name of the person as another person of the report mentions it: in bold if it is a direct ancestor (and the report is asked
+	 * 	to), followed by its number in brackets if the cross references are on and the person has one.
+	 */
+	String mention(final FLEFRecord person, final boolean escape){
+		final String name = (escape? ReportFormatters.escape(narrativeName(person)): narrativeName(person));
+		return decorated(person, name);
+	}
+
+	/** @return	The text that identifies the person (with the identifier) as {@link #displayText(FLEFRecord)}, decorated as a mention is. */
+	String mentionDisplay(final FLEFRecord person){
+		return decorated(person, ReportFormatters.escape(displayText(person)));
+	}
+
+	/** @return	The text that identifies the person (with the identifier), in bold if it is a direct ancestor, as a list of the persons writes it. */
+	String listedDisplay(final FLEFRecord person){
+		final String name = ReportFormatters.escape(displayText(person));
+		return (IndividualReader.isOfType(person) && shared.marks.isDirectAncestor(person)? "**" + name + "**": name);
+	}
+
+	private String decorated(final FLEFRecord person, final String name){
+		if(!IndividualReader.isOfType(person))
+			return name;
+
+		String out = (shared.marks.isDirectAncestor(person)? "**" + name + "**": name);
+		final String number = shared.marks.numberOf(person);
+		if(config.crossReferences() && number != null && !person.equals(root))
+			out += " [" + number + ']';
+		return out;
+	}
+
+	/** @return	The name of the person as the sentences of the report tell it: the style of the given names and the text of the unknown name apply. */
+	String narrativeName(final FLEFRecord person){
+		return PersonNames.plain(person, config.givenNames(), config.unknownName());
+	}
+
+
 	public String displayText(final FLEFRecord rec){
+		//the style of the given names and the text of the unknown name apply to the individuals
+		if((config.givenNames() != GivenNameStyle.ALL || !config.unknownName().isEmpty()) && IndividualReader.isOfType(rec))
+			return PersonNames.display(rec, config.givenNames(), config.unknownName());
+
 		final String text = RecordDisplay.describe(rec, model);
 		if(!GroupReader.isOfType(rec))
 			return text;

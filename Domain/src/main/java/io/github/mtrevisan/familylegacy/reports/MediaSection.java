@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -41,27 +42,36 @@ import java.util.Set;
 
 
 /**
- * Builds the Media section: preferred image plus every document reachable
+ * Builds the Media section: preferred image, the media attached to the record (see MediaCitation) and every document reachable
  * from the individual's citations and extracts. Documents whose record is
  * hidden by the privacy policy are skipped.
  */
 public final class MediaSection implements SectionBuilder{
 
 	private final ReportContext ctx;
+	/** Whether the section is an appendix of the report (it comes after the indexes). */
+	private final boolean appendix;
 
 
 	public MediaSection(final ReportContext ctx){
+		this(ctx, false);
+	}
+
+	/** @param appendix	Whether the section is an appendix of the report: the title says so. */
+	MediaSection(final ReportContext ctx, final boolean appendix){
 		this.ctx = ctx;
+		this.appendix = appendix;
 	}
 
 
 	@Override
 	public List<ReportSection> build(){
-		if(!ctx.config.media())
+		//(what the chapters of the persons already have is not told again)
+		if(!ctx.config.media() || toTheChapters())
 			return List.of();
 
 		final List<ReportSection> out = new ArrayList<>();
-		out.add(new ReportSection.Heading(1, ctx.labels.media()));
+		out.add(new ReportSection.Heading(1, (appendix? ctx.labels.sections().appendix() + ": " + ctx.labels.media(): ctx.labels.media())));
 
 		appendPreferredImage(out);
 		appendDocuments(out);
@@ -69,6 +79,32 @@ public final class MediaSection implements SectionBuilder{
 		if(out.size() == 1)
 			out.add(new ReportSection.Paragraph(ctx.labels.sections().empty()));
 		return out;
+	}
+
+	/**
+	 * @return	The section of the media of the person the context is about, for the chapter of the person: nothing if the report does not
+	 * 	put the media in the chapters, or the person has none.
+	 */
+	List<ReportSection> inline(){
+		if(!ctx.config.media() || ctx.config.mediaPlacement() != MediaPlacement.INLINE || !onlyPersons())
+			return List.of();
+
+		final List<ReportSection> out = new ArrayList<>();
+		out.add(new ReportSection.Heading(2, ctx.labels.media()));
+		appendDocuments(out);
+		return (out.size() > 1? out: List.of());
+	}
+
+	/** @return	Whether the media of the persons are in their chapters (so that the section of the media has nothing of theirs). */
+	private boolean toTheChapters(){
+		return ctx.config.mediaPlacement() == MediaPlacement.INLINE && !appendix && onlyPersons();
+	}
+
+	private boolean onlyPersons(){
+		for(final FLEFRecord subject : ctx.subjects())
+			if(ReportContext.rootKindOf(subject) != ReportContext.RootKind.INDIVIDUAL)
+				return false;
+		return true;
 	}
 
 
@@ -84,16 +120,16 @@ public final class MediaSection implements SectionBuilder{
 		if(uri == null)
 			return;
 
-		final String caption = ReportFormatters.imageCaption(
-			preferred, ctx.labels.sections().preferredImage(), ctx.labels);
 		try{
-			out.add(new ReportSection.Image(Path.of(uri), caption));
+			out.add(Portraits.image(ctx, ctx.root, preferred, uri, ctx.labels.sections().preferredImage()));
 		}
 		catch(final Exception ignored){ /* skip */ }
 	}
 
 
 	private void appendDocuments(final List<ReportSection> out){
+		final int perPage = (ctx.config.mediaPlacement() == MediaPlacement.SEPARATE_PAGES? 1: ctx.config.imagesPerPage());
+		int shown = 0;
 		for(final String docId : collectDocumentIds()){
 			final FLEFRecord doc = ctx.visible(ctx.model.getRecordById(docId));
 			if(doc == null)
@@ -102,6 +138,11 @@ public final class MediaSection implements SectionBuilder{
 			if(uri == null)
 				continue;
 
+			//(a new page after as many images as a page holds)
+			if(perPage > 0 && shown > 0 && shown % perPage == 0)
+				out.add(ReportSection.PageBreak.INSTANCE);
+			shown ++;
+
 			final String description = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_DESCRIPTION);
 			final String mapping = FLEFRecordHelper.getChildValue(doc, MediaReader.TAG_MAPPING);
 
@@ -109,7 +150,7 @@ public final class MediaSection implements SectionBuilder{
 			final String link = "[" + ReportFormatters.escape(docId) + "](" + ReportFormatters.linkTarget(uri) + ")";
 			if(ctx.config.includePictures()){
 				try{
-					out.add(new ReportSection.Image(Path.of(uri),
+					out.add(new ReportSection.Image(ReportImages.prepare(Path.of(uri), null, 0, ctx.config.maxImageMegapixels()),
 						description != null? description: docId));
 				}
 				catch(final Exception ignored){
@@ -152,12 +193,23 @@ public final class MediaSection implements SectionBuilder{
 			if(ctx.isRedacted(individual))
 				continue;
 
+			//the media attached to the record (the subject, its events and attributes) come first
+			for(final MediaCitationReader.MediaUse use : MediaCitationReader.extractAll(individual, ctx.model))
+				docIds.add(use.mediaId());
 			for(final FLEFRecord sourceCitation : FLEFRecordHelper.findChildren(individual, IndividualReader.TAG_SOURCE))
 				for(final FLEFRecord extract : ctx.visible(ExtractReader.extractsOf(sourceCitation, ctx.model)))
 					for(final FLEFRecord docRef : FLEFRecordHelper.findChildren(extract, ExtractReader.TAG_MEDIA_PART_MEDIA))
 						if(docRef.getValue() != null)
 							docIds.add(docRef.getValue());
 		}
+
+		//the picture a portrait is cut from, if only the portrait is wanted
+		for(final FLEFRecord subject : ctx.subjects())
+			if(ReportContext.rootKindOf(subject) == ReportContext.RootKind.INDIVIDUAL && !ctx.isRedacted(subject)){
+				final String original = Portraits.omittedOriginalOf(ctx, subject);
+				if(original != null)
+					docIds.remove(original);
+			}
 		return docIds;
 	}
 

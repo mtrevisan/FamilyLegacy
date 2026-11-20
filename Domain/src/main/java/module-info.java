@@ -77,6 +77,9 @@ open module io.github.mtrevisan.familylegacy.domain {
 	// The user-visible text of a record is given by whoever knows the editors of the application (the UI provides it)
 	uses io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 
+	// The conflicts of the research (for the Conflicts report) are found by the research assistant, that depends on this module
+	uses io.github.mtrevisan.familylegacy.reports.ConflictFinder;
+
 	// The formats of the files that can be imported are found as providers, all of them live in modules of their own (plugins)
 	uses io.github.mtrevisan.familylegacy.importer.FileImporter;
 

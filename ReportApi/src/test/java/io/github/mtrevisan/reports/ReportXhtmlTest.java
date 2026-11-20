@@ -82,6 +82,18 @@ class ReportXhtmlTest{
 	}
 
 	@Test
+	void imageAlignmentIsAStyleOfTheFigure(){
+		final StringBuilder sb = new StringBuilder();
+		ReportXhtml.writeSection(sb, new ReportSection.Image(Path.of("x.png"), "C", ImageAlignment.WRAP_RIGHT), null, file -> "x.png");
+		ReportXhtml.writeSection(sb, new ReportSection.Image(Path.of("x.png"), "C"), null, file -> "x.png");
+
+		final String xhtml = sb.toString();
+		Assertions.assertTrue(xhtml.startsWith("<figure style=\"float:right;"), xhtml);
+		//(the default one has no style)
+		Assertions.assertTrue(xhtml.contains("</figure>\n<figure><img"), xhtml);
+	}
+
+	@Test
 	void unreadableImageKeepsItsCaption(){
 		Assertions.assertEquals("<p>Lost &amp; found</p>\n", write(new ReportSection.Image(Path.of("x.png"), "Lost & found")));
 	}

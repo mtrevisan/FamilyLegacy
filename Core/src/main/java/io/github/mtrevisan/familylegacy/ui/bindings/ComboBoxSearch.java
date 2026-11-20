@@ -34,6 +34,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.plaf.basic.ComboPopup;
+import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.KeyAdapter;
@@ -42,9 +43,11 @@ import java.util.function.Function;
 
 
 /**
- * Makes a (non editable) combo box searchable when it has many items: typing while the combo has the focus opens the
+ * Makes a combo box searchable when it has many items: typing while the combo has the focus opens the
  * popup and shows only the items whose text matches what was typed (word by word, case insensitive); backspace removes the
  * last character, and the search is cleared when the popup closes.
+ * <p>
+ * An editable combo box (one that also takes a text of the user) is searched by what is typed in it, which is left as typed.
  * <p>
  * Combo boxes with few items keep the standard behavior (typing a letter jumps to the item starting with it).
  * </p>
@@ -53,6 +56,8 @@ public final class ComboBoxSearch{
 
 	/** The combo boxes with more items than this are searchable. */
 	public static final int THRESHOLD = 12;
+
+	private static final String EDITOR_SEARCH = "comboBoxSearch.editor";
 
 
 	private ComboBoxSearch(){}
@@ -157,6 +162,8 @@ public final class ComboBoxSearch{
 			}
 		});
 
+		installEditableSearch(combo, model, restarting);
+
 		combo.addPopupMenuListener(new PopupMenuListener(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){}
@@ -175,6 +182,62 @@ public final class ComboBoxSearch{
 			}
 		});
 		return model;
+	}
+
+	/**
+	 * An editable combo box (one that also takes a text of the user) is searched by what is typed in its editor: the list shows only the
+	 * items that match, and the text is left as typed.
+	 */
+	private static <E> void installEditableSearch(final JComboBox<E> combo, final SearchableComboBoxModel<E> model,
+			final boolean[] restarting){
+		final Runnable attach = () -> {
+			if(!combo.isEditable() || !(combo.getEditor().getEditorComponent() instanceof final JTextComponent field)
+					|| field.getClientProperty(EDITOR_SEARCH) != null)
+				return;
+
+			field.putClientProperty(EDITOR_SEARCH, Boolean.TRUE);
+			field.addKeyListener(new KeyAdapter(){
+				@Override
+				public void keyReleased(final KeyEvent e){
+					if(!combo.isEnabled() || model.getTotalSize() <= THRESHOLD || !isEdit(e))
+						return;
+
+					//what is typed is the selection (otherwise the combo box, seeing the list change, would empty the editor)
+					final String text = field.getText();
+					combo.setSelectedItem(text);
+					model.setSearchText(text);
+					if(!combo.isShowing())
+						return;
+
+					if(model.getSize() == 0)
+						combo.setPopupVisible(false);
+					else{
+						restarting[0] = true;
+						try{
+							//the popup is reopened to fit the number of matching items
+							combo.setPopupVisible(false);
+							combo.setPopupVisible(true);
+						}
+						finally{
+							restarting[0] = false;
+						}
+					}
+				}
+			});
+		};
+		attach.run();
+		combo.addPropertyChangeListener("editable", e -> attach.run());
+		combo.addPropertyChangeListener("editor", e -> attach.run());
+	}
+
+	/** @return	Whether the key changed the text (a character or a deletion), not a movement or a command. */
+	private static boolean isEdit(final KeyEvent e){
+		if(e.isControlDown() || e.isAltDown() || e.isMetaDown())
+			return false;
+
+		final int code = e.getKeyCode();
+		return (code == KeyEvent.VK_BACK_SPACE || code == KeyEvent.VK_DELETE || code == KeyEvent.VK_SPACE
+			|| (!e.isActionKey() && !Character.isISOControl(e.getKeyChar()) && e.getKeyChar() != KeyEvent.CHAR_UNDEFINED));
 	}
 
 	/** @return	The text of an item as the renderer of the combo box writes it (read when searching, so a later renderer is honored). */

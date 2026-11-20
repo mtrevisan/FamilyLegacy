@@ -59,6 +59,8 @@ import java.util.Set;
 public final class PreferredSex{
 
 	private static final int NO_RANK = 0;
+	/** Key of the index of the sex attributes by individual in {@link RecordLookup#derived(Object, java.util.function.Supplier)}. */
+	private static final Object SEX_INDEX_KEY = new Object();
 
 
 	private PreferredSex(){}
@@ -162,11 +164,11 @@ public final class PreferredSex{
 		if(individualId == null || model == null)
 			return assertions;
 
-		final List<FLEFRecord> attributes = model.getRecordsByType(IndividualAttributeReader.TYPE);
-		for(final FLEFRecord attribute : attributes)
-			if(IndividualAttributeReader.ENUM_TYPE_SEX.equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE))
-					&& individualId.equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_INDIVIDUAL)))
-				assertions.add(attribute);
+		//the index is built once for the model (and again after a change), not by scanning every attribute for each individual
+		final List<FLEFRecord> indexed = model.<Map<String, List<FLEFRecord>>>derived(SEX_INDEX_KEY, () -> indexByIndividual(model))
+			.get(individualId);
+		if(indexed != null)
+			assertions.addAll(indexed);
 		return assertions;
 	}
 

@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionChecker;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionDataLoader;
 
 import java.util.List;
 

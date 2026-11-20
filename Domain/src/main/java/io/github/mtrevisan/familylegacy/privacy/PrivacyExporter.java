@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.privacy;
 
+import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
@@ -32,6 +33,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +67,15 @@ public final class PrivacyExporter{
 	 * @param omittedNodes	The number of nodes, inside the kept records, that have been removed.
 	 */
 	public record Result(FLEFModel model, int omittedRecords, int omittedNodes){}
+
+
+	/**
+	 * What the filtering left out, when it is written as it is made.
+	 *
+	 * @param omittedRecords	The number of records that have been omitted.
+	 * @param omittedNodes	The number of nodes, inside the kept records, that have been removed.
+	 */
+	public record Summary(int omittedRecords, int omittedNodes){}
 
 
 	private static final String TAG_SUBMITTER = HeaderReader.TAG_SUBMITTER;
@@ -100,6 +112,59 @@ public final class PrivacyExporter{
 		return new PrivacyExporter(model, policy).run(model);
 	}
 
+
+	/**
+	 * Writes the filtered model to the writer, a record at a time: the same text as writing the model that {@link #filter(FLEFModel,
+	 * PrivacyPolicy)} gives, without that model (a copy of every record that is kept) in memory.
+	 *
+	 * @param model	The model.
+	 * @param policy	The policy.
+	 * @param flef	Writes the records.
+	 * @param out	Where the text goes.
+	 * @return	What was left out.
+	 * @throws IOException	If writing fails.
+	 */
+	public static Summary write(final FLEFModel model, final PrivacyPolicy policy, final FLEFWriter flef, final Writer out) throws IOException{
+		if(policy == PrivacyPolicy.SHOW_ALL){
+			flef.write(model, out);
+
+			return new Summary(0, 0);
+		}
+
+		return new PrivacyExporter(model, policy).stream(model, flef, out);
+	}
+
+
+	private Summary stream(final FLEFModel model, final FLEFWriter flef, final Writer out) throws IOException{
+		final List<FLEFRecord> records = model.getRecords();
+		for(final FLEFRecord record : records)
+			if(policy.hides(resolver.effectiveLevel(record)))
+				hiddenIds.add(record.getId());
+
+		final FLEFRecord header = FLEFRecord.createEmpty();
+		model.getHeader()
+			.deepCopyTo(header);
+		omitSubmitterContacts(header);
+		final boolean hasHeader = header.hasData();
+		if(hasHeader)
+			flef.writeRecord(header, out, 0);
+
+		boolean first = true;
+		for(final FLEFRecord record : records){
+			if(hiddenIds.contains(record.getId()))
+				continue;
+
+			final FLEFRecord copy = FLEFRecord.createEmpty();
+			record.deepCopyTo(copy);
+			prune(copy);
+			if(!first || hasHeader)
+				out.write(StringUtils.LF);
+			flef.writeRecord(copy, out, 0);
+			first = false;
+		}
+		out.flush();
+		return new Summary(hiddenIds.size(), omittedNodes);
+	}
 
 	private Result run(final FLEFModel model){
 		final List<FLEFRecord> records = model.getRecords();

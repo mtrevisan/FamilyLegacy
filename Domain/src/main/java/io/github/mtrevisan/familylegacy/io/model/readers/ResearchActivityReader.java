@@ -78,6 +78,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  *   source*: SourceCitation                          // sources consulted, examined, or discovered
  *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;   // previous activity from which this activity originated
  *   follow_up*: Xref&lt;ResearchTaskRecord&gt;             // tasks that should start when this activity is completed; independent of the tasks' CREATED_BY
+ *   note*: NoteStructure     // reasoning, temporary findings, comments
+ *   media*: MediaCitation    // screenshots, documents under evaluation, and other research material
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -108,6 +110,8 @@ public final class ResearchActivityReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_PARENT_ACTIVITY = "parent_activity";
 	public static final String TAG_FOLLOW_UP = "follow_up";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 

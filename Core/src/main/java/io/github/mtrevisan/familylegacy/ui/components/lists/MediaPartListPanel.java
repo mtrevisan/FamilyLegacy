@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -57,6 +58,8 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String path;
+	/** Whether the items are the media citations of a record (they have a caption and no time range) and not the media parts of an extract. */
+	private final boolean citation;
 
 	private final ImageCropDialog cropDialog;
 	private final PageInputDialog pageDialog;
@@ -69,6 +72,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		super(parent, panelTitle, model);
 
 		this.path = path;
+		citation = MediaCitationReader.TAG.equals(path);
 
 		cropDialog = ImageCropDialog.create(parent);
 		pageDialog = PageInputDialog.create(parent);
@@ -89,6 +93,8 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editDocumentPart);
+				if(citation)
+					builder.selectionSensitiveItem(I18N.t("popupmenu.edit.caption"), this::editCaption);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
@@ -124,7 +130,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				updateCrop(documentPart, pageDialog.getCropRect());
 			}
 		}
-		else if(isAudioVideo(uri)){
+		else if(!citation && isAudioVideo(uri)){
 			// TODO test
 			final String startTime = FLEFRecordHelper.getChildValue(documentPart, ExtractReader.TAG_START_TIME);
 			final String endTime = FLEFRecordHelper.getChildValue(documentPart, ExtractReader.TAG_END_TIME);
@@ -175,6 +181,11 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 					final String startTime = FLEFRecordHelper.getChildValue(documentPart, ExtractReader.TAG_START_TIME);
 					final String endTime = FLEFRecordHelper.getChildValue(documentPart, ExtractReader.TAG_END_TIME);
 
+					if(citation){
+						final String caption = FLEFRecordHelper.getChildValue(documentPart, MediaCitationReader.TAG_CAPTION);
+						if(StringUtils.isNotBlank(caption))
+							text += " - " + caption;
+					}
 					if(page != null)
 						text += " [" + I18N.t("dialog.preferred.page.input.label") + ": " + page + "]";
 					if(startTime != null || endTime != null)
@@ -198,7 +209,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				final FLEFRecord document = model.getRecordById(record.getId());
 				if(document != null){
 					// Wrap the document in a media_part structure as required by the FLEF protocol
-					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(ExtractReader.TAG_MEDIA_PART);
+					final FLEFRecord documentPart = FLEFRecord.createChildWithTag(path);
 					documentPart.addChild(FLEFRecord.createChildWithTagAndValue(ExtractReader.TAG_MEDIA, document.getId()));
 
 					final String uri = FLEFRecordHelper.getChildValue(document, MediaReader.TAG_URI);
@@ -212,7 +223,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 							updateCrop(documentPart, pageDialog.getCropRect());
 						}
 					}
-					else if(isAudioVideo(uri)){
+					else if(!citation && isAudioVideo(uri)){
 						timeRangeDialog.loadData(uri, null, null);
 						timeRangeDialog.setVisible(true);
 						if(timeRangeDialog.isSaved()){
@@ -236,6 +247,8 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 								JOptionPane.ERROR_MESSAGE);
 						}
 					}
+					if(citation)
+						askCaption(documentPart);
 					result[0] = documentPart;
 				}
 			},
@@ -262,6 +275,24 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 		final String lowerUri = uri.toLowerCase(Locale.ROOT);
 		return (lowerUri.endsWith(".mp3") || lowerUri.endsWith(".wav") || lowerUri.endsWith(".mp4")
 			|| lowerUri.endsWith(".avi") || lowerUri.endsWith(".mov"));
+	}
+
+	/** Edits the caption of the selected citation: what the media shows in the context of the record, not a property of the media. */
+	private void editCaption(){
+		final int itemIndex = list.getSelectedIndex();
+		if(itemIndex >= 0){
+			askCaption(listModel.get(itemIndex));
+			list.repaint();
+		}
+	}
+
+	private void askCaption(final FLEFRecord documentPart){
+		final Object answer = JOptionPane.showInputDialog(parent, I18N.t("dialog.media_citation.caption"),
+			I18N.t("dialog.media_citation.title"), JOptionPane.QUESTION_MESSAGE, null, null,
+			FLEFRecordHelper.getChildValue(documentPart, MediaCitationReader.TAG_CAPTION));
+		//(cancel keeps the caption as it is, an empty text removes it)
+		if(answer != null)
+			updateDocumentPart(documentPart, MediaCitationReader.TAG_CAPTION, answer.toString());
 	}
 
 	private void updateDocumentPart(final FLEFRecord documentPart, final String tag, final String value){

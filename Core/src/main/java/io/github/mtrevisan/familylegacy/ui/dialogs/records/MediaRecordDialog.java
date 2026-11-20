@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordUsageDialog;
+import javax.swing.JButton;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -161,6 +163,12 @@ public class MediaRecordDialog extends BaseRecordDialog{
 
 		// description
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.description"), descriptionArea);
+
+		//every record that uses the media (as a source media, as the media of an extract, as the preferred image or in a media citation)
+		final JButton whereUsedButton = new JButton(I18N.t("dialog.media.where_used"));
+		whereUsedButton.setEnabled(!isNew);
+		whereUsedButton.addActionListener(e -> RecordUsageDialog.show(this, model, record));
+		GUIHelper.addComponent(propertiesPanel, whereUsedButton);
 
 		return propertiesPanel;
 	}

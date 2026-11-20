@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PrivacyReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
@@ -126,12 +127,14 @@ public final class PrivacyResolver{
 	private boolean indexed;
 	/** Event id -> ids of the individuals and groups that participate in it. */
 	private final Map<String, List<String>> participantsByEvent = new HashMap<>();
-	/** Media id -> ids of the individuals and groups that use it as preferred image. */
+	/** Media id -> ids of the individuals and groups that use it as preferred image or cite it (an event cites it for its participants). */
 	private final Map<String, List<String>> ownersByMedia = new HashMap<>();
 	/** Event id -> ids of the individuals that are principals of it. */
 	private final Map<String, List<String>> principalsByEvent = new HashMap<>();
-	/** Individuals that are certainly not living. */
-	private final Set<String> notLiving = new HashSet<>();
+	/** Individual id -> ids of the events in which it is a principal (the dates are looked at when the individual is, not for everybody). */
+	private final Map<String, List<String>> principalEventsByIndividual = new HashMap<>();
+	/** Individuals whose events were looked at: whether they are certainly not living. */
+	private final Map<String, Boolean> notLiving = new HashMap<>();
 
 
 	public PrivacyResolver(final FLEFModel model){
@@ -292,7 +295,7 @@ public final class PrivacyResolver{
 	/** The level that applies when the record declares no (non-expired) privacy. */
 	private Effective defaultFor(final FLEFRecord record){
 		if(IndividualReader.isOfType(record)){
-			if(!notLiving.contains(record.getId()))
+			if(!isNotLiving(record.getId()))
 				return new Effective(PrivacyLevel.RESTRICTED, Origin.LIVING_PERSON, PrivacyReader.ENUM_REASON_LIVING_PERSON, null);
 		}
 		else if(IndividualAttributeReader.isOfType(record)
@@ -336,11 +339,6 @@ public final class PrivacyResolver{
 			return;
 		indexed = true;
 
-		final Map<String, FLEFRecord> filteredEvents = new HashMap<>();
-		final List<FLEFRecord> events = model.getRecordsByType(EventReader.TYPE);
-		for(final FLEFRecord event : events)
-			filteredEvents.put(event.getId(), event);
-
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
 		for(final FLEFRecord participation : participations){
 			final Participant participant = participantOf(participation);
@@ -352,12 +350,12 @@ public final class PrivacyResolver{
 			participantsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
 				.add(participantId);
 
-			if(participant.individual() && isPrincipal(participation))
+			if(participant.individual() && isPrincipal(participation)){
 				principalsByEvent.computeIfAbsent(eventId, k -> new ArrayList<>())
 					.add(participantId);
-			if(participant.individual() && isPrincipal(participation)
-					&& isCertainlyDead(filteredEvents.get(eventId)))
-				notLiving.add(participantId);
+				principalEventsByIndividual.computeIfAbsent(participantId, k -> new ArrayList<>(2))
+					.add(eventId);
+			}
 		}
 
 		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
@@ -366,6 +364,31 @@ public final class PrivacyResolver{
 		final List<FLEFRecord> groups = model.getRecordsByType(GroupReader.TYPE);
 		for(final FLEFRecord owner : groups)
 			indexPreferredImage(owner);
+		//the media cited by an event are as private as the people that take part in it
+		final List<FLEFRecord> events = model.getRecordsByType(EventReader.TYPE);
+		for(final FLEFRecord event : events)
+			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(event, MediaCitationReader.TAG)){
+				final String mediaId = FLEFRecordHelper.getChildValue(citation, MediaCitationReader.TAG_MEDIA);
+				if(StringUtils.isNotBlank(mediaId))
+					ownersByMedia.computeIfAbsent(mediaId, k -> new ArrayList<>())
+						.addAll(participantsByEvent.getOrDefault(event.getId(), List.of()));
+			}
+	}
+
+	/** Whether one of the events of which the individual is a principal proves that it is not living (decided once, when asked). */
+	private boolean isNotLiving(final String individualId){
+		Boolean known = notLiving.get(individualId);
+		if(known == null){
+			known = false;
+			for(final String eventId : principalEventsByIndividual.getOrDefault(individualId, List.of()))
+				if(isCertainlyDead(model.getRecordById(eventId))){
+					known = true;
+
+					break;
+				}
+			notLiving.put(individualId, known);
+		}
+		return known;
 	}
 
 	private void indexPreferredImage(final FLEFRecord owner){
@@ -374,6 +397,16 @@ public final class PrivacyResolver{
 		if(StringUtils.isNotBlank(mediaId))
 			ownersByMedia.computeIfAbsent(mediaId, k -> new ArrayList<>())
 				.add(owner.getId());
+		//(the media of a name are cited by the individual, through the name)
+		final List<FLEFRecord> citations = new ArrayList<>(FLEFRecordHelper.findChildren(owner, MediaCitationReader.TAG));
+		for(final FLEFRecord name : FLEFRecordHelper.findChildren(owner, IndividualReader.TAG_NAME))
+			citations.addAll(FLEFRecordHelper.findChildren(name, MediaCitationReader.TAG));
+		for(final FLEFRecord citation : citations){
+			final String cited = FLEFRecordHelper.getChildValue(citation, MediaCitationReader.TAG_MEDIA);
+			if(StringUtils.isNotBlank(cited))
+				ownersByMedia.computeIfAbsent(cited, k -> new ArrayList<>())
+					.add(owner.getId());
+		}
 	}
 
 	/** The individual or group that participates, {@code null} if none. */

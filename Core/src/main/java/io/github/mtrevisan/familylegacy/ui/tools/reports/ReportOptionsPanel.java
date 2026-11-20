@@ -27,10 +27,22 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
+import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
+import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
+import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
+import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
+import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
+import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
+import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
+import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
+import io.github.mtrevisan.familylegacy.reports.PortraitMode;
+import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
@@ -42,9 +54,11 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.util.ArrayList;
@@ -109,6 +123,9 @@ public final class ReportOptionsPanel extends JPanel{
 	private final JCheckBox indirectRel = cb("indirect_relations");
 	private final JComboBox<CollateralScope> collaterals = createCollateralCombo();
 	private final JComboBox<Integer> generations = createGenerationsCombo();
+	private final JComboBox<Integer> firstGeneration = intCombo(new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20},
+		"text.report.first_generation.subject");
+	private final JComboBox<GenerationOrder> generationOrder = enumCombo(GenerationOrder.values(), "enum.generation_order.");
 	private final JComboBox<PersonOrder> personOrder = createPersonOrderCombo();
 
 
@@ -125,6 +142,7 @@ public final class ReportOptionsPanel extends JPanel{
 	private final JCheckBox historicEvents = cb("historic_events");
 	private final JCheckBox repositories = cb("repositories");
 	private final JCheckBox originalSources = cb("include_original_sources");
+	private final JCheckBox groupSourcesByKind = cb("group_sources_by_kind");
 
 
 	/* ======================================================================
@@ -147,10 +165,63 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	/* ======================================================================
+	 *                          Narrative style
+	 * ====================================================================== */
+
+	private final JComboBox<NumberingSystem> numbering = enumCombo(NumberingSystem.values(), "enum.numbering.");
+	private final JCheckBox boldDirectAncestors = cb("bold_direct_ancestors");
+	private final JCheckBox crossReferences = cb("cross_references");
+	private final JComboBox<GivenNameStyle> givenNames = enumCombo(GivenNameStyle.values(), "enum.given_names.");
+	private final JTextField unknownName = new JTextField(10);
+
+
+	/* ======================================================================
+	 *                          Placement of notes and sources
+	 * ====================================================================== */
+
+	private final JComboBox<TextPlacement> notesPlacement = enumCombo(TextPlacement.values(), "enum.text_placement.");
+	private final JComboBox<TextPlacement> sourcesPlacement = enumCombo(TextPlacement.values(), "enum.text_placement.");
+	private final JComboBox<Integer> longTextLines = intCombo(new Integer[]{0, 1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30}, "text.report.long_text.never");
+	private final JCheckBox principalSourcesOnly = cb("principal_sources_only");
+	private final JCheckBox sourceLocator = cb("source_locator");
+
+
+	/* ======================================================================
+	 *                          Placement of the media
+	 * ====================================================================== */
+
+	private final JComboBox<MediaPlacement> mediaPlacement = enumCombo(MediaPlacement.values(), "enum.media_placement.");
+	private final JComboBox<Integer> imagesPerPage = intCombo(new Integer[]{0, 1, 2, 3, 4, 6, 8, 9, 12}, "text.report.option.as_it_is");
+	private final JComboBox<Integer> maxImageMegapixels = intCombo(new Integer[]{0, 1, 2, 3, 4, 5, 8, 12, 16}, "text.report.option.as_it_is");
+	private final JComboBox<Integer> thumbnailSize = intCombo(new Integer[]{0, 100, 150, 200, 300, 400, 600}, "text.report.option.as_it_is");
+	private final JComboBox<PortraitMode> portraitMode = enumCombo(PortraitMode.values(), "enum.portrait_mode.");
+	private final JCheckBox portraitNameTitle = cb("portrait_name_title");
+	private final JComboBox<ImageAlignment> portraitAlignment = enumCombo(ImageAlignment.values(), "enum.image_alignment.");
+
+
+	/* ======================================================================
+	 *                          Conflicts
+	 * ====================================================================== */
+
+	private final JComboBox<ConflictFilter> conflictFilter = enumCombo(ConflictFilter.values(), "enum.conflict_filter.");
+	private final JComboBox<ConflictConfidence> conflictConfidence = enumCombo(ConflictConfidence.values(), "enum.conflict_confidence.");
+	private final JComboBox<ConflictRecordType> conflictRecordType = enumCombo(ConflictRecordType.values(), "enum.conflict_record_type.");
+
+
+	/* ======================================================================
+	 *                          Identity hypotheses
+	 * ====================================================================== */
+
+	private final JComboBox<HypothesisFilter> hypothesisFilter = enumCombo(HypothesisFilter.values(), "enum.hypothesis_filter.");
+	private final JComboBox<HypothesisRecordType> hypothesisRecordType = enumCombo(HypothesisRecordType.values(), "enum.hypothesis_record_type.");
+
+
+	/* ======================================================================
 	 *                          Indexes
 	 * ====================================================================== */
 
 	private final JCheckBox idxIndividuals = cb("index_of_individuals");
+	private final JCheckBox idxYears = cb("index_years");
 	private final JCheckBox idxPlaces = cb("index_of_places");
 
 
@@ -188,14 +259,19 @@ public final class ReportOptionsPanel extends JPanel{
 
 		this.states = states;
 
-		for(final JPanel group : new JPanel[]{privacyGroup(), narrativeGroup(), contentGroup(), groupsGroup(), diagnosticsGroup(),
-				indexesGroup(), styleGroup()})
+		for(final JPanel group : new JPanel[]{privacyGroup(), narrativeGroup(), narrativeStyleGroup(), contentGroup(), textPlacementGroup(),
+				mediaPlacementGroup(), groupsGroup(), conflictsGroup(), hypothesesGroup(), diagnosticsGroup(), indexesGroup(), styleGroup()})
 			if(group != null)
 				add(group, "growx");
 
 		applyInitial(initial);
 	}
 
+
+	@Override
+	public java.awt.Dimension getMinimumSize(){
+		return new java.awt.Dimension(0, super.getMinimumSize().height);
+	}
 
 	/**
 	 * Puts the options of the configuration in the widgets (the ones that the report always applies stay on).
@@ -223,6 +299,8 @@ public final class ReportOptionsPanel extends JPanel{
 		indirectRel.setSelected(initial.indirectRelations());
 		collaterals.setSelectedItem(initial.collateralScope());
 		selectGenerations(initial.generations());
+		selectInt(firstGeneration, initial.firstGeneration());
+		generationOrder.setSelectedItem(initial.generationOrder());
 		personOrder.setSelectedItem(initial.personOrder());
 
 		notes.setSelected(initial.notes());
@@ -234,6 +312,7 @@ public final class ReportOptionsPanel extends JPanel{
 		historicEvents.setSelected(initial.historicEvents());
 		repositories.setSelected(initial.repositories());
 		originalSources.setSelected(initial.includeOriginalSources());
+		groupSourcesByKind.setSelected(initial.groupSourcesByKind());
 
 		groups.setSelected(initial.groups());
 		groupMembers.setSelected(initial.groupMembers());
@@ -244,7 +323,33 @@ public final class ReportOptionsPanel extends JPanel{
 		coverageReport.setSelected(initial.coverageReport());
 		timeline.setSelected(initial.timeline());
 
+		numbering.setSelectedItem(initial.numbering());
+		boldDirectAncestors.setSelected(initial.boldDirectAncestors());
+		crossReferences.setSelected(initial.crossReferences());
+		givenNames.setSelectedItem(initial.givenNames());
+		unknownName.setText(initial.unknownName());
+
+		notesPlacement.setSelectedItem(initial.notesPlacement());
+		sourcesPlacement.setSelectedItem(initial.sourcesPlacement());
+		selectInt(longTextLines, initial.longTextLines());
+		principalSourcesOnly.setSelected(initial.principalSourcesOnly());
+		sourceLocator.setSelected(initial.sourceLocator());
+
+		mediaPlacement.setSelectedItem(initial.mediaPlacement());
+		selectInt(imagesPerPage, initial.imagesPerPage());
+		selectInt(maxImageMegapixels, initial.maxImageMegapixels());
+		selectInt(thumbnailSize, initial.thumbnailSize());
+		portraitMode.setSelectedItem(initial.portraitMode());
+		portraitNameTitle.setSelected(initial.portraitNameTitle());
+		portraitAlignment.setSelectedItem(initial.portraitAlignment());
+		conflictFilter.setSelectedItem(initial.conflictFilter());
+		conflictConfidence.setSelectedItem(initial.conflictConfidence());
+		conflictRecordType.setSelectedItem(initial.conflictRecordType());
+		hypothesisFilter.setSelectedItem(initial.hypothesisFilter());
+		hypothesisRecordType.setSelectedItem(initial.hypothesisRecordType());
+
 		idxIndividuals.setSelected(initial.indexIndividuals());
+		idxYears.setSelected(initial.indexYears());
 		idxPlaces.setSelected(initial.indexPlaces());
 
 		dateFormat.setSelectedItem(initial.dateFormat());
@@ -285,6 +390,8 @@ public final class ReportOptionsPanel extends JPanel{
 			indirectRel.isSelected(),
 			(CollateralScope)collaterals.getSelectedItem(),
 			(generations.getSelectedItem() instanceof final Integer count? count: 0),
+			intOf(firstGeneration),
+			(GenerationOrder)generationOrder.getSelectedItem(),
 			(PersonOrder)personOrder.getSelectedItem(),
 			(ReportDateFormat)dateFormat.getSelectedItem(),
 			notes.isSelected(),
@@ -300,13 +407,88 @@ public final class ReportOptionsPanel extends JPanel{
 			historicEvents.isSelected(),
 			repositories.isSelected(),
 			originalSources.isSelected(),
+			groupSourcesByKind.isSelected(),
 			eventFull.isSelected(),
 			coverageReport.isSelected(),
 			timeline.isSelected(),
 			idxIndividuals.isSelected(),
 			idxPlaces.isSelected(),
 			descriptions.isSelected(),
-			pictures.isSelected());
+			pictures.isSelected(),
+			(NumberingSystem)numbering.getSelectedItem(),
+			boldDirectAncestors.isSelected(),
+			crossReferences.isSelected(),
+			(GivenNameStyle)givenNames.getSelectedItem(),
+			unknownName.getText(),
+			idxYears.isSelected(),
+			(TextPlacement)notesPlacement.getSelectedItem(),
+			(TextPlacement)sourcesPlacement.getSelectedItem(),
+			intOf(longTextLines),
+			principalSourcesOnly.isSelected(),
+			sourceLocator.isSelected(),
+			(MediaPlacement)mediaPlacement.getSelectedItem(),
+			intOf(imagesPerPage),
+			intOf(maxImageMegapixels),
+			intOf(thumbnailSize),
+			(PortraitMode)portraitMode.getSelectedItem(),
+			portraitNameTitle.isSelected(),
+			(ImageAlignment)portraitAlignment.getSelectedItem(),
+			(ConflictFilter)conflictFilter.getSelectedItem(),
+			(ConflictConfidence)conflictConfidence.getSelectedItem(),
+			(ConflictRecordType)conflictRecordType.getSelectedItem(),
+			(HypothesisFilter)hypothesisFilter.getSelectedItem(),
+			(HypothesisRecordType)hypothesisRecordType.getSelectedItem());
+	}
+
+	private static int intOf(final JComboBox<Integer> combo){
+		return (combo.getSelectedItem() instanceof final Integer value? value: 0);
+	}
+
+
+	/**
+	 * A combo with the constants of an enumeration, written in the language of the user.
+	 *
+	 * @param values	The constants.
+	 * @param keyPrefix	The prefix of the keys of the texts, that end with the lower case name of the constant.
+	 */
+	private static <E extends Enum<E>> JComboBox<E> enumCombo(final E[] values, final String keyPrefix){
+		final JComboBox<E> combo = ComboBoxSearch.searchable(new JComboBox<>(values));
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (value instanceof final Enum<?> constant
+					? I18N.t(keyPrefix + constant.name().toLowerCase(Locale.ROOT)): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
+	/** A combo with numbers, the first (0) written with the text of the key ("As it is", "Off"). */
+	private static JComboBox<Integer> intCombo(final Integer[] values, final String zeroKey){
+		final JComboBox<Integer> combo = ComboBoxSearch.searchable(new JComboBox<>(new DefaultComboBoxModel<>(values)));
+		combo.setRenderer(new DefaultListCellRenderer(){
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				final Object text = (Integer.valueOf(0).equals(value)? I18N.t(zeroKey): value);
+				return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
+			}
+		});
+		return combo;
+	}
+
+	/** Selects the number, adding it to the list if the list does not have it (a value kept in the preferences). */
+	private static void selectInt(final JComboBox<Integer> combo, final int value){
+		final DefaultComboBoxModel<Integer> model = (DefaultComboBoxModel<Integer>)combo.getModel();
+		if(model.getIndexOf(value) < 0){
+			int position = 0;
+			while(position < model.getSize() && model.getElementAt(position) < value)
+				position ++;
+			model.insertElementAt(value, position);
+		}
+		combo.setSelectedItem(value);
 	}
 
 
@@ -446,6 +628,8 @@ public final class ReportOptionsPanel extends JPanel{
 		addOption(p, ReportOption.INDIRECT_RELATIONS, indirectRel);
 		addCombo(p, ReportOption.COLLATERAL_SCOPE, "label.collaterals", "tooltip.report.collaterals", collaterals);
 		addCombo(p, ReportOption.GENERATIONS, "label.generations", "tooltip.report.generations", generations);
+		addCombo(p, ReportOption.FIRST_GENERATION, "label.first_generation", "tooltip.report.first_generation", firstGeneration);
+		addCombo(p, ReportOption.GENERATION_ORDER, "label.generation_order", "tooltip.report.generation_order", generationOrder);
 		addCombo(p, ReportOption.PERSON_ORDER, "label.person_order", "tooltip.report.person_order", personOrder);
 		return nonEmpty(p);
 	}
@@ -462,6 +646,42 @@ public final class ReportOptionsPanel extends JPanel{
 		addOption(p, ReportOption.EVIDENCE, evidence);
 		addOption(p, ReportOption.REPOSITORIES, repositories);
 		addOption(p, ReportOption.INCLUDE_ORIGINAL_SOURCES, originalSources);
+		addOption(p, ReportOption.GROUP_SOURCES_BY_KIND, groupSourcesByKind);
+		return nonEmpty(p);
+	}
+
+
+	private JPanel narrativeStyleGroup(){
+		final JPanel p = twoColumns("border.narrative_style");
+		addCombo(p, ReportOption.NUMBERING, "label.numbering", "tooltip.report.numbering", numbering);
+		addOption(p, ReportOption.BOLD_DIRECT_ANCESTORS, boldDirectAncestors);
+		addOption(p, ReportOption.CROSS_REFERENCES, crossReferences);
+		addCombo(p, ReportOption.GIVEN_NAMES, "label.given_names", "tooltip.report.given_names", givenNames);
+		addCombo(p, ReportOption.UNKNOWN_NAME, "label.unknown_name", "tooltip.report.unknown_name", unknownName);
+		return nonEmpty(p);
+	}
+
+
+	private JPanel textPlacementGroup(){
+		final JPanel p = twoColumns("border.text_placement");
+		addCombo(p, ReportOption.NOTES_PLACEMENT, "label.notes_placement", "tooltip.report.notes_placement", notesPlacement);
+		addCombo(p, ReportOption.SOURCES_PLACEMENT, "label.sources_placement", "tooltip.report.sources_placement", sourcesPlacement);
+		addCombo(p, ReportOption.LONG_TEXT_LINES, "label.long_text_lines", "tooltip.report.long_text_lines", longTextLines);
+		addOption(p, ReportOption.PRINCIPAL_SOURCES_ONLY, principalSourcesOnly);
+		addOption(p, ReportOption.SOURCE_LOCATOR, sourceLocator);
+		return nonEmpty(p);
+	}
+
+
+	private JPanel mediaPlacementGroup(){
+		final JPanel p = twoColumns("border.media_placement");
+		addCombo(p, ReportOption.MEDIA_PLACEMENT, "label.media_placement", "tooltip.report.media_placement", mediaPlacement);
+		addCombo(p, ReportOption.IMAGES_PER_PAGE, "label.images_per_page", "tooltip.report.images_per_page", imagesPerPage);
+		addCombo(p, ReportOption.MAX_IMAGE_MEGAPIXELS, "label.max_image_megapixels", "tooltip.report.max_image_megapixels", maxImageMegapixels);
+		addCombo(p, ReportOption.THUMBNAIL_SIZE, "label.thumbnail_size", "tooltip.report.thumbnail_size", thumbnailSize);
+		addCombo(p, ReportOption.PORTRAIT_MODE, "label.portrait_mode", "tooltip.report.portrait_mode", portraitMode);
+		addOption(p, ReportOption.PORTRAIT_NAME_TITLE, portraitNameTitle);
+		addCombo(p, ReportOption.PORTRAIT_ALIGNMENT, "label.portrait_alignment", "tooltip.report.portrait_alignment", portraitAlignment);
 		return nonEmpty(p);
 	}
 
@@ -472,6 +692,23 @@ public final class ReportOptionsPanel extends JPanel{
 		addOption(p, ReportOption.GROUP_MEMBERS, groupMembers);
 		addOption(p, ReportOption.GROUP_SUBGROUPS, groupSubgroups);
 		addOption(p, ReportOption.GROUP_ATTRIBUTES, groupAttributes);
+		return nonEmpty(p);
+	}
+
+
+	private JPanel conflictsGroup(){
+		final JPanel p = twoColumns("border.conflict_report");
+		addCombo(p, ReportOption.CONFLICT_FILTER, "label.conflict_filter", "tooltip.report.conflict_filter", conflictFilter);
+		addCombo(p, ReportOption.CONFLICT_RECORD_TYPE, "label.conflict_record_type", "tooltip.report.conflict_record_type", conflictRecordType);
+		addCombo(p, ReportOption.CONFLICT_CONFIDENCE, "label.conflict_confidence", "tooltip.report.conflict_confidence", conflictConfidence);
+		return nonEmpty(p);
+	}
+
+
+	private JPanel hypothesesGroup(){
+		final JPanel p = twoColumns("border.hypothesis_report");
+		addCombo(p, ReportOption.HYPOTHESIS_FILTER, "label.hypothesis_filter", "tooltip.report.hypothesis_filter", hypothesisFilter);
+		addCombo(p, ReportOption.HYPOTHESIS_RECORD_TYPE, "label.hypothesis_record_type", "tooltip.report.hypothesis_record_type", hypothesisRecordType);
 		return nonEmpty(p);
 	}
 
@@ -488,6 +725,7 @@ public final class ReportOptionsPanel extends JPanel{
 	private JPanel indexesGroup(){
 		final JPanel p = singleColumn("border.indexes");
 		addOption(p, ReportOption.INDEX_INDIVIDUALS, idxIndividuals);
+		addOption(p, ReportOption.INDEX_YEARS, idxYears);
 		addOption(p, ReportOption.INDEX_PLACES, idxPlaces);
 		return nonEmpty(p);
 	}
@@ -521,7 +759,7 @@ public final class ReportOptionsPanel extends JPanel{
 
 	/** Adds a label and a combo, still inside the grid, on a row of their own. */
 	private void addCombo(final JPanel group, final ReportOption option, final String labelKey, final String tooltipKey,
-			final JComboBox<?> combo){
+			final JComponent combo){
 		if(states.apply(option) == OptionState.HIDDEN)
 			return;
 
@@ -530,8 +768,21 @@ public final class ReportOptionsPanel extends JPanel{
 		final JLabel label = new JLabel(I18N.l(labelKey));
 		label.setToolTipText(I18N.t(tooltipKey, null));
 		combo.setToolTipText(I18N.t(tooltipKey, null));
+		//(the width is the one of the column, not the one of the longest item)
+		combo.setMinimumSize(new java.awt.Dimension(0, combo.getMinimumSize().height));
+		combo.setPreferredSize(new java.awt.Dimension(0, combo.getPreferredSize().height));
 		group.add(label);
 		group.add(combo);
+	}
+
+	/** A group that can be narrower than its widest text (the dialog follows the width of the window, a text that does not fit is cut). */
+	private static JPanel shrinkable(final java.awt.LayoutManager layout){
+		return new JPanel(layout){
+			@Override
+			public java.awt.Dimension getMinimumSize(){
+				return new java.awt.Dimension(0, super.getMinimumSize().height);
+			}
+		};
 	}
 
 	private static JPanel nonEmpty(final JPanel group){
@@ -539,13 +790,13 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 	private static JPanel twoColumns(final String titleKey){
-		final JPanel p = new JPanel(new GridLayout(0, 2, 12, 2));
+		final JPanel p = shrinkable(new GridLayout(0, 2, 12, 2));
 		p.setBorder(BorderFactory.createTitledBorder(I18N.t(titleKey)));
 		return p;
 	}
 
 	private static JPanel singleColumn(final String titleKey){
-		final JPanel p = new JPanel(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
+		final JPanel p = shrinkable(new MigLayout("ins 4 8 8 8,wrap 1,fillx", "[grow,fill]", "[]2[]2[]2[]"));
 		p.setBorder(BorderFactory.createTitledBorder(I18N.t(titleKey)));
 		return p;
 	}

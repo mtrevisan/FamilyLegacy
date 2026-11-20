@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.consanguinity;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 
 /**
@@ -77,18 +80,34 @@ public final class ConsanguinityCalculator{
 	}
 
 
-	private final AncestryGraph graph;
-	private final Map<String, Set<String>> ancestors = new HashMap<>();
-	private final Map<String, Integer> depths = new HashMap<>();
-	private final Set<String> depthInProgress = new HashSet<>();
-	private final Map<Pair, Double> kinships = new HashMap<>();
-	private final Set<Pair> kinshipInProgress = new HashSet<>();
-	private final Map<String, Double> inbreedings = new HashMap<>();
-	private final Set<String> inbreedingInProgress = new HashSet<>();
+	private final Function<String, List<String>> parentsOf;
+	/** The individuals met so far, numbered in the order they were met: everything below works on these numbers. */
+	private final Map<String, Integer> numbers = new HashMap<>();
+	private final List<String> ids = new ArrayList<>();
+	/** The parents (numbers, at most two) of each individual, {@code null} until asked for. */
+	private int[][] parentNumbers = new int[64][];
+	/** The individual and all of its ancestors, {@code null} until asked for. */
+	private BitSet[] ancestorSets = new BitSet[64];
+	/** The longest line of ancestors, -1 until asked for. */
+	private int[] depths = newIntArray(64, -1);
+	private final BitSet depthInProgress = new BitSet();
+	private double[] inbreedings = newDoubleArray(64);
+	private final BitSet inbreedingInProgress = new BitSet();
+	private final PairValues kinships = new PairValues();
+	private final Set<Long> kinshipInProgress = new HashSet<>();
 
 
 	public ConsanguinityCalculator(final AncestryGraph graph){
-		this.graph = graph;
+		this(graph::parentsOf);
+	}
+
+	/**
+	 * @param parentsOf	The identifiers of the parents of an individual (the first two, without repetitions, are the ones that count; an empty
+	 * 	list if they are unknown). It is asked once for each individual, and its answer is kept: it must not change while the
+	 * 	calculator is in use.
+	 */
+	public ConsanguinityCalculator(final Function<String, List<String>> parentsOf){
+		this.parentsOf = parentsOf;
 	}
 
 
@@ -100,20 +119,25 @@ public final class ConsanguinityCalculator{
 	 * @return	A value between 0 (the parents are not related, or one of them is unknown) and 1.
 	 */
 	public double inbreeding(final String id){
-		final Double cached = inbreedings.get(id);
-		if(cached != null)
+		return inbreeding(numberOf(id));
+	}
+
+	private double inbreeding(final int individual){
+		final double cached = inbreedings[individual];
+		if(!Double.isNaN(cached))
 			return cached;
 
-		final List<String> parents = graph.parentsOf(id);
-		if(parents.size() < 2)
+		final int[] parents = parentsOf(individual);
+		if(parents.length < 2)
 			return 0.;
 		//a pedigree that is its own ancestor is an error of the data: it must not hang the computation
-		if(!inbreedingInProgress.add(id))
+		if(inbreedingInProgress.get(individual))
 			return 0.;
 
-		final double result = kinship(parents.get(0), parents.get(1));
-		inbreedingInProgress.remove(id);
-		inbreedings.put(id, result);
+		inbreedingInProgress.set(individual);
+		final double result = kinship(parents[0], parents[1]);
+		inbreedingInProgress.clear(individual);
+		inbreedings[individual] = result;
 		return result;
 	}
 
@@ -126,16 +150,21 @@ public final class ConsanguinityCalculator{
 	public double kinship(final String first, final String second){
 		if(first == null || second == null)
 			return 0.;
-		if(first.equals(second))
+
+		return kinship(numberOf(first), numberOf(second));
+	}
+
+	private double kinship(final int first, final int second){
+		if(first == second)
 			return (1. + inbreeding(first)) / 2.;
 
-		final Pair key = Pair.of(first, second);
-		final Double cached = kinships.get(key);
-		if(cached != null)
+		final long key = (first < second? ((long)first << 32) | second: ((long)second << 32) | first);
+		final double cached = kinships.get(key);
+		if(!Double.isNaN(cached))
 			return cached;
 
 		//no common ancestor, no kinship: most of the pairs end here, and it keeps the recursion small
-		if(disjoint(ancestorsOf(first), ancestorsOf(second))){
+		if(!ancestorsOf(first).intersects(ancestorsOf(second))){
 			kinships.put(key, 0.);
 
 			return 0.;
@@ -145,10 +174,10 @@ public final class ConsanguinityCalculator{
 
 		//the one with the longer line of ancestors cannot be an ancestor of the other: it is the one that is replaced by its parents
 		final boolean firstIsYounger = (depth(first) >= depth(second));
-		final String younger = (firstIsYounger? first: second);
-		final String other = (firstIsYounger? second: first);
+		final int younger = (firstIsYounger? first: second);
+		final int other = (firstIsYounger? second: first);
 		double sum = 0.;
-		for(final String parent : graph.parentsOf(younger))
+		for(final int parent : parentsOf(younger))
 			sum += kinship(other, parent);
 		final double result = sum / 2.;
 
@@ -170,7 +199,9 @@ public final class ConsanguinityCalculator{
 		if(first.equals(second))
 			return 1.;
 
-		return 2. * kinship(first, second) / Math.sqrt((1. + inbreeding(first)) * (1. + inbreeding(second)));
+		final int a = numberOf(first);
+		final int b = numberOf(second);
+		return 2. * kinship(a, b) / Math.sqrt((1. + inbreeding(a)) * (1. + inbreeding(b)));
 	}
 
 	/**
@@ -178,7 +209,7 @@ public final class ConsanguinityCalculator{
 	 * pair that has none is unrelated as far as the data says.
 	 */
 	public boolean areRelated(final String first, final String second){
-		return (first != null && second != null && !disjoint(ancestorsOf(first), ancestorsOf(second)));
+		return (first != null && second != null && ancestorsOf(numberOf(first)).intersects(ancestorsOf(numberOf(second))));
 	}
 
 	/**
@@ -191,24 +222,26 @@ public final class ConsanguinityCalculator{
 		if(first == null || second == null)
 			return List.of();
 
-		final Set<String> common = new HashSet<>(ancestorsOf(first));
-		common.retainAll(ancestorsOf(second));
+		final BitSet common = (BitSet)ancestorsOf(numberOf(first)).clone();
+		common.and(ancestorsOf(numberOf(second)));
 		if(common.isEmpty())
 			return List.of();
 
 		final Map<String, Integer> distancesFromFirst = distances(first);
 		final Map<String, Integer> distancesFromSecond = distances(second);
 		final List<CommonAncestor> result = new ArrayList<>();
-		for(final String candidate : common){
+		for(int candidate = common.nextSetBit(0); candidate >= 0; candidate = common.nextSetBit(candidate + 1)){
 			boolean closest = true;
-			for(final String descendant : common)
-				if(!descendant.equals(candidate) && ancestorsOf(descendant).contains(candidate)){
+			for(int descendant = common.nextSetBit(0); descendant >= 0; descendant = common.nextSetBit(descendant + 1))
+				if(descendant != candidate && ancestorsOf(descendant).get(candidate)){
 					closest = false;
 
 					break;
 				}
-			if(closest)
-				result.add(new CommonAncestor(candidate, distancesFromFirst.get(candidate), distancesFromSecond.get(candidate)));
+			if(closest){
+				final String id = ids.get(candidate);
+				result.add(new CommonAncestor(id, distancesFromFirst.get(id), distancesFromSecond.get(id)));
+			}
 		}
 		result.sort(Comparator.comparingInt((CommonAncestor a) -> a.stepsFromFirst() + a.stepsFromSecond())
 			.thenComparing(CommonAncestor::id));
@@ -216,9 +249,63 @@ public final class ConsanguinityCalculator{
 	}
 
 
+	/** @return	The number of the individual, given the first time it is met. */
+	private int numberOf(final String id){
+		final Integer known = numbers.get(id);
+		if(known != null)
+			return known;
+
+		final int number = ids.size();
+		ids.add(id);
+		numbers.put(id, number);
+		if(number == parentNumbers.length){
+			final int capacity = number << 1;
+			parentNumbers = Arrays.copyOf(parentNumbers, capacity);
+			ancestorSets = Arrays.copyOf(ancestorSets, capacity);
+			final int oldLength = depths.length;
+			depths = Arrays.copyOf(depths, capacity);
+			Arrays.fill(depths, oldLength, capacity, -1);
+			inbreedings = Arrays.copyOf(inbreedings, capacity);
+			Arrays.fill(inbreedings, oldLength, capacity, Double.NaN);
+		}
+		return number;
+	}
+
+	/** @return	The numbers of the parents of the individual: at most two, without repetitions. */
+	private int[] parentsOf(final int individual){
+		int[] parents = parentNumbers[individual];
+		if(parents == null){
+			final List<String> known = parentsOf.apply(ids.get(individual));
+			final int[] found = new int[Math.min(known.size(), 2)];
+			int count = 0;
+			for(int i = 0, size = known.size(); i < size && count < 2; i ++){
+				final int parent = numberOf(known.get(i));
+				if(count == 0 || found[0] != parent)
+					found[count ++] = parent;
+			}
+			parents = (count == found.length? found: Arrays.copyOf(found, count));
+			parentNumbers[individual] = parents;
+		}
+		return parents;
+	}
+
 	/** @return	The individual and all of its ancestors. */
-	private Set<String> ancestorsOf(final String id){
-		return ancestors.computeIfAbsent(id, k -> distances(id).keySet());
+	private BitSet ancestorsOf(final int individual){
+		BitSet result = ancestorSets[individual];
+		if(result == null){
+			result = new BitSet();
+			final Deque<Integer> queue = new ArrayDeque<>();
+			result.set(individual);
+			queue.add(individual);
+			while(!queue.isEmpty())
+				for(final int parent : parentsOf(queue.poll()))
+					if(!result.get(parent)){
+						result.set(parent);
+						queue.add(parent);
+					}
+			ancestorSets[individual] = result;
+		}
+		return result;
 	}
 
 	/** @return	The generations that separate the individual from each of its ancestors (itself included, at 0), the shortest way. */
@@ -230,36 +317,111 @@ public final class ConsanguinityCalculator{
 		while(!queue.isEmpty()){
 			final String current = queue.poll();
 			final int steps = result.get(current);
-			for(final String parent : graph.parentsOf(current))
-				if(result.putIfAbsent(parent, steps + 1) == null)
-					queue.add(parent);
+			for(final int parent : parentsOf(numberOf(current))){
+				final String parentId = ids.get(parent);
+				if(result.putIfAbsent(parentId, steps + 1) == null)
+					queue.add(parentId);
+			}
 		}
 		return result;
 	}
 
 	/** @return	The generations of ancestors above the individual: the longest line, 0 for an individual without known parents. */
-	private int depth(final String id){
-		final Integer cached = depths.get(id);
-		if(cached != null)
+	private int depth(final int individual){
+		final int cached = depths[individual];
+		if(cached >= 0)
 			return cached;
-		if(!depthInProgress.add(id))
+		if(depthInProgress.get(individual))
 			return 0;
 
+		depthInProgress.set(individual);
 		int result = 0;
-		for(final String parent : graph.parentsOf(id))
+		for(final int parent : parentsOf(individual))
 			result = Math.max(result, 1 + depth(parent));
-		depthInProgress.remove(id);
-		depths.put(id, result);
+		depthInProgress.clear(individual);
+		depths[individual] = result;
 		return result;
 	}
 
-	private static boolean disjoint(final Set<String> a, final Set<String> b){
-		final Set<String> smaller = (a.size() <= b.size()? a: b);
-		final Set<String> larger = (smaller == a? b: a);
-		for(final String id : smaller)
-			if(larger.contains(id))
-				return false;
-		return true;
+	private static int[] newIntArray(final int size, final int value){
+		final int[] array = new int[size];
+		Arrays.fill(array, value);
+		return array;
+	}
+
+	private static double[] newDoubleArray(final int size){
+		final double[] array = new double[size];
+		Arrays.fill(array, Double.NaN);
+		return array;
+	}
+
+
+	/** The values of the pairs of individuals (the key is the two numbers in a {@code long}), with no object for each of them. */
+	private static final class PairValues{
+
+		private static final long EMPTY = -1L;
+
+		private long[] keys = new long[1024];
+		private double[] values = new double[1024];
+		private int size;
+
+
+		private PairValues(){
+			Arrays.fill(keys, EMPTY);
+		}
+
+
+		/** @return	The value, NaN if there is none. */
+		private double get(final long key){
+			final int mask = keys.length - 1;
+			for(int slot = slotOf(key, mask); ; slot = (slot + 1) & mask){
+				final long found = keys[slot];
+				if(found == key)
+					return values[slot];
+				if(found == EMPTY)
+					return Double.NaN;
+			}
+		}
+
+		private void put(final long key, final double value){
+			if((size + 1) << 1 > keys.length)
+				grow();
+
+			final int mask = keys.length - 1;
+			for(int slot = slotOf(key, mask); ; slot = (slot + 1) & mask){
+				final long found = keys[slot];
+				if(found == key){
+					values[slot] = value;
+
+					return;
+				}
+				if(found == EMPTY){
+					keys[slot] = key;
+					values[slot] = value;
+					size ++;
+
+					return;
+				}
+			}
+		}
+
+		private void grow(){
+			final long[] oldKeys = keys;
+			final double[] oldValues = values;
+			keys = new long[oldKeys.length << 1];
+			values = new double[keys.length];
+			Arrays.fill(keys, EMPTY);
+			size = 0;
+			for(int i = 0; i < oldKeys.length; i ++)
+				if(oldKeys[i] != EMPTY)
+					put(oldKeys[i], oldValues[i]);
+		}
+
+		private static int slotOf(final long key, final int mask){
+			final long mixed = key * 0x9E3779B97F4A7C15L;
+			return (int)(mixed >>> 32) & mask;
+		}
+
 	}
 
 }

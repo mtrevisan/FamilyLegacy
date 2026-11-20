@@ -277,6 +277,47 @@ class FLEFMergerTest{
 	}
 
 	@Test
+	void aCallNumberThatIsAnIdentifierOfTheCitationIdentifiesAnItemOfItsRepository(){
+		final String repository = "repository R1 {\n\tname.value Archivio parrocchiale di San Martino\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n}\n";
+		final FLEFModel model = parse(repository
+			+ registerWithIdentifier("S1", "vol. 3") + registerWithIdentifier("S2", "VOL.  3")
+			+ registerWithIdentifier("S3", "vol. 4"));
+
+		final MergeReport report = merger().deduplicate(model);
+		final FLEFModel merged = report.mergedModel();
+
+		Assertions.assertEquals(2, merged.getRecordsByType(SourceReader.TYPE).size());
+		Assertions.assertEquals("S1", report.idMapping().get("S2"));
+		Assertions.assertNotNull(merged.getRecordById("S3"));
+	}
+
+	@Test
+	void sourcesWithTheSameIsbnWrittenInTwoWaysAreOneSource(){
+		//the same book: ISBN-10 with hyphens, and its ISBN-13
+		final FLEFModel model = parse(sourceWithIdentifiers("S1", "Rossi Family History", "isbn", "0-306-40615-2")
+			+ sourceWithIdentifiers("S2", "The Rossi Family: a history", "isbn", "978-0-306-40615-7")
+			+ sourceWithIdentifiers("S3", "Rossi Family History", "isbn", "978-0-19-953556-9"));
+
+		final MergeReport report = merger().deduplicate(model);
+
+		//a source with the title of another one but another ISBN is another edition: not merged
+		Assertions.assertNotNull(report.mergedModel().getRecordById("S3"));
+		Assertions.assertEquals("S1", report.idMapping().get("S2"));
+		Assertions.assertEquals(2, report.mergedModel().getRecordsByType(SourceReader.TYPE).size());
+	}
+
+	@Test
+	void aDoiIsTheSameWithOrWithoutItsPrefix(){
+		final FLEFModel model = parse(sourceWithIdentifiers("S1", "A study of the Rossi family", "doi", "10.1000/182")
+			+ sourceWithIdentifiers("S2", "A Study of the Rossi Family", "doi", "https://doi.org/10.1000/182"));
+
+		final MergeReport report = merger().deduplicate(model);
+
+		Assertions.assertEquals(1, report.mergedModel().getRecordsByType(SourceReader.TYPE).size());
+	}
+
+	@Test
 	void aPlaceMergedByHandUnitesItsRelationships(){
 		final String citation = "\tsource {\n\t\tsource S1\n\t\tstance supports\n\t}\n";
 		final FLEFModel model = parse(source("S1", "Atlante del Veneto")
@@ -606,6 +647,25 @@ class FLEFMergerTest{
 			+ "\ttype administrative_part_of\n"
 			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
 			+ "}\n";
+	}
+
+	/** A register whose call number is an identifier of the repository citation (the locator is a position inside it). */
+	private static String registerWithIdentifier(final String id, final String callNumber){
+		return "source " + id + " {\n"
+			+ "\ttitle.value Registro dei battesimi\n"
+			+ "\trepository {\n\t\trepository R1\n\t\tidentifier {\n\t\t\tscheme call_number\n\t\t\tvalue " + callNumber + "\n\t\t}\n"
+			+ "\t\tlocator Page 1\n\t}\n"
+			+ "\taudit.creation.date 2020-01-01T00:00:00Z\n"
+			+ "}\n";
+	}
+
+	/** A source, with the identifiers as given (each is a scheme and a value). */
+	private static String sourceWithIdentifiers(final String id, final String title, final String... schemeAndValue){
+		final StringBuilder sb = new StringBuilder("source " + id + " {\n\ttitle.value " + title + "\n");
+		for(int i = 0; i < schemeAndValue.length; i += 2)
+			sb.append("\tidentifier {\n\t\tscheme ").append(schemeAndValue[i]).append("\n\t\tvalue ").append(schemeAndValue[i + 1])
+				.append("\n\t}\n");
+		return sb.append("\taudit.creation.date 2020-01-01T00:00:00Z\n}\n").toString();
 	}
 
 	private static String register(final String id, final String callNumber){

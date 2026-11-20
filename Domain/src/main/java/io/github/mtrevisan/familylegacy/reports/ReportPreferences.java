@@ -204,8 +204,13 @@ public final class ReportPreferences{
 	private static String serialize(final ReportConfig config, final Collection<ReportOption> options){
 		final List<String> entries = new ArrayList<>(options.size());
 		for(final ReportOption option : options)
-			entries.add(option.name() + VALUE_SEPARATOR + option.valueIn(config));
+			entries.add(option.name() + VALUE_SEPARATOR + printable(option.valueIn(config)));
 		return String.join(String.valueOf(OPTION_SEPARATOR), entries);
+	}
+
+	/** @return	The text of a value, without the characters that separate the entries (a text the user typed may have them). */
+	private static String printable(final Object value){
+		return (value instanceof String text? StringUtils.replaceChars(text, OPTION_SEPARATOR + "\u001E", ",,"): String.valueOf(value));
 	}
 
 
@@ -328,6 +333,8 @@ public final class ReportPreferences{
 				return Boolean.FALSE;
 			return null;
 		}
+		if(example instanceof String)
+			return text;
 		if(example instanceof Integer){
 			try{
 				return Integer.valueOf(text.strip());

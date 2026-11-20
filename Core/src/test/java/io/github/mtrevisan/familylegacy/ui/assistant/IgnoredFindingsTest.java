@@ -24,11 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -242,7 +248,7 @@ class IgnoredFindingsTest{
 		""";
 
 	private static List<Diagnostic> findings(final FLEFModel model){
-		final AssistantContext context = new AssistantContext(null, null, model, FILE);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE);
 		final List<Diagnostic> findings = new ArrayList<>();
 		for(final AssistantContributor contributor : List.of(new ChronologyAssistantContributor(),
 				new ConclusionAssistantContributor()))

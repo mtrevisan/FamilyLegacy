@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.quality;
 
+import io.github.mtrevisan.familylegacy.events.EventTypeInfo;
+import io.github.mtrevisan.familylegacy.events.EventTypeInfoService;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
@@ -73,14 +75,11 @@ import java.util.Set;
  */
 public final class DateConsistency{
 
-	/** The events that happen after the death (or are about it): a date after the death is not a problem for them. */
-	private static final Set<String> POSTHUMOUS_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL,
-		EventReader.ENUM_TYPE_CREMATION, EventReader.ENUM_TYPE_CORONER_REPORT, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_HONOR,
-		EventReader.ENUM_TYPE_PARDON, EventReader.ENUM_TYPE_DEED, EventReader.ENUM_TYPE_ESCROW, EventReader.ENUM_TYPE_CHANCERY,
-		EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
+	/** The custom types (not in the protocol list, so unknown to the catalog) that can be dated after the death. */
+	private static final Set<String> CUSTOM_POSTHUMOUS_TYPES = Set.of(EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
 	/** @return	Whether an event of that type can be dated after the death of the person (a burial, a probate, a commemoration). */
 	public static boolean isPosthumous(final String type){
-		return (type != null && POSTHUMOUS_TYPES.contains(type));
+		return (type != null && EventTypeInfoService.find(type).map(EventTypeInfo::allowedAfterDeath).orElseGet(() -> CUSTOM_POSTHUMOUS_TYPES.contains(type)));
 	}
 
 	/**
@@ -242,7 +241,7 @@ public final class DateConsistency{
 
 			if(person.birth() != null && !EventReader.ENUM_TYPE_BIRTH.equals(type) && event.date().isBefore(person.birth()))
 				issues.add(issue("event_before_birth", event.eventId(), person.name(), type, event.dateText(), person.birthText()));
-			if(person.death() != null && !POSTHUMOUS_TYPES.contains(type) && person.death().isBefore(event.date()))
+			if(person.death() != null && !isPosthumous(type) && person.death().isBefore(event.date()))
 				issues.add(issue("event_after_death", event.eventId(), person.name(), type, event.dateText(), person.deathText()));
 		}
 	}

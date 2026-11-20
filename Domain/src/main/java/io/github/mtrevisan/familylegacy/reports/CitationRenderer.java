@@ -66,11 +66,86 @@ public final class CitationRenderer{
 	private static final String TAG_PRIVACY = EventReader.TAG_PRIVACY;
 
 
+	/** How many characters a line of the report holds, to tell how many lines a text takes. */
+	private static final int LINE_WIDTH = 90;
+
+
 	private final ReportContext ctx;
+	/** Whether the texts that the options send to a section of their own are kept for it (only the chapter of a person has such a section). */
+	private boolean deferring;
+	private int deferredNoteCount;
+	private int deferredDetailCount;
+	private final List<ReportSection> deferredNotes = new ArrayList<>();
+	private final List<String> deferredDetails = new ArrayList<>();
 
 
 	public CitationRenderer(final ReportContext ctx){
 		this.ctx = ctx;
+	}
+
+
+	/* ======================================================================
+	 *                          Texts of the section
+	 * ====================================================================== */
+
+	/**
+	 * From now on the notes, and the text of the sources, that the placement of the report sends to a section of their own are not written
+	 * where they belong (a reference is), but kept for {@link #takeDeferredNotes()} and {@link #takeDeferredDetails()}. A section that
+	 * does not write them must not call this: they would be lost.
+	 */
+	void startDeferring(){
+		deferring = true;
+		deferredNoteCount = 0;
+		deferredDetailCount = 0;
+		deferredNotes.clear();
+		deferredDetails.clear();
+	}
+
+	/** Ends what {@link #startDeferring()} started: the sections after the one that wrote the texts have no place for them. */
+	void stopDeferring(){
+		deferring = false;
+		deferredNotes.clear();
+		deferredDetails.clear();
+	}
+
+	/** @return	The notes of a record, all of them where they are told, whatever the placement: they are the notes of the section itself. */
+	List<ReportSection> notesInPlace(final FLEFRecord rec){
+		final boolean was = deferring;
+		deferring = false;
+		try{
+			return notes(rec);
+		}
+		finally{
+			deferring = was;
+		}
+	}
+
+	/** @return	The notes that were kept for the section of the notes, numbered as their references are. */
+	List<ReportSection> takeDeferredNotes(){
+		final List<ReportSection> out = List.copyOf(deferredNotes);
+		deferredNotes.clear();
+		return out;
+	}
+
+	/** @return	The texts of the sources that were kept for the section of the citations, numbered as their references are. */
+	List<String> takeDeferredDetails(){
+		final List<String> out = List.copyOf(deferredDetails);
+		deferredDetails.clear();
+		return out;
+	}
+
+	/**
+	 * @param text	A text.
+	 * @return	How many lines the text takes: the ones it has, a long one counted as many as it takes to write it.
+	 */
+	static int lines(final String text){
+		if(text == null || text.isBlank())
+			return 0;
+
+		int lines = 0;
+		for(final String line : StringUtils.splitPreserveAllTokens(text.strip(), '\n'))
+			lines += Math.max(1, (line.length() + LINE_WIDTH - 1) / LINE_WIDTH);
+		return lines;
 	}
 
 
@@ -102,16 +177,30 @@ public final class CitationRenderer{
 			final String suffix = noteMetadataSuffix(n);
 			//the title of a note is its label ("Agency: Ospedale ..."), not a separate line after the text
 			final String title = ReportFormatters.noteTitle(n);
-			final String label = (title != null && !title.isBlank()
-				? ReportFormatters.escape(title): ctx.labels.sections().note());
-			out.add(new ReportSection.Paragraph("**" + label + ":** " + ReportFormatters.escape(text) + suffix));
+			final boolean hasTitle = (title != null && !title.isBlank());
+			//a note the placement sends to the section is told there, under a number, and the place of the note has the number only
+			final boolean section = (deferring && ctx.config.notesPlacement().inSection(lines(text), ctx.config.longTextLines()));
+			final String number = (section? StringUtils.SPACE + (deferredNoteCount + 1): StringUtils.EMPTY);
+			final String label = (section? ctx.labels.sections().note() + number + (hasTitle? " — " + ReportFormatters.escape(title): StringUtils.EMPTY)
+				: (hasTitle? ReportFormatters.escape(title): ctx.labels.sections().note()));
+
+			final List<ReportSection> block = new ArrayList<>();
+			block.add(new ReportSection.Paragraph("**" + label + ":** " + ReportFormatters.escape(text) + suffix));
 
 			for(final String tr : ReportFormatters.noteTranslations(n, ctx.labels))
-				out.add(new ReportSection.Paragraph(tr));
+				block.add(new ReportSection.Paragraph(tr));
 
 			// Sources cited by the note itself.
 			if(ctx.config.sources())
-				out.addAll(citations(n));
+				block.addAll(citations(n));
+
+			if(section){
+				deferredNoteCount ++;
+				deferredNotes.addAll(block);
+				out.add(new ReportSection.Paragraph("*[" + ctx.labels.sections().note() + number + "]*"));
+			}
+			else
+				out.addAll(block);
 		}
 		return out;
 	}
@@ -147,7 +236,7 @@ public final class CitationRenderer{
 	public List<ReportSection> citations(final FLEFRecord rec){
 		final List<ReportSection> out = new ArrayList<>();
 		final List<String> items = new ArrayList<>();
-		final List<FLEFRecord> cites = ctx.visibleChildren(rec, TAG_SOURCE);
+		final List<FLEFRecord> cites = principal(ctx.visibleChildren(rec, TAG_SOURCE));
 		if(cites.isEmpty())
 			return out;
 
@@ -167,9 +256,14 @@ public final class CitationRenderer{
 				sb.append("**[").append(ctx.labels.sections().stanceContradicts()).append("]** ");
 			sb.append(ReportFormatters.escape(ctx.sourceTitle(sid)));
 
+			final String title = sb.toString();
 			final String locator = FLEFRecordHelper.getChildValue(c, SourceCitationReader.TAG_LOCATOR);
-			if(locator != null)
+			if(locator != null && ctx.config.sourceLocator())
 				sb.append(" — *").append(ctx.labels.sections().sourceLocator()).append(":* ").append(ReportFormatters.escape(locator));
+
+			//what the source says (the text of the extract, its note, its crop): it may go to the section of the citations
+			final StringBuilder detail = new StringBuilder();
+			final StringBuilder plainDetail = new StringBuilder();
 
 			//the extracts are records of their own, with their own privacy
 			final List<FLEFRecord> extracts = ctx.visible(ExtractReader.extractsOf(c, ctx.model));
@@ -179,7 +273,8 @@ public final class CitationRenderer{
 				.orElse(null);
 			final String extractText = (textExtract != null? ExtractReader.extractText(textExtract): null);
 			if(extractText != null){
-				sb.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
+				plainDetail.append(extractText);
+				detail.append(" — *").append(ctx.labels.sections().extractText()).append(":* \"")
 					.append(ReportFormatters.escape(extractText)).append('"');
 
 				final String extractType = ExtractReader.extractType(textExtract);
@@ -191,21 +286,35 @@ public final class CitationRenderer{
 				if(extractLocale != null && !extractLocale.isBlank())
 					quals.add(extractLocale);
 				if(!quals.isEmpty())
-					sb.append(" *(").append(ReportFormatters.escape(
+					detail.append(" *(").append(ReportFormatters.escape(
 						String.join(", ", quals))).append(")*");
 			}
 
 			// Extract note.
 			final String extractNote = ReportFormatters.extractNote(extracts);
-			if(extractNote != null)
-				sb.append(" — *").append(ctx.labels.sections().extractNote()).append(":* ")
+			if(extractNote != null){
+				plainDetail.append('\n').append(extractNote);
+				detail.append(" — *").append(ctx.labels.sections().extractNote()).append(":* ")
 					.append(ReportFormatters.escape(extractNote));
+			}
 
 			// Extract crop.
 			final String crop = ReportFormatters.extractCrop(extracts);
-			if(crop != null)
-				sb.append(" — *").append(ctx.labels.sections().extractCrop()).append(":* ")
+			if(crop != null){
+				plainDetail.append('\n').append(crop);
+				detail.append(" — *").append(ctx.labels.sections().extractCrop()).append(":* ")
 					.append(ReportFormatters.escape(crop));
+			}
+
+			if(!detail.isEmpty() && deferring && ctx.config.sourcesPlacement().inSection(lines(plainDetail.toString()), ctx.config.longTextLines())){
+				//the citation keeps the source and the locator, and the number of the text that is told in the section
+				deferredDetailCount ++;
+				final String mark = ctx.labels.sections().extractText() + StringUtils.SPACE + deferredDetailCount;
+				deferredDetails.add("**" + mark + ":** " + title + detail);
+				sb.append(" — *(").append(mark).append(")*");
+			}
+			else
+				sb.append(detail);
 
 			items.add(sb.toString());
 
@@ -216,6 +325,28 @@ public final class CitationRenderer{
 			}
 		}
 		flush(out, items);
+		return out;
+	}
+
+	/**
+	 * @param citations	The citations of a record.
+	 * @return	Every citation, or (if the report cites the principal sources only) the ones that support the record best: of the citations that
+	 * 	support it (do not contradict it) the ones with the highest weight, see {@link SourceCitationReader#citationWeight(FLEFRecord)}. A
+	 * 	citation that contradicts the record is always kept: leaving out what disagrees would mislead the reader.
+	 */
+	private List<FLEFRecord> principal(final List<FLEFRecord> citations){
+		if(!ctx.config.principalSourcesOnly() || citations.size() < 2)
+			return citations;
+
+		int best = Integer.MIN_VALUE;
+		for(final FLEFRecord citation : citations)
+			best = Math.max(best, SourceCitationReader.citationWeight(citation));
+		final List<FLEFRecord> out = new ArrayList<>(citations.size());
+		for(final FLEFRecord citation : citations){
+			final int weight = SourceCitationReader.citationWeight(citation);
+			if(weight == best || weight < 0)
+				out.add(citation);
+		}
 		return out;
 	}
 

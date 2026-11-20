@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityChecker;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;

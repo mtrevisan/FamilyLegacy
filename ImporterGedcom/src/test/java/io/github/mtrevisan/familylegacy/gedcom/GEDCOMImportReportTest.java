@@ -189,7 +189,10 @@ class GEDCOMImportReportTest{
 		assertNote(individual, "EXID", "EXID: Q42 (http://wikidata.org)");
 		//the record identification number is technical
 		Assertions.assertEquals(8, FLEFRecordHelper.findChildren(individual, NoteReader.TAG_NOTE).size());
-		assertNote(model.getRecordById("S1"), "REFN", "REFN: S-77");
+		//the REFN of a source is an identifier of the source (a custom scheme: the GEDCOM tag), not a note
+		Assertions.assertEquals("REFN", FLEFRecordHelper.getChildValue(model.getRecordById("S1"), "identifier.scheme"));
+		Assertions.assertEquals("S-77", FLEFRecordHelper.getChildValue(model.getRecordById("S1"), "identifier.value"));
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(model.getRecordById("S1"), NoteReader.TAG_NOTE).isEmpty());
 		assertNote(only(model, RepositoryReader.TYPE), "RFN", "RFN: R-1");
 		assertNote(only(model, MediaReader.TYPE), "UID", "UID: 11-22");
 		assertNote(only(model, GroupReader.TYPE), "REFN", "REFN: FAM-1");
@@ -640,7 +643,11 @@ class GEDCOMImportReportTest{
 			2 TYPE user
 			""");
 
-		assertNote(result.model().getRecordById("S1"), "REFN (user)", "REFN: X1");
+		//a TYPE that is not known is kept as a custom scheme
+		final FLEFRecord source = result.model().getRecordById("S1");
+		Assertions.assertEquals("user", FLEFRecordHelper.getChildValue(source, "identifier.scheme"));
+		Assertions.assertEquals("X1", FLEFRecordHelper.getChildValue(source, "identifier.value"));
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(source, NoteReader.TAG_NOTE).isEmpty());
 		Assertions.assertTrue(result.report().isEmpty(), result.report().issues().toString());
 	}
 

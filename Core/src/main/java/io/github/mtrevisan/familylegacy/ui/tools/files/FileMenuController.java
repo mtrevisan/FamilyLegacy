@@ -573,13 +573,9 @@ public final class FileMenuController{
 			@Override
 			protected Void doInBackground() throws Exception{
 				progress.update(0, I18N.t("progress.serializing"));
-				final String content = FLEFWriter.createCompact()
-					.writeToString(model, progress::update);
-
-				// The file write itself is a single blocking call, so we
-				// can only show it as an indeterminate step.
-				progress.update(-1, I18N.t("progress.writing_file"));
-				AtomicFileWriter.write(file.toPath(), content, StandardCharsets.UTF_8);
+				//the text goes to the file as it is made: the file is not held in memory a second time as a string
+				AtomicFileWriter.write(file.toPath(), StandardCharsets.UTF_8,
+					writer -> FLEFWriter.createCompact().write(model, writer, progress::update));
 				return null;
 			}
 
@@ -616,9 +612,7 @@ public final class FileMenuController{
 
 	/** Writes the model, on the calling thread. */
 	private static void write(final File file, final FLEFModel model) throws IOException{
-		final String content = FLEFWriter.createCompact()
-			.writeToString(model);
-		AtomicFileWriter.write(file.toPath(), content, StandardCharsets.UTF_8);
+		AtomicFileWriter.write(file.toPath(), StandardCharsets.UTF_8, writer -> FLEFWriter.createCompact().write(model, writer));
 	}
 
 	private void showError(final String message, final Exception ex){

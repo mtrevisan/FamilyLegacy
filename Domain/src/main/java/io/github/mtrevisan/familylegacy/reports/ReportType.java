@@ -38,6 +38,7 @@ public enum ReportType{
 	DESCENDANT,
 	GROUP,
 	FAMILY_GROUP_SHEET,
+	END_OF_LINE,
 	INDIVIDUAL,
 	RELATIONSHIP,
 	PLACE,
@@ -48,11 +49,14 @@ public enum ReportType{
 	FULL_BIBLIOGRAPHY,
 	FAMILY_BOOK,
 	TO_VERIFY,
-	SURNAMES;
+	CONFLICTS,
+	SURNAMES,
+	IDENTITY_HYPOTHESES;
 
 	/** @return	Whether the report is about the whole file, not about a record. */
 	public boolean isGlobal(){
-		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK || this == TO_VERIFY || this == SURNAMES);
+		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK || this == TO_VERIFY || this == CONFLICTS || this == SURNAMES
+			|| this == IDENTITY_HYPOTHESES);
 	}
 
 	public String getTitle(){

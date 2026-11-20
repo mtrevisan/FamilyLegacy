@@ -87,6 +87,7 @@ public final class EventParticipationReader{
 	public static final String ENUM_ROLE_OFFICIANT = "officiant";
 	public static final String ENUM_ROLE_WITNESS = "witness";
 	public static final String ENUM_ROLE_INFORMANT = "informant";
+	public static final String ENUM_ROLE_MIDWIFE = "midwife";
 	public static final String ENUM_ROLE_SPONSOR = "sponsor";
 	public static final String ENUM_ROLE_POWER_OF_ATTORNEY = "power_of_attorney";
 	public static final String ENUM_ROLE_PRISONER = "prisoner";
@@ -107,6 +108,7 @@ public final class EventParticipationReader{
 		ENUM_ROLE_OFFICIANT,
 		ENUM_ROLE_WITNESS,
 		ENUM_ROLE_INFORMANT,
+		ENUM_ROLE_MIDWIFE,
 		ENUM_ROLE_SPONSOR,
 		ENUM_ROLE_POWER_OF_ATTORNEY,
 		ENUM_ROLE_PRISONER,
@@ -135,7 +137,7 @@ public final class EventParticipationReader{
 		ENUM_ROLE_POWER_OF_ATTORNEY,
 		ENUM_ROLE_PRISONER,
 		ENUM_ROLE_WITNESS,
-		ENUM_ROLE_OFFICIANT, ENUM_ROLE_INFORMANT,
+		ENUM_ROLE_OFFICIANT, ENUM_ROLE_INFORMANT, ENUM_ROLE_MIDWIFE,
 		ENUM_ROLE_EXECUTOR,
 		ENUM_ROLE_GRANTOR, ENUM_ROLE_GRANTEE,
 		ENUM_ROLE_LANDLORD, ENUM_ROLE_TENANT,

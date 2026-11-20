@@ -24,11 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.fan;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.fan.FanAssistantContributor;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.dossier.IndividualDossierPanel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ class FanAssistantTest{
 	private static List<Diagnostic> findings(final FLEFModel model, final String selectedId){
 		final List<Diagnostic> findings = new ArrayList<>();
 		for(final DiagnosticProvider provider : new FanAssistantContributor().diagnosticProviders())
-			findings.addAll(provider.diagnose(new AssistantContext(null, null, model, null, null, selectedId)));
+			findings.addAll(provider.diagnose(new SwingAssistantContext(null, null, model, null, null, selectedId)));
 		return findings;
 	}
 

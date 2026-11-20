@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.quality;
 
+import io.github.mtrevisan.familylegacy.events.EventTypeInfoService;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
@@ -31,10 +32,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -53,6 +56,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -183,12 +187,55 @@ public final class ConsistencyService{
 		checkHierarchies(model, relationships, placeRelationships, issues);
 		checkDuplicateRelationships(model, relationships, placeRelationships, issues);
 		checkConclusions(model, issues);
+		checkIdentifiers(model, issues);
 		checkEvents(model, issues);
 		issues.addAll(DateConsistency.check(model));
 
 		return new Report(individuals.size(), relationships.size() + placeRelationships.size(), issues);
 	}
 
+
+	/**
+	 * An identifier of a source, or of one of its repository citations, whose value fails the check of its scheme (the check digit of an
+	 * ISBN or an ISSN, the syntax of a URL) is a warning, never an error: a printed number can be wrong, and an old edition can predate
+	 * the check. The schemes that have no check, and the custom ones, say nothing.
+	 */
+	private static void checkIdentifiers(final FLEFModel model, final List<Issue> issues){
+		for(final FLEFRecord source : model.getRecordsByType(SourceReader.TYPE)){
+			for(final FLEFRecord identifier : IdentifierReader.extractIdentifiers(source))
+				if(isInvalid(identifier))
+					issues.add(issue(Severity.WARNING, source.getId(), "text.consistency.issue.invalid_identifier", source.getId(),
+						schemeLabel(identifier), IdentifierReader.extractValue(identifier).strip(), reason(identifier)));
+
+			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(source, SourceReader.TAG_REPOSITORY)){
+				final String repositoryId = StringUtils.defaultString(RepositoryCitationReader.extractRepository(citation));
+				for(final FLEFRecord identifier : RepositoryCitationReader.extractIdentifiers(citation))
+					if(isInvalid(identifier))
+						issues.add(issue(Severity.WARNING, source.getId(), "text.consistency.issue.invalid_repository_identifier",
+							source.getId(), repositoryId, schemeLabel(identifier), IdentifierReader.extractValue(identifier).strip(),
+							reason(identifier)));
+			}
+		}
+	}
+
+	private static boolean isInvalid(final FLEFRecord identifier){
+		return (IdentifierReader.validity(IdentifierReader.extractScheme(identifier), IdentifierReader.extractValue(identifier))
+			== IdentifierReader.Validity.INVALID);
+	}
+
+	/** @return	The name of the scheme to show: the one of the vocabulary, translated, or the custom text as written. */
+	private static String schemeLabel(final FLEFRecord identifier){
+		final String scheme = StringUtils.trimToEmpty(IdentifierReader.extractScheme(identifier));
+		return I18N.t("enum.identifier.scheme." + scheme.toLowerCase(Locale.ROOT), scheme);
+	}
+
+	/** @return	Why the value of the identifier is not valid, by what its scheme checks. */
+	private static String reason(final FLEFRecord identifier){
+		final String scheme = StringUtils.trimToEmpty(IdentifierReader.extractScheme(identifier)).toLowerCase(Locale.ROOT);
+		return I18N.t(IdentifierReader.ENUM_SCHEME_URL.equals(scheme)
+			? "text.identifier.invalid.url"
+			: "text.identifier.invalid.check_digit");
+	}
 
 	private static void checkIndividualName(final FLEFRecord individual, final List<Issue> issues){
 		if(StringUtils.isBlank(IndividualReader.extractPrimaryFullname(individual)))
@@ -411,6 +458,37 @@ public final class ConsistencyService{
 			if(type != null && PRINCIPAL_EVENT_TYPES.contains(type.toLowerCase(Locale.ROOT))
 					&& roles.stream().noneMatch(String::isEmpty) && !roles.contains(PRINCIPAL_ROLE))
 				issues.add(issue(Severity.WARNING, event.getId(), "text.consistency.issue.event_no_principal", type, name));
+			checkPrincipalCount(event, type, name, roles, issues);
+		}
+	}
+
+	/**
+	 * The number of principals that the catalog of the event types expects (a marriage has two, a burial one): an advisory, because the
+	 * data may well be incomplete. A participant without a role may be a principal, so it is given the benefit of the doubt.
+	 */
+	private static void checkPrincipalCount(final FLEFRecord event, final String type, final String name, final List<String> roles,
+			final List<Issue> issues){
+		final int principals = (int)roles.stream().filter(PRINCIPAL_ROLE::equals).count();
+		final int unknown = (int)roles.stream().filter(String::isEmpty).count();
+		//too many is certain whatever the participants without a role are, too few (or none) is only if they cannot make up for it
+		final Optional<EventTypeInfoService.ParticipantAdvisory> advisory = EventTypeInfoService.checkPrincipals(type, principals)
+			.filter(a -> a == EventTypeInfoService.ParticipantAdvisory.TOO_MANY_PRINCIPALS)
+			.or(() -> EventTypeInfoService.checkPrincipals(type, principals + unknown)
+				.filter(a -> a != EventTypeInfoService.ParticipantAdvisory.TOO_MANY_PRINCIPALS));
+		if(advisory.isEmpty())
+			return;
+
+		final int expected = EventTypeInfoService.expectedPrincipals(type).orElseThrow();
+		switch(advisory.get()){
+			case NO_PRINCIPAL -> {
+				//the events of the life of a person are already reported by the check above
+				if(!PRINCIPAL_EVENT_TYPES.contains(type.toLowerCase(Locale.ROOT)))
+					issues.add(issue(Severity.WARNING, event.getId(), "text.consistency.issue.event_no_principal", type, name));
+			}
+			case TOO_FEW_PRINCIPALS -> issues.add(issue(Severity.WARNING, event.getId(), "text.consistency.issue.event_few_principals",
+				type, name, principals, expected));
+			case TOO_MANY_PRINCIPALS -> issues.add(issue(Severity.WARNING, event.getId(), "text.consistency.issue.event_many_principals",
+				type, name, principals, expected));
 		}
 	}
 

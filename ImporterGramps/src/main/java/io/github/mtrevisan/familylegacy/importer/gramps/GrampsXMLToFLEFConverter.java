@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HeaderReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
@@ -1414,6 +1415,27 @@ public final class GrampsXMLToFLEFConverter{
 		return Strings.CS.removeEnd(mediaPath, "/") + "/" + source;
 	}
 
+	/** @return	The attribute of the source that says what it is ("Type", "Kind", "Source type"), {@code null} if there is none. */
+	private static Element kindAttribute(final Element source){
+		for(final Element attribute : GrampsXML.children(source, "srcattribute")){
+			final String type = StringUtils.trimToEmpty(GrampsXML.attribute(attribute, GRAMPS_TYPE)).toLowerCase(Locale.ROOT);
+			if(("type".equals(type) || "kind".equals(type) || "source type".equals(type))
+					&& GEDCOMMapper.mapSourceKind(GrampsXML.attribute(attribute, GRAMPS_VALUE)) != null)
+				return attribute;
+		}
+		return null;
+	}
+
+	/** @return	The first kind of the vocabulary that a tag of the source says (the tags are kept as a note too), {@code null} if none. */
+	private String tagKind(final Element source){
+		for(final Element reference : GrampsXML.children(source, "tagref")){
+			final String kind = GEDCOMMapper.mapKnownSourceKind(tagNames.get(GrampsXML.attribute(reference, GRAMPS_HLINK)));
+			if(kind != null)
+				return kind;
+		}
+		return null;
+	}
+
 	private void source(final Element element){
 		final FLEFRecord source = record(element, SourceReader.TYPE);
 		dataEntries(element);
@@ -1433,15 +1455,20 @@ public final class GrampsXMLToFLEFConverter{
 		source.addChild(child(SourceReader.TAG_PUBLISHER, GrampsXML.childText(element, "spubinfo")));
 
 		String mediaType = null;
+		String mediumKind = null;
 		final List<FLEFRecord> repositories = new ArrayList<>();
 		for(final Element reference : GrampsXML.children(element, "reporef")){
 			final Element repository = target(reference, GRAMPS_REPOSITORY);
 			if(repository == null)
 				continue;
 
+			//the call number says where the source is found in the repository: it is an identifier of the citation, not a locator (a
+			//position inside the source)
 			final FLEFRecord citation = FLEFRecord.createChildWithTag(SourceReader.TAG_REPOSITORY)
-				.addChild(child(RepositoryCitationReader.TAG_REPOSITORY, id(repository)))
-				.addChild(child(RepositoryCitationReader.TAG_LOCATOR, GrampsXML.attribute(reference, "callno")));
+				.addChild(child(RepositoryCitationReader.TAG_REPOSITORY, id(repository)));
+			final String callNumber = StringUtils.trimToNull(GrampsXML.attribute(reference, "callno"));
+			if(callNumber != null)
+				citation.addChild(IdentifierReader.create(IdentifierReader.ENUM_SCHEME_CALL_NUMBER, callNumber));
 			for(final Element noteReference : GrampsXML.children(reference, GRAMPS_NOTEREF)){
 				final Element note = target(noteReference, GRAMPS_NOTE);
 				final String text = (note != null? GrampsXML.childText(note, GRAMPS_TEXT): null);
@@ -1453,8 +1480,30 @@ public final class GrampsXMLToFLEFConverter{
 			final String medium = GEDCOMMapper.toTypeToken(GrampsXML.attribute(reference, "medium"));
 			if(mediaType == null && medium != null && !TYPE_UNKNOWN.equals(medium))
 				mediaType = medium;
+			if(mediumKind == null)
+				mediumKind = GEDCOMMapper.mapKnownSourceKind(medium);
 		}
+		//the kind of the source (what it is): a type attribute, else a tag that says it, else the medium when it says what the source is
+		//(a newspaper, a map)
+		final Element kindAttribute = kindAttribute(element);
+		String kind = (kindAttribute != null? GEDCOMMapper.mapSourceKind(GrampsXML.attribute(kindAttribute, GRAMPS_VALUE)): null);
+		if(kind == null)
+			kind = (tagKind(element) != null? tagKind(element): mediumKind);
+		source.addChild(child(SourceReader.TAG_KIND, kind));
 		source.addChild(child(SourceReader.TAG_MEDIA_TYPE, mediaType));
+		//the attributes of the source that name an identifier (ISBN, ISSN, DOI, URL, ...): the identifiers of the source itself; the other
+		//ones stay notes
+		final Set<Element> identifiers = new HashSet<>(0);
+		final Set<String> written = new HashSet<>(0);
+		for(final Element attribute : GrampsXML.children(element, "srcattribute")){
+			final String scheme = IdentifierReader.schemeOfLabel(GrampsXML.attribute(attribute, GRAMPS_TYPE));
+			final String value = StringUtils.trimToNull(GrampsXML.attribute(attribute, GRAMPS_VALUE));
+			if(scheme != null && value != null && attribute != kindAttribute){
+				identifiers.add(attribute);
+				if(written.add(IdentifierReader.normalizedKey(scheme, value)))
+					source.addChild(IdentifierReader.create(scheme, value));
+			}
+		}
 		for(final FLEFRecord repository : repositories)
 			source.addChild(repository);
 
@@ -1468,7 +1517,8 @@ public final class GrampsXMLToFLEFConverter{
 			source.addChild(child(SourceReader.TAG_MEDIA, mediaId));
 
 		for(final Element attribute : GrampsXML.children(element, "srcattribute"))
-			source.addChild(note(GrampsXML.attribute(attribute, GRAMPS_TYPE), GrampsXML.attribute(attribute, GRAMPS_VALUE), element));
+			if(!identifiers.contains(attribute) && (attribute != kindAttribute || kind == null || !kind.equals(GEDCOMMapper.mapSourceKind(GrampsXML.attribute(attribute, GRAMPS_VALUE)))))
+				source.addChild(note(GrampsXML.attribute(attribute, GRAMPS_TYPE), GrampsXML.attribute(attribute, GRAMPS_VALUE), element));
 		notes(source, element);
 		privacy(source, element);
 		source.addChild(audit(isoOf(element)));

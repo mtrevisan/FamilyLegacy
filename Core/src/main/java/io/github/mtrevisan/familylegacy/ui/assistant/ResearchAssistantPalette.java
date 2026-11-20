@@ -24,6 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.FindingsExport;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
+import io.github.mtrevisan.familylegacy.assistant.Sentences;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
@@ -250,7 +259,7 @@ final class ResearchAssistantPalette extends JDialog{
 	 */
 	ResearchAssistantPalette(final ResearchAssistantService service, final AssistantContext context,
 			final ResearchAssistantService.Recalculation recalculation, final State state){
-		super(context.owner(), I18N.t("assistant.title"), ModalityType.MODELESS);
+		super(SwingAssistantContext.owner(context), I18N.t("assistant.title"), ModalityType.MODELESS);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		//clicking outside the palette closes it (as for a popup): the window loses the focus
@@ -291,7 +300,7 @@ final class ResearchAssistantPalette extends JDialog{
 		}
 
 		pack();
-		setLocationRelativeTo(context.owner());
+		setLocationRelativeTo(SwingAssistantContext.owner(context));
 	}
 
 
@@ -393,7 +402,7 @@ final class ResearchAssistantPalette extends JDialog{
 				context.model())));
 			selectedOnlyCheckBox.setFocusable(false);
 			//opened from an editor, only the findings about its record (the user can ask for all of them)
-			selectedOnlyCheckBox.setSelected(context.window() instanceof RecordDialog);
+			selectedOnlyCheckBox.setSelected(SwingAssistantContext.of(context).window() instanceof RecordDialog);
 			selectedOnlyCheckBox.addActionListener(e -> refresh());
 			modes.add(selectedOnlyCheckBox);
 		}
@@ -1266,7 +1275,7 @@ final class ResearchAssistantPalette extends JDialog{
 			count(row.diagnostic(), AssistantStatistics.Event.OPENED);
 		dispose();
 		SwingUtilities.invokeLater(() -> {
-			OpenRecordsAction.open(context.owner(), model, records.getFirst());
+			OpenRecordsAction.open(SwingAssistantContext.owner(context), model, records.getFirst());
 			service.reopenIfChanged(context, before, state);
 		});
 	}

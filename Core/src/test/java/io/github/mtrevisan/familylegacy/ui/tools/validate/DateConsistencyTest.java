@@ -335,6 +335,18 @@ class DateConsistencyTest{
 	}
 
 	@Test
+	void theLegitimatePostDeathEventsAreNotErrors(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		born(mario, exact("1850-01-01"));
+		died(mario, exact("1900-01-01"));
+		for(final String type : List.of(EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_PROBATE, EventReader.ENUM_TYPE_WILL,
+				EventReader.ENUM_TYPE_REBURIAL, EventReader.ENUM_TYPE_EXHUMATION))
+			event(mario, type, exact("1920-01-01"), EventParticipationReader.ENUM_ROLE_PRINCIPAL);
+
+		Assertions.assertEquals(List.of(), found());
+	}
+
+	@Test
 	void aStoryOrARemembranceCanComeAfterTheDeath(){
 		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
 		born(mario, exact("1850-01-01"));

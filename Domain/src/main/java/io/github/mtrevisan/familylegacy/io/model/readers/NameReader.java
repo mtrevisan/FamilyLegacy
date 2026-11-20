@@ -47,9 +47,11 @@ import java.util.Set;
  *     // legal, immigration, and naturalization changes
  *     legal, immigrant, adapted,
  *     // informal, stage, and social names
- *     alias, nickname, artistic, professional, user,
+ *     alias, nickname, artistic, professional, pen_name, user,
  *     // historical and dynastic contexts
- *     regnal, slave_name
+ *     regnal, slave_name,
+ *     // a name not known (e.g. "unknown" in a record), so that the individual exists with something to display
+ *     placeholder
  *   } | Text
  *   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
  *   locale?: LocaleCode
@@ -138,7 +140,9 @@ public final class NameReader{
 	public static final String ENUM_PERSONAL_TYPE_ARTISTIC = "artistic";
 	public static final String ENUM_PERSONAL_TYPE_PROFESSIONAL = "professional";
 	public static final String ENUM_PERSONAL_TYPE_REGNAL = "regnal";
+	public static final String ENUM_PERSONAL_TYPE_PEN_NAME = "pen_name";
 	public static final String ENUM_PERSONAL_TYPE_SLAVE_NAME = "slave_name";
+	public static final String ENUM_PERSONAL_TYPE_PLACEHOLDER = "placeholder";
 	public static final String[] PERSONAL_TYPES = {
 		// marital status and origins at birth
 		ENUM_PERSONAL_TYPE_OFFICIAL, ENUM_PERSONAL_TYPE_RELIGIOUS, ENUM_PERSONAL_TYPE_BIRTH,
@@ -148,8 +152,11 @@ public final class NameReader{
 		ENUM_PERSONAL_TYPE_LEGAL, ENUM_PERSONAL_TYPE_IMMIGRANT, ENUM_PERSONAL_TYPE_ADAPTED,
 		// informal, stage, and social names
 		ENUM_PERSONAL_TYPE_ALIAS, ENUM_PERSONAL_TYPE_NICKNAME, ENUM_PERSONAL_TYPE_ARTISTIC, ENUM_PERSONAL_TYPE_PROFESSIONAL,
+		ENUM_PERSONAL_TYPE_PEN_NAME,
 		// historical and dynastic contexts
-		ENUM_PERSONAL_TYPE_REGNAL, ENUM_PERSONAL_TYPE_SLAVE_NAME
+		ENUM_PERSONAL_TYPE_REGNAL, ENUM_PERSONAL_TYPE_SLAVE_NAME,
+		// a name not known
+		ENUM_PERSONAL_TYPE_PLACEHOLDER
 	};
 
 	public static final String ENUM_TYPE_OFFICIAL = "official";

@@ -24,14 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
@@ -96,7 +98,7 @@ final class RecordDifferentAction implements DiagnosticAction{
 		if(left == null || right == null)
 			return;
 
-		final IdentityHypothesisRecordDialog hypothesisDialog = IdentityHypothesisRecordDialog.createNew(context.owner(), model)
+		final IdentityHypothesisRecordDialog hypothesisDialog = IdentityHypothesisRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withCandidates(left, right, draft.rationale(), CONFIDENCE)
 			.withSources(draft.sharedSourceIds());
 		hypothesisDialog.setVisible(true);
@@ -107,7 +109,7 @@ final class RecordDifferentAction implements DiagnosticAction{
 		if(hypothesis == null)
 			return;
 
-		ConclusionRecordDialog.createNew(context.owner(), model)
+		ConclusionRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withResolvedTarget(hypothesis, ISSUE_IDENTITY)
 			.withDraft(ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, narrative(model, left, right))
 			.setVisible(true);

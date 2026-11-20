@@ -145,6 +145,10 @@ public final class PrivacyService{
 
 	/** Whether the record is shown under the current policy. A {@code null} record is not visible. */
 	public static boolean isVisible(final FLEFModel model, final FLEFRecord record){
+		//the policy that shows everything hides nothing: the level of the record (which indexes the model) need not be found
+		if(policy() == PrivacyPolicy.SHOW_ALL)
+			return (record != null);
+
 		return (record != null && !policy().hides(resolver(model).effectiveLevel(record)));
 	}
 

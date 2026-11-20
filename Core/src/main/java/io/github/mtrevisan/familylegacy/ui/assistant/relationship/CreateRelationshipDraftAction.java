@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 
 
@@ -69,7 +71,7 @@ final class CreateRelationshipDraftAction implements DiagnosticAction{
 
 		//the evidence the draft starts from (the event may have been deleted since: then there is none)
 		final FLEFRecord evidence = (draft.eventId() != null? model.getRecordById(draft.eventId()): null);
-		RelationshipRecordDialog.createNew(context.owner(), model)
+		RelationshipRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withParticipants(subject, target, draft.type())
 			.withEvidenceOf(evidence, draft.copyDate())
 			.setVisible(true);

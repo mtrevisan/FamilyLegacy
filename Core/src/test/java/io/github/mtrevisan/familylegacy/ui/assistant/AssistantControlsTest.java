@@ -24,6 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
@@ -143,7 +152,7 @@ class AssistantControlsTest{
 		final AtomicInteger place = new AtomicInteger();
 		service.register(assistant("gap", gap, List.of(finding("gap.x", "a", List.of("I1")))));
 		service.register(assistant("place", place, List.of(finding("place.x", "b", List.of("P1")))));
-		final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+		final AssistantContext context = new SwingAssistantContext(null, null, new FLEFModel());
 
 		Assertions.assertEquals(2, service.diagnose(context).size());
 
@@ -162,7 +171,7 @@ class AssistantControlsTest{
 		service.register(assistant("gap", new AtomicInteger(), List.of(finding("gap.x", "a", List.of("I1")))));
 		service.register(assistant("place", new AtomicInteger(), List.of(finding("place.x", "b", List.of("P1")))));
 		service.settings().setEnabledForIndicator("gap", false);
-		final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+		final AssistantContext context = new SwingAssistantContext(null, null, new FLEFModel());
 
 		Assertions.assertEquals(2, service.diagnose(context, fraction -> {}, ResearchAssistantService.Audience.PALETTE).size());
 		final List<Diagnostic> forIndicator = service.diagnose(context, fraction -> {}, ResearchAssistantService.Audience.INDICATOR);
@@ -183,7 +192,7 @@ class AssistantControlsTest{
 		service.settings().setEnabledForIndicator("gap", false);
 		//the same copy of the model: what the palette and the indicator ask for
 		final FLEFModel copy = new FLEFModel();
-		final AssistantContext reading = new AssistantContext(null, null, copy, FILE, () -> copy, null).forReading();
+		final AssistantContext reading = new SwingAssistantContext(null, null, copy, FILE, () -> copy, null).forReading();
 
 		final List<Diagnostic> indicator = service.diagnose(reading, fraction -> {}, ResearchAssistantService.Audience.INDICATOR);
 		final List<Diagnostic> palette = service.diagnose(reading, fraction -> {}, ResearchAssistantService.Audience.PALETTE);
@@ -220,7 +229,7 @@ class AssistantControlsTest{
 		});
 		service.register(assistant("place", new AtomicInteger(), List.of(finding("place.x", "b", List.of("P1")))));
 
-		final List<Diagnostic> found = service.diagnose(new AssistantContext(null, null, new FLEFModel()));
+		final List<Diagnostic> found = service.diagnose(new SwingAssistantContext(null, null, new FLEFModel()));
 
 		Assertions.assertEquals(2, found.size());
 		final Diagnostic failure = found.stream()

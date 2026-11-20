@@ -24,6 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantHost;
@@ -101,8 +109,8 @@ class ResearchAssistantServiceTest{
 		final DateEditor editor = new DateEditor();
 		final JTextField field = new JTextField();
 		editor.add(field);
-		final AssistantContext inEditor = new AssistantContext(null, field, null);
-		final AssistantContext elsewhere = new AssistantContext(null, new JButton(), null);
+		final AssistantContext inEditor = new SwingAssistantContext(null, field, null);
+		final AssistantContext elsewhere = new SwingAssistantContext(null, new JButton(), null);
 		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 
 		final List<String> inEditorIds = ids(service.search("", inEditor));
@@ -111,7 +119,7 @@ class ResearchAssistantServiceTest{
 		Assertions.assertTrue(inEditorIds.containsAll(List.of("dates.conversion", "dates.liturgical", "dates.sun", "dates.relative",
 			"dates.event", "dates.interval", "dates.age", "dates.clues", "dates.verify", "dates.roman")));
 		Assertions.assertTrue(ids(service.search("", elsewhere)).isEmpty());
-		Assertions.assertTrue(ids(service.search("", new AssistantContext(null, null, null))).isEmpty());
+		Assertions.assertTrue(ids(service.search("", new SwingAssistantContext(null, null, null))).isEmpty());
 	}
 
 	@Test
@@ -119,7 +127,7 @@ class ResearchAssistantServiceTest{
 		final DateEditor editor = new DateEditor();
 		final JTextField field = new JTextField();
 		editor.add(field);
-		final AssistantContext context = new AssistantContext(null, field, null);
+		final AssistantContext context = new SwingAssistantContext(null, field, null);
 		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
 
 		final AssistantAction age = service.search("", context).stream()
@@ -142,7 +150,7 @@ class ResearchAssistantServiceTest{
 			stub("b", "Find Possible Duplicates", true, 0),
 			stub("c", "Hidden", false, 0),
 			stub("d", "Date Estimator", true, 0)), List.of()));
-		final AssistantContext context = new AssistantContext(null, null, null);
+		final AssistantContext context = new SwingAssistantContext(null, null, null);
 
 		Assertions.assertEquals(List.of("a", "b", "d"), ids(service.search("", context)).stream().sorted().toList());
 		Assertions.assertEquals(List.of("b"), ids(service.search("dupl", context)));
@@ -158,7 +166,7 @@ class ResearchAssistantServiceTest{
 			stub("high", "Zeta", true, 50),
 			stub("none", "Beta", true, 0)), List.of()));
 
-		Assertions.assertEquals(List.of("high", "low", "none"), ids(service.search("", new AssistantContext(null, null, null))));
+		Assertions.assertEquals(List.of("high", "low", "none"), ids(service.search("", new SwingAssistantContext(null, null, null))));
 	}
 
 	@Test
@@ -167,7 +175,7 @@ class ResearchAssistantServiceTest{
 		service.register(contributor(List.of(
 			new StubAction("p", AssistantCategory.PLACES, "Find Duplicate Places", "", true, 0, new ArrayList<>()),
 			new StubAction("r", AssistantCategory.RESEARCH, "Find Gaps", "", true, 0, new ArrayList<>())), List.of()));
-		final AssistantContext context = new AssistantContext(null, null, null);
+		final AssistantContext context = new SwingAssistantContext(null, null, null);
 
 		Assertions.assertEquals(List.of("p"), ids(service.search(AssistantCategory.PLACES.title(), context)));
 	}
@@ -191,7 +199,7 @@ class ResearchAssistantServiceTest{
 				new Diagnostic(Diagnostic.Severity.ERROR, AssistantCategory.DIAGNOSTICS, "Child born before parent", "why")),
 			context -> List.of(new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.CONCLUSIONS, "Multiple births", "why")))));
 
-		final List<Diagnostic> diagnostics = service.diagnose(new AssistantContext(null, null, null));
+		final List<Diagnostic> diagnostics = service.diagnose(new SwingAssistantContext(null, null, null));
 
 		Assertions.assertEquals(List.of("Child born before parent", "Multiple births", "Possible norm"),
 			diagnostics.stream().map(Diagnostic::title).toList());
@@ -208,7 +216,7 @@ class ResearchAssistantServiceTest{
 			ranked(Diagnostic.Severity.INFORMATION, "Beta", 74.), ranked(Diagnostic.Severity.INFORMATION, "Gamma", 74.),
 			ranked(Diagnostic.Severity.ERROR, "Omega", 0.)))));
 
-		final List<Diagnostic> findings = service.diagnose(new AssistantContext(null, null, null));
+		final List<Diagnostic> findings = service.diagnose(new SwingAssistantContext(null, null, null));
 
 		//the most serious first, whatever the rank; within a severity the higher rank first, then by title
 		Assertions.assertEquals(List.of("Omega", "Zeta", "Beta", "Gamma", "Alpha"), findings.stream().map(Diagnostic::title).toList());
@@ -220,7 +228,7 @@ class ResearchAssistantServiceTest{
 		service.register(contributor(List.of(), List.of(context -> List.of(
 			keyed("kind.x", "Beta"), keyed("kind.y", "Alpha"), keyed("kind.x", "Delta"), keyed("kind.y", "Gamma")))));
 
-		final List<Diagnostic> findings = service.diagnose(new AssistantContext(null, null, null));
+		final List<Diagnostic> findings = service.diagnose(new SwingAssistantContext(null, null, null));
 
 		Assertions.assertEquals(List.of("Beta", "Delta", "Alpha", "Gamma"), findings.stream().map(Diagnostic::title).toList());
 		Assertions.assertEquals(List.of("kind.x", "kind.x", "kind.y", "kind.y"), findings.stream().map(Diagnostic::kind).toList());
@@ -274,7 +282,7 @@ class ResearchAssistantServiceTest{
 			},
 			context -> List.of(new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.RESEARCH, "Missing death", "why")))));
 
-		final List<Diagnostic> diagnostics = service.diagnose(new AssistantContext(null, null, null));
+		final List<Diagnostic> diagnostics = service.diagnose(new SwingAssistantContext(null, null, null));
 
 		//the one that works gives its finding, and the one that fails is told to the user (not mistaken for nothing to say)
 		Assertions.assertEquals(2, diagnostics.size());
@@ -289,9 +297,9 @@ class ResearchAssistantServiceTest{
 		inner.add(field);
 		outer.add(inner);
 
-		Assertions.assertSame(inner, new AssistantContext(null, field, null).focusedAncestor(HistoricalDateAssistantHost.class)
+		Assertions.assertSame(inner, new SwingAssistantContext(null, field, null).focusedAncestor(HistoricalDateAssistantHost.class)
 			.orElseThrow());
-		Assertions.assertTrue(new AssistantContext(null, null, null).focusedAncestor(HistoricalDateAssistantHost.class).isEmpty());
+		Assertions.assertTrue(new SwingAssistantContext(null, null, null).focusedAncestor(HistoricalDateAssistantHost.class).isEmpty());
 	}
 
 }

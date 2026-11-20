@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics.Event;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantStatistics.Event;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;

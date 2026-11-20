@@ -17,16 +17,10 @@ Elenco di tutti e soli i TODO ancora aperti di questo file (le scelte "non TODO"
 MEDIA, BASSA.
 
 ### ALTA
-- nel SearchService, SearchMatcher e file collegati, implementa: BM25; ha senso indicare dove lo si è trovato (match explanation)?
-  ricerca esatta se il testo è tra doppie virgolette (con escape se voglio cercare proprio le virgolette)? wildcard '*' e '?'
-  ha senso introdurre una ricerca usando Soundex o Double Metaphone?
 
 ### MEDIA
-- Per il modulo Updater: firmare gli installer Windows (Authenticode); pubblicare la fingerprint della chiave; verificare la firma durante l'update.
-- ha senso portare in uno o più moduli separati parte del codice di Core? o spostarli in altri moduli? (separazione netta fra dominio e storage?) separare Domain da Knowledge Processing/Inference Engine?
-- confronta flef con treebard
-- Performance test: Generare artificialmente 50000 individui, 150000 eventi, 150000 relazioni (o un numero significativo) e misura apertura file, ricerca individuo, rendering albero, calcolo parentela, generazione report PDF, esportazione FLEF (o altri se servono); individua le aree più lente, cerca soluzioni, scrivile sul README.md
-- guarda l'applicazione di myheritage e prendi spunto per inserire cose che portano valore: https://education.myheritage.com/article/helpful-tools-to-know-about-in-family-tree-builder/, https://education.myheritage.com/downloadable-resources/, https://www.youtube.com/watch?v=0L91J_huyG0, cerca online, nelle immagini, e sulla documentazione cosa può fare
+- guarda l'applicazione di myheritage e prendi spunto per inserire cose che portano valore: https://education.myheritage.com/article/helpful-tools-to-know-about-in-family-tree-builder/, https://education.myheritage.com/downloadable-resources/, https://www.youtube.com/watch?v=0L91J_huyG0, cerca online, nelle immagini, e sulla documentazione cosa può fare, censisci nel file README
+
 - Ego network: filtro per tipo di relazione e toggle dei gruppi (si può partire da `SocialFilters`, Domain `social`, o dal commit
   `eead2244cf42359aba65a1df47cf060f54e3570b`).
 - ~ Albero: filtri e espansione di rami (utile solo per alberi grandi).

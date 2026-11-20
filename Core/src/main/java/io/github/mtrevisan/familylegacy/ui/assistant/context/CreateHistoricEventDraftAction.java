@@ -24,10 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.context.ContextFinding;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
 
 
@@ -60,7 +62,7 @@ final class CreateHistoricEventDraftAction implements DiagnosticAction{
 		if(model == null)
 			return;
 
-		HistoricEventRecordDialog.createNew(context.owner(), model)
+		HistoricEventRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withDraft(draft.type(), draft.title())
 			.setVisible(true);
 	}

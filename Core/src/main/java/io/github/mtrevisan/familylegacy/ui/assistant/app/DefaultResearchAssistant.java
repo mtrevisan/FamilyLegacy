@@ -24,18 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.app;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantSettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.consanguinity.ConsanguinityAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.fan.FanAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.source.SourceIdentifierAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.source.SourceKindAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.DateAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.context.ContextAssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.fan.FanAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.features.ResearchToolsAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.IdentityAssistantContributor;
@@ -93,6 +95,8 @@ public final class DefaultResearchAssistant{
 		service.register(new RelationshipAssistantContributor());
 		service.register(new ConsanguinityAssistantContributor());
 		service.register(new FanAssistantContributor());
+		service.register(new SourceKindAssistantContributor());
+		service.register(new SourceIdentifierAssistantContributor());
 		service.register(new IdentityAssistantContributor());
 		service.register(new GapAssistantContributor());
 		service.register(new CitationAssistantContributor());

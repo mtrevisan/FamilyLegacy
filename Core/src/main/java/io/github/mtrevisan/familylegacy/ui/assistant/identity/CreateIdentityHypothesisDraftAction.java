@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
 
@@ -68,7 +70,7 @@ final class CreateIdentityHypothesisDraftAction implements DiagnosticAction{
 		if(left == null || right == null)
 			return;
 
-		IdentityHypothesisRecordDialog.createNew(context.owner(), model)
+		IdentityHypothesisRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withCandidates(left, right, draft.rationale(), draft.confidence())
 			.withSources(draft.sharedSourceIds())
 			.setVisible(true);

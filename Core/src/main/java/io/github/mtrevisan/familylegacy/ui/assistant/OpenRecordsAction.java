@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -74,12 +76,12 @@ final class OpenRecordsAction implements DiagnosticAction{
 		//the records of the finding may have been changed or deleted since it was computed: the ones that are gone are left out
 		final List<FLEFRecord> records = records(model, recordIds);
 		if(records.isEmpty())
-			MessageDialogs.show(context.owner(), I18N.t("assistant.open_records.gone"), title(),
+			MessageDialogs.show(SwingAssistantContext.owner(context), I18N.t("assistant.open_records.gone"), title(),
 				JOptionPane.INFORMATION_MESSAGE);
 		else if(records.size() == 1)
-			open(context.owner(), model, records.getFirst());
+			open(SwingAssistantContext.owner(context), model, records.getFirst());
 		else
-			new RecordChooserDialog(context.owner(), model, records, OpenRecordsAction::open).setVisible(true);
+			new RecordChooserDialog(SwingAssistantContext.owner(context), model, records, OpenRecordsAction::open).setVisible(true);
 	}
 
 

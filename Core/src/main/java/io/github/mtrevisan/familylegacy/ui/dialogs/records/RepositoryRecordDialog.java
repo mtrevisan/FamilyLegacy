@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
@@ -88,6 +91,9 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final EntityListPanel contactPanel;
 
 
+	private final MediaPartListPanel mediaCitationPanel;
+
+
 	public static RepositoryRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, RepositoryRecordDialog::new);
 	}
@@ -112,6 +118,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		contactPanel = EntityListPanel.createForStructure(RepositoryReader.TAG_CONTACT, this, I18N.t("dialog.repository.contacts"), model, ContactHandler.class);
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, SourceHandler.TYPE, I18N.t("dialog.component.sources_with_citations"))
 			.withComponent(PanelKey.NOTE, RepositoryReader.TAG_NOTE, null)
@@ -153,6 +160,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_ON_REPOSITORY);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		return panel;
 	}
 
@@ -180,6 +189,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		namePanel.load(record);
 		custodianPanel.load(record);
@@ -203,6 +213,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 
 		namePanel.save(record);
 		custodianPanel.save(record);

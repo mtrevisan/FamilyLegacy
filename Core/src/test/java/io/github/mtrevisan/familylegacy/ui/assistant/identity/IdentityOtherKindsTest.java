@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityOtherKinds;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -34,11 +38,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticActions;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -86,7 +87,7 @@ class IdentityOtherKindsTest{
 
 	private static List<Diagnostic> found(final FLEFModel model){
 		return new IdentityAssistantContributor(() -> IdentitySettings.DEFAULTS).diagnosticProviders().get(1)
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 

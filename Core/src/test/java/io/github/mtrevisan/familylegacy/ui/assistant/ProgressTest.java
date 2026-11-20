@@ -24,6 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -137,7 +142,7 @@ class ProgressTest{
 		});
 		final List<Double> values = new ArrayList<>();
 
-		service.diagnose(new AssistantContext(null, null, new FLEFModel()), values::add);
+		service.diagnose(new SwingAssistantContext(null, null, new FLEFModel()), values::add);
 
 		assertMonotone(values);
 		//two providers: the first one is half of the work, the second one tells half of its half, then all of it (a value out of range is cut)
@@ -148,7 +153,7 @@ class ProgressTest{
 	void theAssistantWithoutAListenerStillWorks(){
 		final ResearchAssistantService service = new ResearchAssistantService();
 
-		Assertions.assertTrue(service.diagnose(new AssistantContext(null, null, new FLEFModel())).isEmpty());
+		Assertions.assertTrue(service.diagnose(new SwingAssistantContext(null, null, new FLEFModel())).isEmpty());
 	}
 
 }

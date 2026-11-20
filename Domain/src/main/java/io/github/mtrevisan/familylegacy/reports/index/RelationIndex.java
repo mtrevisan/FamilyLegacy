@@ -33,6 +33,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 
@@ -92,29 +93,54 @@ public final class RelationIndex{
 	 * @param generations	How many generations of ancestors to follow (1 is the parents), 0 for all of them.
 	 */
 	public List<FLEFRecord> ancestorsByGeneration(final FLEFRecord root, final int generations){
-		final List<FLEFRecord> out = new ArrayList<>();
+		return flatten(ancestorLevels(root, generations));
+	}
+
+	/**
+	 * @param root	The root.
+	 * @param generations	How many generations of ancestors to follow (1 is the parents), 0 for all of them.
+	 * @return	The generations: the first has the root, the next its parents, then the grandparents, and so on; a person is in the first
+	 * 	generation it is found in.
+	 */
+	public List<List<FLEFRecord>> ancestorLevels(final FLEFRecord root, final int generations){
+		return levels(root, generations, this::parentsOf);
+	}
+
+	/**
+	 * @param root	The root.
+	 * @param generations	How many generations of descendants to follow (1 is the children), 0 for all of them.
+	 * @return	The generations: the first has the root, the next its children, then the grandchildren, and so on; a person is in the first
+	 * 	generation it is found in.
+	 */
+	public List<List<FLEFRecord>> descendantLevels(final FLEFRecord root, final int generations){
+		return levels(root, generations, this::childrenOf);
+	}
+
+	private static List<List<FLEFRecord>> levels(final FLEFRecord root, final int generations,
+			final Function<FLEFRecord, List<FLEFRecord>> next){
+		final List<List<FLEFRecord>> out = new ArrayList<>();
 		final Set<String> seen = new HashSet<>();
-		final Deque<FLEFRecord> queue = new ArrayDeque<>();
-		final Deque<Integer> depths = new ArrayDeque<>();
-
-		out.add(root);
 		seen.add(root.getId());
-		queue.add(root);
-		depths.add(0);
+		List<FLEFRecord> level = List.of(root);
+		while(!level.isEmpty()){
+			out.add(level);
+			if(generations > 0 && out.size() > generations)
+				break;
 
-		while(!queue.isEmpty()){
-			final FLEFRecord current = queue.poll();
-			final int depth = depths.poll();
-			if(generations > 0 && depth >= generations)
-				continue;
-
-			for(final FLEFRecord parent : parentsOf(current))
-				if(seen.add(parent.getId())){
-					out.add(parent);
-					queue.add(parent);
-					depths.add(depth + 1);
-				}
+			final List<FLEFRecord> following = new ArrayList<>();
+			for(final FLEFRecord current : level)
+				for(final FLEFRecord relative : next.apply(current))
+					if(seen.add(relative.getId()))
+						following.add(relative);
+			level = following;
 		}
+		return out;
+	}
+
+	private static List<FLEFRecord> flatten(final List<List<FLEFRecord>> levels){
+		final List<FLEFRecord> out = new ArrayList<>();
+		for(final List<FLEFRecord> level : levels)
+			out.addAll(level);
 		return out;
 	}
 
@@ -124,7 +150,15 @@ public final class RelationIndex{
 
 	/** The same as {@link #ancestorsWithCollaterals(FLEFRecord, CollateralScope)}, as far as the generation asked (0 for all of them). */
 	public List<FLEFRecord> ancestorsWithCollaterals(final FLEFRecord root, final CollateralScope scope, final int generations){
-		final List<FLEFRecord> direct = ancestorsByGeneration(root, generations);
+		return ancestorsWithCollaterals(ancestorsByGeneration(root, generations), scope);
+	}
+
+	/**
+	 * @param direct	The ancestors the report is about.
+	 * @param scope	The collaterals to add.
+	 * @return	The ancestors, followed by the collaterals of those ancestors.
+	 */
+	public List<FLEFRecord> ancestorsWithCollaterals(final List<FLEFRecord> direct, final CollateralScope scope){
 		if(scope == CollateralScope.NONE)
 			return direct;
 
@@ -184,29 +218,7 @@ public final class RelationIndex{
 	 * @param generations	How many generations of descendants to follow (1 is the children), 0 for all of them.
 	 */
 	public List<FLEFRecord> descendantsByGeneration(final FLEFRecord root, final int generations){
-		final List<FLEFRecord> out = new ArrayList<>();
-		final Set<String> seen = new HashSet<>();
-		final Deque<FLEFRecord> queue = new ArrayDeque<>();
-		final Deque<Integer> depths = new ArrayDeque<>();
-
-		out.add(root);
-		seen.add(root.getId());
-		queue.add(root);
-		depths.add(0);
-		while(!queue.isEmpty()){
-			final FLEFRecord current = queue.poll();
-			final int depth = depths.poll();
-			if(generations > 0 && depth >= generations)
-				continue;
-
-			for(final FLEFRecord child : childrenOf(current))
-				if(seen.add(child.getId())){
-					out.add(child);
-					queue.add(child);
-					depths.add(depth + 1);
-				}
-		}
-		return out;
+		return flatten(descendantLevels(root, generations));
 	}
 
 	public List<FLEFRecord> descendantsWithCollaterals(final FLEFRecord root, final CollateralScope scope){
@@ -215,7 +227,16 @@ public final class RelationIndex{
 
 	/** The same as {@link #descendantsWithCollaterals(FLEFRecord, CollateralScope)}, as far as the generation asked (0 for all of them). */
 	public List<FLEFRecord> descendantsWithCollaterals(final FLEFRecord root, final CollateralScope scope, final int generations){
-		final List<FLEFRecord> direct = descendantsByGeneration(root, generations);
+		return descendantsWithCollaterals(root, descendantsByGeneration(root, generations), scope);
+	}
+
+	/**
+	 * @param root	The root of the report.
+	 * @param direct	The descendants the report is about.
+	 * @param scope	The collaterals to add.
+	 * @return	The descendants, followed by the collaterals of those descendants.
+	 */
+	public List<FLEFRecord> descendantsWithCollaterals(final FLEFRecord root, final List<FLEFRecord> direct, final CollateralScope scope){
 		if(scope == CollateralScope.NONE)
 			return direct;
 

@@ -24,6 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipChecker;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipData;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipDraft;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -33,10 +40,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticActions;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -203,7 +208,7 @@ class RelationshipDataLoaderTest{
 		model.addRecord(relationship("R92", anna, anna, RelationshipReader.ENUM_TYPE_ASSOCIATE));
 
 		final List<Diagnostic> found = new RelationshipAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 
 		Assertions.assertFalse(found.isEmpty());
 		for(final Diagnostic finding : found){
@@ -222,7 +227,7 @@ class RelationshipDataLoaderTest{
 				model.removeRecord(relationship.id());
 
 		final List<Diagnostic> found = new RelationshipAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 		final Diagnostic missing = found.stream()
 			.filter(f -> f.title().startsWith("Marriage without a relationship"))
 			.findFirst()

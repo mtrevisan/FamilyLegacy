@@ -106,6 +106,8 @@ public final class KinshipCalculator{
 	 * distance from the cached root.
 	 */
 	private final Map<String, Map<String, Integer>> ancestorCache = new HashMap<>();
+	/** The coefficients of the pairs met so far, kept as long as the ancestry of this calculator (built when first needed). */
+	private ConsanguinityCalculator consanguinity;
 
 
 	/**
@@ -323,19 +325,19 @@ public final class KinshipCalculator{
 	 */
 	private double relationshipCoefficient(final String idA, final String idB, final Set<String> ancestorsOfA,
 			final Set<String> ancestorsOfB){
-		final Set<String> ids = new HashSet<>(ancestorsOfA);
-		ids.addAll(ancestorsOfB);
-		final Map<String, List<String>> parentsByChild = new HashMap<>(ids.size());
-		for(final String id : ids){
-			final List<String> parentIds = new ArrayList<>(2);
-			for(final FLEFRecord parent : parents.getParents(id))
-				if(parent.getId() != null)
-					parentIds.add(parent.getId());
-			if(!parentIds.isEmpty())
-				parentsByChild.put(id, parentIds);
-		}
-		return new ConsanguinityCalculator(new AncestryGraph(parentsByChild))
-			.relationship(idA, idB);
+		//one calculator for all the questions: what it computed for a pair of ancestors serves every other pair that goes through them
+		if(consanguinity == null)
+			consanguinity = new ConsanguinityCalculator(this::parentIdsOf);
+		return consanguinity.relationship(idA, idB);
+	}
+
+	/** @return	The identifiers of the parents of the individual (the ones of the parent provider, at most two count). */
+	private List<String> parentIdsOf(final String id){
+		final List<String> parentIds = new ArrayList<>(2);
+		for(final FLEFRecord parent : parents.getParents(id))
+			if(parent.getId() != null)
+				parentIds.add(parent.getId());
+		return parentIds;
 	}
 
 

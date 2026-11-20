@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.junit.jupiter.api.Assertions;
@@ -57,7 +63,7 @@ class IncrementalFindingsTest{
 	}
 
 	private static AssistantContext reading(final FLEFModel copy){
-		return new AssistantContext(null, null, copy, FILE, () -> copy, null).forReading();
+		return new SwingAssistantContext(null, null, copy, FILE, () -> copy, null).forReading();
 	}
 
 	private static AssistantContributor assistant(final AtomicInteger asked, final Set<String> dependsOn,
@@ -152,8 +158,8 @@ class IncrementalFindingsTest{
 		final FLEFModel model = copy(record("I1", "individual", "Anna"));
 
 		//the model of the file, that the user may be editing: not a copy
-		service.diagnose(new AssistantContext(null, null, model, FILE));
-		service.diagnose(new AssistantContext(null, null, model, FILE));
+		service.diagnose(new SwingAssistantContext(null, null, model, FILE));
+		service.diagnose(new SwingAssistantContext(null, null, model, FILE));
 
 		Assertions.assertEquals(2, asked.get());
 	}

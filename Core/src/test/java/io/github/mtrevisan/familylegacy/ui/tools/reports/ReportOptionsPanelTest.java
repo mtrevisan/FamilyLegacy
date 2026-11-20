@@ -25,10 +25,22 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
+import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
+import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
+import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
+import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
+import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
+import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
+import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
+import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
+import io.github.mtrevisan.familylegacy.reports.PortraitMode;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
+import io.github.mtrevisan.reports.ImageAlignment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +67,8 @@ class ReportOptionsPanelTest{
 			!defaults.indirectRelations(),
 			defaults.collateralScope(),
 			defaults.generations() + 3,
+			defaults.firstGeneration() + 2,
+			GenerationOrder.FARTHEST_FIRST,
 			PersonOrder.BIRTH_DATE,
 			ReportDateFormat.DAY_MONTH_YEAR,
 			!defaults.notes(),
@@ -70,13 +84,37 @@ class ReportOptionsPanelTest{
 			!defaults.historicEvents(),
 			!defaults.repositories(),
 			!defaults.includeOriginalSources(),
+			!defaults.groupSourcesByKind(),
 			!defaults.eventFullParticipants(),
 			!defaults.coverageReport(),
 			!defaults.timeline(),
 			!defaults.indexIndividuals(),
 			!defaults.indexPlaces(),
 			!defaults.includeDescriptions(),
-			!defaults.includePictures());
+			!defaults.includePictures(),
+			NumberingSystem.HENRY,
+			!defaults.boldDirectAncestors(),
+			!defaults.crossReferences(),
+			GivenNameStyle.FIRST_AND_INITIALS,
+			"n/a",
+			!defaults.indexYears(),
+			TextPlacement.SECTION,
+			TextPlacement.LONG_IN_SECTION,
+			defaults.longTextLines() + 1,
+			!defaults.principalSourcesOnly(),
+			!defaults.sourceLocator(),
+			MediaPlacement.APPENDIX,
+			defaults.imagesPerPage() + 2,
+			defaults.maxImageMegapixels() + 3,
+			defaults.thumbnailSize() + 250,
+			PortraitMode.CROP,
+			!defaults.portraitNameTitle(),
+			ImageAlignment.WRAP_LEFT,
+			ConflictFilter.RESOLVED,
+			ConflictConfidence.HIGH,
+			ConflictRecordType.NAME,
+			HypothesisFilter.REJECTED,
+			HypothesisRecordType.PLACE);
 	}
 
 

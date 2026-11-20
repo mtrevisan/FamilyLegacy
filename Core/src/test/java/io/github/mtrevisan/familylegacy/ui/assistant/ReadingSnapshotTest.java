@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -95,8 +101,8 @@ class ReadingSnapshotTest{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
 		final ResearchAssistantService service = DefaultResearchAssistant.createDefault(IgnoredFindings.inMemory());
-		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
-		final List<String> expected = identities(service.diagnose(new AssistantContext(null, null, model, FILE)));
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView);
+		final List<String> expected = identities(service.diagnose(new SwingAssistantContext(null, null, model, FILE)));
 		Assertions.assertFalse(expected.isEmpty());
 
 		//taken on the event dispatch thread; then the user edits, while the findings are computed away from it
@@ -112,7 +118,7 @@ class ReadingSnapshotTest{
 	void theActionsKeepTheModelOfTheFile() throws IOException{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
-		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView);
 
 		final AssistantContext reading = context.forReading();
 
@@ -125,10 +131,10 @@ class ReadingSnapshotTest{
 	@Test
 	void aContextWithoutACopyIsReadAsItIs() throws IOException{
 		final FLEFModel model = convert();
-		final AssistantContext context = new AssistantContext(null, null, model, FILE);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE);
 
 		Assertions.assertSame(context, context.forReading());
-		final AssistantContext withoutModel = new AssistantContext(null, null, null, FILE, () -> model);
+		final AssistantContext withoutModel = new SwingAssistantContext(null, null, null, FILE, () -> model);
 		Assertions.assertSame(withoutModel, withoutModel.forReading(), "no model, nothing to copy");
 	}
 
@@ -136,7 +142,7 @@ class ReadingSnapshotTest{
 	void theCopyIsTakenOnlyOnce() throws IOException{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
-		final AssistantContext reading = new AssistantContext(null, null, model, FILE, history::readOnlyView).forReading();
+		final AssistantContext reading = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView).forReading();
 
 		Assertions.assertSame(reading, reading.forReading(), "a context for reading is not copied again");
 	}
@@ -145,7 +151,7 @@ class ReadingSnapshotTest{
 	void theCopyIsSharedWhileTheModelDoesNotChange() throws IOException{
 		final FLEFModel model = convert();
 		final ModelHistory history = new ModelHistory(model);
-		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView);
 
 		Assertions.assertSame(context.forReading().model(), context.forReading().model(),
 			"the indicator and the palette read the same copy, which costs once");
@@ -178,7 +184,7 @@ class ReadingSnapshotTest{
 		final ModelHistory history = new ModelHistory(model);
 		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
-		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView);
 
 		//the indicator computes, then the palette is opened: it asks for the findings of the same copy
 		final List<Diagnostic> first = service.diagnose(context.forReading());
@@ -194,7 +200,7 @@ class ReadingSnapshotTest{
 		final ModelHistory history = new ModelHistory(model);
 		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
-		final AssistantContext context = new AssistantContext(null, null, model, FILE, history::readOnlyView);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE, history::readOnlyView);
 
 		service.diagnose(context.forReading());
 		editEverything(model);
@@ -208,7 +214,7 @@ class ReadingSnapshotTest{
 		final FLEFModel model = convert();
 		final AtomicInteger calls = new AtomicInteger();
 		final ResearchAssistantService service = countingService(calls);
-		final AssistantContext context = new AssistantContext(null, null, model, FILE);
+		final AssistantContext context = new SwingAssistantContext(null, null, model, FILE);
 
 		service.diagnose(context);
 		service.diagnose(context);

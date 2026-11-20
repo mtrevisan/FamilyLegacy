@@ -46,6 +46,7 @@ import java.util.StringJoiner;
  *   name*: PersonalNameStructure   // names associated with this individual (birth name, married name, alias, etc.)
  *   source*: SourceCitation        // the evidence that this individual existed; facts about the individual (its sex included, as a SEX IndividualAttributeRecord) are cited on their own records
  *   note*: NoteStructure           // free-text notes about this individual
+ *   media*: MediaCitation          // the photographs, scans and other media of this individual
  *   preferred_image?: struct {
  *     media: Xref&lt;MediaRecord&gt;
  *     crop?: CropRect   // normalized rectangle identifying the region of interest within the image

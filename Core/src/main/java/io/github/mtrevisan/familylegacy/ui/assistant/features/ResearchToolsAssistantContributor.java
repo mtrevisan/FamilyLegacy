@@ -24,12 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.features;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
@@ -96,7 +97,7 @@ public final class ResearchToolsAssistantContributor implements AssistantContrib
 		}
 
 		private static ToolContext toolContext(final AssistantContext context){
-			return ToolContexts.custom(context.model(), context.selectedRecordId(), context.window(), null);
+			return ToolContexts.custom(context.model(), context.selectedRecordId(), SwingAssistantContext.of(context).window(), null);
 		}
 
 	}

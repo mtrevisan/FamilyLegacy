@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.reports.pdf;
 
+import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportLayout;
 import io.github.mtrevisan.reports.ReportMarkup;
@@ -136,6 +137,8 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 	/** Maximum height of an image, in points; its width is the one of the page. */
 	private static final float IMAGE_MAX_HEIGHT = 480;
+	/** The widest an image with the text flowing around it can be, as a fraction of the width of the text. */
+	private static final float WRAPPED_IMAGE_WIDTH_FRACTION = 0.4f;
 
 	/** The columns of a table are as wide as their longest text (in characters), between these values. */
 	private static final int COLUMN_MIN_WEIGHT = 6;
@@ -675,20 +678,29 @@ public final class PdfReportRenderer implements ReportRenderer{
 
 		private void writeImage(final ReportSection.Image img) throws DocumentException{
 			final Image image = load(img.file());
+			final ImageAlignment alignment = img.alignment();
+			final int captionAlignment = switch(alignment){
+				case LEFT, WRAP_LEFT -> Element.ALIGN_LEFT;
+				case RIGHT, WRAP_RIGHT -> Element.ALIGN_RIGHT;
+				case DEFAULT, CENTER -> Element.ALIGN_CENTER;
+			};
 			//an image that cannot be read leaves only its caption, as in the other formats
 			if(image != null){
-				final float maxWidth = pdf.right() - pdf.left();
+				//(an image the text flows around leaves room for the text)
+				final float maxWidth = (pdf.right() - pdf.left()) * (alignment.isWrapped()? WRAPPED_IMAGE_WIDTH_FRACTION: 1.f);
 				//an image that is smaller than the page keeps its size: it is not enlarged
 				if(image.getWidth() > maxWidth || image.getHeight() > IMAGE_MAX_HEIGHT)
 					image.scaleToFit(maxWidth, IMAGE_MAX_HEIGHT);
-				image.setAlignment(Element.ALIGN_CENTER);
+				image.setAlignment(alignment.isWrapped()
+					? (alignment.isRight()? Image.RIGHT: Image.LEFT) | Image.TEXTWRAP
+					: captionAlignment);
 				pdf.add(image);
 			}
 
 			if(!img.caption().isBlank()){
 				final Paragraph cap = paragraph(fonts.phrase(img.caption(), CAPTION_SIZE, false, true, false, MUTED_COLOR),
 					CAPTION_SIZE * LEADING_FACTOR);
-				cap.setAlignment(Element.ALIGN_CENTER);
+				cap.setAlignment(captionAlignment);
 				cap.setSpacingBefore(4);
 				cap.setSpacingAfter(IMAGE_SPACE);
 				pdf.add(cap);

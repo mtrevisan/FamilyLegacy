@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.CompareRecordsAction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

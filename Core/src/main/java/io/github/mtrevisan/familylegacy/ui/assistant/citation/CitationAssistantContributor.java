@@ -24,12 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.citation;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CitationHost;
 
 import java.util.List;
@@ -66,7 +67,7 @@ public final class CitationAssistantContributor implements AssistantContributor{
 
 		@Override
 		public boolean isApplicable(final AssistantContext context){
-			return context.focusedAncestor(CitationHost.class).isPresent();
+			return SwingAssistantContext.of(context).focusedAncestor(CitationHost.class).isPresent();
 		}
 
 		@Override
@@ -76,9 +77,9 @@ public final class CitationAssistantContributor implements AssistantContributor{
 
 		@Override
 		public void execute(final AssistantContext context){
-			context.focusedAncestor(CitationHost.class).ifPresent(host -> {
+			SwingAssistantContext.of(context).focusedAncestor(CitationHost.class).ifPresent(host -> {
 				final FLEFModel model = context.model();
-				new CitationAssistantDialog(context.owner(), model, host.citedSource(), host.locator(), host::applyLocator,
+				new CitationAssistantDialog(SwingAssistantContext.owner(context), model, host.citedSource(), host.locator(), host::applyLocator,
 					(host.acceptsRepository()? host::applyRepository: null))
 					.setVisible(true);
 			});

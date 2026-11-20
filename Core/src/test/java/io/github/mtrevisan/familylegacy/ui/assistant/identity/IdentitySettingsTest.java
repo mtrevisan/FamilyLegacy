@@ -24,14 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityChecker;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -70,7 +72,7 @@ class IdentitySettingsTest{
 
 	private static List<Diagnostic> found(final FLEFModel model, final IdentitySettings settings){
 		return new IdentityAssistantContributor(() -> settings).diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 

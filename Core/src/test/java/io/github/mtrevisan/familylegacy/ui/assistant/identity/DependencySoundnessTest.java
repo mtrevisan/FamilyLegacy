@@ -24,16 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
-import io.github.mtrevisan.familylegacy.ui.assistant.consanguinity.ConsanguinityAssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -159,7 +159,7 @@ class DependencySoundnessTest{
 	private static void assertSound(final DiagnosticProvider provider, final FLEFModel model){
 		final Set<String> declared = provider.dependsOn();
 		Assertions.assertNotNull(declared);
-		final List<String> expected = summary(provider.diagnose(new AssistantContext(null, null, model)));
+		final List<String> expected = summary(provider.diagnose(new SwingAssistantContext(null, null, model)));
 		Assertions.assertFalse(expected.isEmpty(), "the model must make the assistant find something, or the check proves nothing");
 
 		final Set<String> kinds = new TreeSet<>();
@@ -170,7 +170,7 @@ class DependencySoundnessTest{
 		Assertions.assertFalse(kinds.isEmpty());
 
 		for(final String kind : kinds)
-			Assertions.assertEquals(expected, summary(provider.diagnose(new AssistantContext(null, null, without(model, kind)))),
+			Assertions.assertEquals(expected, summary(provider.diagnose(new SwingAssistantContext(null, null, without(model, kind)))),
 				"the findings changed without the records of kind " + kind + ", that the assistant does not declare");
 	}
 

@@ -177,6 +177,8 @@ public final class GEDCOMMapper{
 		TAG_RELIGION, TAG_TEMPLE, TAG_STATUS, TAG_FAMILY_CHILD, TAG_SOURCE, TAG_NOTE, TAG_MULTIMEDIA, TAG_RESTRICTION, TAG_AGE,
 		TAG_HUSBAND, TAG_WIFE, TAG_ASSOCIATION, TAG_POSTAL_CODE, TAG_PHONE, TAG_EMAIL, TAG_FAX, TAG_WEB, TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB);
 	/** The tags of a source read by the converter. */
+	/** The tag some programs use for the type of a source (census, church register...). */
+	public static final String TAG_SOURCE_TYPE = "_TYPE";
 	public static final Set<String> SOURCE_CONSUMED_TAGS = Set.of(TAG_TITLE, TAG_ABBREVIATION, TAG_AUTHOR, TAG_PUBLICATION, TAG_DATA,
 		TAG_TEXT, TAG_REPOSITORY, TAG_MULTIMEDIA, TAG_NOTE, TAG_RESTRICTION);
 	/** The tags of a repository read by the converter. */
@@ -318,6 +320,8 @@ public final class GEDCOMMapper{
 	private static final Map<String, String> SEX_MAP = new HashMap<>();
 	// ---- Tipo di media (SourceRecord.media_type) ----
 	private static final Map<String, String> MEDIA_TYPE_MAP = new HashMap<>();
+	// ---- Genere documentale (SourceRecord.kind) ----
+	private static final Map<String, String> SOURCE_KIND_MAP = new HashMap<>();
 	// ---- Ruolo in event_participation ----
 	public static final Map<String, String> ROLE_MAP;
 	// ---- Livello privacy ----
@@ -401,6 +405,169 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		// Media type
 		// ------------------------------
+		SOURCE_KIND_MAP.put("civil", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("civil_record", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("civil_records", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("civil_registry", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("vital", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("vital_record", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("vital_records", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("birth_record", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("birth_certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("marriage_record", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("marriage_certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("death_record", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("death_certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("registry_office", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("church", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("parish", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("parish_register", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("parish_record", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("parish_records", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("church_record", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("church_records", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("baptism", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("baptismal_record", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("baptism_record", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("baptism_register", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("marriage_register", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("burial_register", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("ecclesiastical", SourceReader.ENUM_KIND_CHURCH_REGISTER);
+		SOURCE_KIND_MAP.put("census_record", SourceReader.ENUM_KIND_CENSUS);
+		SOURCE_KIND_MAP.put("census_records", SourceReader.ENUM_KIND_CENSUS);
+		SOURCE_KIND_MAP.put("enumeration", SourceReader.ENUM_KIND_CENSUS);
+		SOURCE_KIND_MAP.put("census_return", SourceReader.ENUM_KIND_CENSUS);
+		SOURCE_KIND_MAP.put("deeds", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("land_record", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("land_records", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("land_deed", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("property_record", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("conveyance", SourceReader.ENUM_KIND_DEED);
+		SOURCE_KIND_MAP.put("will", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("wills", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("probate", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("estate", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("testament", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("inventory", SourceReader.ENUM_KIND_WILL_PROBATE);
+		SOURCE_KIND_MAP.put("court", SourceReader.ENUM_KIND_COURT_RECORD);
+		SOURCE_KIND_MAP.put("court_records", SourceReader.ENUM_KIND_COURT_RECORD);
+		SOURCE_KIND_MAP.put("court_case", SourceReader.ENUM_KIND_COURT_RECORD);
+		SOURCE_KIND_MAP.put("judgment", SourceReader.ENUM_KIND_COURT_RECORD);
+		SOURCE_KIND_MAP.put("legal_record", SourceReader.ENUM_KIND_COURT_RECORD);
+		SOURCE_KIND_MAP.put("military", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("military_records", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("service_record", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("pension", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("draft", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("draft_card", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("enlistment", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("muster_roll", SourceReader.ENUM_KIND_MILITARY_RECORD);
+		SOURCE_KIND_MAP.put("school", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("school_records", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("education", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("educational_record", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("university", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("matriculation", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("alumni", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("yearbook", SourceReader.ENUM_KIND_SCHOOL_RECORD);
+		SOURCE_KIND_MAP.put("immigration_record", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("naturalization", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("passenger_list", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("ship_manifest", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("manifest", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("emigration", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("border_crossing", SourceReader.ENUM_KIND_IMMIGRATION);
+		SOURCE_KIND_MAP.put("tax", SourceReader.ENUM_KIND_TAX_ROLL);
+		SOURCE_KIND_MAP.put("tax_record", SourceReader.ENUM_KIND_TAX_ROLL);
+		SOURCE_KIND_MAP.put("tax_records", SourceReader.ENUM_KIND_TAX_ROLL);
+		SOURCE_KIND_MAP.put("tax_list", SourceReader.ENUM_KIND_TAX_ROLL);
+		SOURCE_KIND_MAP.put("cadastre", SourceReader.ENUM_KIND_TAX_ROLL);
+		SOURCE_KIND_MAP.put("city_directory", SourceReader.ENUM_KIND_DIRECTORY);
+		SOURCE_KIND_MAP.put("telephone_directory", SourceReader.ENUM_KIND_DIRECTORY);
+		SOURCE_KIND_MAP.put("phone_book", SourceReader.ENUM_KIND_DIRECTORY);
+		SOURCE_KIND_MAP.put("newspaper_article", SourceReader.ENUM_KIND_NEWSPAPER);
+		SOURCE_KIND_MAP.put("obituary", SourceReader.ENUM_KIND_NEWSPAPER);
+		SOURCE_KIND_MAP.put("obituaries", SourceReader.ENUM_KIND_NEWSPAPER);
+		SOURCE_KIND_MAP.put("news", SourceReader.ENUM_KIND_NEWSPAPER);
+		SOURCE_KIND_MAP.put("magazine", SourceReader.ENUM_KIND_PERIODICAL);
+		SOURCE_KIND_MAP.put("journal", SourceReader.ENUM_KIND_PERIODICAL);
+		SOURCE_KIND_MAP.put("bulletin", SourceReader.ENUM_KIND_PERIODICAL);
+		SOURCE_KIND_MAP.put("serial", SourceReader.ENUM_KIND_PERIODICAL);
+		SOURCE_KIND_MAP.put("books", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("published_book", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("publication", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("monograph", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("family_history", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("local_history", SourceReader.ENUM_KIND_BOOK);
+		SOURCE_KIND_MAP.put("cemetery", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("gravestone", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("headstone", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("tombstone", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("grave", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("burial", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("burial_record", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("funeral", SourceReader.ENUM_KIND_CEMETERY_RECORD);
+		SOURCE_KIND_MAP.put("letter", SourceReader.ENUM_KIND_CORRESPONDENCE);
+		SOURCE_KIND_MAP.put("letters", SourceReader.ENUM_KIND_CORRESPONDENCE);
+		SOURCE_KIND_MAP.put("email", SourceReader.ENUM_KIND_CORRESPONDENCE);
+		SOURCE_KIND_MAP.put("postcard", SourceReader.ENUM_KIND_CORRESPONDENCE);
+		SOURCE_KIND_MAP.put("journal_personal", SourceReader.ENUM_KIND_DIARY);
+		SOURCE_KIND_MAP.put("memoir", SourceReader.ENUM_KIND_DIARY);
+		SOURCE_KIND_MAP.put("bible", SourceReader.ENUM_KIND_DIARY);
+		SOURCE_KIND_MAP.put("family_bible", SourceReader.ENUM_KIND_DIARY);
+		SOURCE_KIND_MAP.put("notebook", SourceReader.ENUM_KIND_DIARY);
+		SOURCE_KIND_MAP.put("oral_history", SourceReader.ENUM_KIND_ORAL);
+		SOURCE_KIND_MAP.put("interview", SourceReader.ENUM_KIND_ORAL);
+		SOURCE_KIND_MAP.put("oral_tradition", SourceReader.ENUM_KIND_ORAL);
+		SOURCE_KIND_MAP.put("testimony", SourceReader.ENUM_KIND_ORAL);
+		SOURCE_KIND_MAP.put("recollection", SourceReader.ENUM_KIND_ORAL);
+		SOURCE_KIND_MAP.put("web", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("web_page", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("webpage", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("internet", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("online", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("online_database", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("database_online", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("url", SourceReader.ENUM_KIND_WEBSITE);
+		SOURCE_KIND_MAP.put("maps", SourceReader.ENUM_KIND_MAP);
+		SOURCE_KIND_MAP.put("atlas", SourceReader.ENUM_KIND_MAP);
+		SOURCE_KIND_MAP.put("plan", SourceReader.ENUM_KIND_MAP);
+		SOURCE_KIND_MAP.put("photo", SourceReader.ENUM_KIND_PHOTOGRAPH);
+		SOURCE_KIND_MAP.put("photos", SourceReader.ENUM_KIND_PHOTOGRAPH);
+		SOURCE_KIND_MAP.put("photographs", SourceReader.ENUM_KIND_PHOTOGRAPH);
+		SOURCE_KIND_MAP.put("picture", SourceReader.ENUM_KIND_PHOTOGRAPH);
+		SOURCE_KIND_MAP.put("portrait", SourceReader.ENUM_KIND_PHOTOGRAPH);
+		SOURCE_KIND_MAP.put("art", SourceReader.ENUM_KIND_ARTWORK);
+		SOURCE_KIND_MAP.put("painting", SourceReader.ENUM_KIND_ARTWORK);
+		SOURCE_KIND_MAP.put("drawing", SourceReader.ENUM_KIND_ARTWORK);
+		SOURCE_KIND_MAP.put("sculpture", SourceReader.ENUM_KIND_ARTWORK);
+		SOURCE_KIND_MAP.put("recording", SourceReader.ENUM_KIND_AUDIO);
+		SOURCE_KIND_MAP.put("audio_recording", SourceReader.ENUM_KIND_AUDIO);
+		SOURCE_KIND_MAP.put("sound", SourceReader.ENUM_KIND_AUDIO);
+		SOURCE_KIND_MAP.put("film", SourceReader.ENUM_KIND_VIDEO);
+		SOURCE_KIND_MAP.put("movie", SourceReader.ENUM_KIND_VIDEO);
+		SOURCE_KIND_MAP.put("video_recording", SourceReader.ENUM_KIND_VIDEO);
+		SOURCE_KIND_MAP.put("handwritten_document", SourceReader.ENUM_KIND_MANUSCRIPT);
+		SOURCE_KIND_MAP.put("trademark", SourceReader.ENUM_KIND_PATENT);
+		SOURCE_KIND_MAP.put("passport", SourceReader.ENUM_KIND_IDENTIFICATION);
+		SOURCE_KIND_MAP.put("id", SourceReader.ENUM_KIND_IDENTIFICATION);
+		SOURCE_KIND_MAP.put("id_card", SourceReader.ENUM_KIND_IDENTIFICATION);
+		SOURCE_KIND_MAP.put("identity_card", SourceReader.ENUM_KIND_IDENTIFICATION);
+		SOURCE_KIND_MAP.put("driver_license", SourceReader.ENUM_KIND_IDENTIFICATION);
+		SOURCE_KIND_MAP.put("index", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("transcription", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("abstract", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("compiled_genealogy", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("derivative", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("genealogy", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("database_compiled", SourceReader.ENUM_KIND_COMPILATION);
+		SOURCE_KIND_MAP.put("artefact", SourceReader.ENUM_KIND_ARTIFACT);
+		SOURCE_KIND_MAP.put("object", SourceReader.ENUM_KIND_ARTIFACT);
+		SOURCE_KIND_MAP.put("heirloom", SourceReader.ENUM_KIND_ARTIFACT);
+		SOURCE_KIND_MAP.put("memorabilia", SourceReader.ENUM_KIND_ARTIFACT);
+		for(final String kind : SourceReader.KINDS)
+			SOURCE_KIND_MAP.put(kind, kind);
 		MEDIA_TYPE_MAP.put("AUDIO", SourceReader.ENUM_MEDIA_TYPE_AUDIO);
 		MEDIA_TYPE_MAP.put("BOOK", SourceReader.ENUM_MEDIA_TYPE_BOOK);
 		MEDIA_TYPE_MAP.put("CARD", SourceReader.ENUM_MEDIA_TYPE_CARD);
@@ -686,6 +853,31 @@ public final class GEDCOMMapper{
 			return IndividualReader.ENUM_SEX_UNKNOWN;
 		}
 		return SEX_MAP.getOrDefault(gedcomSex.toUpperCase(Locale.ROOT), IndividualReader.ENUM_SEX_UNKNOWN);
+	}
+
+	/**
+	 * Maps the type a program wrote for a source (e.g. {@code _TYPE Census Record}) to a {@code SourceRecord.kind}.
+	 * <p>
+	 * A type that is not one of the vocabulary nor a known synonym is kept as it was written (as a token, the original information
+	 * is not lost).
+	 * </p>
+	 *
+	 * @param sourceType	The type, may be {@code null}.
+	 * @return	The kind, or {@code null} if the text is empty or is a description rather than a type.
+	 */
+	public static String mapSourceKind(final String sourceType){
+		final String token = toTypeToken(sourceType);
+		return (token != null? SOURCE_KIND_MAP.getOrDefault(token, token): null);
+	}
+
+	/**
+	 * @param text	A text (a medium, a tag, ...), may be {@code null}.
+	 * @return	The kind of the vocabulary the text says, or {@code null} if it does not say a known one (a custom kind is never made
+	 * 	from it).
+	 */
+	public static String mapKnownSourceKind(final String text){
+		final String token = toTypeToken(text);
+		return (token != null? SOURCE_KIND_MAP.get(token): null);
 	}
 
 	public static String mapMediaType(String gedcomMedia){

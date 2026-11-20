@@ -54,6 +54,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  *   conclusion_confidence?: enum { low, medium, high } // Indicates the researcher's confidence in the current conclusion. This value reflects the current state of investigation and is intended for planning, prioritization, reporting, and user interfaces. It does not replace formal proof evaluation expressed through ConclusionRecord. Suggested interpretation are low: limited evidence, unresolved conflicts, or speculative conclusion; medium: evidence generally supports the conclusion, but gaps or uncertainties remain; high: evidence strongly supports the conclusion and no significant unresolved conflicts are currently known
  *   rationale?: Text          // explanation supporting the conclusion
  *   closed_date?: Date        // date the question was resolved or disproven
+ *   note*: NoteStructure     // reasoning, temporary findings, comments
+ *   media*: MediaCitation    // screenshots, documents under evaluation, and other research material
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -91,6 +93,8 @@ public final class ResearchQuestionReader{
 	public static final String TAG_CONCLUSION_CONFIDENCE = "conclusion_confidence";
 	public static final String TAG_RATIONALE = "rationale";
 	public static final String TAG_CLOSED_DATE = "closed_date";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 

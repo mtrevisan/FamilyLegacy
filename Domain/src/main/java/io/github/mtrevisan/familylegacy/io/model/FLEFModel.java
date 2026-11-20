@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.Modifications;
+import io.github.mtrevisan.familylegacy.io.model.record.TrackedList;
 import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
 
 import java.util.ArrayList;
@@ -40,6 +42,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 
 /**
@@ -52,7 +56,7 @@ public class FLEFModel implements RecordLookup{
 
 
 	private FLEFRecord header;
-	private final List<FLEFRecord> records = new ArrayList<>();
+	private final TrackedList<FLEFRecord> records = new TrackedList<>(10);
 
 	private final Map<String, List<FLEFRecord>> recordsByType = new HashMap<>();
 	private final Map<String, FLEFRecord> recordsById = new HashMap<>();
@@ -61,6 +65,35 @@ public class FLEFModel implements RecordLookup{
 	private final Map<String, FLEFRecord> eventsById = new HashMap<>();
 	private final Map<String, FLEFRecord> questionsById = new HashMap<>();
 	private final Set<String> duplicateIds = new LinkedHashSet<>();
+
+	/** Indexes derived from the records (see {@link #derived(Object, Supplier)}), dropped at every change of the model. */
+	private final Map<Object, Object> derivedIndexes = new ConcurrentHashMap<>();
+
+
+	/**
+	 * An index (or any value) computed from the records of the model, kept until the model changes: it saves the scan of the whole model
+	 * to each lookup of a single record. The records are also edited in place, which the model cannot see, so whoever finds such a change
+	 * (as {@link ModelHistory} does at every checkpoint) must call {@link #invalidateDerived()}.
+	 *
+	 * @param key	Identifies the index (a private constant of the class that builds it).
+	 * @param builder	Computes the value from the model; it may call back the model but not {@code derived} with the same key.
+	 * @return	The value, built if it was not there.
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T derived(final Object key, final Supplier<T> builder){
+		Object value = derivedIndexes.get(key);
+		if(value == null){
+			value = builder.get();
+			derivedIndexes.put(key, value);
+		}
+		return (T)value;
+	}
+
+	/** Drops the indexes of {@link #derived(Object, Supplier)}: the records changed. */
+	public void invalidateDerived(){
+		derivedIndexes.clear();
+	}
 
 
 	public FLEFRecord getHeader(){
@@ -73,6 +106,7 @@ public class FLEFModel implements RecordLookup{
 	 * NOTE: Used by {@link io.github.mtrevisan.familylegacy.io.FLEFParser#parse(String)} and {@link ModelHistory#readOnlyView()} only.
 	 */
 	public void setHeader(final FLEFRecord header){
+		Modifications.touch();
 		this.header = header;
 	}
 
@@ -91,6 +125,11 @@ public class FLEFModel implements RecordLookup{
 			duplicateIds.add(id);
 	}
 
+	/** @return	The value of {@link Modifications#current()} at the last time that a record was added, removed or moved (not modified). */
+	public long structureStamp(){
+		return records.lastChange();
+	}
+
 	public List<FLEFRecord> getRecords(){
 		return records;
 	}
@@ -104,6 +143,7 @@ public class FLEFModel implements RecordLookup{
 		if(record == null || record.getId() == null)
 			throw new IllegalArgumentException("A record must have an id to be added to the model");
 
+		invalidateDerived();
 		final String id = record.getId();
 		if(recordsById.containsKey(id))
 			// Optionally remove existing record to allow replacement/update
@@ -129,6 +169,7 @@ public class FLEFModel implements RecordLookup{
 	 * NOTE: Used by {@link ModelHistory} only.
 	 */
 	void replaceRecords(final List<FLEFRecord> newRecords){
+		invalidateDerived();
 		records.clear();
 		recordsByType.clear();
 		recordsById.clear();
@@ -181,6 +222,7 @@ public class FLEFModel implements RecordLookup{
 		if(id == null)
 			return null;
 
+		invalidateDerived();
 		final FLEFRecord record = recordsById.remove(id);
 		placesById.remove(id);
 		eventsById.remove(id);

@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 
 /**
@@ -83,12 +84,28 @@ public final class IndividualNarrator{
 	private final FLEFModel model;
 	private final RelationIndex idx;
 	private final ReportLabels labels;
+	/** How the name of the person the sentences are about is written. */
+	private final Function<FLEFRecord, String> names;
+	/** How the name of another person (a spouse, a child) is written. */
+	private final Function<FLEFRecord, String> mentions;
 
 
 	public IndividualNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels){
+		this(model, idx, labels, rec -> PersonNames.plain(rec, GivenNameStyle.ALL, StringUtils.EMPTY),
+			rec -> PersonNames.plain(rec, GivenNameStyle.ALL, StringUtils.EMPTY));
+	}
+
+	/**
+	 * @param names	How the name of the person is written.
+	 * @param mentions	How the name of the other persons is written (it may have their number, or be in bold).
+	 */
+	IndividualNarrator(final FLEFModel model, final RelationIndex idx, final ReportLabels labels, final Function<FLEFRecord, String> names,
+			final Function<FLEFRecord, String> mentions){
 		this.model = model;
 		this.idx = idx;
 		this.labels = labels;
+		this.names = names;
+		this.mentions = mentions;
 	}
 
 
@@ -149,7 +166,7 @@ public final class IndividualNarrator{
 			final String d = orNull(labels.dateText(m));
 			final String p = orNull(PlaceCitationReader.extractPlace(m, model));
 			final FLEFRecord spouse = spouseFromEvent(person, m);
-			final String spouseName = (spouse != null? displayName(spouse): null);
+			final String spouseName = (spouse != null? mentionName(spouse): null);
 			if(spouseName != null || d != null || p != null)
 				sentences.add(labels.narrativeMarriage(name, spouseName, d, p));
 		}
@@ -158,7 +175,7 @@ public final class IndividualNarrator{
 		for(final FLEFRecord d : divorces){
 			final String dt = orNull(labels.dateText(d));
 			final FLEFRecord spouse = spouseFromEvent(person, d);
-			final String spouseName = (spouse != null? displayName(spouse): "?");
+			final String spouseName = (spouse != null? mentionName(spouse): "?");
 			sentences.add(labels.narrativeDivorce(name, spouseName, dt));
 		}
 
@@ -361,7 +378,7 @@ public final class IndividualNarrator{
 
 			if(key.otherParentId() != null){
 				final FLEFRecord other = model.getRecordById(key.otherParentId());
-				final String otherName = (other != null? displayName(other): "?");
+				final String otherName = (other != null? mentionName(other): "?");
 				sentences.add(labels.narrativeChildrenGroupWith(
 					name, otherName, kids.size(), groupLabel, names));
 			}
@@ -555,7 +572,7 @@ public final class IndividualNarrator{
 		for(final FLEFRecord p : people){
 			//with the years of birth and death: children with the same name ("Lucia", "Lucia") are told apart
 			final String years = lifeYears(p);
-			names.add(displayName(p) + (years != null? " (" + years + ")": StringUtils.EMPTY));
+			names.add(mentionName(p) + (years != null? " (" + years + ")": StringUtils.EMPTY));
 		}
 		return String.join(", ", names);
 	}
@@ -581,23 +598,12 @@ public final class IndividualNarrator{
 	}
 
 	private String displayName(final FLEFRecord rec){
-		for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(rec, IndividualReader.TAG_NAME)){
-			final StringBuilder sb = new StringBuilder();
-			for(final FLEFRecord child : nameRec.getChildren()){
-				if(!NameReader.TAG_PART.equalsIgnoreCase(child.getTag()))
-					continue;
+		return names.apply(rec);
+	}
 
-				final String v = FLEFRecordHelper.getChildValue(child, NameReader.TAG_VALUE);
-				if(v != null && !v.isBlank()){
-					if(!sb.isEmpty())
-						sb.append(' ');
-					sb.append(v.trim());
-				}
-			}
-			if(!sb.isEmpty())
-				return sb.toString();
-		}
-		return (rec.getId() != null? rec.getId(): "?");
+	/** @return	The name of another person, as the report mentions it (in bold if it is a direct ancestor, with the number of the person). */
+	private String mentionName(final FLEFRecord rec){
+		return mentions.apply(rec);
 	}
 
 

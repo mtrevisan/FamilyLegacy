@@ -26,12 +26,15 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -61,6 +64,8 @@ import java.util.List;
  *   priority?: enum { low, normal, high }
  *   due_date?: Date
  *   outcome?: Text
+ *   note*: NoteStructure
+ *   media*: MediaCitation
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -68,12 +73,14 @@ import java.util.List;
  * <p>
  * Tabs:
  * Tab 1 (Properties): description, question, created_by, status, priority, due_date, outcome
+ * Tab 8 (Notes): note, media
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
 public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
+	private final MediaPartListPanel mediaCitationPanel;
 
 	private final BoundTextArea descriptionArea;
 	private final EntityField createdByField;
@@ -109,8 +116,10 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		outcomeArea = new BoundTextArea(ResearchTaskReader.TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION, ResearchTaskReader.TAG_QUESTION, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.NOTE, ResearchTaskReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, ResearchTaskReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchTaskReader.TAG_AUDIT, null)
 			.build();
@@ -151,6 +160,17 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.outcome"), GUIHelper.withTooltip(outcomeArea, "tooltip.research_task.outcome"));
 
 		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.NOTE));
+		//screenshots, documents under evaluation, and other research material
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
+		return panel;
 	}
 
 	@Override
@@ -205,6 +225,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		createdByField.load(record);
 	}
@@ -253,6 +274,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 
 		createdByField.saveReferences(record);
 	}

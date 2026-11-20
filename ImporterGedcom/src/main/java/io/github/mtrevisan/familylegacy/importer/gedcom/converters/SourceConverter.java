@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
@@ -42,7 +43,9 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,11 +65,14 @@ import java.util.regex.Pattern;
  *   <li>DATA.EVEN.DATE (the period covered) → date; DATA.EVEN.PLAC (the jurisdiction) → place; the events recorded and
  *   DATA.NOTE → notes</li>
  *   <li>TEXT → note</li>
- *   <li>REPO (CALN → locator, NOTE → remark) → repository; CALN.MEDI → media_type</li>
+ *   <li>REPO (CALN → identifier call_number of the repository citation, NOTE → remark) → repository; CALN.MEDI → media_type</li>
+ *   <li>REFN (TYPE → scheme: ISBN, ISSN, DOI, URL, FHL film, ...; a custom scheme if the TYPE is not known) → identifier of the source</li>
+ *   <li>_TYPE (or TYPE) → kind: a known type (or synonym) becomes the kind of the vocabulary, any other short text is kept as a custom kind, a long text
+ *   (a description) is kept as a note</li>
  *   <li>OBJE → document</li>
  *   <li>NOTE → note; RESN → privacy; CHAN → audit</li>
  * </ul>
- * REFN and RIN have no counterpart.
+ * RIN has no counterpart.
  * <p>
  * Repositories and multimedia records must be converted before.
  */
@@ -138,6 +144,37 @@ public class SourceConverter {
 	 * @param publicationField	Whether the text is the field of the publication (and so its parts are publication facts).
 	 * @return	The publication, or {@code null} if the text is not written so.
 	 */
+	/**
+	 * Turns each REFN of the source (a user reference number, with a TYPE that says what it is) into an identifier of the source: the
+	 * scheme is the one of the vocabulary that the TYPE names (ISBN, ISSN, DOI, URL, FHL film, ...), or the one the value tells when there is
+	 * no TYPE (a valid ISBN, a DOI, a URL). What cannot be mapped safely is kept with a custom scheme: the TYPE as written, or {@code REFN}.
+	 * <p>
+	 * A REFN that has more than its TYPE below (a note, ...) is not converted, so that nothing is lost: it stays a note, as the other
+	 * identifiers of the file.
+	 * </p>
+	 *
+	 * @param converted	Receives the nodes that became an identifier.
+	 */
+	private static void convertReferenceNumbers(final FLEFRecord source, final GEDCOMNode sourNode, final Set<GEDCOMNode> converted){
+		final Set<String> written = new HashSet<>(0);
+		for(final GEDCOMNode refnNode : GEDCOMHelper.findChildren(sourNode, GEDCOMMapper.TAG_REFERENCE_NUMBER)){
+			final String value = StringUtils.trimToNull(GEDCOMHelper.extractFullText(refnNode));
+			if(value == null || refnNode.getChildren().stream().anyMatch(child -> !GEDCOMMapper.TAG_TYPE.equals(child.getTag())))
+				continue;
+
+			final String type = StringUtils.trimToNull(GEDCOMHelper.findFirstValue(refnNode, GEDCOMMapper.TAG_TYPE));
+			String scheme = IdentifierReader.schemeOfLabel(type);
+			if(scheme == null && type == null)
+				scheme = IdentifierReader.inferScheme(value);
+			if(scheme == null)
+				scheme = (type != null? type: GEDCOMMapper.TAG_REFERENCE_NUMBER);
+
+			converted.add(refnNode);
+			if(written.add(IdentifierReader.normalizedKey(scheme, value)))
+				source.addChild(IdentifierReader.create(scheme, value));
+		}
+	}
+
 	private static Publication parsePublication(final String text, final boolean publicationField){
 		if(StringUtils.isBlank(text))
 			return null;
@@ -341,6 +378,21 @@ public class SourceConverter {
 
 		GEDCOMRecordBuilder.registerSourceEventTypes(xref, coveredEventTypes);
 
+		// ---- 4b. _TYPE: what the source is (its kind) ----
+		final Set<String> consumedTags = new HashSet<>(GEDCOMMapper.SOURCE_CONSUMED_TAGS);
+		for(final String typeTag : List.of(GEDCOMMapper.TAG_SOURCE_TYPE, GEDCOMMapper.TAG_TYPE)){
+			final GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(sourNode, typeTag);
+			final String kind = (typeNode != null? GEDCOMMapper.mapSourceKind(typeNode.getValue()): null);
+			if(kind != null && FLEFRecordHelper.findChild(source, SourceReader.TAG_KIND) == null){
+				source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_KIND, kind));
+				consumedTags.add(typeTag);
+			}
+		}
+
+		// ---- 4c. REFN: the identifiers of the source itself (ISBN, DOI, ...) ----
+		final Set<GEDCOMNode> convertedIdentifiers = Collections.newSetFromMap(new IdentityHashMap<>());
+		convertReferenceNumbers(source, sourNode, convertedIdentifiers);
+
 		// ---- 5. REPO (repository citation) with CALN, MEDI, NOTE ----
 		String mediaType = null;
 		final List<FLEFRecord> repositoryCitations = new ArrayList<>();
@@ -359,17 +411,19 @@ public class SourceConverter {
 			final FLEFRecord repositoryCitation = FLEFRecord.createChildWithTag(SourceReader.TAG_REPOSITORY)
 				.addChild(FLEFRecord.createChildWithTagAndValue(RepositoryCitationReader.TAG_REPOSITORY, repositoryId));
 
-			// 5a. CALN (call number) with optional MEDI
+			// 5a. CALN (call number) with optional MEDI: the call number says where the source is found in the repository, it is not a
+			//position inside the source: it is an identifier of the citation, and the locator stays free for the page, the folio, ...
 			final List<String> callNumbers = new ArrayList<>();
 			for(GEDCOMNode calnNode : GEDCOMHelper.findChildren(repoNode, "CALN")){
-				if(StringUtils.isNotBlank(calnNode.getValue()))
-					callNumbers.add(calnNode.getValue().trim());
+				final String callNumber = StringUtils.trimToNull(calnNode.getValue());
+				if(callNumber != null && !callNumbers.contains(callNumber))
+					callNumbers.add(callNumber);
 				final String media = GEDCOMHelper.findFirstValue(calnNode, "MEDI");
 				if(mediaType == null && media != null)
 					mediaType = GEDCOMMapper.mapMediaType(media);
 			}
-			if(!callNumbers.isEmpty())
-				repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue(RepositoryCitationReader.TAG_LOCATOR, String.join("; ", callNumbers)));
+			for(final String callNumber : callNumbers)
+				repositoryCitation.addChild(IdentifierReader.create(IdentifierReader.ENUM_SCHEME_CALL_NUMBER, callNumber));
 
 			// 5b. NOTE inside REPO
 			for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(repoNode, GEDCOMMapper.TAG_NOTE)){
@@ -404,8 +458,8 @@ public class SourceConverter {
 			source.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.events_recorded"), String.join(StringUtils.LF, eventsRecorded), dataNode));
 
 		// ---- What has no field in FLEF is kept as notes ----
-		KeptNotes.keepIdentifiers(source, sourNode, StringUtils.EMPTY, sourNode);
-		KeptNotes.keepUnmapped(source, sourNode, GEDCOMMapper.SOURCE_CONSUMED_TAGS, StringUtils.EMPTY, sourNode);
+		KeptNotes.keepIdentifiers(source, sourNode, StringUtils.EMPTY, sourNode, convertedIdentifiers::contains);
+		KeptNotes.keepUnmapped(source, sourNode, consumedTags, StringUtils.EMPTY, sourNode);
 
 		// ---- Privacy (RESN) ----
 		GEDCOMRecordBuilder.attachRestriction(source, sourNode);

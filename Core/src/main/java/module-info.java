@@ -27,6 +27,7 @@
 module io.github.mtrevisan.familylegacy.core {
 	requires java.base;
 	requires io.github.mtrevisan.familylegacy.domain;
+	requires io.github.mtrevisan.familylegacy.assistant;
 	requires io.github.mtrevisan.calendars;
 	requires io.github.mtrevisan.reports;
 	requires io.github.mtrevisan.updater;
@@ -45,7 +46,7 @@ module io.github.mtrevisan.familylegacy.core {
 	requires java.management;
 
 	// Assistants that plug into the Research Assistant
-	uses io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
+	uses io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 
 	// The main window finds the Research Assistant, it does not depend on it
 	uses io.github.mtrevisan.familylegacy.ui.shell.ResearchAssistantPort;

@@ -804,7 +804,13 @@ public final class DocxReportRenderer implements ReportRenderer{
 		private void writeImage(final ReportSection.Image img){
 			final Path file = img.file();
 			final XWPFParagraph p = paragraph();
-			p.setAlignment(ParagraphAlignment.CENTER);
+			//(Word cannot flow the text around an image the way this renderer writes it: the image is on the side)
+			final ParagraphAlignment alignment = switch(img.alignment()){
+				case LEFT, WRAP_LEFT -> ParagraphAlignment.LEFT;
+				case RIGHT, WRAP_RIGHT -> ParagraphAlignment.RIGHT;
+				case DEFAULT, CENTER -> ParagraphAlignment.CENTER;
+			};
+			p.setAlignment(alignment);
 			p.setSpacingAfter(IMAGE_SPACING_AFTER);
 			if(!img.caption().isBlank()){
 				//the caption stays with its image
@@ -836,7 +842,7 @@ public final class DocxReportRenderer implements ReportRenderer{
 
 			if(!img.caption().isBlank()){
 				final XWPFParagraph cap = paragraph();
-				cap.setAlignment(ParagraphAlignment.CENTER);
+				cap.setAlignment(alignment);
 				cap.setSpacingAfter(HEADING_SPACING_AFTER);
 				run(cap, img.caption(), CAPTION_SIZE, false, true, MUTED_COLOR, false);
 			}

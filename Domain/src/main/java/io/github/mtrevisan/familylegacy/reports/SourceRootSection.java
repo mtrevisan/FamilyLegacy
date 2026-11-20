@@ -102,6 +102,8 @@ public final class SourceRootSection implements SectionBuilder{
 			DateService.getDateDisplayText(ctx.root));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			PlaceCitationReader.extractPlace(ctx.root, ctx.model));
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceKind(),
+			ctx.labels.enumValue("enum.source.kind", FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_KIND)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(ctx.root, SourceReader.TAG_MEDIA_TYPE));
 		SourceDerivationLines.appendRows(ctx, ctx.root.getId(), rows);
@@ -121,7 +123,7 @@ public final class SourceRootSection implements SectionBuilder{
 			final FLEFRecord repo = (rid != null? ctx.visible(ctx.model.getRecordById(rid)): null);
 			//a repository with no name is told by its id
 			final String name = StringUtils.defaultIfBlank((repo != null? RepositoryReader.extractPrimaryName(repo): null), rid);
-			final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
+			final String locator = ReportFormatters.repositoryReference(rc, ctx.labels);
 
 			final StringBuilder line = new StringBuilder("- ")
 				.append(ReportFormatters.escape(ReportFormatters.orEmpty(name)));

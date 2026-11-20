@@ -42,11 +42,12 @@ class ReportMenuGroupsTest{
 		final List<List<ToolOperation>> groups = ApplicationMenuBar.reportOperationGroups();
 
 		//people and groups, places and sources, the bibliography and the research progress, the whole file
-		Assertions.assertEquals(List.of(6, 3, 2, 4), groups.stream().map(List::size).toList());
+		Assertions.assertEquals(List.of(7, 3, 2, 6), groups.stream().map(List::size).toList());
 		Assertions.assertEquals(List.of("AncestorReportOperation", "DescendantReportOperation", "IndividualSummaryOperation",
-				"RelationshipReportOperation", "FamilyGroupSheetOperation", "GroupSheetOperation"),
+				"RelationshipReportOperation", "FamilyGroupSheetOperation", "EndOfLineOperation", "GroupSheetOperation"),
 			groups.getFirst().stream().map(operation -> operation.getClass().getSimpleName()).toList());
-		Assertions.assertEquals(List.of("FamilyBookOperation", "FullBibliographyOperation", "ToVerifyOperation", "SurnamesOperation"),
+		Assertions.assertEquals(List.of("FamilyBookOperation", "FullBibliographyOperation", "ToVerifyOperation", "ConflictsOperation", "SurnamesOperation",
+				"IdentityHypothesesOperation"),
 			groups.getLast().stream().map(operation -> operation.getClass().getSimpleName()).toList());
 	}
 

@@ -71,6 +71,8 @@ import org.apache.commons.lang3.StringUtils;
  *       hebraized,      // converted to Hebrew script
  *       hellenized,     // converted to Greek script
  *       gairaigized,    // adapted to Japanese loanword form
+ *       kanaized,       // converted to Japanese kana script (hiragana or katakana)
+ *       hangulized,     // converted to Korean Hangul script
  *       modernized,     // historic spelling modernized
  *       normalized      // orthography normalized
  *     } | Text
@@ -139,12 +141,14 @@ public final class TextValueVariantReader{
 	public static final String ENUM_TRANSCRIPTION_TYPE_HEBRAIZED = "hebraized";
 	public static final String ENUM_TRANSCRIPTION_TYPE_HELLENIZED = "hellenized";
 	public static final String ENUM_TRANSCRIPTION_TYPE_GAIRAIGIZED = "gairaigized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_KANAIZED = "kanaized";
+	public static final String ENUM_TRANSCRIPTION_TYPE_HANGULIZED = "hangulized";
 	public static final String ENUM_TRANSCRIPTION_TYPE_MODERNIZED = "modernized";
 	public static final String ENUM_TRANSCRIPTION_TYPE_NORMALIZED = "normalized";
 	public static final String[] TRANSCRIPTION_TYPES = {
 		StringUtils.EMPTY,
 		ENUM_TRANSCRIPTION_TYPE_ROMANIZED, ENUM_TRANSCRIPTION_TYPE_LATINIZED, ENUM_TRANSCRIPTION_TYPE_ANGLICIZED, ENUM_TRANSCRIPTION_TYPE_FRANCIZED, ENUM_TRANSCRIPTION_TYPE_GERMANIZED, ENUM_TRANSCRIPTION_TYPE_ITALIANIZED, ENUM_TRANSCRIPTION_TYPE_HISPANICIZED,
-		ENUM_TRANSCRIPTION_TYPE_LUSITANIZED, ENUM_TRANSCRIPTION_TYPE_CYRILLIZED, ENUM_TRANSCRIPTION_TYPE_ARABIZED, ENUM_TRANSCRIPTION_TYPE_HEBRAIZED, ENUM_TRANSCRIPTION_TYPE_HELLENIZED, ENUM_TRANSCRIPTION_TYPE_GAIRAIGIZED, ENUM_TRANSCRIPTION_TYPE_MODERNIZED, ENUM_TRANSCRIPTION_TYPE_NORMALIZED
+		ENUM_TRANSCRIPTION_TYPE_LUSITANIZED, ENUM_TRANSCRIPTION_TYPE_CYRILLIZED, ENUM_TRANSCRIPTION_TYPE_ARABIZED, ENUM_TRANSCRIPTION_TYPE_HEBRAIZED, ENUM_TRANSCRIPTION_TYPE_HELLENIZED, ENUM_TRANSCRIPTION_TYPE_GAIRAIGIZED, ENUM_TRANSCRIPTION_TYPE_KANAIZED, ENUM_TRANSCRIPTION_TYPE_HANGULIZED, ENUM_TRANSCRIPTION_TYPE_MODERNIZED, ENUM_TRANSCRIPTION_TYPE_NORMALIZED
 	};
 
 

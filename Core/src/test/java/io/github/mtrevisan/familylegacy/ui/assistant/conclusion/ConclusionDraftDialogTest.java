@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.conclusion;
 
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionChecker;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;

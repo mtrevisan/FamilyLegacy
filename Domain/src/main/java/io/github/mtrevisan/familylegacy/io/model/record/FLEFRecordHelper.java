@@ -211,7 +211,26 @@ public final class FLEFRecordHelper{
 
 	}
 
-	/** Case-insensitive equality of two tags ({@code null} is equal to nothing). */
+/**
+ * Whether the tag is equal, ignoring the case, to the {@code length} characters of the path from {@code start} (the tag has the same
+ * length). The tags are lowercase (the parser lowercases them) and so are almost all the paths, so the characters are compared as they
+ * are, with the case folded by hand for the ASCII letters, and the slow comparison is left to what is not ASCII.
+ */
+private static boolean tagMatches(final String tag, final String path, final int start, final int length){
+	for(int i = 0; i < length; i ++){
+		final char a = tag.charAt(i);
+		final char b = path.charAt(start + i);
+		if(a == b)
+			continue;
+		if(a > 127 || b > 127)
+			return tag.regionMatches(true, i, path, start + i, length - i);
+		if(((a | 0x20) != (b | 0x20)) || !((a | 0x20) >= 'a' && (a | 0x20) <= 'z'))
+			return false;
+	}
+	return true;
+}
+
+/** Case-insensitive equality of two tags ({@code null} is equal to nothing). */
 	private static boolean tagEquals(final String tag, final String other){
 		return (tag != null && tag.equalsIgnoreCase(other));
 	}
@@ -268,7 +287,7 @@ public final class FLEFRecordHelper{
 		for(int i = 0, size = children.size(); i < size; i ++){
 			final FLEFRecord child = children.get(i);
 			final String childTag = child.getTag();
-			if(childTag == null || childTag.length() != tagLength || !childTag.regionMatches(true, 0, path, start, tagLength))
+			if(childTag == null || childTag.length() != tagLength || !tagMatches(childTag, path, start, tagLength))
 				continue;
 
 			if(index >= 0 && !wildcard){

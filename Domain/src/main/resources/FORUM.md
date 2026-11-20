@@ -97,10 +97,20 @@ I concetti più avanzati vengono inoltre *suggeriti quando servono*, con una rig
 ## Importazione e report
 
 - **Importazione** da GEDCOM (5.5, 5.5.1 e 7) e da Gramps (XML), così è possibile provarlo con i propri dati senza ricominciare da zero. L'originale non viene mai modificato e, al termine, un report elenca ciò che non è stato possibile convertire.
-- **14 tipi di report** (antenati, discendenti, libro di famiglia, bibliografia, ricerche ancora da verificare, ...) in testo, Markdown, HTML, Word, PDF, EPUB e sito web statico.
+- **17 tipi di report** (antenati, discendenti, libro di famiglia, bibliografia, ricerche ancora da verificare, conflitti tra evidenze, ...) in testo, Markdown, HTML, Word, PDF, EPUB e sito web statico.
 - I dati sono salvati in un formato proprio, testuale e aperto: *FLEF* (Family LEgacy Format).
 
 ## Requisiti e licenza
+
+**Requisiti di sistema**
+
+- Windows 10 o 11, 64 bit.
+- Memoria: 4 GB come minimo (file fino ad alcune migliaia di persone); 8 GB consigliati per un file di 50.000 persone (circa 7 KB di memoria per persona, circa il doppio con la cronologia delle modifiche); 16 GB per il libro di famiglia di un file così grande.
+- Disco: circa 150 MB per il programma, più lo spazio libero di una copia del file (il salvataggio scrive prima un file temporaneo accanto all'originale). Font e componenti opzionali si scaricano a richiesta.
+- Schermo: almeno 1280 x 720 (la finestra non scende sotto 900 x 500); consigliato 1920 x 1080.
+- Internet non è necessario: serve solo per il controllo degli aggiornamenti, i download opzionali, le mappe, la geocodifica e le ricerche esterne.
+
+**Licenza e lingua**
 
 - Software open source, licenza MIT.
 - Esiste un installer per Windows, con controllo degli aggiornamenti integrato.

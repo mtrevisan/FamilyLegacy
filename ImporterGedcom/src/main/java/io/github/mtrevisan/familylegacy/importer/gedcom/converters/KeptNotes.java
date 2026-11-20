@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 
 /**
@@ -141,6 +142,17 @@ final class KeptNotes{
 	 * @param path	The tag path of the node inside the record, empty for the record itself.
 	 */
 	static void keepIdentifiers(final FLEFRecord target, final GEDCOMNode node, final String path, final GEDCOMNode auditNode){
+		keepIdentifiers(target, node, path, auditNode, child -> false);
+	}
+
+	/**
+	 * The same, but for the identifiers that the converter has already turned into a field of the record (an identifier of a source):
+	 * they are not kept a second time as notes.
+	 *
+	 * @param alreadyConverted	Tells whether an identifier of the node has been converted.
+	 */
+	static void keepIdentifiers(final FLEFRecord target, final GEDCOMNode node, final String path, final GEDCOMNode auditNode,
+			final Predicate<GEDCOMNode> alreadyConverted){
 		if(target == null){
 			GEDCOMImportContext.reportIdentifiers(node, path);
 			return;
@@ -148,7 +160,7 @@ final class KeptNotes{
 
 		for(final GEDCOMNode child : node.getChildren())
 			if(GEDCOMMapper.IDENTIFIER_TAGS.contains(child.getTag()) && GEDCOMImportContext.isSignificant(child)
-					&& !keepIdentifier(target, child, auditNode))
+					&& !alreadyConverted.test(child) && !keepIdentifier(target, child, auditNode))
 				GEDCOMImportContext.discard(ImportReasons.IDENTIFIER, child, path);
 	}
 

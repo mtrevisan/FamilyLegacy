@@ -87,6 +87,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 	private final Map<String, Integer> birthYears = new HashMap<>();
 	private final Map<String, Integer> deathYears = new HashMap<>();
+	private boolean lifeBoundsReady;
 	private final Map<String, List<FLEFRecord>> eventsByIndividual = new HashMap<>();
 
 
@@ -104,7 +105,8 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		this.model = model;
 		sexIndex = PreferredSex.indexByIndividual(model);
 
-		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
+		//the birth and death years are needed only to compare the dates with a range: parsing the dates of everybody is not done for a name
+		lifeBoundsReady = false;
 		//the strategy is reused by every search: the events of a previous one (or of another model) must not stay
 		eventsByIndividual.clear();
 		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
@@ -148,6 +150,10 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	private boolean hasMatchingEvent(final FLEFRecord individual){
 		final String individualId = individual.getId();
 
+		if(!lifeBoundsReady && (StringUtils.isNotEmpty(eventDateFrom) || StringUtils.isNotEmpty(eventDateTo))){
+			SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
+			lifeBoundsReady = true;
+		}
 		final Integer birthYear = birthYears.get(individualId);
 		final Integer deathYear = deathYears.get(individualId);
 

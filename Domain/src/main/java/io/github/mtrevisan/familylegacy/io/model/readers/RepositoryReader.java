@@ -82,9 +82,17 @@ public final class RepositoryReader{
 	public static final String ENUM_TYPE_MUSEUM = "museum";
 	public static final String ENUM_TYPE_UNIVERSITY = "university";
 	public static final String ENUM_TYPE_INSTITUTION = "institution";
+	public static final String ENUM_TYPE_HISTORICAL_SOCIETY = "historical_society";
+	public static final String ENUM_TYPE_GENEALOGY_SOCIETY = "genealogy_society";
+	public static final String ENUM_TYPE_FUNERAL_HOME = "funeral_home";
+	public static final String ENUM_TYPE_NATIONAL_LIBRARY = "national_library";
+	public static final String ENUM_TYPE_NATIONAL_ARCHIVES = "national_archives";
+	public static final String ENUM_TYPE_PRISON_LIBRARY = "prison_library";
 	public static final String[] TYPES = new String[]{
 		ENUM_TYPE_ARCHIVE, ENUM_TYPE_LIBRARY, ENUM_TYPE_CHURCH, ENUM_TYPE_CEMETERY, ENUM_TYPE_WEBSITE, ENUM_TYPE_COLLECTION,
-		ENUM_TYPE_PRIVATE_COLLECTION, ENUM_TYPE_BOOKSTORE, ENUM_TYPE_GOVERNMENT, ENUM_TYPE_MUSEUM, ENUM_TYPE_UNIVERSITY, ENUM_TYPE_INSTITUTION
+		ENUM_TYPE_PRIVATE_COLLECTION, ENUM_TYPE_BOOKSTORE, ENUM_TYPE_GOVERNMENT, ENUM_TYPE_MUSEUM, ENUM_TYPE_UNIVERSITY,
+		ENUM_TYPE_HISTORICAL_SOCIETY, ENUM_TYPE_GENEALOGY_SOCIETY, ENUM_TYPE_FUNERAL_HOME, ENUM_TYPE_NATIONAL_LIBRARY, ENUM_TYPE_NATIONAL_ARCHIVES,
+		ENUM_TYPE_PRISON_LIBRARY, ENUM_TYPE_INSTITUTION
 	};
 
 

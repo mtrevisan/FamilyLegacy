@@ -49,6 +49,10 @@ import java.util.List;
  *   media_type?: enum {
  *     audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video
  *   } | Text
+ *   kind?: enum {                     // what the source IS (its genre), as opposed to media_type, the physical form of the carrier
+ *     civil_registration, church_register, census, deed, will_probate, court_record, military_record, school_record, immigration, tax_roll, directory, newspaper, periodical, book, cemetery_record, correspondence, diary, oral, website, map, photograph, artwork, audio, video, manuscript, patent, identification, compilation, artifact
+ *   } | Text
+ *   identifier*: IdentifierStructure  // identifies the source itself (ISBN, ISSN, DOI, URL, microfilm number, ...); where it is kept is the identifier of the RepositoryCitation
  *   repository*: RepositoryCitation
  *   media*: Xref&lt;MediaRecord&gt;        // the media (scans, photographs, recordings, ...) of this source
  *   derived_from*: SourceCitation     // the sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation or a database taken from a register, a book or other sources. The locator of the citation says where in the original the content comes from (page, entry, folio) and the extract the passage; the stance is `contradicts` when this source disagrees with its original (e.g., a mistaken transcription). An original source has none. Sources derived from the same original are not independent evidence of what it says. This is about where the content comes from: a source that only mentions other works (a bibliography, a note that refers to a source) does not derive from them
@@ -77,6 +81,8 @@ public final class SourceReader{
 	public static final String TAG_DATE = "date";
 	public static final String TAG_PLACE = "place";
 	public static final String TAG_MEDIA_TYPE = "media_type";
+	public static final String TAG_KIND = "kind";
+	public static final String TAG_IDENTIFIER = IdentifierReader.TAG_IDENTIFIER;
 	public static final String TAG_REPOSITORY = "repository";
 	public static final String TAG_MEDIA = "media";
 	public static final String TAG_DERIVED_FROM = "derived_from";
@@ -101,6 +107,44 @@ public final class SourceReader{
 		ENUM_MEDIA_TYPE_AUDIO, ENUM_MEDIA_TYPE_BOOK, ENUM_MEDIA_TYPE_CARD, ENUM_MEDIA_TYPE_ELECTRONIC, ENUM_MEDIA_TYPE_FICHE, ENUM_MEDIA_TYPE_FILM,
 		ENUM_MEDIA_TYPE_MAGAZINE, ENUM_MEDIA_TYPE_MANUSCRIPT, ENUM_MEDIA_TYPE_MAP, ENUM_MEDIA_TYPE_NEWSPAPER, ENUM_MEDIA_TYPE_PHOTO,
 		ENUM_MEDIA_TYPE_TOMBSTONE, ENUM_MEDIA_TYPE_VIDEO
+	};
+
+	public static final String ENUM_KIND_CIVIL_REGISTRATION = "civil_registration";
+	public static final String ENUM_KIND_CHURCH_REGISTER = "church_register";
+	public static final String ENUM_KIND_CENSUS = "census";
+	public static final String ENUM_KIND_DEED = "deed";
+	public static final String ENUM_KIND_WILL_PROBATE = "will_probate";
+	public static final String ENUM_KIND_COURT_RECORD = "court_record";
+	public static final String ENUM_KIND_MILITARY_RECORD = "military_record";
+	public static final String ENUM_KIND_SCHOOL_RECORD = "school_record";
+	public static final String ENUM_KIND_IMMIGRATION = "immigration";
+	public static final String ENUM_KIND_TAX_ROLL = "tax_roll";
+	public static final String ENUM_KIND_DIRECTORY = "directory";
+	public static final String ENUM_KIND_NEWSPAPER = "newspaper";
+	public static final String ENUM_KIND_PERIODICAL = "periodical";
+	public static final String ENUM_KIND_BOOK = "book";
+	public static final String ENUM_KIND_CEMETERY_RECORD = "cemetery_record";
+	public static final String ENUM_KIND_CORRESPONDENCE = "correspondence";
+	public static final String ENUM_KIND_DIARY = "diary";
+	public static final String ENUM_KIND_ORAL = "oral";
+	public static final String ENUM_KIND_WEBSITE = "website";
+	public static final String ENUM_KIND_MAP = "map";
+	public static final String ENUM_KIND_PHOTOGRAPH = "photograph";
+	public static final String ENUM_KIND_ARTWORK = "artwork";
+	public static final String ENUM_KIND_AUDIO = "audio";
+	public static final String ENUM_KIND_VIDEO = "video";
+	public static final String ENUM_KIND_MANUSCRIPT = "manuscript";
+	public static final String ENUM_KIND_PATENT = "patent";
+	public static final String ENUM_KIND_IDENTIFICATION = "identification";
+	public static final String ENUM_KIND_COMPILATION = "compilation";
+	public static final String ENUM_KIND_ARTIFACT = "artifact";
+	/** What a source IS (its documentary genre), as opposed to {@link #MEDIA_TYPES}, the physical form of its carrier. */
+	public static final String[] KINDS = new String[]{
+		ENUM_KIND_CIVIL_REGISTRATION, ENUM_KIND_CHURCH_REGISTER, ENUM_KIND_CENSUS, ENUM_KIND_DEED, ENUM_KIND_WILL_PROBATE, ENUM_KIND_COURT_RECORD,
+		ENUM_KIND_MILITARY_RECORD, ENUM_KIND_SCHOOL_RECORD, ENUM_KIND_IMMIGRATION, ENUM_KIND_TAX_ROLL, ENUM_KIND_DIRECTORY, ENUM_KIND_NEWSPAPER,
+		ENUM_KIND_PERIODICAL, ENUM_KIND_BOOK, ENUM_KIND_CEMETERY_RECORD, ENUM_KIND_CORRESPONDENCE, ENUM_KIND_DIARY, ENUM_KIND_ORAL, ENUM_KIND_WEBSITE,
+		ENUM_KIND_MAP, ENUM_KIND_PHOTOGRAPH, ENUM_KIND_ARTWORK, ENUM_KIND_AUDIO, ENUM_KIND_VIDEO, ENUM_KIND_MANUSCRIPT, ENUM_KIND_PATENT,
+		ENUM_KIND_IDENTIFICATION, ENUM_KIND_COMPILATION, ENUM_KIND_ARTIFACT
 	};
 
 
@@ -159,6 +203,20 @@ public final class SourceReader{
 
 	public static String extractMediaType(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_MEDIA_TYPE);
+	}
+
+	/** @return the documentary genre of the source (one of {@link #KINDS} or free text), or {@code null} if not set */
+	public static String extractKind(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_KIND);
+	}
+
+	/**
+	 * @param record	The SourceRecord.
+	 * @return	The identifiers of the source itself (ISBN, DOI, ...), in the order of the record; not where it is kept in a repository
+	 * 	(that is the identifier of its repository citation).
+	 */
+	public static List<FLEFRecord> extractIdentifiers(final FLEFRecord record){
+		return IdentifierReader.extractIdentifiers(record);
 	}
 
 	/**

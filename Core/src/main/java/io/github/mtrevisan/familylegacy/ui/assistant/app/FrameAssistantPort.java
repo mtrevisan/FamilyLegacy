@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.app;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.AssistantIndicator;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantSettingsDialog;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.shell.ResearchAssistantPort;
 
 import javax.swing.JComponent;
@@ -67,7 +67,7 @@ public final class FrameAssistantPort implements ResearchAssistantPort{
 			final Supplier<FLEFModel> snapshotSupplier, final Supplier<String> scopeSupplier,
 			final BooleanSupplier modalDialogShowing){
 		final AssistantIndicator indicator = new AssistantIndicator(DefaultResearchAssistant.getInstance(),
-			() -> new AssistantContext(window, null, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier),
+			() -> new SwingAssistantContext(window, null, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier),
 			modalDialogShowing);
 		return new Indicator(){
 			@Override

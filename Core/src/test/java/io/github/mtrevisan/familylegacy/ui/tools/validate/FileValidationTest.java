@@ -778,11 +778,62 @@ class FileValidationTest{
 		model.addRecord(event("E4", "baptism"));
 		model.addRecord(participation("P4a", "E4", "I1", EventParticipationReader.ENUM_ROLE_SPONSOR));
 		model.addRecord(participation("P4b", "E4", "I2", null));
-		//a marriage with a witness only is not judged: the other spouse may be unknown
+		//a marriage with a witness only has no principal at all: the catalog of the event types expects two
 		model.addRecord(event("E5", EventReader.ENUM_TYPE_MARRIAGE));
 		model.addRecord(participation("P5", "E5", "I1", EventParticipationReader.ENUM_ROLE_WITNESS));
 
-		Assertions.assertEquals(List.of("E1"), eventIssues(model));
+		Assertions.assertEquals(List.of("E1", "E5"), eventIssues(model));
+	}
+
+	private static List<String> principalCountIssues(final FLEFModel model){
+		return ConsistencyService.check(model).issues().stream()
+			.filter(issue -> issue.kind().equals("event_few_principals") || issue.kind().equals("event_many_principals"))
+			.map(issue -> issue.kind() + ":" + issue.recordId())
+			.toList();
+	}
+
+	@Test
+	void anEventWithAnUnusualNumberOfPrincipalsIsAnAdvisoryWarning() throws IOException{
+		final FLEFModel model = model();
+		//a marriage with one principal only: the spouse may be unknown
+		model.addRecord(event("E1", EventReader.ENUM_TYPE_MARRIAGE));
+		model.addRecord(participation("P1", "E1", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		//a birth with two principals
+		model.addRecord(event("E2", EventReader.ENUM_TYPE_BIRTH));
+		model.addRecord(participation("P2a", "E2", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("P2b", "E2", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		//a marriage with two principals, a burial with one: fine
+		model.addRecord(event("E3", EventReader.ENUM_TYPE_MARRIAGE));
+		model.addRecord(participation("P3a", "E3", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("P3b", "E3", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(event("E4", EventReader.ENUM_TYPE_BURIAL));
+		model.addRecord(participation("P4", "E4", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		//a marriage with one principal and a participant without a role: that one may be the spouse
+		model.addRecord(event("E5", EventReader.ENUM_TYPE_MARRIAGE));
+		model.addRecord(participation("P5a", "E5", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("P5b", "E5", "I2", null));
+		//a custom type has no expectation
+		model.addRecord(event("E6", "anecdote"));
+		model.addRecord(participation("P6a", "E6", "I1", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+		model.addRecord(participation("P6b", "E6", "I2", EventParticipationReader.ENUM_ROLE_PRINCIPAL));
+
+		Assertions.assertEquals(List.of("event_few_principals:E1", "event_many_principals:E2"), principalCountIssues(model));
+		ConsistencyService.check(model).issues().stream().filter(issue -> issue.kind().endsWith("_principals"))
+			.forEach(issue -> Assertions.assertEquals(ConsistencyService.Severity.WARNING, issue.severity()));
+	}
+
+	@Test
+	void aBurialWithoutAPrincipalIsReportedOnce() throws IOException{
+		final FLEFModel model = model();
+		model.addRecord(event("E1", EventReader.ENUM_TYPE_BURIAL));
+		model.addRecord(participation("P1", "E1", "I1", EventParticipationReader.ENUM_ROLE_OFFICIANT));
+		//a census is not a life event, so only the catalog sees it
+		model.addRecord(event("E2", EventReader.ENUM_TYPE_CENSUS));
+		model.addRecord(participation("P2", "E2", "I1", EventParticipationReader.ENUM_ROLE_INFORMANT));
+
+		final List<String> noPrincipal = ConsistencyService.check(model).issues().stream()
+			.filter(issue -> issue.kind().equals("event_no_principal")).map(ConsistencyService.Issue::recordId).toList();
+		Assertions.assertEquals(List.of("E1", "E2"), noPrincipal);
 	}
 
 	@Test

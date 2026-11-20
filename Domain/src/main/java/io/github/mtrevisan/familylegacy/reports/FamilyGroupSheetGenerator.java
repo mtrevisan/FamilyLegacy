@@ -172,25 +172,25 @@ public final class FamilyGroupSheetGenerator{
 		final FLEFRecord birth = (ctx.isRedacted(person)? null: event(ctx, person, EventReader.ENUM_TYPE_BIRTH));
 		final FLEFRecord death = (ctx.isRedacted(person)? null: event(ctx, person, EventReader.ENUM_TYPE_DEATH));
 		row.add(date(ctx, birth));
-		row.add(place(birth));
+		row.add(place(model, birth));
 		row.add(date(ctx, death));
-		row.add(place(death));
+		row.add(place(model, death));
 		return row;
 	}
 
-	private static FLEFRecord event(final ReportContext ctx, final FLEFRecord person, final String type){
+	static FLEFRecord event(final ReportContext ctx, final FLEFRecord person, final String type){
 		for(final FLEFRecord event : ctx.index.eventsOf(person))
 			if(type.equalsIgnoreCase(FLEFRecordHelper.getChildValue(event, EventReader.TAG_TYPE)))
 				return event;
 		return null;
 	}
 
-	private static String date(final ReportContext ctx, final FLEFRecord event){
+	static String date(final ReportContext ctx, final FLEFRecord event){
 		final String date = (event != null? ctx.labels.dateText(event): null);
 		return (StringUtils.isNotBlank(date)? ReportFormatters.escape(date): NO_VALUE);
 	}
 
-	private String place(final FLEFRecord event){
+	static String place(final FLEFModel model, final FLEFRecord event){
 		final String place = (event != null? PlaceCitationReader.extractPlace(event, model): null);
 		return (StringUtils.isNotBlank(place)? ReportFormatters.escape(place): NO_VALUE);
 	}
@@ -214,7 +214,7 @@ public final class FamilyGroupSheetGenerator{
 				continue;
 
 			final String date = date(ctx, event);
-			final String place = place(event);
+			final String place = place(model, event);
 			if(date.isEmpty() && place.isEmpty())
 				return null;
 			return (date.isEmpty()? place: (place.isEmpty()? date: date + ", " + place));

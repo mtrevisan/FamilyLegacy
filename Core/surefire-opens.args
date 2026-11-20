@@ -7,9 +7,6 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant=org.junit.jupiter.api
---add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.chronology=ALL-UNNAMED
---add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.chronology=org.junit.platform.commons
---add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.chronology=org.junit.jupiter.api
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.conclusion=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.conclusion=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.assistant.conclusion=org.junit.jupiter.api
@@ -112,3 +109,6 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.images=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.images=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.images=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=org.junit.jupiter.api

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.Modifications;
 
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -92,10 +94,86 @@ public final class ModelHistory{
 
 
 	private static final int MAX_DEPTH = 100;
+	/** The most modified records looked at one by one (each is searched among the records of the snapshot): more are compared with the rest. */
+	private static final int MAX_MODIFIED = 16;
 	private static final String HEADER_TAG = "HEAD";
 
 
-	private record Snapshot(FLEFRecord header, List<FLEFRecord> records, Map<String, FLEFRecord> recordsById){}
+	/**
+	 * A copy of the model at a moment. When it has been found equal to the model it also knows the records of the model it was equal to
+	 * and the value of {@link Modifications} at that moment: a record that is still the same one and has not been modified since is equal to
+	 * its copy, so that what changed is found by looking at the records that were modified, not at all of them.
+	 */
+	private static final class Snapshot{
+
+		private final FLEFRecord header;
+		private final List<FLEFRecord> records;
+		private Map<String, FLEFRecord> recordsById;
+		/** The records of the model that the copies in {@link #records} were equal to, {@code null} if it is not known. */
+		private FLEFRecord[] sources;
+		private long stamp;
+
+
+		private Snapshot(final FLEFRecord header, final List<FLEFRecord> records){
+			this.header = header;
+			this.records = records;
+		}
+
+
+		FLEFRecord header(){
+			return header;
+		}
+
+		List<FLEFRecord> records(){
+			return records;
+		}
+
+		/** @return	The copies by id (the last one if an id is repeated), made when first asked. */
+		Map<String, FLEFRecord> recordsById(){
+			if(recordsById == null){
+				final Map<String, FLEFRecord> byId = new HashMap<>();
+				for(final FLEFRecord record : records)
+					if(record.getId() != null)
+						byId.put(record.getId(), record);
+				recordsById = byId;
+			}
+			return recordsById;
+		}
+
+		/** The copies were equal to these records of the model when the counter of the changes was at {@code stamp}. */
+		void equalTo(final List<FLEFRecord> live, final long stamp){
+			sources = live.toArray(new FLEFRecord[0]);
+			this.stamp = stamp;
+		}
+
+		/** @return	The position of the record of the model that this snapshot was equal to, -1 if it was not one of them. */
+		int indexOfSource(final FLEFRecord live){
+			if(sources != null)
+				for(int i = 0; i < sources.length; i ++)
+					if(sources[i] == live)
+						return i;
+			return -1;
+		}
+
+		/**
+		 * @return	The records modified since this snapshot was equal to the model, if the model has the same records in the same order and they
+		 * 	are few ({@code null} when everything has to be looked at).
+		 */
+		List<FLEFRecord> modifiedRecords(final FLEFModel model){
+			if(sources == null || sources.length != model.getRecords().size() || Modifications.sharedNodesSeen()
+					|| model.structureStamp() > stamp)
+				return null;
+
+			final List<FLEFRecord> modified = new ArrayList<>(4);
+			return (Modifications.modifiedSince(stamp, modified, MAX_MODIFIED)? modified: null);
+		}
+
+		/** Frees what only the snapshot that is compared with the model needs. */
+		void forgetSources(){
+			sources = null;
+		}
+
+	}
 
 	/** A state together with the origin of the change that moved away from it (or to it, on the redo stack). */
 	private record Step(Snapshot state, Origin origin, Instant time, List<Change> changes){}
@@ -108,6 +186,8 @@ public final class ModelHistory{
 	/** What {@link #readOnlyView()} gave last, and the snapshot it was built from ({@code null} until it is asked for). */
 	private FLEFModel view;
 	private Snapshot viewSource;
+	/** The snapshots found equal to the model, and the value of {@link Modifications} when it was so. */
+	private final Map<Snapshot, Long> verifiedAt = new IdentityHashMap<>();
 	private final Deque<Step> undoStack = new ArrayDeque<>();
 	private final Deque<Step> redoStack = new ArrayDeque<>();
 	/** Told when the model changes: a step recorded, an undo or a redo done, the model replaced. */
@@ -136,14 +216,16 @@ public final class ModelHistory{
 	 * @return	A model with the same header and records as the one of the history, that is never modified.
 	 */
 	public FLEFModel readOnlyView(){
-		if(view != null && isUnchanged(viewSource, model))
+		if(view != null && isUnchanged(viewSource))
 			return view;
 
-		final Snapshot current = (isUnchanged(baseline, model)? baseline: capture(model, (viewSource != null? viewSource: baseline)));
+		final Snapshot current = (isUnchanged(baseline)? baseline: verified(capture(model, (viewSource != null? viewSource: baseline))));
 		final FLEFModel copy = new FLEFModel();
 		copy.setHeader(current.header());
 		for(final FLEFRecord record : current.records())
 			copy.addRecord(record);
+		//filling the copy counts as a change for whoever watches the counter, and it is not one of the model
+		verified(current);
 		viewSource = current;
 		view = copy;
 		return copy;
@@ -156,7 +238,8 @@ public final class ModelHistory{
 		viewSource = null;
 		undoStack.clear();
 		redoStack.clear();
-		baseline = capture(model, null);
+		verifiedAt.clear();
+		baseline = verified(capture(model, null));
 		//a model that has just been bound is the one of the file it was read from
 		saved = baseline;
 		fireChanged();
@@ -164,7 +247,7 @@ public final class ModelHistory{
 
 	/** Tells that the content of the model is now on a file: from here on, {@link #isModified()} compares with it. */
 	public void markSaved(){
-		saved = capture(model, baseline);
+		saved = verified(capture(model, baseline));
 	}
 
 	/**
@@ -214,7 +297,7 @@ public final class ModelHistory{
 
 	/** @return	{@code true} if the model differs from what was last saved or loaded (also if an edit has not become a step yet). */
 	public boolean isModified(){
-		return (saved == null || !isUnchanged(saved, model));
+		return (saved == null || !isUnchanged(saved));
 	}
 
 	public void checkpoint(){
@@ -223,11 +306,12 @@ public final class ModelHistory{
 
 	/** Records the changes made to the model since the last checkpoint, if any, as a single step. */
 	public void checkpoint(final Origin origin){
-		if(isUnchanged(baseline, model))
+		if(isUnchanged(baseline))
 			return;
 
 		final Snapshot previous = baseline;
-		baseline = capture(model, previous);
+		baseline = verified(capture(model, previous));
+		previous.forgetSources();
 		undoStack.push(new Step(previous, origin, Instant.now(), diff(previous, baseline)));
 		while(undoStack.size() > MAX_DEPTH)
 			undoStack.removeLast();
@@ -244,6 +328,8 @@ public final class ModelHistory{
 	}
 
 	private void fireChanged(){
+		//the records may have been edited in place: what was derived from them is stale
+		model.invalidateDerived();
 		for(final Runnable listener : changeListeners)
 			listener.run();
 	}
@@ -274,9 +360,11 @@ public final class ModelHistory{
 			return false;
 
 		final Step step = undoStack.pop();
+		baseline.forgetSources();
 		redoStack.push(new Step(baseline, step.origin(), step.time(), step.changes()));
 		baseline = step.state();
 		apply(baseline);
+		verified(baseline);
 		fireChanged();
 		return true;
 	}
@@ -288,9 +376,11 @@ public final class ModelHistory{
 			return false;
 
 		final Step step = redoStack.pop();
+		baseline.forgetSources();
 		undoStack.push(new Step(baseline, step.origin(), step.time(), step.changes()));
 		baseline = step.state();
 		apply(baseline);
+		verified(baseline);
 		fireChanged();
 		return true;
 	}
@@ -420,8 +510,34 @@ public final class ModelHistory{
 		if(!sameStructure(before.header(), after.header()))
 			changes.add(new Change(null, HEADER_TAG, Kind.MODIFIED, before.header(), after.header()));
 
-		final Set<String> currentIds = new HashSet<>();
-		for(final FLEFRecord record : after.records()){
+//the usual step modifies some records and nothing else: the records are the same ones (the unchanged ones are shared by the snapshots)
+final List<FLEFRecord> oldRecords = before.records();
+final List<FLEFRecord> newRecords = after.records();
+if(oldRecords.size() == newRecords.size()){
+	final List<Change> modified = new ArrayList<>();
+	boolean modificationsOnly = true;
+	for(int i = 0, size = newRecords.size(); modificationsOnly && i < size; i ++){
+		final FLEFRecord old = oldRecords.get(i);
+		final FLEFRecord record = newRecords.get(i);
+		if(old == record)
+			continue;
+
+		if(record.getId() != null && record.getId().equals(old.getId())){
+			if(!sameStructure(old, record))
+				modified.add(new Change(record.getId(), record.getTag(), Kind.MODIFIED, old, record));
+		}
+		else
+			modificationsOnly = false;
+	}
+	if(modificationsOnly){
+		changes.addAll(modified);
+
+		return changes;
+	}
+}
+
+final Set<String> currentIds = new HashSet<>();
+for(final FLEFRecord record : after.records()){
 			final String id = record.getId();
 			if(id == null)
 				continue;
@@ -461,29 +577,95 @@ public final class ModelHistory{
 	}
 
 	private static Snapshot capture(final FLEFModel model, final Snapshot previous){
+		final long stamp = Modifications.current();
 		final FLEFRecord header = copy(model.getHeader());
 
-		List<FLEFRecord> records = model.getRecords();
-		final List<FLEFRecord> filteredRecords = new ArrayList<>(records.size());
-		final Map<String, FLEFRecord> recordsById = new HashMap<>();
-		for(final FLEFRecord record : records){
-			final FLEFRecord old = (previous != null && record.getId() != null? previous.recordsById().get(record.getId()): null);
-			final FLEFRecord snapshot = (old != null && sameStructure(old, record)? old: copy(record));
-			filteredRecords.add(snapshot);
-			if(snapshot.getId() != null)
-				recordsById.put(snapshot.getId(), snapshot);
+		final List<FLEFRecord> modified = (previous != null? previous.modifiedRecords(model): null);
+		if(modified != null){
+			//the same records in the same order, of which only these were modified: the others have their copy already
+			final List<FLEFRecord> copies = new ArrayList<>(previous.records());
+			for(final FLEFRecord record : modified){
+				final int index = previous.indexOfSource(record);
+				if(index >= 0){
+					final FLEFRecord old = previous.records().get(index);
+					copies.set(index, (sameStructure(old, record)? old: copy(record)));
+				}
+			}
+			final Snapshot result = new Snapshot(header, copies);
+			result.sources = previous.sources;
+			result.stamp = stamp;
+			return result;
 		}
-		return new Snapshot(header, filteredRecords, recordsById);
+
+		final List<FLEFRecord> records = model.getRecords();
+		final List<FLEFRecord> filteredRecords = new ArrayList<>(records.size());
+		for(int i = 0, size = records.size(); i < size; i ++){
+			final FLEFRecord record = records.get(i);
+			final FLEFRecord snapshot;
+			final FLEFRecord old = (previous != null && record.getId() != null? previous.recordsById().get(record.getId()): null);
+			snapshot = (old != null && sameStructure(old, record)? old: copy(record));
+			filteredRecords.add(snapshot);
+		}
+		final Snapshot result = new Snapshot(header, filteredRecords);
+		result.equalTo(records, stamp);
+		return result;
+	}
+
+	/**
+	 * @return	Whether the model is as the snapshot says. When nothing at all changed since the last time they were found equal (see
+	 * 	{@link Modifications}) it is so without looking at a record, which is what makes the questions a user interface asks all the
+	 * 	time (can I undo? is it modified? give me the view to save) cost nothing on a big model.
+	 */
+	private boolean isUnchanged(final Snapshot snapshot){
+		final long stamp = Modifications.current();
+		final Long verified = verifiedAt.get(snapshot);
+		if(verified != null && verified == stamp)
+			return true;
+
+		final boolean same = isUnchanged(snapshot, model);
+		if(same)
+			markVerified(snapshot, stamp);
+		return same;
+	}
+
+	/** Tells that the model is, at this moment, as the snapshot says (the stamp is the value of the counter at that moment). */
+	private void markVerified(final Snapshot snapshot, final long stamp){
+		if(verifiedAt.size() > 8)
+			verifiedAt.clear();
+		verifiedAt.put(snapshot, stamp);
+	}
+
+	/** Tells that the model has just been made equal to the snapshot, or the snapshot has just been taken from it. */
+	private Snapshot verified(final Snapshot snapshot){
+		markVerified(snapshot, Modifications.current());
+		return snapshot;
 	}
 
 	private static boolean isUnchanged(final Snapshot snapshot, final FLEFModel model){
+		final long stamp = Modifications.current();
 		final List<FLEFRecord> records = model.getRecords();
 		if(records.size() != snapshot.records().size() || !sameStructure(snapshot.header(), model.getHeader()))
 			return false;
 
-		for(int i = 0, size = records.size(); i < size; i ++)
-			if(!sameStructure(snapshot.records().get(i), records.get(i)))
+		final List<FLEFRecord> modified = snapshot.modifiedRecords(model);
+		if(modified != null){
+			//the same records in the same order, of which only these were modified: the others are as they were
+			for(final FLEFRecord record : modified){
+				final int index = snapshot.indexOfSource(record);
+				if(index >= 0 && !sameStructure(snapshot.records().get(index), record))
+					return false;
+			}
+			snapshot.stamp = stamp;
+			return true;
+		}
+
+		for(int i = 0, size = records.size(); i < size; i ++){
+			final FLEFRecord record = records.get(i);
+			if(!sameStructure(snapshot.records().get(i), record))
 				return false;
+		}
+		//equal: from now on a record is looked at only if it is modified after this moment
+		snapshot.equalTo(records, stamp);
 		return true;
 	}
 

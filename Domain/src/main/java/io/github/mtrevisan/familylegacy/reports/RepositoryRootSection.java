@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.reports;
 
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
@@ -189,14 +190,24 @@ public final class RepositoryRootSection implements SectionBuilder{
 				FLEFRecordHelper.getChildValue(src, SourceReader.TAG_AUTHOR));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceDate(),
 				DateService.getDateDisplayText(src));
+			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceKind(),
+				ctx.labels.enumValue("enum.source.kind", FLEFRecordHelper.getChildValue(src, SourceReader.TAG_KIND)));
 			ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 				FLEFRecordHelper.getChildValue(src, SourceReader.TAG_MEDIA_TYPE));
 
-			// Locator(s) of this source within the repository.
+			// Where this source is found within the repository: identifiers and locator(s).
 			for(final FLEFRecord rc : ctx.index.repositoriesOfSource(src)){
 				final String rid = RepositoryCitationReader.extractRepository(rc);
 				if(!ctx.root.getId().equals(rid))
 					continue;
+				//where the source is found in this repository: shelf mark, call number, classification number
+				for(final FLEFRecord identifier : RepositoryCitationReader.extractIdentifiers(rc)){
+					final String value = FLEFRecordHelper.getChildValue(identifier, IdentifierReader.TAG_VALUE);
+					if(value != null && !value.isBlank())
+						rows.add("**" + ReportFormatters.escape(ctx.labels.enumValue(ReportFormatters.IDENTIFIER_SCHEME_PREFIX,
+							StringUtils.defaultIfBlank(IdentifierReader.extractScheme(identifier), IdentifierReader.ENUM_SCHEME_CALL_NUMBER)))
+							+ ":** " + ReportFormatters.escape(value));
+				}
 				final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
 				if(locator != null && !locator.isBlank())
 					rows.add("**" + ctx.labels.sections().sourceLocator() + ":** "

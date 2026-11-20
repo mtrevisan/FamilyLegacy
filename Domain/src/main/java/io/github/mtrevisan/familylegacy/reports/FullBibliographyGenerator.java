@@ -82,9 +82,13 @@ public final class FullBibliographyGenerator{
 		for(final FLEFRecord source : all)
 			if(first.isVisible(source))
 				sources.add(source);
-		sources.sort(Comparator.comparing((final FLEFRecord source) -> SourceReader.displayText(source),
+		final Comparator<FLEFRecord> byTitle = Comparator.comparing((final FLEFRecord source) -> SourceReader.displayText(source),
 				ReportCollation.of(first.labels.language().locale()))
-			.thenComparing(FLEFRecord::getId));
+			.thenComparing(FLEFRecord::getId);
+		final boolean byKind = config.groupSourcesByKind();
+		sources.sort(byKind
+			? Comparator.comparing(SourceKindGrouping::kindOf, SourceKindGrouping.kindOrder()).thenComparing(byTitle)
+			: byTitle);
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(first).build());
 		sections.add(new ReportSection.Heading(1, first.labels.sections().overview()));
@@ -92,13 +96,18 @@ public final class FullBibliographyGenerator{
 		sections.add(summary(first, index, sources));
 		listener.onProgress(5, null);
 
+		String currentKind = null;
 		for(int i = 0; i < sources.size(); i ++){
 			if(Thread.currentThread().isInterrupted())
 				throw new RuntimeException("Report generation cancelled");
 
 			final FLEFRecord source = sources.get(i);
+			if(byKind && !SourceKindGrouping.kindOf(source).equals(currentKind)){
+				currentKind = SourceKindGrouping.kindOf(source);
+				sections.add(new ReportSection.Heading(2, SourceKindGrouping.heading(first.labels, currentKind)));
+			}
 			for(final ReportSection section : new SourceRootSection(first.withRoot(source)).build())
-				sections.add(demoted(section));
+				sections.add(demoted(section, byKind? 2: 1));
 			listener.onProgress(5 + (i + 1) * 95 / sources.size(), SourceReader.displayText(source));
 		}
 
@@ -119,10 +128,10 @@ public final class FullBibliographyGenerator{
 			ctx.labels.sections().sourceDate(), ctx.labels.sections().citations()), rows);
 	}
 
-	/** A heading one level lower, because each source is a part of the bibliography. */
-	private static ReportSection demoted(final ReportSection section){
+	/** A heading lower by the given levels, because each source is a part of the bibliography (and of its kind, when grouped). */
+	private static ReportSection demoted(final ReportSection section, final int levels){
 		return (section instanceof ReportSection.Heading(int level, String text)
-			? new ReportSection.Heading(Math.min(level + 1, MAX_HEADING_LEVEL), text): section);
+			? new ReportSection.Heading(Math.min(level + levels, MAX_HEADING_LEVEL), text): section);
 	}
 
 }

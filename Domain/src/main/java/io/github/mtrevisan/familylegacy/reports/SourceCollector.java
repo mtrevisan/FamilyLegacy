@@ -81,6 +81,13 @@ public final class SourceCollector{
 				collectFrom(ctx, a, ids);
 		}
 
+		if(subjectIds.size() == 1){
+			//the relationships of the only person, from the index of the report (a scan of all of them for each person is quadratic)
+			for(final FLEFRecord r : ctx.visibleRelationshipsOf(subjectIds.iterator().next()))
+				collectFrom(ctx, r, ids);
+			return ids;
+		}
+
 		for(final FLEFRecord r : ctx.visibleRecordsByType(TYPE_RELATIONSHIP)){
 			final String subj = r.extractReferencedId(TAG_SUBJECT, IndividualReader.TYPE);
 			if(subj != null && subjectIds.contains(subj))

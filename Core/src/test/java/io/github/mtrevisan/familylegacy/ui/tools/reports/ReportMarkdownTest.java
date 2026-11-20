@@ -124,7 +124,7 @@ class ReportMarkdownTest{
 			case PLACE -> "P1";
 			case SOURCE -> "S1";
 			case RESEARCH_QUESTION -> "RQ1";
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES -> null;
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES -> null;
 			default -> "I1";
 		};
 	}
@@ -163,7 +163,7 @@ class ReportMarkdownTest{
 		Assertions.assertEquals("# Ancestors of first name [I1]", firstLine(markdown));
 		assertContains(markdown, "This report covers one individual.", "# Ancestor tree", "# Index of Individuals",
 			"Little is known about the birth of first name.");
-		Assertions.assertEquals(List.of("| Individual | Years |", "| --- | --- |", "| [first name [I1]](#I1) |  |"), sectionOf(markdown, "# Index of Individuals").stream()
+		Assertions.assertEquals(List.of("| No. | Individual | Years |", "| --- | --- | --- |", "| 1 | [first name [I1]](#I1) |  |"), sectionOf(markdown, "# Index of Individuals").stream()
 			.filter(line -> line.startsWith("|"))
 			.toList());
 		assertDoesNotContain(markdown, "# Descendant tree");
@@ -185,7 +185,7 @@ class ReportMarkdownTest{
 		final String markdown = markdown(ReportType.ANCESTOR, "I1");
 
 		final List<String> lines = markdown.lines().toList();
-		for(final String heading : List.of("# first name [I1]", "## Introduction", "## Life of first name [I1]", "### Personal data"))
+		for(final String heading : List.of("# 1. first name [I1]", "## Introduction", "## Life of first name [I1]", "### Personal data"))
 			Assertions.assertTrue(lines.contains(heading), heading + " is missing\n" + markdown);
 		for(final String heading : List.of("# Introduction", "# Life of first name [I1]"))
 			Assertions.assertFalse(lines.contains(heading), heading + " is a chapter");
@@ -254,7 +254,7 @@ class ReportMarkdownTest{
 
 	@Test
 	void everyReportAboutTheWholeFileKeepsTheLivingHiddenToo() throws IOException{
-		for(final ReportType type : new ReportType[]{ReportType.SURNAMES, ReportType.FAMILY_BOOK, ReportType.TO_VERIFY}){
+		for(final ReportType type : new ReportType[]{ReportType.SURNAMES, ReportType.FAMILY_BOOK, ReportType.TO_VERIFY, ReportType.CONFLICTS}){
 			final String markdown = markdown(type, rootOf(type), LivingPrivacy.HIDE);
 
 			assertDoesNotContain(markdown, "epidemic", "cholera");

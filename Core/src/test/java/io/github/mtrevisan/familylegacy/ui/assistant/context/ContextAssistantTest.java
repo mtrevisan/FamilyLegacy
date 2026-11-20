@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -31,20 +32,15 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.HistoricEventRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -81,11 +77,11 @@ class ContextAssistantTest{
 	}
 
 	private static List<Diagnostic> diagnose(final FLEFModel model){
-		return new ContextAssistantContributor().diagnosticProviders().getFirst().diagnose(new AssistantContext(null, null, model));
+		return new ContextAssistantContributor().diagnosticProviders().getFirst().diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 	private static String placeId(final FLEFModel model, final String name){
-		return model.getRecordsByType(PlaceHandler.TYPE).stream()
+		return model.getRecordsByType(PlaceReader.TYPE).stream()
 			.filter(place -> name.equals(PlaceReader.extractPrimaryName(place)))
 			.findFirst().orElseThrow().getId();
 	}
@@ -114,7 +110,7 @@ class ContextAssistantTest{
 	}
 
 	private static FLEFRecord war(final String id, final String placeId){
-		final FLEFRecord war = FLEFRecord.createMainRecord(id, HistoricEventHandler.TYPE)
+		final FLEFRecord war = FLEFRecord.createMainRecord(id, HistoricEventReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue(HistoricEventReader.TAG_TYPE, HistoricEventReader.ENUM_TYPE_WAR))
 			.addChild(FLEFRecord.createChildWithTagAndValue(HistoricEventReader.TAG_TITLE, "First World War"))
 			.addChild(bounded(HistoricEventReader.TAG_DATE, "28 JUL 1914", "11 NOV 1918"));
@@ -145,7 +141,7 @@ class ContextAssistantTest{
 	@Test
 	void aWarInAnotherRegionDoesNotMatchAndAnImpactThatExistsIsNotProposed() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceHandler.TYPE)
+		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME).addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Lombardia"))));
 		model.addRecord(war("H1", "P99"));
 		Assertions.assertTrue(diagnose(model).stream().noneMatch(d -> d.key().startsWith("context.candidate|")));
@@ -154,7 +150,7 @@ class ContextAssistantTest{
 		model2.addRecord(war("H1", placeId(model2, "Veneto")));
 		final String death = diagnose(model2).stream().filter(d -> d.key().startsWith("context.candidate|")).findFirst().orElseThrow()
 			.recordIds().get(1);
-		model2.addRecord(FLEFRecord.createMainRecord("CI1", ContextImpactHandler.TYPE)
+		model2.addRecord(FLEFRecord.createMainRecord("CI1", ContextImpactReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(ContextImpactReader.TAG_CONTEXT).addChild(FLEFRecord.createChildWithTagAndValue(HistoricEventReader.TYPE, "H1")))
 			.addChild(FLEFRecord.createChildWithTag(ContextImpactReader.TAG_TARGET).addChild(FLEFRecord.createChildWithTagAndValue(EventParticipationReader.TAG_EVENT, death))));
 
@@ -164,7 +160,7 @@ class ContextAssistantTest{
 	@Test
 	void aNormWithAValidityIsReadFromTheModel() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(FLEFRecord.createMainRecord("N1", CulturalNormHandler.TYPE)
+		model.addRecord(FLEFRecord.createMainRecord("N1", CulturalNormReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTagAndValue(HistoricEventReader.TAG_TITLE, "Burial in the churchyard"))
 			.addChild(FLEFRecord.createChildWithTagAndValue(CulturalNormReader.TAG_TYPE, CulturalNormReader.ENUM_TYPE_BURIAL_PRACTICE))
 			.addChild(point(CulturalNormReader.TAG_VALID_FROM, "1 JAN 1900"))
@@ -183,7 +179,7 @@ class ContextAssistantTest{
 		final FLEFModel model = convert();
 		model.addRecord(war("H1", null));
 		final FLEFRecord context = model.getRecordById("H1");
-		final FLEFRecord target = model.getRecordsByType(EventHandler.TYPE).getFirst();
+		final FLEFRecord target = model.getRecordsByType(EventReader.TYPE).getFirst();
 		final int count = model.getRecordCount();
 
 		SwingUtilities.invokeAndWait(() -> {
@@ -205,7 +201,7 @@ class ContextAssistantTest{
 		Assertions.assertTrue(diagnose(convert()).isEmpty(), diagnose(convert()).toString());
 		Assertions.assertTrue(diagnose(new FLEFModel()).isEmpty());
 		Assertions.assertTrue(new ContextAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, null)).isEmpty());
+			.diagnose(new SwingAssistantContext(null, null, null)).isEmpty());
 	}
 
 }

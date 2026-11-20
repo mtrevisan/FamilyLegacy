@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>io.github.mtrevisan</groupId>
+		<artifactId>FamilyLegacy</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<!-- The knowledge of the Research Assistant: the checks (identity, gaps, chronology, relationships, conclusions, places, context, FAN,
+		consanguinity), the findings they report and the drafts they propose, with no user interface. It reads the model of the Domain and
+		knows nothing of Swing nor of the application (Core), and the compiler enforces it. The palette, the dialogs and the actions that open
+		editors are in Core. -->
+	<artifactId>Assistant</artifactId>
+	<packaging>jar</packaging>
+
+	<build>
+		<plugins>
+			<!-- The module of the tests (the tests are patched into it) has to read JUnit: Maven arranges it by itself, an IDE does not; the importers (plugins) are read by the tests that parse real files -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<argLine>--add-reads io.github.mtrevisan.familylegacy.assistant=org.junit.jupiter.api
+						--add-reads io.github.mtrevisan.familylegacy.assistant=io.github.mtrevisan.importers.gedcom
+						--add-reads io.github.mtrevisan.familylegacy.assistant=io.github.mtrevisan.importers.gramps</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- The model and the logic -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Calendars -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Calendars</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Apache -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<!-- Logger -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- The importers (GEDCOM, Gramps) are plugins: here only for the tests that read real files -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGedcom</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>ImporterGramps</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

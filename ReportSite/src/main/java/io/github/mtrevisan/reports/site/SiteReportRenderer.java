@@ -87,6 +87,7 @@ public final class SiteReportRenderer implements ReportRenderer{
 		.site-nav a[aria-current]{font-weight:bold;color:var(--ink);}
 		main{padding:1.5em 2.5em;max-width:56em;}
 		h1,h2,h3{border-bottom:1px solid var(--line);padding-bottom:.2em;line-height:1.25;}
+		h1,h2,h3,h4,h5,h6{clear:both;}
 		.subtitle{font-style:italic;color:var(--muted);}
 		table{border-collapse:collapse;width:100%;margin:.8em 0;}
 		td,th{border:1px solid var(--line);padding:3px 8px;text-align:start;overflow-wrap:anywhere;}

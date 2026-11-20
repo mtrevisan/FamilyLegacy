@@ -97,6 +97,48 @@ class ComboBoxSearchTest{
 		Assertions.assertEquals("bet", model.getSearchText());
 	}
 
+	@Test
+	void anEditableComboIsFilteredByWhatIsTypedInItsEditorAndTheTextIsLeftAsTyped(){
+		final BoundComboBox<String> combo = new BoundComboBox<>("x", items(ComboBoxSearch.THRESHOLD + 8));
+		combo.setEditable(true);
+		final SearchableComboBoxModel<String> model = (SearchableComboBoxModel<String>)combo.getModel();
+		final javax.swing.text.JTextComponent editor = (javax.swing.text.JTextComponent)combo.getEditor().getEditorComponent();
+
+		editor.setText("beta");
+		release(editor, 'a');
+
+		Assertions.assertEquals("beta", model.getSearchText());
+		Assertions.assertEquals(1, combo.getItemCount());
+		Assertions.assertEquals("beta", editor.getText());
+
+		//a text that is not an item is accepted as it is, and the whole list is back
+		editor.setText("something_else");
+		release(editor, 'e');
+		Assertions.assertEquals(0, combo.getItemCount());
+		combo.setSelectedItem("something_else");
+		Assertions.assertFalse(model.isFiltered());
+		Assertions.assertEquals(ComboBoxSearch.THRESHOLD + 8, combo.getItemCount());
+	}
+
+	@Test
+	void anEditableComboWithFewItemsIsNotFiltered(){
+		final BoundComboBox<String> combo = new BoundComboBox<>("x", items(5));
+		combo.setEditable(true);
+		final javax.swing.text.JTextComponent editor = (javax.swing.text.JTextComponent)combo.getEditor().getEditorComponent();
+
+		editor.setText("beta");
+		release(editor, 'a');
+
+		Assertions.assertEquals(5, combo.getItemCount());
+	}
+
+	private static void release(final java.awt.Component component, final char c){
+		final java.awt.event.KeyEvent event = new java.awt.event.KeyEvent(component, java.awt.event.KeyEvent.KEY_RELEASED, 0L, 0,
+			java.awt.event.KeyEvent.VK_A, c);
+		for(final java.awt.event.KeyListener listener : component.getKeyListeners())
+			listener.keyReleased(event);
+	}
+
 	private static void type(final javax.swing.JComboBox<String> combo, final char c){
 		final java.awt.event.KeyEvent event = new java.awt.event.KeyEvent(combo, java.awt.event.KeyEvent.KEY_TYPED, 0L, 0,
 			java.awt.event.KeyEvent.VK_UNDEFINED, c);

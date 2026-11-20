@@ -183,13 +183,13 @@ public final class ReportDialog extends JDialog{
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
-			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET -> {
+			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET, END_OF_LINE -> {
 				if(selectedId != null && selectedId.startsWith(IndividualHandler.ID_PREFIX))
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
 			case PLACE, SOURCE, RESEARCH_QUESTION -> selectedEntity = subject;
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, SURNAMES -> selectedEntity = null;
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES -> selectedEntity = null;
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> {
 				// Global reports: fallback to active individual or first
 				// record in the model.
@@ -230,7 +230,9 @@ public final class ReportDialog extends JDialog{
 		// 6. The layout of the pages (PDF and Word)
 		mainPanel.add(layoutPanel);
 
-		final JScrollPane scrollPane = new JScrollPane(mainPanel);
+		//the form follows the width of the dialog: a text that does not fit is cut, the dialog never scrolls sideways
+		final JPanel fitted = new WidthTrackingPanel(mainPanel);
+		final JScrollPane scrollPane = new JScrollPane(fitted, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		scrollPane.getVerticalScrollBar()
 			.setUnitIncrement(GUIHelper.SCROLLBAR_UNIT_INCREMENT);
@@ -709,6 +711,41 @@ public final class ReportDialog extends JDialog{
 		if(choice == 0 && !SavedFileNotice.reveal((files.isEmpty()? dir: files.getFirst()).toFile()))
 			MessageDialogs.show(this, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + dir,
 				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
+	}
+
+	/** A panel that is as wide as the viewport of the scroll pane it is in, so that the scroll pane has no horizontal scroll bar. */
+	private static final class WidthTrackingPanel extends JPanel implements javax.swing.Scrollable{
+
+		WidthTrackingPanel(final JPanel content){
+			super(new BorderLayout());
+			add(content, BorderLayout.CENTER);
+		}
+
+		@Override
+		public java.awt.Dimension getPreferredScrollableViewportSize(){
+			return getPreferredSize();
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(final java.awt.Rectangle visibleRect, final int orientation, final int direction){
+			return GUIHelper.SCROLLBAR_UNIT_INCREMENT;
+		}
+
+		@Override
+		public int getScrollableBlockIncrement(final java.awt.Rectangle visibleRect, final int orientation, final int direction){
+			return (orientation == javax.swing.SwingConstants.VERTICAL? visibleRect.height: visibleRect.width);
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportWidth(){
+			return true;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportHeight(){
+			return false;
+		}
+
 	}
 
 }

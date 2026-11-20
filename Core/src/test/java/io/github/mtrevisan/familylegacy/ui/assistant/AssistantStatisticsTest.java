@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantStatistics.Event;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics.Event;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

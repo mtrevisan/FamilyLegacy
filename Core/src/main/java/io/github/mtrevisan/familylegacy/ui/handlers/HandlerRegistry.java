@@ -65,6 +65,7 @@ public final class HandlerRegistry{
 		HANDLERS.put(GroupHandler.TYPE, GroupHandler.getInstance());
 		HANDLERS.put(HeaderHandler.TYPE, HeaderHandler.getInstance());
 		HANDLERS.put(HistoricEventHandler.TYPE, HistoricEventHandler.getInstance());
+		HANDLERS.put(IdentifierHandler.TYPE, IdentifierHandler.getInstance());
 		HANDLERS.put(IdentityHypothesisHandler.TYPE, IdentityHypothesisHandler.getInstance());
 		HANDLERS.put(IndividualAttributeHandler.TYPE, IndividualAttributeHandler.getInstance());
 		HANDLERS.put(IndividualHandler.TYPE, IndividualHandler.getInstance());

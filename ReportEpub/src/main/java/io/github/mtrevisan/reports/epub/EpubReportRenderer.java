@@ -78,7 +78,7 @@ public final class EpubReportRenderer implements ReportRenderer{
 	private static final String MIME_TYPE = "application/epub+zip";
 	private static final String PUBLISHER = "FamilyLegacy";
 	private static final String STYLE = "body{font-family:Georgia,serif;line-height:1.5;}"
-		+ "h1,h2,h3,h4,h5,h6{page-break-after:avoid;break-after:avoid;}"
+		+ "h1,h2,h3,h4,h5,h6{page-break-after:avoid;break-after:avoid;clear:both;}"
 		+ "h1,h2,h3{border-bottom:1px solid #ccc;padding-bottom:.2em;}"
 		+ "h4,h5,h6{border-bottom:1px dotted #ccc;}"
 		+ ".subtitle{font-style:italic;color:#555;}"

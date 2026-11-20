@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
@@ -42,7 +43,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 /** The ancestor and descendant reports follow as many generations as asked, the root not counted. */
@@ -139,6 +142,63 @@ class ReportGenerationsTest{
 		Assertions.assertEquals(2, persons(ReportType.DESCENDANT, "I6", 1));
 		Assertions.assertEquals(3, persons(ReportType.DESCENDANT, "I6", 2));
 		Assertions.assertEquals(4, persons(ReportType.DESCENDANT, "I6", 3));
+	}
+
+	/** @return	The identifiers of the persons the report has a chapter for, in the order of the index of the individuals. */
+	private static List<String> chapters(final ReportType type, final String root, final int first, final int generations,
+			final GenerationOrder order){
+		final ReportConfig config = ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)
+			.with(ReportOption.GENERATIONS, generations)
+			.with(ReportOption.FIRST_GENERATION, first)
+			.with(ReportOption.GENERATION_ORDER, order)
+			.with(ReportOption.INDEX_INDIVIDUALS, true);
+		final ReportDocument document = ReportBuilder.build(type, model, model.getRecordById(root), config, ReportProgressListener.NOOP);
+
+		boolean inIndex = false;
+		for(final ReportSection section : document.sections()){
+			if(section instanceof final ReportSection.Heading heading)
+				inIndex = "Index of Individuals".equals(heading.text());
+			else if(inIndex && section instanceof final ReportSection.Table table){
+				final List<String> ids = new ArrayList<>();
+				for(final List<String> row : table.rows())
+					for(final String cell : row){
+						final int start = cell.indexOf("(@");
+						if(start >= 0)
+							ids.add(cell.substring(start + 2, cell.indexOf("@)", start)));
+					}
+				return ids;
+			}
+		}
+		//(a report with no persons has no index)
+		return List.of();
+	}
+
+	@Test
+	void theAncestorsCanStartFromALaterGeneration(){
+		Assertions.assertEquals(Set.of("I4", "I5", "I6", "I7"),
+			Set.copyOf(chapters(ReportType.ANCESTOR, "I1", 2, 0, GenerationOrder.NEAREST_FIRST)));
+		//the same value for the first and the last generation is a single generation
+		Assertions.assertEquals(Set.of("I4", "I5"), Set.copyOf(chapters(ReportType.ANCESTOR, "I1", 2, 2, GenerationOrder.NEAREST_FIRST)));
+		//a generation that does not exist leaves nothing
+		Assertions.assertTrue(chapters(ReportType.ANCESTOR, "I1", 9, 0, GenerationOrder.NEAREST_FIRST).isEmpty());
+	}
+
+	@Test
+	void theAncestorsCanBeInTheOrderFromTheFarthestGeneration(){
+		final List<String> nearest = chapters(ReportType.ANCESTOR, "I1", 0, 0, GenerationOrder.NEAREST_FIRST);
+		final List<String> farthest = chapters(ReportType.ANCESTOR, "I1", 0, 0, GenerationOrder.FARTHEST_FIRST);
+
+		Assertions.assertEquals("I1", nearest.getFirst());
+		Assertions.assertEquals("I1", farthest.getLast());
+		Assertions.assertEquals(Set.of("I6", "I7"), Set.copyOf(farthest.subList(0, 2)));
+		Assertions.assertEquals(Set.copyOf(nearest), Set.copyOf(farthest));
+	}
+
+	@Test
+	void theDescendantsCanStartFromALaterGenerationAndGoBackwards(){
+		//the line of I6 is I6, I4, I2, I1
+		Assertions.assertEquals(List.of("I2"), chapters(ReportType.DESCENDANT, "I6", 2, 2, GenerationOrder.NEAREST_FIRST));
+		Assertions.assertEquals(List.of("I1", "I2", "I4"), chapters(ReportType.DESCENDANT, "I6", 1, 0, GenerationOrder.FARTHEST_FIRST));
 	}
 
 	@Test

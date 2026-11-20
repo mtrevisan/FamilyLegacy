@@ -28,11 +28,11 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateStructureDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.junit.jupiter.api.Assertions;
@@ -146,7 +146,7 @@ class AssistantDialogsEscapeTest{
 	void theListOfTheRecordsClosesOverTheEditorOfARecord() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventReader.TYPE).createNewDialog(null, model).window();
 
 		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
 			(owner, m, record) -> {});
@@ -160,7 +160,7 @@ class AssistantDialogsEscapeTest{
 	void theListOfWhereUsedClosesOverTheEditorOfARecord() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventReader.TYPE).createNewDialog(null, model).window();
 
 		final WhereUsedDialog list = new WhereUsedDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE));
 		pressEscape(list);
@@ -173,10 +173,10 @@ class AssistantDialogsEscapeTest{
 	void thePaletteClosesOverTheEditorItWasOpenedFrom() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventReader.TYPE).createNewDialog(null, model).window();
 
 		final ResearchAssistantPalette palette = new ResearchAssistantPalette(new ResearchAssistantService(),
-			new AssistantContext(editor, null, model));
+			new SwingAssistantContext(editor, null, model));
 		pressEscape(palette);
 
 		Assertions.assertFalse(palette.isDisplayable());
@@ -188,7 +188,7 @@ class AssistantDialogsEscapeTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
 		//an editor, the list of the records opened from the palette, the editor of one of them
-		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventHandler.TYPE).createNewDialog(null, model).window();
+		final JDialog editor = (JDialog)HandlerRegistry.getHandler(EventReader.TYPE).createNewDialog(null, model).window();
 		final RecordChooserDialog chooser = new RecordChooserDialog(editor, model, model.getRecordsByType(IndividualReader.TYPE),
 			(owner, m, record) -> {});
 		final JDialog opened = (JDialog)HandlerRegistry.getHandler("INDIVIDUAL").createEditDialog(chooser, model,

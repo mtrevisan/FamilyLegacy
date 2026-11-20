@@ -51,6 +51,7 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField authorField = new JTextField(20);
 	private final JTextField publisherField = new JTextField(20);
+	private final JComboBox<String> kindCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(SourceReader.KINDS, I18N.t("search.combo.any"))));
 	private final JComboBox<String> mediaTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, I18N.t("search.combo.any"))));
 	private final JTextField placeField = new JTextField(20);
 
@@ -76,6 +77,8 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 		add(authorField, "growx");
 		add(new JLabel(I18N.l("dialog.source.publisher")));
 		add(publisherField, "growx");
+		add(new JLabel(I18N.l("dialog.source.kind")));
+		add(kindCombo, "growx");
 		add(new JLabel(I18N.l("dialog.source.media_type")));
 		add(mediaTypeCombo, "growx");
 		add(new JLabel(I18N.l("dialog.place")));
@@ -83,6 +86,7 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	private void setupListeners(){
+		kindCombo.addActionListener(e -> fireChanged());
 		mediaTypeCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentChangeListener(this::fireChanged);
@@ -108,6 +112,7 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 		filters.put(SourceReader.TAG_TITLE, getTitle());
 		filters.put(SourceReader.TAG_AUTHOR, getAuthor());
 		filters.put(SourceReader.TAG_PUBLISHER, getPublisher());
+		filters.put(SourceReader.TAG_KIND, getKind());
 		filters.put(SourceReader.TAG_MEDIA_TYPE, getMediaType());
 		filters.put(SourceReader.TAG_PLACE, getPlace());
 		return filters;
@@ -123,6 +128,10 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 
 	public String getPublisher(){
 		return publisherField.getText().trim();
+	}
+
+	public String getKind(){
+		return (kindCombo.getSelectedIndex() == 0? null: (String)kindCombo.getSelectedItem());
 	}
 
 	public String getMediaType(){

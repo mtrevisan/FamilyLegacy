@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.reports.i18n;
 
+import java.util.Locale;
+
 
 
 /**
@@ -336,6 +338,14 @@ public final class SectionLabelProvider{
 
 	public String sourcePlace(){
 		return labels.getString("SOURCE_PLACE");
+	}
+
+	public String sourceKind(){
+		return labels.getString("SOURCE_KIND");
+	}
+
+	public String sourceKindUnspecified(){
+		return labels.getString("SOURCE_KIND_UNSPECIFIED");
 	}
 
 	public String sourceMediaType(){
@@ -984,6 +994,139 @@ public final class SectionLabelProvider{
 		return labels.getString("TO_VERIFY_COLUMN_" + columnKey);
 	}
 
+	public String conflictsTitle(){
+		return labels.getString("CONFLICTS_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: all the conflicts, the ones not settled, the ones settled). */
+	public String conflictsIntro(){
+		return labels.getString("CONFLICTS_INTRO");
+	}
+
+	public String conflictsNothing(){
+		return labels.getString("CONFLICTS_NOTHING");
+	}
+
+	public String conflictsNoneShown(){
+		return labels.getString("CONFLICTS_NONE_SHOWN");
+	}
+
+	/** @param filterName	{@code UNRESOLVED} or {@code RESOLVED}. */
+	public String conflictsFilter(final String filterName){
+		return labels.getString("CONFLICTS_FILTER_" + filterName);
+	}
+
+	/** @return	The sentence of the filter by record type (a {@link String#format} pattern: the type, see {@link #conflictsType}). */
+	public String conflictsFilterType(){
+		return labels.getString("CONFLICTS_FILTER_TYPE");
+	}
+
+	/** @return	The sentence of the filter by confidence (a {@link String#format} pattern: the confidence, see {@link #conflictsConfidence}). */
+	public String conflictsFilterConfidence(){
+		return labels.getString("CONFLICTS_FILTER_CONFIDENCE");
+	}
+
+	/** @param typeName	The name of a {@code ConflictRecordType} (not {@code ALL}). */
+	public String conflictsType(final String typeName){
+		return labels.getString("CONFLICTS_TYPE_" + typeName);
+	}
+
+	public String conflictsNotes(){
+		return labels.getString("CONFLICTS_NOTES");
+	}
+
+	/** @param columnKey	{@code KIND}, {@code TOTAL}, {@code UNRESOLVED}, {@code RESOLVED}, {@code RECORD}, {@code ASSERTION}, {@code PLACE}, {@code CONFIDENCE}, {@code SUPPORTING}, {@code CONTRADICTING} or {@code PREFERRED}. */
+	public String conflictsColumn(final String columnKey){
+		return labels.getString("CONFLICTS_COLUMN_" + columnKey);
+	}
+
+	public String conflictsPreferred(){
+		return labels.getString("CONFLICTS_PREFERRED");
+	}
+
+	public String conflictsStatusLabel(){
+		return labels.getString("CONFLICTS_STATUS_LABEL");
+	}
+
+	public String conflictsConclusion(){
+		return labels.getString("CONFLICTS_CONCLUSION_LABEL");
+	}
+
+	public String conflictsQuestions(){
+		return labels.getString("CONFLICTS_QUESTIONS_LABEL");
+	}
+
+	/** @param kindKey	The key of a kind of conflict (see {@code ReportConflict.Kind#key()}). */
+	public String conflictsKind(final String kindKey){
+		return labels.getString("CONFLICTS_KIND_" + kindKey.toUpperCase(Locale.ROOT));
+	}
+
+	/** @param problemKey	The key of a problem (see {@code ReportConflict.Problem#key()}). */
+	public String conflictsProblem(final String problemKey){
+		return labels.getString("CONFLICTS_PROBLEM_" + problemKey.toUpperCase(Locale.ROOT));
+	}
+
+	/** @param statusKey	{@code UNRESOLVED}, {@code PREFERRED} or a proof status in capitals. */
+	public String conflictsStatus(final String statusKey){
+		return labels.getString("CONFLICTS_STATUS_" + statusKey);
+	}
+
+	/** @param confidenceKey	{@code LOW}, {@code MEDIUM}, {@code HIGH}, {@code NOT_STATED} or {@code ALL}. */
+	public String conflictsConfidence(final String confidenceKey){
+		return labels.getString("CONFLICTS_CONFIDENCE_" + confidenceKey);
+	}
+
+	public String hypothesesTitle(){
+		return labels.getString("HYPOTHESES_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: all, open, accepted, rejected). */
+	public String hypothesesIntro(){
+		return labels.getString("HYPOTHESES_INTRO");
+	}
+
+	public String hypothesesNothing(){
+		return labels.getString("HYPOTHESES_NOTHING");
+	}
+
+	public String hypothesesNoneShown(){
+		return labels.getString("HYPOTHESES_NONE_SHOWN");
+	}
+
+	/** @param filterName	The name of a {@code HypothesisFilter} (not {@code ALL}). */
+	public String hypothesesFilter(final String filterName){
+		return labels.getString("HYPOTHESES_FILTER_" + filterName);
+	}
+
+	/** @return	The sentence of the filter by kind of record (a {@link String#format} pattern: see {@link #hypothesesType}). */
+	public String hypothesesFilterType(){
+		return labels.getString("HYPOTHESES_FILTER_TYPE");
+	}
+
+	/** @param typeName	The name of a {@code HypothesisRecordType} (not {@code ALL}). */
+	public String hypothesesType(final String typeName){
+		return labels.getString("HYPOTHESES_TYPE_" + typeName);
+	}
+
+	public String hypothesesNotes(){
+		return labels.getString("HYPOTHESES_NOTES");
+	}
+
+	/** @param statusName	The name of a {@code HypothesisStatus}: the heading of the group. */
+	public String hypothesesStatusHeading(final String statusName){
+		return labels.getString("HYPOTHESES_HEADING_" + statusName);
+	}
+
+	/** @param statusName	The name of a {@code HypothesisStatus}: where the hypothesis stands. */
+	public String hypothesesStatus(final String statusName){
+		return labels.getString("HYPOTHESES_STATUS_" + statusName);
+	}
+
+	/** @param key	{@code STATUS}, {@code CONFIDENCE}, {@code NOT_STATED}, {@code RATIONALE}, {@code SUPPORTING}, {@code CONTRADICTING}, {@code NONE}, {@code QUESTIONS} or {@code CONCLUSIONS}. */
+	public String hypothesesLabel(final String key){
+		return labels.getString("HYPOTHESES_LABEL_" + key);
+	}
+
 	public String familyGroupTitle(){
 		return labels.getString("FAMILY_GROUP_TITLE");
 	}
@@ -1040,6 +1183,33 @@ public final class SectionLabelProvider{
 		return labels.getString("SURNAMES_COLUMN_" + columnKey);
 	}
 
+	public String endOfLineTitle(){
+		return labels.getString("END_OF_LINE_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: ancestors at the end of the line, ancestors, generations). */
+	public String endOfLineIntro(){
+		return labels.getString("END_OF_LINE_INTRO");
+	}
+
+	/** @return	The sentence for an individual whose ancestors all have parents (a {@link String#format} pattern: ancestors). */
+	public String endOfLineNone(){
+		return labels.getString("END_OF_LINE_NONE");
+	}
+
+	public String endOfLineNoAncestors(){
+		return labels.getString("END_OF_LINE_NO_ANCESTORS");
+	}
+
+	public String endOfLineNote(){
+		return labels.getString("END_OF_LINE_NOTE");
+	}
+
+	/** @param columnKey	{@code GENERATION}, {@code NAME}, {@code BORN}, {@code BIRTH_PLACE}, {@code DIED} or {@code DEATH_PLACE}. */
+	public String endOfLineColumn(final String columnKey){
+		return labels.getString("END_OF_LINE_COLUMN_" + columnKey);
+	}
+
 	/** @param kindKey	The key of a kind of finding (see {@code ToVerifyFinder.Kind#key()}). */
 	public String toVerifyKind(final String kindKey){
 		return labels.getString("TO_VERIFY_" + kindKey);
@@ -1063,6 +1233,16 @@ public final class SectionLabelProvider{
 	/** @return	The header of the column with the years of birth and death of an individual. */
 	public String columnYears(){
 		return labels.getString("COLUMN_YEARS");
+	}
+
+	/** @return	The header of the column with the number of a person in the numbering of the report (Ahnentafel, d'Aboville). */
+	public String columnNumber(){
+		return labels.getString("COLUMN_NUMBER");
+	}
+
+	/** @return	The word that tells a section is an appendix of the report ("Appendix"). */
+	public String appendix(){
+		return labels.getString("APPENDIX");
 	}
 
 	public String columnIndividual(){

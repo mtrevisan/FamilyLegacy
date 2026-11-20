@@ -39,7 +39,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 /**
@@ -93,20 +95,39 @@ public final class SourcesSection implements SectionBuilder{
 		final List<ReportSection> out = new ArrayList<>();
 		out.add(new ReportSection.Heading(1, ctx.labels.sources()));
 
-		for(final String sid : alphabetical(ids)){
-			final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
-			if(src != null)
-				appendSource(out, src, false);
-		}
+		if(ctx.config.groupSourcesByKind())
+			appendByKind(out, alphabetical(ids));
+		else
+			for(final String sid : alphabetical(ids)){
+				final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
+				if(src != null)
+					appendSource(out, src, false, 0);
+			}
 
 		//the sources the cited ones are derived from, that nothing cites: a transcription is of no use without its register
 		if(ctx.config.includeOriginalSources())
 			for(final String sid : alphabetical(originalsNotCited(ids))){
 				final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
 				if(src != null)
-					appendSource(out, src, true);
+					appendSource(out, src, true, 0);
 			}
 		return out;
+	}
+
+	/** Writes the sources (already in alphabetical order) under a heading for each kind: the order inside a kind is the alphabetical one. */
+	private void appendByKind(final List<ReportSection> out, final List<String> sortedIds){
+		final Map<String, List<FLEFRecord>> byKind = new TreeMap<>(SourceKindGrouping.kindOrder());
+		for(final String sid : sortedIds){
+			final FLEFRecord src = ctx.visible(ctx.model.getRecordById(sid));
+			if(src != null)
+				byKind.computeIfAbsent(SourceKindGrouping.kindOf(src), k -> new ArrayList<>(1))
+					.add(src);
+		}
+		for(final Map.Entry<String, List<FLEFRecord>> group : byKind.entrySet()){
+			out.add(new ReportSection.Heading(2, SourceKindGrouping.heading(ctx.labels, group.getKey())));
+			for(final FLEFRecord src : group.getValue())
+				appendSource(out, src, false, 1);
+		}
 	}
 
 
@@ -133,15 +154,15 @@ public final class SourcesSection implements SectionBuilder{
 	 *                          Rendering
 	 * ====================================================================== */
 
-	private void appendSource(final List<ReportSection> out, final FLEFRecord src, final boolean notCited){
-		out.add(new ReportSection.Heading(2, ReportFormatters.escape(
+	private void appendSource(final List<ReportSection> out, final FLEFRecord src, final boolean notCited, final int depth){
+		out.add(new ReportSection.Heading(2 + depth, ReportFormatters.escape(
 			ctx.sourceTitle(src.getId()))));
 		if(notCited)
 			out.add(new ReportSection.Paragraph("*" + ctx.labels.sections().sourceOriginalOfCited() + "*"));
 
 		appendBasicInfo(out, src);
-		appendRepositories(out, src);
-		appendDocuments(out, src);
+		appendRepositories(out, src, depth);
+		appendDocuments(out, src, depth);
 
 		if(ctx.config.notes())
 			out.addAll(ctx.citations().notes(src));
@@ -165,6 +186,8 @@ public final class SourcesSection implements SectionBuilder{
 			DateService.getDateDisplayText(src));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourcePlace(),
 			PlaceCitationReader.extractPlace(src, ctx.model));
+		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceKind(),
+			ctx.labels.enumValue("enum.source.kind", FLEFRecordHelper.getChildValue(src, SourceReader.TAG_KIND)));
 		ReportFormatters.appendIfPresent(rows, ctx.labels.sections().sourceMediaType(),
 			FLEFRecordHelper.getChildValue(src, SourceReader.TAG_MEDIA_TYPE));
 
@@ -177,12 +200,12 @@ public final class SourcesSection implements SectionBuilder{
 
 	/* ----- Repositories ---------------------------------------------------- */
 
-	private void appendRepositories(final List<ReportSection> out, final FLEFRecord src){
+	private void appendRepositories(final List<ReportSection> out, final FLEFRecord src, final int depth){
 		final List<FLEFRecord> repoRefs = ctx.visibleChildren(src, RepositoryReader.TYPE);
 		if(repoRefs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.sections().sourceRepository()));
+		out.add(new ReportSection.Heading(3 + depth, ctx.labels.sections().sourceRepository()));
 		for(final FLEFRecord rc : repoRefs)
 			appendRepository(out, rc);
 	}
@@ -195,7 +218,7 @@ public final class SourcesSection implements SectionBuilder{
 		final String name = (repo != null
 			? RepositoryReader.displayName(repo)
 			: rid);
-		final String locator = FLEFRecordHelper.getChildValue(rc, RepositoryCitationReader.TAG_LOCATOR);
+		final String locator = ReportFormatters.repositoryReference(rc, ctx.labels);
 
 		//one list: the repository (the heading above says what it is), the note of the citation and the contacts
 		final List<String> items = new ArrayList<>();
@@ -234,12 +257,12 @@ public final class SourcesSection implements SectionBuilder{
 
 	/* ----- Documents ------------------------------------------------------- */
 
-	private void appendDocuments(final List<ReportSection> out, final FLEFRecord src){
+	private void appendDocuments(final List<ReportSection> out, final FLEFRecord src, final int depth){
 		final List<FLEFRecord> docRefs = ctx.visibleChildren(src, SourceReader.TAG_MEDIA);
 		if(docRefs.isEmpty())
 			return;
 
-		out.add(new ReportSection.Heading(3, ctx.labels.sections().sourceDocuments()));
+		out.add(new ReportSection.Heading(3 + depth, ctx.labels.sections().sourceDocuments()));
 		final List<String> labels = new ArrayList<>(docRefs.size());
 		for(final FLEFRecord docRef : docRefs){
 			final String label = documentSummary(docRef.getValue());

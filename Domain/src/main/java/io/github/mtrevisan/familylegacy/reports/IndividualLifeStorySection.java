@@ -86,14 +86,22 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 
 		out.add(new ReportSection.Heading(1, String.format(ctx.labels.lifeOf(), who)));
 
-		writeNarrative(out);
-		writePreferredImage(out);
-		writePersonalData(out);
-		writeEvents(out);
-		writeAttributes(out);
-		writeRelationships(out);
-		writeNotes(out);
-		writeCitedSourceTitles(out);
+		//the notes and the texts of the sources that the options send to a section are kept for the sections of the notes and the citations
+		ctx.citations().startDeferring();
+		try{
+			writeNarrative(out);
+			writePreferredImage(out);
+			writePersonalData(out);
+			writeEvents(out);
+			writeAttributes(out);
+			writeRelationships(out);
+			out.addAll(new MediaSection(ctx).inline());
+			writeNotes(out);
+			writeCitedSourceTitles(out);
+		}
+		finally{
+			ctx.citations().stopDeferring();
+		}
 		writeAudit(out);
 
 		return out;
@@ -123,7 +131,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 	/* ----- Narrative ------------------------------------------------------- */
 
 	private void writeNarrative(final List<ReportSection> out){
-		final String narrative = new IndividualNarrator(ctx.model, ctx.index, ctx.labels)
+		final String narrative = new IndividualNarrator(ctx.model, ctx.index, ctx.labels, ctx::narrativeName, person -> ctx.mention(person, false))
 			.narrate(ctx.root);
 		if(!narrative.isBlank())
 			out.add(new ReportSection.Paragraph(narrative));
@@ -142,14 +150,13 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		final String uri = IndividualReader.extractPreferredImageUri(ctx.root, ctx.model);
 		if(uri == null)
 			return;
-		final String caption = ReportFormatters.imageCaption(
-			preferred, ctx.labels.sections().preferredImage(), ctx.labels);
+		final String caption = ctx.labels.sections().preferredImage();
 		try{
-			out.add(new ReportSection.Image(Path.of(uri), caption));
+			out.add(Portraits.image(ctx, ctx.root, preferred, uri, caption));
 		}
 		catch(final Exception ignored){
 			out.add(new ReportSection.Paragraph(
-				"[" + caption + ": " + uri + "]"));
+				"[" + ReportFormatters.imageCaption(preferred, caption, ctx.labels) + ": " + uri + "]"));
 		}
 	}
 
@@ -374,7 +381,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 				continue;
 			final String role = (p.role() != null && !p.role().isBlank()
 				? " — *" + ReportFormatters.escape(p.role()) + "*": StringUtils.EMPTY);
-			items.add(ReportFormatters.escape(ctx.displayText(p.record()))
+			items.add(ctx.mentionDisplay(p.record())
 				+ " [" + ReportFormatters.escape(ReportFormatters.orEmpty(
 				ctx.labels.recordKind(p.kind()))) + "]" + role);
 		}
@@ -400,7 +407,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		final String evtId = event.getId();
 		if(evtId == null)
 			return null;
-		for(final FLEFRecord ep : ctx.visibleRecordsByType(EventParticipationReader.TYPE)){
+		for(final FLEFRecord ep : ctx.visibleParticipationsOf(evtId)){
 			final String eid = FLEFRecordHelper.getChildValue(ep, EventParticipationReader.TAG_EVENT);
 			if(!Objects.equals(evtId, eid))
 				continue;
@@ -499,7 +506,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		out.add(new ReportSection.Heading(2, ctx.labels.relationships()));
 
 		final List<FLEFRecord> declared = new ArrayList<>();
-		for(final FLEFRecord rel : ctx.visibleRecordsByType(RelationshipReader.TYPE)){
+		for(final FLEFRecord rel : ctx.visibleRelationshipsOf(ctx.root.getId())){
 			final String subj = rel.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
 			//(the memberships of a group are told only if the report has the groups)
 			if(Objects.equals(ctx.root.getId(), subj)
@@ -591,10 +598,13 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 	private void writeNotes(final List<ReportSection> out){
 		if(!ctx.config.notes())
 			return;
-		final List<ReportSection> n = ctx.citations().notes(ctx.root);
-		if(!n.isEmpty()){
+		//the notes of the person, then the ones of the events, the attributes and the relationships that the options moved here
+		final List<ReportSection> own = ctx.citations().notesInPlace(ctx.root);
+		final List<ReportSection> moved = ctx.citations().takeDeferredNotes();
+		if(!own.isEmpty() || !moved.isEmpty()){
 			out.add(new ReportSection.Heading(2, ctx.labels.notes()));
-			out.addAll(n);
+			out.addAll(own);
+			out.addAll(moved);
 		}
 	}
 
@@ -602,12 +612,17 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		if(!ctx.config.sources())
 			return;
 		final List<String> ids = new ArrayList<>(SourceCollector.collect(ctx));
-		if(ids.isEmpty())
+		//the texts of the sources that the options moved here, with the number their citations have
+		final List<String> moved = ctx.citations().takeDeferredDetails();
+		if(ids.isEmpty() && moved.isEmpty())
 			return;
 		out.add(new ReportSection.Heading(2, ctx.labels.sections().citations()));
-		out.add(new ReportSection.BulletList(ids.stream()
-			.map(ctx::sourceTitle)
-			.toList()));
+		if(!ids.isEmpty())
+			out.add(new ReportSection.BulletList(ids.stream()
+				.map(ctx::sourceTitle)
+				.toList()));
+		if(!moved.isEmpty())
+			out.add(new ReportSection.BulletList(moved));
 	}
 
 	private void writeAudit(final List<ReportSection> out){

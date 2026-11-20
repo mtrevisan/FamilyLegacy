@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 

@@ -89,10 +89,11 @@ public final class ExportFlefTool implements ToolOperation{
 
 		try{
 			//the records and the data reserved by the privacy policy are not distributed
-			final PrivacyExporter.Result result = PrivacyExporter.filter(context.model(), policy);
-			final String content = FLEFWriter.create()
-				.writeToString(result.model());
-			AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
+			//(written as it is filtered: the filtered copy of the model is not held in memory)
+			final PrivacyExporter.Summary[] summary = new PrivacyExporter.Summary[1];
+			AtomicFileWriter.write(target.toPath(), StandardCharsets.UTF_8,
+				writer -> summary[0] = PrivacyExporter.write(context.model(), policy, FLEFWriter.create(), writer));
+			final PrivacyExporter.Summary result = summary[0];
 
 			//the file is saved: where it is, with the button to open its directory (and what the privacy policy left out, if anything)
 			if(result.omittedRecords() > 0 || result.omittedNodes() > 0)

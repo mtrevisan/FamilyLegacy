@@ -53,6 +53,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 	private String title;
 	private String author;
 	private String publisher;
+	private String kind;
 	private String mediaType;
 	private String place;
 	private Set<SearchMode> modes;
@@ -63,6 +64,7 @@ public class SourceSearchStrategy implements SearchStrategy{
 		title = criteria.getFilterFor(SourceReader.TAG_TITLE);
 		author = criteria.getFilterFor(SourceReader.TAG_AUTHOR);
 		publisher = criteria.getFilterFor(SourceReader.TAG_PUBLISHER);
+		kind = criteria.getFilterFor(SourceReader.TAG_KIND);
 		mediaType = criteria.getFilterFor(SourceReader.TAG_MEDIA_TYPE);
 		place = criteria.getFilterFor(SourceReader.TAG_PLACE);
 		modes = criteria.modes();
@@ -96,6 +98,10 @@ public class SourceSearchStrategy implements SearchStrategy{
 				if(!SearchHelper.matches(recordPublisher, place, modes))
 					return false;
 			}
+
+			// Kind filter
+			if(StringUtils.isNotEmpty(kind) && !kind.equalsIgnoreCase(SourceReader.extractKind(source)))
+				return false;
 
 			// Media Type filter
 			if(StringUtils.isNotEmpty(mediaType)){

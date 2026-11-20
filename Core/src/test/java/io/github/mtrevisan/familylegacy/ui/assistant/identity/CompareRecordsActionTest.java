@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -69,7 +69,7 @@ class CompareRecordsActionTest{
 		});
 		closer.start();
 		try{
-			SwingUtilities.invokeAndWait(() -> action.execute(new AssistantContext(null, null, model)));
+			SwingUtilities.invokeAndWait(() -> action.execute(new SwingAssistantContext(null, null, model)));
 		}
 		finally{
 			closer.stop();
@@ -104,7 +104,7 @@ class CompareRecordsActionTest{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The comparison needs a display");
 		final AtomicReference<String> shown = new AtomicReference<>();
 
-		SwingUtilities.invokeAndWait(() -> new CompareRecordsAction("I1", "I2", "t").execute(new AssistantContext(null, null, null)));
+		SwingUtilities.invokeAndWait(() -> new CompareRecordsAction("I1", "I2", "t").execute(new SwingAssistantContext(null, null, null)));
 
 		Assertions.assertNull(shown.get());
 	}

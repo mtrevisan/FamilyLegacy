@@ -276,7 +276,7 @@ public class FLEFParser{
 
 		FLEFRecord record;
 		FLEFRecord currentRecord;
-		final int firstDot = text.indexOf('.', tagStart);
+		final int firstDot = text.indexOf('.', tagStart, tagEnd);
 		if(firstDot >= 0 && firstDot < tagEnd){
 			final NestedPair pair = createNestedRecord(tagStart, tagEnd);
 			record = pair.root;
@@ -342,14 +342,19 @@ public class FLEFParser{
 	private void parseBlock(final FLEFRecord parent){
 		skipIgnored();
 
+		//the children are given to the parent all at once, which makes the array of its children of the exact size
+		final List<FLEFRecord> parsed = new ArrayList<>();
 		while(!eof()){
 			if(peek() == TAG_CLOSE_CURLY_BRACE){
 				consume(TAG_CLOSE_CURLY_BRACE);
+				parent.addChildren(parsed);
 
 				return;
 			}
 
-			parent.addChild(parseRecord());
+			final FLEFRecord child = parseRecord();
+			if(!child.isEmpty())
+				parsed.add(child);
 
 			skipIgnored();
 
@@ -390,7 +395,7 @@ public class FLEFParser{
 		FLEFRecord current = null;
 		int start = tagStart;
 		while(start < tagEnd){
-			int end = text.indexOf('.', start);
+			int end = text.indexOf('.', start, tagEnd);
 			if(end < 0 || end > tagEnd)
 				end = tagEnd;
 			if(end > start){

@@ -71,7 +71,7 @@ import java.awt.Window;
  *     } | Text
  *     type?: enum {
  *       romanized, latinized, anglicized, francized, germanized, italianized, hispanicized, lusitanized, cyrillized,
- *       arabized, hebraized, hellenized, gairaigized, modernized, normalized
+ *       arabized, hebraized, hellenized, gairaigized, kanaized, hangulized, modernized, normalized
  *     } | Text
  *     value: Text
  *   }

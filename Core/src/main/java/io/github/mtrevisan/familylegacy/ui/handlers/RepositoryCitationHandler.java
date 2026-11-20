@@ -26,12 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -85,7 +89,20 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RecordD
 
 		final String repositoryId = RepositoryCitationReader.extractRepository(record);
 		final FLEFRecord repository = model.getRecordById(repositoryId);
-		return "❝ " + (repository != null? RepositoryHandler.getInstance().getDisplayText(repository, model): "--");
+		final StringBuilder text = new StringBuilder("❝ ")
+			.append(repository != null? RepositoryHandler.getInstance().getDisplayText(repository, model): "--");
+		//where the source is found in the repository
+		final List<String> identifiers = new ArrayList<>(0);
+		for(final FLEFRecord identifier : RepositoryCitationReader.extractIdentifiers(record)){
+			final String value = StringUtils.trimToNull(IdentifierReader.extractValue(identifier));
+			if(value != null)
+				identifiers.add(value);
+		}
+		if(!identifiers.isEmpty())
+			text.append(" (")
+				.append(String.join(", ", identifiers))
+				.append(')');
+		return text.toString();
 	}
 
 	@Override

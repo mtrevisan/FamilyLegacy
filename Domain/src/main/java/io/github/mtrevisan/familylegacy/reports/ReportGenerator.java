@@ -66,6 +66,8 @@ public final class ReportGenerator{
 			Objects.requireNonNull(model),
 			Objects.requireNonNull(root),
 			Objects.requireNonNull(config));
+		//the direct ancestors of the subject, in bold
+		this.ctx.useMarks(PersonMarks.of(this.ctx, type));
 	}
 
 
@@ -151,11 +153,16 @@ public final class ReportGenerator{
 		out.add(new HistoricEventSection(ctx));
 		out.add(new RepositorySection(ctx));
 		out.add(new SourcesSection(ctx));
-		out.add(new MediaSection(ctx));
+		//(the media are an appendix if the report is asked to, after the indexes)
+		final boolean appendix = (ctx.config.mediaPlacement() == MediaPlacement.APPENDIX);
+		if(!appendix)
+			out.add(new MediaSection(ctx));
 		out.add(new PlacesSection(ctx));
 		if(ctx.config.coverageReport())
 			out.add(new CoverageSection(ctx));
 		out.add(new IndexSection(ctx));
+		if(appendix)
+			out.add(new MediaSection(ctx, true));
 
 		return out;
 	}

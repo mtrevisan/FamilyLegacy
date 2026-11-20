@@ -158,7 +158,8 @@ public final class ReportXhtml{
 		//without a caption the name of the file is the alternative text
 		final String alt = (!caption.isBlank() || section.file() == null || section.file().getFileName() == null? caption:
 			section.file().getFileName().toString());
-		sb.append("<figure><img src=\"").append(ReportMarkup.escape(href)).append("\" alt=\"").append(ReportMarkup.escape(alt))
+		final String style = section.alignment().style();
+		sb.append("<figure").append(style != null? " style=\"" + style + '"': "").append("><img src=\"").append(ReportMarkup.escape(href)).append("\" alt=\"").append(ReportMarkup.escape(alt))
 			.append("\"/>");
 		if(!caption.isBlank())
 			sb.append("<figcaption>").append(ReportMarkup.escape(caption)).append("</figcaption>");

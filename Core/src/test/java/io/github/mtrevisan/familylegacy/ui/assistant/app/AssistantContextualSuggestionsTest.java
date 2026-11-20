@@ -24,13 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.app;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.assistant.gap.CreateResearchDraftAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.gap.GapDraft;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
 import io.github.mtrevisan.familylegacy.ui.features.SuggestionKind;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class AssistantContextualSuggestionsTest{
 
-	private static final AssistantContext CONTEXT = new AssistantContext(null, null, null);
+	private static final AssistantContext CONTEXT = new SwingAssistantContext(null, null, null);
 
 	private static Diagnostic finding(final Diagnostic.Severity severity, final String kind, final String recordId,
 			final DiagnosticAction action){

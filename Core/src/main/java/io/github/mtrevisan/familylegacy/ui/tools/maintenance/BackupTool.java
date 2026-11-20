@@ -113,11 +113,8 @@ public final class BackupTool implements ToolOperation{
 			@Override
 			protected Void doInBackground() throws Exception{
 				progress.update(0, I18N.t("progress.serializing"));
-				final String content = FLEFWriter.createCompact()
-					.writeToString(model, progress::update);
-
-				progress.update(-1, I18N.t("progress.writing_file"));
-				AtomicFileWriter.write(target.toPath(), content, StandardCharsets.UTF_8);
+				AtomicFileWriter.write(target.toPath(), StandardCharsets.UTF_8,
+					writer -> FLEFWriter.createCompact().write(model, writer, progress::update));
 				return null;
 			}
 

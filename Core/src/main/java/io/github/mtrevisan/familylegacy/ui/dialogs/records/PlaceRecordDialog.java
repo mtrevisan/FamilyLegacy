@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -118,6 +121,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> confidenceCombo;
 
 
+	private final MediaPartListPanel mediaCitationPanel;
+
+
 	public static PlaceRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, PlaceRecordDialog::new);
 	}
@@ -143,6 +149,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		confidenceCombo.setI18NPrefix("enum.confidence");
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place_relationships_on_subject"))
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, PlaceRelationshipHandler.TYPE, I18N.t("dialog.component.place_relationships_on_target"))
@@ -259,6 +266,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
 
+		//the media attached to the record
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		return panel;
 	}
 
@@ -286,6 +296,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		namePanel.load(record);
 
@@ -312,6 +323,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 	}
 
 

@@ -24,10 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.groups.GroupViewDialog;
 
@@ -58,7 +59,7 @@ final class ShowJurisdictionTimelineAction implements DiagnosticAction{
 		if(model == null || model.getRecordById(placeId) == null)
 			return;
 
-		GroupViewDialog.forPlace(ToolContexts.custom(model, placeId, context.window(), null), placeId)
+		GroupViewDialog.forPlace(ToolContexts.custom(model, placeId, SwingAssistantContext.of(context).window(), null), placeId)
 			.setVisible(true);
 	}
 

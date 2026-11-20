@@ -76,7 +76,6 @@
 										<exclude>gedg/*.txt</exclude>
 										<exclude>gedg/*.gramps</exclude>
 										<exclude>gedg/*.dtd</exclude>
-										<exclude>gedg/treebard/**</exclude>
 									</excludes>
 								</filter>
 								<!-- the old grammars and the documents of the grammar (the domain has them): not needed at runtime -->
@@ -90,7 +89,6 @@
 										<exclude>gedg/*.txt</exclude>
 										<exclude>gedg/*.gramps</exclude>
 										<exclude>gedg/*.dtd</exclude>
-										<exclude>gedg/treebard/**</exclude>
 									</excludes>
 								</filter>
 								<filter>
@@ -169,6 +167,12 @@
 		<dependency>
 			<groupId>io.github.mtrevisan</groupId>
 			<artifactId>Domain</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<!-- The knowledge of the Research Assistant (the checks and the findings, no user interface) -->
+		<dependency>
+			<groupId>io.github.mtrevisan</groupId>
+			<artifactId>Assistant</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

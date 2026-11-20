@@ -105,8 +105,7 @@ public final class GroupReader{
 	public static String extractPreferredImageUri(final FLEFRecord record, final RecordLookup model){
 		final String documentId = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_DOCUMENT);
 		final FLEFRecord document = model.getRecordById(documentId);
-		final String uri = MediaReader.extractUri(document);
-		return (uri != null? documentId: null);
+		return MediaReader.extractUri(document);
 	}
 
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){

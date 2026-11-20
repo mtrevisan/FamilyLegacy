@@ -28,8 +28,48 @@ policy and living-person policy, header, introduction, ancestry/descendants/rela
 media, evidence, context, cultural norms, historic events, repositories, groups, coverage, timeline, indexes, date format, saved option sets,
 page layout of PDF/Word, family group sheets; PDF/DOCX/EPUB/site/HTML/Markdown/text output), what is still worth doing:
 
+### Worth doing (roughly in order of value / cost)
+
+1. **Privacy refinements** (small, only if users ask): "do not state still alive / no longer living"; per-flag exclusion of private, confidential, or living-person details. `LivingPrivacy.NAME_AND_ROLE` already covers the common "report as Living" case.
+2. **Indexes** (small): restrict the index of places/dates to births, deaths and marriages; add indexes of occupations, causes of death. Occupations and causes of death require attribute lookups similar to those already used by the Surnames report.
+3. **Colours and themes** (small, PDF/HTML/site): provide a small set of named visual themes rather than a full colour picker or per-element font configuration.
+
+Suggested built-in themes:
+
+- Classic Genealogy
+- Academic
+- Family Book
+- Minimal
+- Modern
+
+Theme options may control:
+
+- fonts and font sizes;
+- heading styles;
+- hyperlink colours;
+- table and section styling;
+- pedigree boxes tinted by sex;
+- generation separators and page dividers;
+- report cover styling.
+
+The objective is to improve readability and visual consistency while avoiding a large number of low-value presentation options. New themes should be easy to add without changing report-generation logic.
+
+### New reports suggested by the Gramps list
+
+Existing: ancestor, descendant, group, individual, relationship, place, source, research question, bibliography, research progress,
+full bibliography, family book, to verify, surnames, family group sheets, conflicts, identity hypotheses, end of line.
+
+- **Number of ancestors / pedigree collapse** (small): per generation, known vs possible; reuses the consanguinity tool data.
+- **Database summary** (small): counts by record type, date range, completeness; partly overlaps the coverage report.
+- **Kinship report** (small): all relatives of a given kind of a person; the relationship calculator already exists.
+
 ### Not worth doing
 
+- **Tag report, note link report**: skip unless tags become a first-class concept.
+- **Birthday and anniversary report / calendar** (medium): by month, with ages; also exportable as iCalendar.
+- **Records report** (small): oldest/youngest, longest marriage, most children, etc.
+- **Fan chart, hourglass / descendant tree** (graphics): the tree views and the FAN panel cover the interactive side; for print, add a "drawing"
+  section type (SVG/image) that PDF/DOCX/EPUB/site can embed. Statistics charts and timeline chart are lower priority.
 - **GEDCOM-specific switches** (ignore `ASSO/RELA`, `_TYPE DOCUMENT`, `OBJE`, `_SCBK`, "assume marriage occurred", unfound media, "combine identical
   NOTEs", "interpret font formatting characters"): they compensate for the poor GEDCOM data model; FLEF has typed records, and the importers already
   report what they discard.
@@ -42,44 +82,6 @@ page layout of PDF/Word, family group sheets; PDF/DOCX/EPUB/site/HTML/Markdown/t
 - **Per-language kinship wording** (Dutch "nephew", Swedish cousins, Norwegian "second cousin"): a concern of the per-language labels bundle;
   revisit only when a translation is generated on request.
 
-### Worth doing (roughly in order of value / cost)
-
-1. **Leftovers of the first round** (small): a default reports folder, or "next to the file", as an alternative to the last folder used
-   (the dialog proposes `<subject>-<report>` and the last folder already); `<` `~` `>` abbreviations instead of "before/about/after" in the
-   date format; a cover image (or the subject's portrait) and a watermark in the page layout.
-2. **Narrative style options** (medium): direct ancestors in bold, cross-references in brackets, Ahnentafel numbers (ancestor reports) and
-   d'Aboville numbers (descendant reports), "all first names" vs first + initials, birth/death years in the index of individuals, unknown name
-   as `?` or custom text. The numbering codes are the most useful. Look here, take the best numbering for each report, override previous
-   numberings if a more suitable one is found: https://en.wikipedia.org/wiki/Genealogical_numbering_systems (if deemed necessary, let the user
-   choose the numbering)
-3. **Sources/notes placement** (medium): per kind choose *in narrative* or *as a section*, with a "long means more than N lines" threshold;
-   today the layout is fixed. Also "principal sources only" and "hide source quality / page".
-4. **Media options** (medium): image resolution cap (e.g. 2 Mpx) when embedding in PDF/DOCX/EPUB (file size), thumbnail side and width in the
-   narrative, images per page in the media section, exclude originals of cropped portraits (crops are already stored), person name as the title
-   of a crop.
-5. **Indexes** (small): restrict the index of places/dates to births, deaths and marriages; add indexes of occupations, causes of death and
-   anniversaries (birthdays). Occupations/causes need attribute lookups like the ones the Surnames report already does.
-6. **Generation scope and order** (small): earlier / later generations only, peer generation, ascending/descending order, "start each
-   generation on a new page", "title as Nth generation". Mostly rendering flags on `AncestorReportGenerator`/`DescendantReportGenerator`.
-7. **Colours and fonts** (small, PDF/HTML/site): font and size, pedigree boxes tinted by sex, hyperlink colour. Prefer a few named themes to a colour table.
-8. **Privacy refinements** (small, only if users ask): "do not state *still alive* / *no longer living*"; per-flag exclusion of private /
-    confidential / living details. `LivingPrivacy.NAME_AND_ROLE` already covers "report as Living".
-
-### New reports suggested by the Gramps list
-
-Existing: ancestor, descendant, group, individual, relationship, place, source, research question, bibliography, research progress,
-full bibliography, family book, to verify, surnames, family group sheets.
-
-- **End of line report** (small): ancestors with no known parents (brick walls); fits the research assistant (FAN panel, to-verify finder).
-- **Number of ancestors / pedigree collapse** (small): per generation, known vs possible; reuses the consanguinity tool data.
-- **Birthday and anniversary report / calendar** (medium): by month, with ages; also exportable as iCalendar.
-- **Records report** (small): oldest/youngest, longest marriage, most children, etc.
-- **Database summary** (small): counts by record type, date range, completeness; partly overlaps the coverage report.
-- **Kinship report** (small): all relatives of a given kind of a person; the relationship calculator already exists.
-- **Fan chart, hourglass / descendant tree** (graphics): the tree views and the FAN panel cover the interactive side; for print, add a "drawing"
-  section type (SVG/image) that PDF/DOCX/EPUB/site can embed. Statistics charts and timeline chart are lower priority.
-- **Tag report, note link report**: skip unless tags become a first-class concept.
-
 ### Should the configuration be extended?
 
 Yes, but selectively. The dialog shows only options that have an effect (`ReportBuilder.optionState`), which is the right principle;
@@ -91,4 +93,10 @@ the risk of the reference application is the opposite (dozens of pages of option
 - every new option follows the existing recipe: `ReportConfig` component + `ReportOption` constant + checkbox + `tooltip.report.<key>` + help
   page text; `ReportOptionStateTest` keeps hidden options from changing the output.
 
-Suggested next step: the numbering codes (Ahnentafel, d'Aboville and the others of the Wikipedia list) and the notes/sources placement.
+Suggested next step:
+1. Leftovers of the first round
+2. ~~Conflict report~~ (done)
+3. ~~End of line report~~ (done)
+4. Pedigree collapse report
+
+(Done: the narrative style options with the numbering systems, the placement of notes, sources and media, the image size and portrait options.)

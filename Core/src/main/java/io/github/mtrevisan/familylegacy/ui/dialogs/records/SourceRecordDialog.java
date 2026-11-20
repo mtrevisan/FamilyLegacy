@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.AgentHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentifierHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
@@ -64,6 +65,7 @@ import java.io.IOException;
  *   date?: DateStructure
  *   place?: PlaceCitation
  *   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
+ *   kind?: enum { civil_registration, church_register, census, ..., compilation, artifact } | Text   // what the source IS, not its physical form
  *   repository*: RepositoryCitation
  *   media*: Xref&lt;MediaRecord&gt;
  *   derived_from*: SourceCitation   // the sources this one was made from (a transcription, an abstract, an index, a copy, a compilation); an original has none
@@ -80,7 +82,7 @@ import java.io.IOException;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): title, author, publisher, date, place, media_type, repository, document
+ * Tab 1 (Properties): title, author, publisher, date, place, kind, media_type, repository, document
  * Tab 6 (Research): ConclusionRecord (resolves = this source), ResearchQuestionRecord (target[source] = this source), ResearchActivityRecord (source contains this source)
  * Tab 7 (Sources): repository sources, derived_from (the sources this one derives from)
  * Tab 8 (Notes): note
@@ -91,9 +93,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 	private final EntityListPanel titlePanel;
 	private final EntityListPanel authorPanel;
+	private final EntityListPanel identifierPanel;
 	private final BoundTextField publisherField;
 	private final DateField dateField;
 	private final EntityField placeField;
+	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mediaTypeCombo;
 	private JPanel propertiesPanel;
 	private JPanel sourcesPanel;
@@ -117,10 +121,15 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			NameHandler.class);
 		authorPanel = EntityListPanel.createForStructure(SourceReader.TAG_AUTHOR, this, I18N.t("dialog.source.author"), model,
 			AgentHandler.class);
+		identifierPanel = EntityListPanel.createForStructure(SourceReader.TAG_IDENTIFIER, this, I18N.t("dialog.source.identifiers"), model,
+			IdentifierHandler.class);
 		publisherField = new BoundTextField(SourceReader.TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(SourceReader.TAG_DATE, this, I18N.t("dialog.source.valid_date"), model);
 		placeField = EntityField.createForStructureWithReference(SourceReader.TAG_PLACE, this, model,
 			PlaceCitationHandler.class);
+		kindCombo = new BoundComboBox<>(SourceReader.TAG_KIND, GUIHelper.fillCombo(SourceReader.KINDS, null));
+		kindCombo.setI18NPrefix("enum.source.kind");
+		kindCombo.setEditable(true);
 		mediaTypeCombo = new BoundComboBox<>(SourceReader.TAG_MEDIA_TYPE, GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, null));
 		mediaTypeCombo.setI18NPrefix("enum.source.media_type");
 		mediaTypeCombo.setEditable(true);
@@ -138,6 +147,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(publisherField);
+		components.bind(kindCombo);
 		components.bind(mediaTypeCombo);
 
 		finalizeDialog(parent);
@@ -146,7 +156,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]5[]5[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]5[]5[]5[]5[]10[]");
 		propertiesPanel = panel;
 
 		// title
@@ -164,8 +174,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		// place
 		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place"), placeField);
 
+		// kind
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.kind"), kindCombo);
+
 		// media type
 		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.source.media_type"), mediaTypeCombo);
+
+		// identifiers of the source itself (ISBN, DOI, ...)
+		GUIHelper.addComponent(panel, identifierPanel);
 
 		// repository
 		final JPanel repositoryCitationPanel = components.getPanel(PanelKey.REPOSITORY);
@@ -241,6 +257,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		titlePanel.load(record);
 		authorPanel.load(record);
+		identifierPanel.load(record);
 		dateField.load(record);
 		placeField.load(record);
 
@@ -280,6 +297,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		titlePanel.save(record);
 		authorPanel.save(record);
+		identifierPanel.save(record);
 		dateField.save(record);
 		placeField.saveReferences(record);
 

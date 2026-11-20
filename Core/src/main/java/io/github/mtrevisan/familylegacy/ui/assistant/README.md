@@ -1,5 +1,15 @@
 # Research Assistant (`ui/assistant`): state and backlog
 
+**Two modules (November 2026).** The knowledge is in the Maven module `Assistant` (package `io.github.mtrevisan.familylegacy.assistant`, with the
+same sub-packages as below: `identity`, `gap`, `chronology`...): the `*Checker`, `*Data`/`*DataLoader`, `*Finding`, `*Draft`, `Diagnostic` and its
+keys, `DiagnosticProvider`, `AssistantContributor`, `AssistantTuning`, `IgnoredFindings`, `FindingsExport`... It knows nothing of Swing nor of
+`ui` (`PackageDependenciesTest` and the compiler keep it so) and its context is `AssistantContext`, an interface with the model, the file and
+the selected record (`PlainAssistantContext` for the tests and the command line). Core (`ui/assistant`) keeps the palette, the dialogs, the
+contributors that offer actions that open editors and those actions (`Create*DraftAction`, `CompareRecordsAction`...): they use
+`SwingAssistantContext` (window and focus owner) through `SwingAssistantContext.of(context)`. A checker never builds an action that opens a
+dialog: it reports the `Diagnostic` with no action and the contributor in Core adds it with `Diagnostic.withAction`. The paths below that name
+classes of the engine are now in `Assistant/src/main/java/.../assistant/`.
+
 Moved from `ui/components/projections/README.txt`. The backlog of the views stays in that file; here is the detail of the
 assistants. The "Still to do" lists of each assistant are summarised, by priority, in the "TODO aperti" section of the README of the
 projections.

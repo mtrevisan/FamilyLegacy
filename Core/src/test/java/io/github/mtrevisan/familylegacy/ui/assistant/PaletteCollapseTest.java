@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
@@ -50,7 +53,7 @@ class PaletteCollapseTest{
 	private static ResearchAssistantPalette palette(final List<Diagnostic> findings, final Set<String> toggled, final String selectedIdentity){
 		final ResearchAssistantService service = new ResearchAssistantService();
 		final ResearchAssistantService.Recalculation recalculation = new ResearchAssistantService.Recalculation(findings, 0, 0);
-		return new ResearchAssistantPalette(service, new AssistantContext(null, null, new FLEFModel()), recalculation,
+		return new ResearchAssistantPalette(service, new SwingAssistantContext(null, null, new FLEFModel()), recalculation,
 			new ResearchAssistantPalette.State("", Set.of(), false, selectedIdentity, 0, toggled, false));
 	}
 
@@ -144,7 +147,7 @@ class PaletteCollapseTest{
 			final Diagnostic finding = new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.PLACES, "Title", "Explanation",
 				List.of("I1", "X9"), null, "place.x|I1,X9|");
 			final ResearchAssistantPalette palette = new ResearchAssistantPalette(new ResearchAssistantService(),
-				new AssistantContext(null, null, model), new ResearchAssistantService.Recalculation(List.of(finding), 0, 0),
+				new SwingAssistantContext(null, null, model), new ResearchAssistantService.Recalculation(List.of(finding), 0, 0),
 				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("k:WARNING:place.x"), false));
 
 			palette.select(palette.rows().indexOf("Title"));
@@ -162,7 +165,7 @@ class PaletteCollapseTest{
 		onEventDispatchThread(() -> {
 			final ResearchAssistantService service = new ResearchAssistantService();
 			final ResearchAssistantService.Recalculation recalculation = new ResearchAssistantService.Recalculation(findings(), 0, 0);
-			final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+			final AssistantContext context = new SwingAssistantContext(null, null, new FLEFModel());
 
 			final List<String> places = new ResearchAssistantPalette(service, context, recalculation,
 				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of(), false, AssistantCategory.PLACES)).rows();
@@ -184,7 +187,7 @@ class PaletteCollapseTest{
 			final ResearchAssistantService service = new ResearchAssistantService();
 			service.ignoredFindings().ignoreKind(null, findings().get(1));
 			final ResearchAssistantService.Recalculation recalculation = new ResearchAssistantService.Recalculation(findings(), 0, 0);
-			final AssistantContext context = new AssistantContext(null, null, new FLEFModel());
+			final AssistantContext context = new SwingAssistantContext(null, null, new FLEFModel());
 
 			final List<String> active = new ResearchAssistantPalette(service, context, recalculation,
 				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("k:WARNING:place.possible_duplicate"), false)).rows();

@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.2.0
-// PROTOCOL_DATE = 2026-11-10
+// PROTOCOL_DATE = 2026-11-20
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -90,6 +90,8 @@
 //   Restriction levels in increasing order: public, restricted, confidential.
 // - A PRIVACY whose EXPIRES date has passed no longer contributes to the effective level.
 // - A MediaRecord referenced as PREFERRED_IMAGE inherits the effective level of the IndividualRecord or GroupRecord referencing it.
+// - A MediaRecord cited (MediaCitation) by an IndividualRecord or a GroupRecord, or by an EventRecord (for the individuals and groups that
+//   participate in it), or by a PersonalNameStructure of an IndividualRecord, inherits the effective level of those records, as for PREFERRED_IMAGE.
 // - When no PRIVACY applies, the effective level is public, except:
 //   - an IndividualRecord that may be living has effective level restricted. An individual may be living unless it is the PRINCIPAL
 //     of a DEATH event, or the PRINCIPAL of a BIRTH event dated more than 110 years before the evaluation date. A birth date that is
@@ -218,6 +220,7 @@ record IndividualRecord {
   name*: PersonalNameStructure   // names associated with this individual (birth name, married name, alias, etc.)
   source*: SourceCitation        // the evidence that this individual existed; facts about the individual are cited on their own records (names, events, attributes, relationships, SEX included)
   note*: NoteStructure           // free-text notes about this individual
+  media*: MediaCitation          // the photographs, scans and other media of this individual (see MediaCitation)
   preferred_image?: struct {
     media: Xref<MediaRecord>   // Resource pointing to a preferred image of this individual.
     crop?: CropRect            // specifies the portion of the image that should be displayed as the preferred representation
@@ -239,9 +242,11 @@ struct PersonalNameStructure {
     // legal, immigration, and naturalization changes
     legal, immigrant, adapted,
     // informal, stage, and social names
-    alias, nickname, artistic, professional,
+    alias, nickname, artistic, professional, pen_name,
     // historical and dynastic contexts
-    regnal, slave_name
+    regnal, slave_name,
+    // a name not known (e.g. "unknown" in a record), so that the individual exists with something to display
+    placeholder
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
   part+: NamePartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
@@ -251,6 +256,7 @@ struct PersonalNameStructure {
   cultural_norm*: Xref<CulturalNormRecord>   // Unlike ContextImpactRecord, CULTURAL_NORM here describes the naming system that governs the structure of the name itself.
   source*: SourceCitation
   note*: NoteStructure
+  media*: MediaCitation   // the media that attest this specific form of the name (a signature, a register entry, an inscription, a document that spells it this way), not the individual in general: the caption tells what in the media attests it
 }
 
 // embedded
@@ -306,10 +312,14 @@ record EventRecord {
     death,                  // The end of life.
     cremation,              // The burning of the body (in whole or in part) of the deceased.
     burial,                 // The depositing of the body (in whole or in part) of the deceased.
+    funeral,                // The ceremony held for the deceased before the burial or cremation.
+    exhumation,             // The removal of the body of the deceased from the place of burial.
+    reburial,               // The burial again of the body of the deceased, after an exhumation, in the same or in another place.
     coroner_report,         // The act of including an individual in a report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly with marks of suspicion.
     illness,                // An illness suffered by the individual.
     hospitalization,        // The admission of the individual to a hospital.
     medical_procedure,      // A medical procedure, treatment, or surgery undergone by the individual.
+    name_change,            // A change of the name of the individual (by decree, by choice, by a life change).
     // family
     engagement,             // The agreement of a couple to enter into a marriage in the future.
     marriage_bann,          // A public notice of an intent to marry.
@@ -355,6 +365,8 @@ record EventRecord {
     chancery,               // The resolution through impartial justice between two parties whose claims conflict.
     will,                   // The creation of a legal document regarding the disposition of a person's estate upon death.
     probate,                // The judicial actions associated with the disposition of the estate of the deceased.
+    land_purchase,          // The acquisition of land by purchase.
+    land_sale,              // The disposal of land by sale.
     guardianship            // The act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of themselves.
   } | Text
   description?: Text              // Human-readable description of the event when the event type and related structures do not fully capture its meaning.
@@ -367,6 +379,7 @@ record EventRecord {
   }
   source*: SourceCitation         // the evidence that this event happened
   note*: NoteStructure
+  media*: MediaCitation           // the photographs, scans and other media of this event (see MediaCitation)
   confidence?: Confidence         // confidence that this event happened
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -438,6 +451,7 @@ record EventParticipationRecord {
     officiant,          // the person who performed or administered the event (priest, registrar, notary)
     witness,            // a person who witnessed the event
     informant,          // a person who reported the event (e.g. the declarant of a birth or death)
+    midwife,            // the person who assisted at a birth
     sponsor,            // godparent or sponsor (baptism, confirmation)
     power_of_attorney, prisoner, executor, grantor, grantee, landlord, tenant, soldier, commander, victim, survivor, accused, judge,
     property            // the place that is the object of the event (participant MUST be a place)
@@ -474,9 +488,10 @@ record GroupRecord {
   } | Text
   source*: SourceCitation   // the evidence that this group existed; facts about the group are cited on their own records (attributes, relationships, events)
   note*: NoteStructure
+  media*: MediaCitation     // the photographs, scans and other media of this group (see MediaCitation)
   preferred_image?: struct {
     media: Xref<MediaRecord>   // Resource pointing to a preferred image of this group.
-    crop?: CropRect                  // specifies the portion of the image that should be displayed as the preferred representation
+    crop?: CropRect            // specifies the portion of the image that should be displayed as the preferred representation
   }
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -498,7 +513,7 @@ record GroupAttributeRecord {
     residence,              // Place where the group is known to reside or be established.
     member_count,           // Reported number of group members. This value represents a source assertion and may differ from the number of members explicitly represented in the file.
     children_count,         // Reported number of children associated with the group. This value represents a source assertion and may differ from the number of child members explicitly represented in the file
-    social_class,           // Economic or social classification of the group (e.g. "peasant", "middle_class", "nobility").
+    social_class,           // Economic or social classification of the group (e.g. `peasant`, `middle_class`, `nobility`).
     ethnicity,              // Ethnic, tribal, cultural, or ancestral identity associated with the group as a whole.
     religion,               // Religion practiced or associated with the group.
     language,               // Language primarily spoken or associated with the group.
@@ -601,6 +616,8 @@ TextValueVariant = oneof {
       hebraized,      // converted to Hebrew script
       hellenized,     // converted to Greek script
       gairaigized,    // adapted to Japanese loanword form
+      kanaized,       // converted to Japanese kana script (hiragana or katakana)
+      hangulized,     // converted to Korean Hangul script
       modernized,     // historic spelling modernized
       normalized      // orthography normalized
     } | Text
@@ -619,7 +636,7 @@ TextValueVariant = oneof {
 // using EVENT records. This separation allows relationships to exist independently of events (e.g., a biological parent-child relationship
 // exists regardless of whether a birth event is documented).
 // Implementations SHOULD validate the allowed SUBJECT and TARGET types according to the relationship TYPE.
-// TYPE is a closed list: relationships not listed here are expressed as ASSOCIATE with a ROLE (e.g. godparent, servant, business_partner).
+// TYPE is a closed list: relationships not listed here are expressed as ASSOCIATE with a ROLE (e.g. `godparent`, `servant`, `business_partner`).
 // CHILD and SPOUSE are used when the evidence does not state the nature of the relationship; they SHOULD be replaced by the specific
 // type when it becomes known.
 record RelationshipRecord {
@@ -642,7 +659,7 @@ record RelationshipRecord {
     associate,            // (Individual -> Individual | Individual -> Group | Group -> Group) general association
     part_of               // (Group -> Group) membership of a group within a larger group
   }
-  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner/part_of -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
+  role?: Text                        // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. `biological_child`/`adoptive_child`/`foster_child`/`guarded_child`/`step_child`/`civil_spouse`/`religious_spouse`/`customary_spouse`/`cohabiting_partner`/`engaged_partner`/`part_of` -> ROLE is normally unnecessary and SHOULD be omitted, `group_member` -> examples include `member`, `president`, `secretary`, `treasurer`, `resident`, `head_of_household`, `tribal_leader`, `elder`, `custodian`, ..., `associate` -> any role MAY be supplied because the relationship itself is generic).
   valid_from?: DateStructure         // the date from which this relationship was known to be in effect
   valid_to?: DateStructure           // the date until which this relationship was known to be in effect
   source*: SourceCitation            // the evidence that this relationship was true
@@ -698,7 +715,13 @@ record PlaceRecord {
     diocese,             // ecclesiastical diocese or equivalent jurisdiction
     archdiocese,         // ecclesiastical province headed by a metropolitan archbishop
     // sites and institutions
-    cemetery             // burial ground or cemetery
+    cemetery,            // burial ground or cemetery
+    // natural and land units
+    island,              // island
+    archipelago,         // group of islands
+    continent,           // continent
+    state,               // state or constituent part of a federation
+    parcel               // plot or parcel of land
   } | Text
   location?: struct {       // Contains a representative geographic location for the place.
     coordinates: Coord        // geographic coordinates of the place, representative point, not necessarily the full territorial extent of the place
@@ -707,6 +730,7 @@ record PlaceRecord {
   }
   source*: SourceCitation   // the evidence that this place really existed
   note*: NoteStructure
+  media*: MediaCitation     // the photographs, historic maps and other media of this place (see MediaCitation)
   confidence?: Confidence   // confidence that this place really existed
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -797,22 +821,62 @@ record RepositoryRecord {
     government,           // government office or public administration
     museum,               // museum or cultural heritage institution
     university,           // university, college, or academic institution
+    historical_society,   // historical society or local history association
+    genealogy_society,    // genealogical society
+    funeral_home,         // funeral home or undertaker
+    national_library,     // national library
+    national_archives,    // national archives
+    prison_library,       // library of a prison
     institution           // generic institution when a more specific type is unknown
   } | Text
   custodian?: Agent            // the current custodian of the repository or of its material
   place?: PlaceCitation        // the location of the repository
   contact*: ContactStructure
   note*: NoteStructure
+  media*: MediaCitation        // the photographs and other media of this repository (e.g., of its building; see MediaCitation)
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
 
 // embedded
-// Citation of a repository holding a source or source collection. Allows recording repository-specific shelf marks, page references,
-// entry identifiers, or other retrieval information.
+// A typed identifier. Three things are kept apart and MUST NOT be mixed:
+// - an identifier of a SourceRecord identifies the source itself (an ISBN, a DOI, a microfilm number): the same wherever the item is kept;
+// - an identifier of a RepositoryCitation says where the source can be found in that repository (a shelf mark, a call number, a
+//   classification number): it is valid only in that repository;
+// - a locator is not an identifier: it says where a piece of information is found inside the source (page, entry, folio, frame).
+// An item MAY have several identifiers (an ISBN and a DOI and a URL).
+// Implementations SHOULD report, as a warning and never as an error, a value that is not valid for its scheme when the scheme has a check
+// (the check digit of an ISBN or an ISSN, the syntax of a URL according to RFC 3986).
+struct IdentifierStructure {
+  scheme: enum {
+    isbn,                 // International Standard Book Number (ISBN-10 or ISBN-13).
+    issn,                 // International Standard Serial Number.
+    doi,                  // Digital Object Identifier.
+    url,                  // Uniform Resource Locator (RFC 3986).
+    call_number,          // Shelf mark, archival reference, or generic call number.
+    dewey,                // Dewey Decimal Classification.
+    lcc,                  // Library of Congress Classification.
+    udc,                  // Universal Decimal Classification.
+    colon,                // Colon Classification.
+    garside,              // Garside Classification.
+    fhl_film,             // FamilySearch / Family History Library microfilm number.
+    fhl_digital_folder,   // FamilySearch digital folder identifier.
+    fhl_ancestral_file,   // FamilySearch Ancestral File identifier.
+    index_card            // Index card or card-catalog identifier.
+  } | Text
+  value: Text             // Identifier value.
+
+  require not_blank(value)
+}
+
+// embedded
+// Citation of a repository holding a source or source collection. Allows recording repository-specific shelf marks, call numbers,
+// classification numbers, and other retrieval information.
+// Identifier says where the source is found in the repository; locator says where the information is found inside the source.
 struct RepositoryCitation {
   repository: Xref<RepositoryRecord>
-  locator?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
+  identifier*: IdentifierStructure   // identifies where the source can be found within this particular repository (shelf mark, call number, Dewey number, LCC, ...)
+  locator?: Text   // position inside the source itself (e.g., 'Page: 27', 'Entry: 45', 'Folio: 8r', 'Frame: 213', or 'Volume: 2, Page: 143, Entry: 17')
   remark*: Text    // short free-text remark about this repository citation
 }
 
@@ -960,8 +1024,40 @@ record SourceRecord {
   media_type?: enum {
     audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video
   } | Text
+  kind?: enum {                     // what the source IS (its documentary genre), as opposed to `media_type`, the physical form of the carrier
+    civil_registration,   // Birth, marriage, death, and similar civil records.
+    church_register,      // Parish, baptism, marriage, burial, and other ecclesiastical registers.
+    census,               // Population census, enumeration, or household listing.
+    deed,                 // Land and property deeds, conveyances, mortgages, and other title records.
+    will_probate,         // Wills, testaments, probate, estate inventories, and guardianships.
+    court_record,         // Civil, criminal, and other court proceedings and judgments.
+    military_record,      // Military service, enlistment, pension, promotion, or related records.
+    school_record,        // School registers, matriculation books, attendance records, examination records, university records, alumni records, and other educational institution records.
+    immigration,          // Passenger lists, naturalization, border, passport, and emigration records.
+    tax_roll,             // Tax assessments, land registers (cadastre), and similar fiscal lists.
+    directory,            // City, trade, and telephone directories and similar printed lists of residents.
+    newspaper,            // Newspaper articles, notices, and obituaries.
+    periodical,           // Journals, magazines, bulletins, and other serial publications that are not newspapers.
+    book,                 // Published book: a local history, family history, or reference work.
+    cemetery_record,      // Gravestones, burial registers, and cemetery or funeral records.
+    correspondence,       // Letters, postcards, e-mails, and other personal or official exchanges.
+    diary,                // Diaries, journals, memoirs, and family Bibles or notebooks kept by a person.
+    oral,                 // Interviews, recollections, and other oral testimony or family tradition.
+    website,              // Web page, online database, or other online resource.
+    map,                  // Maps, plans, and atlases (including cadastral maps).
+    photograph,           // Photographs and portraits.
+    artwork,              // Paintings, drawings, sculptures, and other works of art.
+    audio,                // Audio recordings that are not oral testimony.
+    video,                // Video recordings and films.
+    manuscript,           // Handwritten or typed unpublished documents that fit none of the other kinds.
+    patent,               // Patents, trademarks, and similar grants of intellectual property.
+    identification,       // Identity cards, passports, driver licenses, and similar personal documents.
+    compilation,          // Secondary work derived from other sources, such as an index, transcription, abstract, or compiled genealogy.
+    artifact              // Physical objects, heirlooms, and memorabilia.
+  } | Text
+  identifier*: IdentifierStructure  // identifies the source itself (ISBN, ISSN, DOI, URL, microfilm number, ...); a source MAY have several. Where the source is kept is the RepositoryCitation's identifier, not this
   repository*: RepositoryCitation
-  media*: Xref<MediaRecord>        // the media (scans, photographs, recordings, ...) of this source
+  media*: Xref<MediaRecord>         // the media (scans, photographs, recordings, ...) of this source
   derived_from*: SourceCitation     // the sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation or a database taken from a register, a book or other sources. The locator of the citation says where in the original the content comes from (page, entry, folio) and the extract the passage; the stance is `contradicts` when this source disagrees with its original (e.g., a mistaken transcription). An original source has none. Sources derived from the same original are not independent evidence of what it says. This is about where the content comes from: a source that only mentions other works (a bibliography, a note that refers to a source) does not derive from them
   note*: NoteStructure              // may contain information to identify a book (ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
   privacy?: PrivacyStructure
@@ -1029,6 +1125,21 @@ struct CropRect {
 
   require width > 0
   require height > 0
+}
+
+// embedded
+// A particular use of a MediaRecord by the record that contains the citation (an individual, a group, a place, an event or a repository) or by a
+// PersonalNameStructure (the media that attest that specific form of the name).
+// The same MediaRecord may be cited many times, by the same record or by different ones, each time with its own caption, crop or page: the caption
+// belongs to the use of the media, not to the media (the same photograph is "Family house" on a place and "Childhood home of Giovanni Rossi" on an
+// individual). The kind of the media (microfilm, home movie, ...) is not repeated here: it is already described by MediaRecord and SourceRecord.
+// A MediaCitation is not evidence: it illustrates the record, evidence is still expressed by SourceCitation. Only PREFERRED_IMAGE is the media that is displayed
+// for the record (the single chosen portrait): a MediaCitation never replaces it. Deleting a MediaRecord removes the citations of it; merging two MediaRecords redirects them.
+struct MediaCitation {
+  media: Xref<MediaRecord>
+  caption?: Text    // what the media shows, in the context of the citing record
+  crop?: CropRect   // region of the image or page, in pixels
+  page?: Int        // 1-based page, for multi-page documents (e.g. PDF, TIFF); CROP refers to this page
 }
 
 
@@ -1217,6 +1328,8 @@ record ResearchQuestionRecord {
   conclusion_confidence?: Confidence   // The researcher's confidence in the current conclusion. It is intended for planning, prioritization, reporting, and user interfaces, and does not replace formal proof evaluation expressed through ConclusionRecord.
   rationale?: Text          // explanation supporting the conclusion
   closed_date?: DateTime    // date the question was resolved or abandoned
+  note*: NoteStructure      // reasoning, temporary findings, comments
+  media*: MediaCitation     // screenshots, documents under evaluation, and other research material; no dedicated activity date: an activity may span many sessions, and the AuditStructure already records creation and modification
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -1286,6 +1399,8 @@ record ResearchActivityRecord {
   source*: SourceCitation                          // sources consulted, examined, or discovered
   parent_activity?: Xref<ResearchActivityRecord>   // previous activity from which this activity originated
   follow_up*: Xref<ResearchTaskRecord>             // tasks that should start when this activity is completed; independent of the tasks' CREATED_BY
+  note*: NoteStructure      // reasoning, temporary findings, comments
+  media*: MediaCitation     // screenshots, documents under evaluation, and other research material; no dedicated activity date: an activity may span many sessions, and the AuditStructure already records creation and modification
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -1305,6 +1420,8 @@ record ResearchTaskRecord {
   priority?: enum { low, normal, high }
   due_date?: DateTime                         // optional target completion date
   outcome?: Text                              // notes describing the result once completed
+  note*: NoteStructure      // reasoning, temporary findings, comments
+  media*: MediaCitation     // screenshots, documents under evaluation, and other research material; no dedicated activity date: an activity may span many sessions, and the AuditStructure already records creation and modification
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -1318,7 +1435,7 @@ record ResearchTaskRecord {
 // assertions remain preserved so that the reasoning process remains transparent and auditable.
 // Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses, and researcher conclusions simultaneously.
 record ConclusionRecord {
-  issue: Text                               // the specific issue that is resolved (e.g. an event type, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"). Human-readable identifier of the question being resolved.
+  issue: Text                               // the specific issue that is resolved (e.g. an event type, `birth_date`, `marriage_place`, `parentage`, `death_cause`, `relationship_type`). Human-readable identifier of the question being resolved.
   proof_status: enum {
     conflicting_evidence,   // the evidence is conflicting, none prevails
     supported,              // preponderance of evidence, but not absolute certainty

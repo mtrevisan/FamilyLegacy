@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantDialog;
 import io.github.mtrevisan.familylegacy.ui.components.dates.HistoricalDateAssistantHost;
@@ -62,7 +66,7 @@ public final class DateAssistantContributor implements AssistantContributor{
 
 		@Override
 		public boolean isApplicable(final AssistantContext context){
-			return context.focusedAncestor(HistoricalDateAssistantHost.class).isPresent();
+			return SwingAssistantContext.of(context).focusedAncestor(HistoricalDateAssistantHost.class).isPresent();
 		}
 
 		@Override
@@ -72,7 +76,7 @@ public final class DateAssistantContributor implements AssistantContributor{
 
 		@Override
 		public void execute(final AssistantContext context){
-			context.focusedAncestor(HistoricalDateAssistantHost.class)
+			SwingAssistantContext.of(context).focusedAncestor(HistoricalDateAssistantHost.class)
 				.ifPresent(host -> host.openHistoricalDateAssistant(tool));
 		}
 

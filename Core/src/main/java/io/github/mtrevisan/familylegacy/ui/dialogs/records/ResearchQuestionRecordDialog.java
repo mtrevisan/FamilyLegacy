@@ -27,13 +27,16 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -79,6 +82,8 @@ import java.util.List;
  *   conclusion_confidence?: Confidence
  *   rationale?: Text
  *   closed_date?: Date
+ *   note*: NoteStructure
+ *   media*: MediaCitation
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -106,12 +111,14 @@ import java.util.List;
  * Tabs:
  * Tab 1 (Properties): title, question, target, status, conclusion, conclusion_confidence, rationale, created, closed
  * Tab 6 (Research): ResearchActivityRecord (question contains this question), ResearchTaskRecord (question contains this question), ConclusionRecord (research contains this question)
+ * Tab 8 (Notes): note, media
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
 public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
+	private final MediaPartListPanel mediaCitationPanel;
 
 	private final BoundTextField titleField;
 	private final BoundTextArea questionArea;
@@ -152,10 +159,12 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		rationaleArea = new BoundTextArea(ResearchQuestionReader.TAG_RATIONALE, 3, 30);
 
 		// Build common panels using the builder
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, ResearchActivityHandler.TYPE, I18N.t("dialog.component.research.activities"))
 			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.follow_ups"))
+			.withComponent(PanelKey.NOTE, ResearchQuestionReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, ResearchQuestionReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, ResearchQuestionReader.TAG_AUDIT, null)
 			.build();
@@ -220,6 +229,17 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	}
 
 	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.NOTE));
+		//screenshots, documents under evaluation, and other research material
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
+		return panel;
+	}
+
+	@Override
 	protected JPanel createPrivacyPanel(){
 		return components.getPanel(PanelKey.PRIVACY);
 	}
@@ -253,6 +273,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 		targetPanel.load(record);
 		statusPanel.load(record);
@@ -280,6 +301,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 
 		targetPanel.save(record);
 		statusPanel.save(record);

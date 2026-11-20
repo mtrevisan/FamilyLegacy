@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityChecker;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -34,10 +38,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticActions;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRecordDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -94,7 +96,7 @@ class IdentityAssistantTest{
 
 	private static List<Diagnostic> found(final FLEFModel model){
 		return new IdentityAssistantContributor(() -> IdentitySettings.DEFAULTS).diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 	private static String id(final FLEFModel model, final String name, final int nth){
@@ -147,12 +149,12 @@ class IdentityAssistantTest{
 	void everyFindingOffersTheDraftTheComparisonAndTheRecords() throws IOException{
 		final Diagnostic finding = found(convert()).getFirst();
 
-		final List<io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction> actions = DiagnosticActions.of(finding);
+		final List<io.github.mtrevisan.familylegacy.assistant.DiagnosticAction> actions = DiagnosticActions.of(finding);
 
 		//Enter, Ctrl+Enter, Ctrl+Shift+Enter, Ctrl+Alt+Enter
 		Assertions.assertEquals(List.of("Create Identity Hypothesis Draft…", "Compare Side by Side…", "Record as Different People…",
 			"Open the Records…"),
-			actions.stream().map(io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction::title).toList());
+			actions.stream().map(io.github.mtrevisan.familylegacy.assistant.DiagnosticAction::title).toList());
 	}
 
 	@Test

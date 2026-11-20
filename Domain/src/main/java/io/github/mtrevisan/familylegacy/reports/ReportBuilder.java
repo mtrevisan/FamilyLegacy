@@ -46,6 +46,15 @@ import java.util.Set;
  */
 public final class ReportBuilder{
 
+	/** The options that only the Conflicts report has. */
+	private static final Set<ReportOption> CONFLICT_OPTIONS = EnumSet.of(ReportOption.CONFLICT_FILTER, ReportOption.CONFLICT_CONFIDENCE,
+		ReportOption.CONFLICT_RECORD_TYPE);
+
+
+	/** The options that only the Identity Hypotheses report has. */
+	private static final Set<ReportOption> HYPOTHESIS_OPTIONS = EnumSet.of(ReportOption.HYPOTHESIS_FILTER, ReportOption.HYPOTHESIS_RECORD_TYPE);
+
+
 	private ReportBuilder(){}
 
 
@@ -68,9 +77,12 @@ public final class ReportBuilder{
 				new ReportGenerator(model, root, tailored, type)
 				.generate(listener);
 			case FAMILY_GROUP_SHEET -> new FamilyGroupSheetGenerator(model, root, tailored).generate(listener);
+			case END_OF_LINE -> new EndOfLineGenerator(model, root, tailored).generate(listener);
 			case FULL_BIBLIOGRAPHY -> new FullBibliographyGenerator(model, tailored).generate(listener);
 			case FAMILY_BOOK -> new FamilyBookGenerator(model, tailored).generate(listener);
 			case TO_VERIFY -> new ToVerifyGenerator(model, tailored).generate(listener);
+			case CONFLICTS -> new ConflictReportGenerator(model, tailored, ConflictFinder.provided()).generate(listener);
+			case IDENTITY_HYPOTHESES -> new IdentityHypothesesGenerator(model, tailored).generate(listener);
 			case SURNAMES -> new SurnamesGenerator(model, tailored).generate(listener);
 			case ANCESTOR -> new AncestorReportGenerator(model, root, tailored).generate(listener);
 			case DESCENDANT -> new DescendantReportGenerator(model, root, tailored).generate(listener);
@@ -103,7 +115,8 @@ public final class ReportBuilder{
 	 */
 	public static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
 		return switch(type){
-			case INDIVIDUAL, GROUP, FAMILY_GROUP_SHEET, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, SURNAMES -> base;
+			case INDIVIDUAL, GROUP, FAMILY_GROUP_SHEET, END_OF_LINE, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, CONFLICTS, SURNAMES,
+				IDENTITY_HYPOTHESES -> base;
 			//one self-contained sub-report per person: the introduction and the life story, no ancestry, descendants or relations (the
 			//persons are the ancestors or the descendants)
 			case ANCESTOR, DESCENDANT, FAMILY_BOOK -> withNarrative(base, true, false, false, false, false, false);
@@ -154,31 +167,60 @@ public final class ReportBuilder{
 		if(type == ReportType.FULL_BIBLIOGRAPHY){
 			//a catalogue of the sources: the front matter, the notes, the citations and the evidence of the sources
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.SHOW_PRIVACY_DETAILS, ReportOption.AUDIT, ReportOption.HEADER,
-				ReportOption.NOTES, ReportOption.SOURCES, ReportOption.EVIDENCE)));
+				ReportOption.NOTES, ReportOption.SOURCES, ReportOption.EVIDENCE, ReportOption.GROUP_SOURCES_BY_KIND, ReportOption.GIVEN_NAMES,
+				ReportOption.UNKNOWN_NAME)));
 			return out;
 		}
 		if(type == ReportType.RELATIONSHIP && (root == null || ReportContext.rootKindOf(root) == ReportContext.RootKind.INDIVIDUAL)){
 			//the relations of a person, with the front matter and the index of the individuals: nothing of the life
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.INTRODUCTION, ReportOption.DIRECT_RELATIONS,
-				ReportOption.INDIRECT_RELATIONS, ReportOption.INDEX_INDIVIDUALS)));
+				ReportOption.INDIRECT_RELATIONS, ReportOption.INDEX_INDIVIDUALS, ReportOption.INDEX_YEARS, ReportOption.GIVEN_NAMES,
+				ReportOption.UNKNOWN_NAME, ReportOption.BOLD_DIRECT_ANCESTORS)));
 			return out;
 		}
 		if(type == ReportType.FAMILY_GROUP_SHEET){
 			//the parents and the children of each union: only the front matter and the way the dates are written have a meaning
-			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.DATE_FORMAT)));
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.DATE_FORMAT, ReportOption.GIVEN_NAMES,
+				ReportOption.UNKNOWN_NAME)));
+			return out;
+		}
+		if(type == ReportType.END_OF_LINE){
+			//the ancestors with no known parents of a person, as far as the generations asked: the front matter, the dates, the number of generations
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.DATE_FORMAT, ReportOption.GENERATIONS, ReportOption.GIVEN_NAMES,
+				ReportOption.UNKNOWN_NAME)));
 			return out;
 		}
 		if(type == ReportType.TO_VERIFY || type == ReportType.SURNAMES){
 			//a list on the whole file: only the front matter has a meaning (the privacy policy hides what it hides)
-			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER)));
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME)));
+			return out;
+		}
+		if(type == ReportType.CONFLICTS){
+			//a list on the whole file, like the previous ones, that can also be limited to the conflicts that are (not) settled
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME,
+				ReportOption.CONFLICT_FILTER, ReportOption.CONFLICT_CONFIDENCE, ReportOption.CONFLICT_RECORD_TYPE)));
+			return out;
+		}
+		if(type == ReportType.IDENTITY_HYPOTHESES){
+			//a list on the whole file that can be limited by state and by kind of record
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME,
+				ReportOption.HYPOTHESIS_FILTER, ReportOption.HYPOTHESIS_RECORD_TYPE)));
 			return out;
 		}
 		if(type == ReportType.ANCESTOR || type == ReportType.DESCENDANT || type == ReportType.FAMILY_BOOK){
 			//a sub-report for each person, then what the persons cite together: no context, norms, historic events, timeline, coverage
 			//or group sheet
+			out.addAll(CONFLICT_OPTIONS);
+			out.addAll(HYPOTHESIS_OPTIONS);
 			out.addAll(Set.of(ReportOption.CONTEXT_AND_RESEARCH, ReportOption.CULTURAL_NORMS, ReportOption.HISTORIC_EVENTS,
 				ReportOption.TIMELINE, ReportOption.COVERAGE_REPORT, ReportOption.GROUP_MEMBERS, ReportOption.GROUP_SUBGROUPS,
 				ReportOption.GROUP_ATTRIBUTES));
+			//the numbers and the cross references are those of the lines of a person; the bold is for the direct ancestors of the subject
+			if(type == ReportType.FAMILY_BOOK){
+				out.add(ReportOption.NUMBERING);
+				out.add(ReportOption.CROSS_REFERENCES);
+				out.add(ReportOption.BOLD_DIRECT_ANCESTORS);
+			}
 			//the order of the persons is the choice of the book
 			if(type != ReportType.FAMILY_BOOK)
 				out.add(ReportOption.PERSON_ORDER);
@@ -186,29 +228,60 @@ public final class ReportBuilder{
 				//and a book has everybody, not a line, and a page for each group, as a group sheet has
 				out.add(ReportOption.COLLATERAL_SCOPE);
 				out.add(ReportOption.GENERATIONS);
+				out.add(ReportOption.FIRST_GENERATION);
+				out.add(ReportOption.GENERATION_ORDER);
 				out.removeAll(Set.of(ReportOption.GROUP_MEMBERS, ReportOption.GROUP_SUBGROUPS, ReportOption.GROUP_ATTRIBUTES));
 			}
 			return out;
 		}
 
-		//only the reports of the lines of a person have a scope for the collaterals and a number of generations
+		//only the reports of the lines of a person have a scope for the collaterals and a number of generations, and number the persons
+		out.addAll(CONFLICT_OPTIONS);
+		out.addAll(HYPOTHESIS_OPTIONS);
 		out.add(ReportOption.COLLATERAL_SCOPE);
 		out.add(ReportOption.GENERATIONS);
+		out.add(ReportOption.FIRST_GENERATION);
+		out.add(ReportOption.GENERATION_ORDER);
 		out.add(ReportOption.PERSON_ORDER);
+		out.add(ReportOption.NUMBERING);
+		out.add(ReportOption.CROSS_REFERENCES);
 
 		final ReportContext.RootKind kind = (root != null? ReportContext.rootKindOf(root):
 			(type == ReportType.GROUP? ReportContext.RootKind.GROUP: ReportContext.RootKind.INDIVIDUAL));
 		final Set<ReportOption> person = Set.of(ReportOption.PATERNAL_ANCESTRY, ReportOption.MATERNAL_ANCESTRY, ReportOption.DESCENDANTS,
 			ReportOption.DIRECT_RELATIONS, ReportOption.INDIRECT_RELATIONS, ReportOption.GROUPS, ReportOption.EVENT_FULL_PARTICIPANTS);
 		final Set<ReportOption> group = Set.of(ReportOption.GROUP_MEMBERS, ReportOption.GROUP_SUBGROUPS, ReportOption.GROUP_ATTRIBUTES);
+		//the life of a person (the portrait, the notes and the texts of the sources that go to a section, the persons in bold) is told by a
+		//report on a person, but not by the bibliography and the research progress of the person
+		final Set<ReportOption> life = Set.of(ReportOption.BOLD_DIRECT_ANCESTORS, ReportOption.NOTES_PLACEMENT, ReportOption.SOURCES_PLACEMENT,
+			ReportOption.LONG_TEXT_LINES);
+		//(the portrait of a person is in the media of a bibliography too)
+		final Set<ReportOption> portrait = Set.of(ReportOption.THUMBNAIL_SIZE, ReportOption.PORTRAIT_MODE, ReportOption.PORTRAIT_NAME_TITLE,
+			ReportOption.PORTRAIT_ALIGNMENT);
+		if(type == ReportType.BIBLIOGRAPHY || type == ReportType.RESEARCH_PROGRESS){
+			out.addAll(life);
+			//(their media are always in a section: there are no chapters of persons)
+			out.add(ReportOption.MEDIA_PLACEMENT);
+		}
 		switch(kind){
 			case INDIVIDUAL -> out.addAll(group);
-			case GROUP -> out.addAll(person);
+			case GROUP -> {
+				out.addAll(person);
+				out.addAll(life);
+				out.addAll(portrait);
+				out.add(ReportOption.MEDIA_PLACEMENT);
+			}
 			default -> {
+				out.addAll(life);
+				out.addAll(portrait);
+				out.add(ReportOption.MEDIA_PLACEMENT);
 				//a source, a place, an event...: neither a person nor a group
 				out.addAll(person);
 				out.addAll(group);
 				out.add(ReportOption.INTRODUCTION);
+				//the sources a source report is about are not listed: it is a single source
+				if(kind == ReportContext.RootKind.SOURCE)
+					out.add(ReportOption.GROUP_SOURCES_BY_KIND);
 			}
 		}
 		return out;
@@ -252,7 +325,9 @@ public final class ReportBuilder{
 			.with(ReportOption.EVENT_FULL_PARTICIPANTS, false)
 			.with(ReportOption.TIMELINE, false)
 			.with(ReportOption.INDEX_INDIVIDUALS, false)
-			.with(ReportOption.INDEX_PLACES, true);
+			.with(ReportOption.INDEX_PLACES, true)
+			//(there are no chapters of persons for the media to be in)
+			.with(ReportOption.MEDIA_PLACEMENT, MediaPlacement.SECTION);
 	}
 
 
@@ -277,7 +352,8 @@ public final class ReportBuilder{
 			.with(ReportOption.EVENT_FULL_PARTICIPANTS, false)
 			.with(ReportOption.COVERAGE_REPORT, true)
 			.with(ReportOption.INDEX_INDIVIDUALS, true)
-			.with(ReportOption.INDEX_PLACES, false);
+			.with(ReportOption.INDEX_PLACES, false)
+			.with(ReportOption.MEDIA_PLACEMENT, MediaPlacement.SECTION);
 	}
 
 }

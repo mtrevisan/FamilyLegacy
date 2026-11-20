@@ -48,6 +48,8 @@ import org.apache.commons.lang3.StringUtils;
  *   priority?: enum { low, normal, high }
  *   due_date?: Date                             // optional target completion date
  *   outcome?: Text                              // notes describing the result once completed
+ *   note*: NoteStructure     // reasoning, temporary findings, comments
+ *   media*: MediaCitation    // screenshots, documents under evaluation, and other research material
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -65,6 +67,8 @@ public final class ResearchTaskReader{
 	public static final String TAG_PRIORITY = "priority";
 	public static final String TAG_DUE_DATE = "due_date";
 	public static final String TAG_OUTCOME = "outcome";
+	public static final String TAG_NOTE = "note";
+	public static final String TAG_MEDIA = "media";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
 

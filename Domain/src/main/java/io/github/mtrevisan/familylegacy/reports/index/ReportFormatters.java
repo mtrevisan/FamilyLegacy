@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ContactReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.CropReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -55,6 +57,8 @@ import java.util.regex.Pattern;
  */
 public final class ReportFormatters{
 
+	/** The prefix of the keys of the names of the schemes of the identifiers. */
+	public static final String IDENTIFIER_SCHEME_PREFIX = "enum.identifier.scheme";
 	private static final Pattern HTML_TAG = Pattern.compile("<[^>]+>");
 	private static final Pattern HTML_P_OPEN = Pattern.compile("(?i)<p[^>]*>");
 	private static final Pattern HTML_P_CLOSE = Pattern.compile("(?i)</p>");
@@ -233,6 +237,30 @@ public final class ReportFormatters{
 	/* ======================================================================
 	 *                          Contacts
 	 * ====================================================================== */
+
+	/**
+	 * What says where a source is found in a repository: the identifiers of the repository citation (shelf mark, call number,
+	 * classification number: {@code call number: MS 45/12}), then the locator (the position inside the source: {@code Page 27}).
+	 *
+	 * @param citation	The repository citation.
+	 * @param labels	The labels, in the language of the report.
+	 * @return	The text, separated by semicolons and not escaped; {@code null} when the citation has neither.
+	 */
+	public static String repositoryReference(final FLEFRecord citation, final ReportLabels labels){
+		final List<String> parts = new ArrayList<>(0);
+		for(final FLEFRecord identifier : RepositoryCitationReader.extractIdentifiers(citation)){
+			final String value = StringUtils.trimToNull(IdentifierReader.extractValue(identifier));
+			if(value == null)
+				continue;
+
+			final String scheme = StringUtils.trimToNull(IdentifierReader.extractScheme(identifier));
+			parts.add(scheme != null? labels.enumValue(IDENTIFIER_SCHEME_PREFIX, scheme) + ": " + value: value);
+		}
+		final String locator = StringUtils.trimToNull(FLEFRecordHelper.getChildValue(citation, RepositoryCitationReader.TAG_LOCATOR));
+		if(locator != null)
+			parts.add(locator);
+		return (parts.isEmpty()? null: String.join("; ", parts));
+	}
 
 	/**
 	 * Renders a single {@code ContactStructure} as a one-line string.

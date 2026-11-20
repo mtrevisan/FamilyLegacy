@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.ui.assistant.app.DefaultResearchAssistant;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -41,9 +42,9 @@ class CitationRegistrationTest{
 
 		final JPanel editor = new io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationTestEditor();
 		final List<ResearchAssistantService.RankedAction> inside = service.search("citation",
-			new AssistantContext(null, editor, null));
+			new SwingAssistantContext(null, editor, null));
 		final List<ResearchAssistantService.RankedAction> outside = service.search("citation",
-			new AssistantContext(null, new JPanel(), null));
+			new SwingAssistantContext(null, new JPanel(), null));
 
 		Assertions.assertTrue(inside.stream().anyMatch(ranked -> ranked.action().id().equals("sources.citation")),
 			inside.toString());

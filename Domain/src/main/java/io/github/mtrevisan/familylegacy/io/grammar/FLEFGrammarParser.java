@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.contraints.EqualTypeConstrain
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.EveryConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.InConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.MemberOfConstraint;
+import io.github.mtrevisan.familylegacy.io.grammar.contraints.NotBlankConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.contraints.OnlyIfInConstraint;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.AlternationType;
@@ -83,6 +84,7 @@ import java.util.Map;
  * field        := IDENT ('?' | '*' | '+')? ':' type
  * require      := 'require' 'one_of' '(' fieldRefList ')'
  *               | 'require' 'at_least_one' '(' fieldRefList ')'
+ *               | 'require' 'not_blank' '(' fieldRef ')'
  *               | 'require' 'count' '(' fieldRef ')' '==' INTEGER
  *               | 'require' 'type' '(' fieldRef ')' '==' 'type' '(' fieldRef ')'
  *               | 'require' 'if' IDENT '==' IDENT ':' fieldRefList
@@ -135,6 +137,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_REQUIRE = "require";
 	private static final String TAG_ONE_OF_FN = "one_of";
 	private static final String TAG_AT_LEAST_ONE_FN = "at_least_one";
+	private static final String TAG_NOT_BLANK_FN = "not_blank";
 	private static final String TAG_COUNT = "count";
 	private static final String TAG_TYPE_FN = "type";
 	private static final String TAG_IF = "if";
@@ -593,6 +596,22 @@ public final class FLEFGrammarParser{
 			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
 			expect(TAG_CLOSE_PARENTHESIS);
 			return new AtLeastOneConstraint(fields);
+		}
+
+		// require not_blank(field)
+		if(peekIs(TAG_NOT_BLANK_FN)){
+			next();
+
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			if(fields.size() != 1){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected one field in not_blank(...), found [" + StringUtils.join(fields, ", ") + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_PARENTHESIS);
+			return new NotBlankConstraint(fields.getFirst());
 		}
 
 		// require count(field) == value

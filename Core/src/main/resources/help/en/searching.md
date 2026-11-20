@@ -31,7 +31,7 @@ Both open the same dialog, *Select Record*:
 
 The search starts by itself about 0.4 seconds after you stop typing or change a filter, and runs in the background. `Esc` stops a search in progress and, if none is running, closes the dialog. A double-click on a result is **Select** (in the *Manage* dialogs it is **Edit**: see [Manage dialogs](#manage-dialogs)). Records hidden by the [privacy](privacy.md) policy are not found.
 
-**What the text is matched against.** The *display text* of the record. For an individual it is the **first name** and the identifier, such as `Bortolo Gallinaro [I12]`: other names, dates and places are not searched by the text (use the filters for them). The text is split into words; each word is looked for in the words of the record, in any order (`gall bor` finds `Bortolo Gallinaro`). A record qualifies if **at least one** word matches, and the records that match more words come first, then by similarity, then alphabetically.
+**What the text is matched against.** The *display text* of the record. For an individual it is the **first name** and the identifier, such as `Bortolo Gallinaro [I12]`: other names, dates and places are not searched by the text (use the filters for them). The text is split into words; each word is looked for in the words of the record, in any order (`gall bor` finds `Bortolo Gallinaro`). A record qualifies if **at least one** word matches, and the records that match more words come first, then by relevance (BM25: a rare word counts more than a common one, a short text more than a long one, a typo less than an exact word), then alphabetically. Hover a result to see which words were found, in what (text, other names, containing places, notes and citations) and the relevance.
 
 **Places** are also found by the places that contain them: the text (and the *Name* filter) of a *place* search is matched against the names of the place and against the names of every place it is part of, through any relationship (administrative, ecclesiastical, ...), so `Treviso Veneto` finds Treviso, which is part of Veneto, and `Veneto` finds every place in Veneto. Events were already found by the complete name of their place.
 
@@ -40,6 +40,9 @@ The search starts by itself about 0.4 seconds after you stop typing or change a 
 - **Fuzzy**: a part of a word, or a small spelling difference (up to one letter for every three letters of the word).
 - Both together: a fuzzy match, on whole words only.
 - An empty text lists everything that passes the filters.
+- **Exact phrase**: text between double quotes, such as `"Bortolo Gallinaro"`, must be found exactly as written (ignoring capitals), spaces and punctuation included; it is not fuzzy, and with *Whole word* it must start and end on a word boundary.
+- **Wildcards**: `*` stands for any run of letters (even none) and `?` for exactly one, and the pattern must match a whole word: `gall*` finds Gallinaro, `b?rtolo` finds Bortolo.
+- **Escape**: a backslash makes the next character literal: `\"`, `\*`, `\?` and `\\`, so `"\"Zuanne\""` finds a name written between quotation marks. A quote that is never closed ends with the text.
 
 The result list shows, for individuals, the sex (`[M]`, `[F]`, `[U]`), the name, the identifier, and the birth and death date and place.
 

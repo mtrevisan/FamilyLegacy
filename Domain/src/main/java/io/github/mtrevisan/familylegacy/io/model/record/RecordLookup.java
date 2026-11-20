@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model.record;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -38,5 +39,16 @@ public interface RecordLookup{
 
 	/** @return the records of the type (an empty list if there are none) */
 	List<FLEFRecord> getRecordsByType(String type);
+
+	/**
+	 * An index (or any value) computed from the records, which a model that can tell when its records change keeps until then; this default
+	 * keeps nothing and computes it at every call.
+	 *
+	 * @param key	Identifies the index (a private constant of the class that builds it).
+	 * @param builder	Computes the value.
+	 */
+	default <T> T derived(final Object key, final Supplier<T> builder){
+		return builder.get();
+	}
 
 }

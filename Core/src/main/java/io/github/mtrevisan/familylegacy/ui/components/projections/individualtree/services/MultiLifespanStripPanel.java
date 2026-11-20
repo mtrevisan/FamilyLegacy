@@ -180,8 +180,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 	private final FLEFModel model;
 
 	/**
-	 * Event index over the whole model. Rebuilt on demand after an edit,
-	 * so it is not final.
+	 * Event index over the whole model. Built when the strip is shown and rebuilt after an edit,
+	 * so it is not final (and it is {@code null} until the strip is shown for the first time).
 	 */
 	private EventIndex eventIndex;
 	private final TemporalAttributeIndex attributeIndex;
@@ -214,7 +214,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 	 */
 	public MultiLifespanStripPanel(final FLEFModel model){
 		this.model = model;
-		this.eventIndex = EventIndex.build(model);
+		//the event index is built when the strip is first shown (setIndividuals), not for a strip that stays collapsed
 		this.attributeIndex = new TemporalAttributeIndex(model, null);
 		this.axis = new TemporalAxis(null, null);
 

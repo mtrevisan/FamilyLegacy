@@ -24,14 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.citation;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.citation.CitationHints;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CitationHost;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -229,9 +230,9 @@ class CitationAssistantTest{
 		final Editor editor = new Editor();
 
 		Assertions.assertEquals("sources.citation", action.id());
-		Assertions.assertTrue(action.isApplicable(new AssistantContext(null, editor.field, null)));
-		Assertions.assertFalse(action.isApplicable(new AssistantContext(null, new JPanel(), null)));
-		Assertions.assertFalse(action.isApplicable(new AssistantContext(null, null, null)));
+		Assertions.assertTrue(action.isApplicable(new SwingAssistantContext(null, editor.field, null)));
+		Assertions.assertFalse(action.isApplicable(new SwingAssistantContext(null, new JPanel(), null)));
+		Assertions.assertFalse(action.isApplicable(new SwingAssistantContext(null, null, null)));
 	}
 
 }

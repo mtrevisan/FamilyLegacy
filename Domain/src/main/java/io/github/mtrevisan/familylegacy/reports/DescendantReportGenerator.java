@@ -61,18 +61,24 @@ public final class DescendantReportGenerator{
 		//the index hides what the privacy policy hides: a hidden person is not an ancestor (or a descendant) of the report
 		final ReportContext ctx = ReportContext.build(model, root, config);
 		final RelationIndex index = ctx.index;
+		//the numbers of the descendants (d'Aboville, Henry), and the bold of the direct ancestors of the subject
+		final PersonMarks marks = PersonMarks.of(ctx, ReportType.DESCENDANT);
+		ctx.useMarks(marks);
 
+		final List<List<FLEFRecord>> levels = index.descendantLevels(root, config.generations());
+		//(the tree is of the whole line, the chapters are of the generations asked, nearest or farthest first)
 		final List<FLEFRecord> direct = index.descendantsByGeneration(root, config.generations());
+		final List<FLEFRecord> selected = GenerationScope.select(levels, config);
 		final List<FLEFRecord> all;
 		final List<FLEFRecord> collaterals;
 		if(config.collateralScope() == CollateralScope.NONE){
-			all = direct;
+			all = selected;
 			collaterals = List.of();
 		}
 		else{
-			all = index.descendantsWithCollaterals(root, config.collateralScope(), config.generations());
+			all = index.descendantsWithCollaterals(root, selected, config.collateralScope());
 			collaterals = new ArrayList<>(all);
-			collaterals.removeAll(direct);
+			collaterals.removeAll(selected);
 		}
 
 		final String title = String.format(ctx.labels.sections().descendantReportTitle(),
@@ -81,7 +87,7 @@ public final class DescendantReportGenerator{
 		final PedigreeTreeSection tree = new PedigreeTreeSection(ctx, direct, collaterals,
 			PedigreeTreeSection.Direction.DESCENDANTS);
 
-		return new MultiPersonReportGenerator(model, all, config, title, List.of(tree))
+		return new MultiPersonReportGenerator(model, all, config, title, List.of(tree), marks)
 			.generate(listener);
 	}
 

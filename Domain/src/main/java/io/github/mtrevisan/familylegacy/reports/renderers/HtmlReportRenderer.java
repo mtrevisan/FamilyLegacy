@@ -82,6 +82,7 @@ public final class HtmlReportRenderer implements ReportRenderer{
 	private static final String STYLE =
 		"body{font-family:Georgia,serif;max-width:48em;margin:2em auto;line-height:1.5;}"
 			+ "h1,h2,h3{border-bottom:1px solid #ccc;padding-bottom:.2em;}"
+			+ "h1,h2,h3,h4,h5,h6{clear:both;}"
 			+ "table{border-collapse:collapse;width:100%;margin:.5em 0;}"
 			+ "td,th{border:1px solid #ccc;padding:2px 6px;text-align:left;}"
 			+ "pre{white-space:pre-wrap;font-family:ui-monospace,monospace;}"
@@ -290,7 +291,8 @@ public final class HtmlReportRenderer implements ReportRenderer{
 			}
 		}
 
-		w.write("<figure><img src=\"");
+		final String style = img.alignment().style();
+		w.write(style != null? "<figure style=\"" + style + "\"><img src=\"": "<figure><img src=\"");
 		w.write(html(ReportFormatters.linkTarget(href)));
 		w.write("\" alt=\"");
 		w.write(html(img.caption() == null? StringUtils.EMPTY: img.caption()));

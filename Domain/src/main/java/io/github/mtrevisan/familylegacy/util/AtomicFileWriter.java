@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.util;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -56,11 +59,34 @@ public final class AtomicFileWriter{
 	 * @throws IOException	If the content cannot be written or the file replaced; the target is not touched in that case.
 	 */
 	public static void write(final Path target, final String content, final Charset charset) throws IOException{
+		write(target, charset, writer -> writer.write(content));
+	}
+
+	/** What is written to the file: it is given the writer, and is called once. */
+	@FunctionalInterface
+	public interface Content{
+
+		void writeTo(Writer writer) throws IOException;
+
+	}
+
+	/**
+	 * Writes the text to the file, replacing it if it exists, without ever holding the whole text in memory (a big file is as big as the
+	 * text, and a string of it is one more copy of it).
+	 *
+	 * @param target	The file to write (its directory must exist).
+	 * @param charset	The encoding of the text.
+	 * @param content	Writes the text.
+	 * @throws IOException	If the content cannot be written or the file replaced; the target is not touched in that case.
+	 */
+	public static void write(final Path target, final Charset charset, final Content content) throws IOException{
 		final Path absolute = target.toAbsolutePath();
 		final Path directory = absolute.getParent();
 		final Path temporary = Files.createTempFile(directory, absolute.getFileName().toString() + ".", TEMPORARY_SUFFIX);
 		try{
-			Files.writeString(temporary, content, charset);
+			try(final Writer writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(temporary), charset), 1 << 16)){
+				content.writeTo(writer);
+			}
 			//the bytes must be on the disk before the old file disappears
 			try(final FileChannel channel = FileChannel.open(temporary, StandardOpenOption.WRITE)){
 				channel.force(true);

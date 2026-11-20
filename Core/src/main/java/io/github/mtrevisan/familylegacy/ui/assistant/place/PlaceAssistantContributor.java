@@ -24,11 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.place.JurisdictionChangeChecker;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceChecker;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceData;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceFinding;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContributor;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.CompareRecordsAction;
 
 import java.util.ArrayList;
@@ -59,7 +64,9 @@ public final class PlaceAssistantContributor implements AssistantContributor{
 				.map(PlaceAssistantContributor::withActions)
 				.toList());
 			//the places whose jurisdiction changed over time: the timeline of the place is worth looking at
-			findings.addAll(JurisdictionChangeChecker.findings(data));
+			//(the checker knows nothing of the user interface: the action that shows the timeline is added here)
+			for(final Diagnostic finding : JurisdictionChangeChecker.findings(data))
+				findings.add(finding.withAction(new ShowJurisdictionTimelineAction(finding.recordIds().getFirst())));
 			return findings;
 		});
 	}

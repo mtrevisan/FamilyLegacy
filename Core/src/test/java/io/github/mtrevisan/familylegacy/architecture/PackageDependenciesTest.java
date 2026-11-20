@@ -66,6 +66,8 @@ class PackageDependenciesTest{
 	private static final String UTIL = ROOT + ".util";
 	/** The Research Assistant plugs into the application (it is found through a port), nothing else knows it. */
 	private static final String ASSISTANT = UI + ".assistant";
+	/** The knowledge of the Research Assistant (module Assistant): the checks and the findings, with no user interface. */
+	private static final String ASSISTANT_ENGINE = ROOT + ".assistant";
 	/** What the non-UI code may reach in the UI: nothing (the messages and the preferences are in {@code i18n} and {@code preferences}). */
 	private static final Set<String> UI_ALLOWED_FOR_NON_UI = Set.of();
 
@@ -85,7 +87,8 @@ class PackageDependenciesTest{
 	static void scan() throws IOException{
 		//the domain (module Domain) and the UI (this module) are seen together: the dependencies between them are the point
 		final List<Path> sources = new ArrayList<>();
-		for(final Path root : List.of(Path.of("src", "main", "java"), Path.of("..", "Domain", "src", "main", "java")))
+		for(final Path root : List.of(Path.of("src", "main", "java"), Path.of("..", "Domain", "src", "main", "java"),
+				Path.of("..", "Assistant", "src", "main", "java")))
 			try(final Stream<Path> walk = Files.walk(root)){
 				walk.filter(path -> path.toString().endsWith(".java") && !path.endsWith("module-info.java"))
 					.forEach(sources::add);
@@ -232,6 +235,19 @@ class PackageDependenciesTest{
 						violations.add(shortName(entry.getKey()) + " -> " + shortName(target));
 
 		Assertions.assertTrue(violations.isEmpty(), "the assistant must be reached through the port: " + violations);
+	}
+
+
+	@Test
+	void theDomainDoesNotKnowTheAssistantEngine(){
+		final List<String> violations = new ArrayList<>();
+		for(final Map.Entry<String, Set<String>> entry : DEPENDENCIES.entrySet())
+			if(!isIn(entry.getKey(), ASSISTANT_ENGINE) && !isIn(entry.getKey(), UI))
+				for(final String target : entry.getValue())
+					if(isIn(target, ASSISTANT_ENGINE))
+						violations.add(shortName(entry.getKey()) + " -> " + shortName(target));
+
+		Assertions.assertTrue(violations.isEmpty(), "the domain is below the assistant, it must not depend on it: " + violations);
 	}
 
 

@@ -24,13 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.chronology.ChronologyAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import org.apache.commons.lang3.StringUtils;
@@ -115,7 +121,7 @@ class OpenRecordsActionTest{
 	@Test
 	void everyFindingOfTheAssistantsCanOpenItsRecords() throws IOException{
 		final FLEFModel model = convert();
-		final AssistantContext context = new AssistantContext(null, null, model);
+		final AssistantContext context = new SwingAssistantContext(null, null, model);
 		final List<Diagnostic> findings = new ArrayList<>();
 		for(final AssistantContributor contributor : List.of(new ChronologyAssistantContributor(),
 				new ConclusionAssistantContributor()))
@@ -138,7 +144,7 @@ class OpenRecordsActionTest{
 	void theEditorOfEveryRecordOfAFindingCanBeBuilt() throws IOException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The editors need a display");
 		final FLEFModel model = convert();
-		final AssistantContext context = new AssistantContext(null, null, model);
+		final AssistantContext context = new SwingAssistantContext(null, null, model);
 		final List<String> types = new ArrayList<>();
 		for(final AssistantContributor contributor : List.of(new ChronologyAssistantContributor(),
 				new ConclusionAssistantContributor()))

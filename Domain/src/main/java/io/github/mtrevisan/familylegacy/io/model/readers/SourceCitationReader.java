@@ -89,24 +89,33 @@ public final class SourceCitationReader{
 	 */
 	public static int supportWeight(final FLEFRecord assertion){
 		int weight = 0;
-		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(assertion, TAG_SOURCE)){
-			final FLEFRecord evidence = FLEFRecordHelper.findChild(citation, TAG_EVIDENCE);
-			if(isContradicting(citation) || EvidenceQualifiersReader.isNegative(evidence)){
-				weight --;
-				continue;
-			}
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(assertion, TAG_SOURCE))
+			weight += citationWeight(citation);
+		return weight;
+	}
 
+	/**
+	 * How much a citation weighs as support (see {@link #supportWeight(FLEFRecord)}).
+	 *
+	 * @param citation	A source citation.
+	 * @return	One, plus one for an original source, one for primary information and one for direct evidence; minus one if the citation
+	 * 	contradicts what it is attached to or its evidence is negative.
+	 */
+	public static int citationWeight(final FLEFRecord citation){
+		final FLEFRecord evidence = FLEFRecordHelper.findChild(citation, TAG_EVIDENCE);
+		if(isContradicting(citation) || EvidenceQualifiersReader.isNegative(evidence))
+			return -1;
+
+		int weight = 1;
+		if(evidence == null)
+			return weight;
+
+		if(EvidenceQualifiersReader.ENUM_SOURCE_TYPE_ORIGINAL.equals(EvidenceQualifiersReader.extractSourceType(evidence)))
 			weight ++;
-			if(evidence == null)
-				continue;
-
-			if(EvidenceQualifiersReader.ENUM_SOURCE_TYPE_ORIGINAL.equals(EvidenceQualifiersReader.extractSourceType(evidence)))
-				weight ++;
-			if(EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY.equals(EvidenceQualifiersReader.extractInformationType(evidence)))
-				weight ++;
-			if(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT.equals(EvidenceQualifiersReader.extractEvidenceType(evidence)))
-				weight ++;
-		}
+		if(EvidenceQualifiersReader.INFORMATION_TYPE_PRIMARY.equals(EvidenceQualifiersReader.extractInformationType(evidence)))
+			weight ++;
+		if(EvidenceQualifiersReader.ENUM_EVIDENCE_TYPE_DIRECT.equals(EvidenceQualifiersReader.extractEvidenceType(evidence)))
+			weight ++;
 		return weight;
 	}
 

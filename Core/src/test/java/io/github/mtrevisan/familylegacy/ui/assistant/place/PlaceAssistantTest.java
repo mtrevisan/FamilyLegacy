@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.place;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceData;
+import io.github.mtrevisan.familylegacy.assistant.place.PlaceDataLoader;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -32,11 +36,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRelationshipRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,7 @@ class PlaceAssistantTest{
 
 	private static List<Diagnostic> diagnose(final FLEFModel model){
 		final DiagnosticProvider provider = new PlaceAssistantContributor().diagnosticProviders().getFirst();
-		return provider.diagnose(new AssistantContext(null, null, model));
+		return provider.diagnose(new SwingAssistantContext(null, null, model));
 	}
 
 
@@ -102,7 +103,7 @@ class PlaceAssistantTest{
 	@Test
 	void aPlaceAddedByHandIsReported() throws IOException{
 		final FLEFModel model = convert();
-		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceHandler.TYPE)
+		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Veneto")))
 			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_REGION)));
@@ -115,18 +116,18 @@ class PlaceAssistantTest{
 		Assertions.assertTrue(duplicate.recordIds().contains("P99"));
 		//the proposal is to compare, and nothing is merged
 		Assertions.assertNotNull(duplicate.action());
-		Assertions.assertEquals(2, model.getRecordsByType(PlaceHandler.TYPE).stream()
+		Assertions.assertEquals(2, model.getRecordsByType(PlaceReader.TYPE).stream()
 			.filter(r -> "Veneto".equals(io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader.extractPrimaryName(r))).count());
 	}
 
 	@Test
 	void aMissingRelationshipComesWithADraft() throws IOException{
 		final FLEFModel model = new FLEFModel();
-		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceHandler.TYPE)
+		model.addRecord(FLEFRecord.createMainRecord("P1", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Treviso, Veneto")))
 			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_CITY)));
-		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceHandler.TYPE)
+		model.addRecord(FLEFRecord.createMainRecord("P2", PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Veneto")))
 			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_REGION)));
@@ -144,8 +145,8 @@ class PlaceAssistantTest{
 	void theDraftEditorCanBePreparedWithoutSavingAnything() throws IOException, InterruptedException, InvocationTargetException{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
 		final FLEFModel model = convert();
-		final FLEFRecord subject = model.getRecordsByType(PlaceHandler.TYPE).get(0);
-		final FLEFRecord target = model.getRecordsByType(PlaceHandler.TYPE).get(1);
+		final FLEFRecord subject = model.getRecordsByType(PlaceReader.TYPE).get(0);
+		final FLEFRecord target = model.getRecordsByType(PlaceReader.TYPE).get(1);
 		final int count = model.getRecordCount();
 
 		SwingUtilities.invokeAndWait(() -> {
@@ -162,7 +163,7 @@ class PlaceAssistantTest{
 	void aModelWithoutPlacesHasNothing(){
 		Assertions.assertTrue(diagnose(new FLEFModel()).isEmpty());
 		Assertions.assertTrue(new PlaceAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, null)).isEmpty());
+			.diagnose(new SwingAssistantContext(null, null, null)).isEmpty());
 	}
 
 }

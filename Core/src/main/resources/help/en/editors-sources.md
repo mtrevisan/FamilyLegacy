@@ -13,8 +13,10 @@ Open it with **Source > New Source...** or **Source > Manage Sources...**, or fr
 | **Publisher** | Text. |
 | **Date** | A [date field](dates.md). |
 | **Place** | Where the source was made. |
-| **Media Type** | Editable. audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video. |
-| **Repositories with Citations** | Where the source is kept: each entry is a repository with a locator and remarks. |
+| **Kind** | Editable. What the source **is**: civil registration, church register, census, deed, will / probate, court record, military record, school record, immigration, tax roll, directory, newspaper, periodical, book, cemetery record, correspondence, diary, oral, website, map, photograph, artwork, audio, video, manuscript, patent, identification, compilation (an index, transcription, abstract or compiled genealogy made from other sources), artifact. Hover over a value for its meaning; any other text is accepted. It is the *genre* of the source, not its physical form (that is the *Media Type*). The [Research Assistant](assistant.md) uses it to say what to look for in the source. |
+| **Media Type** | Editable. The physical form of the source: audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video. |
+| **Identifiers** | How the source itself is identified: an ISBN, an ISSN, a DOI, a URL, a microfilm number... A source may have several. Each entry is an [identifier](#identifier). |
+| **Repositories with Citations** | Where the source is kept: each entry is a repository with the [identifiers](#identifier) that say where the source is found in it (shelf mark, call number, classification number), a locator and remarks. See [Repository citation](#repository-citation). |
 | **Media** | The media records (scans, photographs) of the source. |
 | **Derived from (Sources with Citations)** | In the **Sources** tab. The sources this one was made from, when it is not an original: a transcription, an abstract, an index, a copy, a compilation, or a database taken from a register or a book. See [below](#sources-made-from-other-sources). |
 
@@ -40,10 +42,52 @@ An archive, a library, a parish office. Open it with **Source > New Repository..
 | Field | Meaning |
 |---|---|
 | **Name** | The names of the repository; at least one is required. |
-| **Type** | What kind of repository it is: archive, library, church, cemetery, website, collection, private collection, bookstore, government, museum, university or institution. Editable: you can also type your own word (lowercase letters, digits and underscores). |
+| **Type** | What kind of repository it is: archive, library, church, cemetery, website, collection, private collection, bookstore, government, museum, university, institution, historical society, genealogy society, funeral home, national library, national archives or prison library. Editable: you can also type your own word (lowercase letters, digits and underscores). |
 | **Custodian** | Who looks after it, as an [agent](#agent). |
 | **Place** | Where it is. |
 | **Contacts** | The [contacts](#contact). |
+
+## Repository citation
+
+Every entry of the *Repositories with Citations* list of a source says where the source is kept, and how to find it there. **Tabs:** Properties, Notes.
+
+| Field | Meaning |
+|---|---|
+| **Repository** | The repository that holds the source (required). |
+| **Identifiers** | Where the source is found **in this repository**: a shelf mark, a call number, a Dewey or Library of Congress number. See [Identifier](#identifier). |
+| **Locator** | The position **inside the source**: the page, the entry, the folio, the frame (*Page: 27*, *Entry: 45*, *Folio: 8r*, *Frame: 213*). It is not an identifier. |
+| **Remarks** | Short free-text remarks. |
+
+The list shows the repository followed, between brackets, by its identifiers.
+
+## Identifier
+
+How an item is identified. Four things are kept apart, and mixing them makes a source impossible to find or to tell from another one:
+
+| What | Where it goes | Examples |
+|---|---|---|
+| **The kind of the source** (its genre) | *Kind* of the source | church register, census, book |
+| **The form of the carrier** | *Media Type* of the source | book, film, fiche |
+| **How the source itself is identified**: the same wherever the item is kept | *Identifiers* of the **source** | ISBN, ISSN, DOI, URL, FHL film number |
+| **Where the source is found in one repository**: valid only there | *Identifiers* of the **repository citation** | shelf mark, call number, Dewey number, LCC |
+| **Where the information is inside the source** | *Locator* (of the repository citation, or of a [source citation](#source-citation)) | Page 12, Entry 45, Folio 8r, Frame 213 |
+
+An identifier has a **Scheme** and a **Value**, both required. The scheme is editable: choose one of the list, or type your own word, which is kept as written. The list offers first the schemes that suit what you are editing (the ones of a source itself, or the ones of a repository), and hovering over a value tells what it is.
+
+| Scheme | What it is |
+|---|---|
+| **ISBN** | International Standard Book Number (ISBN-10 or ISBN-13). |
+| **ISSN** | International Standard Serial Number, of a periodical. |
+| **DOI** | Digital Object Identifier. |
+| **URL** | Web address (RFC 3986). |
+| **call number** | Shelf mark, archival reference or generic call number. |
+| **Dewey**, **LCC**, **UDC**, **Colon**, **Garside** | The number of a library classification. |
+| **FHL film**, **FHL digital folder**, **FHL Ancestral File** | The numbers of FamilySearch (the Family History Library). |
+| **index card** | An index card or an entry of a card catalog. |
+
+The editor tries to help: when you leave the *Value* with no scheme, a value that is surely one is recognized (an ISBN with a right check digit, an ISSN, a DOI, a URL). A value that fails the check of its scheme (the check digit of an ISBN or an ISSN, the syntax of a URL) is shown with a warning under the field, and it does not stop you from saving: a printed number can be wrong, and an old edition can predate the check. [Validate File](tools.md#validate-file) reports them as warnings, and the [Research Assistant](assistant.md) says which one to check. The other schemes, and the ones you type, are not checked.
+
+Two sources with the same identifier (an ISBN written with or without hyphens, as ISBN-10 or ISBN-13; a DOI with or without its `https://doi.org/`) are probably the same source: the merge of two files takes it into account.
 
 ## Media
 
@@ -55,6 +99,8 @@ A record that points to a file. Open it with **Source > Manage Media...** (*New.
 | **Kind** | image, document, audio or video. |
 | **Mapping** | Editable. planar, spherical-equirectangular, spherical-UV, cubemap, cylindrical-equirectangular horizontal, cylindrical-equirectangular vertical. |
 | **Description** | Free text. |
+
+**Where Used...** lists every record that uses the media (as a media of a source, in a media part of an extract, as a preferred image or in the *Media* list of an individual, group, place, event or repository, and so on); double-click a line, or select it and press **Open**, to open that record's editor. It is disabled while the media is new. Deleting a media removes it from all those places, and merging two media makes them all point to the one that is kept.
 
 URI and kind are required. The field always shows the location whole; how it is *shown* in the lists is a preference, see [Preferences](preferences.md#media-paths).
 

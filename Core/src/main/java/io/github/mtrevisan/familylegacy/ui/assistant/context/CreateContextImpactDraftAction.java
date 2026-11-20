@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.context;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.context.ContextFinding;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ContextImpactRecordDialog;
 
 
@@ -67,7 +69,7 @@ final class CreateContextImpactDraftAction implements DiagnosticAction{
 		if(source == null || target == null)
 			return;
 
-		ContextImpactRecordDialog.createNew(context.owner(), model)
+		ContextImpactRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withDraft(source, target, draft.impactType(), draft.rationale())
 			.setVisible(true);
 	}

@@ -263,6 +263,35 @@ class ReportPreferencesTest{
 	}
 
 	@Test
+	void theOptionsOfStyleAndPlacementAreRemembered(){
+		final ReportConfig chosen = ReportConfig.defaults()
+			.with(ReportOption.NUMBERING, NumberingSystem.HENRY)
+			.with(ReportOption.GIVEN_NAMES, GivenNameStyle.FIRST_AND_INITIALS)
+			.with(ReportOption.UNKNOWN_NAME, "n.n.; (unknown)")
+			.with(ReportOption.NOTES_PLACEMENT, TextPlacement.LONG_IN_SECTION)
+			.with(ReportOption.LONG_TEXT_LINES, 9)
+			.with(ReportOption.MEDIA_PLACEMENT, MediaPlacement.APPENDIX)
+			.with(ReportOption.MAX_IMAGE_MEGAPIXELS, 2)
+			.with(ReportOption.PORTRAIT_MODE, PortraitMode.CROP)
+			.with(ReportOption.PRINCIPAL_SOURCES_ONLY, true);
+
+		preferences().setOptions(ReportType.DESCENDANT, chosen, List.of(ReportOption.values()));
+
+		final ReportConfig read = preferences().options(ReportType.DESCENDANT, ReportConfig.defaults());
+		Assertions.assertEquals(NumberingSystem.HENRY, read.numbering());
+		Assertions.assertEquals(GivenNameStyle.FIRST_AND_INITIALS, read.givenNames());
+		//(the characters that separate the entries of the preference are not kept in the text)
+		Assertions.assertEquals("n.n., (unknown)", read.unknownName());
+		Assertions.assertEquals(TextPlacement.LONG_IN_SECTION, read.notesPlacement());
+		Assertions.assertEquals(9, read.longTextLines());
+		Assertions.assertEquals(MediaPlacement.APPENDIX, read.mediaPlacement());
+		Assertions.assertEquals(2, read.maxImageMegapixels());
+		Assertions.assertEquals(PortraitMode.CROP, read.portraitMode());
+		Assertions.assertTrue(read.principalSourcesOnly());
+		Assertions.assertEquals(chosen.sourceLocator(), read.sourceLocator());
+	}
+
+	@Test
 	void aDamagedLayoutIsTheDefaultOne(){
 		values.put("reports.layout.paper", "TABLOID");
 		values.put("reports.layout.margin", "wide");

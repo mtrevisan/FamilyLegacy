@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.HeaderHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentifierHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -111,7 +112,7 @@ class DialogsEscapeTest{
 
 
 	/** The structures and citations, edited inside a record. */
-	private static final List<String> STRUCTURE_TYPES = List.of(AgentHandler.TYPE, ContactHandler.TYPE, ContactNameHandler.TYPE,
+	private static final List<String> STRUCTURE_TYPES = List.of(AgentHandler.TYPE, ContactHandler.TYPE, ContactNameHandler.TYPE, IdentifierHandler.TYPE,
 		NameHandler.TYPE, NoteHandler.TYPE, PartHandler.TYPE, PersonalNameHandler.TYPE, TextValueVariantHandler.TYPE,
 		SourceCitationHandler.TYPE, PlaceCitationHandler.TYPE, RepositoryCitationHandler.TYPE, HeaderHandler.TYPE);
 

@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.features;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.ui.assistant.features.ResearchToolsAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;

@@ -24,6 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.AssistantSettings;
+import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticKeys;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.FuzzyMatcher;
+import io.github.mtrevisan.familylegacy.assistant.IgnoredFindings;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
@@ -583,7 +594,7 @@ public final class ResearchAssistantService{
 		if(snapshotSupplier == null || model == null)
 			return null;
 
-		return new AssistantContext(owner, null, model, scopeSupplier.get(), snapshotSupplier, null);
+		return new SwingAssistantContext(owner, null, model, scopeSupplier.get(), snapshotSupplier, null);
 	}
 
 	/** Opens the palette on what the user is doing now. */
@@ -599,7 +610,7 @@ public final class ResearchAssistantService{
 		final String selected = (window instanceof RecordDialog editor && editor.getRecord() != null
 			? editor.getRecord().getId()
 			: (inEditor? null: selectionSupplier.get()));
-		open(new AssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier, selected));
+		open(new SwingAssistantContext(window, focusOwner, modelSupplier.get(), scopeSupplier.get(), snapshotSupplier, selected));
 	}
 
 	public void open(final AssistantContext context){

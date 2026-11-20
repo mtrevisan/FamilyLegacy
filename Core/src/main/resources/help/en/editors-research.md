@@ -4,7 +4,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 ## Research question
 
-State what you want to find out, for example *Who were the parents of Giovanni?* Activities and tasks are linked to the question, and a conclusion can say how it was answered. Open it with **Research > Research Questions...** or from the **Research Board** (*New... > Research question*). **Tabs:** Properties, Research, Privacy, Audit.
+State what you want to find out, for example *Who were the parents of Giovanni?* Activities and tasks are linked to the question, and a conclusion can say how it was answered. Open it with **Research > Research Questions...** or from the **Research Board** (*New... > Research question*). **Tabs:** Properties, Research, Notes, Privacy, Audit.
 
 | Field | Meaning |
 |---|---|
@@ -17,9 +17,11 @@ State what you want to find out, for example *Who were the parents of Giovanni?*
 
 On OK, the title and the question are required. The **Research** tab lists the activities, tasks and conclusions of the question.
 
+The **Notes** tab of a question, an activity and a task holds notes and media (screenshots, documents under evaluation, temporary findings, your reasoning). An activity has no date of its own: it may span many sessions, and the audit already records when the record was created and changed.
+
 ## Research activity
 
-One piece of research work, done or planned. It records the work, and what it found (even nothing), not a genealogical fact. Open it with **Research > Research Activities...** or from the board. **Tabs:** Properties, Research, Findings, References, Sources, Privacy, Audit.
+One piece of research work, done or planned. It records the work, and what it found (even nothing), not a genealogical fact. Open it with **Research > Research Activities...** or from the board. **Tabs:** Properties, Research, Findings, References, Sources, Notes, Privacy, Audit.
 
 **Properties**
 
@@ -50,7 +52,7 @@ On OK, the type, the status and the action are required.
 
 ## Research task
 
-A to-do item that follows from the research, for example *Check the 1871 census for the family*. Open it with **Research > Research Tasks...** or from the board. **Tabs:** Properties, Privacy, Audit.
+A to-do item that follows from the research, for example *Check the 1871 census for the family*. Open it with **Research > Research Tasks...** or from the board. **Tabs:** Properties, Notes, Privacy, Audit.
 
 | Field | Meaning |
 |---|---|

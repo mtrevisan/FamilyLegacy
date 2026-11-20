@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportO
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import org.junit.jupiter.api.Assertions;
@@ -115,6 +116,11 @@ class ReportOperationsTest{
 		Assertions.assertFalse(new ToVerifyOperation().isEnabled(new ToolContext(nothing, null, null, null)));
 		Assertions.assertTrue(new ToVerifyOperation().isEnabled(new ToolContext(people, null, null, null)));
 		Assertions.assertTrue(new ToVerifyOperation().isEnabled(new ToolContext(sources, null, null, null)));
+
+		//conflicts: whatever there is a person (the conflicts are between what is asserted of the individuals)
+		Assertions.assertFalse(new ConflictsOperation().isEnabled(new ToolContext(nothing, null, null, null)));
+		Assertions.assertTrue(new ConflictsOperation().isEnabled(new ToolContext(people, null, null, null)));
+		Assertions.assertFalse(new ConflictsOperation().isEnabled(new ToolContext(sources, null, null, null)));
 
 		//surnames: whatever there is a person
 		Assertions.assertFalse(new SurnamesOperation().isEnabled(new ToolContext(nothing, null, null, null)));

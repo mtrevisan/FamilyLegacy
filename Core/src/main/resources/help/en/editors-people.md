@@ -72,11 +72,11 @@ The same as an individual attribute, for a group (a family, a parish, a confrate
 
 ## Personal name
 
-Open it from the **Personal Names** list of an individual. **Tabs:** Properties, Context (the cultural norms that explain the name), Sources, Notes.
+Open it from the **Personal Names** list of an individual. **Tabs:** Properties, Context (the cultural norms that explain the name), Sources, Notes. The **Sources** tab also has a *Media* list: the media that attest *this form of the name* (a signature, a register entry, an inscription, a document that spells the name this way), each with its own caption, crop and page, as in [the media of a record](editors.md#media-of-a-record). It says nothing about the person in general, and it never changes the preferred image.
 
 | Field | Meaning |
 |---|---|
-| **Type** | Editable. One of: official, religious, birth, married, maiden, divorce, adoption, fostering, legal, immigrant, adapted, alias, nickname, artistic, professional, regnal, slave name. |
+| **Type** | Editable. One of: official, religious, birth, married, maiden, divorce, adoption, fostering, legal, immigrant, adapted, alias, nickname, artistic, professional, pen name, regnal, slave name, placeholder (a name not known, so that the individual still has something to display). |
 | **Parts** | The parts of the name, each in its own dialog. At least one is required. |
 | **Locale** | The language of the name (a filterable list of language tags). |
 | **Validity Range** | When the person bore this name. |
@@ -106,6 +106,6 @@ Used for the names of **groups, places, sources** (the title) and **repositories
 A name or a part of a name can have variants. You choose the kind:
 
 - **Phonetic**: a **System** (for example *ipa*, *rōmaji*, *pinyin*, *wadegiles*) and the **Value** in that system.
-- **Transcription**: a **System** (a list: rōmaji, Hepburn, kunrei-shiki, nihon-shiki, pīnyīn, Wade-Giles, BGN/PCGN, ISO 9, ALA-LC, DMG, Buckwalter, ISO 233, ISO 259, IAST, ISO 15919, hunterian, McCune-Reischauer, revised korean, scientific; editable), a **Type** (romanized, latinized, anglicized, francized, germanized, italianized, hispanicized, lusitanized, cyrillized, arabized, hebraized, hellenized, gairaigized, modernized, normalized; editable) and the **Value**.
+- **Transcription**: a **System** (a list: rōmaji, Hepburn, kunrei-shiki, nihon-shiki, pīnyīn, Wade-Giles, BGN/PCGN, ISO 9, ALA-LC, DMG, Buckwalter, ISO 233, ISO 259, IAST, ISO 15919, hunterian, McCune-Reischauer, revised korean, scientific; editable), a **Type** (romanized, latinized, anglicized, francized, germanized, italianized, hispanicized, lusitanized, cyrillized, arabized, hebraized, hellenized, gairaigized, kanaized, hangulized, modernized, normalized; editable) and the **Value**.
 
 System and Value are required, for both kinds.

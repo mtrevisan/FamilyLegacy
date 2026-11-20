@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipTypeChange;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 
 
@@ -65,7 +67,7 @@ final class ChangeRelationshipTypeAction implements DiagnosticAction{
 		if(relationship == null)
 			return;
 
-		RelationshipRecordDialog.createEdit(context.owner(), model, relationship)
+		RelationshipRecordDialog.createEdit(SwingAssistantContext.owner(context), model, relationship)
 			.withType(change.type())
 			.setVisible(true);
 	}

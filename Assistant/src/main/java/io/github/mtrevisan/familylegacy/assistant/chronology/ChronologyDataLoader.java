@@ -1,0 +1,227 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.assistant.chronology;
+
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+
+/**
+ * Reads the dates the chronology checks need from the model. The individuals hidden by the privacy settings are left out, as
+ * they are from the views.
+ */
+public final class ChronologyDataLoader{
+
+	/** A relationship of a child with the parent it descends from: the generic "child" is taken as biological. */
+	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
+		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
+	private static final Set<String> MARRIAGE_UNION_TYPES = Set.of(RelationshipReader.ENUM_TYPE_SPOUSE, RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE, RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE, RelationshipReader.ENUM_TYPE_CUSTOMARY_SPOUSE);
+
+
+	private ChronologyDataLoader(){}
+
+
+	static ChronologyData load(final FLEFModel model){
+		final Map<String, FLEFRecord> filteredIndividuals = new LinkedHashMap<>();
+		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
+		for(final FLEFRecord individual : individuals)
+			if(individual.getId() != null && !PrivacyService.isHidden(model, individual))
+				filteredIndividuals.put(individual.getId(), individual);
+
+		final List<ChronologyData.LifeEvent> events = loadEvents(model, filteredIndividuals.keySet());
+		final Map<String, ChronologyData.Person> persons = new LinkedHashMap<>();
+		final Map<String, List<FLEFRecord>> sexes = PreferredSex.indexByIndividual(model);
+		//the events of each person, in the order of the events: scanning all the events for each individual is quadratic
+		final Map<String, List<ChronologyData.LifeEvent>> eventsByPerson = new HashMap<>();
+		for(final ChronologyData.LifeEvent event : events)
+			if(event.principal() && event.date() != null)
+				eventsByPerson.computeIfAbsent(event.personId(), k -> new ArrayList<>())
+					.add(event);
+		for(final FLEFRecord individual : filteredIndividuals.values())
+			persons.put(individual.getId(), loadPerson(individual, eventsByPerson.getOrDefault(individual.getId(), List.of()),
+				PreferredSex.of(individual, sexes, model)));
+
+		final List<ChronologyData.ParentLink> parents = new ArrayList<>();
+		final List<ChronologyData.Union> unions = new ArrayList<>();
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipReader.TYPE);
+		final List<ChronologyData.Membership> memberships = new ArrayList<>();
+		for(final FLEFRecord relationship : relationships){
+			loadRelationship(relationship, filteredIndividuals.keySet(), parents, unions);
+			loadMembership(relationship, filteredIndividuals.keySet(), memberships);
+		}
+		return new ChronologyData(persons, events, parents, unions, memberships, loadUnreadable(model));
+	}
+
+	/** The dates the checks cannot judge: the ones not valid in their calendar, and the ones whose calendar needs the Ephemeris plugin. */
+	private static List<ChronologyData.UnreadableDate> loadUnreadable(final FLEFModel model){
+		final List<ChronologyData.UnreadableDate> unreadable = new ArrayList<>();
+		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE))
+			for(final FLEFRecord date : FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE))
+				addUnreadable(model, event, EventReader.TAG_DATE, date, unreadable);
+		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE))
+			for(final FLEFRecord relationship : model.getRecordsByType(type))
+				for(final String tag : List.of(RelationshipReader.TAG_VALID_FROM, RelationshipReader.TAG_VALID_TO))
+					addUnreadable(model, relationship, tag, FLEFRecordHelper.findChild(relationship, tag), unreadable);
+		return unreadable;
+	}
+
+	private static void addUnreadable(final FLEFModel model, final FLEFRecord record, final String field, final FLEFRecord date,
+			final List<ChronologyData.UnreadableDate> unreadable){
+		final DateNormalizer.Problem problem = DateNormalizer.problem(date);
+		if(problem != DateNormalizer.Problem.NONE)
+			unreadable.add(new ChronologyData.UnreadableDate(record.getId(), RecordDisplay.describe(record, model), field, text(date),
+				problem == DateNormalizer.Problem.NEEDS_PLUGIN));
+	}
+
+	/** The subject of a membership is the individual, the target the group. */
+	private static void loadMembership(final FLEFRecord relationship, final Set<String> individualIds,
+			final List<ChronologyData.Membership> memberships){
+		if(!RelationshipReader.isTypeGroupMember(RelationshipReader.extractType(relationship)))
+			return;
+
+		final String memberId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+		if(memberId == null || !individualIds.contains(memberId))
+			return;
+
+		final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
+		final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
+		memberships.add(new ChronologyData.Membership(relationship.getId(), memberId, range(from), range(to), text(from), text(to)));
+	}
+
+
+	private static List<ChronologyData.LifeEvent> loadEvents(final FLEFModel model, final Set<String> individualIds){
+		final List<ChronologyData.LifeEvent> events = new ArrayList<>();
+		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationReader.TYPE);
+		for(final FLEFRecord participation : participations){
+			final FLEFRecord participant = FLEFRecordHelper.findChild(participation, EventParticipationReader.TAG_PARTICIPANT);
+			final FLEFRecord reference = (participant != null? participant.getTheOnlyChild(): null);
+			final String personId = (reference != null? reference.getValue(): null);
+			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
+			if(personId == null || eventId == null || !individualIds.contains(personId))
+				continue;
+
+			final FLEFRecord event = model.getRecordById(eventId);
+			if(!EventReader.isOfType(event))
+				continue;
+
+			final String role = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_ROLE);
+			final List<FLEFRecord> dates = FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE);
+			final FLEFRecord date = (dates.isEmpty()? null: dates.getFirst());
+			events.add(new ChronologyData.LifeEvent(eventId, personId, EventReader.extractType(event), range(date), text(date),
+				role == null || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(role)));
+		}
+		return events;
+	}
+
+	/**
+	 * The birth and the death of an individual are the events of that type the individual is the principal of.
+	 *
+	 * @param events the events of the individual that it is the principal of and that have a date
+	 */
+	private static ChronologyData.Person loadPerson(final FLEFRecord individual,
+			final List<ChronologyData.LifeEvent> events, final SexType sex){
+		DateRange birth = null;
+		DateRange death = null;
+		String birthText = null;
+		String deathText = null;
+		for(final ChronologyData.LifeEvent event : events){
+			//with several events of the same type the days they cover are used: a finding must hold for all of them
+			if(EventReader.ENUM_TYPE_BIRTH.equals(event.type())){
+				birth = (birth != null? birth.hull(event.date()): event.date());
+				birthText = (birthText != null? birthText + " / " + event.dateText(): event.dateText());
+			}
+			else if(EventReader.ENUM_TYPE_DEATH.equals(event.type())){
+				death = (death != null? death.hull(event.date()): event.date());
+				deathText = (deathText != null? deathText + " / " + event.dateText(): event.dateText());
+			}
+		}
+
+		final String name = IndividualReader.extractPrimaryFullname(individual);
+		return new ChronologyData.Person(individual.getId(),
+			(name != null && !name.isBlank()? name + " [" + individual.getId() + "]": individual.getId()),
+			sex, birth, death, birthText, deathText);
+	}
+
+	private static void loadRelationship(final FLEFRecord relationship, final Set<String> individualIds,
+			final List<ChronologyData.ParentLink> parents, final List<ChronologyData.Union> unions){
+		final String type = RelationshipReader.extractType(relationship);
+		final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+		final String targetId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+		if(type == null || subjectId == null || targetId == null || !individualIds.contains(subjectId)
+				|| !individualIds.contains(targetId))
+			return;
+
+		if(RelationshipReader.isTypeChild(type))
+			//the subject is the child, the target the parent
+			parents.add(new ChronologyData.ParentLink(relationship.getId(), subjectId, targetId, BIOLOGICAL_TYPES.contains(type)));
+		else if(RelationshipReader.isTypePartner(type)){
+			final FLEFRecord from = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
+			final FLEFRecord to = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
+			final String status = FLEFRecordHelper.getChildValue(relationship, RelationshipReader.TAG_STATUS);
+			unions.add(new ChronologyData.Union(relationship.getId(), subjectId, targetId, MARRIAGE_UNION_TYPES.contains(type),
+				range(from), range(to), RelationshipReader.ENUM_STATUS_ENDED.equals(status) && to == null, text(from)));
+		}
+	}
+
+
+	/** @return the days of a date structure, or {@code null} if there is none or it cannot be read */
+	private static DateRange range(final FLEFRecord dateStructure){
+		if(dateStructure == null)
+			return null;
+
+		try{
+			return DateRange.of(DateNormalizer.normalize(dateStructure));
+		}
+		catch(final RuntimeException ignored){
+			return null;
+		}
+	}
+
+	private static String text(final FLEFRecord dateStructure){
+		return (dateStructure != null? DateReader.extractPrettyPrintDate(dateStructure): StringUtils.EMPTY);
+	}
+
+}

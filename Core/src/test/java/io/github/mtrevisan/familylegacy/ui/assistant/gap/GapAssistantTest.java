@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.assistant.gap;
 
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapChecker;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapData;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapDataLoader;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapDraft;
+import io.github.mtrevisan.familylegacy.assistant.gap.GapFinding;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
@@ -36,9 +42,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.assistant.AssistantContext;
-import io.github.mtrevisan.familylegacy.ui.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticActions;
+import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchQuestionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
 import org.junit.jupiter.api.Assertions;
@@ -254,13 +259,13 @@ class GapAssistantTest{
 		model.addRecord(question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN));
 
 		final List<Diagnostic> found = new GapAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 
 		Assertions.assertFalse(found.isEmpty());
 		for(final Diagnostic finding : found){
 			Assertions.assertTrue(finding.isIgnorable(), finding.title());
 			Assertions.assertFalse(DiagnosticActions.of(finding).isEmpty(), finding.title());
-			Assertions.assertEquals(io.github.mtrevisan.familylegacy.ui.assistant.AssistantCategory.RESEARCH, finding.category());
+			Assertions.assertEquals(io.github.mtrevisan.familylegacy.assistant.AssistantCategory.RESEARCH, finding.category());
 			Assertions.assertNotNull(finding.action(), finding.title());
 		}
 		//a gap about a death starts a question, the one about a question without activities starts a task
@@ -275,7 +280,7 @@ class GapAssistantTest{
 		final FLEFModel model = convert();
 		model.addRecord(question("RQ1", "Parents of Dino", ResearchQuestionReader.ENUM_STATUS_OPEN));
 		final List<Diagnostic> found = new GapAssistantContributor().diagnosticProviders().getFirst()
-			.diagnose(new AssistantContext(null, null, model));
+			.diagnose(new SwingAssistantContext(null, null, model));
 
 		final List<Double> ranks = found.stream().map(Diagnostic::rank).toList();
 

@@ -56,6 +56,38 @@ class ConsanguinityCalculatorTest{
 
 
 	@Test
+	void aSmallPopulationMarryingAmongItselfForFortyGenerationsIsQuick(){
+		//8 people a generation, each the child of two of the previous one: the paths between two of them are astronomically many
+		final Map<String, List<String>> parents = new LinkedHashMap<>();
+		final java.util.Random random = new java.util.Random(5);
+		for(int generation = 1; generation <= 40; generation ++)
+			for(int i = 0; i < 8; i ++){
+				final int father = random.nextInt(8);
+				int mother = random.nextInt(8);
+				if(mother == father)
+					mother = (mother + 1) % 8;
+				parents.put("G" + generation + "_" + i, List.of("G" + (generation - 1) + "_" + father, "G" + (generation - 1) + "_" + mother));
+			}
+		final ConsanguinityCalculator calculator = new ConsanguinityCalculator(new AncestryGraph(parents));
+
+		final double[] relationship = new double[1];
+		Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(10),
+			() -> relationship[0] = calculator.relationship("G40_0", "G40_1"));
+
+		//after so many generations of a closed population everybody is nearly the same person
+		Assertions.assertTrue(relationship[0] > 0.9 && relationship[0] <= 1., String.valueOf(relationship[0]));
+	}
+
+	@Test
+	void aParentListWithTheSameParentTwiceCountsOneParent(){
+		final ConsanguinityCalculator calculator = new ConsanguinityCalculator(graph("A", "F", "F"));
+
+		Assertions.assertEquals(0., calculator.inbreeding("A"), EPSILON);
+		Assertions.assertEquals(0.5, calculator.relationship("A", "F"), EPSILON);
+	}
+
+
+	@Test
 	void siblingsHaveRelationshipOneHalf(){
 		final ConsanguinityCalculator calculator = new ConsanguinityCalculator(graph("A", "F", "M", "B", "F", "M"));
 

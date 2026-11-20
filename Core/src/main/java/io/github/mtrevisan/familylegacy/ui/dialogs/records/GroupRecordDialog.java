@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
@@ -88,6 +91,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 
 
+	private final MediaPartListPanel mediaCitationPanel;
+
+
 	public static GroupRecordDialog createNew(final Window parent, final FLEFModel model){
 		return createNew(parent, model, GroupRecordDialog::new);
 	}
@@ -106,6 +112,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		typeCombo.setI18NPrefix("enum.group.type");
 		typeCombo.setEditable(true);
 
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, GroupAttributeHandler.TYPE, I18N.t("dialog.component.group.attributes"))
 			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, RelationshipHandler.TYPE, I18N.t("dialog.component.group.relationships_on_target"))
@@ -219,6 +226,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
 
+		//the media attached to the record
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		return panel;
 	}
 
@@ -249,6 +259,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.load(record);
 
 		components.load(record);
+		mediaCitationPanel.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -261,6 +272,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 
 		components.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 	}
 
 

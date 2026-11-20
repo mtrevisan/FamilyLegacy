@@ -31,6 +31,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
@@ -52,7 +54,9 @@ final class TreeText{
 
 	/** @return	The name of the person with the years of birth and death, as in {@code Antonia Pastrelo [I1430] (1633–?)} (not escaped). */
 	String label(final FLEFRecord person){
-		final String name = ctx.displayText(person);
+		//(with the number of the person in the numbering of the report, if it has one)
+		final String number = ctx.numberOf(person);
+		final String name = (number != null? number + ". ": StringUtils.EMPTY) + ctx.displayText(person);
 		final String years = years(person);
 		return (years != null? name + " (" + years + ")": name);
 	}

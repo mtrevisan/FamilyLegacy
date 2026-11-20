@@ -30,7 +30,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -57,8 +60,8 @@ import java.awt.Window;
  *     official, religious, birth,
  *     married, maiden, divorce, adoption, fostering,
  *     legal, immigrant, adapted,
- *     alias, nickname, artistic, professional, user,
- *     regnal, slave_name
+ *     alias, nickname, artistic, professional, pen_name, user,
+ *     regnal, slave_name, placeholder
  *   } | Text
  *   part+: PartStructure
  *   locale?: LocaleCode
@@ -98,6 +101,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityListPanel culturalNormPanel;
+	/** The media that attest this form of the name. */
+	private final MediaPartListPanel mediaCitationPanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Window parent, final FLEFModel model){
@@ -123,6 +128,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(NameReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(NameReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 
+		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.name.media"), model);
 		culturalNormPanel = EntityListPanel.createForEntityReference(NameReader.TAG_CULTURAL_NORM, this, I18N.t("dialog.name.cultural.norms"),
 			model, CulturalNormHandler.class);
 
@@ -183,6 +189,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		GUIHelper.addComponent(panel, mediaCitationPanel);
+
 		// Image carousel below the source list
 		// It will be hidden if no images are found
 		GUIHelper.addComponent(panel, imageCarouselPanel);
@@ -209,6 +217,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 		culturalNormPanel.load(record);
+		mediaCitationPanel.load(record);
 
 
 		// Initially, update carousel based on the first selected source (if any)
@@ -236,6 +245,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		validFromField.save(record);
 		validToField.save(record);
 		culturalNormPanel.save(record);
+		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
+		mediaCitationPanel.saveReferences(record);
 	}
 
 	public boolean hasData(){
