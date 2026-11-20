@@ -15,6 +15,7 @@
 
 [Setup]
 ; the same identifier forever: it lets a new version upgrade the installed one
+SetupArchitecture=x64
 AppId={{{#AppGuid}}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -40,7 +41,7 @@ RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
+; Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

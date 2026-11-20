@@ -161,7 +161,7 @@
 			<!-- mvn clean package -Pwindows-inno -DskipTests
 					Builds the Windows installer with jpackage (application image: launcher + bundled runtime, no WiX needed) and Inno Setup (setup wizard):
 					Core/target/windows-inno/FamilyLegacy-<version>-setup.exe
-					Requires Inno Setup 6 (ISCC.exe) on the PATH, or -Dinno.iscc="C:\Program Files (x86)\Inno Setup 6\ISCC.exe".
+					Requires Inno Setup 7 (ISCC.exe) on the PATH, or -Dinno.iscc="C:\Program Files\Inno Setup 7\ISCC.exe".
 					The script is installer/FamilyLegacy.iss. The jpackage options are the ones of windows-exe: keep the module lists equal. -->
 				<id>windows-inno</id>
 				<properties>
@@ -171,6 +171,7 @@
 					<!-- must never change: it lets a new version upgrade the installed one (same as windows-exe) -->
 					<package.upgradeUuid>5d3f2c1e-8a47-4b6e-9c1d-2f7a9e0b6c41</package.upgradeUuid>
 					<package.coreTarget>${project.basedir}/../Core/target</package.coreTarget>
+<!--					<inno.iscc>C:\Program Files\Inno Setup 7\ISCC.exe</inno.iscc>-->
 					<inno.iscc>ISCC.exe</inno.iscc>
 				</properties>
 				<build>
@@ -249,7 +250,7 @@
 												<arg value="/Qp"/>
 												<arg value="/DAppVersion=${package.version}"/>
 												<arg value="/DAppGuid=${package.upgradeUuid}"/>
-												<arg value="/DSourceDir=${package.coreTarget}/windows-inno-image/${package.name}"/>
+												<arg value="/DSourceDir=${package.coreTarget}/windows-standalone/${package.name}"/>
 												<arg value="/DIconFile=${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
 												<arg value="/DOutputDir=${package.coreTarget}/windows-inno"/>
 												<arg value="${project.basedir}/../installer/FamilyLegacy.iss"/>
