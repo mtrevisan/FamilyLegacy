@@ -60,6 +60,26 @@ class EditorTabsByLevelTest{
 	}
 
 	@Test
+	void conclusionsAreOfferedFromTheAdvancedLevelEvenInsideTheStandardResearchTab(){
+		Assertions.assertEquals(UxLevel.ADVANCED, PanelKey.CONCLUSION_ON_RESOLVES.minimumLevel());
+		Assertions.assertEquals(UxLevel.STANDARD, PanelKey.RESEARCH_QUESTION_ON_TARGET.minimumLevel());
+		Assertions.assertEquals(UxLevel.STANDARD, PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY.minimumLevel());
+		Assertions.assertEquals(UxLevel.ADVANCED, PanelKey.CONTEXT_IMPACT_ON_TARGET.minimumLevel());
+		Assertions.assertEquals(UxLevel.ADVANCED, PanelKey.EVIDENCE.minimumLevel());
+		Assertions.assertEquals(UxLevel.BASIC, PanelKey.SOURCE.minimumLevel());
+		Assertions.assertEquals(UxLevel.BASIC, PanelKey.INDIVIDUAL_ATTRIBUTE.minimumLevel());
+
+		final FeatureVisibilityService standard = FeatureVisibilityService.inMemory(UxLevel.STANDARD);
+		Assertions.assertFalse(BaseRecordDialog.isOfferedAt(IndividualReader.TYPE, PanelKey.CONCLUSION_ON_RESOLVES.minimumLevel(), standard));
+		Assertions.assertTrue(BaseRecordDialog.isOfferedAt(IndividualReader.TYPE, PanelKey.RESEARCH_QUESTION_ON_TARGET.minimumLevel(), standard));
+		Assertions.assertTrue(BaseRecordDialog.isOfferedAt(IndividualReader.TYPE, PanelKey.CONCLUSION_ON_RESOLVES.minimumLevel(),
+			FeatureVisibilityService.inMemory(UxLevel.ADVANCED)));
+		//the editor of a research record shows all its panels
+		Assertions.assertTrue(BaseRecordDialog.isOfferedAt(ConclusionReader.TYPE, PanelKey.CONCLUSION_ON_RESEARCH.minimumLevel(),
+			FeatureVisibilityService.inMemory(UxLevel.BASIC)));
+	}
+
+	@Test
 	void anEditorWithoutThePanelHasNone(){
 		Assertions.assertNull(BaseRecordDialog.visibleAt(IndividualReader.TYPE, UxLevel.STANDARD, null,
 			FeatureVisibilityService.inMemory(UxLevel.ADVANCED)));

@@ -54,7 +54,8 @@ class DateConsistencyTest{
 
 	private static final Set<String> KINDS = Set.of("death_before_birth", "event_before_birth", "event_after_death", "child_before_parent",
 		"born_after_mother_death", "born_after_father_death", "union_before_birth", "union_after_death", "membership_before_birth",
-		"membership_after_death", "membership_ended_before_birth", "source_before_event");
+		"membership_after_death", "membership_ended_before_birth", "source_before_event", "attribute_before_birth", "attribute_after_death",
+		"attribute_ended_before_birth");
 
 	private int counter;
 	private final FLEFModel model = new FLEFModel();
@@ -496,6 +497,57 @@ class DateConsistencyTest{
 		membership(mario, null, exact("1845-01-01"));
 
 		Assertions.assertEquals(List.of("membership_before_birth", "membership_after_death", "membership_ended_before_birth"), found());
+	}
+
+	private void attribute(final String personId, final String type, final FLEFRecord validFrom, final FLEFRecord validTo){
+		counter ++;
+		final FLEFRecord attribute = FLEFRecord.createMainRecord("A" + counter, IndividualAttributeReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_INDIVIDUAL, personId))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IndividualAttributeReader.TAG_TYPE, type));
+		if(validFrom != null)
+			attribute.addChild(FLEFRecord.createChildWithTag(IndividualAttributeReader.TAG_VALID_FROM).addChild(validFrom.getChildren().getFirst()));
+		if(validTo != null)
+			attribute.addChild(FLEFRecord.createChildWithTag(IndividualAttributeReader.TAG_VALID_TO).addChild(validTo.getChildren().getFirst()));
+		model.addRecord(attribute);
+	}
+
+	@Test
+	void anAttributeOutsideTheLifeOfItsIndividualIsAnError(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		born(mario, exact("1850-01-01"));
+		died(mario, exact("1900-01-01"));
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_RESIDENCE, exact("1840-01-01"), null);
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_OCCUPATION, exact("1905-01-01"), null);
+		//it ends before he was born, and does not say when it began
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_RESIDENCE, null, exact("1845-01-01"));
+
+		Assertions.assertEquals(List.of("attribute_before_birth", "attribute_after_death", "attribute_ended_before_birth"), found());
+	}
+
+	@Test
+	void theDateOfAnAttributeThatCannotBeReadIsAWarning(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_RESIDENCE, exact("not a date"), null);
+
+		final List<ConsistencyService.Issue> unreadable = ConsistencyService.check(model).issues().stream()
+			.filter(issue -> "date_invalid".equals(issue.kind()) && issue.recordId().startsWith("A"))
+			.toList();
+
+		Assertions.assertEquals(1, unreadable.size(), unreadable.toString());
+		Assertions.assertEquals(ConsistencyService.Severity.WARNING, unreadable.getFirst().severity());
+	}
+
+	@Test
+	void anAttributeDuringTheLifeOfItsIndividualIsFine(){
+		final String mario = person("I1", IndividualReader.ENUM_SEX_MALE);
+		born(mario, exact("1850-01-01"));
+		died(mario, exact("1900-01-01"));
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_RESIDENCE, exact("1870-01-01"), exact("1890-01-01"));
+		//no dates at all, and an end after the death (recorded as open, not wrong)
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_OCCUPATION, null, null);
+		attribute(mario, IndividualAttributeReader.ENUM_TYPE_RESIDENCE, exact("1880-01-01"), exact("1950-01-01"));
+
+		Assertions.assertTrue(found().isEmpty(), found().toString());
 	}
 
 	@Test

@@ -97,6 +97,8 @@ public final class AppPreferences{
 	public static final String KEY_SUGGESTIONS = "ui.suggestions";
 	// whether the main window shows the panel of the research tasks still to be done (presentation only)
 	public static final String KEY_TASKS_PANEL = "view.tasks_panel";
+	// the side of the main window where the tasks panel is docked: bottom, top, left or right (presentation only)
+	public static final String KEY_TASKS_DOCK = "view.tasks_dock";
 	// whether the application looks for a newer release at startup, and when it last asked GitHub (epoch milliseconds)
 	public static final String KEY_UPDATE_CHECK = "update.check";
 	public static final String KEY_UPDATE_LAST = "update.last";
@@ -213,6 +215,16 @@ public final class AppPreferences{
 	/** Persists whether the main window shows the panel of the research tasks (a view preference: it is not stored in the genealogy). */
 	public void setTasksPanelVisible(final boolean visible){
 		put(KEY_TASKS_PANEL, Boolean.toString(visible));
+	}
+
+	/** Returns the side where the tasks panel is docked ({@code bottom}, {@code top}, {@code left} or {@code right}), or {@code null}. */
+	public String tasksDock(){
+		return properties.getProperty(KEY_TASKS_DOCK);
+	}
+
+	/** Persists the side where the tasks panel is docked (a view preference: it is not stored in the genealogy). */
+	public void setTasksDock(final String dock){
+		put(KEY_TASKS_DOCK, dock);
 	}
 
 	/** Returns whether the application looks for a newer release at startup; on unless the user turned it off. */

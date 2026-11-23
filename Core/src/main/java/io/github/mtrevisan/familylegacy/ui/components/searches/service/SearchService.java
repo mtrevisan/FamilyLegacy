@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordTags;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -36,6 +37,7 @@ import io.github.mtrevisan.familylegacy.places.PlaceNameResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.search.AttachedTextExtractor;
 import io.github.mtrevisan.familylegacy.search.Bm25;
+import io.github.mtrevisan.familylegacy.search.GroupMemberNames;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
 import io.github.mtrevisan.familylegacy.search.SearchField;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
@@ -160,6 +162,14 @@ public class SearchService{
 	}
 
 
+	/** The records that pass the filter of the strategy and, if the criteria ask for tags, have all of them. */
+	private Predicate<FLEFRecord> withTagFilter(final Predicate<FLEFRecord> filter, final SearchCriteria criteria){
+		final List<String> required = RecordTags.parse(criteria.filter(SearchCriteria.FILTER_TAGS));
+		return (required.isEmpty()
+			? filter
+			: record -> filter.test(record) && model.tags().hasAll(record.getId(), required));
+	}
+
 	/**
 	 * Performs the search according to the given criteria.
 	 *
@@ -174,10 +184,11 @@ public class SearchService{
 	 * A record found, with its relevance and the reason why it was found.
 	 *
 	 * @param record		The record.
+	 * @param matchedTerms	How many terms of the query were found in the record, 0 when there is no text query.
 	 * @param relevance	The BM25 relevance, 0 when there is no text query.
 	 * @param explanation	Html telling which terms were found, where and how relevant the record is; {@code null} when there is no text query.
 	 */
-	public record SearchHit(FLEFRecord record, double relevance, String explanation){}
+	public record SearchHit(FLEFRecord record, int matchedTerms, double relevance, String explanation){}
 
 	/**
 	 * Performs the search according to the given criteria and reports progress.
@@ -215,17 +226,21 @@ public class SearchService{
 		final SearchStrategy strategy = REGISTRY.get(handler.getClassType());
 
 		// Stage 1: structural filters (sex, event type, date range, place, ...).
-		final Predicate<FLEFRecord> structuralFilter = strategy.buildPredicate(criteria, model);
+		final Predicate<FLEFRecord> structuralFilter = withTagFilter(strategy.buildPredicate(criteria, model), criteria);
 
 		//the records hidden by the privacy policy are not found
 		final List<FLEFRecord> records = PrivacyService.visible(model, model.getRecordsByType(handler.getType()));
+
+		//a group is also found by the names of its members ("Mario Rossi Anna Bianchi" finds the family of the two spouses), and its
+		//tooltip lists them
+		final GroupMemberNames memberNames = (GroupReader.TYPE.equals(handler.getType())? new GroupMemberNames(model): null);
 
 		// Fast path: no text query. Structural filters only, no ranking.
 		final SearchQuery query = SearchQuery.parse(criteria.query());
 		if(query.isEmpty()){
 			final List<SearchHit> hits = new ArrayList<>();
 			for(final FLEFRecord record : executeStructuralSearch(records, structuralFilter, progressCallback))
-				hits.add(new SearchHit(record, 0., null));
+				hits.add(new SearchHit(record, 0, 0., withMembers(null, record, memberNames)));
 			return hits;
 		}
 
@@ -259,6 +274,16 @@ public class SearchService{
 				if(placeNames != null)
 					segments.add(new SearchMatcher.Segment(SearchField.CONTAINING_PLACES,
 						String.join("\n", placeNames.containerNames(record.getId()))));
+				if(memberNames != null){
+					final List<String> members = memberNames.names(record);
+					if(!members.isEmpty())
+						segments.add(new SearchMatcher.Segment(SearchField.MEMBER_NAMES, String.join("\n", members)));
+				}
+				//the free tags of the record are searched like its text
+				final List<String> tags = model.tags()
+					.get(record.getId());
+				if(!tags.isEmpty())
+					segments.add(new SearchMatcher.Segment(SearchField.TAGS, String.join(StringUtils.LF, tags)));
 				//with the notes included, the text of the notes is matched together with the display text
 				if(inNotes)
 					segments.add(new SearchMatcher.Segment(SearchField.NOTES_AND_CITATIONS, AttachedTextExtractor.extract(record, model)));
@@ -299,8 +324,45 @@ public class SearchService{
 
 		final List<SearchHit> hits = new ArrayList<>(scored.size());
 		for(final ScoredRecord sr : scored)
-			hits.add(new SearchHit(sr.record(), sr.relevance(), explain(sr.analysis(), sr.relevance())));
+			hits.add(new SearchHit(sr.record(), sr.matchedTerms(), sr.relevance(), withMembers(explain(sr.analysis(), sr.relevance()), sr.record(), memberNames)));
 		return hits;
+	}
+
+	/** The most members listed in a tooltip. */
+	private static final int MAX_TOOLTIP_MEMBERS = 20;
+
+	/**
+	 * @param explanation	The html of the tooltip, or {@code null} if there is none.
+	 * @param record			The record found.
+	 * @param memberNames	The members of the groups, {@code null} if the records are not groups.
+	 * @return	The tooltip with, for a group, the list of its members and their role appended.
+	 */
+	private static String withMembers(final String explanation, final FLEFRecord record, final GroupMemberNames memberNames){
+		if(memberNames == null)
+			return explanation;
+		final List<GroupMemberNames.Member> members = memberNames.members(record);
+		if(members.isEmpty())
+			return explanation;
+
+		final StringBuilder sb = new StringBuilder("<html>");
+		if(explanation != null)
+			sb.append(StringUtils.removeEnd(StringUtils.removeStart(explanation, "<html>"), "</html>"))
+				.append("<br>");
+		sb.append(I18N.tf("search.tooltip.members", members.size()));
+		final int shown = Math.min(members.size(), MAX_TOOLTIP_MEMBERS);
+		for(int i = 0; i < shown; i ++){
+			final GroupMemberNames.Member member = members.get(i);
+			sb.append("<br>&bull; ")
+				.append(escapeHtml(member.name()));
+			if(member.role() != null)
+				sb.append(" (")
+					.append(escapeHtml(member.role()))
+					.append(')');
+		}
+		if(members.size() > shown)
+			sb.append("<br>").append(I18N.tf("search.tooltip.members_more", members.size() - shown));
+		return sb.append("</html>")
+			.toString();
 	}
 
 	/** @return	Html that tells, for each term of the query, whether and where it was found, and the relevance of the record. */

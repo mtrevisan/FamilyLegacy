@@ -25,13 +25,16 @@
 package io.github.mtrevisan.familylegacy.ui.assistant.relationship;
 
 import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
 import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipChecker;
+import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipData;
 import io.github.mtrevisan.familylegacy.assistant.relationship.RelationshipDataLoader;
 
 import java.util.List;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -48,22 +51,33 @@ public final class RelationshipAssistantContributor implements AssistantContribu
 
 	@Override
 	public List<DiagnosticProvider> diagnosticProviders(){
-		return List.of(context -> {
-			if(context.model() == null)
-				return List.of();
+		return List.of(new DiagnosticProvider(){
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context){
+				return diagnose(context, fraction -> {});
+			}
 
-			//a finding about a missing relationship comes with the action that starts its draft
-			return RelationshipChecker.findings(RelationshipDataLoader.load(context.model())).stream()
-				.map(finding -> {
-					final Diagnostic diagnostic = finding.diagnostic();
-					if(finding.draft() != null)
-						return diagnostic.withAction(new CreateRelationshipDraftAction(finding.draft()));
-					//a finding that suggests another type comes with the action that opens the editor with it
-					if(finding.typeChange() != null)
-						return diagnostic.withAction(new ChangeRelationshipTypeAction(finding.typeChange()));
-					return diagnostic;
-				})
-				.toList();
+			/** The reading of the model is the first third of the work (it cannot tell how far it is), the checks are the rest. */
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+				if(context.model() == null)
+					return List.of();
+
+				progress.accept(0.);
+				final RelationshipData data = RelationshipDataLoader.load(context.model());
+				//a finding about a missing relationship comes with the action that starts its draft
+				return RelationshipChecker.findings(data, 1. / 3., 1., progress).stream()
+					.map(finding -> {
+						final Diagnostic diagnostic = finding.diagnostic();
+						if(finding.draft() != null)
+							return diagnostic.withAction(new CreateRelationshipDraftAction(finding.draft()));
+						//a finding that suggests another type comes with the action that opens the editor with it
+						if(finding.typeChange() != null)
+							return diagnostic.withAction(new ChangeRelationshipTypeAction(finding.typeChange()));
+						return diagnostic;
+					})
+					.toList();
+			}
 		});
 	}
 

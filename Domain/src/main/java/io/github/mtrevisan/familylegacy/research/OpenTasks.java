@@ -206,7 +206,7 @@ public final class OpenTasks{
 
 
 	/** @return	The rank of a priority, the most urgent first (no priority counts as normal). */
-	static int priorityRank(final String priority){
+	public static int priorityRank(final String priority){
 		if(ResearchTaskReader.ENUM_PRIORITY_HIGH.equalsIgnoreCase(priority))
 			return 0;
 		if(ResearchTaskReader.ENUM_PRIORITY_LOW.equalsIgnoreCase(priority))

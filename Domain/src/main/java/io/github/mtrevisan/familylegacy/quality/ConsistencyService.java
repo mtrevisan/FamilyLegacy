@@ -58,6 +58,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -112,7 +113,7 @@ public final class ConsistencyService{
 	/** The types that can link an individual to an individual: the ones the editor offers. */
 	private static final Set<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = Set.of(RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_TYPES);
 	/** The events of the life of a person: they are about one of the participants, the principal. */
-	private static final Set<String> PRINCIPAL_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
+	private static final Set<String> PRINCIPAL_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 	private static final String PRINCIPAL_ROLE = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
 	/** The most biological parents of an individual. */
 	private static final int MAX_BIOLOGICAL_PARENTS = 2;
@@ -159,7 +160,20 @@ public final class ConsistencyService{
 
 
 	public static Report check(final FLEFModel model){
+		return check(model, fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got (0 to 1): the checks of the records are a dozen steps, each as long as the records it reads, and
+	 * the end of each is told; so a long file shows the validation advance.
+	 *
+	 * @param model     the model
+	 * @param progress  told, from time to time, the share of the work done (0 to 1), from the thread that checks
+	 * @return the report
+	 */
+	public static Report check(final FLEFModel model, final DoubleConsumer progress){
 		final List<Issue> issues = new ArrayList<>();
+		progress.accept(0.);
 
 		final List<FLEFRecord> individuals = model.getRecordsByType(IndividualReader.TYPE);
 		for(final FLEFRecord individual : individuals)
@@ -178,18 +192,27 @@ public final class ConsistencyService{
 		for(final FLEFRecord relationship : placeRelationships)
 			checkSelfReference(relationship, PlaceRelationshipReader.TAG_SUBJECT, PlaceRelationshipReader.TAG_TARGET,
 				"text.consistency.issue.self_place_relationship", issues);
-		checkBiologicalParents(model, parentsOf, issues);
-		checkParentsOfTheSameSex(model, parentsOf, issues);
-		checkCircularParentage(model, parentsOf, issues);
-		checkSiblingsThatAreParents(model, parentsOf, issues);
-		checkParentsMarriedToTheirChildren(model, parentsOf, marriedPairs, issues);
-		checkRelationshipKinds(model, relationships, issues);
-		checkHierarchies(model, relationships, placeRelationships, issues);
-		checkDuplicateRelationships(model, relationships, placeRelationships, issues);
-		checkConclusions(model, issues);
-		checkIdentifiers(model, issues);
-		checkEvents(model, issues);
-		issues.addAll(DateConsistency.check(model));
+		final Runnable[] remaining = {
+			() -> checkBiologicalParents(model, parentsOf, issues),
+			() -> checkParentsOfTheSameSex(model, parentsOf, issues),
+			() -> checkCircularParentage(model, parentsOf, issues),
+			() -> checkSiblingsThatAreParents(model, parentsOf, issues),
+			() -> checkParentsMarriedToTheirChildren(model, parentsOf, marriedPairs, issues),
+			() -> checkRelationshipKinds(model, relationships, issues),
+			() -> checkHierarchies(model, relationships, placeRelationships, issues),
+			() -> checkDuplicateRelationships(model, relationships, placeRelationships, issues),
+			() -> checkConclusions(model, issues),
+			() -> checkIdentifiers(model, issues),
+			() -> checkEvents(model, issues),
+			() -> issues.addAll(DateConsistency.check(model))
+		};
+		//the first two steps (the names and the relationships) are above, the others are told one by one
+		final int total = remaining.length + 2;
+		progress.accept(2. / total);
+		for(int i = 0; i < remaining.length; i ++){
+			remaining[i].run();
+			progress.accept((i + 3.) / total);
+		}
 
 		return new Report(individuals.size(), relationships.size() + placeRelationships.size(), issues);
 	}

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant.identity;
 
 import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
+import io.github.mtrevisan.familylegacy.assistant.draft.DraftEnrichment;
 import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -43,12 +44,12 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.IdentityHypothesisRec
  * hypothesis is a conclusion of the researcher.
  * </p>
  */
-final class CreateIdentityHypothesisDraftAction implements DiagnosticAction{
+public final class CreateIdentityHypothesisDraftAction implements DiagnosticAction{
 
 	private final IdentityDraft draft;
 
 
-	CreateIdentityHypothesisDraftAction(final IdentityDraft draft){
+	public CreateIdentityHypothesisDraftAction(final IdentityDraft draft){
 		this.draft = draft;
 	}
 
@@ -70,9 +71,11 @@ final class CreateIdentityHypothesisDraftAction implements DiagnosticAction{
 		if(left == null || right == null)
 			return;
 
+		//where to look for the evidence that would decide it
+		final IdentityDraft enriched = DraftEnrichment.enrich(model, draft);
 		IdentityHypothesisRecordDialog.createNew(SwingAssistantContext.owner(context), model)
-			.withCandidates(left, right, draft.rationale(), draft.confidence())
-			.withSources(draft.sharedSourceIds())
+			.withCandidates(left, right, enriched.rationale(), enriched.confidence())
+			.withSources(enriched.sharedSourceIds())
 			.setVisible(true);
 	}
 

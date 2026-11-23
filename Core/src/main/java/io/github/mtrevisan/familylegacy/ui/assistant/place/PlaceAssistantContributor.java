@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.assistant.place;
 import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
 import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.DiagnosticAction;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityOtherKinds;
 import io.github.mtrevisan.familylegacy.assistant.place.JurisdictionChangeChecker;
 import io.github.mtrevisan.familylegacy.assistant.place.PlaceChecker;
 import io.github.mtrevisan.familylegacy.assistant.place.PlaceData;
@@ -35,9 +37,12 @@ import io.github.mtrevisan.familylegacy.assistant.place.PlaceDataLoader;
 import io.github.mtrevisan.familylegacy.assistant.place.PlaceFinding;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.assistant.identity.CompareRecordsAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.identity.CreateIdentityHypothesisDraftAction;
+import io.github.mtrevisan.familylegacy.ui.assistant.identity.RecordDifferentAction;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -60,7 +65,11 @@ public final class PlaceAssistantContributor implements AssistantContributor{
 				return List.of();
 
 			final PlaceData data = PlaceDataLoader.load(context.model());
+			//a pair that already has an identity hypothesis (or a conclusion that says they are different) is not proposed again
+			final Set<String> hypotheses = IdentityOtherKinds.existingHypotheses(context.model());
 			final List<Diagnostic> findings = new ArrayList<>(PlaceChecker.findings(data).stream()
+				.filter(finding -> finding.identity() == null || !hypotheses.contains(IdentityOtherKinds.pairKey(
+					finding.identity().leftId(), finding.identity().rightId())))
 				.map(PlaceAssistantContributor::withActions)
 				.toList());
 			//the places whose jurisdiction changed over time: the timeline of the place is worth looking at
@@ -75,9 +84,16 @@ public final class PlaceAssistantContributor implements AssistantContributor{
 		Diagnostic diagnostic = finding.diagnostic();
 		if(finding.draft() != null)
 			diagnostic = diagnostic.withAction(new CreatePlaceRelationshipDraftAction(finding.draft()));
-		else if(finding.compare().size() == 2)
-			diagnostic = diagnostic.withAction(new CompareRecordsAction(finding.compare().get(0), finding.compare().get(1),
-				I18N.t("place.compare.title")));
+		else if(finding.compare().size() == 2){
+			final DiagnosticAction compare = new CompareRecordsAction(finding.compare().get(0), finding.compare().get(1),
+				I18N.t("place.compare.title"));
+			if(finding.identity() != null)
+				//the same actions as the other kinds of record: the hypothesis draft, the comparison, the judgement "different"
+				diagnostic = diagnostic.withAction(new CreateIdentityHypothesisDraftAction(finding.identity()))
+					.withAlternatives(List.of(compare, new RecordDifferentAction(finding.identity(), false)));
+			else
+				diagnostic = diagnostic.withAction(compare);
+		}
 		return diagnostic;
 	}
 

@@ -43,7 +43,13 @@ import java.util.Map;
  * @param unreadable  the dates that could not be read, so that the checks above skipped them
  */
 public record ChronologyData(Map<String, Person> persons, List<LifeEvent> events, List<ParentLink> parents, List<Union> unions,
-		List<Membership> memberships, List<UnreadableDate> unreadable){
+		List<Membership> memberships, List<UnreadableDate> unreadable, List<Attribute> attributes){
+
+	/** The data of a research without attributes with a period. */
+	public ChronologyData(final Map<String, Person> persons, final List<LifeEvent> events, final List<ParentLink> parents,
+			final List<Union> unions, final List<Membership> memberships, final List<UnreadableDate> unreadable){
+		this(persons, events, parents, unions, memberships, unreadable, List.of());
+	}
 
 	/** The data of a research without memberships of groups. */
 	ChronologyData(final Map<String, Person> persons, final List<LifeEvent> events, final List<ParentLink> parents,
@@ -66,6 +72,18 @@ public record ChronologyData(Map<String, Person> persons, List<LifeEvent> events
 	 *                    the file), or it is not valid in the notation of its calendar
 	 */
 	public record UnreadableDate(String recordId, String description, String field, String text, boolean needsPlugin){}
+
+	/**
+	 * @param attributeId  the identifier of the attribute
+	 * @param individualId the individual the attribute is about
+	 * @param description  the attribute, to show
+	 * @param from         the days the attribute begins to hold ({@code null} if not known)
+	 * @param to           the days it stops holding ({@code null} if not known)
+	 * @param fromText     the date it begins, as written
+	 * @param toText       the date it ends, as written
+	 */
+	public record Attribute(String attributeId, String individualId, String description, DateRange from, DateRange to, String fromText,
+			String toText){}
 
 	/**
 	 * @param relationshipId the identifier of the relationship

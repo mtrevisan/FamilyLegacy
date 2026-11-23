@@ -24,13 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.quality;
 
-import io.github.mtrevisan.familylegacy.events.EventTypeInfo;
-import io.github.mtrevisan.familylegacy.events.EventTypeInfoService;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
@@ -57,9 +56,9 @@ import java.util.Set;
 /**
  * The dates that cannot be right, whatever the day: a death before the birth, an event after the death or before the birth of one who
  * took part in it, a child born before the parent was, or after the death of the mother (or too long after the death of the father),
- * a union that begins before a partner was born or after they died, a membership of a group that begins before the member was born
- * or after they died. They are errors of the file, because no day that the dates may
- * stand for makes them true.
+ * a union that begins before a partner was born or after they died, a membership of a group, or an attribute (a residence, an
+ * occupation), that begins before the member was born or after they died. They are errors of the file, because no day that the dates may
+ * stand for makes them true. The rules themselves are in {@link DateRules}, shared with the Chronology Assistant.
  * <p>
  * A date is rarely exact. A year covers 366 days, a decade 3653, a century 36525; an approximate date has a margin (two years if it
  * says none); a bounded date lies between two days; an open one has an end missing. Each date is therefore the {@link DateRange} of the
@@ -75,22 +74,18 @@ import java.util.Set;
  */
 public final class DateConsistency{
 
-	/** The custom types (not in the protocol list, so unknown to the catalog) that can be dated after the death. */
-	private static final Set<String> CUSTOM_POSTHUMOUS_TYPES = Set.of(EventReader.CUSTOM_TYPE_ANECDOTE, EventReader.CUSTOM_TYPE_COMMEMORATION);
 	/** @return	Whether an event of that type can be dated after the death of the person (a burial, a probate, a commemoration). */
 	public static boolean isPosthumous(final String type){
-		return (type != null && EventTypeInfoService.find(type).map(EventTypeInfo::allowedAfterDeath).orElseGet(() -> CUSTOM_POSTHUMOUS_TYPES.contains(type)));
+		return DateRules.isPosthumous(type);
 	}
 
 	/**
-	 * The events that a record of the time attests: a birth (or a baptism), a death (or a burial) is written down when, or after, it
+	 * The events that a record of the time attests: a birth, a death (or a burial) is written down when, or after, it
 	 * happens. A marriage is not here: its banns are published, and cited, before the wedding.
 	 */
-	private static final Set<String> RECORDED_AFTER_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.CUSTOM_TYPE_BAPTISM,
-		EventReader.CUSTOM_TYPE_CHRISTENING, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
+	private static final Set<String> RECORDED_AFTER_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL,
+		EventReader.ENUM_TYPE_CREMATION);
 
-	/** The longest time between the death of the father and the birth of the child, in days. */
-	private static final int MAX_GESTATION_DAYS = 300;
 	private static final String ROLE_PRINCIPAL = EventParticipationReader.ENUM_ROLE_PRINCIPAL;
 	private static final Set<String> BIOLOGICAL_TYPES = Set.of(RelationshipReader.ENUM_TYPE_CHILD,
 		RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
@@ -152,6 +147,11 @@ public final class DateConsistency{
 			if(member != null)
 				checkMembership(relationship, member, issues);
 		}
+		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeReader.TYPE)){
+			final Person owner = persons.get(IndividualAttributeReader.extractIndividualId(attribute));
+			if(owner != null)
+				checkAttribute(model, attribute, owner, issues);
+		}
 		return issues;
 	}
 
@@ -165,7 +165,7 @@ public final class DateConsistency{
 		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE))
 			for(final FLEFRecord date : FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE))
 				checkReadable(model, event, EventReader.TAG_DATE, date, issues);
-		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE))
+		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE, IndividualAttributeReader.TYPE))
 			for(final FLEFRecord relationship : model.getRecordsByType(type))
 				for(final String tag : List.of(RelationshipReader.TAG_VALID_FROM, RelationshipReader.TAG_VALID_TO))
 					checkReadable(model, relationship, tag, FLEFRecordHelper.findChild(relationship, tag), issues);
@@ -219,7 +219,7 @@ public final class DateConsistency{
 
 	private static void checkLifespans(final Map<String, Person> persons, final List<ConsistencyService.Issue> issues){
 		for(final Person person : persons.values())
-			if(person.birth() != null && person.death() != null && person.death().isBefore(person.birth()))
+			if(DateRules.deathBeforeBirth(person.death(), person.birth()))
 				issues.add(issue("death_before_birth", person.id(), person.name(), person.deathText(), person.birthText()));
 	}
 
@@ -239,9 +239,9 @@ public final class DateConsistency{
 			if(event.principal() && (EventReader.ENUM_TYPE_BIRTH.equals(type) || EventReader.ENUM_TYPE_DEATH.equals(type)))
 				continue;
 
-			if(person.birth() != null && !EventReader.ENUM_TYPE_BIRTH.equals(type) && event.date().isBefore(person.birth()))
+			if(DateRules.eventBeforeBirth(event.date(), person.birth(), type))
 				issues.add(issue("event_before_birth", event.eventId(), person.name(), type, event.dateText(), person.birthText()));
-			if(person.death() != null && !isPosthumous(type) && person.death().isBefore(event.date()))
+			if(DateRules.eventAfterDeath(event.date(), person.death(), type))
 				issues.add(issue("event_after_death", event.eventId(), person.name(), type, event.dateText(), person.deathText()));
 		}
 	}
@@ -252,7 +252,7 @@ public final class DateConsistency{
 		if(child.birth() == null)
 			return;
 
-		if(parent.birth() != null && child.birth().isBefore(parent.birth())){
+		if(DateRules.childBeforeParent(child.birth(), parent.birth())){
 			issues.add(issue("child_before_parent", relationshipId, child.name(), parent.name(), child.birthText(), parent.birthText()));
 			return;
 		}
@@ -261,13 +261,13 @@ public final class DateConsistency{
 			return;
 
 		if(parent.sex() == SexType.FEMALE){
-			if(parent.death().isBefore(child.birth()))
+			if(DateRules.bornAfterMotherDeath(child.birth(), parent.death()))
 				issues.add(issue("born_after_mother_death", relationshipId, child.name(), parent.name(), child.birthText(),
 					parent.deathText()));
 		}
 		//the father, or a parent of unknown sex: a child is not born more than the gestation after the death
-		else if(DateRange.plus(parent.death().max(), MAX_GESTATION_DAYS) < child.birth().min())
-			issues.add(issue("born_after_father_death", relationshipId, child.name(), parent.name(), MAX_GESTATION_DAYS,
+		else if(DateRules.bornAfterFatherDeath(child.birth(), parent.death(), DateRules.DEFAULT_GESTATION_DAYS))
+			issues.add(issue("born_after_father_death", relationshipId, child.name(), parent.name(), DateRules.DEFAULT_GESTATION_DAYS,
 				child.birthText(), parent.deathText()));
 	}
 
@@ -280,12 +280,12 @@ public final class DateConsistency{
 			return;
 
 		final String fromText = text(fromStructure);
-		for(final Person partner : List.of(first, second)){
-			if(partner.birth() != null && from.isBefore(partner.birth()))
-				issues.add(issue("union_before_birth", relationship.getId(), partner.name(), fromText, partner.birthText()));
-			if(partner.death() != null && partner.death().isBefore(from))
-				issues.add(issue("union_after_death", relationship.getId(), partner.name(), fromText, partner.deathText()));
-		}
+		for(final Person partner : List.of(first, second))
+			for(final DateRules.PeriodProblem problem : DateRules.period(from, null, partner.birth(), partner.death()))
+				if(problem == DateRules.PeriodProblem.BEGINS_BEFORE_BIRTH)
+					issues.add(issue("union_before_birth", relationship.getId(), partner.name(), fromText, partner.birthText()));
+				else
+					issues.add(issue("union_after_death", relationship.getId(), partner.name(), fromText, partner.deathText()));
 	}
 
 
@@ -293,17 +293,32 @@ public final class DateConsistency{
 	private static void checkMembership(final FLEFRecord relationship, final Person member, final List<ConsistencyService.Issue> issues){
 		final FLEFRecord fromStructure = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_FROM);
 		final FLEFRecord toStructure = FLEFRecordHelper.findChild(relationship, RelationshipReader.TAG_VALID_TO);
-		final DateRange from = range(fromStructure);
-		final DateRange to = range(toStructure);
-		if(from != null){
-			if(member.birth() != null && from.isBefore(member.birth()))
-				issues.add(issue("membership_before_birth", relationship.getId(), member.name(), text(fromStructure), member.birthText()));
-			if(member.death() != null && member.death().isBefore(from))
-				issues.add(issue("membership_after_death", relationship.getId(), member.name(), text(fromStructure), member.deathText()));
-		}
-		//an end before the birth, when the beginning does not already say it (the beginning is missing, or it is after the birth)
-		if(to != null && member.birth() != null && to.isBefore(member.birth()) && (from == null || !from.isBefore(member.birth())))
-			issues.add(issue("membership_ended_before_birth", relationship.getId(), member.name(), text(toStructure), member.birthText()));
+		for(final DateRules.PeriodProblem problem : DateRules.period(range(fromStructure), range(toStructure), member.birth(), member.death()))
+			switch(problem){
+				case BEGINS_BEFORE_BIRTH -> issues.add(issue("membership_before_birth", relationship.getId(), member.name(),
+					text(fromStructure), member.birthText()));
+				case BEGINS_AFTER_DEATH -> issues.add(issue("membership_after_death", relationship.getId(), member.name(),
+					text(fromStructure), member.deathText()));
+				case ENDS_BEFORE_BIRTH -> issues.add(issue("membership_ended_before_birth", relationship.getId(), member.name(),
+					text(toStructure), member.birthText()));
+			}
+	}
+
+	/** An attribute of an individual (a residence, an occupation) that begins before they were born or after they died, or ends before. */
+	private static void checkAttribute(final FLEFModel model, final FLEFRecord attribute, final Person owner,
+			final List<ConsistencyService.Issue> issues){
+		final FLEFRecord fromStructure = FLEFRecordHelper.findChild(attribute, IndividualAttributeReader.TAG_VALID_FROM);
+		final FLEFRecord toStructure = FLEFRecordHelper.findChild(attribute, IndividualAttributeReader.TAG_VALID_TO);
+		final String description = RecordDisplay.describe(attribute, model);
+		for(final DateRules.PeriodProblem problem : DateRules.period(range(fromStructure), range(toStructure), owner.birth(), owner.death()))
+			switch(problem){
+				case BEGINS_BEFORE_BIRTH -> issues.add(issue("attribute_before_birth", attribute.getId(), owner.name(), description,
+					text(fromStructure), owner.birthText()));
+				case BEGINS_AFTER_DEATH -> issues.add(issue("attribute_after_death", attribute.getId(), owner.name(), description,
+					text(fromStructure), owner.deathText()));
+				case ENDS_BEFORE_BIRTH -> issues.add(issue("attribute_ended_before_birth", attribute.getId(), owner.name(), description,
+					text(toStructure), owner.birthText()));
+			}
 	}
 
 

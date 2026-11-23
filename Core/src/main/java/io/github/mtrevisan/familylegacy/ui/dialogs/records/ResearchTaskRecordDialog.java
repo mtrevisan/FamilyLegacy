@@ -222,6 +222,19 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
+	/**
+	 * Proposes a due date for the new task, used only where still empty.
+	 *
+	 * @param dueDate	The due date (an ISO date), or {@code null}.
+	 * @return	This dialog.
+	 */
+	public ResearchTaskRecordDialog withDueDate(final String dueDate){
+		if(dueDateField.isEmpty() && dueDate != null && !dueDate.isBlank())
+			dueDateField.setText(dueDate);
+
+		return this;
+	}
+
 	@Override
 	protected void loadData(){
 		components.load(record);

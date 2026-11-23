@@ -80,6 +80,9 @@ open module io.github.mtrevisan.familylegacy.domain {
 	// The conflicts of the research (for the Conflicts report) are found by the research assistant, that depends on this module
 	uses io.github.mtrevisan.familylegacy.reports.ConflictFinder;
 
+	// The findings of the research assistant (for the To Verify report) come from the research assistant, for the same reason
+	uses io.github.mtrevisan.familylegacy.reports.ToVerifyAssistance;
+
 	// The formats of the files that can be imported are found as providers, all of them live in modules of their own (plugins)
 	uses io.github.mtrevisan.familylegacy.importer.FileImporter;
 

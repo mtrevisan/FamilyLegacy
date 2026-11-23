@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
-import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;

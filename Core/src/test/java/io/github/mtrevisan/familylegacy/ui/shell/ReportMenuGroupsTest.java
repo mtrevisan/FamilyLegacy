@@ -38,16 +38,19 @@ import java.util.Set;
 class ReportMenuGroupsTest{
 
 	@Test
-	void theReportsAreInFourGroupsInTheOrderOfWhatTheyStartFrom(){
+	void theReportsAreInFiveGroupsInTheOrderOfWhatTheyStartFrom(){
 		final List<List<ToolOperation>> groups = ApplicationMenuBar.reportOperationGroups();
 
-		//people and groups, places and sources, the bibliography and the research progress, the whole file
-		Assertions.assertEquals(List.of(7, 3, 2, 6), groups.stream().map(List::size).toList());
+		//people and groups, places and sources, the bibliography and the research progress, the whole file, the book of them all
+		Assertions.assertEquals(List.of(9, 4, 2, 8, 1), groups.stream().map(List::size).toList());
 		Assertions.assertEquals(List.of("AncestorReportOperation", "DescendantReportOperation", "IndividualSummaryOperation",
-				"RelationshipReportOperation", "FamilyGroupSheetOperation", "EndOfLineOperation", "GroupSheetOperation"),
+				"RelationshipReportOperation", "FamilyGroupSheetOperation", "EndOfLineOperation", "PedigreeCollapseOperation", "KinshipReportOperation",
+				"GroupSheetOperation"),
 			groups.getFirst().stream().map(operation -> operation.getClass().getSimpleName()).toList());
-		Assertions.assertEquals(List.of("FamilyBookOperation", "FullBibliographyOperation", "ToVerifyOperation", "ConflictsOperation", "SurnamesOperation",
-				"IdentityHypothesesOperation"),
+		Assertions.assertEquals(List.of("FamilyBookOperation", "FullBibliographyOperation", "ToVerifyOperation", "TaggedRecordsOperation", "ConflictsOperation", "SurnamesOperation",
+				"IdentityHypothesesOperation", "DatabaseSummaryOperation"),
+			groups.get(3).stream().map(operation -> operation.getClass().getSimpleName()).toList());
+		Assertions.assertEquals(List.of("BookBuilderOperation"),
 			groups.getLast().stream().map(operation -> operation.getClass().getSimpleName()).toList());
 	}
 
@@ -57,8 +60,8 @@ class ReportMenuGroupsTest{
 			.flatMap(List::stream)
 			.toList();
 
-		//a new type of report must be put in a group of the menu
-		Assertions.assertEquals(ReportType.values().length, operations.size());
+		//a new type of report must be put in a group of the menu (the book is not a type of report: it is made of them)
+		Assertions.assertEquals(ReportType.values().length + 1, operations.size());
 		final Set<Class<?>> classes = new HashSet<>();
 		final Set<String> names = new HashSet<>();
 		for(final ToolOperation operation : operations){

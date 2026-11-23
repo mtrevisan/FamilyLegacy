@@ -46,7 +46,6 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
-import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportLayoutPanel;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.ReportOptionsPanel;
@@ -62,18 +61,15 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.filechooser.FileFilter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -183,13 +179,14 @@ public final class ReportDialog extends JDialog{
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
-			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET, END_OF_LINE -> {
+			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET, END_OF_LINE, PEDIGREE_COLLAPSE, KINSHIP -> {
 				if(selectedId != null && selectedId.startsWith(IndividualHandler.ID_PREFIX))
 					selectedEntity = context.model()
 						.getRecordById(selectedId);
 			}
-			case PLACE, SOURCE, RESEARCH_QUESTION -> selectedEntity = subject;
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES -> selectedEntity = null;
+			case PLACE, SOURCE, RESEARCH_QUESTION, GPS_PROOF -> selectedEntity = subject;
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, TAGGED_RECORDS, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES, DATABASE_SUMMARY ->
+				selectedEntity = null;
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> {
 				// Global reports: fallback to active individual or first
 				// record in the model.
@@ -327,106 +324,6 @@ public final class ReportDialog extends JDialog{
 		return (clean.isEmpty()? type: clean + "-" + type);
 	}
 
-	/** @return	The label of the format in the dialog that asks where to save the report. */
-	private static String formatLabel(final ReportRenderer renderer){
-		return I18N.t("checkbox.format_" + renderer.id(), renderer.displayName());
-	}
-
-	/**
-	 * Asks where to save the report and in which format: the formats offered are the ones of the available renderers, so a format whose plugin
-	 * is missing is not listed.
-	 *
-	 * @return	The chosen file (or directory, for a format that is one) with the renderer that writes it, {@code null} if the user gave up.
-	 */
-	private Map.Entry<Path, ReportRenderer> askTarget(){
-		final List<ReportRenderer> renderers = ReportRenderers.available();
-		if(renderers.isEmpty()){
-			MessageDialogs.show(this,
-				I18N.t("dialog.report.no_format.message"), I18N.t("dialog.report.no_format.title"), JOptionPane.WARNING_MESSAGE);
-
-			return null;
-		}
-
-		final Map<FileFilter, ReportRenderer> filters = new LinkedHashMap<>();
-		for(final ReportRenderer renderer : renderers)
-			filters.put(new RendererFilter(renderer), renderer);
-
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle(I18N.t("dialog.report.save.title"));
-		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		chooser.setAcceptAllFileFilterUsed(false);
-		filters.keySet()
-			.forEach(chooser::addChoosableFileFilter);
-		final String baseName = suggestedBaseName();
-
-		//the format of the last time if it is still available, else the default one, else the first
-		final List<String> remembered = preferences.formats();
-		final String preferred = (!remembered.isEmpty()? remembered.getFirst(): ReportRenderers.DEFAULT_ID);
-		FileFilter initial = filters.keySet().iterator().next();
-		for(final Map.Entry<FileFilter, ReportRenderer> entry : filters.entrySet())
-			if(entry.getValue().id().equals(preferred)){
-				initial = entry.getKey();
-				break;
-			}
-		chooser.setFileFilter(initial);
-
-		final String lastDirectory = preferences.directory();
-		final File directory = (lastDirectory != null? new File(lastDirectory): null);
-		if(directory != null && directory.isDirectory())
-			chooser.setCurrentDirectory(directory);
-		chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), baseName + filters.get(initial).extension()));
-		//changing the format changes the suggested name too
-		chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, event -> {
-			final ReportRenderer renderer = filters.get(chooser.getFileFilter());
-			if(renderer == null)
-				return;
-
-			final File current = chooser.getSelectedFile();
-			final String name = (current != null? current.getName(): baseName);
-			chooser.setSelectedFile(new File(chooser.getCurrentDirectory(), withExtension(name, renderers, renderer)));
-		});
-
-		if(chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION || chooser.getSelectedFile() == null)
-			return null;
-
-		final ReportRenderer renderer = filters.get(chooser.getFileFilter());
-		final File chosen = chooser.getSelectedFile();
-		return Map.entry(new File(chosen.getParentFile(), withExtension(chosen.getName(), renderers, renderer)).toPath(), renderer);
-	}
-
-	/** @return	The name with the extension of the renderer instead of the one of another format (added if there is none). */
-	private static String withExtension(final String name, final List<ReportRenderer> renderers, final ReportRenderer renderer){
-		String base = name;
-		for(final ReportRenderer candidate : renderers)
-			if(base.endsWith(candidate.extension())){
-				base = base.substring(0, base.length() - candidate.extension().length());
-				break;
-			}
-		return base + renderer.extension();
-	}
-
-	/** Shows the files of a format (or the directories, for the format that is one). */
-	private static final class RendererFilter extends FileFilter{
-
-		private final ReportRenderer renderer;
-
-
-		private RendererFilter(final ReportRenderer renderer){
-			this.renderer = renderer;
-		}
-
-		@Override
-		public boolean accept(final File file){
-			return (file.isDirectory() || !renderer.isDirectory() && file.getName().endsWith(renderer.extension()));
-		}
-
-		@Override
-		public String getDescription(){
-			return formatLabel(renderer);
-		}
-
-	}
-
 	private void onGenerate(){
 		//every report is about a record: without one nothing is written (it would be a file with a note and nothing else)
 		if(selectedEntity == null && !reportType.isGlobal()){
@@ -436,14 +333,14 @@ public final class ReportDialog extends JDialog{
 			return;
 		}
 
-		final Map.Entry<Path, ReportRenderer> target = askTarget();
+		final Map.Entry<Path, ReportRenderer> target = ReportTargets.ask(this, preferences, suggestedBaseName());
 		if(target == null)
 			return;
 
 		final Path outDir = target.getKey().getParent();
 		final Map<String, ReportRenderer> renderers = new LinkedHashMap<>();
 		renderers.put(target.getKey().getFileName().toString(), target.getValue());
-		if(!confirmOverwrite(outDir, renderers))
+		if(!ReportTargets.confirmOverwrite(this, outDir, renderers.keySet()))
 			return;
 
 		final ReportLanguage selectedLang = (ReportLanguage)language.getSelectedItem();
@@ -476,19 +373,6 @@ public final class ReportDialog extends JDialog{
 		preferences.setFormats(List.of());
 	}
 
-
-	/** Asks before overwriting: the report is written with a fixed name, so a previous one in the same folder would be lost. */
-	private boolean confirmOverwrite(final Path outDir, final Map<String, ReportRenderer> renderers){
-		final List<String> existing = renderers.keySet().stream()
-			.filter(name -> Files.exists(outDir.resolve(name)))
-			.toList();
-		if(existing.isEmpty())
-			return true;
-
-		return (JOptionPane.showConfirmDialog(this,
-			I18N.l("dialog.report.overwrite.message") + StringUtils.LF + " \u2022 " + String.join(StringUtils.LF + " \u2022 ", existing),
-			I18N.t("dialog.report.overwrite.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
-	}
 
 	private static String escapeHtml(final String text){
 		return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
@@ -640,7 +524,7 @@ public final class ReportDialog extends JDialog{
 
 					try{
 						final GenerationResult result = get();
-						promptOpenFolder(result.directory(), result.files());
+						ReportTargets.promptOpenFolder(ReportDialog.this, result.directory(), result.files());
 						dispose();
 					}
 					catch(final Exception ex){
@@ -687,31 +571,6 @@ public final class ReportDialog extends JDialog{
 	/* ======================================================================
 	 *                          Post-generation prompt
 	 * ====================================================================== */
-
-	private void promptOpenFolder(final Path dir, final List<Path> files){
-		//only the action: Esc (or closing the window) dismisses the message, an Ok button would add nothing
-		final Object[] dialogOptions = {I18N.t("button.open.directory")};
-		final StringBuilder msg = new StringBuilder(I18N.l("dialog.report.complete.message"))
-			.append(StringUtils.LF);
-		for(final Path f : files)
-			msg.append(" • ")
-				.append(f.getFileName())
-				.append(StringUtils.LF);
-
-		final int choice = JOptionPane.showOptionDialog(this,
-			msg.toString(),
-			I18N.t("dialog.report.complete.title"),
-			JOptionPane.DEFAULT_OPTION,
-			JOptionPane.INFORMATION_MESSAGE,
-			null,
-			dialogOptions,
-			dialogOptions[0]);
-
-		//the directory is opened with the first file of the report selected, if the system can do it
-		if(choice == 0 && !SavedFileNotice.reveal((files.isEmpty()? dir: files.getFirst()).toFile()))
-			MessageDialogs.show(this, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + dir,
-				I18N.t("error.title"), JOptionPane.ERROR_MESSAGE);
-	}
 
 	/** A panel that is as wide as the viewport of the scroll pane it is in, so that the scroll pane has no horizontal scroll bar. */
 	private static final class WidthTrackingPanel extends JPanel implements javax.swing.Scrollable{

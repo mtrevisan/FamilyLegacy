@@ -33,13 +33,14 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import org.junit.jupiter.api.Assertions;
@@ -92,9 +93,11 @@ class ReportOperationsTest{
 		Assertions.assertFalse(new PlaceReportOperation().isEnabled(none));
 		Assertions.assertFalse(new SourceReportOperation().isEnabled(none));
 		Assertions.assertFalse(new ResearchQuestionReportOperation().isEnabled(none));
+		Assertions.assertFalse(new GpsProofReportOperation().isEnabled(none));
 		Assertions.assertTrue(new PlaceReportOperation().isEnabled(all));
 		Assertions.assertTrue(new SourceReportOperation().isEnabled(all));
 		Assertions.assertTrue(new ResearchQuestionReportOperation().isEnabled(all));
+		Assertions.assertTrue(new GpsProofReportOperation().isEnabled(all));
 	}
 
 	@Test

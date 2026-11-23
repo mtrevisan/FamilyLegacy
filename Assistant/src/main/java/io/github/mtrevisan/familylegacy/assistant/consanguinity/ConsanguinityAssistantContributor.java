@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -55,11 +56,16 @@ public final class ConsanguinityAssistantContributor implements AssistantContrib
 		return List.of(new DiagnosticProvider(){
 			@Override
 			public List<Diagnostic> diagnose(final AssistantContext context){
+				return diagnose(context, fraction -> {});
+			}
+
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
 				final FLEFModel model = context.model();
 				if(model == null)
 					return List.of();
 
-				return ConsanguinityChecker.findings(ConsanguineousUnionDetector.detect(model),
+				return ConsanguinityChecker.findings(ConsanguineousUnionDetector.detect(model, progress),
 					id -> ConsanguineousUnionDetector.nameOf(model, id));
 			}
 

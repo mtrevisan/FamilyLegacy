@@ -28,12 +28,12 @@ import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticKeys;
-import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.events.EventTypeInfoService;
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
-import io.github.mtrevisan.familylegacy.quality.DateConsistency;
+import io.github.mtrevisan.familylegacy.quality.DateRules;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 
 
 /**
@@ -92,6 +93,10 @@ public final class ChronologyChecker{
 	private static final int DAYS_IN_YEAR_LONG = 366;
 
 
+	/** The number of checks of {@link #check(ChronologyData, Rules, double, double, DoubleConsumer)}. */
+	private static final int CHECKS = 10;
+
+
 	private ChronologyChecker(){}
 
 
@@ -100,16 +105,44 @@ public final class ChronologyChecker{
 	}
 
 	static List<Diagnostic> check(final ChronologyData data, final Rules rules){
+		return check(data, rules, 0., 1., fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got: the ten checks are equal shares of the part of the progress from {@code from} to {@code to}.
+	 *
+	 * @param data      the data to check
+	 * @param rules     the limits
+	 * @param from      the progress when the checks start
+	 * @param to        the progress when the checks end
+	 * @param progress  told, from time to time, the share of the work done (0 to 1)
+	 * @return	The findings.
+	 */
+	static List<Diagnostic> check(final ChronologyData data, final Rules rules, final double from, final double to,
+			final DoubleConsumer progress){
 		final List<Diagnostic> findings = new ArrayList<>();
+		final double step = (to - from) / CHECKS;
+		progress.accept(from);
 		checkLifespans(data, rules, findings);
+		progress.accept(from + step);
 		checkEvents(data, findings);
+		progress.accept(from + 2 * step);
 		checkParents(data, rules, findings);
+		progress.accept(from + 3 * step);
 		checkUnions(data, findings);
+		progress.accept(from + 4 * step);
 		checkMemberships(data, findings);
+		progress.accept(from + 5 * step);
+		checkAttributes(data, findings);
+		progress.accept(from + 6 * step);
 		checkUnreadable(data, findings);
+		progress.accept(from + 7 * step);
 		checkOverlappingMarriages(data, findings);
+		progress.accept(from + 8 * step);
 		checkBirthIntervals(data, rules, findings);
+		progress.accept(from + 9 * step);
 		checkMarriageAges(data, rules, findings);
+		progress.accept(to);
 		return findings;
 	}
 
@@ -199,7 +232,7 @@ public final class ChronologyChecker{
 			if(person.birth() == null || person.death() == null)
 				continue;
 
-			if(person.death().isBefore(person.birth()))
+			if(DateRules.deathBeforeBirth(person.death(), person.birth()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "death_before_birth", List.of(person.id()),
 					person.name(), person.deathText(), person.birthText()));
 			else{
@@ -218,10 +251,10 @@ public final class ChronologyChecker{
 				continue;
 
 			final String type = event.type();
-			if(person.birth() != null && !EventReader.ENUM_TYPE_BIRTH.equals(type) && event.date().isBefore(person.birth()))
+			if(DateRules.eventBeforeBirth(event.date(), person.birth(), type))
 				findings.add(finding(Diagnostic.Severity.ERROR, (type != null && MARRIAGE_TYPES.contains(type)? "marriage_before_birth": "event_before_birth"),
 					List.of(person.id(), event.eventId()), person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.birthText()));
-			if(person.death() != null && !(type != null && DateConsistency.isPosthumous(type)) && person.death().isBefore(event.date()))
+			if(DateRules.eventAfterDeath(event.date(), person.death(), type))
 				findings.add(finding(Diagnostic.Severity.ERROR, "event_after_death", List.of(person.id(), event.eventId()),
 					person.name(), type + " [" + event.eventId() + "]", event.dateText(), person.deathText()));
 		}
@@ -237,7 +270,7 @@ public final class ChronologyChecker{
 
 			final List<String> ids = List.of(child.id(), parent.id(), link.relationshipId());
 			if(child.birth() != null && parent.birth() != null){
-				if(child.birth().isBefore(parent.birth())){
+				if(DateRules.childBeforeParent(child.birth(), parent.birth())){
 					findings.add(finding(Diagnostic.Severity.ERROR, "child_before_parent", ids, child.name(), parent.name(),
 						child.birthText(), parent.birthText()));
 					continue;
@@ -258,11 +291,11 @@ public final class ChronologyChecker{
 
 			if(child.birth() != null && parent.death() != null){
 				if(parent.sex() == SexType.FEMALE){
-					if(parent.death().isBefore(child.birth()))
+					if(DateRules.bornAfterMotherDeath(child.birth(), parent.death()))
 						findings.add(finding(Diagnostic.Severity.ERROR, "born_after_mother_death", ids, child.name(), parent.name(),
 							child.birthText(), parent.deathText()));
 				}
-				else if(DateRange.plus(parent.death().max(), rules.maxGestationDays()) < child.birth().min())
+				else if(DateRules.bornAfterFatherDeath(child.birth(), parent.death(), rules.maxGestationDays()))
 					findings.add(finding(Diagnostic.Severity.ERROR, "born_after_father_death", ids, child.name(), parent.name(),
 						rules.maxGestationDays(), child.birthText(), parent.deathText()));
 			}
@@ -280,19 +313,35 @@ public final class ChronologyChecker{
 				continue;
 
 			final List<String> ids = List.of(member.id(), membership.relationshipId());
-			final DateRange from = membership.from();
-			if(from != null){
-				if(member.birth() != null && from.isBefore(member.birth()))
-					findings.add(finding(Diagnostic.Severity.ERROR, "membership_before_birth", ids, member.name(), membership.fromText(),
-						member.birthText(), membership.relationshipId()));
-				if(member.death() != null && member.death().isBefore(from))
-					findings.add(finding(Diagnostic.Severity.ERROR, "membership_after_death", ids, member.name(), membership.fromText(),
-						member.deathText(), membership.relationshipId()));
-			}
-			if(membership.to() != null && member.birth() != null && membership.to().isBefore(member.birth())
-					&& (from == null || !from.isBefore(member.birth())))
-				findings.add(finding(Diagnostic.Severity.ERROR, "membership_ended_before_birth", ids, member.name(), membership.toText(),
-					member.birthText(), membership.relationshipId()));
+			for(final DateRules.PeriodProblem problem : DateRules.period(membership.from(), membership.to(), member.birth(), member.death()))
+				switch(problem){
+					case BEGINS_BEFORE_BIRTH -> findings.add(finding(Diagnostic.Severity.ERROR, "membership_before_birth", ids, member.name(),
+						membership.fromText(), member.birthText(), membership.relationshipId()));
+					case BEGINS_AFTER_DEATH -> findings.add(finding(Diagnostic.Severity.ERROR, "membership_after_death", ids, member.name(),
+						membership.fromText(), member.deathText(), membership.relationshipId()));
+					case ENDS_BEFORE_BIRTH -> findings.add(finding(Diagnostic.Severity.ERROR, "membership_ended_before_birth", ids,
+						member.name(), membership.toText(), member.birthText(), membership.relationshipId()));
+				}
+		}
+	}
+
+	/** An attribute of an individual (a residence, an occupation) that begins before they were born or after they died, or ends before. */
+	private static void checkAttributes(final ChronologyData data, final List<Diagnostic> findings){
+		for(final ChronologyData.Attribute attribute : data.attributes()){
+			final ChronologyData.Person owner = data.persons().get(attribute.individualId());
+			if(owner == null)
+				continue;
+
+			final List<String> ids = List.of(owner.id(), attribute.attributeId());
+			for(final DateRules.PeriodProblem problem : DateRules.period(attribute.from(), attribute.to(), owner.birth(), owner.death()))
+				switch(problem){
+					case BEGINS_BEFORE_BIRTH -> findings.add(finding(Diagnostic.Severity.ERROR, "attribute_before_birth", ids, owner.name(),
+						attribute.fromText(), owner.birthText(), attribute.attributeId(), attribute.description()));
+					case BEGINS_AFTER_DEATH -> findings.add(finding(Diagnostic.Severity.ERROR, "attribute_after_death", ids, owner.name(),
+						attribute.fromText(), owner.deathText(), attribute.attributeId(), attribute.description()));
+					case ENDS_BEFORE_BIRTH -> findings.add(finding(Diagnostic.Severity.ERROR, "attribute_ended_before_birth", ids,
+						owner.name(), attribute.toText(), owner.birthText(), attribute.attributeId(), attribute.description()));
+				}
 		}
 	}
 

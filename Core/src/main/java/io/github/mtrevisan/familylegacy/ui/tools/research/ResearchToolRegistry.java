@@ -68,6 +68,7 @@ public final class ResearchToolRegistry{
 		return List.of(
 			new EvidenceQualifiersTool(),
 			new ProofSummaryTool(),
+			new InferenceInspectionTool(),
 			new ResearchLogTool()
 		);
 	}

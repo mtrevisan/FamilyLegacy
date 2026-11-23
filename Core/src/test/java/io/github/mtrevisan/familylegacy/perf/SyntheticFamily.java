@@ -155,8 +155,6 @@ public class SyntheticFamily{
 				male? IndividualReader.ENUM_SEX_MALE: IndividualReader.ENUM_SEX_FEMALE)));
 		attributes ++;
 		addEvent(EventReader.ENUM_TYPE_BIRTH, year, p);
-		if(rnd.nextInt(100) < 75)
-			addEvent(EventReader.CUSTOM_TYPE_BAPTISM, year, p);
 		if(rnd.nextInt(100) < 70)
 			addEvent(EventReader.ENUM_TYPE_DEATH, year + 30 + rnd.nextInt(50), p);
 		if(rnd.nextInt(100) < 25)

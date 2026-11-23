@@ -34,15 +34,22 @@ open module io.github.mtrevisan.familylegacy.assistant {
 	exports io.github.mtrevisan.familylegacy.assistant.conclusion;
 	exports io.github.mtrevisan.familylegacy.assistant.consanguinity;
 	exports io.github.mtrevisan.familylegacy.assistant.context;
+	exports io.github.mtrevisan.familylegacy.assistant.draft;
 	exports io.github.mtrevisan.familylegacy.assistant.fan;
 	exports io.github.mtrevisan.familylegacy.assistant.gap;
 	exports io.github.mtrevisan.familylegacy.assistant.identity;
 	exports io.github.mtrevisan.familylegacy.assistant.place;
 	exports io.github.mtrevisan.familylegacy.assistant.planner;
 	exports io.github.mtrevisan.familylegacy.assistant.relationship;
+	exports io.github.mtrevisan.familylegacy.assistant.report;
 	exports io.github.mtrevisan.familylegacy.assistant.source;
+	exports io.github.mtrevisan.familylegacy.assistant.tags;
 
 	// The Conflicts report finds the conflicts of the research here
 	provides io.github.mtrevisan.familylegacy.reports.ConflictFinder
 		with io.github.mtrevisan.familylegacy.assistant.conclusion.ConclusionConflictFinder;
+
+	// The To Verify report includes the findings of the assistants that look at the whole file
+	provides io.github.mtrevisan.familylegacy.reports.ToVerifyAssistance
+		with io.github.mtrevisan.familylegacy.assistant.report.AssistantToVerify;
 }

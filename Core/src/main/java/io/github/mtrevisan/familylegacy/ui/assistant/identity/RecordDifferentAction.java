@@ -52,7 +52,7 @@ import java.util.List;
  * assistant decides nothing: the researcher judges the sources.
  * </p>
  */
-final class RecordDifferentAction implements DiagnosticAction{
+public final class RecordDifferentAction implements DiagnosticAction{
 
 	/** The confidence proposed for a hypothesis that is being rejected. */
 	private static final String CONFIDENCE = ConfidenceReader.ENUM_LOW;
@@ -63,7 +63,7 @@ final class RecordDifferentAction implements DiagnosticAction{
 
 
 	/** The action for two individuals. */
-	RecordDifferentAction(final IdentityDraft draft){
+	public RecordDifferentAction(final IdentityDraft draft){
 		this(draft, true);
 	}
 
@@ -71,7 +71,7 @@ final class RecordDifferentAction implements DiagnosticAction{
 	 * @param draft	The draft of the pair.
 	 * @param people	Whether the records are individuals (the texts say "people") or another kind of record ("records").
 	 */
-	RecordDifferentAction(final IdentityDraft draft, final boolean people){
+	public RecordDifferentAction(final IdentityDraft draft, final boolean people){
 		this.draft = draft;
 		this.people = people;
 	}
@@ -111,6 +111,9 @@ final class RecordDifferentAction implements DiagnosticAction{
 
 		ConclusionRecordDialog.createNew(SwingAssistantContext.owner(context), model)
 			.withResolvedTarget(hypothesis, ISSUE_IDENTITY)
+			//a conclusion that disproves resolves two records or more: the two that were taken for one
+			.withResolvedTarget(left, null)
+			.withResolvedTarget(right, null)
 			.withDraft(ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN, narrative(model, left, right))
 			.setVisible(true);
 	}

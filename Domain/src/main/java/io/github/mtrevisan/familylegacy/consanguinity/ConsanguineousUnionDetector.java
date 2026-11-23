@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 
 
@@ -56,6 +57,9 @@ public final class ConsanguineousUnionDetector{
 	public static final double DEFAULT_MINIMUM_KINSHIP = 1. / 256.;
 	/** The coefficient of inbreeding from which an individual is reported: the child of second cousins (1/64) and closer. */
 	public static final double DEFAULT_MINIMUM_INBREEDING = 1. / 64.;
+
+	/** The progress is told once every 64 items: telling it for each one costs more than the item itself. */
+	private static final int PROGRESS_MASK = 0x3F;
 
 	private static final String TYPE_ENGAGED_PARTNER = RelationshipReader.ENUM_TYPE_ENGAGED_PARTNER;
 
@@ -83,8 +87,18 @@ public final class ConsanguineousUnionDetector{
 
 	/** @return	The report of the model, with the default minimums. */
 	public static ConsanguinityReport detect(final FLEFModel model){
+		return detect(model, fraction -> {});
+	}
+
+	/**
+	 * @param model     the model
+	 * @param progress  told, from time to time, the share of the work done (0 to 1), from the thread that computes
+	 * @return	The report of the model, with the default minimums.
+	 */
+	public static ConsanguinityReport detect(final FLEFModel model, final DoubleConsumer progress){
 		final AncestryGraph graph = AncestryGraph.of(model);
-		return detect(graph, couples(model, graph), id -> nameOf(model, id), DEFAULT_MINIMUM_KINSHIP, DEFAULT_MINIMUM_INBREEDING);
+		return detect(graph, couples(model, graph), id -> nameOf(model, id), DEFAULT_MINIMUM_KINSHIP, DEFAULT_MINIMUM_INBREEDING,
+			progress);
 	}
 
 	/**
@@ -97,12 +111,36 @@ public final class ConsanguineousUnionDetector{
 	 */
 	public static ConsanguinityReport detect(final AncestryGraph graph, final Collection<Couple> couples,
 			final Function<String, String> names, final double minimumKinship, final double minimumInbreeding){
+		return detect(graph, couples, names, minimumKinship, minimumInbreeding, fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got: the couples are the first half of the work, the individuals the second half.
+	 *
+	 * @param graph            the ancestry
+	 * @param couples          the couples to look at
+	 * @param names            the name to show of an individual
+	 * @param minimumKinship   the kinship coefficient from which a couple is reported
+	 * @param minimumInbreeding the coefficient of inbreeding from which an individual is reported
+	 * @param progress         told, from time to time, the share of the work done (0 to 1), from the thread that computes
+	 * @return	The report.
+	 */
+	public static ConsanguinityReport detect(final AncestryGraph graph, final Collection<Couple> couples,
+			final Function<String, String> names, final double minimumKinship, final double minimumInbreeding,
+			final DoubleConsumer progress){
 		final ConsanguinityCalculator calculator = new ConsanguinityCalculator(graph);
 
-		final List<ConsanguinityReport.ConsanguineousUnion> unions = unionsOf(calculator, couples, names, minimumKinship);
+		progress.accept(0.);
+		final List<ConsanguinityReport.ConsanguineousUnion> unions = unionsOf(calculator, couples, names, minimumKinship,
+			fraction -> progress.accept(fraction / 2.));
 
 		final List<ConsanguinityReport.InbredIndividual> inbred = new ArrayList<>();
-		for(final String id : graph.childrenWithTwoParents()){
+		final Set<String> children = graph.childrenWithTwoParents();
+		final int total = Math.max(1, children.size());
+		int done = 0;
+		for(final String id : children){
+			if((done ++ & PROGRESS_MASK) == 0)
+				progress.accept(0.5 + 0.5 * done / total);
 			final double inbreeding = calculator.inbreeding(id);
 			if(inbreeding > 0. && inbreeding >= minimumInbreeding){
 				final List<String> parents = graph.parentsOf(id);
@@ -114,6 +152,7 @@ public final class ConsanguineousUnionDetector{
 			.reversed()
 			.thenComparing(ConsanguinityReport.InbredIndividual::name));
 
+		progress.accept(1.);
 		return new ConsanguinityReport(unions, inbred, minimumKinship, minimumInbreeding);
 	}
 
@@ -133,8 +172,28 @@ public final class ConsanguineousUnionDetector{
 	 */
 	public static List<ConsanguinityReport.ConsanguineousUnion> unionsOf(final ConsanguinityCalculator calculator,
 			final Collection<Couple> couples, final Function<String, String> names, final double minimumKinship){
+		return unionsOf(calculator, couples, names, minimumKinship, fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got.
+	 *
+	 * @param calculator      the calculator of the ancestry
+	 * @param couples         the couples to look at
+	 * @param names           the name to show of an individual
+	 * @param minimumKinship  the kinship coefficient from which a couple is reported
+	 * @param progress        told, from time to time, the share of the couples done (0 to 1)
+	 * @return	The unions that reach the minimum.
+	 */
+	public static List<ConsanguinityReport.ConsanguineousUnion> unionsOf(final ConsanguinityCalculator calculator,
+			final Collection<Couple> couples, final Function<String, String> names, final double minimumKinship,
+			final DoubleConsumer progress){
 		final List<ConsanguinityReport.ConsanguineousUnion> unions = new ArrayList<>();
+		final int total = Math.max(1, couples.size());
+		int done = 0;
 		for(final Couple couple : couples){
+			if((done ++ & PROGRESS_MASK) == 0)
+				progress.accept((double)done / total);
 			if(couple.firstId().equals(couple.secondId()))
 				continue;
 

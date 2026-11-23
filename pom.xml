@@ -155,7 +155,7 @@
 		<!-- Reports -->
 		<!-- PDF support -->
 		<!-- https://mvnrepository.com/artifact/com.github.librepdf/openpdf -->
-		<librepdf.openpdf.version>3.0.5</librepdf.openpdf.version>
+		<librepdf.openpdf.version>3.0.6</librepdf.openpdf.version>
 		<!-- DOCX support -->
 		<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
 		<apache.poi-ooxml.version>6.0.0</apache.poi-ooxml.version>
@@ -164,7 +164,7 @@
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<slf4j.slf4j-api.version>2.0.20</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.6.7</logback.logback-classic.version>
+		<logback.logback-classic.version>1.6.8</logback.logback-classic.version>
 
 		<!-- Testing -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter -->

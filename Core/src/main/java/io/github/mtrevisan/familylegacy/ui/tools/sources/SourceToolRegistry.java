@@ -46,7 +46,8 @@ public final class SourceToolRegistry{
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
 			new NewSourceTool(),
-			new SourceManagerTool()
+			new SourceManagerTool(),
+			new SourceWorkspaceTool()
 		);
 	}
 
@@ -76,6 +77,7 @@ public final class SourceToolRegistry{
 	public static List<ToolOperation> analysisTools(){
 		return List.of(
 			new CitationAnalysisTool(),
+			new DocumentationCoverageTool(),
 			new ProvenanceTool()
 		);
 	}

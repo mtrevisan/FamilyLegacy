@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.Modifications;
-import io.github.mtrevisan.familylegacy.io.model.record.TrackedList;
 import io.github.mtrevisan.familylegacy.io.model.record.RecordLookup;
+import io.github.mtrevisan.familylegacy.io.model.record.TrackedList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,6 +69,9 @@ public class FLEFModel implements RecordLookup{
 	/** Indexes derived from the records (see {@link #derived(Object, Supplier)}), dropped at every change of the model. */
 	private final Map<Object, Object> derivedIndexes = new ConcurrentHashMap<>();
 
+	/** The free tags of the records: of the application, not of the file (see {@link RecordTags}); shared by the read-only views. */
+	private RecordTags tags = new RecordTags();
+
 
 	/**
 	 * An index (or any value) computed from the records of the model, kept until the model changes: it saves the scan of the whole model
@@ -93,6 +96,19 @@ public class FLEFModel implements RecordLookup{
 	/** Drops the indexes of {@link #derived(Object, Supplier)}: the records changed. */
 	public void invalidateDerived(){
 		derivedIndexes.clear();
+	}
+
+
+	/** @return	The free tags attached to the records of this model (they are not written to the file). */
+	public RecordTags tags(){
+		return tags;
+	}
+
+	/**
+	 * NOTE: Used by {@link ModelHistory} only: a read-only view shows the tags of the model it is a copy of.
+	 */
+	void shareTags(final RecordTags shared){
+		tags = shared;
 	}
 
 
@@ -223,6 +239,8 @@ public class FLEFModel implements RecordLookup{
 			return null;
 
 		invalidateDerived();
+		//the identifier may be given to another record: it does not inherit the tags
+		tags.clear(id);
 		final FLEFRecord record = recordsById.remove(id);
 		placesById.remove(id);
 		eventsById.remove(id);

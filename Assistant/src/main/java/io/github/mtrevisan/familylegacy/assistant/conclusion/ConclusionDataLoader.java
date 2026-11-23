@@ -66,7 +66,7 @@ public final class ConclusionDataLoader{
 
 
 	/** The events an individual has only one of. */
-	private static final Set<String> SINGLE_VALUED_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.CUSTOM_TYPE_BAPTISM, EventReader.ENUM_TYPE_DEATH,
+	private static final Set<String> SINGLE_VALUED_EVENTS = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH,
 		EventReader.ENUM_TYPE_BURIAL);
 	private static final String PLACE_OF = FLEFRecordHelper.composePath(PlaceReader.TYPE, PlaceReader.TYPE);
 

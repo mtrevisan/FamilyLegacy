@@ -109,6 +109,29 @@ class FindRecordTest{
 	}
 
 	@Test
+	void theFreeTagsAreSearchedLikeTheTextAndCanFilterTheRecords(){
+		final FLEFModel model = new FLEFParser().parse(FLEF);
+		model.tags().set("P1", List.of("Brick Wall", "Needs Translation"));
+		model.tags().set("S1", List.of("brick wall"));
+		final SearchService service = new SearchService(model);
+
+		//as text: the tags are among the texts of the record
+		final List<FLEFRecord> byText = service.search(new SearchCriteria(PlaceHandler.getInstance().getType(), "translation", Set.of(SearchMode.FUZZY)));
+		Assertions.assertEquals(List.of("P1"), byText.stream().map(FLEFRecord::getId).toList());
+
+		//as a filter: the records with all the tags, whatever the text and the case
+		final SearchCriteria placesWithAll = new SearchCriteria(PlaceHandler.getInstance().getType(), "", Set.of(SearchMode.FUZZY))
+			.withFilter(SearchCriteria.FILTER_TAGS, "BRICK WALL, needs translation");
+		Assertions.assertEquals(List.of("P1"), service.search(placesWithAll).stream().map(FLEFRecord::getId).toList());
+		final SearchCriteria placesWithOther = new SearchCriteria(PlaceHandler.getInstance().getType(), "", Set.of(SearchMode.FUZZY))
+			.withFilter(SearchCriteria.FILTER_TAGS, "Immigration");
+		Assertions.assertTrue(service.search(placesWithOther).isEmpty());
+		final SearchCriteria sourcesWithTag = new SearchCriteria(SourceHandler.getInstance().getType(), "", Set.of(SearchMode.FUZZY))
+			.withFilter(SearchCriteria.FILTER_TAGS, "Brick Wall");
+		Assertions.assertEquals(List.of("S1"), service.search(sourcesWithTag).stream().map(FLEFRecord::getId).toList());
+	}
+
+	@Test
 	void aRecordWithSeveralNamesIsFoundByAnyOfThem(){
 		final String flef = """
 			header {

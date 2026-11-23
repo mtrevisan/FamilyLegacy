@@ -28,7 +28,9 @@ import io.github.mtrevisan.familylegacy.io.merger.TextSimilarity;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.JaroWinklerSimilarity;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -71,6 +73,9 @@ public final class NameSimilarity{
 	/** The lower similarity accepted when the two names have the same consonant skeleton. */
 	static final double SIMILAR_SAME_SKELETON = 0.85;
 
+	/** How many comparisons of two names are remembered before they are forgotten (a few names are most of a file). */
+	private static final int MAX_REMEMBERED = 500_000;
+	private static final Map<TokenPair, Level> FUZZY_LEVELS = new ConcurrentHashMap<>();
 	private static final JaroWinklerSimilarity JARO_WINKLER = new JaroWinklerSimilarity();
 	private static final String VOWELS = "aeiou";
 
@@ -93,11 +98,23 @@ public final class NameSimilarity{
 		if(a.length() < MIN_FUZZY_LENGTH || b.length() < MIN_FUZZY_LENGTH)
 			return Level.NONE;
 
+		//the same few names are compared again and again on a big file: what the letters say is remembered
+		final TokenPair key = new TokenPair(a, b);
+		final Level cached = FUZZY_LEVELS.get(key);
+		if(cached != null)
+			return cached;
+
 		final double similarity = JARO_WINKLER.apply(a, b);
-		if(similarity >= SIMILAR || similarity >= SIMILAR_SAME_SKELETON && skeleton(a).equals(skeleton(b)))
-			return Level.SIMILAR;
-		return Level.NONE;
+		final Level level = (similarity >= SIMILAR || similarity >= SIMILAR_SAME_SKELETON && skeleton(a).equals(skeleton(b))
+			? Level.SIMILAR: Level.NONE);
+		if(FUZZY_LEVELS.size() >= MAX_REMEMBERED)
+			FUZZY_LEVELS.clear();
+		FUZZY_LEVELS.put(key, level);
+		return level;
 	}
+
+	/** Two names, in the order they were compared. */
+	private record TokenPair(String first, String second){}
 
 	/**
 	 * @param first	The names of the first record.

@@ -295,6 +295,11 @@ public final class RecordAbsorber{
 			conclusion.addChild(FLEFRecord.createChildWithTagAndValue(TAG_NARRATIVE, narrative));
 		conclusion.addChild(FLEFRecord.createChildWithTag(TAG_RESOLVES)
 			.addChild(FLEFRecord.createChildWithTagAndValue(ProtocolRules.KIND_IDENTITY_HYPOTHESIS, hypothesis.getId())));
+		//a conclusion that disproves resolves two records or more: the two that were taken for one
+		conclusion.addChild(FLEFRecord.createChildWithTag(TAG_RESOLVES)
+			.addChild(FLEFRecord.createChildWithTagAndValue(a.getTag(), idA)));
+		conclusion.addChild(FLEFRecord.createChildWithTag(TAG_RESOLVES)
+			.addChild(FLEFRecord.createChildWithTagAndValue(b.getTag(), idB)));
 		conclusion.addChild(audit(now));
 		model.addRecord(conclusion);
 
@@ -332,8 +337,11 @@ public final class RecordAbsorber{
 	 * @param secondId     the other one
 	 * @param probability  the match probability
 	 * @param rationale    the evidence for and against the identity
+	 * @param similarities the features that speak for the identity, one line each (the weight is at the end)
+	 * @param differences  the features that speak against it, one line each
 	 */
-	public record DuplicatePair(String kind, String firstId, String secondId, double probability, String rationale){}
+	public record DuplicatePair(String kind, String firstId, String secondId, double probability, String rationale,
+			List<String> similarities, List<String> differences){}
 
 	/** A pair compared, with its score. */
 	private record ScoredPair(String firstId, String secondId, MatchScore score){}
@@ -400,7 +408,8 @@ public final class RecordAbsorber{
 				.thenComparing(ScoredPair::secondId));
 			//the evidence is written only for the pairs given back, not for all the ones found
 			for(final ScoredPair pair : (pairs.size() > maxPerKind? pairs.subList(0, maxPerKind): pairs))
-				result.add(new DuplicatePair(kind, pair.firstId(), pair.secondId(), pair.score().probability(), pair.score().describe()));
+				result.add(new DuplicatePair(kind, pair.firstId(), pair.secondId(), pair.score().probability(), pair.score().describe(),
+					pair.score().evidence(true), pair.score().evidence(false)));
 		}
 		return result;
 	}

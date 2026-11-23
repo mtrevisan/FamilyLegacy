@@ -40,7 +40,13 @@ public enum SearchField{
 	/** The names of the places that contain a place. */
 	CONTAINING_PLACES,
 
+	/** All the names of the members of a group. */
+	MEMBER_NAMES,
+
 	/** The notes and the citations of the record (only with {@link SearchMode#NOTES_AND_CITATIONS}). */
-	NOTES_AND_CITATIONS
+	NOTES_AND_CITATIONS,
+
+	/** The free tags of the record. */
+	TAGS
 
 }

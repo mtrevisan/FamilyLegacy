@@ -351,6 +351,9 @@ public final class PdfReportRenderer implements ReportRenderer{
 				document.open();
 
 				writeTitle();
+				//a page break as the first section ends the title page: the contents start on the next page
+				if(!doc.sections().isEmpty() && doc.sections().getFirst() instanceof ReportSection.PageBreak)
+					pdf.newPage();
 				writeContents();
 				for(int i = 0; i < doc.sections().size(); i ++)
 					writeSection(i, doc.sections().get(i));

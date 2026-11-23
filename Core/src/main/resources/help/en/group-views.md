@@ -55,6 +55,7 @@ Records hidden by the [privacy](privacy.md) policy are left out.
 - Then one row for **each group** the person was a member of, the earliest first, with a bar for each period. The bars are coloured by role; a person who left and came back, or changed role, has more than one bar on the row.
 - A membership with a missing start begins at the person's birth, and one with a missing end stops at the death (or at the earliest or latest known date of the person if the birth or the death is not known). A membership with no dates at all spans the whole life and reads *(dates unknown)*.
 - The view is empty if the person has no memberships and no dated events or attributes.
+- Only the memberships written in the file count: a person who belongs to a subgroup is **not** shown as a member of the group that contains it, because that would be an inference the data does not state.
 
 The year filter, the role legend, the double-click to edit and the zoom work as in the timeline.
 

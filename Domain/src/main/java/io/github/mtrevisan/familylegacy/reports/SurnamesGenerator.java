@@ -34,6 +34,8 @@ import io.github.mtrevisan.reports.ReportSection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
 
 
 /**
@@ -77,7 +79,8 @@ public final class SurnamesGenerator{
 		final ReportContext ctx = ReportContext.build(model, all.getFirst(), config, index);
 		listener.onProgress(10, null);
 
-		final SurnameDistribution.Result distribution = SurnameDistribution.of(model, index, ctx::isVisible, labels.language().locale());
+		final SurnameDistribution.Result distribution = SurnameDistribution.of(model, index, ctx::isVisible, labels.language().locale(),
+			new SurnameDistribution.Options(config.surnamePlaceLevel(), config.surnamePeriod(), config.surnameAllNames()));
 		listener.onProgress(80, null);
 
 		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(ctx).build());
@@ -97,9 +100,16 @@ public final class SurnamesGenerator{
 
 				final String name = (group.placeId() != null? group.placeName(): ctx.labels.sections().surnamesNoPlace());
 				sections.add(new ReportSection.Heading(2, ReportFormatters.escape(name) + " (" + ctx.formatInt(group.individuals()) + ")"));
-				sections.add(table(ctx, group));
+				sections.add(table(ctx, group, config.surnamePeriod() == SurnamePeriod.CENTURY));
 			}
 			sections.add(new ReportSection.Paragraph("*" + ctx.labels.sections().surnamesNote() + "*"));
+			if(config.surnamePlaceLevel() != SurnamePlaceLevel.PLACE)
+				sections.add(new ReportSection.Paragraph("*" + String.format(ctx.labels.sections().surnamesNoteLevel(),
+					ctx.labels.sections().surnamesLevel(config.surnamePlaceLevel().name())) + "*"));
+			if(config.surnameAllNames())
+				sections.add(new ReportSection.Paragraph("*" + ctx.labels.sections().surnamesNoteAllNames() + "*"));
+			if(config.surnameSimilar())
+				addSimilarSpellings(sections, ctx, distribution, labels.language().locale());
 		}
 		listener.onProgress(100, null);
 
@@ -107,20 +117,67 @@ public final class SurnamesGenerator{
 	}
 
 
-	private static ReportSection table(final ReportContext ctx, final SurnameDistribution.PlaceGroup group){
+	private static void addSimilarSpellings(final List<ReportSection> sections, final ReportContext ctx,
+			final SurnameDistribution.Result distribution, final Locale locale){
+		final List<SurnameDistribution.SimilarGroup> groups = SurnameDistribution.similarSpellings(distribution, locale);
+		sections.add(new ReportSection.Heading(1, ctx.labels.sections().surnamesSimilarTitle()));
+		if(groups.isEmpty()){
+			sections.add(new ReportSection.Paragraph(ctx.labels.sections().surnamesSimilarNone()));
+			return;
+		}
+
+		sections.add(new ReportSection.Paragraph(String.format(ctx.labels.sections().surnamesSimilarIntro(), ctx.formatInt(groups.size()))));
+		final List<List<String>> rows = new ArrayList<>(groups.size());
+		for(final SurnameDistribution.SimilarGroup group : groups){
+			final StringJoiner spellings = new StringJoiner(", ");
+			for(final SurnameDistribution.Spelling spelling : group.spellings())
+				spellings.add(ReportFormatters.escape(spelling.surname()) + " (" + ctx.formatInt(spelling.individuals()) + ")");
+			final StringJoiner places = new StringJoiner("; ");
+			for(final String place : group.places())
+				places.add(ReportFormatters.escape(place));
+			rows.add(List.of(spellings.toString(), ctx.formatInt(group.individuals()), (places.length() > 0? places.toString(): NO_VALUE)));
+		}
+		sections.add(new ReportSection.Table(List.of(ctx.labels.sections().surnamesColumn("SPELLINGS"),
+			ctx.labels.sections().surnamesColumn("COUNT"), ctx.labels.sections().surnamesColumn("PLACES")), rows));
+	}
+
+	private static ReportSection table(final ReportContext ctx, final SurnameDistribution.PlaceGroup group, final boolean byCentury){
 		final List<List<String>> rows = new ArrayList<>(group.rows().size());
 		for(final SurnameDistribution.Row row : group.rows())
-			rows.add(List.of(ReportFormatters.escape(row.surname()), ctx.formatInt(row.individuals()), period(row),
+			rows.add(List.of(ReportFormatters.escape(row.surname()), ctx.formatInt(row.individuals()), period(ctx, row, byCentury),
 				(row.undated() > 0? ctx.formatInt(row.undated()): NO_VALUE)));
 		return new ReportSection.Table(List.of(ctx.labels.sections().surnamesColumn("SURNAME"), ctx.labels.sections().surnamesColumn("COUNT"),
 			ctx.labels.sections().surnamesColumn("PERIOD"), ctx.labels.sections().surnamesColumn("UNDATED")), rows);
 	}
 
 	/** @return	The first and the last year ("1780–1850"), the year if they are the same, a dash if no one has a date. */
-	private static String period(final SurnameDistribution.Row row){
+	private static String period(final ReportContext ctx, final SurnameDistribution.Row row, final boolean byCentury){
 		if(row.firstYear() == null)
 			return NO_VALUE;
+		if(byCentury && row.century() != null)
+			return String.format(ctx.labels.sections().surnamesCentury(), roman(row.century())) + " (" + yearRange(row) + ")";
+		return yearRange(row);
+	}
+
+	private static String yearRange(final SurnameDistribution.Row row){
 		return (row.firstYear().equals(row.lastYear())? row.firstYear().toString(): row.firstYear() + RANGE_SEPARATOR + row.lastYear());
+	}
+
+	/** @return	The number in Roman numerals ("XIX"); the number itself if it is not from 1 to 3999. */
+	static String roman(final int number){
+		if(number < 1 || number > 3999)
+			return Integer.toString(number);
+
+		final int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+		final String[] symbols = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+		final StringBuilder sb = new StringBuilder();
+		int rest = number;
+		for(int i = 0; i < values.length; i ++)
+			while(rest >= values[i]){
+				sb.append(symbols[i]);
+				rest -= values[i];
+			}
+		return sb.toString();
 	}
 
 }

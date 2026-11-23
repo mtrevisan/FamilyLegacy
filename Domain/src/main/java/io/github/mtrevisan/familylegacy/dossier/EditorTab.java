@@ -43,6 +43,7 @@ public final class EditorTab{
 	public static final String REFERENCES = "references";
 	public static final String SOURCES = "sources";
 	public static final String NOTES = "notes";
+	public static final String TAGS = "tags";
 	public static final String PRIVACY = "privacy";
 	public static final String AUDIT = "audit";
 	public static final String SUBMITTER = "submitter";

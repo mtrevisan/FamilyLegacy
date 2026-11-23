@@ -65,6 +65,14 @@ public class PlannerCheckerTest{
 			return this;
 		}
 
+		/** The repositories at the places of a person already added. */
+		Builder repositories(final String id, final String... names){
+			final GapData.Person p = persons.get(id);
+			persons.put(id, new GapData.Person(p.id(), p.name(), p.birthYear(), p.hasBirth(), p.hasDeath(), p.hasResidence(), p.hasCensus(),
+				p.eventCount(), p.places(), p.deathYear(), List.of(names)));
+			return this;
+		}
+
 		Builder event(final String id, final String type, final int sources, final String... principals){
 			events.add(new GapData.Event(id, type, sources, List.of(principals)));
 			return this;
@@ -122,6 +130,30 @@ public class PlannerCheckerTest{
 		final List<String> tasks = tasks(found);
 		Assertions.assertTrue(tasks.stream().anyMatch(t -> t.contains("birth or baptism")), tasks.toString());
 		Assertions.assertTrue(tasks.stream().anyMatch(t -> t.contains("marriage record")), tasks.toString());
+	}
+
+	@Test
+	void aStepNamesTheRepositoriesOfThePlacesAndTheYearsToLookAt(){
+		final List<String> tasks = tasks(ofKind(new Builder()
+			.person("a", 1850)
+			.repositories("a", "Archivio Diocesano", "Archivio di Stato")
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.findings(), "planner.next_step"));
+
+		Assertions.assertFalse(tasks.isEmpty());
+		for(final String task : tasks){
+			Assertions.assertTrue(task.contains("Archivio Diocesano, Archivio di Stato"), task);
+			Assertions.assertTrue(task.contains("around 1850"), task);
+		}
+	}
+
+	@Test
+	void withoutRepositoriesTheTaskIsPlain(){
+		for(final String task : tasks(ofKind(new Builder()
+				.person("a", 1850)
+				.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+				.findings(), "planner.next_step")))
+			Assertions.assertFalse(task.contains("may be kept by"), task);
 	}
 
 	@Test

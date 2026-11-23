@@ -89,7 +89,11 @@ public enum ReportOption{
 	CONFLICT_CONFIDENCE(ReportConfig::conflictConfidence),
 	CONFLICT_RECORD_TYPE(ReportConfig::conflictRecordType),
 	HYPOTHESIS_FILTER(ReportConfig::hypothesisFilter),
-	HYPOTHESIS_RECORD_TYPE(ReportConfig::hypothesisRecordType);
+	HYPOTHESIS_RECORD_TYPE(ReportConfig::hypothesisRecordType),
+	SURNAME_PLACE_LEVEL(ReportConfig::surnamePlaceLevel),
+	SURNAME_PERIOD(ReportConfig::surnamePeriod),
+	SURNAME_ALL_NAMES(ReportConfig::surnameAllNames),
+	SURNAME_SIMILAR(ReportConfig::surnameSimilar);
 
 
 	private final Function<ReportConfig, Object> reader;

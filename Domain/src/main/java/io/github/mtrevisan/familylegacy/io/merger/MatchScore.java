@@ -64,6 +64,18 @@ record MatchScore(double weight, double probability, String[] features, double[]
 		return evidence;
 	}
 
+	/**
+	 * @param agreements	Whether to give the features that speak for the identity (a weight of zero or more) or those against it.
+	 * @return	The features of one kind, each with its weight.
+	 */
+	List<String> evidence(final boolean agreements){
+		final List<String> evidence = new ArrayList<>(features.length);
+		for(int i = 0; i < features.length; i ++)
+			if((weights[i] >= 0.) == agreements)
+				evidence.add(String.format(Locale.ROOT, "%s (%+.1f)", features[i], weights[i]));
+		return evidence;
+	}
+
 	String describe(){
 		final String evidence = String.join("; ", evidence());
 		return (isVetoed()? "excluded: " + veto + (evidence.isEmpty()? StringUtils.EMPTY: " (" + evidence + ")"): evidence);

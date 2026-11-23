@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.assistant.gap;
 
 import io.github.mtrevisan.calendars.CalendarType;
+import io.github.mtrevisan.familylegacy.assistant.PlaceAncestors;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -32,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeRead
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
@@ -102,6 +104,7 @@ public final class GapDataLoader{
 		final Set<String> withDeath = new HashSet<>();
 		final Set<String> withCensus = new HashSet<>();
 		final Map<String, Set<String>> placesOfPerson = new HashMap<>();
+		final Map<String, Set<String>> placeIdsOfPerson = new HashMap<>();
 		for(final Map.Entry<String, List<String>> entry : principals.entrySet()){
 			final FLEFRecord event = model.getRecordById(entry.getKey());
 			if(!EventReader.isOfType(event))
@@ -114,6 +117,11 @@ public final class GapDataLoader{
 			for(final String personId : entry.getValue())
 				sources += FLEFRecordHelper.findChildren(filteredIndividuals.get(personId), IndividualReader.TAG_SOURCE).size();
 			events.add(new GapData.Event(entry.getKey(), type, sources, entry.getValue()));
+			final String placeId = FLEFRecordHelper.getChildValue(event, EVENT_PLACE);
+			if(placeId != null)
+				for(final String personId : entry.getValue())
+					placeIdsOfPerson.computeIfAbsent(personId, k -> new HashSet<>())
+						.add(placeId);
 			final String placeName = (EventReader.ENUM_TYPE_BIRTH.equals(type)? null: placeName(model, event));
 			if(placeName != null)
 				for(final String personId : entry.getValue())
@@ -142,13 +150,16 @@ public final class GapDataLoader{
 			if(IndividualAttributeReader.ENUM_TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE)))
 				withResidence.add(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_INDIVIDUAL));
 
+		final Map<String, Set<String>> repositoriesOfPlace = repositoriesByPlace(model);
+		final Map<String, Set<String>> ancestors = (repositoriesOfPlace.isEmpty()? Map.of(): PlaceAncestors.of(model));
 		final Map<String, GapData.Person> persons = new LinkedHashMap<>();
 		for(final FLEFRecord individual : filteredIndividuals.values()){
 			final String id = individual.getId();
 			final String name = IndividualReader.extractPrimaryFullname(individual);
 			persons.put(id, new GapData.Person(id, (name != null && !name.isBlank()? name: id), birthYears.get(id),
 				withBirth.contains(id), withDeath.contains(id), withResidence.contains(id), withCensus.contains(id),
-				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of())), deathYears.get(id)));
+				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of())), deathYears.get(id),
+				repositoriesOf(placeIdsOfPerson.getOrDefault(id, Set.of()), repositoriesOfPlace, ancestors)));
 		}
 
 		final List<GapData.ParentLink> parents = new ArrayList<>();
@@ -217,6 +228,32 @@ public final class GapDataLoader{
 		return new GapData(today, persons, events, parents, unions, filteredQuestions, activities, tasks);
 	}
 
+
+	/** @return the names of the repositories, by the identifier of the place they are placed at (the repositories with no place or no name are left out) */
+	private static Map<String, Set<String>> repositoriesByPlace(final FLEFModel model){
+		final Map<String, Set<String>> repositories = new HashMap<>();
+		final List<FLEFRecord> records = model.getRecordsByType(RepositoryReader.TYPE);
+		for(final FLEFRecord repository : records){
+			final String placeId = FLEFRecordHelper.getChildValue(repository, EVENT_PLACE);
+			final String name = RepositoryReader.extractPrimaryName(repository);
+			if(placeId != null && notBlank(name))
+				repositories.computeIfAbsent(placeId, k -> new TreeSet<>())
+					.add(name);
+		}
+		return repositories;
+	}
+
+	/** @return the repositories at the places, or at the places that contain them */
+	private static List<String> repositoriesOf(final Set<String> placeIds, final Map<String, Set<String>> repositoriesOfPlace,
+			final Map<String, Set<String>> ancestors){
+		final Set<String> names = new TreeSet<>();
+		for(final String placeId : placeIds){
+			names.addAll(repositoriesOfPlace.getOrDefault(placeId, Set.of()));
+			for(final String ancestor : ancestors.getOrDefault(placeId, Set.of()))
+				names.addAll(repositoriesOfPlace.getOrDefault(ancestor, Set.of()));
+		}
+		return List.copyOf(names);
+	}
 
 	/** @return the primary name of the place of an event, or {@code null} if the event has no place or it has no name */
 	private static String placeName(final FLEFModel model, final FLEFRecord event){

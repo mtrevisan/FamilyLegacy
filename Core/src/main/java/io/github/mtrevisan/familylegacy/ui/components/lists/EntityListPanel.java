@@ -29,12 +29,14 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -188,12 +190,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Enables conclusion icon support for this panel.
 	 * When enabled, records that have an associated ConclusionRecord
-	 * will display a clickable icon to open it.
+	 * will display a clickable icon to open it. The conclusions are for the advanced interface level: below it, the icon is not shown.
 	 *
 	 * @return this panel (for chaining)
 	 */
 	public EntityListPanel withConclusions(){
-		this.supportsConclusions = true;
+		this.supportsConclusions = FeatureVisibilityService.shared().isVisible(UxLevel.ADVANCED);
 
 		return this;
 	}

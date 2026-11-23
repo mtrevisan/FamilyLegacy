@@ -56,6 +56,49 @@ class ConsanguinityCalculatorTest{
 
 
 	@Test
+	void theClosestCommonAncestorsAreTheOnesWithNoCommonAncestorBelowThem(){
+		//random pedigrees of a closed population: the closest ones by the definition (no other common ancestor descends from it) against the
+		//ones the calculator gives
+		final java.util.Random random = new java.util.Random(7);
+		for(int round = 0; round < 20; round ++){
+			final int size = 40;
+			final Map<String, List<String>> parents = new LinkedHashMap<>();
+			for(int i = 6; i < size; i ++)
+				parents.put("P" + i, List.of("P" + random.nextInt(i), "P" + random.nextInt(i)));
+			final ConsanguinityCalculator calculator = new ConsanguinityCalculator(new AncestryGraph(parents));
+			for(int attempt = 0; attempt < 30; attempt ++){
+				final String first = "P" + (6 + random.nextInt(size - 6));
+				final String second = "P" + (6 + random.nextInt(size - 6));
+
+				final java.util.Set<String> common = new java.util.TreeSet<>(ancestors(parents, first));
+				common.retainAll(ancestors(parents, second));
+				final java.util.Set<String> expected = new java.util.TreeSet<>(common);
+				for(final String candidate : common)
+					for(final String other : common)
+						if(!other.equals(candidate) && ancestors(parents, other).contains(candidate))
+							expected.remove(candidate);
+
+				final java.util.Set<String> actual = new java.util.TreeSet<>();
+				for(final ConsanguinityCalculator.CommonAncestor ancestor : calculator.closestCommonAncestors(first, second))
+					actual.add(ancestor.id());
+				Assertions.assertEquals(expected, actual, first + " and " + second);
+			}
+		}
+	}
+
+	/** @return the individual and all its ancestors */
+	private static java.util.Set<String> ancestors(final Map<String, List<String>> parents, final String id){
+		final java.util.Set<String> result = new java.util.LinkedHashSet<>();
+		final java.util.Deque<String> pending = new java.util.ArrayDeque<>(List.of(id));
+		while(!pending.isEmpty()){
+			final String current = pending.pop();
+			if(result.add(current))
+				pending.addAll(parents.getOrDefault(current, List.of()));
+		}
+		return result;
+	}
+
+	@Test
 	void aSmallPopulationMarryingAmongItselfForFortyGenerationsIsQuick(){
 		//8 people a generation, each the child of two of the previous one: the paths between two of them are astronomically many
 		final Map<String, List<String>> parents = new LinkedHashMap<>();

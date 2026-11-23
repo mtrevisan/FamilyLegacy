@@ -60,7 +60,8 @@ import java.util.function.Supplier;
 /**
  * Times the heavy computations of the application on a big file (tens of thousands of individuals), to see what has to stay off the
  * event dispatch thread. It does not assert anything and it is skipped unless it is asked for:
- * {@code mvn -pl Core test -Dtest=LargeFileBenchmark -Dfamilylegacy.benchmark=true [-Dfamilylegacy.benchmark.size=30000]}.
+ * {@code mvn -pl Core test -Dtest=LargeFileBenchmark -Dfamilylegacy.benchmark=true [-Dfamilylegacy.benchmark.size=30000]
+ * [-Dfamilylegacy.benchmark.only=Identity]}.
  * <p>
  * The tree is the one of {@link SyntheticTree}: a closed community, the worst case for the coefficients of Wright (a lot of pedigree
  * collapse).
@@ -90,6 +91,21 @@ class LargeFileBenchmark{
 			}
 		});
 		System.out.printf("BENCH records: %d%n", model.getRecordCount());
+
+		//only some assistants, to profile one: -Dfamilylegacy.benchmark.only=Identity (a part of the name of the contributor)
+		final String only = System.getProperty("familylegacy.benchmark.only");
+		if(only != null){
+			final AssistantContext context = new SwingAssistantContext(null, null, model, null);
+			for(final AssistantContributor contributor : List.of(new ChronologyAssistantContributor(), new ConsanguinityAssistantContributor(),
+					new IdentityAssistantContributor()))
+				if(contributor.getClass().getSimpleName().contains(only))
+					for(final DiagnosticProvider provider : contributor.diagnosticProviders()){
+						final List<Diagnostic> found = timed("diagnose: " + contributor.getClass().getSimpleName(),
+							() -> provider.diagnose(context));
+						System.out.printf("BENCH   findings: %d%n", found.size());
+					}
+			return;
+		}
 
 		final ConsanguinityReport report = timed("ConsanguineousUnionDetector.detect (whole file)",
 			() -> ConsanguineousUnionDetector.detect(model));

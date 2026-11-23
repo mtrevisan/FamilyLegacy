@@ -137,7 +137,15 @@ public record ReportConfig(
 	/** Which hypotheses the Identity Hypotheses report lists, by where they stand. */
 	HypothesisFilter hypothesisFilter,
 	/** Which hypotheses the Identity Hypotheses report lists, by the kind of record that may be a duplicate. */
-	HypothesisRecordType hypothesisRecordType
+	HypothesisRecordType hypothesisRecordType,
+	/** The level of the place hierarchy the Surnames by Place report groups the surnames by. */
+	SurnamePlaceLevel surnamePlaceLevel,
+	/** Whether the Surnames by Place report splits the period of a surname by century. */
+	SurnamePeriod surnamePeriod,
+	/** Whether the Surnames by Place report counts the surnames of all the names of an individual. */
+	boolean surnameAllNames,
+	/** Whether the Surnames by Place report puts the surnames that may be the same one side by side. */
+	boolean surnameSimilar
 ){
 
 	public ReportConfig{
@@ -159,6 +167,8 @@ public record ReportConfig(
 		Objects.requireNonNull(conflictRecordType, "conflictRecordType");
 		Objects.requireNonNull(hypothesisFilter, "hypothesisFilter");
 		Objects.requireNonNull(hypothesisRecordType, "hypothesisRecordType");
+		Objects.requireNonNull(surnamePlaceLevel, "surnamePlaceLevel");
+		Objects.requireNonNull(surnamePeriod, "surnamePeriod");
 		generations = Math.max(0, generations);
 		firstGeneration = Math.max(0, firstGeneration);
 		unknownName = (unknownName != null? unknownName.strip(): "");
@@ -187,6 +197,11 @@ public record ReportConfig(
 	 */
 	public ReportConfig with(final ReportOption option, final Object value){
 		return withComponent(option.componentName(), value);
+	}
+
+	/** @return	A copy of this configuration with the language changed. */
+	public ReportConfig withLanguage(final ReportLanguage value){
+		return withComponent("language", value);
 	}
 
 	/** @return	A copy of this configuration with what is done with the individuals that may be living changed. */
@@ -232,7 +247,8 @@ public record ReportConfig(
 			(value? PortraitMode.CROP_WITHOUT_ORIGINAL: PortraitMode.WHOLE), value,
 			(value? ImageAlignment.WRAP_RIGHT: ImageAlignment.DEFAULT), (value? ConflictFilter.UNRESOLVED: ConflictFilter.ALL),
 			(value? ConflictConfidence.LOW: ConflictConfidence.ALL), (value? ConflictRecordType.EVENT: ConflictRecordType.ALL),
-			(value? HypothesisFilter.OPEN: HypothesisFilter.ALL), (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL));
+			(value? HypothesisFilter.OPEN: HypothesisFilter.ALL), (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL),
+			(value? SurnamePlaceLevel.PROVINCE: SurnamePlaceLevel.PLACE), (value? SurnamePeriod.CENTURY: SurnamePeriod.WHOLE), value, value);
 	}
 
 	public static ReportConfig defaults(){
@@ -298,7 +314,11 @@ public record ReportConfig(
 			ConflictConfidence.ALL,
 			ConflictRecordType.ALL,
 			HypothesisFilter.ALL,
-			HypothesisRecordType.ALL
+			HypothesisRecordType.ALL,
+			SurnamePlaceLevel.PLACE,
+			SurnamePeriod.WHOLE,
+			true,
+			false
 		);
 	}
 

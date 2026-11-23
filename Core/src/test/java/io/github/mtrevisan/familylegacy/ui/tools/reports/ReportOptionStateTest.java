@@ -37,25 +37,27 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
 import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
 import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
+import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
 import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
 import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
-import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
 import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
 import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
-import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
 import io.github.mtrevisan.familylegacy.reports.PortraitMode;
-import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.familylegacy.reports.ReportBuilder;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
+import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
+import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
@@ -110,6 +112,8 @@ class ReportOptionStateTest{
 			case CONFLICT_RECORD_TYPE -> (value? ConflictRecordType.EVENT: ConflictRecordType.ALL);
 			case HYPOTHESIS_FILTER -> (value? HypothesisFilter.OPEN: HypothesisFilter.ALL);
 			case HYPOTHESIS_RECORD_TYPE -> (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL);
+			case SURNAME_PLACE_LEVEL -> (value? SurnamePlaceLevel.PROVINCE: SurnamePlaceLevel.PLACE);
+			case SURNAME_PERIOD -> (value? SurnamePeriod.CENTURY: SurnamePeriod.WHOLE);
 			default -> value;
 		});
 	}
@@ -124,9 +128,10 @@ class ReportOptionStateTest{
 			case GROUP -> model.getRecordsByType(GroupReader.TYPE);
 			case PLACE -> model.getRecordsByType(PlaceReader.TYPE);
 			case SOURCE -> model.getRecordsByType(SourceReader.TYPE);
-			case RESEARCH_QUESTION -> model.getRecordsByType(ResearchQuestionReader.TYPE);
+			case RESEARCH_QUESTION, GPS_PROOF -> model.getRecordsByType(ResearchQuestionReader.TYPE);
 			//(about the whole file: any record will do)
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES -> model.getRecords().subList(0, 1);
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, TAGGED_RECORDS, CONFLICTS, SURNAMES, IDENTITY_HYPOTHESES, DATABASE_SUMMARY ->
+				model.getRecords().subList(0, 1);
 			case BIBLIOGRAPHY, RESEARCH_PROGRESS -> model.getRecords();
 			default -> model.getRecordsByType(IndividualReader.TYPE);
 		};
@@ -261,7 +266,7 @@ class ReportOptionStateTest{
 
 	@Test
 	void theReportsOnAPlaceASourceOrAQuestionHaveNeitherPersonNorGroupOptions(){
-		for(final ReportType type : List.of(ReportType.PLACE, ReportType.SOURCE, ReportType.RESEARCH_QUESTION)){
+		for(final ReportType type : List.of(ReportType.PLACE, ReportType.SOURCE, ReportType.RESEARCH_QUESTION, ReportType.GPS_PROOF)){
 			final FLEFRecord root = subjects(type).getFirst();
 
 			for(final ReportOption option : List.of(ReportOption.INTRODUCTION, ReportOption.PATERNAL_ANCESTRY, ReportOption.DESCENDANTS,

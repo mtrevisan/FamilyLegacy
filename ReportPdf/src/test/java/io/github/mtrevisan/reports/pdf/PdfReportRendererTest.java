@@ -407,4 +407,27 @@ class PdfReportRendererTest{
 		Assertions.assertTrue(StringUtils.countMatches(text(with), "RUNNINGTITLE") > 1, text(with));
 		Assertions.assertEquals(1, StringUtils.countMatches(text(without), "RUNNINGTITLE"), text(without));
 	}
+
+	@Test
+	void aPageBreakAsTheFirstSectionMakesTheTitleACover(@TempDir final Path directory) throws IOException{
+		final List<ReportSection> sections = List.of(ReportSection.PageBreak.INSTANCE, new ReportSection.Heading(1, "FIRSTCHAPTER"),
+			new ReportSection.Paragraph("text"), new ReportSection.Heading(1, "SECONDCHAPTER"), new ReportSection.Paragraph("more"));
+		final Path file = directory.resolve("cover.pdf");
+
+		renderer.render(new ReportDocument("COVERTITLE", null, sections), file);
+
+		//the title is alone on the first page, the table of contents is on the second one
+		final PdfReader reader = new PdfReader(Files.readAllBytes(file));
+		try{
+			final PdfTextExtractor extractor = new PdfTextExtractor(reader);
+			final String first = extractor.getTextFromPage(1);
+			final String second = extractor.getTextFromPage(2);
+			Assertions.assertTrue(first.contains("COVERTITLE"), first);
+			Assertions.assertFalse(first.contains("Contents"), first);
+			Assertions.assertTrue(second.contains("Contents"), second);
+		}
+		finally{
+			reader.close();
+		}
+	}
 }

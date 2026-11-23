@@ -81,7 +81,7 @@ class ReportGenerationTest{
 			case GROUP -> "G1";
 			case PLACE -> "P1";
 			case SOURCE -> "S1";
-			case RESEARCH_QUESTION -> "RQ1";
+			case RESEARCH_QUESTION, GPS_PROOF -> "RQ1";
 			default -> "I1";
 		};
 	}
@@ -216,6 +216,28 @@ class ReportGenerationTest{
 		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Research question: rq title")), headings.toString());
 		for(final String heading : List.of("Targets", "Activities", "Tasks", "Conclusions"))
 			Assertions.assertTrue(headings.contains(heading), heading + " in " + headings);
+	}
+
+	@Test
+	void theGpsProofReportFollowsTheStepsOfTheProof(){
+		final List<String> headings = headings(build(ReportType.GPS_PROOF, "RQ1", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW)));
+
+		Assertions.assertTrue(headings.stream().anyMatch(heading -> heading.startsWith("Genealogical proof: rq title")), headings.toString());
+		int previous = -1;
+		for(final String step : List.of("Research question", "Evidence summary", "Conflicting evidence", "Analysis", "Reasoning", "Conclusion",
+				"Confidence")){
+			final int index = headings.indexOf(step);
+			Assertions.assertTrue(index > previous, step + " in " + headings);
+			previous = index;
+		}
+	}
+
+	@Test
+	void aProofPartWithNothingRecordedSaysSo(){
+		//(RQ2 has no activity, no conclusion and no rationale)
+		final ReportDocument document = build(ReportType.GPS_PROOF, "RQ2", ReportConfig.defaults().withLivingPrivacy(LivingPrivacy.SHOW));
+
+		Assertions.assertTrue(document.sections().toString().contains("Nothing recorded."), document.sections().toString());
 	}
 
 }

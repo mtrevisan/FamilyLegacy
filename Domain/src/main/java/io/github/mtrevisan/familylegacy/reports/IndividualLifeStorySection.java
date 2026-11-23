@@ -44,7 +44,6 @@ import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;

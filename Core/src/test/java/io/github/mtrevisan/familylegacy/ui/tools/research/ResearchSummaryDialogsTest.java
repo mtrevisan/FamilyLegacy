@@ -121,4 +121,28 @@ class ResearchSummaryDialogsTest{
 		Assertions.assertEquals(2, rows[1]);
 	}
 
+	@Test
+	void theInferenceInspectionShowsTheSelectedConclusion() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = new FLEFModel();
+		model.addRecord(conclusion("C1", ConclusionReader.ENUM_PROOF_STATUS_PROVEN));
+		model.addRecord(conclusion("C2", ConclusionReader.ENUM_PROOF_STATUS_DISPROVEN));
+		final String[] texts = new String[2];
+
+		SwingUtilities.invokeAndWait(() -> {
+			final InferenceInspectionDialog dialog = new InferenceInspectionDialog(null, model, "C2");
+			texts[0] = dialog.reportText();
+			final List<javax.swing.JList<?>> lists = new ArrayList<>();
+			@SuppressWarnings({"unchecked", "rawtypes"})
+			final List<javax.swing.JList> raw = (List)lists;
+			find(dialog, javax.swing.JList.class, raw);
+			lists.getFirst().setSelectedIndex(0);
+			texts[1] = dialog.reportText();
+			dialog.dispose();
+		});
+
+		Assertions.assertTrue(texts[0].contains("C2"), texts[0]);
+		Assertions.assertTrue(texts[1].contains("C1"), texts[1]);
+	}
+
 }

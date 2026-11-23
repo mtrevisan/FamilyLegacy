@@ -31,6 +31,11 @@ import java.util.Set;
 
 /**
  * A report: its title, the sections, and the language it is written in.
+ * <p>
+ * In the formats that have pages (PDF, Word), the title (with the subtitle and the cover text of the layout) is at the top of the first
+ * page and the table of contents follows it; a {@link ReportSection.PageBreak} as the very first section puts the title alone on the
+ * first page (a cover), and the table of contents starts on the next one.
+ * </p>
  *
  * @param title	The title.
  * @param subtitle	The subtitle (can be {@code null}).

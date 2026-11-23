@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.components.AuditPanel;
 import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.PrivacyPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 
 import javax.swing.JPanel;
 import java.util.EnumMap;
@@ -74,6 +75,10 @@ public final class RecordDialogComponents{
 				? cfg.factory().createPanel(owner, cfg, model, record)
 				: key.createPanel(owner, cfg, model, record);
 
+			//a panel of a higher level than the one of the user is not shown (the layouts hide an invisible component, gaps included): it is
+			//built and loaded all the same, so that saving the record never loses what it holds
+			if(panel != null && !BaseRecordDialog.isOfferedAt(owner.handler.getType(), key.minimumLevel(), FeatureVisibilityService.shared()))
+				panel.setVisible(false);
 			panels.put(key, panel);
 		}
 	}

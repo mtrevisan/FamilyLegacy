@@ -6,6 +6,7 @@ A **source** is where information was found: a parish register, a census, a lett
 
 - **Manage Sources...** opens the list of sources, where you can search, create, edit and delete them (see [Manage dialogs](searching.md#manage-dialogs)). Deleting a source deletes its [extracts](editors-sources.md#extract) as well, and removes its citations from the records. Each line shows the author, the type and how many citations the source has: a source with no citation is one to look at. It is available when the file has sources.
 - **New Source...** creates a source.
+- **Source Workspace...** is the view centred on one source (it opens on the source selected, if any). On the left the sources are listed **by repository**, **by kind of repository** (archive, library, private collection...) or **by collection / record group**, that is by the shelf mark or call number written in the repository citation of the source (a source kept in two repositories is in both groups; one with no repository is under *(none)*). On the right, for the selected source, one tab for each thing that depends on it: the **citations** (the cited record, locator and stance, with the individuals each one is about), the **individuals**, **families** (partnerships) and **events** it backs, its **extracts** and the **media** it refers to. Selecting a citation lists below the individuals it is about, so you can walk *source -> citation -> person*; a double-click opens the record, and the lists are read again afterwards. It never changes the file by itself and is available when the file has sources.
 
 ## Repositories
 
@@ -13,6 +14,8 @@ A **repository** is the place that keeps a source: an archive, a library, a pari
 
 - **Manage Repositories...** lists them, in the same way (see [Manage dialogs](searching.md#manage-dialogs)), with the place and the number of sources each one keeps.
 - **New Repository...** creates one.
+
+- **What a register covers.** There is no field for the years or the volumes that a source covers: write it in the **note** of the source, of the repository, or in the **remark** of the repository citation, in plain words (*Baptisms 1780-1820; volumes for 1794-1796 lost.*, *Entries 1-56 missing.*). Real archives have gaps, lost volumes, partial runs and unindexed registers, which a from-to range cannot say; a note can, and it is found by the search with *Search in notes and citations*.
 
 ## Media
 
@@ -42,6 +45,16 @@ A **citation** ties a statement to its source and says where in the source it is
 - **Uncited assertions**: the individuals, events, attributes, relationships and places that carry no citation. A big file can have tens of thousands of them, so the tab opens on a **summary by type** (how many are uncited, out of how many, and the share that is cited). Double-click a type, or *All types*, to list its records, by name; **Back** returns to the summary, and the search field filters the list by id, type or name.
 
 **Export CSV...** writes the rows of the tab in view to a file (what the list shows, with its order and filter; from the summary of the uncited tab, every uncited record). The file is UTF-8 and opens in Excel with the accents right.
+
+## Documentation coverage
+
+**Source > Documentation Coverage...** is the dashboard of how well the file is backed by evidence. It never changes the file; double-click a record to open it and fix the gap, and the figures are read again afterwards. It has three tabs:
+
+- **By record type**: for individuals, families, events, places and media, how many there are, how many have no citation and the share that is documented. Select a type to list its undocumented records (the first 2000 if there are more). An *individual* is documented when it, or one of its events, attributes or relationships, carries a supporting citation (the facts of a person are cited, rarely the person); a *family* is a partnership between two individuals, documented when the relationship itself, or the *marriage* event of the couple, carries a citation (the list says so under the type); a *medium* is documented when a source or an extract refers to it. A citation that *contradicts* what it is attached to documents nothing;
+- **Hotspots**: the places where most events have no citation, and the same by kind of event (births, deaths, marriages...), the worst first;
+- **Branches**: a branch is an individual with no known parent and all their descendants; the branches are listed from the least documented, with how many individuals each has and how many are documented. A branch with the same members as another (a founder and the partner who married into the family) is listed once.
+
+What the privacy policy hides is neither counted nor listed. The report section *Coverage* gives the same kind of figures for the subject of a report.
 
 The rows can be opened (double-click, or *Open record*) to fix the problem on the spot; the lists are made again afterwards. The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
 

@@ -25,6 +25,9 @@ The lists are the way to find and edit the records of one type; the board is the
 - **New Task...** creates a task. If the person or group selected in the view is the target of a research question still under way (*open* or *on hold*), the new task already belongs to that question; if there are several, a menu under the button lists them, with *Without a Question* at the end. With nothing selected, or no such question, the task starts with no question.
 - **Right-click** a task to change its status without opening the editor (*Mark as completed*, *Mark as abandoned*, ...) or to open its question. A change of status is noted in the audit of the task, as a save from the editor is; a completed or abandoned task leaves the list.
 - **Only the selected record** keeps the tasks of the questions about the person or group selected in the view, and follows the selection.
+- **Click a column header** to sort by it (a second click reverses the order, a third goes back to due date then priority); the sort is kept while you work. The due date and the priority sort by date and by urgency, not alphabetically.
+- The **dock button** (next to the **×**) moves the panel to the bottom, top, left or right side of the window; drag the divider to resize it. The side is remembered.
+- Limits: a due date that is not written as `YYYY-MM-DD` is shown empty, as if there were none.
 - The **×** at the right end hides the panel.
 
 ## The context board
@@ -58,6 +61,7 @@ Each citation of a source can carry *evidence qualifiers*, which say how good a 
 ## Reporting
 
 - **Proof Summary...** shows what has been concluded and how solidly. One tab counts the conclusions for each proof status (*conflicting evidence*, *supported*, *proven*, *disproven*; conclusions with another status are grouped apart, so none is dropped); the other lists them and can be filtered by status and opened with a double-click or **Open record**; the report is made again after an edit.
+- **Inference Inspection...** opens a conclusion up, with no black box: **why** (the research questions that led to it), **how** (the reasoning chain: the assertions evaluated, the evidence weighed for each, the preferred one, the proof status, your narrative), **on which evidence** (every citation of every assertion, with the evidence qualifiers and a weight), the confidence recorded on the preferred assertion, the **alternative interpretations** and the **conflicting evidence** (citations that go against the preferred assertion, or back an alternative). It also checks the reasoning: no question or narrative, a preferred assertion with no supporting citation, contradicted or outweighed by an alternative, *proven* without direct evidence from an original source. The weights are a rule of thumb (one point per supporting citation, plus one each for an original source, primary information and direct evidence; minus one for a contradicting citation or negative evidence): they never replace your judgement. The same window opens from the Proof Summary with **Inspect inference...**.
 - **Research Log...** is a chronological view of every research activity, the oldest first (by the creation date in its audit); activities without a date are placed at the end. Double-click an activity, or press **Open record**, to edit it: the log is made again afterwards.
 - **Reports > Research Progress...** produces a report of the state of the research. See [Reports](reports.md).
 

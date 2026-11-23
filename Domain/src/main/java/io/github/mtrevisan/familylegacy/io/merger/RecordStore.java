@@ -73,8 +73,11 @@ interface RecordStore{
 
 			@Override
 			public int absorb(final Map<String, String> merges){
-				for(final String absorbedId : merges.keySet())
-					model.removeRecord(absorbedId);
+				for(final Map.Entry<String, String> merge : merges.entrySet()){
+					//the survivor has the tags of the absorbed record too
+					model.tags().merge(merge.getKey(), merge.getValue());
+					model.removeRecord(merge.getKey());
+				}
 				return references.rewrite(new ArrayList<>(model.getRecords()), merges);
 			}
 		};

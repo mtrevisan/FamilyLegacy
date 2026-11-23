@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
@@ -92,7 +93,8 @@ public final class ChronologyDataLoader{
 			loadRelationship(relationship, filteredIndividuals.keySet(), parents, unions);
 			loadMembership(relationship, filteredIndividuals.keySet(), memberships);
 		}
-		return new ChronologyData(persons, events, parents, unions, memberships, loadUnreadable(model));
+		return new ChronologyData(persons, events, parents, unions, memberships, loadUnreadable(model),
+			loadAttributes(model, filteredIndividuals.keySet()));
 	}
 
 	/** The dates the checks cannot judge: the ones not valid in their calendar, and the ones whose calendar needs the Ephemeris plugin. */
@@ -101,7 +103,7 @@ public final class ChronologyDataLoader{
 		for(final FLEFRecord event : model.getRecordsByType(EventReader.TYPE))
 			for(final FLEFRecord date : FLEFRecordHelper.extractStructures(event, EventReader.TAG_DATE))
 				addUnreadable(model, event, EventReader.TAG_DATE, date, unreadable);
-		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE))
+		for(final String type : List.of(RelationshipReader.TYPE, PlaceRelationshipReader.TYPE, IndividualAttributeReader.TYPE))
 			for(final FLEFRecord relationship : model.getRecordsByType(type))
 				for(final String tag : List.of(RelationshipReader.TAG_VALID_FROM, RelationshipReader.TAG_VALID_TO))
 					addUnreadable(model, relationship, tag, FLEFRecordHelper.findChild(relationship, tag), unreadable);
@@ -114,6 +116,25 @@ public final class ChronologyDataLoader{
 		if(problem != DateNormalizer.Problem.NONE)
 			unreadable.add(new ChronologyData.UnreadableDate(record.getId(), RecordDisplay.describe(record, model), field, text(date),
 				problem == DateNormalizer.Problem.NEEDS_PLUGIN));
+	}
+
+	/** The attributes of the visible individuals that have a date of beginning or of end the checks can use. */
+	private static List<ChronologyData.Attribute> loadAttributes(final FLEFModel model, final Set<String> individualIds){
+		final List<ChronologyData.Attribute> attributes = new ArrayList<>();
+		for(final FLEFRecord attribute : model.getRecordsByType(IndividualAttributeReader.TYPE)){
+			final String individualId = IndividualAttributeReader.extractIndividualId(attribute);
+			if(individualId == null || !individualIds.contains(individualId))
+				continue;
+
+			final FLEFRecord from = FLEFRecordHelper.findChild(attribute, IndividualAttributeReader.TAG_VALID_FROM);
+			final FLEFRecord to = FLEFRecordHelper.findChild(attribute, IndividualAttributeReader.TAG_VALID_TO);
+			if(from == null && to == null)
+				continue;
+
+			attributes.add(new ChronologyData.Attribute(attribute.getId(), individualId, RecordDisplay.describe(attribute, model),
+				range(from), range(to), text(from), text(to)));
+		}
+		return attributes;
 	}
 
 	/** The subject of a membership is the individual, the target the group. */

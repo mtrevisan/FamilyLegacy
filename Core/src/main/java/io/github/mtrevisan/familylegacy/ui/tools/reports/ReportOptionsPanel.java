@@ -25,28 +25,32 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
 import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
 import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
+import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
+import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
 import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
 import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
-import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
 import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
 import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
-import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
 import io.github.mtrevisan.familylegacy.reports.PortraitMode;
-import io.github.mtrevisan.reports.ImageAlignment;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
+import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import io.github.mtrevisan.familylegacy.reports.index.CollateralScope;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
+import io.github.mtrevisan.reports.ImageAlignment;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -96,6 +100,7 @@ import java.util.function.Function;
 public final class ReportOptionsPanel extends JPanel{
 
 	private final Function<ReportOption, OptionState> states;
+	private final FeatureVisibilityService features;
 	/** The options that the report always applies: they are on, whatever the configuration the panel was seeded with. */
 	private final List<JCheckBox> alwaysOn = new ArrayList<>();
 
@@ -217,6 +222,16 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	/* ======================================================================
+	 *                          Surnames by Place
+	 * ====================================================================== */
+
+	private final JComboBox<SurnamePlaceLevel> surnamePlaceLevel = enumCombo(SurnamePlaceLevel.values(), "enum.surname_place_level.");
+	private final JComboBox<SurnamePeriod> surnamePeriod = enumCombo(SurnamePeriod.values(), "enum.surname_period.");
+	private final JCheckBox surnameAllNames = cb("surname_all_names");
+	private final JCheckBox surnameSimilar = cb("surname_similar");
+
+
+	/* ======================================================================
 	 *                          Indexes
 	 * ====================================================================== */
 
@@ -255,12 +270,22 @@ public final class ReportOptionsPanel extends JPanel{
 	 * @param states	What the report does with each option.
 	 */
 	public ReportOptionsPanel(final ReportConfig initial, final Function<ReportOption, OptionState> states){
+		this(initial, states, FeatureVisibilityService.shared());
+	}
+
+	/**
+	 * @param initial	The configuration to seed the panel with; must not be {@code null}.
+	 * @param states	What the report does with each option.
+	 * @param features	What tells the interface level of the user: the research and context options are offered from their level.
+	 */
+	ReportOptionsPanel(final ReportConfig initial, final Function<ReportOption, OptionState> states, final FeatureVisibilityService features){
 		super(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]"));
 
 		this.states = states;
+		this.features = features;
 
 		for(final JPanel group : new JPanel[]{privacyGroup(), narrativeGroup(), narrativeStyleGroup(), contentGroup(), textPlacementGroup(),
-				mediaPlacementGroup(), groupsGroup(), conflictsGroup(), hypothesesGroup(), diagnosticsGroup(), indexesGroup(), styleGroup()})
+				mediaPlacementGroup(), groupsGroup(), conflictsGroup(), hypothesesGroup(), surnamesGroup(), diagnosticsGroup(), indexesGroup(), styleGroup()})
 			if(group != null)
 				add(group, "growx");
 
@@ -347,6 +372,10 @@ public final class ReportOptionsPanel extends JPanel{
 		conflictRecordType.setSelectedItem(initial.conflictRecordType());
 		hypothesisFilter.setSelectedItem(initial.hypothesisFilter());
 		hypothesisRecordType.setSelectedItem(initial.hypothesisRecordType());
+		surnamePlaceLevel.setSelectedItem(initial.surnamePlaceLevel());
+		surnamePeriod.setSelectedItem(initial.surnamePeriod());
+		surnameAllNames.setSelected(initial.surnameAllNames());
+		surnameSimilar.setSelected(initial.surnameSimilar());
 
 		idxIndividuals.setSelected(initial.indexIndividuals());
 		idxYears.setSelected(initial.indexYears());
@@ -437,7 +466,11 @@ public final class ReportOptionsPanel extends JPanel{
 			(ConflictConfidence)conflictConfidence.getSelectedItem(),
 			(ConflictRecordType)conflictRecordType.getSelectedItem(),
 			(HypothesisFilter)hypothesisFilter.getSelectedItem(),
-			(HypothesisRecordType)hypothesisRecordType.getSelectedItem());
+			(HypothesisRecordType)hypothesisRecordType.getSelectedItem(),
+			(SurnamePlaceLevel)surnamePlaceLevel.getSelectedItem(),
+			(SurnamePeriod)surnamePeriod.getSelectedItem(),
+			surnameAllNames.isSelected(),
+			surnameSimilar.isSelected());
 	}
 
 	private static int intOf(final JComboBox<Integer> combo){
@@ -713,6 +746,16 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 
+	private JPanel surnamesGroup(){
+		final JPanel p = twoColumns("border.surname_report");
+		addCombo(p, ReportOption.SURNAME_PLACE_LEVEL, "label.surname_place_level", "tooltip.report.surname_place_level", surnamePlaceLevel);
+		addCombo(p, ReportOption.SURNAME_PERIOD, "label.surname_period", "tooltip.report.surname_period", surnamePeriod);
+		addOption(p, ReportOption.SURNAME_ALL_NAMES, surnameAllNames);
+		addOption(p, ReportOption.SURNAME_SIMILAR, surnameSimilar);
+		return nonEmpty(p);
+	}
+
+
 	private JPanel diagnosticsGroup(){
 		final JPanel p = twoColumns("border.diagnostics");
 		addOption(p, ReportOption.EVENT_FULL_PARTICIPANTS, eventFull);
@@ -741,7 +784,19 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	/** Adds the check box unless the report does nothing with the option; one that the report always applies is on and disabled. */
+	/** @return the lowest interface level at which the option is offered (the research and the context contents of a report). */
+	static UxLevel minimumLevel(final ReportOption option){
+		return switch(option){
+			case CONTEXT_AND_RESEARCH -> UxLevel.STANDARD;
+			case CULTURAL_NORMS, HISTORIC_EVENTS, EVIDENCE -> UxLevel.ADVANCED;
+			default -> UxLevel.BASIC;
+		};
+	}
+
 	private void addOption(final JPanel group, final ReportOption option, final JCheckBox box){
+		if(!features.isVisible(minimumLevel(option)))
+			return;
+
 		switch(states.apply(option)){
 			case HIDDEN -> {
 				return;

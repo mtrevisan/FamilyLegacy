@@ -78,6 +78,7 @@ In questo modo la documentazione del lavoro genealogico rimane collegata alle pe
 - tracciamento delle attività di ricerca
 - supporto alla documentazione del ragionamento genealogico
 - strumenti di assistenza alla ricerca
+- tag liberi (es. "Brick Wall", "Da verificare") da attaccare a persone, luoghi, fonti e ricerche: si cercano, si filtrano e hanno un report; restano nell'applicazione e non nel file
 - workflow esplicito per ipotesi, conflitti e conclusioni
 - gestione della privacy (persone viventi, livelli di riservatezza) per viste, report ed esportazione
 - interfaccia a tre livelli (Basic, Standard, Advanced) con suggerimenti contestuali: si usa come un normale programma genealogico e le funzioni di ricerca emergono quando servono
@@ -97,7 +98,7 @@ I concetti più avanzati vengono inoltre *suggeriti quando servono*, con una rig
 ## Importazione e report
 
 - **Importazione** da GEDCOM (5.5, 5.5.1 e 7) e da Gramps (XML), così è possibile provarlo con i propri dati senza ricominciare da zero. L'originale non viene mai modificato e, al termine, un report elenca ciò che non è stato possibile convertire.
-- **17 tipi di report** (antenati, discendenti, libro di famiglia, bibliografia, ricerche ancora da verificare, conflitti tra evidenze, ...) in testo, Markdown, HTML, Word, PDF, EPUB e sito web statico.
+- **22 tipi di report** (antenati, discendenti, libro di famiglia, bibliografia, ricerche ancora da verificare, conflitti tra evidenze, ...) in testo, Markdown, HTML, Word, PDF, EPUB e sito web statico.
 - I dati sono salvati in un formato proprio, testuale e aperto: *FLEF* (Family LEgacy Format).
 
 ## Requisiti e licenza

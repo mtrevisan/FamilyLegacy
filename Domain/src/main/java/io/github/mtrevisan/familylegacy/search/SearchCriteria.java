@@ -42,6 +42,10 @@ import java.util.Set;
  */
 public final class SearchCriteria{
 
+	/** The filter on the free tags: tags separated by commas, and the record must have all of them (see {@code RecordTags}). */
+	public static final String FILTER_TAGS = "tags";
+
+
 	private final String recordType;
 	private final String query;
 	private final Set<SearchMode> modes;

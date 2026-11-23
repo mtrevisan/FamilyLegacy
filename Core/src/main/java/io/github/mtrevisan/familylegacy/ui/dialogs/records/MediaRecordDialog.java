@@ -25,8 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.dialogs.RecordUsageDialog;
-import javax.swing.JButton;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -37,12 +35,14 @@ import io.github.mtrevisan.familylegacy.ui.bindings.MediaUriField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.dialogs.RecordUsageDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.File;

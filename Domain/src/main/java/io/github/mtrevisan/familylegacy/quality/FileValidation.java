@@ -106,7 +106,7 @@ public final class FileValidation{
 
 		final List<FLEFValidator.ValidationError> found = new ArrayList<>();
 		try{
-			final List<ConsistencyService.Issue> issues = new ArrayList<>(ConsistencyService.check(model).issues());
+			final List<ConsistencyService.Issue> issues = new ArrayList<>(ConsistencyService.check(model, fraction -> progress.accept(fraction / 2.)).issues());
 			progress.accept(0.5);
 			issues.addAll(MediaFiles.missing(model, baseDirectory, fraction -> progress.accept(0.5 + fraction / 2.)));
 			for(final ConsistencyService.Issue issue : issues)

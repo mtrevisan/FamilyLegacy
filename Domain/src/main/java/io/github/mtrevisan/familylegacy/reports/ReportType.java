@@ -44,19 +44,24 @@ public enum ReportType{
 	PLACE,
 	SOURCE,
 	RESEARCH_QUESTION,
+	GPS_PROOF,
 	BIBLIOGRAPHY,
 	RESEARCH_PROGRESS,
 	FULL_BIBLIOGRAPHY,
 	FAMILY_BOOK,
 	TO_VERIFY,
+	TAGGED_RECORDS,
 	CONFLICTS,
 	SURNAMES,
-	IDENTITY_HYPOTHESES;
+	IDENTITY_HYPOTHESES,
+	PEDIGREE_COLLAPSE,
+	KINSHIP,
+	DATABASE_SUMMARY;
 
 	/** @return	Whether the report is about the whole file, not about a record. */
 	public boolean isGlobal(){
-		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK || this == TO_VERIFY || this == CONFLICTS || this == SURNAMES
-			|| this == IDENTITY_HYPOTHESES);
+		return (this == FULL_BIBLIOGRAPHY || this == FAMILY_BOOK || this == TO_VERIFY || this == TAGGED_RECORDS || this == CONFLICTS || this == SURNAMES
+			|| this == IDENTITY_HYPOTHESES || this == DATABASE_SUMMARY);
 	}
 
 	public String getTitle(){

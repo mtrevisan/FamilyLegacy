@@ -873,6 +873,54 @@ class FileValidationTest{
 	}
 
 	@Test
+	void aFileThatIsNotWhatTheRecordSaysIsAWarning(@TempDir final Path directory) throws IOException{
+		final byte[] pdf = "%PDF-1.7\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		final byte[] png = {(byte)0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
+		Files.write(directory.resolve("really-a-pdf.jpg"), pdf);
+		Files.write(directory.resolve("really-a-png.png"), png);
+		Files.write(directory.resolve("unknown.jpg"), new byte[]{'x', 'y'});
+		Files.write(directory.resolve("empty.jpg"), new byte[0]);
+		final FLEFModel model = new FLEFModel();
+		//declared as an image, it is a PDF
+		model.addRecord(media("M1", directory.resolve("really-a-pdf.jpg").toString()));
+		//declared as an image, it is one
+		model.addRecord(media("M2", directory.resolve("really-a-png.png").toString()));
+		//a format that is not judged, and an empty file
+		model.addRecord(media("M3", directory.resolve("unknown.jpg").toString()));
+		model.addRecord(media("M4", directory.resolve("empty.jpg").toString()));
+		//with no kind declared the one of the extension counts: a PDF named .pdf is fine, a PNG named .pdf is not
+		Files.write(directory.resolve("fine.pdf"), pdf);
+		Files.write(directory.resolve("wrong.pdf"), png);
+		model.addRecord(FLEFRecord.createMainRecord("M5", MediaReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_URI, directory.resolve("fine.pdf").toString())));
+		model.addRecord(FLEFRecord.createMainRecord("M6", MediaReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(MediaReader.TAG_URI, directory.resolve("wrong.pdf").toString())));
+
+		final List<ConsistencyService.Issue> issues = io.github.mtrevisan.familylegacy.quality.MediaFiles.missing(model, directory.toString());
+
+		Assertions.assertEquals(List.of("M1", "M6"), issues.stream()
+			.map(ConsistencyService.Issue::recordId)
+			.toList());
+		Assertions.assertTrue(issues.stream().allMatch(issue -> "media_wrong_type".equals(issue.kind())
+			&& issue.severity() == ConsistencyService.Severity.WARNING), issues.toString());
+	}
+
+	@Test
+	void theStructuralChecksTellHowFarTheyAre() throws IOException{
+		final java.util.List<Double> values = new java.util.ArrayList<>();
+
+		ConsistencyService.check(model(), values::add);
+
+		Assertions.assertTrue(values.size() > 5, values.toString());
+		double previous = 0.;
+		for(final double value : values){
+			Assertions.assertTrue(value >= previous && value <= 1., values.toString());
+			previous = value;
+		}
+		Assertions.assertEquals(1., values.getLast(), 1e-12);
+	}
+
+	@Test
 	void aRemoteLocationAndARelativePathWithNoBaseDirectoryAreNotJudged(@TempDir final Path directory){
 		final FLEFModel model = new FLEFModel();
 		model.addRecord(media("M1", "https://example.org/scans/birth.jpg"));

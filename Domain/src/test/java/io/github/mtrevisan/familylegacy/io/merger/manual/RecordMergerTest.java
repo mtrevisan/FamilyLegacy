@@ -97,6 +97,20 @@ class RecordMergerTest{
 			full.getRecordById("I1").countChildrenWithTag("name"));
 	}
 
+	@Test
+	void theSurvivorOfAMergeHasTheTagsOfBothRecords(){
+		final FLEFModel model = new FLEFParser().parse(TWO_NAMES);
+		model.tags().set("I1", java.util.List.of("Brick Wall", "To Verify"));
+		model.tags().set("I2", java.util.List.of("to verify", "DNA Candidate"));
+		final RecordMerger merger = new RecordMerger(model, grammar);
+
+		merger.apply(merger.plan("I2", "I1"));
+
+		Assertions.assertNull(model.getRecordById("I2"));
+		Assertions.assertEquals(java.util.List.of("Brick Wall", "DNA Candidate", "To Verify"), model.tags().get("I1"));
+		Assertions.assertTrue(model.tags().get("I2").isEmpty());
+	}
+
 	private static boolean hasValue(final FLEFRecord record, final String value){
 		if(value.equals(record.getValue()))
 			return true;

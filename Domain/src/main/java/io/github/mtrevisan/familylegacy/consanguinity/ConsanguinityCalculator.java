@@ -229,19 +229,20 @@ public final class ConsanguinityCalculator{
 
 		final Map<String, Integer> distancesFromFirst = distances(first);
 		final Map<String, Integer> distancesFromSecond = distances(second);
+		//a common ancestor is not the closest if another common ancestor descends from it: it is among the (strict) ancestors of that one.
+		//All of them at once, with one pass on the common ancestors (looking at each pair of them is quadratic, and in a closed
+		//community the common ancestors are thousands)
+		final BitSet dominated = new BitSet();
+		for(int member = common.nextSetBit(0); member >= 0; member = common.nextSetBit(member + 1)){
+			final BitSet strict = (BitSet)ancestorsOf(member).clone();
+			strict.clear(member);
+			dominated.or(strict);
+		}
+		common.andNot(dominated);
 		final List<CommonAncestor> result = new ArrayList<>();
 		for(int candidate = common.nextSetBit(0); candidate >= 0; candidate = common.nextSetBit(candidate + 1)){
-			boolean closest = true;
-			for(int descendant = common.nextSetBit(0); descendant >= 0; descendant = common.nextSetBit(descendant + 1))
-				if(descendant != candidate && ancestorsOf(descendant).get(candidate)){
-					closest = false;
-
-					break;
-				}
-			if(closest){
-				final String id = ids.get(candidate);
-				result.add(new CommonAncestor(id, distancesFromFirst.get(id), distancesFromSecond.get(id)));
-			}
+			final String id = ids.get(candidate);
+			result.add(new CommonAncestor(id, distancesFromFirst.get(id), distancesFromSecond.get(id)));
 		}
 		result.sort(Comparator.comparingInt((CommonAncestor a) -> a.stepsFromFirst() + a.stepsFromSecond())
 			.thenComparing(CommonAncestor::id));

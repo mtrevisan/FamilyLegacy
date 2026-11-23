@@ -162,6 +162,33 @@ class ToVerifyReportTest{
 	}
 
 	@Test
+	void whoHasNoParentAndAMarriageWithNoSpouses(){
+		Assertions.assertEquals(Set.of("I1", "I2", "I3"), ids(ToVerifyFinder.Kind.INDIVIDUAL_NO_PARENTS));
+		Assertions.assertEquals(Set.of(), ids(ToVerifyFinder.Kind.MARRIAGE_NO_SPOUSES));
+
+		model.addRecord(FLEFRecord.createMainRecord("E9", EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_MARRIAGE)));
+		model.addRecord(FLEFRecord.createMainRecord("E10", EventReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_MARRIAGE)));
+		model.addRecord(participation("EP9", "E10", "I1"));
+
+		Assertions.assertEquals(Set.of("E9"), ids(ToVerifyFinder.Kind.MARRIAGE_NO_SPOUSES));
+	}
+
+	@Test
+	void theFindingsOfTheAssistanceAreIncluded(){
+		final ToVerifyAssistance assistance = (m, visible, progress) -> List.of(
+			new ToVerifyFinder.Finding(ToVerifyFinder.Kind.RESEARCH_GAP, "I1", "A gap"));
+		final ReportDocument document = new ToVerifyGenerator(model, everything(), null, assistance).generate();
+
+		final List<String> headings = document.sections().stream()
+			.filter(ReportSection.Heading.class::isInstance)
+			.map(section -> ((ReportSection.Heading)section).text())
+			.toList();
+		Assertions.assertTrue(headings.contains("Gaps in the research (1)"), headings.toString());
+	}
+
+	@Test
 	void aHiddenRecordIsNotTold(){
 		final List<ToVerifyFinder.Finding> findings = ToVerifyFinder.find(model, record -> !"I3".equals(record.getId())
 			&& !"E1".equals(record.getId()), null);
@@ -215,17 +242,9 @@ class ToVerifyReportTest{
 
 	@Test
 	void theReportAnswersWhenThereIsNothingToVerify(){
+		//an individual with no parent is always a thing to verify, so the file has no individuals
 		final FLEFModel clean = new FLEFModel();
-		clean.addRecord(individual("I1", "Anna"));
-		clean.addRecord(FLEFRecord.createMainRecord("E1", EventReader.TYPE)
-			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_BIRTH))
-			.addChild(point("date", "1990-01-01"))
-			.addChild(FLEFRecord.createChildWithTag(EventReader.TAG_PLACE)
-				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, "P1")))
-			.addChild(citation("S1", SourceCitationReader.STANCE_SUPPORTS)));
-		clean.addRecord(participation("EP1", "E1", "I1"));
 		clean.addRecord(named("P1", PlaceReader.TYPE, IndividualReader.TAG_NAME, "Treviso"));
-		clean.addRecord(named("S1", SourceReader.TYPE, SourceReader.TAG_TITLE, "Register"));
 
 		final ReportDocument document = new ToVerifyGenerator(clean, everything(), null).generate();
 

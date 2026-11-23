@@ -53,20 +53,26 @@ import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DatabaseSummaryOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DescendantReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.EndOfLineOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BookBuilderOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyGroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IdentityHypothesesOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IndividualSummaryOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.KinshipReportOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PedigreeCollapseOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchProgressOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.TaggedRecordsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ToVerifyOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.research.ResearchToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.sources.SourceToolRegistry;
@@ -670,16 +676,19 @@ final class ApplicationMenuBar{
 	/**
 	 * @return	The reports in the groups of the menu: the ones about people and groups (they need one selected), the ones about a place, a
 	 * 	source or a research question (picked from a list), the bibliography and the research progress (about the selected record) and
-	 * 	the ones about the whole file.
+	 * 	the ones about the whole file, and the book that puts them together.
 	 */
 	static List<List<ToolOperation>> reportOperationGroups(){
 		return List.of(
 			List.of(new AncestorReportOperation(), new DescendantReportOperation(), new IndividualSummaryOperation(),
-				new RelationshipReportOperation(), new FamilyGroupSheetOperation(), new EndOfLineOperation(), new GroupSheetOperation()),
-			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation()),
+				new RelationshipReportOperation(), new FamilyGroupSheetOperation(), new EndOfLineOperation(), new PedigreeCollapseOperation(), new KinshipReportOperation(),
+					new GroupSheetOperation()),
+			List.of(new PlaceReportOperation(), new SourceReportOperation(), new ResearchQuestionReportOperation(), new GpsProofReportOperation()),
 			List.of(new BibliographyOperation(), new ResearchProgressOperation()),
-			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new ConflictsOperation(), new SurnamesOperation(),
-				new IdentityHypothesesOperation()));
+			List.of(new FamilyBookOperation(), new FullBibliographyOperation(), new ToVerifyOperation(), new TaggedRecordsOperation(), new ConflictsOperation(), new SurnamesOperation(),
+				new IdentityHypothesesOperation(), new DatabaseSummaryOperation()),
+			//the reports above, put together
+			List.of(new BookBuilderOperation()));
 	}
 
 	private JMenu createReportsMenu(){

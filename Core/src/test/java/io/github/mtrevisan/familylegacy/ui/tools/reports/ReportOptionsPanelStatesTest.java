@@ -25,9 +25,11 @@
 package io.github.mtrevisan.familylegacy.ui.tools.reports;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.reports.OptionState;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +65,11 @@ class ReportOptionsPanelStatesTest{
 			.orElse(null);
 	}
 
+	/** @return the panel as the user of the advanced level sees it (every option that the report uses is there). */
+	private static JPanel advanced(final ReportConfig initial, final Function<ReportOption, OptionState> states){
+		return new ReportOptionsPanel(initial, states, FeatureVisibilityService.inMemory(UxLevel.ADVANCED));
+	}
+
 	private static Function<ReportOption, OptionState> states(final OptionState state, final ReportOption... exceptions){
 		final List<ReportOption> others = List.of(exceptions);
 		return option -> (others.contains(option)? OptionState.HIDDEN: state);
@@ -71,21 +78,33 @@ class ReportOptionsPanelStatesTest{
 
 	@Test
 	void withEveryOptionEditableTheWholeFormIsThere(){
-		final JPanel panel = new ReportOptionsPanel(ReportConfig.defaults());
+		final JPanel panel = advanced(ReportConfig.defaults(), option -> OptionState.EDITABLE);
 
-		Assertions.assertEquals(ReportOption.values().length - 23, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 25, checkBoxes(panel).size());
 		Assertions.assertTrue(checkBoxes(panel).stream().allMatch(JCheckBox::isEnabled));
 	}
 
 	@Test
+	void theResearchAndContextOptionsAreOfferedFromTheirInterfaceLevel(){
+		final Function<ReportOption, OptionState> editable = option -> OptionState.EDITABLE;
+		final int basic = checkBoxes(new ReportOptionsPanel(ReportConfig.defaults(), editable, FeatureVisibilityService.inMemory(UxLevel.BASIC)))
+			.size();
+		final int standard = checkBoxes(new ReportOptionsPanel(ReportConfig.defaults(), editable,
+			FeatureVisibilityService.inMemory(UxLevel.STANDARD))).size();
+		final int advanced = checkBoxes(advanced(ReportConfig.defaults(), editable)).size();
+
+		Assertions.assertEquals(basic + 1, standard);
+		Assertions.assertEquals(standard + 3, advanced);
+	}
+
+	@Test
 	void anOptionThatIsHiddenIsNotThere(){
-		final JPanel panel = new ReportOptionsPanel(ReportConfig.defaults(), states(OptionState.EDITABLE, ReportOption.TIMELINE,
-			ReportOption.DESCENDANTS));
+		final JPanel panel = advanced(ReportConfig.defaults(), states(OptionState.EDITABLE, ReportOption.TIMELINE, ReportOption.DESCENDANTS));
 
 		Assertions.assertNull(find(panel, "chronological_timeline"));
 		Assertions.assertNull(find(panel, "descendants"));
 		Assertions.assertNotNull(find(panel, "introduction"));
-		Assertions.assertEquals(ReportOption.values().length - 23 - 2, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 25 - 2, checkBoxes(panel).size());
 	}
 
 	@Test

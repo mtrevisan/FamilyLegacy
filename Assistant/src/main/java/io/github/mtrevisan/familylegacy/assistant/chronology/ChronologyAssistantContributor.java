@@ -25,11 +25,14 @@
 package io.github.mtrevisan.familylegacy.assistant.chronology;
 
 import io.github.mtrevisan.familylegacy.assistant.AssistantAction;
+import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.AssistantTuning;
+import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
 
 import java.util.List;
+import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 
@@ -59,9 +62,23 @@ public final class ChronologyAssistantContributor implements AssistantContributo
 
 	@Override
 	public List<DiagnosticProvider> diagnosticProviders(){
-		return List.of(context -> (context.model() != null
-			? ChronologyChecker.check(ChronologyDataLoader.load(context.model()), ChronologyChecker.Rules.of(tuning.get()))
-			: List.of()));
+		return List.of(new DiagnosticProvider(){
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context){
+				return diagnose(context, fraction -> {});
+			}
+
+			/** The reading of the model is the first third of the work (it cannot tell how far it is), the checks are the rest. */
+			@Override
+			public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+				if(context.model() == null)
+					return List.of();
+
+				progress.accept(0.);
+				final ChronologyData data = ChronologyDataLoader.load(context.model());
+				return ChronologyChecker.check(data, ChronologyChecker.Rules.of(tuning.get()), 1. / 3., 1., progress);
+			}
+		});
 	}
 
 }

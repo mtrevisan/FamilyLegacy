@@ -59,7 +59,8 @@ import java.util.Set;
  * </p>
  * <ul>
  *   <li>the next steps of an open question: the records that would answer it and are not yet in the tree, not yet cited by a source, and
- *   that no task or activity of the question already covers (a draft of a research task, with the reason);</li>
+ *   that no task or activity of the question already covers (a draft of a research task, with the reason; if the tree has repositories at the places of the individual, or at the places that
+ *   contain them, the task names them and the years to look at);</li>
  *   <li>the brick walls worth working on: individuals whose parents are unknown, ranked by how much of the tree depends on them (a
  *   draft of a research question).</li>
  * </ul>
@@ -79,6 +80,8 @@ public final class PlannerChecker{
 	private static final int LAST_CENSUS_YEAR = 1950;
 	/** How many individuals of a question are planned for: a question about a whole family would drown the plan. */
 	private static final int MAX_PERSONS_PER_QUESTION = 3;
+	/** How many repositories are named in a task. */
+	private static final int MAX_REPOSITORIES = 3;
 	/** How many searches that found nothing make the records worth asking the archive for. */
 	private static final int FRUITLESS_SEARCHES = 2;
 
@@ -285,10 +288,23 @@ public final class PlannerChecker{
 			candidates.add(new Candidate(Step.ARCHIVE, person, tuning.get(AssistantTuning.Parameter.PLANNER_ARCHIVE), "", String.valueOf(fruitless)));
 	}
 
+	/**
+	 * Says where the records of the places of the individual may be kept (the repositories of the tree at those places, or at the places
+	 * that contain them), and for which years.
+	 */
+	private static String where(final String task, final Candidate candidate){
+		final List<String> repositories = candidate.person().repositories();
+		if(repositories.isEmpty() || candidate.step() == Step.ARCHIVE)
+			return task;
+
+		final String names = Sentences.list(repositories.subList(0, Math.min(MAX_REPOSITORIES, repositories.size())));
+		return I18N.tf((candidate.year().isEmpty()? "planner.step.where": "planner.step.where.year"), task, names, candidate.year());
+	}
+
 	private PlannerFinding step(final GapData.Question question, final Candidate candidate){
 		final Step step = candidate.step();
 		final String name = candidate.person().name() + " [" + candidate.person().id() + "]";
-		final String task = I18N.tf("planner.step." + step.key + ".task", name, candidate.year());
+		final String task = where(I18N.tf("planner.step." + step.key + ".task", name, candidate.year()), candidate);
 		final String why = I18N.tf("planner.step." + step.key + ".why", name, candidate.year(), candidate.count());
 		final String title = (question.title() != null && !question.title().isBlank()? question.title() + " [" + question.id() + "]": question.id());
 		final String level = level(candidate.usefulness(), tuning);

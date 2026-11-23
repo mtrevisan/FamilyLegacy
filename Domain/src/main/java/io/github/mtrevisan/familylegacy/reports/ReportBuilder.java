@@ -54,6 +54,10 @@ public final class ReportBuilder{
 	/** The options that only the Identity Hypotheses report has. */
 	private static final Set<ReportOption> HYPOTHESIS_OPTIONS = EnumSet.of(ReportOption.HYPOTHESIS_FILTER, ReportOption.HYPOTHESIS_RECORD_TYPE);
 
+	/** The options that only the Surnames by Place report has. */
+	private static final Set<ReportOption> SURNAME_OPTIONS = EnumSet.of(ReportOption.SURNAME_PLACE_LEVEL, ReportOption.SURNAME_PERIOD,
+		ReportOption.SURNAME_ALL_NAMES, ReportOption.SURNAME_SIMILAR);
+
 
 	private ReportBuilder(){}
 
@@ -73,7 +77,7 @@ public final class ReportBuilder{
 		final ReportConfig tailored = tailorConfigFor(type, userConfig);
 
 		return switch(type){
-			case INDIVIDUAL, GROUP, RELATIONSHIP, PLACE, SOURCE, RESEARCH_QUESTION, BIBLIOGRAPHY, RESEARCH_PROGRESS ->
+			case INDIVIDUAL, GROUP, RELATIONSHIP, PLACE, SOURCE, RESEARCH_QUESTION, GPS_PROOF, BIBLIOGRAPHY, RESEARCH_PROGRESS ->
 				new ReportGenerator(model, root, tailored, type)
 				.generate(listener);
 			case FAMILY_GROUP_SHEET -> new FamilyGroupSheetGenerator(model, root, tailored).generate(listener);
@@ -81,9 +85,13 @@ public final class ReportBuilder{
 			case FULL_BIBLIOGRAPHY -> new FullBibliographyGenerator(model, tailored).generate(listener);
 			case FAMILY_BOOK -> new FamilyBookGenerator(model, tailored).generate(listener);
 			case TO_VERIFY -> new ToVerifyGenerator(model, tailored).generate(listener);
+			case TAGGED_RECORDS -> new TaggedRecordsGenerator(model, tailored).generate(listener);
 			case CONFLICTS -> new ConflictReportGenerator(model, tailored, ConflictFinder.provided()).generate(listener);
 			case IDENTITY_HYPOTHESES -> new IdentityHypothesesGenerator(model, tailored).generate(listener);
 			case SURNAMES -> new SurnamesGenerator(model, tailored).generate(listener);
+			case PEDIGREE_COLLAPSE -> new PedigreeCollapseGenerator(model, root, tailored).generate(listener);
+			case KINSHIP -> new KinshipReportGenerator(model, root, tailored).generate(listener);
+			case DATABASE_SUMMARY -> new DatabaseSummaryGenerator(model, tailored).generate(listener);
 			case ANCESTOR -> new AncestorReportGenerator(model, root, tailored).generate(listener);
 			case DESCENDANT -> new DescendantReportGenerator(model, root, tailored).generate(listener);
 		};
@@ -115,11 +123,13 @@ public final class ReportBuilder{
 	 */
 	public static ReportConfig tailorConfigFor(final ReportType type, final ReportConfig base){
 		return switch(type){
-			case INDIVIDUAL, GROUP, FAMILY_GROUP_SHEET, END_OF_LINE, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, CONFLICTS, SURNAMES,
-				IDENTITY_HYPOTHESES -> base;
+			case INDIVIDUAL, GROUP, FAMILY_GROUP_SHEET, END_OF_LINE, PLACE, SOURCE, RESEARCH_QUESTION, FULL_BIBLIOGRAPHY, TO_VERIFY, TAGGED_RECORDS, CONFLICTS, SURNAMES,
+				IDENTITY_HYPOTHESES, PEDIGREE_COLLAPSE, KINSHIP, DATABASE_SUMMARY -> base;
 			//one self-contained sub-report per person: the introduction and the life story, no ancestry, descendants or relations (the
 			//persons are the ancestors or the descendants)
 			case ANCESTOR, DESCENDANT, FAMILY_BOOK -> withNarrative(base, true, false, false, false, false, false);
+			//the research of the question is the argument itself: the "Research" section of the other reports would tell it again
+			case GPS_PROOF -> base.with(ReportOption.CONTEXT_AND_RESEARCH, false);
 			case RELATIONSHIP -> withNarrative(base, base.introduction(), false, false, false, true, true)
 				.with(ReportOption.INDEX_PLACES, false);
 			case BIBLIOGRAPHY -> withSourcesFocus(base);
@@ -190,7 +200,35 @@ public final class ReportBuilder{
 				ReportOption.UNKNOWN_NAME)));
 			return out;
 		}
-		if(type == ReportType.TO_VERIFY || type == ReportType.SURNAMES){
+		if(type == ReportType.PEDIGREE_COLLAPSE){
+			//the ancestors of a person by generation, with the names of the ones that repeat: the front matter, the names, the generations
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GENERATIONS, ReportOption.GIVEN_NAMES,
+				ReportOption.UNKNOWN_NAME)));
+			return out;
+		}
+		if(type == ReportType.KINSHIP){
+			//the blood relatives of a person with the dates of birth and death: the front matter, the dates, the names, the generations
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.DATE_FORMAT, ReportOption.GENERATIONS,
+				ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME)));
+			return out;
+		}
+		if(type == ReportType.DATABASE_SUMMARY){
+			//counts on the whole file: only the front matter has a meaning (the privacy policy hides what it hides)
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER)));
+			return out;
+		}
+		if(type == ReportType.SURNAMES){
+			//a list on the whole file: the front matter, and how the surnames are grouped and counted
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME,
+				ReportOption.SURNAME_PLACE_LEVEL, ReportOption.SURNAME_PERIOD, ReportOption.SURNAME_ALL_NAMES, ReportOption.SURNAME_SIMILAR)));
+			return out;
+		}
+		if(type == ReportType.TO_VERIFY){
+			//a list on the whole file: only the front matter has a meaning (the privacy policy hides what it hides)
+			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME)));
+			return out;
+		}
+		if(type == ReportType.TAGGED_RECORDS){
 			//a list on the whole file: only the front matter has a meaning (the privacy policy hides what it hides)
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.HEADER, ReportOption.GIVEN_NAMES, ReportOption.UNKNOWN_NAME)));
 			return out;
@@ -212,6 +250,7 @@ public final class ReportBuilder{
 			//or group sheet
 			out.addAll(CONFLICT_OPTIONS);
 			out.addAll(HYPOTHESIS_OPTIONS);
+			out.addAll(SURNAME_OPTIONS);
 			out.addAll(Set.of(ReportOption.CONTEXT_AND_RESEARCH, ReportOption.CULTURAL_NORMS, ReportOption.HISTORIC_EVENTS,
 				ReportOption.TIMELINE, ReportOption.COVERAGE_REPORT, ReportOption.GROUP_MEMBERS, ReportOption.GROUP_SUBGROUPS,
 				ReportOption.GROUP_ATTRIBUTES));
@@ -238,6 +277,7 @@ public final class ReportBuilder{
 		//only the reports of the lines of a person have a scope for the collaterals and a number of generations, and number the persons
 		out.addAll(CONFLICT_OPTIONS);
 		out.addAll(HYPOTHESIS_OPTIONS);
+		out.addAll(SURNAME_OPTIONS);
 		out.add(ReportOption.COLLATERAL_SCOPE);
 		out.add(ReportOption.GENERATIONS);
 		out.add(ReportOption.FIRST_GENERATION);

@@ -69,7 +69,8 @@ public final class FindRecordDialog{
 				if(record != null && record.getId() != null)
 					result[0] = new Found(record, handler);
 			},
-			handlers);
+			handlers)
+			.withAnyTypeSelected();
 		dialog.setVisible(true);
 
 		return result[0];

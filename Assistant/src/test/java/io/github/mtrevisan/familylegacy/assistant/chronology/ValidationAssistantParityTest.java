@@ -110,6 +110,9 @@ public class ValidationAssistantParityTest{
 		VALIDATION.put("membership_before_birth", same("chronology.membership_before_birth"));
 		VALIDATION.put("membership_after_death", same("chronology.membership_after_death"));
 		VALIDATION.put("membership_ended_before_birth", same("chronology.membership_ended_before_birth"));
+		VALIDATION.put("attribute_before_birth", same("chronology.attribute_before_birth"));
+		VALIDATION.put("attribute_after_death", same("chronology.attribute_after_death"));
+		VALIDATION.put("attribute_ended_before_birth", same("chronology.attribute_ended_before_birth"));
 		VALIDATION.put("source_before_event", missing("a record older than the birth, baptism, death or burial it is cited for (a warning, it can be a later note): the assistant should find it too"));
 		VALIDATION.put("date_invalid", same("chronology.date_invalid"));
 		VALIDATION.put("date_not_checked", different("chronology.date_not_checked",
@@ -148,6 +151,7 @@ public class ValidationAssistantParityTest{
 		VALIDATION.put("source_derived_from_itself", only("a source derived from itself"));
 		VALIDATION.put("group_cycle", only("groups that are part of each other"));
 		VALIDATION.put("media_missing", only("the file of a media is not on the disk"));
+		VALIDATION.put("media_wrong_type", only("the file of a media is not of the kind the record says (read from the disk)"));
 		VALIDATION.put("incomplete", only("the structural checks could not be completed"));
 
 		//texts that are not kinds
@@ -237,6 +241,15 @@ public class ValidationAssistantParityTest{
 
 	private static List<Diagnostic> check(final List<ChronologyData.Person> persons, final List<ChronologyData.LifeEvent> events,
 			final List<ChronologyData.ParentLink> parents, final List<ChronologyData.Union> unions,
+			final List<ChronologyData.Membership> memberships, final List<ChronologyData.Attribute> attributes){
+		final Map<String, ChronologyData.Person> byId = new LinkedHashMap<>();
+		for(final ChronologyData.Person person : persons)
+			byId.put(person.id(), person);
+		return ChronologyChecker.check(new ChronologyData(byId, events, parents, unions, memberships, List.of(), attributes));
+	}
+
+	private static List<Diagnostic> check(final List<ChronologyData.Person> persons, final List<ChronologyData.LifeEvent> events,
+			final List<ChronologyData.ParentLink> parents, final List<ChronologyData.Union> unions,
 			final List<ChronologyData.Membership> memberships){
 		final Map<String, ChronologyData.Person> byId = new LinkedHashMap<>();
 		for(final ChronologyData.Person person : persons)
@@ -284,6 +297,15 @@ public class ValidationAssistantParityTest{
 		scenarios.put("membership_ended_before_birth", check(
 			List.of(person("a", SexType.MALE, day("1 June 1800"), null)), List.of(), List.of(), List.of(),
 			List.of(new ChronologyData.Membership("m", "a", null, day("1 June 1799"), "", "end of m"))));
+		scenarios.put("attribute_before_birth", check(
+			List.of(person("a", SexType.MALE, day("1 June 1800"), null)), List.of(), List.of(), List.of(), List.of(),
+			List.of(new ChronologyData.Attribute("t", "a", "residence", day("1 June 1799"), null, "begin of t", ""))));
+		scenarios.put("attribute_after_death", check(
+			List.of(person("a", SexType.MALE, day("1 June 1800"), day("1 June 1860"))), List.of(), List.of(), List.of(), List.of(),
+			List.of(new ChronologyData.Attribute("t", "a", "residence", day("1 June 1861"), null, "begin of t", ""))));
+		scenarios.put("attribute_ended_before_birth", check(
+			List.of(person("a", SexType.MALE, day("1 June 1800"), null)), List.of(), List.of(), List.of(), List.of(),
+			List.of(new ChronologyData.Attribute("t", "a", "residence", null, day("1 June 1799"), "", "end of t"))));
 		return scenarios;
 	}
 

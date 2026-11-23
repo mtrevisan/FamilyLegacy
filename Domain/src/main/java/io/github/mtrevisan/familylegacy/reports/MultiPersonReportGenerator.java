@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.reports.index.RelationIndex;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportDocument;
 import io.github.mtrevisan.reports.ReportSection;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

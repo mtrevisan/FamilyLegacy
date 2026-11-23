@@ -45,19 +45,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.DoubleConsumer;
 import java.util.function.Predicate;
 
 
 /**
  * Collects what a researcher has still to verify in a file: what is wrong in it (the structural checks of the validation, the
  * contradicting citations, the media that are not found), what is missing from the vital events (a date, a place, a source), the
- * individuals with no birth date, the sources nobody cites and the research tasks that are not done.
+ * individuals with no birth date or no parents, the marriages with no spouses, the sources nobody cites and the research tasks that are not done.
  * <p>
  * It does not repeat the checks: the problems of the file are the ones of {@link FileValidation#structure(FLEFModel, String)} (the
  * grammar of the protocol is not run here: it is a validation of the format, not a thing to research). It is read only, and it
  * judges only what is written in the records: a birth that is not recorded is a thing to find, not an error. The findings of the
- * research assistant (research gaps, the chronology, the citations, the identities) are computed by the application, not here: they
- * are in the assistant.
+ * research assistant (research gaps, the chronology, the identifiers of the sources, the identities) are computed by the application,
+ * not here: they are in the assistant, and come through {@link ToVerifyAssistance}.
  */
 public final class ToVerifyFinder{
 
@@ -71,16 +72,28 @@ public final class ToVerifyFinder{
 		MEDIA_MISSING,
 		/** An individual that has no dated birth. */
 		NO_BIRTH_DATE,
+		/** An individual that has no known parent. */
+		INDIVIDUAL_NO_PARENTS,
 		/** A vital event (birth, death, burial, cremation, marriage) with no date. */
 		EVENT_NO_DATE,
 		/** A vital event with no place. */
 		EVENT_NO_PLACE,
 		/** A vital event that no source supports. */
 		EVENT_NO_SOURCE,
+		/** A marriage that has no spouses. */
+		MARRIAGE_NO_SPOUSES,
 		/** A source that no record cites. */
 		SOURCE_NOT_CITED,
 		/** A research task that is open or in progress. */
-		OPEN_TASK;
+		OPEN_TASK,
+		/** A gap of the research that the research assistant finds (given by {@link ToVerifyAssistance}). */
+		RESEARCH_GAP,
+		/** A chronological inconsistency that the research assistant finds. */
+		CHRONOLOGY,
+		/** An identifier of a source that is wrong or does not fit, that the research assistant finds. */
+		SOURCE_IDENTIFIER,
+		/** Two records that the research assistant thinks may be the same entity. */
+		IDENTITY;
 
 		/** @return	the part of the key of the label of the kind, in the report labels ({@code TO_VERIFY_<key>}) */
 		public String key(){
@@ -119,12 +132,29 @@ public final class ToVerifyFinder{
 	 * @return	the findings, by the order of the kinds, and inside each kind in the order of the records
 	 */
 	public static List<Finding> find(final FLEFModel model, final Predicate<FLEFRecord> visible, final String mediaBaseDirectory){
+		return find(model, visible, mediaBaseDirectory, null, fraction -> {});
+	}
+
+	/**
+	 * @param model	the model
+	 * @param visible	whether a record can be shown (the privacy policy of the report); what is about a hidden record is not told
+	 * @param mediaBaseDirectory	the directory the relative locations of the media are relative to ({@code null}: they are not judged)
+	 * @param assistance	gives the findings of the research assistant ({@code null}: they are not included)
+	 * @param progress	told how far it is (0 to 1); the assistance is the slowest part
+	 * @return	the findings, by the order of the kinds, and inside each kind in the order of the records
+	 */
+	public static List<Finding> find(final FLEFModel model, final Predicate<FLEFRecord> visible, final String mediaBaseDirectory,
+			final ToVerifyAssistance assistance, final DoubleConsumer progress){
 		final List<Finding> out = new ArrayList<>();
 		fileProblems(model, visible, mediaBaseDirectory, out);
 		contradictingCitations(model, visible, out);
 		missingFromTheLife(model, visible, out);
+		missingRelations(model, visible, out);
 		sourcesNotCited(model, visible, out);
 		openTasks(model, visible, out);
+		progress.accept((assistance != null? 0.1: 1.));
+		if(assistance != null)
+			out.addAll(assistance.findings(model, visible, fraction -> progress.accept(0.1 + 0.9 * Math.max(0., Math.min(1., fraction)))));
 
 		//the kinds in their order, stable inside each
 		out.sort(Comparator.comparing(Finding::kind));
@@ -187,6 +217,31 @@ public final class ToVerifyFinder{
 		for(final FLEFRecord individual : model.getRecordsByType(IndividualReader.TYPE))
 			if(visible.test(individual) && !withBirthDate.contains(individual.getId()))
 				out.add(new Finding(Kind.NO_BIRTH_DATE, individual.getId(), StringUtils.EMPTY));
+	}
+
+	/** The relational gaps: the individuals with no parent, the marriages with no spouse. */
+	private static void missingRelations(final FLEFModel model, final Predicate<FLEFRecord> visible, final List<Finding> out){
+		final RelationIndex index = RelationIndex.build(model, visible);
+		for(final FLEFRecord individual : model.getRecordsByType(IndividualReader.TYPE))
+			if(visible.test(individual) && index.parentsOf(individual).isEmpty())
+				out.add(new Finding(Kind.INDIVIDUAL_NO_PARENTS, individual.getId(), StringUtils.EMPTY));
+
+		final Map<String, List<EventHelper.Participation>> participations = EventHelper.participationsByEvent(model);
+		for(final FLEFRecord event : EventHelper.listAllEvents(model)){
+			if(!visible.test(event) || !EventReader.ENUM_TYPE_MARRIAGE.equals(EventHelper.eventType(event)))
+				continue;
+
+			if(participations.getOrDefault(event.getId(), List.of()).stream().noneMatch(ToVerifyFinder::isSpouse))
+				out.add(new Finding(Kind.MARRIAGE_NO_SPOUSES, event.getId(), StringUtils.EMPTY));
+		}
+	}
+
+	/** An individual or a group that takes part in a marriage with no role, or as the principal one, is a spouse (not a witness). */
+	private static boolean isSpouse(final EventHelper.Participation participation){
+		return ((EventParticipationReader.TAG_PARTICIPANT_INDIVIDUAL.equals(participation.participantType())
+				|| EventParticipationReader.TAG_PARTICIPANT_GROUP.equals(participation.participantType()))
+			&& participation.participantId() != null
+			&& (StringUtils.isBlank(participation.role()) || EventParticipationReader.ENUM_ROLE_PRINCIPAL.equals(participation.role())));
 	}
 
 	/** An individual that takes part in a birth with no role, or as the principal one, is the one born (not a witness, not a parent). */

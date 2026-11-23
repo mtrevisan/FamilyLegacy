@@ -32,11 +32,13 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyResolver;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.OrderPreferences;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
+import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -383,7 +385,8 @@ public class GroupDossierPanel extends JPanel{
 			final JLabel evidenceLabel = new JLabel(entry.evidenceBadge());
 			evidenceLabel.setFont(EVIDENCE_FONT);
 			evidenceLabel.setForeground(EVIDENCE_COLOR);
-			evidenceLabel.setVisible(entry.hasEvidenceBadge());
+			//(the evidence badge tells about the evidence analysis: it is for the advanced level)
+			evidenceLabel.setVisible(entry.hasEvidenceBadge() && FeatureVisibilityService.shared().isVisible(UxLevel.ADVANCED));
 
 			add(labelLabel);
 			add(valueLabel, "growx,wrap");

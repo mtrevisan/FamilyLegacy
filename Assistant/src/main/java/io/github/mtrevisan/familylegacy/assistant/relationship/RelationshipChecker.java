@@ -44,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.DoubleConsumer;
 import java.util.stream.Stream;
 
 
@@ -100,6 +101,10 @@ public final class RelationshipChecker{
 
 
 
+	/** The number of reports of progress of {@link #findings(RelationshipData, double, double, DoubleConsumer)}. */
+	private static final int CHECKS = 7;
+
+
 	private RelationshipChecker(){}
 
 
@@ -112,23 +117,46 @@ public final class RelationshipChecker{
 
 	/** @return the findings, each with the draft of the relationship that would settle it (if it is about a missing one) */
 	public static List<RelationshipFinding> findings(final RelationshipData data){
+		return findings(data, 0., 1., fraction -> {});
+	}
+
+	/**
+	 * The same, telling how far it got: the checks are equal shares of the part of the progress from {@code from} to {@code to}.
+	 *
+	 * @param data      the data to check
+	 * @param from      the progress when the checks start
+	 * @param to        the progress when the checks end
+	 * @param progress  told, from time to time, the share of the work done (0 to 1)
+	 * @return	The findings.
+	 */
+	public static List<RelationshipFinding> findings(final RelationshipData data, final double from, final double to,
+			final DoubleConsumer progress){
 		final List<RelationshipFinding> findings = new ArrayList<>();
+		final double step = (to - from) / CHECKS;
+		progress.accept(from);
 		final Index index = new Index(data);
 		checkSelf(data, findings);
 		checkParticipants(data, findings);
 		checkDuplicates(data, findings);
+		progress.accept(from + step);
 		checkDates(data, findings);
 		checkParentage(data, findings);
 		checkRoles(data, findings);
+		progress.accept(from + 2 * step);
 		final Set<String> explained = new LinkedHashSet<>();
 		checkChildTypes(data, index, findings, explained);
+		progress.accept(from + 3 * step);
 		checkSpouseTypes(data, index, findings, explained);
+		progress.accept(from + 4 * step);
 		checkGenericTypes(data, findings, explained);
 		checkMissingMarriages(data, index, findings);
+		progress.accept(from + 5 * step);
 		checkEngagements(data, index, findings);
 		checkPartnersOfParents(data, index, findings);
+		progress.accept(from + 6 * step);
 		checkBirthInformants(data, index, findings);
 		checkAssociates(data, index, findings);
+		progress.accept(to);
 		return findings;
 	}
 

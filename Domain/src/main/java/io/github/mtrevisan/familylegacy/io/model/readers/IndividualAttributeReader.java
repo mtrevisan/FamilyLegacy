@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model.readers;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
 
 /**
@@ -127,6 +128,23 @@ public final class IndividualAttributeReader{
 	/** @return whether the record is of this type (its tag is the type, ignoring case) */
 	public static boolean isOfType(final FLEFRecord record){
 		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
+	/**
+	 * @param attribute	The attribute of an individual.
+	 * @return	The identifier of the individual it is about, written either as the value of the field or as the reference inside it
+	 * 	({@code null} if there is none).
+	 */
+	public static String extractIndividualId(final FLEFRecord attribute){
+		final FLEFRecord field = FLEFRecordHelper.findChild(attribute, TAG_INDIVIDUAL);
+		if(field == null)
+			return null;
+
+		if(field.getValue() != null)
+			return field.getValue();
+
+		final FLEFRecord inner = field.getTheOnlyChild();
+		return (inner != null? inner.getValue(): null);
 	}
 
 

@@ -31,7 +31,7 @@ Which tabs an editor has depends on the record; their order is always the same:
 7. **Research**: conclusions, identity hypotheses and research questions about the record.
 8. **Findings** and **References**: only for research activities.
 9. **Sources**: see below.
-10. **Notes**, **Privacy** and **Audit**: see below.
+10. **Notes**, **Tags**, **Privacy** and **Audit**: see below.
 
 The lists on these tabs are the linked records. Each list has a context menu (right-click) with **Create New...**, **Add Existing...**, **Edit...** and **Remove**. In the *Sources with Citations* lists, double-click edits the citation and `Shift` + double-click edits the source.
 
@@ -56,6 +56,15 @@ Many records have a **Confidence** combo: blank, **low**, **medium** or **high**
 ## Notes
 
 A **Notes** tab lists the notes of the record, each edited in its own dialog: see [the note editor](editors-sources.md#note).
+
+## Tags
+
+Individuals, groups, places, sources, repositories, research questions, research activities and research tasks have a **Tags** tab: your own words to classify the record, for what is temporary, specific to a project or cuts across the kinds of record and does not deserve a record of its own (*Brick Wall*, *DNA Candidate*, *To Verify*, *Needs Translation*, *Military Research*, *Immigration*, *Open Conflict*, *FAN Cluster*...).
+
+- The tags are small rounded boxes in one area, followed by a free space to type in: type a tag and press `Enter` (several at once, separated by commas); `Down` lists the tags that other records of the file already have. Click the **×** of a box, or select it (click, or the arrows; `Backspace` in the empty field goes back to the last one) and press `Delete`, to take it away. **OK** gives the tags to the record; `Esc` leaves them as they were.
+- A tag is **free text**: there is no list of allowed tags. Spaces at the ends are dropped, and two tags that differ only by capitals are the same tag (the spelling you wrote first is kept).
+- **The tags are not in the file.** They are not part of the FLEF protocol: the application keeps them for each file in `.familylegacy/tags.properties` in your user folder, as it does for the bookmarks, tied to the path of the file. A copy of the file that is sent to somebody, or opened on another computer, has no tags; a file that is moved or renamed outside the application loses them, and **File > Save As** carries them to the new file. The tags are not covered by Undo (see [Undo](undo.md)).
+- The tags are found by the search (see [Find record](searching.md)), listed by the **Tagged Records** report (see [Reports](reports.md)), shown by the [Research Assistant](assistant.md) for the record you are looking at, and joined when two records are merged (see [Merging](merging.md)).
 
 ## Privacy
 

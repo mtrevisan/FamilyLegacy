@@ -105,6 +105,8 @@ public final class FileMenuController{
 	});
 
 	private File currentFile;
+	/** Told when the document, still the same, is given another file (saved as, or the file chosen for a document that had none). */
+	private Runnable sameDocumentFileListener = () -> {};
 
 	/** Last directory used by a file chooser, so the next one opens there. */
 	private File lastDirectory;
@@ -140,6 +142,11 @@ public final class FileMenuController{
 	/** Returns the file currently open, or {@code null} for a document that has none yet. */
 	public File currentFile(){
 		return currentFile;
+	}
+
+	/** Tells {@code listener} when the open document, which stays the same, goes to another file (what is kept per file must follow). */
+	public void setSameDocumentFileListener(final Runnable listener){
+		sameDocumentFileListener = (listener != null? listener: () -> {});
 	}
 
 	/** Returns the recent files manager, for the Recent submenu. */
@@ -228,8 +235,10 @@ public final class FileMenuController{
 			return;
 		}
 
-		if(writeTo(target))
+		if(writeTo(target)){
 			setCurrentFile(target);
+			sameDocumentFileListener.run();
+		}
 	}
 
 	/**
@@ -449,6 +458,7 @@ public final class FileMenuController{
 
 		if(writeTo(target)){
 			setCurrentFile(target);
+			sameDocumentFileListener.run();
 			//where the file is, with the button to open its directory
 			SavedFileNotice.show(owner, I18N.t("dialog.file.save.title"), I18N.tf("dialog.file.saved", target.getAbsolutePath()), target);
 			return true;

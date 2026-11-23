@@ -268,6 +268,9 @@ public final class DocxReportRenderer implements ReportRenderer{
 				.setTitle(StringUtils.defaultString(doc.title()));
 
 			writeTitle(doc);
+			//a page break as the first section ends the title page: the contents start on the next page
+			if(!doc.sections().isEmpty() && doc.sections().getFirst() instanceof ReportSection.PageBreak)
+				pendingPageBreak = true;
 			writeTableOfContents(doc);
 
 			for(final ReportSection s : doc.sections())

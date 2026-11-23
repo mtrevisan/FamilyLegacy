@@ -28,15 +28,17 @@ import io.github.mtrevisan.familylegacy.privacy.LivingPrivacy;
 import io.github.mtrevisan.familylegacy.reports.ConflictConfidence;
 import io.github.mtrevisan.familylegacy.reports.ConflictFilter;
 import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
-import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
-import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
 import io.github.mtrevisan.familylegacy.reports.GenerationOrder;
 import io.github.mtrevisan.familylegacy.reports.GivenNameStyle;
+import io.github.mtrevisan.familylegacy.reports.HypothesisFilter;
+import io.github.mtrevisan.familylegacy.reports.HypothesisRecordType;
 import io.github.mtrevisan.familylegacy.reports.MediaPlacement;
 import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.PortraitMode;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
+import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportDateFormat;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
@@ -114,7 +116,11 @@ class ReportOptionsPanelTest{
 			ConflictConfidence.HIGH,
 			ConflictRecordType.NAME,
 			HypothesisFilter.REJECTED,
-			HypothesisRecordType.PLACE);
+			HypothesisRecordType.PLACE,
+			SurnamePlaceLevel.REGION,
+			SurnamePeriod.CENTURY,
+			!defaults.surnameAllNames(),
+			!defaults.surnameSimilar());
 	}
 
 

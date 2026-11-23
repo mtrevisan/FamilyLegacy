@@ -28,8 +28,10 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
+import io.github.mtrevisan.familylegacy.io.model.RecordTags;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
@@ -88,6 +90,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
@@ -103,6 +106,7 @@ public class FamilyLegacyFrame extends JFrame{
 	private static final int DOSSIER_WIDTH = 400;
 	/** Initial height of the tasks panel, below the views. */
 	private static final int TASKS_HEIGHT = 180;
+	private static final int TASKS_WIDTH = 460;
 
 
 	private final TreeType treeType;
@@ -115,6 +119,8 @@ public class FamilyLegacyFrame extends JFrame{
 	private RecentChangesDialog recentChangesDialog;
 	private ProjectionSwitcherPanel switcher;
 	private final BookmarkStore bookmarkStore = new BookmarkStore();
+	/** Where the free tags of the records are kept, for each file (they are not in the file: see {@link RecordTags}). */
+	private final TagStore tagStore = new TagStore();
 	private final FileMenuController fileController;
 	private Runnable terminator = () -> System.exit(0);
 	private final JSplitPane split;
@@ -156,6 +162,9 @@ public class FamilyLegacyFrame extends JFrame{
 		fileController = new FileMenuController(this, this::model, this::replaceModel, history);
 		//there are no unsaved changes: every change of the model is written to the file by itself
 		history.addChangeListener(fileController::documentChanged);
+		//the tags go with the file: they are written when they change, and follow the document when it is saved as another file
+		bindTags(model);
+		fileController.setSameDocumentFileListener(this::saveTags);
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
 		split.setResizeWeight(1.);
@@ -170,6 +179,8 @@ public class FamilyLegacyFrame extends JFrame{
 		//a task saved, or its status changed, from the panel is a step of the history (and is written to the file)
 		tasksPanel.setAfterChange(history::checkpoint);
 		tasksPanel.setOnHide(() -> setTasksPanelVisible(false));
+		tasksPanel.setDock(TasksPanel.Dock.of(AppPreferences.getInstance().tasksDock()));
+		tasksPanel.setOnDock(this::setTasksDock);
 		//the tasks are listed again when the model changes (a step of the history, an undo, a redo, another file)
 		history.addChangeListener(() -> {
 			if(tasksSplit != null)
@@ -510,34 +521,56 @@ public class FamilyLegacyFrame extends JFrame{
 		applyTasksPanelVisibility();
 	}
 
-	/** Puts the tasks panel below the views, or takes it away, as the preference and the level of the interface say. */
+	/** Docks the tasks panel at a side of the window; the choice is kept in the user preferences. */
+	public void setTasksDock(final TasksPanel.Dock dock){
+		AppPreferences.getInstance()
+			.setTasksDock(dock.name().toLowerCase(Locale.ROOT));
+		tasksPanel.setDock(dock);
+		detachTasksSplit();
+		applyTasksPanelVisibility();
+	}
+
+	private void detachTasksSplit(){
+		if(tasksSplit == null)
+			return;
+
+		remove(tasksSplit);
+		tasksSplit.removeAll();
+		tasksSplit = null;
+		add(split, BorderLayout.CENTER);
+	}
+
+	/** Puts the tasks panel beside the views, or takes it away, as the preference and the level of the interface say. */
 	private void applyTasksPanelVisibility(){
 		final boolean visible = isTasksPanelVisible();
 		if(visible && tasksSplit == null){
 			remove(split);
-			tasksSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, split, tasksPanel);
-			tasksSplit.setResizeWeight(1.);
+			final TasksPanel.Dock dock = tasksPanel.getDock();
+			final boolean first = (dock == TasksPanel.Dock.TOP || dock == TasksPanel.Dock.LEFT);
+			tasksSplit = new JSplitPane((dock.isSide()? JSplitPane.HORIZONTAL_SPLIT: JSplitPane.VERTICAL_SPLIT),
+				(first? tasksPanel: split), (first? split: tasksPanel));
+			tasksSplit.setResizeWeight(first? 0.: 1.);
 			tasksSplit.setContinuousLayout(true);
 			tasksSplit.setBorder(null);
-			placeTasksDivider(tasksSplit);
+			placeTasksDivider(tasksSplit, dock);
 			add(tasksSplit, BorderLayout.CENTER);
 			tasksPanel.refresh();
 		}
-		else if(!visible && tasksSplit != null){
-			remove(tasksSplit);
-			tasksSplit.removeAll();
-			tasksSplit = null;
-			add(split, BorderLayout.CENTER);
-		}
+		else if(!visible)
+			detachTasksSplit();
 		revalidate();
 		repaint();
 	}
 
-	/** Gives the tasks panel its initial height as soon as the split pane has one (the window may not be shown yet). */
-	private static void placeTasksDivider(final JSplitPane splitPane){
-		final Runnable place = () -> splitPane.setDividerLocation(Math.max(0, splitPane.getHeight() - splitPane.getDividerSize()
-			- TASKS_HEIGHT));
-		if(splitPane.getHeight() > 0){
+	/** Gives the tasks panel its initial size as soon as the split pane has one (the window may not be shown yet). */
+	private static void placeTasksDivider(final JSplitPane splitPane, final TasksPanel.Dock dock){
+		final boolean first = (dock == TasksPanel.Dock.TOP || dock == TasksPanel.Dock.LEFT);
+		final int panelSize = (dock.isSide()? TASKS_WIDTH: TASKS_HEIGHT);
+		final Runnable place = () -> {
+			final int total = (dock.isSide()? splitPane.getWidth(): splitPane.getHeight());
+			splitPane.setDividerLocation(first? panelSize: Math.max(0, total - splitPane.getDividerSize() - panelSize));
+		};
+		if(splitPane.getHeight() > 0 && splitPane.getWidth() > 0){
 			SwingUtilities.invokeLater(place);
 			return;
 		}
@@ -545,7 +578,7 @@ public class FamilyLegacyFrame extends JFrame{
 		splitPane.addComponentListener(new ComponentAdapter(){
 			@Override
 			public void componentResized(final ComponentEvent e){
-				if(splitPane.getHeight() <= 0)
+				if(splitPane.getHeight() <= 0 || splitPane.getWidth() <= 0)
 					return;
 
 				splitPane.removeComponentListener(this);
@@ -585,6 +618,25 @@ public class FamilyLegacyFrame extends JFrame{
 
 	BookmarkStore bookmarkStore(){
 		return bookmarkStore;
+	}
+
+	/** Gives the model the tags that were kept for its file, and writes them again at every change. */
+	private void bindTags(final FLEFModel newModel){
+		final RecordTags tags = newModel.tags();
+		final String path = bookmarkFilePath();
+		if(path != null){
+			tags.replaceAll(tagStore.load(path));
+			//the tags of a record that is not in the file any more (it was deleted by other means) are forgotten
+			tags.retainOnly(newModel::hasRecord);
+		}
+		tags.addChangeListener(this::saveTags);
+	}
+
+	/** Writes the tags of the open document under the path of its file (a document with no file has none yet: they are written when it has). */
+	private void saveTags(){
+		final String path = bookmarkFilePath();
+		if(path != null && model != null)
+			tagStore.save(path, model.tags());
 	}
 
 	ProjectionSwitcherPanel switcher(){
@@ -633,6 +685,7 @@ public class FamilyLegacyFrame extends JFrame{
 		SwingUtilities.invokeLater(() -> {
 			model = newModel;
 			history.reset(newModel);
+			bindTags(newModel);
 			if(modified){
 				history.markUnsaved();
 				//what is in memory is not what is on the file: it is written to it

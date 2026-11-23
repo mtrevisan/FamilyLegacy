@@ -53,17 +53,28 @@ public final class ToVerifyGenerator{
 	private final FLEFModel model;
 	private final ReportConfig config;
 	private final String mediaBaseDirectory;
+	private final ToVerifyAssistance assistance;
 
 
 	public ToVerifyGenerator(final FLEFModel model, final ReportConfig config){
-		this(model, config, MediaPathDisplay.baseDirectory());
+		this(model, config, MediaPathDisplay.baseDirectory(), ToVerifyAssistance.provided());
 	}
 
 	/** @param mediaBaseDirectory	The directory that the relative locations of the media are relative to ({@code null}: they are not judged). */
 	public ToVerifyGenerator(final FLEFModel model, final ReportConfig config, final String mediaBaseDirectory){
+		this(model, config, mediaBaseDirectory, null);
+	}
+
+	/**
+	 * @param mediaBaseDirectory	The directory that the relative locations of the media are relative to ({@code null}: they are not judged).
+	 * @param assistance	Gives the findings of the research assistant ({@code null}: they are not included).
+	 */
+	public ToVerifyGenerator(final FLEFModel model, final ReportConfig config, final String mediaBaseDirectory,
+			final ToVerifyAssistance assistance){
 		this.model = model;
 		this.config = config;
 		this.mediaBaseDirectory = mediaBaseDirectory;
+		this.assistance = assistance;
 	}
 
 
@@ -84,7 +95,8 @@ public final class ToVerifyGenerator{
 		final ReportContext ctx = ReportContext.build(model, all.getFirst(), config);
 		listener.onProgress(5, null);
 
-		final List<ToVerifyFinder.Finding> findings = ToVerifyFinder.find(model, ctx::isVisible, mediaBaseDirectory);
+		final List<ToVerifyFinder.Finding> findings = ToVerifyFinder.find(model, ctx::isVisible, mediaBaseDirectory, assistance,
+			fraction -> listener.onProgress(5 + (int)Math.round(65 * fraction), null));
 		listener.onProgress(70, null);
 
 		final Map<ToVerifyFinder.Kind, List<ToVerifyFinder.Finding>> byKind = new EnumMap<>(ToVerifyFinder.Kind.class);

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.RecordDeleter;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordTags;
 import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
@@ -84,6 +85,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -103,6 +105,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +161,36 @@ public class RecordSelectionDialog extends JDialog{
 	private static final String CARD_HIERARCHY = "card-hierarchy";
 
 
-	private record DisplayItem(FLEFRecord record, String displayText, String explanation){}
+	/** A result: the record, the text to show, the tooltip, and its handler when the search covers several types (otherwise {@code null}). */
+	private record DisplayItem(FLEFRecord record, String displayText, String explanation, RecordTypeHandler<?> handler){}
+
+	/** The pseudo-type "Any": the search covers all the types offered by the dialog. It has no records of its own. */
+	private static final class AnyTypeHandler implements RecordTypeHandler<RecordDialog>{
+		@Override
+		public String getLabel(){
+			return I18N.t("search.combo.any");
+		}
+
+		@Override
+		public String getType(){
+			return "any";
+		}
+
+		@Override
+		public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+			return record.getId();
+		}
+
+		@Override
+		public RecordDialog createNewDialog(final Window parent, final FLEFModel model){
+			throw new UnsupportedOperationException("No record can be created for any type");
+		}
+
+		@Override
+		public RecordDialog createEditDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
+			throw new UnsupportedOperationException("No record can be edited for any type");
+		}
+	}
 
 
 	private final FLEFModel model;
@@ -175,11 +207,18 @@ public class RecordSelectionDialog extends JDialog{
 
 	// UI Components
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
+	//the pseudo-type that searches all the types, and the real types it stands for (only when the dialog offers more than one type)
+	private final RecordTypeHandler<?> anyHandler = new AnyTypeHandler();
+	private final List<RecordTypeHandler<?>> typeHandlers = new ArrayList<>();
+	private JButton createButton;
 	// The text and the search modifiers (whole word, fuzzy, notes and citations): independent options, either, both, or neither can be
 	// on. The text is debounced by the dialog itself, so the box is listened to through its document and its option changes.
 	private final SearchBox searchBox = new SearchBox(20, true);
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
+	/** The free tags the records must have (only for the kinds of record that can be tagged), separated by commas. */
+	private final JLabel tagsLabel = new JLabel(I18N.l("search.filter.tags"));
+	private final JTextField tagsField = new JTextField(20);
 
 	private final DefaultListModel<DisplayItem> listModel = new DefaultListModel<>();
 	private final JList<DisplayItem> resultList = BindingsHelper.createList(listModel);
@@ -302,11 +341,17 @@ public class RecordSelectionDialog extends JDialog{
 
 
 	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final Class<? extends RecordTypeHandler<?>>[] handlerTypes){
-		final RecordTypeHandler<?>[] handlers = new RecordTypeHandler[handlerTypes.length];
-		for(int i = 0, length = handlerTypes.length; i < length; i ++)
-			handlers[i] = HandlerRegistry.getHandler(handlerTypes[i]);
+		final RecordTypeHandler<?>[] handlers = new RecordTypeHandler[handlerTypes.length + 1];
+		handlers[0] = anyHandler;
+		for(int i = 0, length = handlerTypes.length; i < length; i ++){
+			handlers[i + 1] = HandlerRegistry.getHandler(handlerTypes[i]);
+			typeHandlers.add(handlers[i + 1]);
+		}
 
-		final JComboBox<RecordTypeHandler<?>> combo = ComboBoxSearch.searchable(new JComboBox<>(handlers));
+		final JComboBox<RecordTypeHandler<?>> plainCombo = new JComboBox<>(handlers);
+		//"Any" is offered first, but the first real type is the one selected at the start
+		plainCombo.setSelectedIndex(1);
+		final JComboBox<RecordTypeHandler<?>> combo = ComboBoxSearch.searchable(plainCombo);
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
@@ -315,7 +360,7 @@ public class RecordSelectionDialog extends JDialog{
 
 				if(value instanceof RecordTypeHandler<?> handler){
 					setText(handler.getLabel());
-					setToolTipText(index >= 0? GUIHelper.usageTooltip(handler.getType()): null);
+					setToolTipText(index >= 0 && handler != anyHandler? GUIHelper.usageTooltip(handler.getType()): null);
 				}
 				return this;
 			}
@@ -343,6 +388,9 @@ public class RecordSelectionDialog extends JDialog{
 		}
 		topPanel.add(new JLabel(I18N.l("search.search_text")));
 		topPanel.add(searchBox, "growx");
+		tagsField.setToolTipText(I18N.t("search.filter.tags.tooltip"));
+		topPanel.add(tagsLabel, "hidemode 3");
+		topPanel.add(tagsField, "growx,hidemode 3");
 
 		// Search modifiers: all start off, which means "plain substring match". Switching one on narrows the search according to the
 		// semantics documented on the class (the notes are not a way to match a token: they widen the text the query is looked for in).
@@ -411,7 +459,7 @@ public class RecordSelectionDialog extends JDialog{
 		// Left column (New button if allowed, otherwise empty panel)
 		final JPanel leftPanel = new JPanel(new MigLayout("ins 0", "[]10[]"));
 		if(allowCreation){
-			final JButton createButton = new JButton(I18N.t("button.new"));
+			createButton = new JButton(I18N.t("button.new"));
 			createButton.addActionListener(e -> createNewRecord());
 			leftPanel.add(createButton);
 		}
@@ -446,6 +494,24 @@ public class RecordSelectionDialog extends JDialog{
 				scheduleSearch();
 			}
 		});
+
+		tagsField.getDocument()
+			.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					scheduleSearch();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					scheduleSearch();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){
+					scheduleSearch();
+				}
+			});
 
 		resultList.addMouseListener(new MouseAdapter(){
 			@Override
@@ -489,7 +555,7 @@ public class RecordSelectionDialog extends JDialog{
 	private void updateWindowTitle(){
 		final RecordTypeHandler<?> desc = getSelectedHandler();
 		final String title;
-		if(desc instanceof IndividualHandler)
+		if(desc == anyHandler || desc instanceof IndividualHandler)
 			title = I18N.t("search.title.select_record");
 		else if(desc instanceof EventHandler)
 			title = I18N.t("search.title.manage.events");
@@ -524,6 +590,24 @@ public class RecordSelectionDialog extends JDialog{
 	 */
 	static String selectionTitle(final RecordTypeHandler<?> handler){
 		return (handler != null? I18N.tf("search.title.select_type", handler.getLabel()): I18N.t("search.title.select_record"));
+	}
+
+	/** @return	Whether the search covers all the types offered by the dialog. */
+	private boolean isAnyHandler(){
+		return (anyHandler == getSelectedHandler());
+	}
+
+	/** Selects the type "Any" (the search covers all the types), if the dialog offers more than one. */
+	public RecordSelectionDialog withAnyTypeSelected(){
+		if(typeCombo != null)
+			typeCombo.setSelectedItem(anyHandler);
+
+		return this;
+	}
+
+	/** @return	The handler of the type of a result: its own if the search covers several types, otherwise the selected one. */
+	private RecordTypeHandler<?> handlerOf(final DisplayItem item){
+		return (item.handler() != null? item.handler(): getSelectedHandler());
 	}
 
 	private RecordTypeHandler<?> getSelectedHandler(){
@@ -582,6 +666,9 @@ public class RecordSelectionDialog extends JDialog{
 
 		updateControlsVisibility();
 		rebuildDynamicFilterPanel(handler);
+		//no record can be created without knowing its type
+		if(createButton != null)
+			createButton.setEnabled(!isAnyHandler());
 
 		if(isPlaceRelationship)
 			applyFiltersToHierarchy();
@@ -621,6 +708,13 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void rebuildDynamicFilterPanel(final RecordTypeHandler<?> handler){
+		//the tags can be asked for only on the records that can have them
+		final boolean taggable = (handler != null && RecordTags.isTaggable(handler.getType()));
+		tagsLabel.setVisible(taggable);
+		tagsField.setVisible(taggable);
+		if(!taggable)
+			tagsField.setText(StringUtils.EMPTY);
+
 		filterPanelHolder.removeAll();
 		if(handler != null){
 			final JPanel panel = FilterPanelFactory.createPanel(handler, criteria -> scheduleSearch());
@@ -656,14 +750,33 @@ public class RecordSelectionDialog extends JDialog{
 		SourceUsage.invalidate();
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		final SearchCriteria searchCriteria = new SearchCriteria(handler.getType(), searchBox.query(), currentMode());
+		final boolean any = isAnyHandler();
+		if(any && StringUtils.isBlank(searchBox.query())){
+			//all the records of all the types are too many to be of any use: a text is needed
+			listModel.clear();
+			resultList.setEnabled(false);
+			progressBar.setVisible(false);
+			statusLabel.setText(I18N.t("search.any.needs_text"));
 
-		initialFilters.forEach(searchCriteria::withFilter);
+			return;
+		}
 
-		if(filterPanelHolder.getComponentCount() > 0
-				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
-			filterPanel.getFilters()
-				.forEach(searchCriteria::withFilter);
+		//the types to search, each with its criteria (the filters of the panel are the ones of a single type)
+		final List<RecordTypeHandler<?>> searchedHandlers = (any? typeHandlers: List.of(handler));
+		final List<SearchCriteria> searchedCriteria = new ArrayList<>(searchedHandlers.size());
+		for(final RecordTypeHandler<?> searchedHandler : searchedHandlers){
+			final SearchCriteria searchCriteria = new SearchCriteria(searchedHandler.getType(), searchBox.query(), currentMode());
+
+			initialFilters.forEach(searchCriteria::withFilter);
+			if(tagsField.isVisible() && StringUtils.isNotBlank(tagsField.getText()))
+				searchCriteria.withFilter(SearchCriteria.FILTER_TAGS, tagsField.getText());
+
+			if(!any && filterPanelHolder.getComponentCount() > 0
+					&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
+				filterPanel.getFilters()
+					.forEach(searchCriteria::withFilter);
+			searchedCriteria.add(searchCriteria);
+		}
 
 		statusLabel.setText(I18N.t("search.searching"));
 		progressBar.setValue(0);
@@ -679,13 +792,32 @@ public class RecordSelectionDialog extends JDialog{
 				// ordered by match quality: number of matched query tokens
 				// first, sum of per-token fuzzy scores second, display text
 				// third.
-				final List<SearchService.SearchHit> records = searchService.searchExplained(searchCriteria,
-					progress -> publish(progress / 2));
-				if(isCancelled())
-					return null;
+				final int types = searchedCriteria.size();
+				final List<SearchService.SearchHit> records = new ArrayList<>();
+				final Map<FLEFRecord, RecordTypeHandler<?>> handlersByRecord = new HashMap<>();
+				for(int t = 0; t < types; t ++){
+					final int base = t * 50 / types;
+					final int span = Math.max(1, 50 / types);
+					final List<SearchService.SearchHit> typeHits = searchService.searchExplained(searchedCriteria.get(t),
+						progress -> publish(base + progress * span / 100));
+					if(isCancelled())
+						return null;
+
+					records.addAll(typeHits);
+					for(final SearchService.SearchHit hit : typeHits)
+						handlersByRecord.put(hit.record(), searchedHandlers.get(t));
+				}
+				if(types > 1)
+					//a record that matches more words of the query always comes first (as inside a single type); the relevances, that come
+					//from different types, only break the ties, then the text
+					records.sort(Comparator.comparingInt(SearchService.SearchHit::matchedTerms).reversed()
+						.thenComparing(Comparator.comparingDouble(SearchService.SearchHit::relevance).reversed())
+						.thenComparing(hit -> displayTextCache.computeIfAbsent(hit.record(), searchService::getDisplayText),
+							String.CASE_INSENSITIVE_ORDER));
 
 				// Phase 2: Compute or fetch cached display texts in background
-				// (50% - 100% of progress).
+				// (50% - 100% of progress). When several types are searched, each result
+				// says what it is: "[Group] Trevisan and Masutti family ...".
 				final List<DisplayItem> items = new ArrayList<>(records.size());
 				final int total = records.size();
 				for(int i = 0; i < total; i ++){
@@ -695,7 +827,12 @@ public class RecordSelectionDialog extends JDialog{
 					final SearchService.SearchHit hit = records.get(i);
 					final FLEFRecord record = hit.record();
 					final String text = displayTextCache.computeIfAbsent(record, searchService::getDisplayText);
-					items.add(new DisplayItem(record, text, hit.explanation()));
+					if(types > 1){
+						final RecordTypeHandler<?> recordHandler = handlersByRecord.get(record);
+						items.add(new DisplayItem(record, "[" + recordHandler.getLabel() + "] " + text, hit.explanation(), recordHandler));
+					}
+					else
+						items.add(new DisplayItem(record, text, hit.explanation(), null));
 
 					final int progress = 50 + (int)(((i + 1) / (double)total) * 50);
 					publish(progress);
@@ -787,7 +924,7 @@ public class RecordSelectionDialog extends JDialog{
 		listModel.clear();
 
 		if(items.isEmpty()){
-			listModel.addElement(new DisplayItem(null, NO_MATCHING_RECORDS, null));
+			listModel.addElement(new DisplayItem(null, NO_MATCHING_RECORDS, null, null));
 
 			resultList.setEnabled(false);
 		}
@@ -801,6 +938,9 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void createNewRecord(){
+		if(isAnyHandler())
+			return;
+
 		final RecordTypeHandler<?> handler = getSelectedHandler();
 		final RecordDialog dialog = handler.createNewDialog(this, model);
 		if(setupDialog != null)
@@ -869,7 +1009,7 @@ public class RecordSelectionDialog extends JDialog{
 
 		final DisplayItem selectedItem = resultList.getSelectedValue();
 		if(selectedItem != null && selectedItem.record() != null){
-			final RecordTypeHandler<?> handler = getSelectedHandler();
+			final RecordTypeHandler<?> handler = handlerOf(selectedItem);
 			if(handler != null){
 				selectedRecord = selectedItem.record();
 				selectedType = handler.getType();
@@ -896,9 +1036,9 @@ public class RecordSelectionDialog extends JDialog{
 			return;
 		}
 
-		final RecordTypeHandler<?> handler = getSelectedHandler();
+		final DisplayItem selectedItem = resultList.getSelectedValue();
+		final RecordTypeHandler<?> handler = (selectedItem != null? handlerOf(selectedItem): getSelectedHandler());
 		if(handler != null){
-			final DisplayItem selectedItem = resultList.getSelectedValue();
 			if(selectedItem == null || selectedItem.record() == null)
 				return;
 

@@ -116,8 +116,29 @@ class PlaceAssistantTest{
 		Assertions.assertTrue(duplicate.recordIds().contains("P99"));
 		//the proposal is to compare, and nothing is merged
 		Assertions.assertNotNull(duplicate.action());
+		Assertions.assertEquals(List.of("Create Identity Hypothesis Draft…", "Compare Side by Side…", "Record as Different Records…",
+			"Open the Records…"), io.github.mtrevisan.familylegacy.ui.assistant.DiagnosticActions.of(duplicate).stream()
+			.map(io.github.mtrevisan.familylegacy.assistant.DiagnosticAction::title).toList());
 		Assertions.assertEquals(2, model.getRecordsByType(PlaceReader.TYPE).stream()
 			.filter(r -> "Veneto".equals(io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader.extractPrimaryName(r))).count());
+	}
+
+	@Test
+	void aDuplicatePlaceWithAnIdentityHypothesisIsNotProposedAgain() throws IOException{
+		final FLEFModel model = convert();
+		model.addRecord(FLEFRecord.createMainRecord("P99", PlaceReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(PlaceReader.TAG_NAME)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_VALUE, "Veneto")))
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, PlaceReader.ENUM_TYPE_REGION)));
+		final Diagnostic duplicate = diagnose(model).stream().filter(d -> d.key().startsWith("place.possible_duplicate|")).findFirst().orElseThrow();
+
+		final FLEFRecord hypothesis = FLEFRecord.createMainRecord("IH1", io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader.TYPE);
+		for(final String id : duplicate.recordIds())
+			hypothesis.addChild(FLEFRecord.createChildWithTag(io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader.TAG_IDENTITY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TYPE, id)));
+		model.addRecord(hypothesis);
+
+		Assertions.assertTrue(diagnose(model).stream().noneMatch(d -> d.key().startsWith("place.possible_duplicate|")));
 	}
 
 	@Test

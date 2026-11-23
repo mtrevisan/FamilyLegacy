@@ -222,6 +222,7 @@ public final class ModelHistory{
 		final Snapshot current = (isUnchanged(baseline)? baseline: verified(capture(model, (viewSource != null? viewSource: baseline))));
 		final FLEFModel copy = new FLEFModel();
 		copy.setHeader(current.header());
+		copy.shareTags(model.tags());
 		for(final FLEFRecord record : current.records())
 			copy.addRecord(record);
 		//filling the copy counts as a change for whoever watches the counter, and it is not one of the model

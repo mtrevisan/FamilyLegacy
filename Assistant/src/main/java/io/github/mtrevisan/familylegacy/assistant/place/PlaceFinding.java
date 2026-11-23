@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.assistant.place;
 
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
 
 import java.util.List;
 
@@ -35,5 +36,13 @@ import java.util.List;
  * @param diagnostic the finding
  * @param draft      the start of a relationship between places to propose, or {@code null}
  * @param compare    the two places to compare side by side, or an empty list
+ * @param identity   for two possible duplicates, the start of the identity hypothesis that would record the possibility, or {@code null}
  */
-public record PlaceFinding(Diagnostic diagnostic, PlaceDraft draft, List<String> compare){}
+public record PlaceFinding(Diagnostic diagnostic, PlaceDraft draft, List<String> compare, IdentityDraft identity){
+
+	/** A finding with no identity draft. */
+	public PlaceFinding(final Diagnostic diagnostic, final PlaceDraft draft, final List<String> compare){
+		this(diagnostic, draft, compare, null);
+	}
+
+}

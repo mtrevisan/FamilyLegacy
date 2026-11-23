@@ -30,8 +30,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.CulturalNormReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.HistoricEventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentifierReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
@@ -77,11 +77,10 @@ final class EntityMatcher{
 		ModelIndex.KIND_SOURCE);
 
 	private static final Set<String> BIRTH_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH);
-	private static final Set<String> BIRTH_PROXY_TYPES = Set.of("baptism", "christening");
 	private static final Set<String> DEATH_TYPES = Set.of(EventReader.ENUM_TYPE_DEATH);
 	private static final Set<String> DEATH_PROXY_TYPES = Set.of(EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 	/** Events compared on their own: the others are compared only as being the same event. */
-	private static final Set<String> OWN_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, "baptism", "christening", EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
+	private static final Set<String> OWN_EVENT_TYPES = Set.of(EventReader.ENUM_TYPE_BIRTH, EventReader.ENUM_TYPE_DEATH, EventReader.ENUM_TYPE_BURIAL, EventReader.ENUM_TYPE_CREMATION);
 
 	private static final String TAG_NAME = IndividualReader.TAG_NAME;
 	private static final String TAG_PART = NameReader.TAG_PART;
@@ -265,7 +264,7 @@ final class EntityMatcher{
 		addAgreement(score, TextSimilarity.best(fa.givens, fb.givens), "given name", 4., 2.5, 1.5, -4.);
 		addAgreement(score, TextSimilarity.best(fa.families, fb.families), "family name", 3.5, 2., 1.5, -3.);
 
-		addDates(score, fa.births, fb.births, fa.birthIsProxy || fb.birthIsProxy, "birth", 6., 3.);
+		addDates(score, fa.births, fb.births, false, "birth", 6., 3.);
 		addDates(score, fa.deaths, fb.deaths, fa.deathIsProxy || fb.deathIsProxy, "death", 5., 3.);
 		checkLifespan(score, fa, fb);
 		if(score.isVetoed())
@@ -385,8 +384,8 @@ final class EntityMatcher{
 	private static void checkLifespan(final MatchScore.Builder score, final IndividualFeatures fa, final IndividualFeatures fb){
 		final double earliestBirth = Math.min(earliest(fa.births), earliest(fb.births));
 		final double latestDeath = Math.max(latest(fa.deaths), latest(fb.deaths));
-		if(bornAfterDeath(fa.births, fa.birthIsProxy || fb.deathIsProxy, fb.deaths)
-				|| bornAfterDeath(fb.births, fb.birthIsProxy || fa.deathIsProxy, fa.deaths))
+		if(bornAfterDeath(fa.births, fb.deathIsProxy, fb.deaths)
+				|| bornAfterDeath(fb.births, fa.deathIsProxy, fa.deaths))
 			score.veto("born after the death of the other");
 		else if(earliestBirth != Double.MAX_VALUE && latestDeath != -Double.MAX_VALUE
 				&& (latestDeath - earliestBirth) / DAYS_PER_YEAR > MAX_LIFESPAN_YEARS)
@@ -1118,7 +1117,6 @@ final class EntityMatcher{
 		private final List<String> givens;
 		private final List<String> families;
 		private final List<TemporalSpan> births;
-		private final boolean birthIsProxy;
 		private final List<TemporalSpan> deaths;
 		private final boolean deathIsProxy;
 		private final Set<String> birthPlaces;
@@ -1158,16 +1156,13 @@ final class EntityMatcher{
 			final String id = (individual != null? individual.getId(): null);
 			//the sexes are read once for the individual, not at every comparison with another one
 			sexes = index.sexes(id);
-			final List<TemporalSpan> birthSpans = index.principalEventSpans(id, BIRTH_TYPES);
-			birthIsProxy = birthSpans.isEmpty();
-			births = (birthIsProxy? index.principalEventSpans(id, BIRTH_PROXY_TYPES): birthSpans);
+			births = index.principalEventSpans(id, BIRTH_TYPES);
 			final List<TemporalSpan> deathSpans = index.principalEventSpans(id, DEATH_TYPES);
 			deathIsProxy = deathSpans.isEmpty();
 			deaths = (deathIsProxy? index.principalEventSpans(id, DEATH_PROXY_TYPES): deathSpans);
 
 			final Set<String> places = new InsertionSet();
 			places.addAll(index.principalEventPlaces(id, BIRTH_TYPES));
-			places.addAll(index.principalEventPlaces(id, BIRTH_PROXY_TYPES));
 			birthPlaces = places;
 
 			citations = index.subjectCitations(id);

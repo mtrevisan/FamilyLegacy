@@ -104,7 +104,7 @@ public final class IndividualFacts{
 
 
 	/** The facts, in the order of the rows. */
-	private static final List<String> KEYS = List.of("name", "sex", "birth_date", "birth_place", "baptism", "death_date", "death_place",
+	private static final List<String> KEYS = List.of("name", "sex", "birth_date", "birth_place", "death_date", "death_place",
 		"burial", "parents", "spouses", "children", "occupations", "residences", "attributes", "sources");
 	private static final String SEPARATOR = "; ";
 	private static final String SEPARATOR_OF_NAMES = " / ";
@@ -195,8 +195,6 @@ public final class IndividualFacts{
 		final FLEFRecord birth = eventOf(index, participations, person, List.of(EventReader.ENUM_TYPE_BIRTH));
 		put(facts, "birth_date", EventHelper.eventDateRaw(birth));
 		put(facts, "birth_place", EventSummary.placeName(birth, model));
-		final FLEFRecord baptism = eventOf(index, participations, person, List.of(EventReader.CUSTOM_TYPE_BAPTISM, EventReader.CUSTOM_TYPE_CHRISTENING));
-		put(facts, "baptism", dateAndPlace(model, baptism));
 		final FLEFRecord death = eventOf(index, participations, person, List.of(EventReader.ENUM_TYPE_DEATH));
 		put(facts, "death_date", EventHelper.eventDateRaw(death));
 		put(facts, "death_place", EventSummary.placeName(death, model));

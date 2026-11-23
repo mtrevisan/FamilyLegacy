@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.assistant.consanguinity.ConsanguinityAss
 import io.github.mtrevisan.familylegacy.assistant.fan.FanAssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.source.SourceIdentifierAssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.source.SourceKindAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.tags.TagsAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.DateAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
 import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
@@ -96,6 +97,7 @@ public final class DefaultResearchAssistant{
 		service.register(new ConsanguinityAssistantContributor());
 		service.register(new FanAssistantContributor());
 		service.register(new SourceKindAssistantContributor());
+		service.register(new TagsAssistantContributor());
 		service.register(new SourceIdentifierAssistantContributor());
 		service.register(new IdentityAssistantContributor());
 		service.register(new GapAssistantContributor());

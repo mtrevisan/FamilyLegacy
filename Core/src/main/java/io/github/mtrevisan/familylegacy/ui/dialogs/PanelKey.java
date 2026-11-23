@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.components.AuditPanel;
 import io.github.mtrevisan.familylegacy.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.ui.components.PrivacyPanel;
@@ -200,6 +201,20 @@ public enum PanelKey{
 		this.factory = factory;
 	}
 
+
+	/**
+	 * @return the lowest interface level the panel is shown at (progressive disclosure): conclusions, context impacts and evidence
+	 * 	qualifiers are for the advanced level, the other panels of the research workflow for the standard one, all the others for everyone.
+	 * 	The editors of the research and context records show all their panels at every level.
+	 */
+	public UxLevel minimumLevel(){
+		return switch(this){
+			case CONTEXT_IMPACT_ON_TARGET, CONTEXT_IMPACT_ON_CONTEXT, CONCLUSION_ON_RESOLVES, CONCLUSION_ON_RESEARCH, EVIDENCE -> UxLevel.ADVANCED;
+			case IDENTITY_HYPOTHESIS_ON_IDENTITY, RESEARCH_QUESTION_ON_TARGET, RESEARCH_ACTIVITY_ON_QUESTION, RESEARCH_ACTIVITY_ON_SOURCE,
+				RESEARCH_TASK_ON_QUESTION, RESEARCH_QUESTION, TASK -> UxLevel.STANDARD;
+			default -> UxLevel.BASIC;
+		};
+	}
 
 	/**
 	 * Creates the component panel associated with this key.

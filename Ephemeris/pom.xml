@@ -250,7 +250,7 @@
 												<arg value="/Qp"/>
 												<arg value="/DAppVersion=${package.version}"/>
 												<arg value="/DAppGuid=${package.upgradeUuid}"/>
-												<arg value="/DSourceDir=${package.coreTarget}/windows-standalone/${package.name}"/>
+												<arg value="/DSourceDir=${package.coreTarget}/windows-inno-image/${package.name}"/>
 												<arg value="/DIconFile=${package.coreTarget}/app-icon/FamilyLegacy.ico"/>
 												<arg value="/DOutputDir=${package.coreTarget}/windows-inno"/>
 												<arg value="${project.basedir}/../installer/FamilyLegacy.iss"/>

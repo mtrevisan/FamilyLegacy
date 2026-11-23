@@ -106,6 +106,8 @@ class FeatureVisibilityServiceTest{
 		Assertions.assertEquals(UxLevel.STANDARD, new io.github.mtrevisan.familylegacy.ui.tools.events.ManageEventTypesTool().minimumLevel());
 		//the ordinary genealogy tools stay in the basic menus
 		Assertions.assertEquals(UxLevel.STANDARD, new io.github.mtrevisan.familylegacy.ui.tools.sources.CitationAnalysisTool().minimumLevel());
+		Assertions.assertEquals(UxLevel.STANDARD, new io.github.mtrevisan.familylegacy.ui.tools.sources.DocumentationCoverageTool().minimumLevel());
+		Assertions.assertEquals(UxLevel.STANDARD, new io.github.mtrevisan.familylegacy.ui.tools.sources.SourceWorkspaceTool().minimumLevel());
 		Assertions.assertEquals(UxLevel.BASIC, new io.github.mtrevisan.familylegacy.ui.tools.events.ManageParticipantsTool().minimumLevel());
 	}
 

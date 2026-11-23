@@ -91,6 +91,28 @@ public class ChronologyDataLoaderTest{
 
 
 	@Test
+	void anAttributeDatedBeforeTheBirthIsFound() throws IOException{
+		final ChronologyData data = ChronologyDataLoader.load(convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME Anna /Rossi/
+			1 SEX F
+			1 BIRT
+			2 DATE 1 JAN 1850
+			1 RESI
+			2 DATE 1 JAN 1840
+			2 PLAC Treviso
+			"""));
+
+		Assertions.assertEquals(1, data.attributes().size(), data.attributes().toString());
+		final ChronologyData.Attribute attribute = data.attributes().getFirst();
+		Assertions.assertEquals(personNamed(data, "Anna").id(), attribute.individualId());
+		Assertions.assertTrue(ChronologyChecker.check(data).stream()
+			.anyMatch(finding -> finding.key().startsWith("chronology.attribute_before_birth|")), ChronologyChecker.check(data).toString());
+	}
+
+	@Test
 	void readsPeopleDatesAndRelationships() throws IOException{
 		final ChronologyData data = ChronologyDataLoader.load(convert(GEDCOM));
 

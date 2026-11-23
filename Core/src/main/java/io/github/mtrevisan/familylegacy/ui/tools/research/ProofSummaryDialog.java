@@ -82,6 +82,7 @@ final class ProofSummaryDialog extends JDialog{
 	private final JTable conclusionsTable;
 	private final JComboBox<String> statusFilter = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
+	private final JButton inspect = new JButton(I18N.t("button.inspect_inference"));
 	private final JPanel distributionTab = new JPanel(new BorderLayout());
 
 
@@ -125,9 +126,18 @@ final class ProofSummaryDialog extends JDialog{
 				openRow(conclusionsTable.convertRowIndexToModel(conclusionsTable.getSelectedRow()));
 		});
 
+		inspect.addActionListener(e -> {
+			if(conclusionsTable.getSelectedRow() >= 0){
+				final String id = (String)((RowTableModel)conclusionsTable.getModel())
+					.rowAt(conclusionsTable.convertRowIndexToModel(conclusionsTable.getSelectedRow()))[1];
+				new InferenceInspectionDialog(this, model, id)
+					.setVisible(true);
+			}
+		});
+
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter("", openRecord, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter("", openRecord, inspect, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);
@@ -205,6 +215,7 @@ final class ProofSummaryDialog extends JDialog{
 
 	private void updateOpenButton(){
 		openRecord.setEnabled(tabs.getSelectedIndex() == 1 && conclusionsTable.getSelectedRow() >= 0);
+		inspect.setEnabled(openRecord.isEnabled());
 	}
 
 	private void openRow(final int modelRow){

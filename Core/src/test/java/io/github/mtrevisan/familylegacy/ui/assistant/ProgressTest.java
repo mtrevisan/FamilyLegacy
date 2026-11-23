@@ -29,10 +29,13 @@ import io.github.mtrevisan.familylegacy.assistant.AssistantContext;
 import io.github.mtrevisan.familylegacy.assistant.AssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticProvider;
+import io.github.mtrevisan.familylegacy.assistant.chronology.ChronologyAssistantContributor;
+import io.github.mtrevisan.familylegacy.assistant.consanguinity.ConsanguinityAssistantContributor;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
+import io.github.mtrevisan.familylegacy.ui.assistant.relationship.RelationshipAssistantContributor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -147,6 +150,64 @@ class ProgressTest{
 		assertMonotone(values);
 		//two providers: the first one is half of the work, the second one tells half of its half, then all of it (a value out of range is cut)
 		Assertions.assertEquals(List.of(0., 0.5, 0.75, 1., 1.), values);
+	}
+
+	@Test
+	void theSlowAssistantsTellHowFarTheyAreAndEndWithAll() throws IOException{
+		final FLEFModel model = model(60);
+		for(final AssistantContributor contributor : List.of(new ChronologyAssistantContributor(), new RelationshipAssistantContributor(),
+				new ConsanguinityAssistantContributor())){
+			final List<Double> values = new ArrayList<>();
+			final ResearchAssistantService service = new ResearchAssistantService();
+			service.register(contributor);
+
+			service.diagnose(new SwingAssistantContext(null, null, model), values::add);
+
+			assertMonotone(values);
+			Assertions.assertEquals(1., values.getLast(), 1e-12, contributor.getClass().getSimpleName());
+			//the provider itself tells more than the start and the end of the share it has
+			Assertions.assertTrue(values.size() >= 3, contributor.getClass().getSimpleName() + ": " + values);
+		}
+	}
+
+	@Test
+	void theIndicatorTellsHowFarTheComputationIs(){
+		final ResearchAssistantService service = new ResearchAssistantService();
+		final double[] during = {-1.};
+		final AssistantIndicator[] indicator = new AssistantIndicator[1];
+		service.register(new AssistantContributor(){
+			@Override
+			public List<AssistantAction> actions(){
+				return List.of();
+			}
+
+			@Override
+			public List<DiagnosticProvider> diagnosticProviders(){
+				return List.of(new DiagnosticProvider(){
+					@Override
+					public List<Diagnostic> diagnose(final AssistantContext context){
+						return List.of();
+					}
+
+					@Override
+					public List<Diagnostic> diagnose(final AssistantContext context, final DoubleConsumer progress){
+						progress.accept(0.5);
+						during[0] = indicator[0].progress();
+						return List.of();
+					}
+				});
+			}
+		});
+		indicator[0] = new AssistantIndicator(service, () -> new SwingAssistantContext(null, null, new FLEFModel()), () -> false,
+			Runnable::run, Runnable::run, System::currentTimeMillis);
+
+		Assertions.assertEquals(0., indicator[0].progress());
+
+		indicator[0].onTimer();
+
+		Assertions.assertEquals(0.5, during[0], 1e-9);
+		//when the computation is over there is no bar
+		Assertions.assertEquals(0., indicator[0].progress());
 	}
 
 	@Test

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.dossier.EditorTab;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordChangeSummary;
+import io.github.mtrevisan.familylegacy.io.model.RecordTags;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -37,6 +38,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
+import io.github.mtrevisan.familylegacy.ui.components.TagsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
@@ -114,6 +116,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	public static final String TAB_NAME_REFERENCES = EditorTab.REFERENCES;
 	public static final String TAB_NAME_SOURCES = EditorTab.SOURCES;
 	public static final String TAB_NAME_NOTES = EditorTab.NOTES;
+	public static final String TAB_NAME_TAGS = EditorTab.TAGS;
 	public static final String TAB_NAME_PRIVACY = EditorTab.PRIVACY;
 	public static final String TAB_NAME_AUDIT = EditorTab.AUDIT;
 	public static final String TAB_NAME_SUBMITTER = EditorTab.SUBMITTER;
@@ -141,6 +144,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	protected final ImageCarouselPanel imageCarouselPanel = new ImageCarouselPanel();
 	/** The quiet strip where the advanced concepts that could help with the record are suggested (only in the editors with tabs). */
 	private SuggestionStrip suggestionStrip;
+	/** The free tags of the record (only for the kinds of record that can be tagged, see {@link RecordTags#isTaggable}). */
+	private TagsPanel tagsPanel;
 
 
 	protected BaseRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record,
@@ -231,12 +236,13 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		final JPanel referencesPanel = createReferencesPanel();
 		final JPanel sourcesPanel = createSourcesPanel();
 		final JPanel notesPanel = createNotesPanel();
+		final JPanel tagsTab = createTagsPanel();
 		final JPanel privacyPanel = createPrivacyPanel();
 		final JPanel auditPanel = createAuditPanel();
 
 		if(attributesPanel == null && relationshipsPanel == null && participationsPanel == null && contextPanel == null
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
-				&& notesPanel == null && privacyPanel == null && auditPanel == null){
+				&& notesPanel == null && tagsTab == null && privacyPanel == null && auditPanel == null){
 			// No optional panels, just show the properties panel (with the same margin the tabbed dialogs have: no content touches the edge)
 			setLayout(GUIHelper.createLabelFieldLayout(DIALOG_MARGIN, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
@@ -254,6 +260,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			addTabIfNotNull(tabbedPane, TAB_NAME_REFERENCES, referencesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_SOURCES, sourcesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_NOTES, notesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_TAGS, tagsTab);
 			addTabIfNotNull(tabbedPane, TAB_NAME_PRIVACY, privacyPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_AUDIT, auditPanel);
 		}
@@ -270,7 +277,18 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	 * 	with all their tabs at every level (the user got there on purpose), the other records show those tabs only from {@code minimum}
 	 */
 	static JPanel visibleAt(final String recordType, final UxLevel minimum, final JPanel panel, final FeatureVisibilityService features){
-		return (panel == null || ADVANCED_RECORD_TYPES.contains(recordType) || features.isVisible(minimum)? panel: null);
+		return (panel == null || !isOfferedAt(recordType, minimum, features)? null: panel);
+	}
+
+	/**
+	 * @param recordType the type of the record the editor is about
+	 * @param minimum    the lowest level the tab or the panel is shown at
+	 * @param features   what tells the level of the user
+	 * @return whether the tab or the panel is shown: the editors of the research workflow and of the context records show everything at
+	 * 	every level (the user got there on purpose), the others only from {@code minimum}
+	 */
+	static boolean isOfferedAt(final String recordType, final UxLevel minimum, final FeatureVisibilityService features){
+		return (ADVANCED_RECORD_TYPES.contains(recordType) || features.isVisible(minimum));
 	}
 
 	protected void setupKeyboardShortcuts(){
@@ -544,6 +562,18 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		return null;
 	}
 
+	/**
+	 * The free tags of the record: they are not in the file but of the application, so the tab is the same in every editor of a record that
+	 * can be tagged, and nothing is written to the record.
+	 */
+	protected JPanel createTagsPanel(){
+		if(!RecordTags.isTaggable(handler.getType()) || record.getId() == null)
+			return null;
+
+		tagsPanel = new TagsPanel(model, record.getId());
+		return tagsPanel;
+	}
+
 	protected JPanel createPrivacyPanel(){
 		return null;
 	}
@@ -749,6 +779,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 			if(isNew && handler.isTopLevelEntity())
 				model.addRecord(record);
+			if(tagsPanel != null)
+				tagsPanel.apply();
 			isSaved = true;
 			//an edit may change the privacy of the records
 			PrivacyService.invalidate();

@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,25 @@ public class ConsanguineousUnionDetectorTest{
 		Assertions.assertFalse(union.relationshipIds().isEmpty(), "the marriage is recorded");
 		Assertions.assertEquals(1, union.childIds().size());
 		Assertions.assertEquals(2, union.commonAncestors().size(), "the two grandparents");
+	}
+
+	@Test
+	void theSearchTellsHowFarItIsAndGivesTheSameReport() throws IOException{
+		final FLEFModel model = convert();
+		final List<Double> values = new ArrayList<>();
+
+		final ConsanguinityReport report = ConsanguineousUnionDetector.detect(model, values::add);
+
+		Assertions.assertFalse(values.isEmpty());
+		double previous = 0.;
+		for(final double value : values){
+			Assertions.assertTrue(value >= previous - 1e-12 && value <= 1., value + " after " + previous);
+			previous = value;
+		}
+		Assertions.assertEquals(1., values.getLast(), 1e-12);
+		final ConsanguinityReport without = ConsanguineousUnionDetector.detect(model);
+		Assertions.assertEquals(without.unions().size(), report.unions().size());
+		Assertions.assertEquals(without.inbredIndividuals().size(), report.inbredIndividuals().size());
 	}
 
 	@Test

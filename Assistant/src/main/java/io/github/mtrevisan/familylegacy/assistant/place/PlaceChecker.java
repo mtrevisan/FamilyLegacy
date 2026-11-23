@@ -28,7 +28,9 @@ import io.github.mtrevisan.familylegacy.assistant.AssistantCategory;
 import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.DiagnosticKeys;
 import io.github.mtrevisan.familylegacy.assistant.Sentences;
+import io.github.mtrevisan.familylegacy.assistant.identity.IdentityDraft;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import org.apache.commons.lang3.StringUtils;
@@ -237,7 +239,9 @@ public final class PlaceChecker{
 			List.of(left.id(), right.id()), null,
 			DiagnosticKeys.of("place.possible_duplicate", List.of(left.id(), right.id()), name, left.type(), right.type()))
 			.withRank(left.usage() + right.usage());
-		return new PlaceFinding(diagnostic, null, List.of(left.id(), right.id()));
+		final IdentityDraft identity = new IdentityDraft(left.id(), right.id(), I18N.tf("identity.rationale_place", Sentences.items(why)),
+			(sameType? ConfidenceReader.ENUM_MEDIUM: ConfidenceReader.ENUM_LOW), List.copyOf(why), List.of(), List.of());
+		return new PlaceFinding(diagnostic, null, List.of(left.id(), right.id()), identity);
 	}
 
 	private static boolean sameParentName(final Set<String> leftParents, final Set<String> rightParents,

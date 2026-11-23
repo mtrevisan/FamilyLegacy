@@ -59,8 +59,8 @@ class SurnamesReportTest{
 
 
 	/**
-	 * Borgo (P1) is part of Treviso (P2); Padova is P3. Mario, Anna and Luca Masutti and Zeno masutti come from Borgo (Luca by the baptism,
-	 * Zeno by the birth for the place and by the baptism for the year), Carlo Mazutti from Padova, Piero de Marco from nowhere; Elena has
+	 * Borgo (P1) is part of Treviso (P2); Padova is P3. Mario, Anna and Luca Masutti and Zeno masutti come from Borgo (Zeno with no
+	 * date of birth), Carlo Mazutti from Padova, Piero de Marco from nowhere; Elena has
 	 * no surname.
 	 */
 	@BeforeEach
@@ -86,10 +86,9 @@ class SurnamesReportTest{
 
 		event("I1", EventReader.ENUM_TYPE_BIRTH, "P1", "1850-03-01");
 		event("I2", EventReader.ENUM_TYPE_BIRTH, "P1", "1860-03-01");
-		event("I3", EventReader.CUSTOM_TYPE_BAPTISM, "P1", "1870-05-01");
+		event("I3", EventReader.ENUM_TYPE_BIRTH, "P1", "1870-05-01");
 		event("I4", EventReader.ENUM_TYPE_BIRTH, "P3", "1900-01-01");
 		event("I7", EventReader.ENUM_TYPE_BIRTH, "P1", null);
-		event("I7", EventReader.CUSTOM_TYPE_CHRISTENING, "P3", "1880-01-01");
 	}
 
 
@@ -97,6 +96,23 @@ class SurnamesReportTest{
 		return FLEFRecord.createMainRecord(id, PlaceReader.TYPE)
 			.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
 				.addChild(FLEFRecord.createChildWithTagAndValue("value", name)));
+	}
+
+	private static FLEFRecord place(final String id, final String name, final String type){
+		return place(id, name)
+			.addChild(FLEFRecord.createChildWithTagAndValue(PlaceReader.TAG_TYPE, type));
+	}
+
+	private static FLEFRecord partOf(final String id, final String child, final String parent){
+		return FLEFRecord.createMainRecord(id, PlaceRelationshipReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag("subject")
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, child)))
+			.addChild(FLEFRecord.createChildWithTag("target")
+				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_PLACE, parent)));
+	}
+
+	private SurnameDistribution.Result distribution(final SurnameDistribution.Options options){
+		return SurnameDistribution.of(model, RelationIndex.build(model, r -> true), record -> true, Locale.ENGLISH, options);
 	}
 
 	private static FLEFRecord person(final String id, final String prefix, final String given, final String family){
@@ -166,10 +182,10 @@ class SurnamesReportTest{
 		final SurnameDistribution.Row masutti = borgo.rows().getFirst();
 		Assertions.assertEquals("Masutti", masutti.surname());
 		Assertions.assertEquals(4, masutti.individuals());
-		//Zeno takes the place of the birth, and the year of the christening
+		//Zeno has the place of the birth and no year
 		Assertions.assertEquals(1850, masutti.firstYear());
-		Assertions.assertEquals(1880, masutti.lastYear());
-		Assertions.assertEquals(0, masutti.undated());
+		Assertions.assertEquals(1870, masutti.lastYear());
+		Assertions.assertEquals(1, masutti.undated());
 	}
 
 	@Test
@@ -213,7 +229,7 @@ class SurnamesReportTest{
 				found = "Borgo, Treviso (4)".equals(heading.text());
 			else if(found && section instanceof final ReportSection.Table table){
 				Assertions.assertEquals(List.of("Surname", "Individuals", "Period", "Undated"), table.headers());
-				Assertions.assertEquals(List.of("Masutti", "4", "1850–1880", "—"), table.rows().getFirst());
+				Assertions.assertEquals(List.of("Masutti", "4", "1850–1870", "1"), table.rows().getFirst());
 				return;
 			}
 		}
@@ -230,6 +246,108 @@ class SurnamesReportTest{
 		Assertions.assertTrue(document.sections().stream()
 			.anyMatch(section -> section instanceof final ReportSection.Paragraph paragraph && paragraph.text().startsWith("No individual has a surname")),
 			document.sections().toString());
+	}
+
+	@Test
+	void thePlacesCanBeGroupedByAHigherLevelOfTheHierarchy(){
+		//Quinto (hamlet) is in Cornuda (town), which is in Treviso (P2), which is in Veneto (region) with Padova
+		model.addRecord(place("P4", "Veneto", PlaceReader.ENUM_TYPE_REGION));
+		model.addRecord(place("P5", "Cornuda", PlaceReader.ENUM_TYPE_TOWN));
+		model.addRecord(place("P6", "Quinto", PlaceReader.ENUM_TYPE_HAMLET));
+		model.addRecord(partOf("PR2", "P2", "P4"));
+		model.addRecord(partOf("PR3", "P3", "P4"));
+		model.addRecord(partOf("PR4", "P5", "P2"));
+		model.addRecord(partOf("PR5", "P6", "P5"));
+		model.addRecord(person("I8", null, "Rita", "Masutti"));
+		event("I8", EventReader.ENUM_TYPE_BIRTH, "P6", "1880-01-01");
+
+		final SurnameDistribution.Result region = distribution(new SurnameDistribution.Options(SurnamePlaceLevel.REGION,
+			SurnamePeriod.WHOLE, false));
+		Assertions.assertEquals(Arrays.asList("P4", null), region.places().stream().map(SurnameDistribution.PlaceGroup::placeId).toList());
+		Assertions.assertEquals("Veneto", group(region, "P4").placeName());
+		Assertions.assertEquals(2, group(region, "P4").rows().size());
+		Assertions.assertEquals(6, group(region, "P4").individuals());
+
+		//the hamlet of Quinto is in the town of Cornuda; Borgo has no town: it stays as it is
+		final SurnameDistribution.Result town = distribution(new SurnameDistribution.Options(SurnamePlaceLevel.MUNICIPALITY,
+			SurnamePeriod.WHOLE, false));
+		Assertions.assertEquals(1, group(town, "P5").individuals());
+		Assertions.assertEquals(4, group(town, "P1").individuals());
+	}
+
+	@Test
+	void thePeriodCanBeSplitByCentury(){
+		model.addRecord(person("I8", null, "Rita", "Masutti"));
+		event("I8", EventReader.ENUM_TYPE_BIRTH, "P1", "1901-01-01");
+
+		final SurnameDistribution.PlaceGroup borgo = group(distribution(new SurnameDistribution.Options(SurnamePlaceLevel.PLACE,
+			SurnamePeriod.CENTURY, false)), "P1");
+
+		//1850, 1860, 1870 (19th), 1901 (20th), and Zeno with no date
+		Assertions.assertEquals(3, borgo.rows().size());
+		Assertions.assertEquals(19, borgo.rows().get(0).century());
+		Assertions.assertEquals(3, borgo.rows().get(0).individuals());
+		Assertions.assertEquals(20, borgo.rows().get(1).century());
+		Assertions.assertNull(borgo.rows().get(2).century());
+		Assertions.assertEquals(1, borgo.rows().get(2).undated());
+		Assertions.assertEquals(5, borgo.individuals());
+		Assertions.assertEquals(18, SurnameDistribution.centuryOf(1800));
+		Assertions.assertEquals(19, SurnameDistribution.centuryOf(1801));
+		Assertions.assertEquals("XIX", SurnamesGenerator.roman(19));
+		Assertions.assertEquals("XLIV", SurnamesGenerator.roman(44));
+	}
+
+	@Test
+	void theSurnamesOfAllTheNamesCountAndAPersonCountsOnceInAPlace(){
+		//Anna is also known by her maiden name
+		final FLEFRecord anna = model.getRecordById("I2");
+		anna.addChild(FLEFRecord.createChildWithTag(IndividualReader.TAG_NAME)
+			.addChild(FLEFRecord.createChildWithTag(NameReader.TAG_PART)
+				.addChild(FLEFRecord.createChildWithTagAndValue(NameReader.TAG_TYPE, NameReader.ENUM_PART_TYPE_FAMILY))
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", "Zanatta"))));
+
+		final SurnameDistribution.Result first = distribution(new SurnameDistribution.Options(SurnamePlaceLevel.PLACE,
+			SurnamePeriod.WHOLE, false));
+		final SurnameDistribution.Result all = distribution(new SurnameDistribution.Options(SurnamePlaceLevel.PLACE,
+			SurnamePeriod.WHOLE, true));
+
+		Assertions.assertEquals(3, first.surnames());
+		Assertions.assertEquals(4, all.surnames());
+		Assertions.assertEquals(6, all.individuals());
+		//(four people in Borgo, one of them in two surnames)
+		Assertions.assertEquals(4, group(all, "P1").individuals());
+		Assertions.assertEquals(2, group(all, "P1").rows().size());
+	}
+
+	@Test
+	void similarSpellingsArePutSideBySide(){
+		final List<SurnameDistribution.SimilarGroup> groups = SurnameDistribution.similarSpellings(distribution(), Locale.ENGLISH);
+
+		//Masutti (4, in Borgo) and Mazutti (1, in Padova)
+		Assertions.assertEquals(1, groups.size());
+		final SurnameDistribution.SimilarGroup group = groups.getFirst();
+		Assertions.assertEquals(List.of("Masutti", "Mazutti"), group.spellings().stream().map(SurnameDistribution.Spelling::surname).toList());
+		Assertions.assertEquals(5, group.individuals());
+		Assertions.assertEquals(List.of("Borgo, Treviso", "Padova"), group.places());
+
+		final ReportDocument document = new SurnamesGenerator(model, everything().with(ReportOption.SURNAME_SIMILAR, true)).generate();
+		Assertions.assertTrue(document.sections().stream()
+			.anyMatch(section -> section instanceof final ReportSection.Table table
+				&& table.rows().contains(List.of("Masutti (4), Mazutti (1)", "5", "Borgo, Treviso; Padova"))), document.sections().toString());
+	}
+
+	@Test
+	void theReportTellsTheLevelAndTheCenturies(){
+		final ReportDocument document = new SurnamesGenerator(model, everything()
+			.with(ReportOption.SURNAME_PLACE_LEVEL, SurnamePlaceLevel.PROVINCE)
+			.with(ReportOption.SURNAME_PERIOD, SurnamePeriod.CENTURY)).generate();
+
+		Assertions.assertTrue(document.sections().stream()
+			.anyMatch(section -> section instanceof final ReportSection.Paragraph paragraph && paragraph.text().contains("by the province")),
+			document.sections().toString());
+		Assertions.assertTrue(document.sections().stream()
+			.anyMatch(section -> section instanceof final ReportSection.Table table
+				&& table.rows().stream().anyMatch(row -> row.contains("XIX century (1850–1870)"))), document.sections().toString());
 	}
 
 	@Test

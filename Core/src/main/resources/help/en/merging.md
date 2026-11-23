@@ -117,7 +117,8 @@ After you confirm (*Merge [source] individual into [target] individual? The sour
 3. The target gets an audit update, *Merged record* followed by the source's identifier. That is the only trace of the source.
 4. The source is **deleted**, and every reference to it (relationships, participations, citations, groups...) is rewritten to point to the target.
 5. Records that became identical because of the merge are **collapsed** into one, with their citations and notes joined: relationships, attributes, place relationships, events, participations, context impacts and conclusions, in that order. Statements that still differ are kept as competing assertions. Two events collapse only if their principals are the same, so twins keep their own events.
-6. Identity hypotheses that now name the same record twice are deleted (this is *accepting* the hypothesis), together with what depends on them.
+6. The [tags](editors.md#tags) of the source are added to the ones of the target.
+7. Identity hypotheses that now name the same record twice are deleted (this is *accepting* the hypothesis), together with what depends on them.
 
 When it is done, a message says **Merge completed** and lists how many fields were taken from the source, how many references were re-pointed, which duplicates were collapsed, which records were deleted, and, if any, the values of the source that were **not kept**.
 

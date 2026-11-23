@@ -36,8 +36,15 @@ import java.util.List;
  * @param text     the question of a question, or the description of a task
  * @param records  the records it is about: the targets of a question, the questions a task supports
  * @param priority the priority proposed for a task ({@code low}, {@code normal}, {@code high}), or {@code null}
+ * @param dueDate  the due date proposed for a task (an ISO date), or {@code null}
+ * @param followUp the description of the task that would follow a question (to plan once the question is saved), or {@code null}
  */
-public record GapDraft(Kind kind, String title, String text, List<String> records, String priority){
+public record GapDraft(Kind kind, String title, String text, List<String> records, String priority, String dueDate, String followUp){
+
+	public GapDraft(final Kind kind, final String title, final String text, final List<String> records, final String priority){
+		this(kind, title, text, records, priority, null, null);
+	}
+
 
 	/** What a draft starts. */
 	public enum Kind{

@@ -356,6 +356,8 @@ class FLEFMergerTest{
 		Assertions.assertEquals("disproven", FLEFRecordHelper.getChildValue(conclusion, "proof_status"));
 		Assertions.assertEquals(rejection.hypothesisId(), FLEFRecordHelper.getChildValue(conclusion, "resolves.identity_hypothesis"));
 		Assertions.assertNull(FLEFRecordHelper.findChild(conclusion, "preferred"));
+		//a conclusion that disproves resolves the hypothesis and the two records
+		Assertions.assertEquals(3, FLEFRecordHelper.findChildren(conclusion, "resolves").size());
 		Assertions.assertEquals(List.of(), schemaErrors(model));
 
 		// neither the hand merge nor the automatic one propose the pair again

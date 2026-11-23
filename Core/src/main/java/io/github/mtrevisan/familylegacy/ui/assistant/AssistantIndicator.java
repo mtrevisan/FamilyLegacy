@@ -38,12 +38,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.DoubleConsumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
@@ -98,12 +101,30 @@ public final class AssistantIndicator{
 	private final Consumer<Runnable> onEventThread;
 	private final LongSupplier clock;
 
-	private final JButton button = new JButton();
+	/** How tall the bar of the progress is, at the bottom of the button. */
+	private static final int BAR_HEIGHT = 3;
+	/** The progress is told as thousandths: a finer step is not seen. */
+	private static final int PROGRESS_STEPS = 1_000;
+
+	private final JButton button = new JButton(){
+		@Override
+		protected void paintComponent(final Graphics g){
+			super.paintComponent(g);
+			//a thin bar along the bottom edge tells how far the computation is, while it runs and has something to tell
+			if(running && progressSteps > 0){
+				final Color color = UIManager.getColor("ProgressBar.foreground");
+				g.setColor(color != null? color: severityColor(null));
+				g.fillRect(0, getHeight() - BAR_HEIGHT, getWidth() * progressSteps / PROGRESS_STEPS, BAR_HEIGHT);
+			}
+		}
+	};
 	private final Timer timer;
 
 	/** The findings, as computed the last time (and {@code null} until the first computation ends). */
 	private List<Diagnostic> findings;
 	private boolean running;
+	/** How far the running computation is, in thousandths (event dispatch thread only). */
+	private int progressSteps;
 	/** Whether the model changed after the computation that is running started. */
 	private boolean dirty;
 	/** The earliest time (in milliseconds of the clock) the next computation may start. */
@@ -220,14 +241,22 @@ public final class AssistantIndicator{
 
 		running = true;
 		dirty = false;
+		progressSteps = 0;
 		update();
 		//a copy of the model as it is now, taken here on the event dispatch thread: the user may go on editing while it is read
 		final AssistantContext reading = context.forReading();
+		//the progress is handed to the event dispatch thread only when it moved by a step: a computation may tell it thousands of times
+		final AtomicInteger told = new AtomicInteger();
+		final DoubleConsumer progress = fraction -> {
+			final int steps = (int)Math.round(Math.max(0., Math.min(1., fraction)) * PROGRESS_STEPS);
+			if(told.getAndSet(steps) != steps)
+				onEventThread.accept(() -> showProgress(steps));
+		};
 		executor.execute(() -> {
 			final long start = clock.getAsLong();
 			final List<Diagnostic> found;
 			try{
-				found = FindingLevels.visible(service.diagnose(reading, fraction -> {}, ResearchAssistantService.Audience.INDICATOR));
+				found = FindingLevels.visible(service.diagnose(reading, progress, ResearchAssistantService.Audience.INDICATOR));
 			}
 			catch(final RuntimeException re){
 				//without this the indicator would stay "checking" for ever
@@ -245,6 +274,7 @@ public final class AssistantIndicator{
 	private void finish(final List<Diagnostic> found, final long elapsedMillis){
 		findings = found;
 		running = false;
+		progressSteps = 0;
 		nextAllowed = clock.getAsLong() + Math.max(MIN_INTERVAL_MILLIS, BACKOFF_FACTOR * elapsedMillis);
 		final int errorsBefore = shownErrors;
 		update();
@@ -253,6 +283,21 @@ public final class AssistantIndicator{
 			startBlink();
 		if(dirty)
 			refreshSoon();
+	}
+
+	/** @param steps how far the running computation is, in thousandths */
+	private void showProgress(final int steps){
+		//a late report of a computation that is over does not draw a bar
+		if(!running || steps == progressSteps)
+			return;
+
+		progressSteps = steps;
+		button.repaint();
+	}
+
+	/** @return how far the running computation is, from 0 to 1 (0 when none is running) */
+	double progress(){
+		return (running? (double)progressSteps / PROGRESS_STEPS: 0.);
 	}
 
 	/** @return whether the button is blinking, to tell the user that a new error appeared */

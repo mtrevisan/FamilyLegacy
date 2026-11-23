@@ -381,4 +381,26 @@ class DuplicateFinderRulesTest{
 		Assertions.assertTrue(candidates.stream().noneMatch(c -> List.of(c.left().id(), c.right().id()).containsAll(List.of("I1", "I3"))));
 	}
 
+	@Test
+	void aPairThatSharesSeveralBlocksIsProposedOnceAndWithItsEvidenceWritten(){
+		//the same given and family name: the pair is in the blocks of the given name, of the family name and of their consonants
+		for(int i = 0; i < 12; i ++)
+			person("I" + i, "Giovanni", "Rossi", 1850 + (i % 2));
+
+		final DuplicateFinderService.Options options = new DuplicateFinderService.Options();
+		options.threshold = 10;
+		options.maxResults = 1_000;
+		final List<DuplicateFinderService.Candidate> found = DuplicateFinderService.find(model, options);
+
+		Assertions.assertEquals(12 * 11 / 2, found.size());
+		Assertions.assertEquals(found.size(), found.stream()
+			.map(candidate -> candidate.left().id() + "|" + candidate.right().id())
+			.distinct()
+			.count());
+		//the text of the evidence is there for the pairs that are returned
+		Assertions.assertTrue(found.stream().allMatch(candidate -> !candidate.matches().isEmpty()
+			&& candidate.matches().stream().allMatch(match -> match.feature() != null && !match.feature().isBlank()
+			&& match.detail() != null && !match.detail().isBlank())));
+	}
+
 }

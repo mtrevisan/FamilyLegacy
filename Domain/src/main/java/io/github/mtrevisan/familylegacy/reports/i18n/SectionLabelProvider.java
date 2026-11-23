@@ -888,6 +888,46 @@ public final class SectionLabelProvider{
 		return labels.getString("RESEARCH_TARGETS");
 	}
 
+	public String gpsProofOf(){
+		return labels.getString("GPS_PROOF_OF");
+	}
+
+	public String gpsResearchQuestion(){
+		return labels.getString("GPS_RESEARCH_QUESTION");
+	}
+
+	public String gpsEvidenceSummary(){
+		return labels.getString("GPS_EVIDENCE_SUMMARY");
+	}
+
+	public String gpsConflictingEvidence(){
+		return labels.getString("GPS_CONFLICTING_EVIDENCE");
+	}
+
+	public String gpsAnalysis(){
+		return labels.getString("GPS_ANALYSIS");
+	}
+
+	public String gpsReasoning(){
+		return labels.getString("GPS_REASONING");
+	}
+
+	public String gpsNothingRecorded(){
+		return labels.getString("GPS_NOTHING_RECORDED");
+	}
+
+	public String gpsCitationsTally(){
+		return labels.getString("GPS_CITATIONS_TALLY");
+	}
+
+	public String gpsContradictingCitations(){
+		return labels.getString("GPS_CONTRADICTING_CITATIONS");
+	}
+
+	public String gpsNoProofStatus(){
+		return labels.getString("GPS_NO_PROOF_STATUS");
+	}
+
 	public String conclusionOf(){
 		return labels.getString("CONCLUSION_OF");
 	}
@@ -992,6 +1032,33 @@ public final class SectionLabelProvider{
 	/** @param columnKey	{@code GROUP}, {@code COUNT}, {@code RECORD} or {@code DETAIL}. */
 	public String toVerifyColumn(final String columnKey){
 		return labels.getString("TO_VERIFY_COLUMN_" + columnKey);
+	}
+
+	public String taggedRecordsTitle(){
+		return labels.getString("TAGGED_RECORDS_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: the number of records, the number of tags). */
+	public String taggedRecordsIntro(){
+		return labels.getString("TAGGED_RECORDS_INTRO");
+	}
+
+	public String taggedRecordsNothing(){
+		return labels.getString("TAGGED_RECORDS_NOTHING");
+	}
+
+	public String taggedRecordsNotInFile(){
+		return labels.getString("TAGGED_RECORDS_NOT_IN_FILE");
+	}
+
+	/** @param columnKey	{@code TAG}, {@code COUNT}, {@code KIND} or {@code RECORD}. */
+	public String taggedRecordsColumn(final String columnKey){
+		return labels.getString("TAGGED_RECORDS_COLUMN_" + columnKey);
+	}
+
+	/** @param recordType	The type of a record that can be tagged (as the record names it, in any case). */
+	public String taggedRecordsKind(final String recordType){
+		return labels.getString("TAGGED_RECORDS_KIND_" + recordType.toUpperCase(Locale.ROOT));
 	}
 
 	public String conflictsTitle(){
@@ -1178,9 +1245,41 @@ public final class SectionLabelProvider{
 		return labels.getString("SURNAMES_EMPTY");
 	}
 
-	/** @param columnKey	{@code SURNAME}, {@code COUNT}, {@code PERIOD} or {@code UNDATED}. */
+	/** @param columnKey	{@code SURNAME}, {@code COUNT}, {@code PERIOD}, {@code UNDATED}, {@code SPELLINGS} or {@code PLACES}. */
 	public String surnamesColumn(final String columnKey){
 		return labels.getString("SURNAMES_COLUMN_" + columnKey);
+	}
+
+	/** @return	The name of a century (a {@link String#format} pattern: the number of the century, in Roman numerals). */
+	public String surnamesCentury(){
+		return labels.getString("SURNAMES_CENTURY");
+	}
+
+	/** @return	The sentence of the level the places are grouped by (a {@link String#format} pattern: {@link #surnamesLevel}). */
+	public String surnamesNoteLevel(){
+		return labels.getString("SURNAMES_NOTE_LEVEL");
+	}
+
+	public String surnamesNoteAllNames(){
+		return labels.getString("SURNAMES_NOTE_ALL_NAMES");
+	}
+
+	/** @param levelName	The name of a {@code SurnamePlaceLevel} (not {@code PLACE}). */
+	public String surnamesLevel(final String levelName){
+		return labels.getString("SURNAMES_LEVEL_" + levelName);
+	}
+
+	public String surnamesSimilarTitle(){
+		return labels.getString("SURNAMES_SIMILAR_TITLE");
+	}
+
+	/** @return	The sentence that opens the section (a {@link String#format} pattern: the number of groups). */
+	public String surnamesSimilarIntro(){
+		return labels.getString("SURNAMES_SIMILAR_INTRO");
+	}
+
+	public String surnamesSimilarNone(){
+		return labels.getString("SURNAMES_SIMILAR_NONE");
 	}
 
 	public String endOfLineTitle(){
@@ -1208,6 +1307,115 @@ public final class SectionLabelProvider{
 	/** @param columnKey	{@code GENERATION}, {@code NAME}, {@code BORN}, {@code BIRTH_PLACE}, {@code DIED} or {@code DEATH_PLACE}. */
 	public String endOfLineColumn(final String columnKey){
 		return labels.getString("END_OF_LINE_COLUMN_" + columnKey);
+	}
+
+	public String kinshipTitle(){
+		return labels.getString("KINSHIP_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: relatives, degrees, generations). */
+	public String kinshipIntro(){
+		return labels.getString("KINSHIP_INTRO");
+	}
+
+	public String kinshipNone(){
+		return labels.getString("KINSHIP_NONE");
+	}
+
+	/** @return	The heading of a degree (a {@link String#format} pattern: the degree). */
+	public String kinshipDegree(){
+		return labels.getString("KINSHIP_DEGREE");
+	}
+
+	public String kinshipNote(){
+		return labels.getString("KINSHIP_NOTE");
+	}
+
+	/** @param columnKey	{@code KINSHIP}, {@code NAME}, {@code BORN} or {@code DIED}. */
+	public String kinshipColumn(final String columnKey){
+		return labels.getString("KINSHIP_COLUMN_" + columnKey);
+	}
+
+	public String pedigreeCollapseTitle(){
+		return labels.getString("PEDIGREE_COLLAPSE_TITLE");
+	}
+
+	/**
+	 * @return	The sentence that opens the report (a {@link String#format} pattern: known places, possible places, generations, different
+	 * 	individuals, pedigree collapse).
+	 */
+	public String pedigreeCollapseIntro(){
+		return labels.getString("PEDIGREE_COLLAPSE_INTRO");
+	}
+
+	public String pedigreeCollapseNoAncestors(){
+		return labels.getString("PEDIGREE_COLLAPSE_NO_ANCESTORS");
+	}
+
+	public String pedigreeCollapseNone(){
+		return labels.getString("PEDIGREE_COLLAPSE_NONE");
+	}
+
+	public String pedigreeCollapseRepeatedTitle(){
+		return labels.getString("PEDIGREE_COLLAPSE_REPEATED_TITLE");
+	}
+
+	/** @return	The sentence that opens the list of the repeated ancestors (a {@link String#format} pattern: how many). */
+	public String pedigreeCollapseRepeatedIntro(){
+		return labels.getString("PEDIGREE_COLLAPSE_REPEATED_INTRO");
+	}
+
+	/** @return	The sentence that tells the list is cut (a {@link String#format} pattern: how many are listed). */
+	public String pedigreeCollapseRepeatedMore(){
+		return labels.getString("PEDIGREE_COLLAPSE_REPEATED_MORE");
+	}
+
+	public String pedigreeCollapseNote(){
+		return labels.getString("PEDIGREE_COLLAPSE_NOTE");
+	}
+
+	/** @param columnKey	{@code GENERATION}, {@code POSSIBLE}, {@code KNOWN}, {@code KNOWN_PERCENT}, {@code DIFFERENT}, {@code COLLAPSE}, {@code NAME}, {@code TIMES} or {@code GENERATIONS}. */
+	public String pedigreeCollapseColumn(final String columnKey){
+		return labels.getString("PEDIGREE_COLLAPSE_COLUMN_" + columnKey);
+	}
+
+	public String databaseSummaryTitle(){
+		return labels.getString("DATABASE_SUMMARY_TITLE");
+	}
+
+	/** @return	The sentence that opens the report (a {@link String#format} pattern: records, kinds, individuals). */
+	public String databaseSummaryIntro(){
+		return labels.getString("DATABASE_SUMMARY_INTRO");
+	}
+
+	public String databaseSummaryEmpty(){
+		return labels.getString("DATABASE_SUMMARY_EMPTY");
+	}
+
+	public String databaseSummaryKinds(){
+		return labels.getString("DATABASE_SUMMARY_KINDS");
+	}
+
+	public String databaseSummaryCompleteness(){
+		return labels.getString("DATABASE_SUMMARY_COMPLETENESS");
+	}
+
+	public String databaseSummaryPeriod(){
+		return labels.getString("DATABASE_SUMMARY_PERIOD");
+	}
+
+	public String databaseSummaryNote(){
+		return labels.getString("DATABASE_SUMMARY_NOTE");
+	}
+
+	/** @param columnKey	{@code KIND}, {@code RECORDS}, {@code MEASURE}, {@code INDIVIDUALS}, {@code SHARE} or {@code VALUE}. */
+	public String databaseSummaryColumn(final String columnKey){
+		return labels.getString("DATABASE_SUMMARY_COLUMN_" + columnKey);
+	}
+
+	/** @param measureKey	{@code SURNAME}, {@code SEX}, {@code BIRTH_DATE}, {@code BIRTH_PLACE}, {@code DEATH_DATE}, {@code PARENTS}, {@code SOURCE}, {@code EVENTS_DATED}, {@code FIRST_EVENT}, {@code LAST_EVENT}, {@code FIRST_BIRTH} or {@code LAST_BIRTH}. */
+	public String databaseSummaryMeasure(final String measureKey){
+		return labels.getString("DATABASE_SUMMARY_MEASURE_" + measureKey);
 	}
 
 	/** @param kindKey	The key of a kind of finding (see {@code ToVerifyFinder.Kind#key()}). */
@@ -1251,6 +1459,24 @@ public final class SectionLabelProvider{
 
 	public String columnGroup(){
 		return labels.getString("COLUMN_GROUP");
+	}
+
+	public String indexOfSources(){
+		return labels.getString("INDEX_OF_SOURCES");
+	}
+
+	public String indexOfRepositories(){
+		return labels.getString("INDEX_OF_REPOSITORIES");
+	}
+
+	/** @return	The heading of the preface of a book. */
+	public String preface(){
+		return labels.getString("PREFACE");
+	}
+
+	/** @return	The title of a book that has none. */
+	public String bookTitle(){
+		return labels.getString("BOOK_TITLE");
 	}
 
 }

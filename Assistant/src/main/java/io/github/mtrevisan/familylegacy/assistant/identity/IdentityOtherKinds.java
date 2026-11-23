@@ -45,7 +45,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.quality.IdentitySettings;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -119,7 +118,6 @@ public final class IdentityOtherKinds{
 		final String right = RecordDisplay.describe(second, model);
 		final int percent = (int)Math.round(pair.probability() * 100.);
 		final String confidence = confidence(pair.probability());
-		final List<String> evidence = List.of(StringUtils.splitByWholeSeparator(pair.rationale(), "; "));
 
 		final Diagnostic diagnostic = new Diagnostic((pair.probability() >= HIGH_PROBABILITY? Diagnostic.Severity.WARNING
 			: Diagnostic.Severity.INFORMATION), AssistantCategory.IDENTITY,
@@ -129,7 +127,7 @@ public final class IdentityOtherKinds{
 			List.of(pair.firstId(), pair.secondId()), null,
 			DiagnosticKeys.of("identity.possible_duplicate", List.of(pair.firstId(), pair.secondId())), List.of(), percent);
 		return new IdentityFinding(diagnostic, new IdentityDraft(pair.firstId(), pair.secondId(),
-			I18N.tf("identity.rationale_kind", percent, pair.rationale()), confidence, evidence, List.of(), List.of()));
+			I18N.tf("identity.rationale_kind", percent, pair.rationale()), confidence, pair.similarities(), pair.differences(), List.of()));
 	}
 
 	/** @return	The confidence proposed for the hypothesis of a pair with that probability. */
@@ -140,7 +138,7 @@ public final class IdentityOtherKinds{
 	}
 
 	/** @return	The pairs (the smaller identifier first, then {@code |}, then the other) that an identity hypothesis already covers. */
-	private static Set<String> existingHypotheses(final FLEFModel model){
+	public static Set<String> existingHypotheses(final FLEFModel model){
 		final Set<String> pairs = new HashSet<>();
 		for(final FLEFRecord hypothesis : model.getRecordsByType(IdentityHypothesisReader.TYPE)){
 			final List<String> ids = new ArrayList<>(2);
@@ -156,7 +154,7 @@ public final class IdentityOtherKinds{
 	}
 
 	//the pair is the same whatever the order of its two records
-	private static String pairKey(final String first, final String second){
+	public static String pairKey(final String first, final String second){
 		return (first.compareTo(second) <= 0? first + "|" + second: second + "|" + first);
 	}
 

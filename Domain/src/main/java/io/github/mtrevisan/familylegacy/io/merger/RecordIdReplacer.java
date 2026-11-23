@@ -115,6 +115,7 @@ public final class RecordIdReplacer{
 			updateNoteLinksRecursive(record, flefLinkOld, flefLinkNew);
 
 		// The old record is now unreferenced: remove it from the records and from every index
+		model.tags().merge(oldId, newId);
 		model.removeRecord(oldId);
 	}
 

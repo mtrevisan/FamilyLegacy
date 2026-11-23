@@ -541,7 +541,7 @@ public final class ContextResearchSection implements SectionBuilder{
 	 *                          oneof resolver
 	 * ====================================================================== */
 
-	private String describeOneOf(final FLEFRecord field){
+	String describeOneOf(final FLEFRecord field){
 		if(field == null)
 			return null;
 

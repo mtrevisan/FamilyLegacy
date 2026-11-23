@@ -38,6 +38,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -105,6 +106,33 @@ public final class PlaceNameResolver{
 		return names;
 	}
 
+
+	/**
+	 * The nearest place, the place itself included, whose type is one of those given, going up through any relationship.
+	 *
+	 * @param placeId	the id of the place
+	 * @param types	the types looked for (see {@code PlaceReader.ENUM_TYPE_*})
+	 * @return	the id of the place found, {@code null} if neither the place nor its containers are of one of the types
+	 */
+	public String containerOfType(final String placeId, final Set<String> types){
+		final Set<String> visited = new HashSet<>();
+		final Deque<String> queue = new ArrayDeque<>();
+		queue.add(placeId);
+		while(!queue.isEmpty()){
+			final String id = queue.poll();
+			if(!visited.add(id))
+				continue;
+
+			final FLEFRecord place = model.getRecordById(id);
+			if(place != null){
+				final String type = PlaceReader.extractType(place);
+				if(type != null && types.contains(type.toLowerCase(Locale.ROOT)))
+					return id;
+			}
+			queue.addAll(parentsByChild.getOrDefault(id, List.of()));
+		}
+		return null;
+	}
 
 	/**
 	 * The names of a place and of its containers, one level at a time: the place itself first, then the places that contain it

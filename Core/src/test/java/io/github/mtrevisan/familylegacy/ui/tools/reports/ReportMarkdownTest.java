@@ -123,8 +123,8 @@ class ReportMarkdownTest{
 			case GROUP -> "G1";
 			case PLACE -> "P1";
 			case SOURCE -> "S1";
-			case RESEARCH_QUESTION -> "RQ1";
-			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, CONFLICTS, SURNAMES -> null;
+			case RESEARCH_QUESTION, GPS_PROOF -> "RQ1";
+			case FULL_BIBLIOGRAPHY, FAMILY_BOOK, TO_VERIFY, TAGGED_RECORDS, CONFLICTS, SURNAMES, DATABASE_SUMMARY -> null;
 			default -> "I1";
 		};
 	}
@@ -344,6 +344,17 @@ class ReportMarkdownTest{
 	}
 
 	@Test
+	void gpsProofReport() throws IOException{
+		final String markdown = markdown(ReportType.GPS_PROOF, "RQ1");
+
+		assertContains(markdown, "# Genealogical proof: rq title", "## Research question", "- **Question:** is?", "## Evidence summary",
+			"**Activities:**", "## Conflicting evidence", "## Analysis", "## Reasoning", "explanation of question", "narr", "## Conclusion",
+			"it must be true", "death cause", "## Confidence", "- **Confidence:** medium", "- **Proof status:**");
+		//the research of the question is the proof itself, not a section of its own
+		Assertions.assertFalse(markdown.lines().anyMatch("# Research"::equals), markdown);
+	}
+
+	@Test
 	void bibliographyReport() throws IOException{
 		final String markdown = markdown(ReportType.BIBLIOGRAPHY, "I1");
 
@@ -386,7 +397,7 @@ class ReportMarkdownTest{
 		final String markdown = markdown(ReportType.TO_VERIFY, null);
 
 		Assertions.assertEquals("# To Verify", firstLine(markdown));
-		assertContains(markdown, "Things to verify:", "| What | Number |", "| Record | Detail |", "research assistant also looks");
+		assertContains(markdown, "Things to verify:", "| What | Number |", "| Record | Detail |", "findings of the research assistant");
 	}
 
 	@Test

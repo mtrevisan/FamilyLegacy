@@ -210,6 +210,33 @@ class TasksPanelTest{
 			"Without a Question"), menu);
 	}
 
+	@Test
+	void theDockMenuOffersTheOtherSides() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The panel needs a display");
+		final FLEFModel model = model();
+		final List<String> docked = new ArrayList<>();
+		final List<String> menu = new ArrayList<>();
+		final AtomicReference<TasksPanel.Dock> dock = new AtomicReference<>();
+
+		SwingUtilities.invokeAndWait(() -> {
+			final TasksPanel panel = new TasksPanel(() -> model, () -> null, () -> TODAY);
+			panel.setOnDock(side -> docked.add(side.name()));
+			panel.setDock(TasksPanel.Dock.of("right"));
+			dock.set(panel.getDock());
+			for(final Component item : panel.createDockMenu().getComponents())
+				if(item instanceof JMenuItem menuItem){
+					menu.add(menuItem.getText() + (menuItem.isEnabled()? "": " (disabled)"));
+					if(menuItem.isEnabled() && docked.isEmpty())
+						menuItem.doClick();
+				}
+		});
+
+		Assertions.assertEquals(TasksPanel.Dock.RIGHT, dock.get());
+		Assertions.assertEquals(List.of("BOTTOM"), docked);
+		Assertions.assertEquals(List.of("Dock at the Bottom", "Dock at the Top", "Dock at the Left", "Dock at the Right (disabled)"), menu);
+		Assertions.assertEquals(TasksPanel.Dock.BOTTOM, TasksPanel.Dock.of("nonsense"));
+	}
+
 	/** Paints the panel to a PNG in the folder named by the environment variable {@code TASKS_PANEL_IMAGES}, to look at it. */
 	@Test
 	void paintsThePanel() throws Exception{

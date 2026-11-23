@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.sources;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -126,6 +127,56 @@ class SourceWindowsTest{
 
 		Assertions.assertFalse(tables.isEmpty());
 		Assertions.assertTrue(tables.stream().anyMatch(table -> table.getRowCount() > 0));
+	}
+
+	@Test
+	void theDocumentationCoverageShowsTheKindsOfRecordAndOpensOnTheUncitedIndividual() throws Exception{
+		final List<JTable> tables = open(() -> new DocumentationCoverageDialog(null, model()));
+
+		Assertions.assertFalse(tables.isEmpty());
+		//the five kinds of record
+		Assertions.assertTrue(tables.stream().anyMatch(table -> table.getRowCount() == 5));
+
+		//selecting a kind lists its records without citation (the individual I1 has none)
+		final JTable kinds = tables.stream().filter(table -> table.getRowCount() == 5).findFirst().orElseThrow();
+		final JTable list = tables.stream().filter(table -> table != kinds).findFirst().orElseThrow();
+		SwingUtilities.invokeAndWait(() -> kinds.setRowSelectionInterval(0, 0));
+		Assertions.assertEquals(1, list.getRowCount());
+		Assertions.assertEquals("I1", list.getValueAt(0, 0));
+	}
+
+	@Test
+	void theSourceWorkspaceListsWhatTheSourceBacksAndTheWayBackToThePerson() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = model();
+		model.getRecordById("I1").addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_LOCATOR, "p. 3")));
+
+		final List<JTable> tables = new ArrayList<>();
+		final int[] peopleBefore = new int[1];
+		final int[] peopleAfter = new int[1];
+		SwingUtilities.invokeAndWait(() -> {
+			final SourceWorkspaceDialog dialog = new SourceWorkspaceDialog(null, model, "S1");
+			tables(dialog, tables);
+
+			//the individuals tab lists I1; the list of the people of the citation is empty until a citation is selected
+			final JTable citations = tables.stream().filter(table -> table.getColumnCount() == 4).findFirst().orElseThrow();
+			peopleBefore[0] = (int)tables.stream().filter(table -> table.getColumnCount() == 2 && table.getRowCount() == 1).count();
+			citations.setRowSelectionInterval(0, 0);
+			peopleAfter[0] = (int)tables.stream().filter(table -> table.getColumnCount() == 2 && table.getRowCount() == 1).count();
+			dialog.dispose();
+		});
+
+		Assertions.assertEquals(1, tables.stream().filter(table -> table.getColumnCount() == 4).count());
+		Assertions.assertEquals(1, tables.stream().filter(table -> table.getColumnCount() == 4).findFirst().orElseThrow().getRowCount());
+		Assertions.assertEquals(1, peopleBefore[0]);
+		Assertions.assertEquals(2, peopleAfter[0]);
+	}
+
+	@Test
+	void theSourceWorkspaceOpensWithoutASelectedSource() throws Exception{
+		open(() -> new SourceWorkspaceDialog(null, model(), null));
 	}
 
 	@Test

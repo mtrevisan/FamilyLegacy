@@ -69,7 +69,6 @@ class IndividualFactsTest{
 		event("I1", EventReader.ENUM_TYPE_BIRTH, "P1", "1850-03-01");
 		event("I2", EventReader.ENUM_TYPE_BIRTH, null, "1851-04-02");
 		event("I3", EventReader.ENUM_TYPE_BIRTH, "P1", "1850-03-01");
-		event("I3", EventReader.CUSTOM_TYPE_BAPTISM, "P2", "1850-03-10");
 		//a witness of the birth of I2 is not born in it
 		event("I1", EventReader.ENUM_TYPE_BIRTH, "P2", "1700-01-01", EventParticipationReader.ENUM_ROLE_WITNESS, "I2");
 
@@ -207,8 +206,6 @@ class IndividualFactsTest{
 		//I1 and I3 are born the same day, in the same place; I2 has no place
 		Assertions.assertEquals(IndividualFacts.State.DIFFERENT, row(comparison, "birth_date").state());
 		Assertions.assertEquals(IndividualFacts.State.MISSING, row(comparison, "birth_place").state());
-		//only I3 was baptised
-		Assertions.assertEquals(IndividualFacts.State.MISSING, row(comparison, "baptism").state());
 		//no one has a death, a spouse or a sex
 		Assertions.assertNull(row(comparison, "death_date"));
 		Assertions.assertNull(row(comparison, "spouses"));
