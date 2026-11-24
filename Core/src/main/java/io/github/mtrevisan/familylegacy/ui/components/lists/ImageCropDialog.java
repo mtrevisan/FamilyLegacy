@@ -33,10 +33,12 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
@@ -68,6 +70,9 @@ public class ImageCropDialog extends JDialog{
 	private ScaledImage imageHolder;
 	private boolean viewOnly;
 	private SwingWorker<List<PortraitCrops.Proposal>, Void> faceSearch;
+
+	/** What the crop is besides a crop (see {@link #setHint}); hidden when there is nothing to say. */
+	private final JLabel hintLabel = new JLabel();
 
 	private boolean isSaved;
 
@@ -113,12 +118,26 @@ public class ImageCropDialog extends JDialog{
 
 		final JPanel recordPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
 		GUIHelper.addComponent(recordPanel, imageHolder);
-		add(recordPanel, "center,grow,push");
+		add(recordPanel, "center,grow,push,wrap");
+
+		hintLabel.setEnabled(false);
+		hintLabel.setVisible(false);
+		add(hintLabel, "growx,wrap");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			() -> setVisible(false));
 		add(buttonPanel, BorderLayout.SOUTH);
+	}
+
+	/**
+	 * Says something about the crop under the image, for example that it also tags a person in the image.
+	 *
+	 * @param hint	The text; {@code null} for none.
+	 */
+	public void setHint(final String hint){
+		hintLabel.setText(hint);
+		hintLabel.setVisible(StringUtils.isNotBlank(hint));
 	}
 
 	public void loadData(final String filename, final Rectangle crop) throws IOException{

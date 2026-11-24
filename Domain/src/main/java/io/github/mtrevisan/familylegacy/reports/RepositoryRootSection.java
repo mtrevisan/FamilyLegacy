@@ -85,8 +85,8 @@ public final class RepositoryRootSection implements SectionBuilder{
 		writeContacts(out);
 		writeSources(out);
 
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ctx.root));
+		if(ctx.writesNotes())
+			out.addAll(ctx.citations().rootNotes(ctx.root));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(ctx.root));
 		out.addAll(ctx.citations().audit(ctx.root));

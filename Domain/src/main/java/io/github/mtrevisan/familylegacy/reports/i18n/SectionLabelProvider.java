@@ -84,6 +84,10 @@ public final class SectionLabelProvider{
 		return labels.getString("NOTES");
 	}
 
+	public String stories(){
+		return labels.getString("STORIES");
+	}
+
 	public String sources(){
 		return labels.getString("SOURCES");
 	}

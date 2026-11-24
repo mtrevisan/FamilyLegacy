@@ -4,60 +4,307 @@ Open work only, by priority. What is done lives in the code and in the help page
 views, of the import/export and of the reports is in `Core/src/main/java/.../ui/components/projections/README.md`, the one of the Research
 Assistant in `Core/src/main/java/.../ui/assistant/README.md`, the proposed roadmap in `.../projections/NEWFEATURES.md`.
 
+# FamilyLegacy "WOW Features" Roadmap
+
+This roadmap focuses on capabilities that significantly differentiate FamilyLegacy from traditional genealogy applications by leveraging the unique strengths of FLEF: evidence, conclusions, hypotheses, historical context, and research workflow.
+
+The emphasis is not on storing more data, but on helping genealogists reason about data.
+
+---
+
+# Phase 1 — Research Workflow Engine
+
+Goal:
+Guide research rather than simply recording it.
+
+## 1. Research Gap Analysis
+
+Automatic identification of:
+
+- missing births;
+- missing deaths;
+- missing sources;
+- incomplete chronologies;
+- unresolved identity problems.
+
+Generate:
+
+- suggested tasks;
+- suggested searches;
+- suggested repositories.
+
+---
+
+## 2. GPS Workflow Support
+
+Implement Genealogical Proof Standard-oriented workflows.
+
+Support:
+
+- research question;
+- evidence collection;
+- conflict analysis;
+- conclusion creation;
+- proof statement generation.
+
+Provide:
+
+    What is still missing before this conclusion can be considered reasonably proven?
+
+This is one of the most distinctive features FamilyLegacy can offer.
+
+---
+
+# Phase 2 — FAN Network Intelligence
+
+Goal:
+Reveal connections beyond direct family relationships.
+
+## 3. FAN Network View
+
+Use:
+
+- witnesses;
+- godparents;
+- neighbours;
+- employers;
+- employees;
+- associates;
+- shared events;
+- shared places.
+
+Provide graph visualization and reports.
+
+Example:
+
+    Why are these two individuals connected?
+
+Answer using:
+
+- relationships;
+- shared events;
+- shared groups;
+- places;
+- sources.
+
+---
+
+## 4. Associate Discovery
+
+Allow identification of recurring associates.
+
+Examples:
+
+- witness appears in many family events;
+- repeated neighbours;
+- repeated godparents;
+- recurring migration companions.
+
+Highlight possible research leads.
+
+---
+
+# Phase 3 — Historical Context Engine
+
+Goal:
+Place people inside history.
+
+## 5. Historical Overlay Timeline
+
+Combine:
+
+- personal events;
+- family events;
+- local historical events;
+- national historical events;
+- world historical events.
+
+Use:
+
+    HistoricEventRecord
+    ContextImpactRecord
+
+Provide:
+
+- interactive timeline;
+- report section;
+- PDF rendering.
+
+---
+
+## 6. Place-Aware Historical Context
+
+When viewing a person, event, or place, automatically surface relevant context.
+
+Examples:
+
+    Napoleonic administration
+    Austrian rule
+    Civil registration introduction
+    Military conscription periods
+
+Prioritize context connected to associated places.
+
+---
+
+## 7. Lifespan Comparison Charts
+
+Display:
+
+- multiple individuals;
+- historical events;
+- family milestones.
+
+Allow comparisons across generations.
+
+Export:
+
+- SVG
+- PDF
+- report sections
+
+---
+
+# Phase 4 — Intelligent Publishing
+
+Goal:
+Generate publication-quality genealogical works.
+
+## 8. Book Builder
+
+Combine multiple reports into:
+
+- PDF
+- DOCX
+- EPUB
+- HTML
+- Markdown
+
+Support:
+
+- cover page;
+- introduction;
+- table of contents;
+- combined indexes;
+- continuous pagination.
+
+Reuse existing report generators.
+
+---
+
+## 9. Story Integration
+
+Support narrative stories within:
+
+- individual reports;
+- family books;
+- biographies.
+
+Stories should:
+
+- render as narrative sections;
+- support Markdown;
+- be searchable;
+- be optionally included in reports.
+
+Implement via:
+
+    Note + classification
+
+before considering a dedicated StoryRecord.
+
+---
+
+## 10. Narrative Numbering Systems
+
+Provide:
+
+- Ahnentafel
+- d'Aboville
+
+and other genealogical numbering systems where appropriate.
+
+Use sensible defaults per report type.
+
+---
+
+# Phase 5 — AI-Powered Reasoning
+
+Goal:
+Use AI to assist research while keeping all reasoning transparent.
+
+## 11. Explain My Conclusion
+
+User asks:
+
+    Why was this conclusion generated?
+
+Provide:
+
+- supporting evidence;
+- contradictory evidence;
+- confidence;
+- research gaps.
+
+AI must never hide the evidence chain.
+
+---
+
+## 12. Historical Interpretation Assistant
+
+User asks:
+
+    What was happening here when this person lived?
+
+Use:
+
+- historic events;
+- cultural norms;
+- place history.
+
+Generate contextual explanations linked to FLEF records.
+
+---
+
+## 134. Research Advisor
+
+Provide recommendations such as:
+
+- which source type to search next;
+- which repository may help;
+- what evidence is missing;
+- which identity hypothesis deserves attention.
+
+All recommendations must be grounded in existing data and accompanied by explanations.
+
+---
+
+# Ultimate Goal
+
+FamilyLegacy should become:
+
+    Not only a genealogy database.
+
+    Not only a genealogy report generator.
+
+    But a genealogy reasoning and research environment.
+
+The defining experience should be:
+
+    "Show me the evidence."
+    "Show me the conflicts."
+    "Explain the conclusion."
+    "Tell me what to research next."
+    "Put this person into historical context."
+
+Every major feature should reinforce those capabilities.
+
+
 ## TODO
 
 ### MEDIUM
 
-1. **Persistent research tasks generated by the Research Assistant** (small).
-
-- Link a task directly to records. Today `ResearchTaskRecord` has only `question*` (and `created_by`): a draft about an individual or an
-  event reaches the individual only through the question. Add `related*: Xref<...>` to the task in the `.gedg` (individuals, groups, events,
-  places, sources, repositories, media, conclusions, identity hypotheses), fill it from `GapDraft.records()` (now the questions only),
-  migration, importers, merge, help page.
-- `TasksPanel`: filters by status (it shows only the open ones, no completed or abandoned), by priority and by type of related record;
-  today there is only "only selected record".
-- Navigation from a task to the linked records (today only to its questions).
-- More findings that become a task: missing evidence for a relationship, unresolved parentage, possible duplicate, unresolved conflict,
-  repository or archive search opportunity, incomplete chronology.
-
-2. **Historical timeline and lifespan comparison** (medium).
-
-Provide timeline views and reports that combine genealogical events with historical context.
-
-- Person timeline:
-  display life events together with relevant historical events, cultural norms, and context impacts.
-
-- Historical overlay:
-  show local, regional, national, and world events that overlap the selected person's lifetime.
-
-- Place-aware historical context:
-  prioritize historical events affecting places associated with the person, group, or event.
-
-- Lifespan comparison chart:
-  display multiple individuals on a shared timeline together with:
-    - life events,
-    - selected genealogical events,
-    - historical events.
-
-Use existing:
-
-    HistoricEventRecord
-    ContextImpactRecord
-    PlaceRecord
-    PlaceRelationshipRecord
-    DateValue
-
-No protocol changes required.
-
-Outputs may include:
-
-- interactive timeline view (the person's own one: life events and historic events in a single list or strip, today it is the strip only);
-- report section (done, as a table; no graphic);
-- SVG/PDF timeline rendering (nothing: no SVG output at all).
-
-This feature should become the primary visualization of historical context within FamilyLegacy.
-
-3. **Advanced search and saved groups** (high value).
+1. **Advanced search and saved groups** (high value).
 
 Extend the existing search infrastructure with:
 
@@ -96,23 +343,11 @@ Saved groups should be usable in:
 
 Avoid protocol changes unless long-term interchange of saved groups becomes a demonstrated requirement.
 
-4. Evaluate later (niche or heavy): genogram and health history view (GenoPro, RootsMagic), DNA tests and Leeds Method report, cemeteries and
+3. Evaluate later (niche or heavy): genogram and health history view (GenoPro, RootsMagic), DNA tests and Leeds Method report, cemeteries and
 headstones, user-scriptable reports, queue of proposed edits for collaboration, globe/migration view, gazetteer with Soundex for place
 standardisation.
 
 From MyHeritage Family Tree Builder:
-
-- **PDF engine: evaluate whether there are better alternatives to OpenPDF (spike pending).** Today `ReportPdf` (about 1500 lines, OpenPDF 3.0.5) lays out the
-  `ReportDocument` sections in Java, with a hand-made `IndicShaper` (Devanagari/Bengali drawn as vector glyphs through `java.awt.TextLayout`);
-  PDF is the only format that does not go through `ReportXhtml`, which EPUB and the site already use.
-  - **OpenHTMLToPDF** (or a maintained fork) is the candidate if report **templates** are wanted: one XHTML + CSS pipeline for PDF, EPUB and
-    site; `ReportLayout` becomes a generated `@page` (paper, margins, running header, footnote, page counter); the user could restyle with a
-    CSS. Risks: unmaintained upstream (pick a fork), layout held in memory (check against the low-memory rules on a large tree), partial CSS
-    (long tables across pages, images in cells), Indic shaping still needs a workaround, LGPL (as OpenPDF, shaded in the plugin jar).
-  - **Keep OpenPDF** if templates are not needed.
-  - Spike (half a day): an experimental `HtmlPdfRenderer` fed by `ReportXhtml` + a CSS with `@page`; check long tables, contents with page
-    numbers, Devanagari/Bengali and RTL text, memory and time on a real tree (`test.flef`); compare with `PdfReportRendererTest`. If all
-    pass, migrate; if shaping or memory fail, stay on OpenPDF and add a lighter style layer.
 
 - **Report themes** (PDF/HTML/site): a small set of named themes instead of a colour picker or per-element fonts: Classic Genealogy,
   Academic, Family Book, Minimal, Modern. A theme controls fonts and sizes, heading styles, link colours, table and section styling,
@@ -136,82 +371,8 @@ From MyHeritage Family Tree Builder:
 - **Report indexes:** restrict the index of places/dates to births, deaths and marriages; add indexes of occupations and causes of death
   (attribute lookups like the ones of the Surnames report).
 
-- **Stories** (medium): allow multiple narrative texts to be attached to an individual, separate from notes and research records.
-
-Stories are intended for biographical and narrative writing rather than evidence, citations, observations, or research reasoning.
-
-Typical examples:
-
-- life biographies;
-- family traditions;
-- migration narratives;
-- military service narratives;
-- memoir excerpts;
-- locally collected oral histories;
-- publication-ready family histories.
-
-A story should support:
-
-- title;
-- rich text content;
-- optional tags;
-- creation/update dates;
-- links to related records (individuals, groups, events, places, sources).
-
-Stories should:
-
-- be organized independently from notes;
-- appear in individual views;
-- be searchable;
-- be printable;
-- be optionally included in reports and books;
-- be exportable as part of report generation.
-
-Report integration:
-
-- include stories in individual reports;
-- include stories in family books;
-- allow stories to appear inline with the narrative or in dedicated sections;
-- optionally order stories chronologically.
-
-Implementation note:
-
-Stories are not evidence, citations, conclusions, hypotheses, or research notes. They are narrative content intended for reading and publication.
-
-Before introducing protocol changes, evaluate whether stories can initially be implemented as an application-level feature and promoted to a first-class FLEF structure only if long-term portability and interchange prove useful.
-
-- **Global find and replace** (idea from MyHeritage Family Tree Builder): replace a value across the whole tree in one action (a misspelled
-  surname, a place name, a source title), with scope choice (names, places, notes, sources), a preview of every change before applying, a
-  single undo step, and an entry in the history. Respect the low-memory rules on a large tree.
+- **Editor di testo ricco:** si scrive Markdown in un'area di testo semplice, senza barra degli strumenti né anteprima. Il README dice "rich text", e il testo viene reso correttamente nei report, ma la scrittura è a mano.
+- **Markdown a blocchi:** tabelle, citazioni e immagini dentro il testo non sono gestite.
 
 - **Hand-editable charts** (idea from MyHeritage Family Tree Builder): in the chart view, drag the boxes and edit the card texts before
   exporting to PDF/JPEG/print. Build on the report themes, and keep the manual layout saved with the chart, not in the tree data.
-
-- **Image regions linked to individuals** (medium-high).
-
-Allow regions of a media item to be associated with one or more individuals without creating additional image files.
-
-Typical use cases:
-
-- group photographs;
-- wedding photographs;
-- school photographs;
-- military photographs;
-- family portraits.
-
-Store crop regions as metadata rather than generating separate image files.
-
-Features:
-
-- associate a region with one or more individuals;
-- show/hide all tagged regions;
-- click a face and navigate to the linked individual;
-- find all media containing a given individual;
-- use tagged regions as portrait candidates;
-- automatically use regions in reports and books.
-
-The original image remains unchanged.
-
-The crop rectangle becomes metadata attached to the media rather than a standalone derived file.
-
-This enables face tagging, portrait extraction, and report generation while avoiding media duplication.

@@ -454,6 +454,24 @@ class GEDCOMToFLEFConverterTest{
 	}
 
 	@Test
+	void pictureOfAnIndividualIsAnIllustrationNotASource() throws IOException{
+		final FLEFModel model = convert("""
+			0 HEAD
+			1 CHAR UTF-8
+			0 @I1@ INDI
+			1 NAME Emilio /Trevisan/
+			1 OBJE
+			2 FILE photos/Trevisan Emilio 19740906.jpg
+			0 TRLR
+			""");
+
+		final FLEFRecord individual = model.getRecordById("I1");
+		Assertions.assertNotNull(FLEFRecordHelper.getChildValue(individual, "media.media"));
+		Assertions.assertTrue(FLEFRecordHelper.findChildren(individual, "source").isEmpty());
+		Assertions.assertTrue(model.getRecordsByType(SourceReader.TYPE).isEmpty());
+	}
+
+	@Test
 	void sameFileTwiceIsOneMedia() throws IOException{
 		final FLEFModel model = convert("""
 			0 HEAD

@@ -48,6 +48,10 @@ import org.apache.commons.lang3.StringUtils;
  *   priority?: enum { low, normal, high }
  *   due_date?: Date                             // optional target completion date
  *   outcome?: Text                              // notes describing the result once completed
+ *   related*: ResearchTarget                    // records the task is about, directly (the ones of its questions are implied)
+ *   rationale?: Text                            // why the task is proposed
+ *   assistant_finding_id?: Text                 // optional: the Research Assistant finding that generated the task; used for deduplication and workflow
+ *                                               // continuity; applications without assistant-generated tasks may ignore it (assistant metadata, not genealogical content)
  *   note*: NoteStructure     // reasoning, temporary findings, comments
  *   media*: MediaCitation    // screenshots, documents under evaluation, and other research material
  *   privacy?: PrivacyStructure
@@ -67,6 +71,9 @@ public final class ResearchTaskReader{
 	public static final String TAG_PRIORITY = "priority";
 	public static final String TAG_DUE_DATE = "due_date";
 	public static final String TAG_OUTCOME = "outcome";
+	public static final String TAG_RELATED = "related";
+	public static final String TAG_RATIONALE = "rationale";
+	public static final String TAG_ASSISTANT_FINDING_ID = "assistant_finding_id";
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_MEDIA = "media";
 	public static final String TAG_PRIVACY = "privacy";
@@ -117,6 +124,15 @@ public final class ResearchTaskReader{
 
 	public static String extractOutcome(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_OUTCOME);
+	}
+
+	public static String extractRationale(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_RATIONALE);
+	}
+
+	/** @return what generated the task (the key of the finding of the Research Assistant), or {@code null} for a task written by hand */
+	public static String extractAssistantFindingId(final FLEFRecord record){
+		return FLEFRecordHelper.getChildValue(record, TAG_ASSISTANT_FINDING_ID);
 	}
 
 }

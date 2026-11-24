@@ -33,13 +33,31 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.dates.DatePicker;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -64,6 +82,9 @@ import java.util.List;
  *   priority?: enum { low, normal, high }
  *   due_date?: Date
  *   outcome?: Text
+ *   related*: ResearchTarget
+ *   rationale?: Text
+ *   assistant_finding_id?: Text   // set by the Research Assistant, not edited here
  *   note*: NoteStructure
  *   media*: MediaCitation
  *   privacy?: PrivacyStructure
@@ -72,7 +93,7 @@ import java.util.List;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): description, question, created_by, status, priority, due_date, outcome
+ * Tab 1 (Properties): description, question, created_by, status, priority, due_date, outcome, related, rationale
  * Tab 8 (Notes): note, media
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -88,6 +109,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> priorityCombo;
 	private final BoundTextField dueDateField;
 	private final BoundTextArea outcomeArea;
+	private final EntityListPanel relatedPanel;
+	private final BoundTextArea rationaleArea;
 
 
 	public static ResearchTaskRecordDialog createNew(final Window parent, final FLEFModel model){
@@ -103,7 +126,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private ResearchTaskRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ResearchTaskHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]10[]10[]");
 
 		descriptionArea = new BoundTextArea(ResearchTaskReader.TAG_DESCRIPTION, 3, 30);
 		createdByField = EntityField.createForRecordFromReference(ResearchTaskReader.TAG_CREATED_BY, this, model,
@@ -114,6 +137,13 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		priorityCombo.setI18NPrefix("enum.research_task.priority");
 		dueDateField = new BoundTextField(ResearchTaskReader.TAG_DUE_DATE);
 		outcomeArea = new BoundTextArea(ResearchTaskReader.TAG_OUTCOME, 3, 30);
+		relatedPanel = EntityListPanel.createForOneOfReference(ResearchTaskReader.TAG_RELATED, this, I18N.t("dialog.research_task.related"), model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
+				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
+				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, RepositoryHandler.class,
+				SourceHandler.class, MediaHandler.class, ConclusionHandler.class, IdentityHypothesisHandler.class,
+				CulturalNormHandler.class, HistoricEventHandler.class);
+		rationaleArea = new BoundTextArea(ResearchTaskReader.TAG_RATIONALE, 3, 30);
 
 		// Build common panels using the builder
 		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
@@ -129,6 +159,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		components.bind(priorityCombo);
 		components.bind(dueDateField);
 		components.bind(outcomeArea);
+		components.bind(rationaleArea);
 
 
 		finalizeDialog(parent);
@@ -144,6 +175,9 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
 		GUIHelper.addComponent(propertiesPanel, notePanel);
 
+		// related records
+		GUIHelper.addComponent(propertiesPanel, relatedPanel);
+
 		// created by
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.created.by"), createdByField);
 
@@ -154,10 +188,13 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.priority"), GUIHelper.withTooltip(priorityCombo, "tooltip.research_task.priority"));
 
 		// due date
-		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.due_date"), dueDateField);
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.due_date"), DatePicker.withPicker(dueDateField));
 
 		// outcome
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.outcome"), GUIHelper.withTooltip(outcomeArea, "tooltip.research_task.outcome"));
+
+		// rationale
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.research_task.rationale"), GUIHelper.withTooltip(rationaleArea, "tooltip.research_task.rationale"));
 
 		return propertiesPanel;
 	}
@@ -240,6 +277,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		components.load(record);
 		mediaCitationPanel.load(record);
 
+		relatedPanel.load(record);
 		createdByField.load(record);
 	}
 
@@ -290,6 +328,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
 		mediaCitationPanel.saveReferences(record);
 
+		relatedPanel.save(record);
 		createdByField.saveReferences(record);
 	}
 

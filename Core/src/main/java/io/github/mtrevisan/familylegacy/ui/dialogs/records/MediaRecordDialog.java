@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.MediaUriField;
+import io.github.mtrevisan.familylegacy.ui.components.media.MediaViewerDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -39,11 +40,14 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordUsageDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
@@ -118,6 +122,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.RESEARCH_TASK_ON_RELATED, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))
 			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, SourceHandler.TYPE, I18N.t("dialog.component.sources"))
 			.withComponent(PanelKey.NOTE, MediaReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, MediaReader.TAG_PRIVACY, null)
@@ -168,18 +173,40 @@ public class MediaRecordDialog extends BaseRecordDialog{
 		final JButton whereUsedButton = new JButton(I18N.t("dialog.media.where_used"));
 		whereUsedButton.setEnabled(!isNew);
 		whereUsedButton.addActionListener(e -> RecordUsageDialog.show(this, model, record));
-		GUIHelper.addComponent(propertiesPanel, whereUsedButton);
+
+		//the image at full size, with the regions that tell who is in it (only for the media that is saved: the viewer reads the record)
+		final JButton viewButton = new JButton(I18N.t("dialog.media.view"));
+		viewButton.setEnabled(!isNew);
+		viewButton.addActionListener(e -> MediaViewerDialog.open(this, model, record));
+
+		//the folder that holds the file, with the file selected
+		final JButton viewInFolderButton = new JButton(I18N.t("dialog.media.view_in_folder"));
+		viewInFolderButton.addActionListener(e -> {
+			final String path = uriField.getText();
+			if(path != null && !path.isBlank())
+				SavedFileNotice.reveal(new File(path.trim()));
+		});
+
+		final JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		buttonsPanel.setOpaque(false);
+		buttonsPanel.add(whereUsedButton);
+		buttonsPanel.add(viewButton);
+		buttonsPanel.add(viewInFolderButton);
+		GUIHelper.addComponent(propertiesPanel, buttonsPanel);
 
 		return propertiesPanel;
 	}
 
 	@Override
 	protected JPanel createResearchPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// research question
 		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		// research tasks that name this record
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.RESEARCH_TASK_ON_RELATED));
 
 		return panel;
 	}

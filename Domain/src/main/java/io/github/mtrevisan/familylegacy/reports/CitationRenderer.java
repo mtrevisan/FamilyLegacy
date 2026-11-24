@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -68,6 +70,17 @@ public final class CitationRenderer{
 
 	/** How many characters a line of the report holds, to tell how many lines a text takes. */
 	private static final int LINE_WIDTH = 90;
+	/** The level of the heading of a story of the person the chapter is about: a section of the chapter. */
+	private static final int OWN_STORY_LEVEL = 2;
+	/** The level of the heading of a story of something in the chapter (an event, a relationship...): under the section it is in. */
+	private static final int NESTED_STORY_LEVEL = 3;
+
+	/** A link of the text of a note, to a record ({@code [text](flef:I12)}) or the marker of confidential text; the target is the second group. */
+	private static final Pattern TEXT_LINK = Pattern.compile("\\[([^\\]]*)\\]\\(flef:([^)\\s]+)\\)");
+	/** The target of a link that marks confidential text. */
+	private static final String CONFIDENTIAL_TARGET = "confidential";
+	/** What stands for a record that the privacy policy hides. */
+	private static final String OMITTED = "[omitted]";
 
 
 	private final ReportContext ctx;
@@ -76,6 +89,7 @@ public final class CitationRenderer{
 	private int deferredNoteCount;
 	private int deferredDetailCount;
 	private final List<ReportSection> deferredNotes = new ArrayList<>();
+	private final List<ReportSection> deferredStories = new ArrayList<>();
 	private final List<String> deferredDetails = new ArrayList<>();
 
 
@@ -98,6 +112,7 @@ public final class CitationRenderer{
 		deferredNoteCount = 0;
 		deferredDetailCount = 0;
 		deferredNotes.clear();
+		deferredStories.clear();
 		deferredDetails.clear();
 	}
 
@@ -105,6 +120,7 @@ public final class CitationRenderer{
 	void stopDeferring(){
 		deferring = false;
 		deferredNotes.clear();
+		deferredStories.clear();
 		deferredDetails.clear();
 	}
 
@@ -113,11 +129,18 @@ public final class CitationRenderer{
 		final boolean was = deferring;
 		deferring = false;
 		try{
-			return notes(rec);
+			return notes(rec, false);
 		}
 		finally{
 			deferring = was;
 		}
+	}
+
+	/** @return	The stories of the events, the attributes and the relationships that were kept for the section of the stories. */
+	List<ReportSection> takeDeferredStories(){
+		final List<ReportSection> out = List.copyOf(deferredStories);
+		deferredStories.clear();
+		return out;
 	}
 
 	/** @return	The notes that were kept for the section of the notes, numbered as their references are. */
@@ -168,12 +191,32 @@ public final class CitationRenderer{
 	 * silently skipped.</p>
 	 */
 	public List<ReportSection> notes(final FLEFRecord rec){
+		return notes(rec, true);
+	}
+
+	/**
+	 * @param withStories	Whether the stories of the record are told where the placement of the report puts them (they are told by the
+	 * 	section of the record otherwise, with {@link #storiesOf(FLEFRecord)}).
+	 */
+	private List<ReportSection> notes(final FLEFRecord rec, final boolean withStories){
 		final List<ReportSection> out = new ArrayList<>();
 		for(final FLEFRecord n : ctx.visibleChildren(rec, TAG_NOTE)){
 			if(!ctx.isVisible(n))
 				continue;
 
-			final String text = ReportFormatters.noteText(n);
+			//a story is not a note: it is chosen apart, and told as a text with its title
+			if(NoteReader.isStory(n)){
+				if(withStories)
+					storyInPlace(n, out);
+				continue;
+			}
+			if(!ctx.config.notes())
+				continue;
+			//the research notes are working material of the research: a report can leave them out
+			if(!ctx.config.researchNotes() && NoteReader.isResearch(n))
+				continue;
+
+			final String text = noteBody(n);
 			final String suffix = noteMetadataSuffix(n);
 			//the title of a note is its label ("Agency: Ospedale ..."), not a separate line after the text
 			final String title = ReportFormatters.noteTitle(n);
@@ -185,7 +228,11 @@ public final class CitationRenderer{
 				: (hasTitle? ReportFormatters.escape(title): ctx.labels.sections().note()));
 
 			final List<ReportSection> block = new ArrayList<>();
-			block.add(new ReportSection.Paragraph("**" + label + ":** " + ReportFormatters.escape(text) + suffix));
+			//a text of several paragraphs is several paragraphs: the label opens the first, the metadata closes the last
+			final List<String> paragraphs = paragraphsOf(text);
+			for(int i = 0; i < paragraphs.size(); i ++)
+				block.add(new ReportSection.Paragraph((i == 0? "**" + label + ":** ": StringUtils.EMPTY)
+					+ ReportFormatters.escape(paragraphs.get(i)) + (i == paragraphs.size() - 1? suffix: StringUtils.EMPTY)));
 
 			for(final String tr : ReportFormatters.noteTranslations(n, ctx.labels))
 				block.add(new ReportSection.Paragraph(tr));
@@ -203,6 +250,132 @@ public final class CitationRenderer{
 				out.addAll(block);
 		}
 		return out;
+	}
+
+	/**
+	 * Tells a story of a record where the placement puts it: right after the record, or (where the chapter of a person has a section for
+	 * them) kept for that section.
+	 */
+	private void storyInPlace(final FLEFRecord story, final List<ReportSection> out){
+		switch(ctx.config.stories()){
+			case EXCLUDE -> {
+				//left out
+			}
+			case INLINE -> out.addAll(storyBlocks(story, NESTED_STORY_LEVEL));
+			case SECTION -> {
+				if(deferring)
+					deferredStories.addAll(storyBlocks(story, NESTED_STORY_LEVEL));
+				else
+					out.addAll(storyBlocks(story, NESTED_STORY_LEVEL));
+			}
+		}
+	}
+
+	/**
+	 * @param rec	A record.
+	 * @return	The stories of the record, each with its title as a heading of the level of the sections of a chapter, and its text in normal
+	 * 	paragraphs (the privacy policy applies; empty if the report leaves the stories out).
+	 */
+	List<ReportSection> storiesOf(final FLEFRecord rec){
+		final List<ReportSection> out = new ArrayList<>();
+		if(ctx.config.stories() == StoryPlacement.EXCLUDE)
+			return out;
+
+		for(final FLEFRecord n : ctx.visibleChildren(rec, TAG_NOTE))
+			if(NoteReader.isStory(n) && ctx.isVisible(n))
+				out.addAll(storyBlocks(n, OWN_STORY_LEVEL));
+		return out;
+	}
+
+	/**
+	 * @param rec	The record a report is about.
+	 * @return	Its notes, and then its stories where the report puts them: for the reports that have no chapter of a person, with no
+	 * 	deferring (the stories are a section of their own, or follow the notes).
+	 */
+	List<ReportSection> rootNotes(final FLEFRecord rec){
+		final List<ReportSection> out = new ArrayList<>(notesInPlace(rec));
+		out.addAll(rootStories(rec));
+		return out;
+	}
+
+	/**
+	 * @param rec	The record a report is about.
+	 * @return	Its stories as the report puts them: in a section of their own, with its heading, or without it (inline); nothing if the report
+	 * 	leaves the stories out or the record has none.
+	 */
+	List<ReportSection> rootStories(final FLEFRecord rec){
+		final List<ReportSection> own = storiesOf(rec);
+		if(own.isEmpty() || ctx.config.stories() != StoryPlacement.SECTION)
+			return own;
+
+		final List<ReportSection> out = new ArrayList<>(own.size() + 1);
+		out.add(new ReportSection.Heading(OWN_STORY_LEVEL, ctx.labels.sections().stories()));
+		out.addAll(own);
+		return out;
+	}
+
+	/**
+	 * A story is written as a document: its title as a heading (if it has one) and then its text as blocks (paragraphs, and for a story in
+	 * Markdown the headings, the lists and the rules), without the label and the technical metadata (the media type, the locale) of a note;
+	 * then its translations and the sources it cites.
+	 */
+	private List<ReportSection> storyBlocks(final FLEFRecord story, final int level){
+		final List<ReportSection> block = new ArrayList<>();
+		final String title = ReportFormatters.noteTitle(story);
+		if(title != null)
+			block.add(new ReportSection.Heading(level, ReportFormatters.escape(title)));
+
+		final String mime = FLEFRecordHelper.getChildValue(story, NoteReader.TAG_MIME);
+		block.addAll(StoryBlocks.parse(noteBody(story), (mime != null && mime.contains("markdown")), level, title != null));
+		for(final String translation : ReportFormatters.noteTranslations(story, ctx.labels))
+			block.add(new ReportSection.Paragraph(translation));
+		if(ctx.config.sources())
+			block.addAll(citations(story));
+		return block;
+	}
+
+	/**
+	 * The text of a note as the report writes it: an HTML note is turned into text (its tags would be shown as they are), the links that
+	 * mark confidential text are dropped when the privacy policy hides it (the text is kept otherwise), and the links to a record that the
+	 * policy hides are replaced by a placeholder, so that the name of the record is not leaked; the links to the other records
+	 * ({@code flef:Id}) become the internal links of the report ({@code @Id@}).
+	 */
+	private String noteBody(final FLEFRecord note){
+		final String body = ReportFormatters.noteBody(note);
+		if(body == null || body.isEmpty())
+			return StringUtils.EMPTY;
+
+		final boolean hideConfidential = (ctx.config.privacyPolicy() != PrivacyPolicy.SHOW_ALL);
+		final Matcher matcher = TEXT_LINK.matcher(body);
+		final StringBuilder sb = new StringBuilder(body.length());
+		while(matcher.find()){
+			final String id = matcher.group(2);
+			final String replacement;
+			if(CONFIDENTIAL_TARGET.equalsIgnoreCase(id))
+				replacement = (hideConfidential? StringUtils.EMPTY: matcher.group(1));
+			else{
+				final FLEFRecord target = ctx.model.getRecordById(id);
+				replacement = (target != null && !ctx.isVisible(target)
+					? OMITTED
+					: "[" + matcher.group(1) + "](@" + id + "@)");
+			}
+			matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+		}
+		matcher.appendTail(sb);
+		return sb.toString();
+	}
+
+	/** @return	The paragraphs of a text (separated by blank lines), at least one (empty if the text is). */
+	private static List<String> paragraphsOf(final String text){
+		final List<String> paragraphs = new ArrayList<>(1);
+		for(final String paragraph : StringUtils.splitByWholeSeparator(StringUtils.replace(text, "\r\n", "\n"), "\n\n")){
+			final String stripped = paragraph.strip();
+			if(!stripped.isEmpty())
+				paragraphs.add(stripped);
+		}
+		if(paragraphs.isEmpty())
+			paragraphs.add(StringUtils.EMPTY);
+		return paragraphs;
 	}
 
 	/**
@@ -395,7 +568,7 @@ public final class CitationRenderer{
 
 		//the notes of the participation, independent from the event, are shown once, as every other note (the ones hidden by the privacy
 		//policy are not)
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(notes(participation));
 		if(ctx.config.sources())
 			out.addAll(citations(participation));

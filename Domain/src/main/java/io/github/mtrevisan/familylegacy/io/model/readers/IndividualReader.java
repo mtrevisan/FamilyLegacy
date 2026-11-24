@@ -127,6 +127,11 @@ public final class IndividualReader{
 		return MediaReader.extractUri(document);
 	}
 
+	/** @return the id of the media of the preferred image of the individual, {@code null} if it has none */
+	public static String extractPreferredImageMediaId(final FLEFRecord record){
+		return StringUtils.trimToNull(FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_DOCUMENT));
+	}
+
 	public static Rectangle extractPreferredImageCrop(final FLEFRecord record){
 		final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
 		return CropReader.extractPreferredImageCrop(crop);

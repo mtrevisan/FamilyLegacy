@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.SourceWorkspaceDialog;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;

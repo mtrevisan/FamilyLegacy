@@ -86,8 +86,8 @@ public final class PlaceRootSection implements SectionBuilder{
 		writeEventsByPlace(out);
 		writeAttributesAtPlace(out);
 
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ctx.root));
+		if(ctx.writesNotes())
+			out.addAll(ctx.citations().rootNotes(ctx.root));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(ctx.root));
 		if(ctx.config.evidence())
@@ -221,7 +221,7 @@ public final class PlaceRootSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));

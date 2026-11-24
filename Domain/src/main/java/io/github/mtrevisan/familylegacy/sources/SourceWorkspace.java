@@ -170,7 +170,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 	}
 
 	/** The identifiers of the individuals that take part in each event. */
-	private static Map<String, List<String>> participantsOfEvents(final FLEFModel model){
+	static Map<String, List<String>> participantsOfEvents(final FLEFModel model){
 		final Map<String, List<String>> participants = new LinkedHashMap<>();
 		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationReader.TYPE)){
 			final String eventId = FLEFRecordHelper.getChildValue(participation, EventParticipationReader.TAG_EVENT);
@@ -183,7 +183,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 		return participants;
 	}
 
-	private static List<FLEFRecord> individualsOf(final FLEFModel model, final FLEFRecord owner,
+	static List<FLEFRecord> individualsOf(final FLEFModel model, final FLEFRecord owner,
 			final Map<String, List<String>> participantsOfEvent){
 		final List<String> ids = new ArrayList<>(2);
 		if(IndividualReader.isOfType(owner))

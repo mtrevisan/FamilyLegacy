@@ -91,7 +91,6 @@ final class RecentChangesDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final JLabel summary = new JLabel();
 	private final JComboBox<TypeItem> typeFilter = ComboBoxSearch.searchable(new JComboBox<>());
-	private final JButton openRecord = new JButton(I18N.t("recent_changes.open_record"));
 	private final JButton showDiff = new JButton(I18N.t("recent_changes.show_diff"));
 	private final JButton revert = new JButton(I18N.t("recent_changes.revert"));
 	private final JToggleButton onlyRecord = new JToggleButton(I18N.t("recent_changes.only_record"));
@@ -127,7 +126,6 @@ final class RecentChangesDialog extends JDialog{
 		table.getSelectionModel()
 			.addListSelectionListener(e -> {
 				final Row selected = tableModel.rowAt(table.getSelectedRow());
-				openRecord.setEnabled(isOpenable(selected));
 				showDiff.setEnabled(selected != null);
 				revert.setEnabled(selected != null && !selected.entry().undone());
 				onlyRecord.setEnabled(historyOfId != null || selected != null && selected.change().id() != null);
@@ -145,8 +143,6 @@ final class RecentChangesDialog extends JDialog{
 				applyFilter();
 		});
 
-		openRecord.setEnabled(false);
-		openRecord.addActionListener(e -> openRecord(tableModel.rowAt(table.getSelectedRow())));
 		showDiff.setEnabled(false);
 		showDiff.addActionListener(e -> showDiff(tableModel.rowAt(table.getSelectedRow())));
 		revert.setEnabled(false);
@@ -168,7 +164,7 @@ final class RecentChangesDialog extends JDialog{
 		filterPanel.add(typeFilter);
 		filterPanel.add(onlyRecord);
 
-		final JPanel south = GUIHelper.createStatusFooter(summary, revert, showDiff, openRecord, refresh);
+		final JPanel south = GUIHelper.createStatusFooter(summary, revert, showDiff, refresh);
 
 		setLayout(new BorderLayout(8, 8));
 		add(filterPanel, BorderLayout.NORTH);
@@ -230,7 +226,6 @@ final class RecentChangesDialog extends JDialog{
 		tableModel.setRows(rows);
 
 		summary.setText(I18N.plural("recent_changes.summary", rows.size()));
-		openRecord.setEnabled(false);
 		showDiff.setEnabled(false);
 		revert.setEnabled(false);
 		onlyRecord.setEnabled(historyOfId != null);

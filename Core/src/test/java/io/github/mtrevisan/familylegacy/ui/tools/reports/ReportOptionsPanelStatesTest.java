@@ -80,7 +80,7 @@ class ReportOptionsPanelStatesTest{
 	void withEveryOptionEditableTheWholeFormIsThere(){
 		final JPanel panel = advanced(ReportConfig.defaults(), option -> OptionState.EDITABLE);
 
-		Assertions.assertEquals(ReportOption.values().length - 25, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 26, checkBoxes(panel).size());
 		Assertions.assertTrue(checkBoxes(panel).stream().allMatch(JCheckBox::isEnabled));
 	}
 
@@ -93,7 +93,8 @@ class ReportOptionsPanelStatesTest{
 			FeatureVisibilityService.inMemory(UxLevel.STANDARD))).size();
 		final int advanced = checkBoxes(advanced(ReportConfig.defaults(), editable)).size();
 
-		Assertions.assertEquals(basic + 1, standard);
+		//(the research and context content, and the research notes)
+		Assertions.assertEquals(basic + 2, standard);
 		Assertions.assertEquals(standard + 3, advanced);
 	}
 
@@ -104,7 +105,7 @@ class ReportOptionsPanelStatesTest{
 		Assertions.assertNull(find(panel, "chronological_timeline"));
 		Assertions.assertNull(find(panel, "descendants"));
 		Assertions.assertNotNull(find(panel, "introduction"));
-		Assertions.assertEquals(ReportOption.values().length - 25 - 2, checkBoxes(panel).size());
+		Assertions.assertEquals(ReportOption.values().length - 26 - 2, checkBoxes(panel).size());
 	}
 
 	@Test

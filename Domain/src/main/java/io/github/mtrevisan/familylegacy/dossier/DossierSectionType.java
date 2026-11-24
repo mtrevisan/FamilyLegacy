@@ -55,6 +55,9 @@ public enum DossierSectionType{
 	/** Source citations attached to the individual and its records. */
 	SOURCES,
 
+	/** The media that the individual cites, with the regions in which it is tagged, and its preferred image. */
+	MEDIA,
+
 	/** Contextual factors (historic events, cultural norms) affecting the individual. */
 	CONTEXT,
 
@@ -64,7 +67,13 @@ public enum DossierSectionType{
 	/** Research questions and conclusions about the individual. */
 	RESEARCH,
 
-	/** Free-text notes attached to the individual and its records. */
+	/** The stories (narrative notes meant to be read) attached to the individual and its records, apart from the other notes. */
+	STORIES,
+
+	/** The stories, written in other records, that link to the individual. */
+	MENTIONS,
+
+	/** Free-text notes attached to the individual and its records (the stories excepted). */
 	NOTES;
 
 

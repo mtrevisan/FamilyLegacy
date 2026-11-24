@@ -150,6 +150,7 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.CONCLUSION_ON_RESEARCH, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ConclusionReader.TAG_RESEARCH));
 		loadReferenceIfPresent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, elp -> elp.withConclusions().loadReferenceWithType(record.getId(), IdentityHypothesisReader.TAG_IDENTITY));
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION_ON_TARGET, elp -> elp.loadReferenceWithType(record.getId(), ResearchQuestionReader.TAG_TARGET));
+		loadReferenceIfPresent(PanelKey.RESEARCH_TASK_ON_RELATED, elp -> elp.loadReferenceWithType(record.getId(), ResearchTaskReader.TAG_RELATED));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType3(record.getId(), ResearchActivityReader.TAG_QUESTION));
 		loadReferenceIfPresent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, elp -> elp.withParentEntity(record).loadCitationsWithType2(record.getId(), ResearchActivityReader.TAG_SOURCE));
 
@@ -165,6 +166,8 @@ public final class RecordDialogComponents{
 		loadReferenceIfPresent(PanelKey.RESEARCH_QUESTION, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.RESEARCH_TASK_ON_QUESTION, elp -> elp.withParentEntity(record).loadCitationsWithType(record.getId(), ResearchTaskReader.TAG_QUESTION));
 		loadReferenceIfPresent(PanelKey.NOTE, elp -> elp.load(record));
+		loadReferenceIfPresent(PanelKey.STORY, elp -> elp.load(record));
+		loadReferenceIfPresent(PanelKey.NOTE_EXCEPT_STORIES, elp -> elp.load(record));
 		loadReferenceIfPresent(PanelKey.TASK, elp -> elp.load(record));
 
 		final EvidenceQualifiersPanel evidence = ((EvidenceQualifiersPanel)getPanel(PanelKey.EVIDENCE));
@@ -184,6 +187,17 @@ public final class RecordDialogComponents{
 		final JPanel panel = getPanel(key);
 		if(panel instanceof EntityListPanel elp)
 			consumer.accept(elp);
+	}
+
+	/**
+	 * Hands a note whose kind changed to the list that shows its new kind.
+	 *
+	 * @param note	the note
+	 */
+	public void adoptNote(final FLEFRecord note){
+		for(final JPanel panel : panels.values())
+			if(panel instanceof EntityListPanel elp && elp.adopt(note))
+				return;
 	}
 
 	/**

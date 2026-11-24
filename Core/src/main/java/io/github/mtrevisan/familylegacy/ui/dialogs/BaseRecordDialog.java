@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordChangeSummary;
 import io.github.mtrevisan.familylegacy.io.model.RecordTags;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -40,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.ui.components.TagsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.media.MediaViewerDialog;
 import io.github.mtrevisan.familylegacy.ui.features.ContextualSuggestions;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.features.Suggestion;
@@ -48,6 +50,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -115,6 +118,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	public static final String TAB_NAME_FINDINGS = EditorTab.FINDINGS;
 	public static final String TAB_NAME_REFERENCES = EditorTab.REFERENCES;
 	public static final String TAB_NAME_SOURCES = EditorTab.SOURCES;
+	public static final String TAB_NAME_STORIES = EditorTab.STORIES;
 	public static final String TAB_NAME_NOTES = EditorTab.NOTES;
 	public static final String TAB_NAME_TAGS = EditorTab.TAGS;
 	public static final String TAB_NAME_PRIVACY = EditorTab.PRIVACY;
@@ -160,6 +164,18 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		this.originalState = (record != null? copyOf(record): null);
 
 		setTitle(buildTitle(this.handler, (record == null)));
+
+		imageCarouselPanel.setOpenListener(this::openMediaViewer);
+	}
+
+	/** Opens the image of a thumbnail of the carousel at full size, with the regions of its media (nothing if no media has that URI). */
+	private void openMediaViewer(final String uri){
+		for(final FLEFRecord media : model.getRecordsByType(MediaReader.TYPE))
+			if(uri.equals(MediaReader.extractUri(media))){
+				MediaViewerDialog.open(this, model, media);
+
+				return;
+			}
 	}
 
 
@@ -235,6 +251,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		final JPanel findingsPanel = createFindingsPanel();
 		final JPanel referencesPanel = createReferencesPanel();
 		final JPanel sourcesPanel = createSourcesPanel();
+		final JPanel storiesPanel = createStoriesPanel();
 		final JPanel notesPanel = createNotesPanel();
 		final JPanel tagsTab = createTagsPanel();
 		final JPanel privacyPanel = createPrivacyPanel();
@@ -242,7 +259,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 		if(attributesPanel == null && relationshipsPanel == null && participationsPanel == null && contextPanel == null
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
-				&& notesPanel == null && tagsTab == null && privacyPanel == null && auditPanel == null){
+				&& storiesPanel == null && notesPanel == null && tagsTab == null && privacyPanel == null && auditPanel == null){
 			// No optional panels, just show the properties panel (with the same margin the tabbed dialogs have: no content touches the edge)
 			setLayout(GUIHelper.createLabelFieldLayout(DIALOG_MARGIN, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
@@ -259,6 +276,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			addTabIfNotNull(tabbedPane, TAB_NAME_FINDINGS, findingsPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_REFERENCES, referencesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_SOURCES, sourcesPanel);
+			addTabIfNotNull(tabbedPane, TAB_NAME_STORIES, storiesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_NOTES, notesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_TAGS, tagsTab);
 			addTabIfNotNull(tabbedPane, TAB_NAME_PRIVACY, privacyPanel);
@@ -424,8 +442,48 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		if(panel != null){
 			panel.putClientProperty(PANEL_PROPERTY_NAME, tabName);
 
-			tabbedPane.addTab(I18N.t("tab.title." + tabName), panel);
+			//the first tab has the "when to use this record" tooltip
+			if(tabbedPane.getTabCount() == 0)
+				tabbedPane.addTab(I18N.t("tab.title." + tabName), panel);
+			else
+				GUIHelper.addTab(tabbedPane, I18N.t("tab.title." + tabName), tabName, panel);
 		}
+	}
+
+	private boolean hasTab(final String tabName){
+		for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
+			if(tabbedPane.getComponentAt(i) instanceof JPanel panel && tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME)))
+				return true;
+		return false;
+	}
+
+	/**
+	 * @param features	What tells the level of the user.
+	 * @return	Whether the stories of a record have a tab of their own, apart from the notes: from the standard level (below it the user
+	 * 	has the one list of the notes, with the kind of each one, and no tab more).
+	 */
+	protected static boolean storiesApart(final FeatureVisibilityService features){
+		return features.isVisible(UxLevel.STANDARD);
+	}
+
+	/** What tells the level for the tab of the stories: the one of the user, unless a test says another (the level is a preference of the user). */
+	private static volatile FeatureVisibilityService storiesFeatures;
+
+	/** @return	Whether the stories have a tab of their own at the level of the user. */
+	protected static boolean storiesApart(){
+		final FeatureVisibilityService features = storiesFeatures;
+		return storiesApart(features != null? features: FeatureVisibilityService.shared());
+	}
+
+	/** For the tests: the level that decides the tab of the stories, instead of the preference of the user ({@code null} to go back to it). */
+	static void useLevelForStories(final FeatureVisibilityService features){
+		storiesFeatures = features;
+	}
+
+	@Override
+	public void adoptNote(final FLEFRecord note){
+		if(components != null)
+			components.adoptNote(note);
 	}
 
 	public boolean showSelectedTab(final String tabName){
@@ -467,6 +525,13 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	public void showEntry(final String tabName, final FLEFRecord nested){
 		if(tabName == null || tabbedPane == null)
 			return;
+
+		//where the stories are not apart (below the standard level) they are with the notes
+		if(EditorTab.STORIES.equals(tabName) && !hasTab(EditorTab.STORIES)){
+			showEntry(EditorTab.NOTES, nested);
+
+			return;
+		}
 
 		for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
 			if(tabbedPane.getComponentAt(i) instanceof JPanel panel
@@ -562,6 +627,11 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		return null;
 	}
 
+	/** The stories of the record, in a tab before the one of the notes (only the editors that have the stories apart have it). */
+	protected JPanel createStoriesPanel(){
+		return null;
+	}
+
 	/**
 	 * The free tags of the record: they are not in the file but of the application, so the tab is the same in every editor of a record that
 	 * can be tagged, and nothing is written to the record.
@@ -582,6 +652,22 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		return null;
 	}
 
+	/** @return	The name to show in the title of the editor of the record (the preferred name for an individual), {@code null} if none. */
+	private String nameOf(final RecordTypeHandler<?> handler){
+		String name;
+		if(IndividualHandler.isOfType(record))
+			name = IndividualReader.extractPrimaryFullname(record);
+		else{
+			name = handler.getDisplayText(record, model);
+			if(name != null){
+				name = GUIHelper.limitTextLength(StringUtils.replaceChars(name, '\n', ' '));
+				if("--".equals(name) || name.equals(record.getId()))
+					name = null;
+			}
+		}
+		return name;
+	}
+
 	private String buildTitle(final RecordTypeHandler<?> handler, final boolean isNew){
 		final String dialogType = I18N.t(isNew? "dialog.title.new": "dialog.title.edit");
 		final String label = handler.getLabel();
@@ -593,6 +679,11 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		if(id == null)
 			// in case of a citation
 			id = FLEFRecordHelper.getChildValue(record, handler.getCitedType());
+
+		final String name = (!isNew? nameOf(handler): null);
+		if(StringUtils.isNotEmpty(name))
+			sb.append(" - ")
+				.append(name);
 
 		if(StringUtils.isNotEmpty(id))
 			sb.append(StringUtils.SPACE)

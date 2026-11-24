@@ -112,3 +112,9 @@
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=ALL-UNNAMED
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=org.junit.platform.commons
 --add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.perf=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.media=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.media=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.media=org.junit.jupiter.api
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.lists=ALL-UNNAMED
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.lists=org.junit.platform.commons
+--add-opens io.github.mtrevisan.familylegacy.core/io.github.mtrevisan.familylegacy.ui.components.lists=org.junit.jupiter.api

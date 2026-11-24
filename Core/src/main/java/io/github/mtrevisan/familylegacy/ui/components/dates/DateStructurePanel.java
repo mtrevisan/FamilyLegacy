@@ -97,7 +97,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		boundedDateValuePanel = new BoundedDatePanel(parent, model);
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
-		originalTextField = new BoundTextField(DateReader.TAG_ORIGINAL_TEXT);
+		originalTextField = new BoundTextField(DateReader.TAG_ASSISTANT_FINDING_IDAL_TEXT);
 		sourcePanel = EntityListPanel.createForCitationWrapper(DateReader.TAG_SOURCE, parent, I18N.t("dialog.component.sources_with_citations"),
 			model, SourceCitationHandler.class);
 		confidenceCombo = new BoundComboBox<>(DateReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
@@ -122,9 +122,9 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		valueWrapper.setBorder(BorderFactory.createTitledBorder(I18N.t("border.date")));
 		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
 		pointPanel.add(valueWrapper, "growx");
-		tabbedPane.addTab(I18N.t("dialog.date.point"), pointPanel);
-		tabbedPane.addTab(I18N.t("dialog.date.bounded"), boundedDateValuePanel);
-		tabbedPane.addTab(I18N.t("dialog.date.spanning"), spanningDateValuePanel);
+		GUIHelper.addTab(tabbedPane, I18N.t("dialog.date.point"), "date_point", pointPanel);
+		GUIHelper.addTab(tabbedPane, I18N.t("dialog.date.bounded"), "date_bounded", boundedDateValuePanel);
+		GUIHelper.addTab(tabbedPane, I18N.t("dialog.date.spanning"), "date_spanning", spanningDateValuePanel);
 
 		// When switching tabs, clear the other panels
 		tabbedPane.addChangeListener(e -> {
@@ -215,13 +215,15 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 
 		final FLEFRecord record = FLEFRecord.createEmpty();
 
-		// date
+		// date: value.(point|bounded|spanning), the same shape that load(FLEFRecord) reads
+		final FLEFRecord value = FLEFRecord.createEmpty();
 		switch(tabbedPane.getSelectedIndex()){
-			case 0 -> savePoint(record);
-			case 1 -> saveBounded(record);
-			case 2 -> saveSpanning(record);
+			case 0 -> savePoint(value);
+			case 1 -> saveBounded(value);
+			case 2 -> saveSpanning(value);
 			default -> { /* do nothing */ }
 		}
+		record.addChildWithTag(DateReader.TAG_VALUE, value);
 
 		bindingManager.save(record);
 
@@ -312,7 +314,8 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 			return;
 
 		final FLEFRecord pointNode = pointDateValuePanel.save();
-		parent.addChild(pointNode);
+		if(pointNode.hasData())
+			parent.addChildWithTag(DateReader.TAG_POINT, pointNode);
 	}
 
 	/**

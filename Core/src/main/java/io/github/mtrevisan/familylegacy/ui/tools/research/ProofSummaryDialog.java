@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -116,8 +117,8 @@ final class ProofSummaryDialog extends JDialog{
 		conclusionsTab.add(filterBar, BorderLayout.NORTH);
 		conclusionsTab.add(new JScrollPane(conclusionsTable), BorderLayout.CENTER);
 
-		tabs.addTab(I18N.t("tab.title.proof_status"), distributionTab);
-		tabs.addTab(I18N.t("tab.title.conclusions"), conclusionsTab);
+		GUIHelper.addTab(tabs, I18N.t("tab.title.proof_status"), "proof_status", distributionTab);
+		GUIHelper.addTab(tabs, I18N.t("tab.title.conclusions"), "conclusions", conclusionsTab);
 		tabs.setPreferredSize(new Dimension(840, 500));
 		tabs.addChangeListener(e -> updateOpenButton());
 

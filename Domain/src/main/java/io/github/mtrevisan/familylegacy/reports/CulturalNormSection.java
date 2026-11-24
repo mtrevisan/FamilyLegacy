@@ -159,7 +159,7 @@ public final class CulturalNormSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(norm));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(norm));

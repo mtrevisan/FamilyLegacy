@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
@@ -80,12 +81,15 @@ import java.io.IOException;
  * Tab 5 (Context): ContextImpactRecord (target[group] = this group)
  * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (identity = this group), ResearchQuestionRecord (target[group] = this group)
  * Tab 7 (Sources): source
- * Tab 8 (Notes): note
- * Tab 9 (Privacy): privacy
- * Tab 10 (Audit): audit
+ * Tab 8 (Stories): note (kind story)
+ * Tab 9 (Notes): note (the others)
+ * Tab 10 (Privacy): privacy
+ * Tab 11 (Audit): audit
  */
 public class GroupRecordDialog extends BaseRecordDialog{
 
+	/** Whether the stories have a tab of their own (from the standard level), or are listed with the other notes. */
+	private final boolean storiesApart;
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
@@ -106,6 +110,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private GroupRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, GroupHandler.getInstance());
 
+		storiesApart = storiesApart();
+
 		preferredImagePanel = new PreferredImagePanel(GroupReader.TAG_PREFERRED_IMAGE, this, model);
 		namePanel = EntityListPanel.createForStructure(GroupReader.TAG_NAME, this, I18N.t("dialog.group.name"), model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(GroupReader.TAG_TYPE, GUIHelper.fillCombo(GroupReader.TYPES, null));
@@ -122,8 +128,11 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, ConclusionHandler.TYPE, I18N.t("dialog.component.conclusions"))
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, IdentityHypothesisHandler.TYPE, I18N.t("dialog.component.identity.hypotheses"))
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, ResearchQuestionHandler.TYPE, I18N.t("dialog.component.research.questions"))
+			.withComponent(PanelKey.RESEARCH_TASK_ON_RELATED, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))
 			.withComponent(PanelKey.SOURCE, GroupReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
-			.withComponent(PanelKey.NOTE, GroupReader.TAG_NOTE, null)
+			//the stories of the group are apart from its notes
+			.withComponent(PanelKey.storyPanel(storiesApart), GroupReader.TAG_NOTE, null)
+			.withComponent(PanelKey.notePanel(storiesApart), GroupReader.TAG_NOTE, null)
 			.withComponent(PanelKey.PRIVACY, GroupReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, GroupReader.TAG_AUDIT, null)
 			.build();
@@ -201,7 +210,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createResearchPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]15[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]15[]10[]");
 
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
@@ -211,6 +220,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		// research tasks that name this record
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.RESEARCH_TASK_ON_RELATED));
 
 		return panel;
 	}
@@ -233,10 +245,22 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 	@Override
+	protected JPanel createStoriesPanel(){
+		if(!storiesApart)
+			return null;
+
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.storyPanel(true)));
+
+		return panel;
+	}
+
+	@Override
 	protected JPanel createNotesPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		final JPanel notePanel = components.getPanel(PanelKey.notePanel(storiesApart));
 		GUIHelper.addComponent(panel, notePanel);
 
 		return panel;

@@ -38,6 +38,8 @@ class ReportOptionLevelsTest{
 		Assertions.assertEquals(UxLevel.ADVANCED, ReportOptionsPanel.minimumLevel(ReportOption.CULTURAL_NORMS));
 		Assertions.assertEquals(UxLevel.ADVANCED, ReportOptionsPanel.minimumLevel(ReportOption.HISTORIC_EVENTS));
 		Assertions.assertEquals(UxLevel.ADVANCED, ReportOptionsPanel.minimumLevel(ReportOption.EVIDENCE));
+		Assertions.assertEquals(UxLevel.STANDARD, ReportOptionsPanel.minimumLevel(ReportOption.RESEARCH_NOTES));
+		Assertions.assertEquals(UxLevel.STANDARD, ReportOptionsPanel.minimumLevel(ReportOption.STORIES));
 		Assertions.assertEquals(UxLevel.BASIC, ReportOptionsPanel.minimumLevel(ReportOption.NOTES));
 		Assertions.assertEquals(UxLevel.BASIC, ReportOptionsPanel.minimumLevel(ReportOption.SOURCES));
 	}

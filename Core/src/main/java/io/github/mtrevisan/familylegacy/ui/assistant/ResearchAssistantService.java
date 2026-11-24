@@ -149,6 +149,15 @@ public final class ResearchAssistantService{
 		return statistics;
 	}
 
+	/**
+	 * @param context where the user is (a context to read: see {@link AssistantContext#forReading()})
+	 * @return the findings the user can see in the palette: the ones of the assistants that are on, at the level of the user, that the
+	 * user did not ignore
+	 */
+	public List<Diagnostic> visibleFindings(final AssistantContext context){
+		return ignoredFindings.split(context.scope(), FindingLevels.visible(diagnose(context))).active();
+	}
+
 	/** @return the findings the user ignored */
 	public IgnoredFindings ignoredFindings(){
 		return ignoredFindings;

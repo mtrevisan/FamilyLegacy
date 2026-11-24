@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
@@ -227,8 +226,8 @@ public final class IndividualNarrator{
 		// 9. Custom events with descriptions (awards, honors, military events, etc.)
 		addDescribedEvents(sentences, events, name);
 
-		// 10. Biographical notes / oral tradition anecdotes
-		addIndividualNotes(sentences, person);
+		// 10. (the notes of the person are not narrated: they are written once, in the section of the notes, where the options
+		// and the privacy policy of the report apply)
 
 		// 11. Death, cause, burial/cremation
 		if(death != null){
@@ -325,18 +324,6 @@ public final class IndividualNarrator{
 			if(div.equalsIgnoreCase(type))
 				return true;
 		return false;
-	}
-
-	/**
-	 * Extracts free-text notes or anecdotes attached directly to the individual.
-	 */
-	private void addIndividualNotes(final List<String> sentences, final FLEFRecord person){
-		for(final FLEFRecord noteRec : FLEFRecordHelper.findChildren(person, IndividualReader.TAG_NOTE)){
-			final String text = NoteReader.extractText(noteRec);
-			if(text != null && !text.isBlank()){
-				sentences.add(text.trim());
-			}
-		}
 	}
 
 
@@ -467,7 +454,7 @@ public final class IndividualNarrator{
 	}
 
 	private String extractValidDate(final FLEFRecord attr, final String fieldTag){
-		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(fieldTag, PlaceCitationReader.TAG_ORIGINAL_TEXT));
+		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(fieldTag, PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT));
 		if(original != null && !original.isBlank())
 			return original;
 
@@ -490,7 +477,7 @@ public final class IndividualNarrator{
 	}
 
 	private String resolvePlace(final FLEFRecord attr){
-		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(IndividualAttributeReader.TAG_PLACE, PlaceCitationReader.TAG_ORIGINAL_TEXT));
+		final String original = FLEFRecordHelper.getChildValue(attr, FLEFRecordHelper.composePath(IndividualAttributeReader.TAG_PLACE, PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT));
 		if(original != null && !original.isBlank())
 			return original.trim();
 

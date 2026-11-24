@@ -31,7 +31,9 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.OpenTasks;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
+import io.github.mtrevisan.familylegacy.research.TaskBoard;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -128,6 +130,7 @@ public final class TasksPanel extends JPanel{
 	private final JLabel summary = new JLabel();
 	private final JCheckBox onlySelection = new JCheckBox(I18N.t("panel.tasks.only_selection"));
 	private final JButton newTask = new JButton(I18N.t("panel.tasks.new"));
+	private final JButton dashboardButton = new JButton(I18N.t("panel.tasks.dashboard"));
 	private final JButton dockButton = new JButton("\u21f1");
 	private final JButton hideButton = new JButton("\u00d7");
 	private final JLabel title = new JLabel(I18N.t("panel.tasks.title"));
@@ -204,6 +207,10 @@ public final class TasksPanel extends JPanel{
 		newTask.setFocusable(false);
 		newTask.addActionListener(e -> createTask());
 
+		dashboardButton.setToolTipText(I18N.t("panel.tasks.dashboard.tooltip"));
+		dashboardButton.setFocusable(false);
+		dashboardButton.addActionListener(e -> openDashboard());
+
 		hideButton.setToolTipText(I18N.t("panel.tasks.hide.tooltip"));
 		hideButton.setBorderPainted(false);
 		hideButton.setContentAreaFilled(false);
@@ -232,6 +239,8 @@ public final class TasksPanel extends JPanel{
 		buttons.add(onlySelection);
 		buttons.add(Box.createHorizontalStrut(6));
 		buttons.add(newTask);
+		buttons.add(Box.createHorizontalStrut(2));
+		buttons.add(dashboardButton);
 		buttons.add(Box.createHorizontalStrut(2));
 		buttons.add(dockButton);
 		buttons.add(hideButton);
@@ -499,6 +508,17 @@ public final class TasksPanel extends JPanel{
 		none.addActionListener(e -> newTaskOpener.accept(current, null));
 		menu.add(none);
 		return menu;
+	}
+
+	/** Opens the task dashboard (inbox, filters, completion); the panel is built again afterwards. */
+	void openDashboard(){
+		final FLEFModel current = model.get();
+		if(current == null)
+			return;
+
+		new TaskDashboardDialog(ToolContexts.custom(current, selection.get(), this, null), TaskBoard.View.TO_DO)
+			.setVisible(true);
+		changed();
 	}
 
 	private void openNewTask(final FLEFModel current, final FLEFRecord question){

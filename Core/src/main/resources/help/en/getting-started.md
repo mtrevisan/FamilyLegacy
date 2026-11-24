@@ -5,7 +5,7 @@
 The main window has five parts:
 
 - The **menu bar** at the top. Every command of the application is in a menu.
-- The **toolbar** under it, with the commands used most often: back and forward through the history, **Jump To...**, **Edit...**, the buttons that switch the view (**Tree**, **Sugiyama**, **Ego Net**, **Chronomap**) and the **Sidebar** toggle. At its right end the **Assistant** indicator shows how many findings the [Research Assistant](assistant.md) has.
+- The **toolbar** under it, with the commands used most often: back and forward through the history, **Jump To...**, **Edit...**, the buttons that switch the view (**Family Tree**, **Sugiyama Graph**, **Ego Net**, **Chronomap**) and the **Sidebar** toggle. At its right end the **Assistant** indicator shows how many findings the [Research Assistant](assistant.md) has.
 - The **view** in the middle, which draws the family around the selected person. See [Navigating the tree](navigating.md).
 - The **sidebar** on the right, with everything recorded about the selected individual: identity, events, sources.
 - The **lifespans strip** at the bottom of the tree, which can be shown or hidden.

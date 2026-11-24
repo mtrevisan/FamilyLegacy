@@ -227,7 +227,7 @@ public final class GroupStorySection implements SectionBuilder{
 		out.add(new ReportSection.Table(headers, table));
 
 		// Full details of each membership (notes/sources/evidence/audit).
-		if(ctx.config.notes() || ctx.config.sources() || ctx.config.evidence() || ctx.config.audit()){
+		if(ctx.writesNotes() || ctx.config.sources() || ctx.config.evidence() || ctx.config.audit()){
 			for(final FLEFRecord m : memberships){
 				final String mid = memberIndividualId(m);
 				final FLEFRecord member = (mid != null? ctx.visible(ctx.model.getRecordById(mid)): null);
@@ -235,7 +235,7 @@ public final class GroupStorySection implements SectionBuilder{
 					continue;
 
 				final List<ReportSection> extras = new ArrayList<>();
-				if(ctx.config.notes())
+				if(ctx.writesNotes())
 					extras.addAll(ctx.citations().notes(m));
 				if(ctx.config.sources())
 					extras.addAll(ctx.citations().citations(m));
@@ -324,7 +324,7 @@ public final class GroupStorySection implements SectionBuilder{
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
@@ -367,7 +367,7 @@ public final class GroupStorySection implements SectionBuilder{
 		if(!details.isEmpty())
 			out.add(new ReportSection.BulletList(details));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(evt));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(evt));
@@ -381,13 +381,14 @@ public final class GroupStorySection implements SectionBuilder{
 	/* ----- Notes / cited source titles / audit ---------------------------- */
 
 	private void writeNotes(final List<ReportSection> out){
-		if(!ctx.config.notes())
+		if(!ctx.writesNotes())
 			return;
-		final List<ReportSection> n = ctx.citations().notes(ctx.root);
+		final List<ReportSection> n = ctx.citations().notesInPlace(ctx.root);
 		if(!n.isEmpty()){
 			out.add(new ReportSection.Heading(2, ctx.labels.notes()));
 			out.addAll(n);
 		}
+		out.addAll(ctx.citations().rootStories(ctx.root));
 	}
 
 	private void writeCitedSourceTitles(final List<ReportSection> out){

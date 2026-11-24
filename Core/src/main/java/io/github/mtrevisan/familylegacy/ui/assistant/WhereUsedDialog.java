@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.quality.RecordReferences;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -75,7 +74,6 @@ final class WhereUsedDialog extends JDialog{
 
 	private final DefaultListModel<Row> rowsModel = new DefaultListModel<>();
 	private final JList<Row> rowsList = new JList<>(rowsModel);
-	private final JButton openButton = new JButton(I18N.t("assistant.open_records.open"));
 
 
 	WhereUsedDialog(final Window owner, final FLEFModel model, final List<FLEFRecord> records){
@@ -135,8 +133,6 @@ final class WhereUsedDialog extends JDialog{
 			}
 			return label;
 		});
-		rowsList.addListSelectionListener(e -> openButton.setEnabled(!(rowsList.getSelectedValue() instanceof None)
-			&& rowsList.getSelectedValue() != null));
 		rowsList.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
@@ -146,16 +142,14 @@ final class WhereUsedDialog extends JDialog{
 		});
 		rowsList.setSelectedIndex(0);
 
-		openButton.addActionListener(e -> openSelected());
-		getRootPane().setDefaultButton(openButton);
+		rowsList.registerKeyboardAction(e -> openSelected(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_FOCUSED);
 		//ESC closes the list, from any component, without a button
 		getRootPane().registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,500::]", "[]5[grow,fill,200::]5[]"));
+		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,500::]", "[]5[grow,fill,200::]"));
 		add(new JLabel(I18N.t("assistant.where_used.hint")));
 		add(new JScrollPane(rowsList));
-		add(openButton, "align right");
 	}
 
 	/** Opens the editor of the selected record (the one of the finding, or the one that points to it); the list stays. */

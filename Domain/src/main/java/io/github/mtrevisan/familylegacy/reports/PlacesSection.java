@@ -166,7 +166,7 @@ public final class PlacesSection implements SectionBuilder{
 		appendContainedPlaces(out, place);
 		appendCitations(out, entry);
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(place));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(place));
@@ -283,7 +283,7 @@ public final class PlacesSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
@@ -336,7 +336,7 @@ public final class PlacesSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
@@ -355,7 +355,7 @@ public final class PlacesSection implements SectionBuilder{
 		for(final CitationRef ref : entry.citations()){
 			final List<ReportSection> block = new ArrayList<>();
 
-			final String original = FLEFRecordHelper.getChildValue(ref.citation(), PlaceCitationReader.TAG_ORIGINAL_TEXT);
+			final String original = FLEFRecordHelper.getChildValue(ref.citation(), PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT);
 			if(original != null && !original.isBlank())
 				block.add(new ReportSection.Paragraph(
 					"**" + ctx.labels.sections().placeOriginalText() + ":** "

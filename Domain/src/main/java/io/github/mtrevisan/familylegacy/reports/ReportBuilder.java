@@ -177,7 +177,7 @@ public final class ReportBuilder{
 		if(type == ReportType.FULL_BIBLIOGRAPHY){
 			//a catalogue of the sources: the front matter, the notes, the citations and the evidence of the sources
 			out.addAll(EnumSet.complementOf(EnumSet.of(ReportOption.SHOW_PRIVACY_DETAILS, ReportOption.AUDIT, ReportOption.HEADER,
-				ReportOption.NOTES, ReportOption.SOURCES, ReportOption.EVIDENCE, ReportOption.GROUP_SOURCES_BY_KIND, ReportOption.GIVEN_NAMES,
+				ReportOption.NOTES, ReportOption.RESEARCH_NOTES, ReportOption.STORIES, ReportOption.SOURCES, ReportOption.EVIDENCE, ReportOption.GROUP_SOURCES_BY_KIND, ReportOption.GIVEN_NAMES,
 				ReportOption.UNKNOWN_NAME)));
 			return out;
 		}

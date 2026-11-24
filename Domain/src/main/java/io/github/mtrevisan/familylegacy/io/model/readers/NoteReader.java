@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 
+import java.util.Locale;
+
 
 /**
  * Handler for NOTE records.
@@ -35,7 +37,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
  * <pre>
  * struct NoteStructure {
  *   title?: Text   // note title
- *   text: Text     // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](flef:confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
+ *   kind?: enum { general, research, story } | Text   // what the note is for; absent means general
+ *   text: Text     // comments or opinions from the submitter. In markdown or HTML notes, references to records in this file are written as links to `flef:&lt;Id&gt;` (e.g. `[Giovanni](flef:I12)`), and "confidential" data as `[text](flef:confidential)`, that marks text that SHOULD be hidden when confidential information is suppressed.
  *   mime?: Text    // e.g., text/html, text/markdown
  *   locale?: LocaleCode
  *   translation*: struct {
@@ -54,6 +57,7 @@ public final class NoteReader{
 
 	public static final String TAG_NOTE = "note";
 	public static final String TAG_TITLE = "title";
+	public static final String TAG_KIND = "kind";
 	public static final String TAG_TEXT = "text";
 	public static final String TAG_MIME = "mime";
 	public static final String TAG_LOCALE = "locale";
@@ -61,6 +65,14 @@ public final class NoteReader{
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_PRIVACY = "privacy";
 	public static final String TAG_AUDIT = "audit";
+
+	/** An ordinary note (what a note without a kind is). */
+	public static final String ENUM_KIND_GENERAL = "general";
+	/** Reasoning, findings and comments of the research: working material. */
+	public static final String ENUM_KIND_RESEARCH = "research";
+	/** Narrative prose meant to be read and published: it is not evidence, nor research. */
+	public static final String ENUM_KIND_STORY = "story";
+	public static final String[] KINDS = new String[]{ENUM_KIND_GENERAL, ENUM_KIND_RESEARCH, ENUM_KIND_STORY};
 
 	// basic notes
 	public static final String TAG_DATE = "date";
@@ -74,6 +86,25 @@ public final class NoteReader{
 	}
 
 
+
+	/**
+	 * @return	What the note is for: {@link #ENUM_KIND_GENERAL} if it has no kind, otherwise the kind as it is written (lowercase); it may be a
+	 * 	custom one.
+	 */
+	public static String extractKind(final FLEFRecord record){
+		final String kind = FLEFRecordHelper.getChildValue(record, TAG_KIND);
+		return (kind == null || kind.isBlank()? ENUM_KIND_GENERAL: kind.strip().toLowerCase(Locale.ROOT));
+	}
+
+	/** @return	Whether the note is a story: narrative prose meant to be read and published. */
+	public static boolean isStory(final FLEFRecord record){
+		return ENUM_KIND_STORY.equals(extractKind(record));
+	}
+
+	/** @return	Whether the note is working material of the research. */
+	public static boolean isResearch(final FLEFRecord record){
+		return ENUM_KIND_RESEARCH.equals(extractKind(record));
+	}
 
 	public static String extractText(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_TEXT);

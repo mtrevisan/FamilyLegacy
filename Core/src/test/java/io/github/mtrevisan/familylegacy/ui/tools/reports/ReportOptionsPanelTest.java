@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.reports.NumberingSystem;
 import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.PortraitMode;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
+import io.github.mtrevisan.familylegacy.reports.StoryPlacement;
 import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
 import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
@@ -120,7 +121,9 @@ class ReportOptionsPanelTest{
 			SurnamePlaceLevel.REGION,
 			SurnamePeriod.CENTURY,
 			!defaults.surnameAllNames(),
-			!defaults.surnameSimilar());
+			!defaults.surnameSimilar(),
+			StoryPlacement.INLINE,
+			!defaults.researchNotes());
 	}
 
 

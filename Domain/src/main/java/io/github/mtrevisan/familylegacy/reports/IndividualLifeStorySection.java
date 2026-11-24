@@ -134,6 +134,9 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			.narrate(ctx.root);
 		if(!narrative.isBlank())
 			out.add(new ReportSection.Paragraph(narrative));
+		//the stories of the person follow its narrative, if the report wants them there (otherwise they are in the section of the stories)
+		if(ctx.config.stories() == StoryPlacement.INLINE)
+			out.addAll(ctx.citations().storiesOf(ctx.root));
 	}
 
 
@@ -209,10 +212,10 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		}
 		out.add(new ReportSection.BulletList(personal));
 
-		if(ctx.config.notes() || ctx.config.sources()){
+		if(ctx.writesNotes() || ctx.config.sources()){
 			for(final FLEFRecord nameRec : FLEFRecordHelper.findChildren(ctx.root, IndividualReader.TAG_NAME)){
 				final List<ReportSection> provenance = new ArrayList<>();
-				if(ctx.config.notes())
+				if(ctx.writesNotes())
 					provenance.addAll(ctx.citations().notes(nameRec));
 				if(ctx.config.sources())
 					provenance.addAll(ctx.citations().citations(nameRec));
@@ -355,7 +358,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 			block.add(new ReportSection.BulletList(details));
 
 		final int sizeBeforeExtras = block.size();
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			block.addAll(ctx.citations().notes(evt));
 		if(ctx.config.sources())
 			block.addAll(ctx.citations().citations(evt));
@@ -485,7 +488,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		}
 
 		// 6. Notes, Sources, Evidence & Audit Trail
-		if(ctx.config.notes()){
+		if(ctx.writesNotes()){
 			out.addAll(ctx.citations().notes(attr));
 		}
 		if(ctx.config.sources()){
@@ -581,7 +584,7 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));
@@ -595,13 +598,28 @@ public final class IndividualLifeStorySection implements SectionBuilder{
 	/* ----- Notes / cited source titles / audit ---------------------------- */
 
 	private void writeNotes(final List<ReportSection> out){
-		if(!ctx.config.notes())
+		if(!ctx.writesNotes())
 			return;
 		//the notes of the person, then the ones of the events, the attributes and the relationships that the options moved here
 		final List<ReportSection> own = ctx.citations().notesInPlace(ctx.root);
 		final List<ReportSection> moved = ctx.citations().takeDeferredNotes();
 		if(!own.isEmpty() || !moved.isEmpty()){
 			out.add(new ReportSection.Heading(2, ctx.labels.notes()));
+			out.addAll(own);
+			out.addAll(moved);
+		}
+		writeStories(out);
+	}
+
+	/** The section of the stories: the ones of the person, then the ones of the events, the attributes and the relationships. */
+	private void writeStories(final List<ReportSection> out){
+		if(ctx.config.stories() != StoryPlacement.SECTION)
+			return;
+
+		final List<ReportSection> own = ctx.citations().storiesOf(ctx.root);
+		final List<ReportSection> moved = ctx.citations().takeDeferredStories();
+		if(!own.isEmpty() || !moved.isEmpty()){
+			out.add(new ReportSection.Heading(2, ctx.labels.sections().stories()));
 			out.addAll(own);
 			out.addAll(moved);
 		}

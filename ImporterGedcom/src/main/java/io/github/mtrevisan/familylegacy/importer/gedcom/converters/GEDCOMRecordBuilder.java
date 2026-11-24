@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
@@ -780,6 +781,15 @@ public final class GEDCOMRecordBuilder{
 					.addChild(buildCrop(node)));
 
 			final FLEFRecord media = model.getRecordById(mediaId);
+			//a picture linked to an individual, a group or an event only shows it: it says nothing about it, so it is an
+			//illustration (MediaCitation), not evidence (a source)
+			if(canHaveMediaCitation(parent) && MediaReader.ENUM_KIND_IMAGE.equals(MediaReader.extractKind(media))){
+				parent.addChild(FLEFRecord.createChildWithTag(MediaCitationReader.TAG)
+					.addChild(FLEFRecord.createChildWithTagAndValue(MediaCitationReader.TAG_MEDIA, mediaId))
+					.addChild(buildCrop(node)));
+				continue;
+			}
+
 			final String title = ObjectUtils.firstNonNull(FLEFRecordHelper.getChildValue(media, MediaReader.TAG_DESCRIPTION),
 				"Media " + mediaId);
 			final FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceReader.ID_PREFIX), SourceReader.TYPE)
@@ -797,6 +807,10 @@ public final class GEDCOMRecordBuilder{
 						.addChild(buildCrop(node))))
 				.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_STANCE, SourceCitationReader.STANCE_SUPPORTS)));
 		}
+	}
+
+	private static boolean canHaveMediaCitation(final FLEFRecord record){
+		return (IndividualReader.isOfType(record) || GroupReader.isOfType(record) || EventReader.isOfType(record));
 	}
 
 	/**

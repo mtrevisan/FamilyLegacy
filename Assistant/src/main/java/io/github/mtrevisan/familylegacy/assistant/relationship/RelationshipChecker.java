@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -236,7 +237,7 @@ public final class RelationshipChecker{
 		for(final RelationshipData.Relationship relationship : data.relationships())
 			if(relationship.subjectId().equals(relationship.targetId()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "self_relationship", List.of(relationship.subjectId(), relationship.id()),
-					null, name(data, relationship.subjectId()), relationship.type(), relationship.id()));
+					null, name(data, relationship.subjectId()), type(relationship.type()), relationship.id()));
 	}
 
 	/** A relationship whose type does not fit what it links (a spouse that is a group, a membership between two individuals). */
@@ -249,8 +250,7 @@ public final class RelationshipChecker{
 			if(!valid.contains(relationship.type()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "invalid_for_participants",
 					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null,
-					relationship.type(), relationship.subjectKind().name().toLowerCase(Locale.ROOT),
-					relationship.targetKind().name().toLowerCase(Locale.ROOT), name(data, relationship.subjectId()),
+					type(relationship.type()), kind(relationship.subjectKind()), kind(relationship.targetKind()), name(data, relationship.subjectId()),
 					name(data, relationship.targetId()), relationship.id()));
 		}
 	}
@@ -289,7 +289,7 @@ public final class RelationshipChecker{
 			final List<String> ids = new ArrayList<>(List.of(first.subjectId(), first.targetId()));
 			duplicates.forEach(r -> ids.add(r.id()));
 			findings.add(finding(Diagnostic.Severity.WARNING, "duplicate_relationship", ids, null, name(data, first.subjectId()),
-				name(data, first.targetId()), first.type(), duplicates.size(), idsOf(duplicates)));
+				name(data, first.targetId()), type(first.type()), duplicates.size(), idsOf(duplicates)));
 		}
 	}
 
@@ -297,7 +297,7 @@ public final class RelationshipChecker{
 		for(final RelationshipData.Relationship relationship : data.relationships())
 			if(relationship.from() != null && relationship.to() != null && relationship.to().isBefore(relationship.from()))
 				findings.add(finding(Diagnostic.Severity.ERROR, "dates_reversed",
-					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, relationship.type(),
+					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, type(relationship.type()),
 					name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.fromText(), relationship.id()));
 	}
 
@@ -408,7 +408,7 @@ public final class RelationshipChecker{
 			if(relationship.role() != null && !relationship.role().isBlank()
 					&& (CHILD_TYPES.contains(relationship.type()) || PARTNER_TYPES.contains(relationship.type())))
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "unnecessary_role",
-					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, relationship.type(),
+					List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null, type(relationship.type()),
 					relationship.role(), name(data, relationship.subjectId()), name(data, relationship.targetId()), relationship.id()));
 	}
 
@@ -440,7 +440,7 @@ public final class RelationshipChecker{
 			if(adoption != null){
 				findings.add(finding((generic? Diagnostic.Severity.INFORMATION: Diagnostic.Severity.WARNING),
 					(generic? "suggest_adoptive": "conflicting_adoption"), List.of(child, parent, relationship.id(), adoption.id()),
-					null, name(data, child), name(data, parent), adoption.id(), adoption.dateText(), relationship.id())
+					null, name(data, child), name(data, parent), adoption.id(), adoption.dateText(), relationship.id(), type(ADOPTIVE_CHILD))
 					.withTypeChange(new RelationshipTypeChange(relationship.id(), ADOPTIVE_CHILD)));
 				explained.add(relationship.id());
 				continue;
@@ -465,7 +465,7 @@ public final class RelationshipChecker{
 						final List<String> ids = new ArrayList<>(List.of(child, parent, otherParent, relationship.id()));
 						ids.addAll(marriages.idList());
 						findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_step", ids, null, name(data, child),
-							name(data, parent), name(data, otherParent), marriages.first().fromText(), relationship.id(), marriages.ids())
+							name(data, parent), name(data, otherParent), marriages.first().fromText(), relationship.id(), marriages.ids(), type(STEP_CHILD))
 							.withTypeChange(new RelationshipTypeChange(relationship.id(), STEP_CHILD)));
 						explained.add(relationship.id());
 						break;
@@ -496,7 +496,7 @@ public final class RelationshipChecker{
 			final String evidence = marriage.description();
 			findings.add(finding(Diagnostic.Severity.INFORMATION, "suggest_spouse",
 				List.of(relationship.subjectId(), relationship.targetId(), relationship.id()), null,
-				name(data, relationship.subjectId()), name(data, relationship.targetId()), suggested, evidence, relationship.id())
+				name(data, relationship.subjectId()), name(data, relationship.targetId()), type(suggested), evidence, relationship.id())
 				.withTypeChange(new RelationshipTypeChange(relationship.id(), suggested)));
 			explained.add(relationship.id());
 		}
@@ -795,7 +795,7 @@ public final class RelationshipChecker{
 				final List<String> tieIds = new ArrayList<>(List.of(relationship.subjectId(), relationship.targetId(), relationship.id()));
 				tieIds.addAll(families.idList());
 				findings.add(finding(Diagnostic.Severity.INFORMATION, "associate_redundant", tieIds, null,
-					name(data, relationship.subjectId()), name(data, relationship.targetId()), families.first().type(), relationship.id(),
+					name(data, relationship.subjectId()), name(data, relationship.targetId()), type(families.first().type()), relationship.id(),
 					families.ids()));
 			}
 		}
@@ -814,9 +814,29 @@ public final class RelationshipChecker{
 	 */
 	private static RelationshipFinding finding(final Diagnostic.Severity severity, final String key, final List<String> recordIds,
 			final RelationshipDraft draft, final Object... arguments){
+		//the key is made of the stable values (the enum), the texts of the language of the user
+		final Object[] stable = Arrays.stream(arguments).map(a -> a instanceof Enumerated e? e.value(): a).toArray();
+		final Object[] display = Arrays.stream(arguments).map(a -> a instanceof Enumerated e? e.label(): a).toArray();
 		return new RelationshipFinding(new Diagnostic(severity, AssistantCategory.RELATIONSHIPS,
-			I18N.tf("relationship." + key + ".title", arguments), I18N.tf("relationship." + key + ".explanation", arguments),
-			recordIds, null, DiagnosticKeys.of("relationship." + key, recordIds, arguments)), draft);
+			I18N.tf("relationship." + key + ".title", display), I18N.tf("relationship." + key + ".explanation", display),
+			recordIds, null, DiagnosticKeys.of("relationship." + key, recordIds, stable)), draft);
+	}
+
+	/** An enumerated value (a relationship type, a kind of participant) that is shown translated and keyed as it is. */
+	private record Enumerated(String prefix, String value){
+
+		String label(){
+			return I18N.t(prefix + value, value);
+		}
+
+	}
+
+	private static Enumerated type(final String type){
+		return new Enumerated("enum.relationship.type.", type);
+	}
+
+	private static Enumerated kind(final RelationshipData.Kind kind){
+		return new Enumerated("enum.relationship.kind.", kind.name().toLowerCase(Locale.ROOT));
 	}
 
 }

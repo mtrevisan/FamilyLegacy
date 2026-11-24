@@ -16,7 +16,7 @@ Relationships and dates have their own pages: [Relationships](relationships.md) 
 - On OK, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on OK: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
 - A combo box that is **editable** accepts a value of your own as well as the listed ones. A combo that is not editable accepts only the listed values. A combo with a blank first item allows "no value". A value without a translation is shown with a capital letter and spaces instead of underscores. When a combo has many values (more than twelve) you can **search** it: with the combo focused, just type, and only the values containing what you typed (word by word, ignoring case) are listed; Backspace removes the last letter, Enter picks the highlighted value, and Esc closes the list.
 - A combo box with many values (more than 12) is **searched while you type**: the list shows only the values that match what you typed (word by word, any case). In an editable combo the text stays as you typed it, and you can keep it if it is none of the listed values.
-- Hovering a value or a field often shows a tooltip that explains it. Hovering the first tab shows a short *when to use this record* hint.
+- Hovering a value or a field often shows a tooltip that explains it. Hovering the first tab shows a short *when to use this record* hint; hovering any other tab says what it is for (the tabs of the tool dialogs, such as Statistics, the Source Workspace and the Historical Date Assistant, do the same).
 
 ## The tabs
 
@@ -31,9 +31,9 @@ Which tabs an editor has depends on the record; their order is always the same:
 7. **Research**: conclusions, identity hypotheses and research questions about the record.
 8. **Findings** and **References**: only for research activities.
 9. **Sources**: see below.
-10. **Notes**, **Tags**, **Privacy** and **Audit**: see below.
+10. **Stories** (only for an individual, a group, an event, a place and a source, from the standard level) and **Notes**, **Tags**, **Privacy** and **Audit**: see below.
 
-The lists on these tabs are the linked records. Each list has a context menu (right-click) with **Create New...**, **Add Existing...**, **Edit...** and **Remove**. In the *Sources with Citations* lists, double-click edits the citation and `Shift` + double-click edits the source.
+The lists on these tabs are the linked records. Each list has a context menu (right-click) with **Create New...**, **Add Existing...**, **Edit...** and **Remove**. Every list can be arranged: select an item and use **Move Up** and **Move Down** of the menu, `Ctrl` + `Up` and `Ctrl` + `Down`, or drag the item to another place. The order is the one of the file, saved with **OK**: a list of notes or stories is kept in the order you gave it, and the reports write them in it (the stories, the notes, the media); a list of records (the attributes, the relationships, the participations...) puts those records in that order in the file, but a view or a report that sorts them (the events by date, for example) keeps its own order. In the *Sources with Citations* lists, double-click edits the citation and `Shift` + double-click edits the source.
 
 If an editor has only the Properties tab, no tab bar is shown.
 
@@ -55,7 +55,7 @@ Many records have a **Confidence** combo: blank, **low**, **medium** or **high**
 
 ## Notes
 
-A **Notes** tab lists the notes of the record, each edited in its own dialog: see [the note editor](editors-sources.md#note).
+A **Notes** tab lists the notes of the record, each edited in its own dialog: see [the note editor](editors-sources.md#note). The editor of an individual, a group, an event, a place or a source has the notes of kind *story* in a **Stories** tab of their own, before the Notes tab, so that narrative prose is not mixed with the technical notes of the research (below the standard level the Notes tab lists all of them).
 
 ## Tags
 

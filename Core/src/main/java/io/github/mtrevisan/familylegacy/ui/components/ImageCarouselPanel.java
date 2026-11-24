@@ -39,6 +39,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -46,10 +47,14 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -69,6 +74,8 @@ public class ImageCarouselPanel extends JPanel{
 
 	private List<String> imageUris = new ArrayList<>();
 	private SwingWorker<Void, ThumbnailInfo> thumbnailWorker;
+	/** What to do with the URI of a thumbnail that was double clicked ({@code null} for nothing). */
+	private Consumer<String> openListener;
 
 
 	public ImageCarouselPanel(){
@@ -83,6 +90,21 @@ public class ImageCarouselPanel extends JPanel{
 		list.setFixedCellWidth(THUMBNAIL_SIZE + GAP);
 		list.setFixedCellHeight(THUMBNAIL_SIZE + GAP);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		//a double click on a thumbnail opens the image at full size
+		list.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent evt){
+				final Consumer<String> listener = openListener;
+				if(listener == null || evt.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(evt))
+					return;
+
+				final int index = list.locationToIndex(evt.getPoint());
+				final Rectangle cell = (index >= 0? list.getCellBounds(index, index): null);
+				if(cell != null && cell.contains(evt.getPoint()))
+					listener.accept(model.get(index).uri());
+			}
+		});
 
 		final JScrollPane scrollPane = new JScrollPane(list);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -100,6 +122,11 @@ public class ImageCarouselPanel extends JPanel{
 
 		// Start with empty state
 		showEmpty(true);
+	}
+
+	/** @param listener	What to do with the URI of the image that was double clicked ({@code null} for nothing). */
+	public void setOpenListener(final Consumer<String> listener){
+		openListener = listener;
 	}
 
 	private void showEmpty(final boolean show){

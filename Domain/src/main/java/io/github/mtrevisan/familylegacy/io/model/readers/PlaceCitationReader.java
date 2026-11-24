@@ -51,12 +51,12 @@ public final class PlaceCitationReader{
 	public static final String TYPE = "PLACE_CITATION";
 
 	public static final String TAG_PLACE = "place";
-	public static final String TAG_ORIGINAL_TEXT = "original_text";
+	public static final String TAG_ASSISTANT_FINDING_IDAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_CONFIDENCE = "confidence";
 
 	private static final String TAG_PLACE_PLACE = FLEFRecordHelper.composePath(PlaceReader.TYPE, PlaceReader.TYPE);
-	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ASSISTANT_FINDING_IDAL_TEXT);
 
 
 	private PlaceCitationReader(){}

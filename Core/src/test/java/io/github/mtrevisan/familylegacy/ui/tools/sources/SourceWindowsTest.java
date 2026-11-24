@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.SourceWorkspaceDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceDialog;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
@@ -177,6 +179,16 @@ class SourceWindowsTest{
 	@Test
 	void theSourceWorkspaceOpensWithoutASelectedSource() throws Exception{
 		open(() -> new SourceWorkspaceDialog(null, model(), null));
+	}
+
+	@Test
+	void theEvidenceTraceOpensForAnIndividualAndForAnotherRecord() throws Exception{
+		final FLEFModel model = model();
+		model.getRecordById("I1").addChild(FLEFRecord.createChildWithTag(SourceCitationReader.TAG_SOURCE)
+			.addChild(FLEFRecord.createChildWithTagAndValue(SourceCitationReader.TAG_SOURCE, "S1")));
+
+		open(() -> new EvidenceTraceDialog(null, model, "I1"));
+		open(() -> new EvidenceTraceDialog(null, model, "missing"));
 	}
 
 	@Test

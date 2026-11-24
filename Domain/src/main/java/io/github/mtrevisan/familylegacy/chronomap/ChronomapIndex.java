@@ -450,7 +450,7 @@ public final class ChronomapIndex{
 
 		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(record, PlaceReader.TYPE);
 		if(placeCitation != null){
-			final String original = FLEFRecordHelper.getChildValue(placeCitation, PlaceCitationReader.TAG_ORIGINAL_TEXT);
+			final String original = FLEFRecordHelper.getChildValue(placeCitation, PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT);
 			if(StringUtils.isNotEmpty(original))
 				return original;
 		}

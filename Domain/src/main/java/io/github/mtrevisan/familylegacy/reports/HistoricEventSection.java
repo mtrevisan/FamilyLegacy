@@ -141,7 +141,7 @@ public final class HistoricEventSection implements SectionBuilder{
 		if(!rows.isEmpty())
 			out.add(new ReportSection.BulletList(rows));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(evt));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(evt));

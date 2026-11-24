@@ -57,6 +57,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTab
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jxmapviewer.viewer.GeoPosition;
@@ -216,16 +217,16 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			final List<EventChoice> events, final List<PlaceChoice> places, final CalendarReform initialReform){
 		final JTabbedPane tools = new JTabbedPane();
 		tools.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-		tools.addTab(I18N.t("dialog.date_assistant.tool.conversion"), createConversionPanel(calendarCode, dateText));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.liturgical"), createLiturgicalPanel(places, initialReform));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.sun"), createSunPanel(calendarCode, dateText));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.relative"), createRelativePanel(calendarCode, dateText));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.event"), createEventPanel(events));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.interval"), createIntervalPanel(calendarCode, dateText, events));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.age"), createAgePanel(calendarCode, dateText, events));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.clues"), createCluesPanel(calendarCode, dateText, events));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.verify"), createVerifyPanel(calendarCode, dateText));
-		tools.addTab(I18N.t("dialog.date_assistant.tool.roman"), createRomanPanel());
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.conversion"), "assistant_conversion", createConversionPanel(calendarCode, dateText));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.liturgical"), "assistant_liturgical", createLiturgicalPanel(places, initialReform));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.sun"), "assistant_sun", createSunPanel(calendarCode, dateText));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.relative"), "assistant_relative", createRelativePanel(calendarCode, dateText));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.event"), "assistant_event", createEventPanel(events));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.interval"), "assistant_interval", createIntervalPanel(calendarCode, dateText, events));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.age"), "assistant_age", createAgePanel(calendarCode, dateText, events));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.clues"), "assistant_clues", createCluesPanel(calendarCode, dateText, events));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.verify"), "assistant_verify", createVerifyPanel(calendarCode, dateText));
+		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.roman"), "assistant_roman", createRomanPanel());
 		tools.setSelectedIndex(initialTool.ordinal());
 
 		suggestionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

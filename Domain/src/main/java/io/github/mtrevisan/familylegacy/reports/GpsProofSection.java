@@ -100,8 +100,8 @@ public final class GpsProofSection implements SectionBuilder{
 		writeConclusion(out, conclusions);
 		writeConfidence(out, conclusions);
 
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ctx.root));
+		if(ctx.writesNotes())
+			out.addAll(ctx.citations().rootNotes(ctx.root));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(ctx.root));
 		if(ctx.config.evidence())

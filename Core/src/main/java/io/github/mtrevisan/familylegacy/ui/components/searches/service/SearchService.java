@@ -251,6 +251,7 @@ public class SearchService{
 		// text match, so that the behaviour of the search is unchanged.
 		final Set<SearchMode> modes = criteria.modes();
 		final boolean inNotes = modes.contains(SearchMode.NOTES_AND_CITATIONS);
+		final boolean inStories = modes.contains(SearchMode.STORIES);
 		//a place is also found by the name of the places that contain it ("Treviso Veneto" finds Treviso, part of Veneto)
 		final PlaceNameResolver placeNames = (PlaceReader.TYPE.equals(handler.getType())? new PlaceNameResolver(model): null);
 		final List<FLEFRecord> corpusRecords = new ArrayList<>();
@@ -287,6 +288,9 @@ public class SearchService{
 				//with the notes included, the text of the notes is matched together with the display text
 				if(inNotes)
 					segments.add(new SearchMatcher.Segment(SearchField.NOTES_AND_CITATIONS, AttachedTextExtractor.extract(record, model)));
+				//the stories are searched on their own option
+				if(inStories)
+					segments.add(new SearchMatcher.Segment(SearchField.STORIES, AttachedTextExtractor.extractStories(record)));
 
 				corpusRecords.add(record);
 				displayTexts.add(displayText);

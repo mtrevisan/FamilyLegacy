@@ -36,9 +36,9 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.Bibliography
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;

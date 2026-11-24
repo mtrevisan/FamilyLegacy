@@ -93,7 +93,9 @@ public enum ReportOption{
 	SURNAME_PLACE_LEVEL(ReportConfig::surnamePlaceLevel),
 	SURNAME_PERIOD(ReportConfig::surnamePeriod),
 	SURNAME_ALL_NAMES(ReportConfig::surnameAllNames),
-	SURNAME_SIMILAR(ReportConfig::surnameSimilar);
+	SURNAME_SIMILAR(ReportConfig::surnameSimilar),
+	STORIES(ReportConfig::stories),
+	RESEARCH_NOTES(ReportConfig::researchNotes);
 
 
 	private final Function<ReportConfig, Object> reader;

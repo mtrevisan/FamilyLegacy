@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 
 import java.util.List;
 
@@ -78,7 +79,9 @@ public final class SourceToolRegistry{
 		return List.of(
 			new CitationAnalysisTool(),
 			new DocumentationCoverageTool(),
-			new ProvenanceTool()
+			new ProvenanceTool(),
+			new EvidenceTraceTool(),
+			new ConflictDashboardTool()
 		);
 	}
 

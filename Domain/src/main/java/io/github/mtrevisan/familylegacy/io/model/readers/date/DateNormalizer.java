@@ -60,7 +60,7 @@ public final class DateNormalizer{
 		if(dateStructure == null)
 			return null;
 
-		final String originalText = DateReader.extractOriginalText(dateStructure);
+		final String originalText = DateReader.extractAssistantFindingIdalText(dateStructure);
 		final FLEFRecord value = FLEFRecordHelper.findChild(dateStructure, DateReader.TAG_VALUE);
 		if(value == null)
 			return null;

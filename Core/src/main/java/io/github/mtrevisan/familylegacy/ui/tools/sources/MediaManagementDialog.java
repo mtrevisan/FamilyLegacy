@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.imaging.MediaRegions;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -33,9 +34,14 @@ import io.github.mtrevisan.familylegacy.quality.MediaFiles;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.media.MediaViewerDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
+import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +75,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -98,6 +105,13 @@ public final class MediaManagementDialog extends JDialog{
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JLabel previewLabel = new JLabel(I18N.t("label.select_document"), JLabel.CENTER);
+	private final JLabel ownerLabel = new JLabel();
+	private final JButton clearOwnerButton = new JButton(I18N.t("button.show_all"));
+
+	/** The individual or group whose media are shown ({@code null} for all the media). */
+	private String ownerId;
+	/** The ids of the media of {@code ownerId} ({@code null} when all the media are shown). */
+	private Set<String> ownerMedia;
 
 
 	public MediaManagementDialog(final ToolContext context){
@@ -141,6 +155,20 @@ public final class MediaManagementDialog extends JDialog{
 		deleteButton.addActionListener(e -> deleteSelected());
 		toolbar.add(deleteButton);
 
+		//the image at full size, with who is tagged in it
+		final JButton viewButton = new JButton(I18N.t("dialog.media.view"));
+		viewButton.addActionListener(e -> viewSelected());
+		toolbar.add(viewButton);
+
+		//only the media of an individual or of a group (the ones it cites, and its preferred image)
+		final JButton ownerButton = new JButton(I18N.t("button.media_of"));
+		ownerButton.addActionListener(e -> chooseOwner());
+		toolbar.add(ownerButton);
+		clearOwnerButton.addActionListener(e -> showMediaOf(null));
+		clearOwnerButton.setVisible(false);
+		toolbar.add(ownerLabel);
+		toolbar.add(clearOwnerButton);
+
 		return toolbar;
 	}
 
@@ -153,6 +181,7 @@ public final class MediaManagementDialog extends JDialog{
 		columnModel.getColumn(1).setPreferredWidth(200);
 		columnModel.getColumn(2).setPreferredWidth(120);
 		columnModel.getColumn(3).setPreferredWidth(80);
+		columnModel.getColumn(4).setPreferredWidth(90);
 
 		table.getSelectionModel().addListSelectionListener(e -> {
 			if(!e.getValueIsAdjusting())
@@ -188,20 +217,88 @@ public final class MediaManagementDialog extends JDialog{
 
 	private void reload(){
 		final FLEFModel model = context.model();
+		final String selected = (selectedDocument() != null? selectedDocument().getId(): null);
 		final Map<String, Integer> references = SourceHelper.countDocumentReferences(model);
+		final Map<String, Integer> tagged = MediaRegions.taggedPeople(model);
 		final List<SourceHelper.DocumentRow> rows = new ArrayList<>();
 		for(final FLEFRecord doc : SourceHelper.listAllDocuments(model))
-			rows.add(SourceHelper.toDocumentRow(doc, references));
+			rows.add(SourceHelper.toDocumentRow(doc, references, tagged));
 		tableModel.setRows(rows);
-		updateStatus(rows.size());
+		refreshOwnerMedia();
+		applyFilter();
+		reselect(selected);
 		updatePreview();
 	}
 
+	/** Selects again the media that was selected before the table was filled again. */
+	private void reselect(final String mediaId){
+		if(mediaId == null)
+			return;
+
+		for(int row = 0, count = table.getRowCount(); row < count; row ++)
+			if(mediaId.equals(tableModel.getRow(table.convertRowIndexToModel(row)).id())){
+				table.setRowSelectionInterval(row, row);
+
+				return;
+			}
+	}
+
+	private void viewSelected(){
+		final FLEFRecord document = selectedDocument();
+		if(document == null)
+			return;
+
+		MediaViewerDialog.open(this, context.model(), document);
+		//(a person that was edited from the viewer may be tagged or not any more)
+		reload();
+	}
+
+	/** Asks for the individual or the group whose media are to be shown. */
+	@SuppressWarnings("unchecked")
+	private void chooseOwner(){
+		final RecordSelectionDialog dialog = RecordSelectionDialog.create(this, context.model(), (record, handler) -> {},
+			IndividualHandler.class, GroupHandler.class);
+		dialog.setVisible(true);
+		if(dialog.isConfirmed() && dialog.getSelectedRecord() != null)
+			showMediaOf(dialog.getSelectedRecord().getId());
+	}
+
+	/**
+	 * Shows only the media of an individual or of a group.
+	 *
+	 * @param id	The id of the individual or the group; {@code null} (or the id of a record that does not exist) for all the media.
+	 */
+	void showMediaOf(final String id){
+		ownerId = id;
+		refreshOwnerMedia();
+		applyFilter();
+	}
+
+	/** Reads again which media the chosen individual or group has (it may have changed), and says whose they are. */
+	private void refreshOwnerMedia(){
+		ownerMedia = null;
+		final FLEFRecord owner = (ownerId != null? context.model().getRecordById(ownerId): null);
+		if(owner == null)
+			ownerId = null;
+		else{
+			ownerMedia = new HashSet<>();
+			for(final MediaRegions.IndividualMedia media : MediaRegions.mediaOf(owner))
+				ownerMedia.add(media.mediaId());
+		}
+
+		ownerLabel.setText(owner != null
+			? I18N.tf("text.media.of", HandlerRegistry.getHandler(owner.getTag()).getDisplayText(owner, context.model()))
+			: StringUtils.EMPTY);
+		clearOwnerButton.setVisible(owner != null);
+	}
+
 	private void applyFilter(){
-				@SuppressWarnings("unchecked")
+		@SuppressWarnings("unchecked")
 		final TableRowSorter<DocumentTableModel> sorter =
 			(TableRowSorter<DocumentTableModel>)table.getRowSorter();
-		if(searchBox.isBlank())
+		final boolean search = !searchBox.isBlank();
+		final Set<String> media = ownerMedia;
+		if(!search && media == null)
 			sorter.setRowFilter(null);
 		else{
 			final String query = searchBox.query();
@@ -210,7 +307,8 @@ public final class MediaManagementDialog extends JDialog{
 				@Override
 				public boolean include(final Entry<? extends DocumentTableModel, ? extends Integer> entry){
 					final SourceHelper.DocumentRow row = tableModel.getRow(entry.getIdentifier());
-					return SearchBox.matches(query, modes, row.uri(), row.description(), row.mapping());
+					return ((media == null || media.contains(row.id()))
+						&& (!search || SearchBox.matches(query, modes, row.uri(), row.description(), row.mapping())));
 				}
 			});
 		}
@@ -369,7 +467,7 @@ public final class MediaManagementDialog extends JDialog{
 
 	private static final class DocumentTableModel extends AbstractTableModel{
 
-		private static final String[] COLUMNS = {I18N.t("column.uri"), I18N.t("column.description"), I18N.t("column.mapping"), I18N.t("column.references")};
+		private static final String[] COLUMNS = {I18N.t("column.uri"), I18N.t("column.description"), I18N.t("column.mapping"), I18N.t("column.references"), I18N.t("column.tagged")};
 
 		private final List<SourceHelper.DocumentRow> rows = new ArrayList<>();
 
@@ -387,7 +485,7 @@ public final class MediaManagementDialog extends JDialog{
 		@Override public int getColumnCount(){ return COLUMNS.length; }
 		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
 		//(the references are numbers: the sorter must not sort them as text, "10" before "2")
-		@Override public Class<?> getColumnClass(final int column){ return (column == 3? Integer.class: String.class); }
+		@Override public Class<?> getColumnClass(final int column){ return (column >= 3? Integer.class: String.class); }
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex){
@@ -397,6 +495,7 @@ public final class MediaManagementDialog extends JDialog{
 				case 1 -> row.description();
 				case 2 -> row.mapping();
 				case 3 -> row.referenceCount();
+				case 4 -> row.taggedCount();
 				default -> StringUtils.EMPTY;
 			};
 		}

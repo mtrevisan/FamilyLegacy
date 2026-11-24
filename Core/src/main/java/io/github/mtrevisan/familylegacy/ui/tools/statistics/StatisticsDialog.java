@@ -104,9 +104,9 @@ public final class StatisticsDialog extends JDialog{
 		this.model = model;
 
 		final JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(I18N.t("tab.title.completeness"), createCompletenessTab(stats));
-		tabs.addTab(I18N.t("tab.title.distribution"), createDistributionTab(stats));
-		tabs.addTab(I18N.t("tab.title.source_coverage"), createCoverageTab(stats));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.completeness"), "completeness", createCompletenessTab(stats));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.distribution"), "distribution", createDistributionTab(stats));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.source_coverage"), "source_coverage", createCoverageTab(stats));
 		tabs.setPreferredSize(new Dimension(920, 620));
 
 		// Clear the summary on tab switch: a selection in a hidden tab

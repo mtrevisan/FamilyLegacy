@@ -51,6 +51,7 @@ import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
 import io.github.mtrevisan.familylegacy.reports.ReportProgressListener;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.reports.StoryPlacement;
 import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
 import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
@@ -114,6 +115,7 @@ class ReportOptionStateTest{
 			case HYPOTHESIS_RECORD_TYPE -> (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL);
 			case SURNAME_PLACE_LEVEL -> (value? SurnamePlaceLevel.PROVINCE: SurnamePlaceLevel.PLACE);
 			case SURNAME_PERIOD -> (value? SurnamePeriod.CENTURY: SurnamePeriod.WHOLE);
+			case STORIES -> (value? StoryPlacement.SECTION: StoryPlacement.EXCLUDE);
 			default -> value;
 		});
 	}

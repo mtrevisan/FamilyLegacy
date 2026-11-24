@@ -29,7 +29,7 @@ The history lives in memory only and is lost when you close the application.
 Above the list, **Record type** filters the rows (*All types*), and a line says how many changes there are. The buttons:
 
 - **Show changes**: a side-by-side view of the record before and after.
-- **Open record** (or a double-click): opens the editor of the record. It is not available for a removed record, and warns if the record is no longer in the file.
+- **A double-click** opens the editor of the record. It is not available for a removed record, and warns if the record is no longer in the file.
 - **Refresh**. The window also refreshes when you come back to it.
 
 ### Reverting an older step

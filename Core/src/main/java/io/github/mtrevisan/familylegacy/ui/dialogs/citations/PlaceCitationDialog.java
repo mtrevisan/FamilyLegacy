@@ -87,7 +87,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		placeField = new BoundTextField(PlaceHandler.TYPE);
-		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ORIGINAL_TEXT);
+		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT);
 		confidenceCombo = new BoundComboBox<>(PlaceCitationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
 

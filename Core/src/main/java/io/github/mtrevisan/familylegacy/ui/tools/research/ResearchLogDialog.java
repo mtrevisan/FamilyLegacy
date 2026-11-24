@@ -39,7 +39,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -80,7 +79,6 @@ public final class ResearchLogDialog extends JDialog{
 	private final JTable table = new JTable(tableModel);
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
-	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 
 
 	public ResearchLogDialog(final ToolContext context){
@@ -124,8 +122,6 @@ public final class ResearchLogDialog extends JDialog{
 					openSelected();
 			}
 		});
-		table.getSelectionModel()
-			.addListSelectionListener(e -> openRecord.setEnabled(table.getSelectedRow() >= 0));
 		final TableColumnModel columnModel = table.getColumnModel();
 		columnModel.getColumn(0).setPreferredWidth(90);
 		columnModel.getColumn(1).setPreferredWidth(230);
@@ -140,9 +136,7 @@ public final class ResearchLogDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		openRecord.setEnabled(false);
-		openRecord.addActionListener(e -> openSelected());
-		return GUIHelper.createStatusFooter(statusLabel, openRecord);
+		return GUIHelper.createStatusFooter(statusLabel);
 	}
 
 

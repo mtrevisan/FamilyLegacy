@@ -48,7 +48,7 @@ import java.util.Set;
  * The research tasks still to be done in a file (what the tasks panel of the main window lists): those whose status is
  * {@code open} or {@code in_progress} (or that have none), ordered by due date and then by priority.
  * <p>
- * A task has no target of its own: the records it is about are the targets of its research questions.
+ * The records a task is about are the ones it names directly ({@code related}) and the targets of its research questions.
  * </p>
  */
 public final class OpenTasks{
@@ -72,7 +72,7 @@ public final class OpenTasks{
 	 * @param priority	The priority ({@code low}, {@code normal}, {@code high}), or {@code null} if the task has none.
 	 * @param due	The day it is due, or {@code null} if it has none (or it is not an ISO date).
 	 * @param questions	The research questions the task serves (the visible ones that exist).
-	 * @param targetIds	The records the questions are about.
+	 * @param targetIds	The records the task is about: the ones it names ({@code related}) and the ones its questions are about.
 	 */
 	public record Task(FLEFRecord record, String description, String status, String priority, LocalDate due, List<FLEFRecord> questions,
 			Set<String> targetIds){
@@ -117,6 +117,8 @@ public final class OpenTasks{
 					targetIds.addAll(targetIds(question));
 				}
 			}
+			//the records the task is about directly
+			targetIds.addAll(relatedIds(record));
 
 			tasks.add(new Task(record, ResearchHelper.taskDescription(record), StringUtils.trimToNull(status),
 				StringUtils.trimToNull(ResearchHelper.taskPriority(record)),
@@ -189,6 +191,19 @@ public final class OpenTasks{
 	 * @return	Whether the status changed.
 	 */
 	public static boolean changeStatus(final FLEFRecord task, final String status){
+		return changeStatus(task, status, null);
+	}
+
+	/**
+	 * Changes the status of a task in place and, if given, writes what came out of it (replacing a previous outcome), as one change of
+	 * the audit.
+	 *
+	 * @param task	The research task.
+	 * @param status	The new status (one of {@link ResearchTaskReader#STATUSES}).
+	 * @param outcome	The outcome to write, or {@code null}/blank to leave it as it is.
+	 * @return	Whether the status changed.
+	 */
+	public static boolean changeStatus(final FLEFRecord task, final String status, final String outcome){
 		if(!ResearchTaskReader.isOfType(task) || StringUtils.isBlank(status)
 				|| status.equalsIgnoreCase(StringUtils.strip(ResearchHelper.status(task))))
 			return false;
@@ -199,6 +214,10 @@ public final class OpenTasks{
 		//the status is written once: a repeated one (not allowed by the protocol) is replaced by the new one
 		FLEFRecordHelper.removeChildren(task, ResearchTaskReader.TAG_STATUS);
 		FLEFRecordHelper.updateChildValue(task, ResearchTaskReader.TAG_STATUS, status);
+		if(StringUtils.isNotBlank(outcome)){
+			FLEFRecordHelper.removeChildren(task, ResearchTaskReader.TAG_OUTCOME);
+			FLEFRecordHelper.updateChildValue(task, ResearchTaskReader.TAG_OUTCOME, outcome.strip());
+		}
 
 		RecordChangeSummary.recordUpdate(before, task);
 		return true;
@@ -215,7 +234,7 @@ public final class OpenTasks{
 	}
 
 	/** @return	The ids a record references through a (possibly repeated) tag. */
-	private static List<String> references(final FLEFRecord record, final String tag){
+	static List<String> references(final FLEFRecord record, final String tag){
 		final List<String> ids = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, tag)){
 			final String id = referenceOf(child);
@@ -226,7 +245,7 @@ public final class OpenTasks{
 	}
 
 	/** @return	The records a question is about: each target is a "oneof" that holds one reference. */
-	private static Set<String> targetIds(final FLEFRecord question){
+	static Set<String> targetIds(final FLEFRecord question){
 		final Set<String> ids = new LinkedHashSet<>();
 		for(final FLEFRecord target : FLEFRecordHelper.findChildren(question, ResearchQuestionReader.TAG_TARGET)){
 			final String id = referenceOf(target);
@@ -236,8 +255,19 @@ public final class OpenTasks{
 		return ids;
 	}
 
+	/** @return	The records a task is about directly ({@code related}, each one a "oneof" that holds one reference). */
+	static Set<String> relatedIds(final FLEFRecord task){
+		final Set<String> ids = new LinkedHashSet<>();
+		for(final FLEFRecord related : FLEFRecordHelper.findChildren(task, ResearchTaskReader.TAG_RELATED)){
+			final String id = referenceOf(related);
+			if(id != null)
+				ids.add(id);
+		}
+		return ids;
+	}
+
 	/** @return	The value of a field, or the one of its only arm (a reference written as {@code target.individual I1}). */
-	private static String referenceOf(final FLEFRecord field){
+	static String referenceOf(final FLEFRecord field){
 		final String direct = StringUtils.trimToNull(field.getValue());
 		if(direct != null)
 			return direct;

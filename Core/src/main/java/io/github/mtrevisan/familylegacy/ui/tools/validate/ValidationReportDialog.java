@@ -132,7 +132,6 @@ public final class ValidationReportDialog extends JDialog{
 	private final JTextArea detail = new JTextArea();
 	private final JLabel summary = new JLabel();
 	private final JComboBox<Filter> filter = ComboBoxSearch.searchable(new JComboBox<>(Filter.values()));
-	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton copy = new JButton(I18N.t("button.copy_all"));
 
 
@@ -223,17 +222,11 @@ public final class ValidationReportDialog extends JDialog{
 		filter.addActionListener(e -> {
 			tableModel.setFilter((Filter)filter.getSelectedItem());
 			detail.setText(StringUtils.EMPTY);
-			openRecord.setEnabled(false);
 		});
 		final JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
 		filterBar.add(new JLabel(I18N.t("text.validate.filter")));
 		filterBar.add(filter);
 
-		openRecord.setEnabled(false);
-		openRecord.addActionListener(e -> {
-			if(table.getSelectedRow() >= 0)
-				openRecord(table.getSelectedRow());
-		});
 		copy.addActionListener(e -> copyToClipboard());
 
 		final JPanel detailPanel = new JPanel(new BorderLayout());
@@ -249,7 +242,7 @@ public final class ValidationReportDialog extends JDialog{
 
 		final JPanel south = new JPanel(new BorderLayout());
 		south.add(detailPanel, BorderLayout.CENTER);
-		south.add(GUIHelper.createStatusFooter(status, openRecord, copy), BorderLayout.SOUTH);
+		south.add(GUIHelper.createStatusFooter(status, copy), BorderLayout.SOUTH);
 
 		setLayout(new BorderLayout(8, 8));
 		add(filterBar, BorderLayout.NORTH);
@@ -287,7 +280,6 @@ public final class ValidationReportDialog extends JDialog{
 		if(worker != null)
 			worker.cancel(true);
 
-		openRecord.setEnabled(false);
 		summary.setText(I18N.t("text.validate.running"));
 		progressBar.setValue(0);
 		progressBar.setVisible(true);
@@ -344,7 +336,6 @@ public final class ValidationReportDialog extends JDialog{
 		tableModel.setErrors(errors);
 		summary.setText(summaryOf(errors));
 		detail.setText(StringUtils.EMPTY);
-		openRecord.setEnabled(false);
 	}
 
 
@@ -355,7 +346,6 @@ public final class ValidationReportDialog extends JDialog{
 	private void toggleGroup(final int row){
 		tableModel.toggle(row);
 		detail.setText(StringUtils.EMPTY);
-		openRecord.setEnabled(false);
 	}
 
 	private void onSelectionChanged(){
@@ -363,14 +353,12 @@ public final class ValidationReportDialog extends JDialog{
 		final FLEFValidator.ValidationError err = tableModel.errorAt(row);
 		if(err == null){
 			detail.setText(StringUtils.EMPTY);
-			openRecord.setEnabled(false);
 
 			return;
 		}
 
 		detail.setText(err.message());
 		detail.setCaretPosition(0);
-		openRecord.setEnabled(err.hasRecord());
 	}
 
 	private void openRecord(final int row){

@@ -373,6 +373,12 @@ public final class ReportContext{
 	}
 
 
+	/** @return	Whether the notes of the records are written: the ordinary ones, or the stories (that are chosen apart). */
+	public boolean writesNotes(){
+		return (config.notes() || config.stories() != StoryPlacement.EXCLUDE);
+	}
+
+
 	/* ======================================================================
 	 *                          Privacy
 	 * ====================================================================== */

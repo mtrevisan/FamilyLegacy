@@ -119,10 +119,8 @@ final class SuggestionStrip extends JPanel{
 		action.setAlignmentX(LEFT_ALIGNMENT);
 		action.setHorizontalAlignment(SwingConstants.LEFT);
 		action.addActionListener(e -> {
-			//accepted: the row goes away, the editor that opens is the usual one
-			rows.remove(row);
-			setVisible(rows.getComponentCount() > 0);
-			revalidate();
+			//the row stays: the user may open the editor and not conclude anything, and the suggestion must still be there; it goes away
+			//only by dismissing it or when the editor is reopened and the assistant no longer suggests it
 			suggestion.action().run();
 		});
 		row.add(action);

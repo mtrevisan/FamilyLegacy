@@ -135,7 +135,7 @@ public final class RepositorySection implements SectionBuilder{
 		appendPlace(out, repo);
 		appendContacts(out, repo);
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(repo));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(repo));

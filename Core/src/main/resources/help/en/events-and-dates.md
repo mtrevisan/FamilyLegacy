@@ -28,10 +28,11 @@ The tools that work on dates, and not on events, are in the **Tools** menu, unde
 ## Views of the events in the Event menu
 
 - **Timeline View...** lists the events in chronological order, one per line: date, type, complete place, the people who took part and the description. If an individual is selected in the view when you open it, the list is the one of that individual (the **Participant** box shows the name; **Clear** lists everyone, **Choose...** picks another one). The other filters are **From** and **To** and the **Type** of event.
-  - **From** and **To** take a year (`1850`), a month (`1850-03`) or a day (`1850-03-02`): the start of the period for *From*, its end for *To*. A text that is not a date is shown in red and does not limit the list.
+  - **From** and **To** take a year (`1850`), a month (`1850-03`) or a day (`1850-03-02`; the calendar button at the right of each field picks a day): the start of the period for *From*, its end for *To*. A text that is not a date is shown in red and does not limit the list.
   - An event is placed by the first day its date can be, so an event of "1850" comes at the start of 1850 and not at the end of the list, and an interval (*between 1900 and 1910*) is placed at its beginning. An event is listed if some day of its date is in the interval you asked for.
   - Events with no date, or with a date that cannot be read, come last. When you ask for a date interval they cannot be placed and are not listed: the status line says how many they are.
-  - Click a heading to sort by that column (the date column is sorted by the day, not as text). Double-click an event, or press **Open record**, to edit it; **Copy all** puts the list in the clipboard.
+  - Click a heading to sort by that column (the date column is sorted by the day, not as text). Double-click an event to edit it; **Copy all** puts the list in the clipboard.
+- **Historical Timeline...** puts the life of an individual (or of several) against the historic events and norms of their time and places: see [Historical timeline and lifespan comparison](historical-timeline.md).
 - **Context Board** is now in the **Research** menu: see [Research](research.md#the-context-board).
 
 ## Calendars

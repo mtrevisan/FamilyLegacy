@@ -145,7 +145,11 @@ public record ReportConfig(
 	/** Whether the Surnames by Place report counts the surnames of all the names of an individual. */
 	boolean surnameAllNames,
 	/** Whether the Surnames by Place report puts the surnames that may be the same one side by side. */
-	boolean surnameSimilar
+	boolean surnameSimilar,
+	/** Whether the stories (the notes of kind story) are in the report, and where: they are chosen apart from the other notes. */
+	StoryPlacement stories,
+	/** Whether the research notes (the notes of kind research: reasoning, findings and comments of the research) are in the report, among the notes. */
+	boolean researchNotes
 ){
 
 	public ReportConfig{
@@ -169,6 +173,7 @@ public record ReportConfig(
 		Objects.requireNonNull(hypothesisRecordType, "hypothesisRecordType");
 		Objects.requireNonNull(surnamePlaceLevel, "surnamePlaceLevel");
 		Objects.requireNonNull(surnamePeriod, "surnamePeriod");
+		Objects.requireNonNull(stories, "stories");
 		generations = Math.max(0, generations);
 		firstGeneration = Math.max(0, firstGeneration);
 		unknownName = (unknownName != null? unknownName.strip(): "");
@@ -202,6 +207,11 @@ public record ReportConfig(
 	/** @return	A copy of this configuration with the language changed. */
 	public ReportConfig withLanguage(final ReportLanguage value){
 		return withComponent("language", value);
+	}
+
+	/** @return	A copy of this configuration with the privacy policy changed. */
+	public ReportConfig withPrivacyPolicy(final PrivacyPolicy value){
+		return withComponent("privacyPolicy", value);
 	}
 
 	/** @return	A copy of this configuration with what is done with the individuals that may be living changed. */
@@ -248,7 +258,8 @@ public record ReportConfig(
 			(value? ImageAlignment.WRAP_RIGHT: ImageAlignment.DEFAULT), (value? ConflictFilter.UNRESOLVED: ConflictFilter.ALL),
 			(value? ConflictConfidence.LOW: ConflictConfidence.ALL), (value? ConflictRecordType.EVENT: ConflictRecordType.ALL),
 			(value? HypothesisFilter.OPEN: HypothesisFilter.ALL), (value? HypothesisRecordType.INDIVIDUAL: HypothesisRecordType.ALL),
-			(value? SurnamePlaceLevel.PROVINCE: SurnamePlaceLevel.PLACE), (value? SurnamePeriod.CENTURY: SurnamePeriod.WHOLE), value, value);
+			(value? SurnamePlaceLevel.PROVINCE: SurnamePlaceLevel.PLACE), (value? SurnamePeriod.CENTURY: SurnamePeriod.WHOLE), value, value,
+			(value? StoryPlacement.SECTION: StoryPlacement.EXCLUDE), value);
 	}
 
 	public static ReportConfig defaults(){
@@ -318,7 +329,9 @@ public record ReportConfig(
 			SurnamePlaceLevel.PLACE,
 			SurnamePeriod.WHOLE,
 			true,
-			false
+			false,
+			StoryPlacement.SECTION,
+			true
 		);
 	}
 

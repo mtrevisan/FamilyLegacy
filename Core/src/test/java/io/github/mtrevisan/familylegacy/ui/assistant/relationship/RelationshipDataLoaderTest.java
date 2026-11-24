@@ -233,11 +233,12 @@ class RelationshipDataLoaderTest{
 			.findFirst()
 			.orElseThrow();
 
-		//Enter starts the draft, Ctrl+Enter opens the records
+		//Enter starts the draft, Ctrl+Enter opens the records, Ctrl+Shift+Enter creates a research task
 		Assertions.assertNotNull(missing.action());
 		Assertions.assertEquals("Create Relationship Draft…", missing.action().title());
 		Assertions.assertSame(missing.action(), DiagnosticActions.of(missing).getFirst());
-		Assertions.assertEquals(2, DiagnosticActions.of(missing).size());
+		Assertions.assertEquals(3, DiagnosticActions.of(missing).size());
+		Assertions.assertEquals("CreateTaskAction", DiagnosticActions.of(missing).getLast().getClass().getSimpleName());
 	}
 
 	@Test

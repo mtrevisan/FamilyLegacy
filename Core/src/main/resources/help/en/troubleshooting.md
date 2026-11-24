@@ -35,7 +35,7 @@ In every case, open the last backup. A file with correct syntax but wrong conten
 
 ## Tools > Validate File
 
-The report has the columns *Error* and *Record*, a *Details* area, and the buttons **Open record** and **Copy all**. It shows only errors (there are no warnings).
+The report has the columns *Error* and *Record*, a *Details* area, and the button **Copy all** (double-click a problem to open its record). It shows only errors (there are no warnings).
 
 The check is **staged**: first the structure, and only if that is clean the references, and only then the business rules. Fixing a batch can therefore reveal new problems: the report refreshes by itself when you save a record you opened from it (or open **Tools > Validate File...** again), and you validate again until it says *The file is valid. No errors found.*
 

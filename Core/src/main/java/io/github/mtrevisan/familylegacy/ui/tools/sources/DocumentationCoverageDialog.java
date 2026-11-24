@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.reports.DocumentationCoverage;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -111,9 +112,9 @@ final class DocumentationCoverageDialog extends JDialog{
 		placeRecords.clear();
 		branchRecords.clear();
 
-		tabs.addTab(I18N.t("tab.title.coverage_kinds"), createKindsTab());
-		tabs.addTab(I18N.t("tab.title.coverage_hotspots"), createHotspotsTab());
-		tabs.addTab(I18N.t("tab.title.coverage_branches"), createBranchesTab());
+		GUIHelper.addTab(tabs, I18N.t("tab.title.coverage_kinds"), "coverage_kinds", createKindsTab());
+		GUIHelper.addTab(tabs, I18N.t("tab.title.coverage_hotspots"), "coverage_hotspots", createHotspotsTab());
+		GUIHelper.addTab(tabs, I18N.t("tab.title.coverage_branches"), "coverage_branches", createBranchesTab());
 		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
 	}
 

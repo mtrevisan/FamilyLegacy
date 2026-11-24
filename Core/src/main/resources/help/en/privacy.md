@@ -66,7 +66,7 @@ The export is in the menu **File > Export > FLEF File…**.
 
 ## The confidential marker in notes
 
-In the text of a note, `[text](flef:confidential)` marks text to hide when confidential data is suppressed. Write it exactly like this, with the `flef:` prefix: no other form is recognised. The only code that acts on the marker is the FLEF export. It has no effect on screen or in the reports. Do not rely on it to keep anything private.
+In the text of a note, `[text](flef:confidential)` marks text to hide when confidential data is suppressed. Write it exactly like this, with the `flef:` prefix: no other form is recognised. The marker acts in the FLEF export and in the reports: with a hiding policy the marked text is removed, and a link to a hidden record becomes `[omitted]`. It has no effect on screen. Do not rely on it to keep anything private.
 
 ## What is not filtered
 

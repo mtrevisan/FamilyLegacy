@@ -58,9 +58,9 @@ import java.util.function.Function;
 public final class IndexSection implements SectionBuilder{
 
 	private static final String TAG_PLACE = PlaceCitationReader.TAG_PLACE;
-	private static final String TAG_ORIGINAL_TEXT = PlaceCitationReader.TAG_ORIGINAL_TEXT;
+	private static final String TAG_ASSISTANT_FINDING_IDAL_TEXT = PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT;
 
-	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ORIGINAL_TEXT);
+	private static final String TAG_PLACE_ORIGINAL_TEXT = FLEFRecordHelper.composePath(TAG_PLACE, TAG_ASSISTANT_FINDING_IDAL_TEXT);
 
 
 	private final ReportContext ctx;

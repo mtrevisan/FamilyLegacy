@@ -58,8 +58,14 @@ public enum SearchMode{
 
 	/**
 	 * Also look into the text of the notes and of the citations of the record (see {@link AttachedTextExtractor}), not only into its display text. It does
-	 * not change how a token is admitted or scored.
+	 * not change how a token is admitted or scored. The stories (the notes of kind story) are not among them: they have their own option.
 	 */
-	NOTES_AND_CITATIONS
+	NOTES_AND_CITATIONS,
+
+	/**
+	 * Also look into the text of the stories of the record (the notes of kind story, see {@link AttachedTextExtractor#extractStories}), apart
+	 * from the other notes: with this alone only the stories are searched, with {@link #NOTES_AND_CITATIONS} too, all of them.
+	 */
+	STORIES
 
 }

@@ -83,6 +83,22 @@ class ConclusionResolutionTest{
 	}
 
 	@Test
+	void aConclusionThatTakesNoPositionIsOpen(){
+		Assertions.assertTrue(ConclusionResolution.isOpen(evaluation(Set.of("E1", "E2"), null, null)));
+		Assertions.assertTrue(ConclusionResolution.isOpen(evaluation(Set.of("E1"), null, null)));
+		Assertions.assertTrue(ConclusionResolution.isOpen(evaluation(Set.of("E1", "E2"), null, "supported")));
+	}
+
+	@Test
+	void aConclusionThatJudgesIsNotOpen(){
+		Assertions.assertFalse(ConclusionResolution.isOpen(evaluation(Set.of("E1", "E2"), "E1", null)));
+		Assertions.assertFalse(ConclusionResolution.isOpen(evaluation(Set.of("E1", "E2"), null, "conflicting_evidence")));
+		Assertions.assertFalse(ConclusionResolution.isOpen(evaluation(Set.of("E1", "E2"), null, "disproven")));
+		//a single claim marked as proven is made
+		Assertions.assertFalse(ConclusionResolution.isOpen(evaluation(Set.of("E1"), null, "proven")));
+	}
+
+	@Test
 	void noConclusionsMeansNothingIsSettled(){
 		Assertions.assertFalse(ConclusionResolution.isResolved(COMPETING, List.of()));
 	}

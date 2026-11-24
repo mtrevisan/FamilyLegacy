@@ -107,7 +107,6 @@ final class CitationAnalysisDialog extends JDialog{
 	private final FLEFModel model;
 
 	private final JTabbedPane tabs = new JTabbedPane();
-	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton exportCsv = new JButton(I18N.t("button.export_csv"));
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
 	private final List<JTable> tables = new ArrayList<>();
@@ -140,13 +139,11 @@ final class CitationAnalysisDialog extends JDialog{
 		searchBox.onChange(this::applyFilter);
 		configureRecordTable(uncitedTable);
 
-		openRecord.addActionListener(e -> openSelected());
 		exportCsv.addActionListener(e -> exportToCsv());
 		final JButton copy = new JButton(I18N.t("button.copy_all"));
 		copy.addActionListener(e -> copyToClipboard());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(openRecord);
 		buttons.add(exportCsv);
 		buttons.add(copy);
 
@@ -190,13 +187,13 @@ final class CitationAnalysisDialog extends JDialog{
 		tables.add(documentsTable);
 		tables.add(uncitedTable);
 
-		tabs.addTab(tabTitle("tab.title.unused_sources", unusedSources.size()),
+		GUIHelper.addTab(tabs, tabTitle("tab.title.unused_sources", unusedSources.size()), "unused_sources",
 			ToolDialogs.createVerdictTab(unusedSources.isEmpty(), I18N.t("text.citation_analysis.sources.ok"),
 				I18N.tf("text.citation_analysis.sources.warn", unusedSources.size()), sourcesTable));
-		tabs.addTab(tabTitle("tab.title.unused_documents", unusedDocuments.size()),
+		GUIHelper.addTab(tabs, tabTitle("tab.title.unused_documents", unusedDocuments.size()), "unused_documents",
 			ToolDialogs.createVerdictTab(unusedDocuments.isEmpty(), I18N.t("text.citation_analysis.documents.ok"),
 				I18N.tf("text.citation_analysis.documents.warn", unusedDocuments.size()), documentsTable));
-		tabs.addTab(tabTitle("tab.title.uncited_assertions", uncited.size()), createUncitedTab(analysis));
+		GUIHelper.addTab(tabs, tabTitle("tab.title.uncited_assertions", uncited.size()), "uncited_assertions", createUncitedTab(analysis));
 		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
 
 		summary.setText(GUIHelper.format(I18N.t("text.citation_analysis.summary"), analysis.citedSourceCount(),
@@ -399,6 +396,7 @@ final class CitationAnalysisDialog extends JDialog{
 		record Scored(FLEFRecord record, String text, SearchMatcher.MatchScore match){}
 
 		final boolean inNotes = modes.contains(SearchMode.NOTES_AND_CITATIONS);
+		final boolean inStories = modes.contains(SearchMode.STORIES);
 		final List<Scored> scored = new ArrayList<>();
 		for(final FLEFRecord record : records){
 			if(cancelled.getAsBoolean())
@@ -406,7 +404,8 @@ final class CitationAnalysisDialog extends JDialog{
 
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 			final String text = (handler != null? handler.getDisplayText(record, model): record.getId());
-			final String target = (inNotes? text + '\n' + AttachedTextExtractor.extract(record, model): text);
+			final String target = text + (inNotes? '\n' + AttachedTextExtractor.extract(record, model): "")
+				+ (inStories? '\n' + AttachedTextExtractor.extractStories(record): "");
 			final SearchMatcher.MatchScore match = SearchMatcher.score(query, target, modes);
 			if(match.passes())
 				scored.add(new Scored(record, text, match));
@@ -487,7 +486,6 @@ final class CitationAnalysisDialog extends JDialog{
 
 	private void updateButtons(){
 		final JTable table = activeRecordTable();
-		openRecord.setEnabled(table != null && !summaryShown() && table.getSelectedRow() >= 0);
 		exportCsv.setEnabled(table != null && (summaryShown()? allUncited.getRowCount(): table.getModel().getRowCount()) > 0);
 	}
 

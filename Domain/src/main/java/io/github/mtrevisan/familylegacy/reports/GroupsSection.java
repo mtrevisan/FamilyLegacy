@@ -148,7 +148,7 @@ public final class GroupsSection implements SectionBuilder{
 		appendChildGroups(out, group);
 		appendGroupEvents(out, group);
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(group));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(group));
@@ -209,7 +209,7 @@ public final class GroupsSection implements SectionBuilder{
 			if(!meta.isEmpty())
 				out.add(new ReportSection.BulletList(meta));
 
-			if(ctx.config.notes())
+			if(ctx.writesNotes())
 				out.addAll(ctx.citations().notes(membership));
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(membership));
@@ -245,10 +245,10 @@ public final class GroupsSection implements SectionBuilder{
 				ctx.labels.sections().from(), ctx.labels.sections().to(), ctx.labels.sections().place()),
 			rows));
 
-		if(ctx.config.notes() || ctx.config.sources() || ctx.config.evidence() || ctx.config.audit()){
+		if(ctx.writesNotes() || ctx.config.sources() || ctx.config.evidence() || ctx.config.audit()){
 			for(final FLEFRecord a : attrs){
 				final List<ReportSection> extras = new ArrayList<>();
-				if(ctx.config.notes())
+				if(ctx.writesNotes())
 					extras.addAll(ctx.citations().notes(a));
 				if(ctx.config.sources())
 					extras.addAll(ctx.citations().citations(a));
@@ -317,7 +317,7 @@ public final class GroupsSection implements SectionBuilder{
 		if(!meta.isEmpty())
 			out.add(new ReportSection.BulletList(meta));
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(rel));
 		if(ctx.config.sources())
 			out.addAll(ctx.citations().citations(rel));

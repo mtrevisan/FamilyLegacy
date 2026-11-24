@@ -43,6 +43,7 @@ open module io.github.mtrevisan.familylegacy.assistant {
 	exports io.github.mtrevisan.familylegacy.assistant.relationship;
 	exports io.github.mtrevisan.familylegacy.assistant.report;
 	exports io.github.mtrevisan.familylegacy.assistant.source;
+	exports io.github.mtrevisan.familylegacy.assistant.task;
 	exports io.github.mtrevisan.familylegacy.assistant.tags;
 
 	// The Conflicts report finds the conflicts of the research here

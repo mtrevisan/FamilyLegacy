@@ -411,7 +411,7 @@ public final class IndividualSummary{
 	private EventInfo extractEventInfo(final FLEFRecord event, final String type, final FLEFModel model){
 		final String eventId = event.getId();
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, EventReader.TAG_DATE);
-		final String dateOriginalText = DateReader.extractOriginalText(dateRecord);
+		final String dateOriginalText = DateReader.extractAssistantFindingIdalText(dateRecord);
 		final String date = DateReader.extractPrettyPrintDate(dateRecord);
 		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(dateRecord, DateReader.TAG_VALUE);
 		final String year = DateService.getYearDisplayText(valueRecord);

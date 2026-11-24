@@ -6,7 +6,7 @@ A **source** is where information was found: a parish register, a census, a lett
 
 - **Manage Sources...** opens the list of sources, where you can search, create, edit and delete them (see [Manage dialogs](searching.md#manage-dialogs)). Deleting a source deletes its [extracts](editors-sources.md#extract) as well, and removes its citations from the records. Each line shows the author, the type and how many citations the source has: a source with no citation is one to look at. It is available when the file has sources.
 - **New Source...** creates a source.
-- **Source Workspace...** is the view centred on one source (it opens on the source selected, if any). On the left the sources are listed **by repository**, **by kind of repository** (archive, library, private collection...) or **by collection / record group**, that is by the shelf mark or call number written in the repository citation of the source (a source kept in two repositories is in both groups; one with no repository is under *(none)*). On the right, for the selected source, one tab for each thing that depends on it: the **citations** (the cited record, locator and stance, with the individuals each one is about), the **individuals**, **families** (partnerships) and **events** it backs, its **extracts** and the **media** it refers to. Selecting a citation lists below the individuals it is about, so you can walk *source -> citation -> person*; a double-click opens the record, and the lists are read again afterwards. It never changes the file by itself and is available when the file has sources.
+- **Source Workspace...** is the view centred on one source (it opens on the source selected, if any). On the left the sources are listed **by repository**, **by kind of repository** (archive, library, private collection...) or **by collection / record group**, that is by the shelf mark or call number written in the repository citation of the source (a source kept in two repositories is in both groups; one with no repository is under *(none)*). On the right, for the selected source, one tab for each thing that depends on it: the **citations** (the cited record, locator and stance, with the individuals each one is about), the **individuals**, **families** (partnerships) and **events** it backs, its **extracts** and the **media** it refers to. Selecting a citation lists below the individuals it is about, so you can walk *source -> citation -> person*; selecting an extract lists below what it **supports** and what it **contradicts** (the assertions whose citations reference it, with the individuals they are about), so you can walk *extract -> assertion -> person*, and *Explain This* on an extract opens its source; a double-click opens the record, and the lists are read again afterwards. It never changes the file by itself and is available when the file has sources.
 
 ## Repositories
 
@@ -21,8 +21,9 @@ A **repository** is the place that keeps a source: an archive, a library, a pari
 
 A **media** record points to a file: a scan, a photograph, a document.
 
-- **Manage Media...** lists the media with their location, description and the number of records that reference them, and shows a preview of the selected image. You can search, create, edit and delete media. Only local files are previewed, to keep the dialog responsive.
+- **Manage Media...** lists the media with their location, description, the number of records that reference them and the number of **people tagged** in them (see [Regions of an image](editors-sources.md#regions-of-an-image)), and shows a preview of the selected image. **View...** opens the selected image at full size with its regions; **Media of...** shows only the media of one individual or group. You can search, create, edit and delete media. Only local files are previewed, to keep the dialog responsive.
 - **SVG images** are shown, but for safety they never run scripts or load anything outside the file, and an SVG larger than 5 MB or declaring more than 4096 pixels per side is refused.
+- **View...** in the media editor, or a double click on a thumbnail of the *Images* strip, opens the image at full size with its **regions** (who is in each part of a photograph): hover for the names, click to open the person. See [Regions of an image](editors-sources.md#regions-of-an-image).
 - A media can have a **date**: when the photograph, recording, scan or document was created or captured. It matters when that date has historical relevance, and it is edited like any other date.
 - The location can be a path on your disk, a `file:` address or a web address. How the location is *shown* is a preference: see [Preferences](preferences.md#media-paths).
 
@@ -56,7 +57,7 @@ A **citation** ties a statement to its source and says where in the source it is
 
 What the privacy policy hides is neither counted nor listed. The report section *Coverage* gives the same kind of figures for the subject of a report.
 
-The rows can be opened (double-click, or *Open record*) to fix the problem on the spot; the lists are made again afterwards. The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
+The rows can be opened (double-click) to fix the problem on the spot; the lists are made again afterwards. The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
 
 ## Where a fact comes from (provenance)
 
@@ -64,10 +65,30 @@ The rows can be opened (double-click, or *Open record*) to fix the problem on th
 
 - It works on the selected record; if nothing is selected it asks for an individual, a group, an event or a source. It is also in the menu of an individual in the tree and in the ego network.
 - For an **individual**, the check box *Include events, attributes and relationships* adds the citations of the events they took part in, of their attributes and of their relationships. Off, only the citations of the individual itself are listed.
+- *Explain* opens the evidence trace (see below) of the assertion in the selected row.
 - For a **source** it works the other way round: everything that cites it, to see what depends on it. The sources derived from it are in the list too (as records of type source), so a transcription can be followed back to its original and an original forward to its copies. On a source that is itself a copy, the rows are the sources it is *derived from*.
 - The line above the table counts the citations, how many support and how many contradict, and in how many the evidence is assessed. A record with no citation says so: nothing says where it comes from.
 
-A row can be opened (double-click, or *Open record*) to fix the citation; *Open source* opens its source. The list is read again afterwards. Nothing here changes the file.
+A row can be opened (double-click) to fix the citation; *Open source* opens its source. The list is read again afterwards. Nothing here changes the file.
+
+## Why do we believe this? (evidence trace)
+
+**Source > Evidence Trace...**, or **Explain This...** in the *Analyze* submenu of the right-click menu of an individual (from the *Standard* level of features), answers the question for a fact: which citations back it, which contradict it, and what the researcher concluded. It is the chain *assertion -> citation -> extract -> source*, read for one record; for an individual it explains each fact about them (the individual itself, their events, attributes and relationships), listed on the left with how its evidence stands.
+
+- The table lists the assertion and the assertions that **compete** with it (several births, burials or deaths of the same person, two values of a single-valued attribute such as sex, relationships of different types between the same two people): one row for each citation, with the source and locator, the *stance* (red if it contradicts), the extract, the evidence qualifiers, the *weight* of the citation and, in the assertion, its confidence and whether a conclusion *prefers* it. An assertion with no citation says so.
+- The weight is a rule of thumb: one for a citation that supports, plus one for an original source, one for primary information and one for direct evidence; minus one for a citation that contradicts or is negative evidence.
+- Below, the **reasoning path** lists, step by step, what the evidence says, the conclusions that evaluate the competing assertions (a conclusion *settles* the conflict when it resolves at least two of them and prefers one, or says that none prevails) and where it leads: *undocumented*, *contradicted*, *uncontested*, *settled*, *best supported* or *open*. It never decides: it only reads the evidence, the judgement stays in the conclusions.
+- A row can be opened (double-click) to fix the record; *Open source* opens its source; the trace is read again afterwards. On a source, the command opens the Source Workspace instead. Nothing here changes the file.
+
+## Conflict dashboard
+
+**Source > Conflict Dashboard...** (from the *Standard* level of features) is the one place where everything that is in conflict or still open is listed, so you can work through it instead of looking for it. It has the same knowledge as the Research Assistant and the *Conflicts* report, seen as a list to work on:
+
+- **Dates** (births, baptisms, deaths and burials of one person whose dates cannot all be right, or that are several and not compared yet), **places** (the events whose places cannot all be right), **relationships** (more than two biological parents, two of the same sex, someone who is their own ancestor, a child and a parent related in ways that exclude each other), **attributes and names** (several values of what can have only one), **identities** (hypotheses that no conclusion has judged) and **open conclusions** (a conclusion that evaluates records but prefers none and states no proof status that decides, so it settles nothing).
+- The three filters at the top choose the **status** (all, only the unresolved, only the settled), the **confidence** (a conflict is listed when at least one of its assertions has it, or has none for *Not stated*) and the **record type** (events, relationships, attributes, names, identity hypotheses). They are the same filters of the *Conflicts* report. A conclusion is listed with the type of the records it evaluates.
+- Selecting an entry shows below the competing assertions, each with its *confidence*, how many citations *support* it and how many *contradict* it (the stance of the citations), and which one a conclusion *prefers*.
+
+The resolution tools are the buttons: **Open record** opens the selected assertion (or the individual, if no assertion is selected); **Explain** opens its [evidence trace](#why-do-we-believe-this-evidence-trace); **Create conclusion...** starts a new conclusion that already resolves the competing records, with the issue and a description of the conflict (it settles nothing until you choose the preferred assertion or the proof status), and becomes **Open conclusion** when a conclusion already deals with the entry. A double-click does the same as that button. Names have no conclusion (a conclusion cannot point to a name): fix, merge or retype them instead. The dashboard never changes the file by itself, and it is read again after you edit something. What the privacy policy hides is left out.
 
 ## Bibliography
 

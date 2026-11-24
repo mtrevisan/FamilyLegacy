@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.sources;
 
+import io.github.mtrevisan.familylegacy.imaging.MediaRegions;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ContextImpactReader;
@@ -318,8 +319,19 @@ public final class SourceHelper{
 	public record RepositoryRow(String id, String name, String place,
 										 int sourceCount){}
 
-	/** Row for the document management table. */
-	public record DocumentRow(String id, String uri, String description, String mapping, int referenceCount){}
+	/**
+	 * Row for the document management table.
+	 *
+	 * @param taggedCount	How many individuals are tagged in the regions of the media (see {@link MediaRegions}).
+	 */
+	public record DocumentRow(String id, String uri, String description, String mapping, int referenceCount, int taggedCount){
+
+		/** A row of a media with nobody tagged in it. */
+		public DocumentRow(final String id, final String uri, final String description, final String mapping, final int referenceCount){
+			this(id, uri, description, mapping, referenceCount, 0);
+		}
+
+	}
 
 
 	/** Builds a {@link SourceRow} with the usage count. */
@@ -361,13 +373,24 @@ public final class SourceHelper{
 	/** Builds a {@link DocumentRow} with the reference count. */
 	public static DocumentRow toDocumentRow(final FLEFRecord document,
 		final Map<String, Integer> referenceCounts){
+		return toDocumentRow(document, referenceCounts, Map.of());
+	}
+
+	/**
+	 * Builds a {@link DocumentRow} with the reference count and the number of the people tagged in the media.
+	 *
+	 * @param taggedCounts	The number of individuals tagged in each media (see {@link MediaRegions#taggedPeople}).
+	 */
+	public static DocumentRow toDocumentRow(final FLEFRecord document, final Map<String, Integer> referenceCounts,
+			final Map<String, Integer> taggedCounts){
 		final String id = document.getId();
 		return new DocumentRow(
 			id,
 			documentDisplayUri(document),
 			documentDescription(document),
 			firstTextValue(document, MediaReader.TAG_MAPPING),
-			referenceCounts.getOrDefault(id, 0)
+			referenceCounts.getOrDefault(id, 0),
+			taggedCounts.getOrDefault(id, 0)
 		);
 	}
 

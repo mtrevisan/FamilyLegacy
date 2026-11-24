@@ -267,18 +267,9 @@ public class SingleDatePanel extends JPanel{
 		if(singleDateType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
-		// Build the value container for the oneof
-		final FLEFRecord valueContainer = FLEFRecord.createEmpty();
-		bindingManager.save(valueContainer);
-
-		// Build the root SingleDate struct record
+		// Build the root SingleDate struct record: the bindings write their own paths (value.full_date, calendar, ...)
 		final FLEFRecord record = FLEFRecord.createEmpty();
-		if(valueContainer.hasData())
-			record.addChildWithTag(DateReader.TAG_VALUE, valueContainer);
-
-		final String calendar = calendarCombo.getText();
-		if(StringUtils.isNotEmpty(calendar))
-			record.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_CALENDAR, calendar));
+		bindingManager.save(record);
 
 		approxPanel.saveToRecord(record);
 

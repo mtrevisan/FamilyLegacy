@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.2.0
-// PROTOCOL_DATE = 2026-11-20
+// PROTOCOL_DATE = 2026-11-24
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -213,7 +213,6 @@ record HeaderRecord {
 // Individual
 // ============================================================
 
-// primary record
 // The researcher's current conclusion about one historical individual, together with the facts, events, relationships, and evidence believed to apply
 // to that individual. Two records believed to describe the same individual are candidates for a merge (see IdentityHypothesisRecord and Merge).
 record IndividualRecord {
@@ -229,7 +228,6 @@ record IndividualRecord {
   audit: AuditStructure
 }
 
-// embedded
 // A structured personal name composed of one or more name parts. This structure is intended to support naming systems from all cultures, including given
 // names, family names, patronymics, matronymics, clan names, lineage names, titles, and other naming components. The order of PART elements is
 // significant and should reflect the historical or culturally appropriate representation of the name.
@@ -259,7 +257,6 @@ struct PersonalNameStructure {
   media*: MediaCitation   // the media that attest this specific form of the name (a signature, a register entry, an inscription, a document that spells it this way), not the individual in general: the caption tells what in the media attests it
 }
 
-// embedded
 struct NamePartStructure {
   type: enum {
     // personal and birth names
@@ -301,7 +298,6 @@ struct NamePartStructure {
 // Event
 // ============================================================
 
-// primary record
 // Represents the occurrence of a historical action, ceremony, condition, transaction, legal process, or other happening. An EVENT describes what
 // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
 record EventRecord {
@@ -390,7 +386,6 @@ record EventRecord {
 // Individual attribute
 // ============================================================
 
-// entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to an individual. Attributes may be directly recorded
 // in sources, derived from evidence, inferred from research, or reported through oral tradition.
 // Individual attributes describe enduring or observable characteristics of a person rather than discrete events. Events such as birth,
@@ -437,7 +432,6 @@ record IndividualAttributeRecord {
 // Event participation
 // ============================================================
 
-// association record
 // Associates an entity with an event and, when known, describes the role played by the entity within that event. All participation in events SHALL
 // be represented through EVENT_PARTICIPATION records. This design allows the same event to have multiple participants (e.g., a marriage has two
 // principals) and the same entity to participate in multiple events (e.g., a person can be born, married, and buried).
@@ -474,7 +468,6 @@ EventParticipant = oneof {
 // Group
 // ============================================================
 
-// primary record
 // A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc.
 // Membership in a GROUP is determined exclusively through RelationshipRecords whose TARGET references the GROUP and whose TYPE is
 // GROUP_MEMBER; GroupRecord does not contain a member list, so that membership has its own dates, sources, and confidence.
@@ -502,7 +495,6 @@ record GroupRecord {
 // Group attribute
 // ============================================================
 
-// entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to a group. Attributes may be directly recorded in
 // sources, derived from evidence, inferred from research, or reported through oral tradition.
 // Group attributes describe the group itself as a collective entity rather than the individual members who compose it. Events that occur at a specific
@@ -537,7 +529,6 @@ record GroupAttributeRecord {
 // Naming (generic, non-personal) and text values
 // ============================================================
 
-// embedded
 // A textual designation associated with an entity, source, place, organization, repository, group, or other object.
 // This structure represents a complete textual expression and may be used for names, titles, labels, or similar identifying text.
 // Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
@@ -578,7 +569,6 @@ struct NameStructure {
   note*: NoteStructure
 }
 
-// embedded
 // Alternative written, phonetic, transliterated, or transcribed representations of the same textual value. These representations do not constitute separate
 // names; they are alternate renderings of the same name.
 TextValueVariant = oneof {
@@ -630,7 +620,6 @@ TextValueVariant = oneof {
 // Relationship
 // ============================================================
 
-// association record
 // Represents an enduring association between genealogical entities. A RELATIONSHIP describes a state, connection, or affiliation that may exist
 // before, during, or after one or more events. Events that create, modify, recognize, or terminate a relationship SHOULD be represented separately
 // using EVENT records. This separation allows relationships to exist independently of events (e.g., a biological parent-child relationship
@@ -679,7 +668,6 @@ RelationshipParticipant = oneof {
 // Place
 // ============================================================
 
-// primary record
 // A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP
 // records in order to model changing jurisdictions and historical geography.
 // A PlaceRecord follows the identity of a place, not its name: a change of name alone is recorded as an additional dated NAME of the
@@ -736,7 +724,6 @@ record PlaceRecord {
   audit: AuditStructure
 }
 
-// embedded
 // Reference to a PLACE record together with location-specific citations.
 // Implementations SHOULD prevent cyclic expansion of citation metadata (PlaceCitation > SourceCitation > SourceRecord > PlaceCitation).
 struct PlaceCitation {
@@ -746,7 +733,6 @@ struct PlaceCitation {
   confidence?: Confidence   // confidence that this place is really the one cited
 }
 
-// association record
 // A relationship connecting two place records. Place relationships are used to represent geographic, administrative, ecclesiastical, judicial,
 // cadastral, postal, or historical associations between places. These relationships may change over time and can therefore be bounded by
 // validity dates.
@@ -785,9 +771,13 @@ record PlaceRelationshipRecord {
 // Note
 // ============================================================
 
-// embedded
 struct NoteStructure {
   title?: Text   // note title
+  kind?: enum {
+    general,    // an ordinary note (the default when KIND is absent)
+    research,   // reasoning, temporary findings and comments of the research: working material, not meant for publication
+    story       // narrative prose meant to be read and published (a biography, a family tradition, a migration, a military service, an oral history); not evidence, citation, observation, hypothesis, conclusion or task note
+  } | Text       // what the note is for: reports and views MAY present notes of different kinds separately
   text: Text     // comments or opinions from the submitter. In markdown or HTML notes, references to records in this file are written as links to the URI `flef:<Id>` (e.g. `[Giovanni](flef:I12)`), and text that SHOULD be hidden when confidential information is suppressed is written as a link to `flef:confidential` (e.g. `[born at home](flef:confidential)`).
   mime?: Text    // media type of TEXT and of its translations: text/plain (default), text/markdown, text/html, etc.
   locale?: LocaleCode
@@ -805,7 +795,6 @@ struct NoteStructure {
 // Repository
 // ============================================================
 
-// primary record
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
   name+: NameStructure         // the official name of the archive in which the stated source material is stored
@@ -838,7 +827,6 @@ record RepositoryRecord {
   audit: AuditStructure
 }
 
-// embedded
 // A typed identifier. Three things are kept apart and MUST NOT be mixed:
 // - an identifier of a SourceRecord identifies the source itself (an ISBN, a DOI, a microfilm number): the same wherever the item is kept;
 // - an identifier of a RepositoryCitation says where the source can be found in that repository (a shelf mark, a call number, a
@@ -869,7 +857,6 @@ struct IdentifierStructure {
   require not_blank(value)
 }
 
-// embedded
 // Citation of a repository holding a source or source collection. Allows recording repository-specific shelf marks, call numbers,
 // classification numbers, and other retrieval information.
 // Identifier says where the source is found in the repository; locator says where the information is found inside the source.
@@ -885,7 +872,6 @@ struct RepositoryCitation {
 // Contact
 // ============================================================
 
-// embedded
 // Machine-readable contact information for a person, organization, repository, submitter, or other entity.
 struct ContactStructure {
   value: Text   // a phone number, an electronic address such as an email (RFC 5322), a web page address (RFC 3986), or any other type of contact address
@@ -914,7 +900,6 @@ struct ContactStructure {
 // Cultural norm
 // ============================================================
 
-// primary record
 // Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their
 // culture. This affects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or
 // little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child
@@ -948,7 +933,6 @@ record CulturalNormRecord {
   audit: AuditStructure
 }
 
-// association record
 // Links a contextual factor to a genealogical entity, assertion, or research outcome that it influences, explains, constrains, motivates, or causes.
 // Contextual factors may include cultural norms, historical events, legal frameworks, social customs, environmental conditions, or other external influences represented
 // through CONTEXT.
@@ -998,7 +982,6 @@ ImpactTarget = oneof {
   identity_hypothesis: Xref<IdentityHypothesisRecord>
 }
 
-
 // --- Examples ---
 // For Latin names, you must use the nominative (which generally ends in -us for men and -a for women).
 // Napoleonic Code age of majority (31 JAN 1807 - dates below):
@@ -1011,7 +994,6 @@ ImpactTarget = oneof {
 // Source
 // ============================================================
 
-// primary record
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
 // DERIVED_FROM relationships MUST NOT form cycles: a source cannot be derived from itself, directly or through other sources.
@@ -1071,7 +1053,6 @@ Agent = oneof {
   text: Text                           // an agent not represented by an IndividualRecord or GroupRecord in this file (e.g. a publisher's editor, an unidentified clerk)
 }
 
-// embedded
 // Reference to a SOURCE record used as evidence for an assertion, together with optional location, extracts, and evidence classification.
 // A SourceCitation is one piece of evidence for the assertion that contains it.
 struct SourceCitation {
@@ -1088,7 +1069,6 @@ struct SourceCitation {
   require every e in extract: e.source == source
 }
 
-// component record
 // A localized, reusable representation of source content: a transcription, transliteration, translation, summary, or exact excerpt.
 // An ExtractRecord is NOT evidence by itself. Evidence is still expressed by SourceCitation, which may reference one or more extracts.
 record ExtractRecord {
@@ -1123,11 +1103,12 @@ struct CropRect {
   width: Int
   height: Int
 
+  require x >= 0
+  require y >= 0
   require width > 0
   require height > 0
 }
 
-// embedded
 // A particular use of a MediaRecord by the record that contains the citation (an individual, a group, a place, an event or a repository) or by a
 // PersonalNameStructure (the media that attest that specific form of the name).
 // The same MediaRecord may be cited many times, by the same record or by different ones, each time with its own caption, crop or page: the caption
@@ -1147,7 +1128,6 @@ struct MediaCitation {
 // Media
 // ============================================================
 
-// primary record
 // A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media
 // resource.
 // The kind of a media is a classification and may be revised: it is a field, so that correcting it does not change the references to the record.
@@ -1182,7 +1162,6 @@ record MediaRecord {
 // Date
 // ============================================================
 
-// embedded
 // Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or
 // evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should
 // use the simpler `DateTime` type instead.
@@ -1193,7 +1172,6 @@ struct DateStructure {
   confidence?: Confidence   // confidence that this date was true
 }
 
-// embedded
 // Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time.
 DateValue = oneof {
   point: SingleDate        // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
@@ -1201,7 +1179,6 @@ DateValue = oneof {
   spanning: SpanningDate   // the fact itself extends across the specified interval. Unlike BoundedDate, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition.
 }
 
-// embedded
 struct BoundedDate {
   not_before?: SingleDate
   not_after?: SingleDate
@@ -1210,7 +1187,6 @@ struct BoundedDate {
   require not_before <= not_after         // Comparisons between dates require conversion to a common time scale. The canonical comparison scale is the Julian Day Number (JDN). Implementations that cannot convert a calendar SHOULD report the check as unchecked.
 }
 
-// embedded
 struct SpanningDate {
   from?: SingleDate
   to?: SingleDate
@@ -1219,7 +1195,6 @@ struct SpanningDate {
   require from <= to         // Comparisons between dates require conversion to a common time scale. The canonical comparison scale is the Julian Day Number (JDN). Implementations that cannot convert a calendar SHOULD report the check as unchecked.
 }
 
-// embedded
 // Indicates that the asserted date should be treated as approximate.
 // APPROXIMATE qualifies the confidence of the date but does not change the underlying normalized value.
 struct Approximate {
@@ -1233,7 +1208,6 @@ struct Approximate {
   margin?: Duration                          // plus/minus margin, expressed in the units (years, months, days) of the CALENDAR of the enclosing date (e.g. 'P2Y' = plus/minus 2 years)
 }
 
-// embedded
 // A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation
 // and is not inferred from formatting conventions.
 struct SingleDate {
@@ -1242,7 +1216,6 @@ struct SingleDate {
   approximate?: Approximate     // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
 }
 
-// embedded
 SingleDateValue = oneof {
   full_date: HistoricalDate   // a historical date, in the notation of CALENDAR
   decade: Int                 // a decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'
@@ -1252,12 +1225,10 @@ SingleDateValue = oneof {
   }
 }
 
-// embedded
 enum CalendarType {
   gregorian, venetan, florentine, pisan, nativity, byzantine_style, easter_style, julian, reformed_julian, swedish, quaker, liturgical, liturgical_julian, english_regnal, pontifical, islamic, buddhist, coptic, ethiopian, hebrew, chinese, japanese, minguo, dangi, juche, korean, vietnamese, indian, bengali, bengali_bangladesh, tamil, malayalam, nepali, vikram_samvat, french_republican, soviet_eternal, mayan, persian, parsi, byzantine, egyptian, seleucid, armenian, rumi, bahai, berber
 }
 
-// embedded
 // A subdivision of the century, such as a quarter, half, or relative position.
 enum CenturyPart {
   first_quarter, second_quarter, third_quarter, fourth_quarter,
@@ -1269,7 +1240,6 @@ enum CenturyPart {
 // Historic event
 // ============================================================
 
-// primary record
 // Historic events provide contextual information. They SHOULD NOT be interpreted as evidence that a specific individual,
 // group, or place participated in the event unless additional records establish such a connection.
 // A significant historical event that may provide context for genealogical research. Historic events can explain migrations, mortality patterns,
@@ -1306,7 +1276,6 @@ record HistoricEventRecord {
 // Research
 // ============================================================
 
-// primary record
 // Represents a research objective, question, hypothesis, or problem that requires investigation. Multiple research activities may contribute to
 // answering the same question.
 //
@@ -1353,7 +1322,6 @@ ResearchTarget = oneof {
   historic_event: Xref<HistoricEventRecord>
 }
 
-// primary record
 // Documents a single research action (performed or planned).
 // Activities represent the work of the researcher rather than genealogical facts themselves.
 record ResearchActivityRecord {
@@ -1405,7 +1373,6 @@ record ResearchActivityRecord {
   audit: AuditStructure
 }
 
-// primary record
 // Represents a planned or actionable follow-up item resulting from one or more research activities or research questions.
 record ResearchTaskRecord {
   description: Text                           // work that should be performed
@@ -1420,13 +1387,15 @@ record ResearchTaskRecord {
   priority?: enum { low, normal, high }
   due_date?: DateTime                         // optional target completion date
   outcome?: Text                              // notes describing the result once completed
+  related*: ResearchTarget                    // records the task is about, directly (the ones of its questions are implied)
+  rationale?: Text                            // why the task is proposed (e.g. the finding of the Research Assistant that generated it)
+  assistant_finding_id?: Text                 // Optional identifier of the Research Assistant finding that generated this task. Used for task deduplication and workflow continuity. Applications that do not implement assistant-generated tasks may safely ignore this field. It is assistant metadata, not genealogical content.
   note*: NoteStructure      // reasoning, temporary findings, comments
   media*: MediaCitation     // screenshots, documents under evaluation, and other research material; no dedicated activity date: an activity may span many sessions, and the AuditStructure already records creation and modification
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
 
-// primary record
 // A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical
 // analysis of the sources.
 // Conclusions are research outcomes rather than source assertions. A conclusion records the researcher’s evaluation of competing
@@ -1476,7 +1445,6 @@ ConclusionTarget = oneof {
 // Privacy, audit, identity, evidence
 // ================================================
 
-// embedded
 // Specifies how this structure may be displayed, exported, or distributed. The privacy expresses the intent of the data contributor and should be
 // respected regardless of any automatic privacy policy applied by the receiving system.
 struct PrivacyStructure {
@@ -1491,7 +1459,6 @@ struct PrivacyStructure {
   expires?: DateTime   // the date this restriction expires
 }
 
-// embedded
 // Audit trail describing when the structure was created and subsequently modified. This information concerns the record itself, not the historical
 // subject represented by the record.
 struct AuditStructure {
@@ -1505,7 +1472,6 @@ struct AuditStructure {
   }
 }
 
-// association record
 // Represents the possibility that two records describe the same real-world entity and are therefore candidates for a merge.
 // The hypothesis itself carries no acceptance or rejection status: it can be evaluated through ConclusionRecord instances, and it is accepted by
 // performing the merge (see Merge in the global rules), after which it is deleted.
@@ -1536,7 +1502,6 @@ IdentityCandidate = oneof {
   historic_event: Xref<HistoricEventRecord>
 }
 
-// embedded
 // Classification of one source's contribution to one assertion.
 // These qualifiers apply to the source as cited for that specific assertion and do not express the reliability, authority, or quality of the source as a whole.
 struct EvidenceQualifiers {

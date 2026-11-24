@@ -15,6 +15,8 @@ L'obiettivo non è soltanto costruire alberi genealogici, ma aiutare a documenta
 - luoghi storici e cambi di giurisdizione nel tempo
 - calendari storici e date complesse
 
+L'enfasi non è sul memorizzare più dati, ma sull'aiutare i genealogisti a ragionare sui dati.
+
 ## Cosa cerca di fare FamilyLegacy
 
 FamilyLegacy non nasce per sostituire gli strumenti esistenti, ma per affrontare alcuni aspetti della ricerca genealogica che spesso vengono gestiti in modo esterno tramite note, fogli Excel o documenti separati.
@@ -75,6 +77,8 @@ In questo modo la documentazione del lavoro genealogico rimane collegata alle pe
 - gestione avanzata di luoghi storici e cambi di giurisdizione
 - supporto a calendari storici
 - gestione delle fonti con estratti e riferimenti ai documenti
+- foto con le persone indicate: il ritaglio di un volto (o di un gruppo) in un'immagine è collegato alla persona, senza copie del file; il visualizzatore disegna i riquadri, mostra i nomi al passaggio del mouse e con un clic apre la scheda della persona
+- "Perché lo crediamo?": per un fatto (una data di nascita, un attributo, una relazione) la catena completa asserzione, citazione, estratto, fonte, con le citazioni a favore e quelle contrarie, la confidenza, le asserzioni concorrenti, le conclusioni collegate e il percorso del ragionamento
 - tracciamento delle attività di ricerca
 - supporto alla documentazione del ragionamento genealogico
 - strumenti di assistenza alla ricerca

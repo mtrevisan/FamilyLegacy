@@ -64,9 +64,12 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 
 /**
@@ -125,6 +128,15 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private FLEFRecord parentRecord;
 	// True if loaded via reverse lookup (loadReference*)
 	private boolean isReference;
+	/** True if the reverse lookup was made by the handlers ({@link #loadReference}), not by the actor tags. */
+	private boolean referenceByHandler;
+
+	/** Which items of a structure list the panel shows and saves ({@code null} for all of them). */
+	private Predicate<FLEFRecord> itemFilter;
+	/** The items the panel loaded because they passed the filter (compared by identity). */
+	private final Set<FLEFRecord> ownedItems = Collections.newSetFromMap(new IdentityHashMap<>());
+	/** The kind of note the editor of a new item starts with, {@code null} to leave it to the user. */
+	private String newNoteKind;
 
 	// Flag to enable the conclusion logic only where requested
 	private boolean supportsConclusions = false;
@@ -183,6 +195,44 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		this.handlerTypes = List.of(handlerTypes);
 
 		initComponents();
+
+		return this;
+	}
+
+	/**
+	 * Makes the panel show (and save) only the items of the structure list that pass the filter, so that two panels can share the same tag
+	 * (the stories and the other notes of a record): each one saves the items it loaded and leaves the others alone.
+	 *
+	 * @param filter	Which items of the record the panel shows.
+	 * @return	This panel (for chaining).
+	 */
+	public EntityListPanel withItemFilter(final Predicate<FLEFRecord> filter){
+		this.itemFilter = filter;
+
+		return this;
+	}
+
+	/**
+	 * Takes an item that another list let go (its kind changed) if it is one of the items of this list.
+	 *
+	 * @param item	The item.
+	 * @return	Whether the list took it.
+	 */
+	public boolean adopt(final FLEFRecord item){
+		if(itemFilter == null || !itemFilter.test(item) || listModel.contains(item))
+			return false;
+
+		listModel.addElement(item);
+		ownedItems.add(item);
+		return true;
+	}
+
+	/**
+	 * @param kind	The kind of note that the editor of a new item starts with (the notes of a list of stories are stories).
+	 * @return	This panel (for chaining).
+	 */
+	public EntityListPanel withNewNoteKind(final String kind){
+		this.newNoteKind = kind;
 
 		return this;
 	}
@@ -414,6 +464,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				if(objectEntity != null)
 					dialog.link(LinkRole.TARGET, objectEntity);
 				getDialogSetup().accept(dialog);
+				if(newNoteKind != null)
+					dialog.presetNoteKind(newNoteKind);
 				dialog.setVisible(true);
 
 				return (dialog.isSaved()? dialog.getRecord(): null);
@@ -491,7 +543,9 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		if(dialog.isSaved()){
 			if(parentRecord != null){
-				reloadFromParent();
+				//(a list that shows only a part of the items does not rebuild itself from the record: it would lose what is not saved yet)
+				if(itemFilter == null)
+					reloadFromParent();
 
 				//make the change undoable from the dialog that hosts this list
 				if(parent instanceof RecordDialog parentDialog){
@@ -499,6 +553,15 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 					record.deepCopyTo(after);
 					parentDialog.addNestedEdit(record, before, after, this::reloadFromParent);
 				}
+			}
+
+			//the user changed what the item is (a story that became a note, or the other way round): it goes to the other list
+			if(itemFilter != null && !itemFilter.test(record)){
+				ownedItems.remove(record);
+				if(parent instanceof RecordDialog parentDialog)
+					parentDialog.adoptNote(record);
+
+				return null;
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
@@ -512,7 +575,10 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private void reloadFromParent(){
 		// Use the stored parent record info to reload
-		if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
+		if(referenceByHandler)
+			//(the list was loaded by looking for the records that refer to the parent: do it again the same way)
+			loadReference(parentRecord.getId());
+		else if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
 			loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
 			// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
 			// Fallback: reload from the parent record if available
@@ -584,8 +650,17 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			items = FLEFRecordHelper.extractStructuresWithReference(record, path);
 		else if(type == ListType.ONEOF_REFERENCE)
 			items = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
-		else if(type == ListType.STRUCTURE)
+		else if(type == ListType.STRUCTURE){
 			items = FLEFRecordHelper.extractStructures(record, path);
+			if(itemFilter != null){
+				//the panel owns only the items it shows: the others are left to the panel of the other part (and untouched when saving)
+				items = items.stream()
+					.filter(itemFilter)
+					.toList();
+				ownedItems.clear();
+				ownedItems.addAll(items);
+			}
+		}
 		else
 			// ENTITY_REFERENCE
 			items = FLEFRecordHelper.extractRecordsFromReference(record, path, model);
@@ -610,6 +685,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(parentRecord == null && parentEntity != null && recordId.equals(parentEntity.getId()))
 			parentRecord = parentEntity;
 		isReference = true;
+		referenceByHandler = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
@@ -631,6 +707,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		parentRecord = model.getRecordById(recordId);
 		isReference = true;
+		referenceByHandler = false;
 
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
@@ -669,6 +746,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
 		isReference = true;
+		referenceByHandler = false;
 
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
@@ -706,6 +784,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
 		isReference = true;
+		referenceByHandler = false;
 
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
@@ -747,6 +826,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
 		isReference = true;
+		referenceByHandler = false;
 
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
@@ -777,8 +857,12 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Saves the current list to the given record. The behavior depends on {@link #type}.
 	 */
 	public void save(final FLEFRecord record){
-		if(isReference)
+		if(isReference){
+			//the list shows records of the model (the attributes of an individual...): the order the user gave them is the one they have in the file
+			model.reorderRecords(getItems());
+
 			return;
+		}
 
 		clearRecord(record);
 
@@ -844,6 +928,10 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 			if(isConclusionTarget)
 				FLEFRecordHelper.removeChildren(record, ConclusionReader.TAG_RESOLVES);
+			else if(itemFilter != null)
+				//only the items this panel loaded (by identity: what the user edited may not pass the filter any more)
+				record.getChildren()
+					.removeIf(ownedItems::contains);
 			else if(StringUtils.isNotEmpty(path))
 				FLEFRecordHelper.removeChildren(record, path);
 			else{

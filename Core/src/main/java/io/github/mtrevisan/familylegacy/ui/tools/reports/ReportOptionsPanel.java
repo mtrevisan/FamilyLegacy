@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.reports.PersonOrder;
 import io.github.mtrevisan.familylegacy.reports.PortraitMode;
 import io.github.mtrevisan.familylegacy.reports.ReportConfig;
 import io.github.mtrevisan.familylegacy.reports.ReportOption;
+import io.github.mtrevisan.familylegacy.reports.StoryPlacement;
 import io.github.mtrevisan.familylegacy.reports.SurnamePeriod;
 import io.github.mtrevisan.familylegacy.reports.SurnamePlaceLevel;
 import io.github.mtrevisan.familylegacy.reports.TextPlacement;
@@ -186,6 +187,8 @@ public final class ReportOptionsPanel extends JPanel{
 
 	private final JComboBox<TextPlacement> notesPlacement = enumCombo(TextPlacement.values(), "enum.text_placement.");
 	private final JComboBox<TextPlacement> sourcesPlacement = enumCombo(TextPlacement.values(), "enum.text_placement.");
+	private final JCheckBox researchNotes = cb("research_notes");
+	private final JComboBox<StoryPlacement> stories = enumCombo(StoryPlacement.values(), "enum.story_placement.");
 	private final JComboBox<Integer> longTextLines = intCombo(new Integer[]{0, 1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30}, "text.report.long_text.never");
 	private final JCheckBox principalSourcesOnly = cb("principal_sources_only");
 	private final JCheckBox sourceLocator = cb("source_locator");
@@ -356,6 +359,8 @@ public final class ReportOptionsPanel extends JPanel{
 
 		notesPlacement.setSelectedItem(initial.notesPlacement());
 		sourcesPlacement.setSelectedItem(initial.sourcesPlacement());
+		stories.setSelectedItem(initial.stories());
+		researchNotes.setSelected(initial.researchNotes());
 		selectInt(longTextLines, initial.longTextLines());
 		principalSourcesOnly.setSelected(initial.principalSourcesOnly());
 		sourceLocator.setSelected(initial.sourceLocator());
@@ -470,7 +475,9 @@ public final class ReportOptionsPanel extends JPanel{
 			(SurnamePlaceLevel)surnamePlaceLevel.getSelectedItem(),
 			(SurnamePeriod)surnamePeriod.getSelectedItem(),
 			surnameAllNames.isSelected(),
-			surnameSimilar.isSelected());
+			surnameSimilar.isSelected(),
+			(StoryPlacement)stories.getSelectedItem(),
+			researchNotes.isSelected());
 	}
 
 	private static int intOf(final JComboBox<Integer> combo){
@@ -671,6 +678,7 @@ public final class ReportOptionsPanel extends JPanel{
 	private JPanel contentGroup(){
 		final JPanel p = twoColumns("border.content_sections");
 		addOption(p, ReportOption.NOTES, notes);
+		addOption(p, ReportOption.RESEARCH_NOTES, researchNotes);
 		addOption(p, ReportOption.CONTEXT_AND_RESEARCH, contextResearch);
 		addOption(p, ReportOption.SOURCES, sources);
 		addOption(p, ReportOption.CULTURAL_NORMS, culturalNorms);
@@ -699,6 +707,7 @@ public final class ReportOptionsPanel extends JPanel{
 		final JPanel p = twoColumns("border.text_placement");
 		addCombo(p, ReportOption.NOTES_PLACEMENT, "label.notes_placement", "tooltip.report.notes_placement", notesPlacement);
 		addCombo(p, ReportOption.SOURCES_PLACEMENT, "label.sources_placement", "tooltip.report.sources_placement", sourcesPlacement);
+		addCombo(p, ReportOption.STORIES, "label.stories", "tooltip.report.stories", stories);
 		addCombo(p, ReportOption.LONG_TEXT_LINES, "label.long_text_lines", "tooltip.report.long_text_lines", longTextLines);
 		addOption(p, ReportOption.PRINCIPAL_SOURCES_ONLY, principalSourcesOnly);
 		addOption(p, ReportOption.SOURCE_LOCATOR, sourceLocator);
@@ -784,10 +793,10 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	/** Adds the check box unless the report does nothing with the option; one that the report always applies is on and disabled. */
-	/** @return the lowest interface level at which the option is offered (the research and the context contents of a report). */
+	/** @return the lowest interface level at which the option is offered (the research and the context contents of a report, the stories). */
 	static UxLevel minimumLevel(final ReportOption option){
 		return switch(option){
-			case CONTEXT_AND_RESEARCH -> UxLevel.STANDARD;
+			case CONTEXT_AND_RESEARCH, RESEARCH_NOTES, STORIES -> UxLevel.STANDARD;
 			case CULTURAL_NORMS, HISTORIC_EVENTS, EVIDENCE -> UxLevel.ADVANCED;
 			default -> UxLevel.BASIC;
 		};
@@ -815,7 +824,7 @@ public final class ReportOptionsPanel extends JPanel{
 	/** Adds a label and a combo, still inside the grid, on a row of their own. */
 	private void addCombo(final JPanel group, final ReportOption option, final String labelKey, final String tooltipKey,
 			final JComponent combo){
-		if(states.apply(option) == OptionState.HIDDEN)
+		if(states.apply(option) == OptionState.HIDDEN || !features.isVisible(minimumLevel(option)))
 			return;
 
 		if(group.getComponentCount() % 2 != 0)

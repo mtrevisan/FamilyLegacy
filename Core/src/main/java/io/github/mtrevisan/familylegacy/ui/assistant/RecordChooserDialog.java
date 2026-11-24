@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -66,7 +65,6 @@ final class RecordChooserDialog extends JDialog{
 
 	private final DefaultListModel<FLEFRecord> recordsModel = new DefaultListModel<>();
 	private final JList<FLEFRecord> recordsList = new JList<>(recordsModel);
-	private final JButton openButton = new JButton(I18N.t("assistant.open_records.open"));
 
 
 	RecordChooserDialog(final Window owner, final FLEFModel model, final List<FLEFRecord> records, final Opener opener){
@@ -95,7 +93,6 @@ final class RecordChooserDialog extends JDialog{
 			label.setForeground(selected? list.getSelectionForeground(): list.getForeground());
 			return label;
 		});
-		recordsList.addListSelectionListener(e -> openButton.setEnabled(recordsList.getSelectedValue() != null));
 		recordsList.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
@@ -105,16 +102,14 @@ final class RecordChooserDialog extends JDialog{
 		});
 		recordsList.setSelectedIndex(0);
 
-		openButton.addActionListener(e -> openSelected());
-		getRootPane().setDefaultButton(openButton);
+		recordsList.registerKeyboardAction(e -> openSelected(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_FOCUSED);
 		//ESC closes the list, from any component, without a button
 		getRootPane().registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,400::]", "[]5[grow,fill]5[]"));
+		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,400::]", "[]5[grow,fill]"));
 		add(new JLabel(I18N.t("assistant.open_records.hint")));
 		add(new JScrollPane(recordsList));
-		add(openButton, "align right");
 	}
 
 	/** Opens the editor of the selected record; the list stays, to open another one afterward. */

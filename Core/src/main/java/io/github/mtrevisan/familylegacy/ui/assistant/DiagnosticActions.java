@@ -53,7 +53,23 @@ public final class DiagnosticActions{
 		actions.addAll(diagnostic.alternatives());
 		if(!diagnostic.recordIds().isEmpty())
 			actions.add(new OpenRecordsAction(diagnostic.recordIds()));
+		//the task of the finding comes last, with the first key that is left: Enter keeps doing what the finding proposes first
+		if(!actions.isEmpty() && CreateTaskAction.isApplicable(diagnostic)){
+			final int slot = freeSlot(actions);
+			if(slot >= 0)
+				actions.add(new CreateTaskAction(diagnostic, slot));
+		}
 		return actions;
+	}
+
+	/** @return the first key among Ctrl+Enter, Ctrl+Shift+Enter and Ctrl+Alt+Enter that no action has; -1 if none */
+	private static int freeSlot(final List<DiagnosticAction> actions){
+		for(int slot = 1; slot <= 3; slot ++){
+			final int candidate = slot;
+			if(actions.stream().noneMatch(action -> action.keySlot() == candidate))
+				return slot;
+		}
+		return -1;
 	}
 
 	/**

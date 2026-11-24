@@ -57,7 +57,8 @@ public final class EventToolRegistry{
 	/** Views of the events. */
 	public static List<ToolOperation> analysisTools(){
 		return List.of(
-			new TimelineViewTool()
+			new TimelineViewTool(),
+			new HistoricalTimelineTool()
 		);
 	}
 

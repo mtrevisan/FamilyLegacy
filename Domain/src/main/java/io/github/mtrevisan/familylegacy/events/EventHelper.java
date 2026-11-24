@@ -106,7 +106,7 @@ public final class EventHelper{
 		if(StringUtils.isNotBlank(text))
 			return text;
 
-		final String originalText = DateReader.extractOriginalText(dateStruct);
+		final String originalText = DateReader.extractAssistantFindingIdalText(dateStruct);
 		return (StringUtils.isNotBlank(originalText)? originalText: null);
 	}
 

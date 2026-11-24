@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -177,6 +178,60 @@ public class FLEFModel implements RecordLookup{
 		if(record.getTag() != null)
 			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>())
 				.add(record);
+	}
+
+	/**
+	 * Puts the given records in the given order, in the places they have in the model, and leaves the other records where they are: it is
+	 * how the order of a list of an editor that shows records of the model (the attributes of an individual, the relationships of a group)
+	 * is kept, since the order of the records is the one of the file. Nothing happens if a record is not one of the model, or is given twice.
+	 *
+	 * @param ordered	The records, in the new order.
+	 */
+	public void reorderRecords(final List<FLEFRecord> ordered){
+		if(ordered == null || ordered.size() < 2)
+			return;
+
+		for(final FLEFRecord record : ordered)
+			if(record == null || record.getId() == null || recordsById.get(record.getId()) != record)
+				return;
+		final Set<FLEFRecord> subset = identitySet(ordered);
+		if(subset.size() != ordered.size())
+			return;
+
+		boolean changed = placeInOrder(records, ordered, subset);
+		//(the records of a type are in the model in the same relative order as in the whole)
+		final Map<String, List<FLEFRecord>> byType = new HashMap<>();
+		for(final FLEFRecord record : ordered)
+			byType.computeIfAbsent(record.getTag(), k -> new ArrayList<>())
+				.add(record);
+		for(final Map.Entry<String, List<FLEFRecord>> entry : byType.entrySet()){
+			final List<FLEFRecord> sameType = recordsByType.get(entry.getKey());
+			if(sameType != null)
+				changed |= placeInOrder(sameType, entry.getValue(), identitySet(entry.getValue()));
+		}
+		if(changed)
+			invalidateDerived();
+	}
+
+	private static Set<FLEFRecord> identitySet(final List<FLEFRecord> records){
+		final Set<FLEFRecord> set = Collections.newSetFromMap(new IdentityHashMap<>());
+		set.addAll(records);
+		return set;
+	}
+
+	/** Puts the records of the subset, in the order given, in the places that the subset has in the list. */
+	private static boolean placeInOrder(final List<FLEFRecord> target, final List<FLEFRecord> ordered, final Set<FLEFRecord> subset){
+		boolean changed = false;
+		int next = 0;
+		for(int i = 0, size = target.size(); i < size && next < ordered.size(); i ++)
+			if(subset.contains(target.get(i))){
+				final FLEFRecord record = ordered.get(next ++);
+				if(target.get(i) != record){
+					target.set(i, record);
+					changed = true;
+				}
+			}
+		return changed;
 	}
 
 	/**

@@ -112,7 +112,7 @@ public final class DateReader{
 
 	public static final String TAG_DATE = "date";
 	public static final String TAG_VALUE = "value";
-	public static final String TAG_ORIGINAL_TEXT = "original_text";
+	public static final String TAG_ASSISTANT_FINDING_IDAL_TEXT = "original_text";
 	public static final String TAG_SOURCE = "source";
 	public static final String TAG_CONFIDENCE = "confidence";
 
@@ -208,8 +208,8 @@ public final class DateReader{
 	 * @param dateStructureRecord the date structure record
 	 * @return the original source expression, or {@code null}
 	 */
-	public static String extractOriginalText(final FLEFRecord dateStructureRecord){
-		return FLEFRecordHelper.getChildValue(dateStructureRecord, TAG_ORIGINAL_TEXT);
+	public static String extractAssistantFindingIdalText(final FLEFRecord dateStructureRecord){
+		return FLEFRecordHelper.getChildValue(dateStructureRecord, TAG_ASSISTANT_FINDING_IDAL_TEXT);
 	}
 
 	public static TemporalSpan extractTemporalSpan(final FLEFRecord dateStructureRecord){

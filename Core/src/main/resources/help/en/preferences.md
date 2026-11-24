@@ -41,16 +41,18 @@ Details:
 | Level | For | The Research menu and the reports show |
 |---|---|---|
 | **Basic** (the default) | Building a family tree, as in a traditional genealogy program. | Nothing: no Research menu. People, groups, events, places, sources and media are all there. |
-| **Standard** | Active research. | The Research Board, Research Questions, Activities and Tasks, Identity Hypotheses, the Research Log, the tasks panel (**View > Show Tasks Panel**), and the research question and research progress reports. |
+| **Standard** | Active research. | The Research Board, Research Questions, Activities and Tasks, Identity Hypotheses, the Research Log, the Research Timeline, the tasks panel (**View > Show Tasks Panel**), and the research question and research progress reports. |
 | **Advanced** | Evidence-based research. | Everything: also Conclusions, the Context Board (historic events, cultural norms, context impacts), Evidence Qualifiers and the Proof Summary. |
 
 The **Research** tab of the record editors (individual, group, event, place, source, media) is shown from the *Standard* level, and the **Context** tab from the *Advanced* level; the editors of the research and context records themselves always show all their tabs. Inside the Research tab each panel has its own level: research questions, activities, tasks and identity hypotheses are from *Standard*, **Conclusions** (and the conclusion badge in the lists of attributes, relationships and sources) and the **Evidence** qualifiers of a source citation only from *Advanced*.
+
+The **Stories** tab of the individual and group editors (the notes of kind *story*, apart from the other notes) is shown from the *Standard* level; below it the **Notes** tab lists all the notes, the stories too, each with its *Kind*.
 
 The dossier shows the proof-status dot of a conclusion and the evidence badge of a row only from the *Advanced* level.
 
 In the report options, **Historic Context and Research** is offered from the *Standard* level, and **Cultural Norms**, **Historic Events** and **Evidence Qualifiers** from the *Advanced* one.
 
-**Provenance** (in the Source menu and the right-click menu of an individual), **Citation Analysis** and **Documentation Coverage** (Source menu) and **Manage Event Types** (Event menu) are also from the *Standard* level.
+**Provenance** and **Evidence Trace** (in the Source menu and the right-click menu of an individual), **Citation Analysis**, **Documentation Coverage** and **Conflict Dashboard** (Source menu) and **Manage Event Types** (Event menu) are also from the *Standard* level.
 
 Whatever the menus and tabs do not show is still one search away: open the [Research Assistant](assistant.md) (Ctrl+Shift+A) and type its name, for example *Conclusions*; it lists the tools of every level.
 

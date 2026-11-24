@@ -72,6 +72,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -376,17 +378,37 @@ public final class GUIHelper{
 	 */
 	public static String tooltipHtml(final String... paragraphs){
 		final StringBuilder sb = new StringBuilder();
+		int widest = 0;
 		for(final String paragraph : paragraphs)
 			if(StringUtils.isNotBlank(paragraph)){
 				if(!sb.isEmpty())
 					sb.append("<br><br>");
-				sb.append(paragraph.strip()
+				final String text = paragraph.strip();
+				widest = Math.max(widest, widestLineWidth(text));
+				sb.append(text
 					.replace("&", "&amp;")
 					.replace("<", "&lt;")
 					.replace(">", "&gt;")
 					.replace(StringUtils.LF, "<br>"));
 			}
-		return (sb.isEmpty()? null: "<html><body style='width: " + TOOLTIP_WIDTH + "px'>" + sb + "</body></html>");
+		if(sb.isEmpty())
+			return null;
+		//a text that fits is shown as it is (the box is as wide as the text), a longer one wraps at a fixed width
+		final String width = (widest > 0 && widest <= TOOLTIP_WIDTH? "": " style='width: " + TOOLTIP_WIDTH + "px'");
+		return "<html><body" + width + ">" + sb + "</body></html>";
+	}
+
+	/** @return	The width [px] of the widest line of the text in the font of the tooltips, or 0 if it cannot be measured. */
+	private static int widestLineWidth(final String text){
+		final Font font = UIManager.getFont("ToolTip.font");
+		if(font == null)
+			return 0;
+
+		final FontMetrics metrics = new JLabel().getFontMetrics(font);
+		int widest = 0;
+		for(final String line : StringUtils.split(text, StringUtils.LF))
+			widest = Math.max(widest, metrics.stringWidth(line));
+		return widest;
 	}
 
 	/**
@@ -397,6 +419,21 @@ public final class GUIHelper{
 	 */
 	public static String usageTooltip(final String recordType){
 		return tooltipHtml(I18N.t("record.usage." + recordType.toLowerCase(Locale.ROOT), null));
+	}
+
+	/**
+	 * Adds a tab that says, on hover, what it is for.
+	 *
+	 * @param tabs	The tabbed pane.
+	 * @param title	The (already translated) title of the tab.
+	 * @param name	The name of the tab: its tooltip is {@code tab.tooltip.<name>} in the messages (no tooltip if it is missing).
+	 * @param content	The content of the tab.
+	 */
+	public static void addTab(final JTabbedPane tabs, final String title, final String name, final Component content){
+		tabs.addTab(title, content);
+		final String text = I18N.t("tab.tooltip." + name, null);
+		if(text != null)
+			tabs.setToolTipTextAt(tabs.getTabCount() - 1, tooltipHtml(text));
 	}
 
 	/**
@@ -525,7 +562,11 @@ public final class GUIHelper{
 	}
 
 
+	/** The client property that tells that the user can move the items of a list (the menu of the list offers it). */
+	public static final String PROPERTY_REORDERABLE = "reorderable";
+
 	public static <T> void setupReorderingShortcuts(final JList<T> list, final DefaultListModel<T> listModel){
+		list.putClientProperty(PROPERTY_REORDERABLE, Boolean.TRUE);
 		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
 		final ActionMap actionMap = list.getActionMap();
 

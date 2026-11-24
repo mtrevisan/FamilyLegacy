@@ -34,7 +34,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -65,7 +64,6 @@ public final class RecordUsageDialog extends JDialog{
 
 	private final DefaultListModel<Use> usesModel = new DefaultListModel<>();
 	private final JList<Use> usesList = new JList<>(usesModel);
-	private final JButton openButton = new JButton(I18N.t("assistant.open_records.open"));
 
 
 	/**
@@ -106,7 +104,6 @@ public final class RecordUsageDialog extends JDialog{
 			label.setForeground(selected? list.getSelectionForeground(): list.getForeground());
 			return label;
 		});
-		usesList.addListSelectionListener(e -> openButton.setEnabled(usesList.getSelectedValue() != null));
 		usesList.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
@@ -114,20 +111,17 @@ public final class RecordUsageDialog extends JDialog{
 					openSelected();
 			}
 		});
-		openButton.setEnabled(false);
 		if(!usesModel.isEmpty())
 			usesList.setSelectedIndex(0);
 
-		openButton.addActionListener(e -> openSelected());
-		getRootPane().setDefaultButton(openButton);
+		usesList.registerKeyboardAction(e -> openSelected(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_FOCUSED);
 		//ESC closes the list, from any component, without a button
 		getRootPane().registerKeyboardAction(e -> dispose(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,500::]", "[]5[grow,fill,200::]5[]"));
+		setLayout(new MigLayout("fill,wrap 1", "[grow,fill,500::]", "[]5[grow,fill,200::]"));
 		add(new JLabel(usesModel.isEmpty()? I18N.t("dialog.usage.none"): I18N.t("dialog.usage.hint")));
 		add(new JScrollPane(usesList));
-		add(openButton, "align right");
 	}
 
 	/** @return the name of a record in a list: its type, what it is about, and its identifier */

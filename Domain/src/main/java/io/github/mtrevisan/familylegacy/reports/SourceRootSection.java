@@ -80,8 +80,8 @@ public final class SourceRootSection implements SectionBuilder{
 		out.addAll(SourceDerivationLines.derivatives(ctx, ctx.root.getId()));
 
 		//the notes of the source (its text, ...) come before who cites it
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ctx.root));
+		if(ctx.writesNotes())
+			out.addAll(ctx.citations().rootNotes(ctx.root));
 		if(ctx.config.evidence())
 			ctx.citations()
 				.addEvidence(ctx.root, out);

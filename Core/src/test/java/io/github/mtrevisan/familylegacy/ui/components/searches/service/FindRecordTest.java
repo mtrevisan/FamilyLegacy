@@ -257,6 +257,72 @@ class FindRecordTest{
 	}
 
 	@Test
+	void theStoriesHaveTheirOwnSearchOptionApartFromTheNotes(){
+		final String flef = """
+			header {
+				protocol {
+					name Family LEgacy Format
+					version 0.2.0
+				}
+				date 2026-01-01T00:00:00Z
+			}
+			individual I1 {
+				name {
+					part {
+						type given
+						value Anna
+					}
+				}
+				note {
+					text A remark about the harvest
+				}
+				note {
+					kind story
+					title The crossing
+					text She sailed to Argentina in the spring
+				}
+			}
+			individual I2 {
+				name {
+					part {
+						type given
+						value Berta
+					}
+				}
+				note {
+					kind research
+					text Check the harvest register
+				}
+			}
+			""";
+		final FLEFModel model = new FLEFParser().parse(flef);
+		final SearchService service = new SearchService(model);
+		final String type = IndividualHandler.getInstance().getType();
+
+		Assertions.assertEquals(List.of("I1"), ids(service.search(new SearchCriteria(type, "argentina", Set.of(SearchMode.STORIES)))),
+			"the stories only");
+		Assertions.assertEquals(List.of(), ids(service.search(new SearchCriteria(type, "argentina", Set.of(SearchMode.NOTES_AND_CITATIONS)))),
+			"a story is not among the notes");
+		Assertions.assertEquals(List.of(), ids(service.search(new SearchCriteria(type, "harvest", Set.of(SearchMode.STORIES)))),
+			"the notes are not among the stories");
+		Assertions.assertEquals(List.of("I1", "I2"), ids(service.search(new SearchCriteria(type, "harvest", Set.of(SearchMode.NOTES_AND_CITATIONS)))),
+			"the other notes, the research ones too");
+		Assertions.assertEquals(List.of("I1", "I2"),
+			ids(service.search(new SearchCriteria(type, "harvest argentina", Set.of(SearchMode.NOTES_AND_CITATIONS, SearchMode.STORIES)))),
+			"all of them");
+		Assertions.assertEquals(List.of("I1"), ids(service.search(new SearchCriteria(type, "crossing", Set.of(SearchMode.STORIES)))),
+			"the title of a story");
+		Assertions.assertEquals(List.of(), ids(service.search(new SearchCriteria(type, "argentina", Set.of()))), "not without an option");
+	}
+
+	private static List<String> ids(final List<FLEFRecord> records){
+		return records.stream()
+			.map(FLEFRecord::getId)
+			.sorted()
+			.toList();
+	}
+
+	@Test
 	void controlFIsTheShortcutOfTheSearchAndNothingElseUsesItInTheNavigation(){
 		Assertions.assertEquals(KeyEvent.VK_F, ShortcutRegistry.NAV_FIND_RECORD.keyStroke().getKeyCode());
 

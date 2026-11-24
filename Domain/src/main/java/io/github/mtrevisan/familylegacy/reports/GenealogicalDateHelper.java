@@ -167,7 +167,7 @@ public final class GenealogicalDateHelper{
 	private static String baseDate(final FLEFRecord rec, final String fieldTag,
 		final ReportLabels labels){
 		final String originalText = FLEFRecordHelper.getChildValue(rec,
-			FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_ORIGINAL_TEXT));
+			FLEFRecordHelper.composePath(fieldTag, DateReader.TAG_ASSISTANT_FINDING_IDAL_TEXT));
 		if(originalText != null && !originalText.isBlank())
 			return originalText.trim();
 		return normalizedDate(rec, fieldTag, labels);

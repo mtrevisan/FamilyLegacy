@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -48,7 +47,6 @@ import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -94,14 +92,8 @@ final class MissingRecordsDialog extends JDialog{
 
 		final JLabel count = new JLabel(I18N.plural("text.missing_records.count", records.size()));
 
-		final JButton edit = new JButton(I18N.t("button.open_record"));
-		edit.addActionListener(e -> editSelected());
-
 		final JPanel bottom = new JPanel(new BorderLayout());
 		bottom.add(count, BorderLayout.WEST);
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttons.add(edit);
-		bottom.add(buttons, BorderLayout.EAST);
 
 		setLayout(new BorderLayout(8, 8));
 		final JScrollPane scroll = new JScrollPane(list);

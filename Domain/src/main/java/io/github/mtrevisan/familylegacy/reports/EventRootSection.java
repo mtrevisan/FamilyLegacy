@@ -72,12 +72,13 @@ public final class EventRootSection implements SectionBuilder{
 		writeBasicInfo(out);
 		writeParticipants(out);
 
-		if(ctx.config.notes()){
-			final List<ReportSection> n = ctx.citations().notes(ctx.root);
+		if(ctx.writesNotes()){
+			final List<ReportSection> n = ctx.citations().notesInPlace(ctx.root);
 			if(!n.isEmpty()){
 				out.add(new ReportSection.Heading(2, ctx.labels.notes()));
 				out.addAll(n);
 			}
+			out.addAll(ctx.citations().rootStories(ctx.root));
 		}
 		if(ctx.config.sources()){
 			final List<ReportSection> c = ctx.citations().citations(ctx.root);

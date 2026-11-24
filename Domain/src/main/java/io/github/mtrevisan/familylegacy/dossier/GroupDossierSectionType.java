@@ -56,13 +56,22 @@ public enum GroupDossierSectionType{
 	/** Source citations attached to the group and its records. */
 	SOURCES,
 
+	/** The media that the group cites, and its preferred image. */
+	MEDIA,
+
 	/** Contextual factors affecting the group. */
 	CONTEXT,
 
 	/** Research questions and conclusions about the group. */
 	RESEARCH,
 
-	/** Free-text notes attached to the group. */
+	/** The stories (narrative notes meant to be read) attached to the group and its records, apart from the other notes. */
+	STORIES,
+
+	/** The stories, written in other records, that link to the group. */
+	MENTIONS,
+
+	/** Free-text notes attached to the group (the stories excepted). */
 	NOTES;
 
 

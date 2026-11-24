@@ -906,6 +906,31 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
+	void theNotesOfTypeResearchAndToDoAreResearchNotes() throws IOException{
+		final FLEFModel model = convertXml("<people><person handle=\"_i\" id=\"I1\" change=\"1\">"
+			+ "<noteref hlink=\"_n1\"/><noteref hlink=\"_n2\"/><noteref hlink=\"_n3\"/><noteref hlink=\"_n4\"/><noteref hlink=\"_n5\"/>"
+			+ "</person></people>"
+			+ "<notes>"
+			+ "<note handle=\"_n1\" id=\"N1\" change=\"1\" type=\"Research\"><text>checked the parish</text></note>"
+			+ "<note handle=\"_n2\" id=\"N2\" change=\"1\" type=\"To Do\"><text>look for the will</text></note>"
+			+ "<note handle=\"_n3\" id=\"N3\" change=\"1\" type=\"Person Note\"><text>a life</text></note>"
+			+ "<note handle=\"_n4\" id=\"N4\" change=\"1\" type=\"Transcript\"><text>the words</text></note>"
+			+ "<note handle=\"_n5\" id=\"N5\" change=\"1\"><text>no type</text></note>"
+			+ "</notes>");
+
+		final java.util.Map<String, String> kinds = new java.util.LinkedHashMap<>();
+		for(final FLEFRecord note : FLEFRecordHelper.findChildren(record(model, "I1"), NoteReader.TAG_NOTE))
+			kinds.put(FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT), NoteReader.extractKind(note));
+
+		Assertions.assertEquals("research", kinds.get("checked the parish"));
+		Assertions.assertEquals("research", kinds.get("look for the will"));
+		//(what a note says about is not research, and a transcript is the text of a source)
+		Assertions.assertEquals("general", kinds.get("a life"));
+		Assertions.assertEquals("general", kinds.get("the words"));
+		Assertions.assertEquals("general", kinds.get("no type"));
+	}
+
+	@Test
 	void aNoteThatNothingRefersToIsReported() throws IOException{
 		final ImportReport report = report("<notes><note handle=\"_n\" id=\"N1\" change=\"1\"><text>alone</text></note></notes>");
 

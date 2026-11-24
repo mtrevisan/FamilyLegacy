@@ -25,17 +25,21 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services;
 
 import io.github.mtrevisan.familylegacy.chronomap.TemporalAttributeIndex;
+import io.github.mtrevisan.familylegacy.groups.LifespanComparisonBuilder;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.JulianDay;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
 import io.github.mtrevisan.familylegacy.tree.EventIndex;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
+import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalContextRenderer;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -191,6 +195,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 	private TemporalAxis axis;
 	private List<Row> rows = List.of();
+	/** The historic events and cultural norms of the places of the individuals, behind the rows. */
+	private List<TemporalContextBand> bands = List.of();
 	private List<String> currentIds = List.of();
 
 	private int hoveredRowIndex = -1;
@@ -309,6 +315,9 @@ public final class MultiLifespanStripPanel extends JPanel{
 			.thenComparing(Row::name, String.CASE_INSENSITIVE_ORDER));
 
 		this.rows = newRows;
+		bands = (min != null && max != null
+			? LifespanComparisonBuilder.contextBandsOf(model, newRows.stream().map(Row::id).toList(), min, max)
+			: List.of());
 		this.axis = new TemporalAxis(min, max);
 		this.hoveredRowIndex = -1;
 		this.hoveredEvent = null;
@@ -750,7 +759,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 			final EventIndex.EventDatum e = eventAt(row, event.getX());
 			if(e == null)
-				return null;
+				return bandsTooltip(event.getX());
 
 			final StringBuilder sb = new StringBuilder("<html><b>")
 				.append(escape(rows.get(row).name()))
@@ -766,6 +775,25 @@ public final class MultiLifespanStripPanel extends JPanel{
 				sb.append("<br>").append(I18N.l("tooltip.field.privacy")).append(StringUtils.SPACE).append(escape(privacy));
 			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i></html>");
 			return sb.toString();
+		}
+
+		/** @return	The historic events and norms that cover the day under the cursor, {@code null} if there is none. */
+		private String bandsTooltip(final int x){
+			if(bands.isEmpty() || axis.isEmpty())
+				return null;
+
+			final long jdn = axis.xToJdn(x - (PADDING + NAME_WIDTH));
+			final StringBuilder sb = new StringBuilder("<html>");
+			int count = 0;
+			for(final TemporalContextBand band : bands)
+				if(band.covers(jdn)){
+					sb.append(count ++ > 0? "<br>": StringUtils.EMPTY)
+						.append("<b>")
+						.append(escape(band.label().isEmpty()? band.kind(): band.label()))
+						.append("</b>")
+						.append(band.hasPlace()? " (" + escape(RecordDisplay.describe(band.place(), model)) + ")": StringUtils.EMPTY);
+				}
+			return (count > 0? sb.append("</html>").toString(): null);
 		}
 
 		@Override
@@ -793,6 +821,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			axis.setViewportWidth(contentBounds.width);
 
 			paintEraBands(g2, contentBounds);
+			paintContextBands(g2, contentBounds);
 			paintAxis(g2, contentBounds);
 			paintRows(g2, contentBounds);
 		}
@@ -843,6 +872,18 @@ public final class MultiLifespanStripPanel extends JPanel{
 				g2.setColor(ERA_BAND);
 				g2.fillRect(x1, 0, x2 - x1, getHeight());
 			}
+		}
+
+		/** Paints the historic events and cultural norms behind the rows, under the axis, not over the names. */
+		private void paintContextBands(final Graphics2D g2, final Rectangle contentBounds){
+			if(bands.isEmpty() || axis.isEmpty())
+				return;
+
+			final Shape originalClip = g2.getClip();
+			g2.setClip(new Rectangle(contentBounds.x, AXIS_HEIGHT, contentBounds.width, getHeight() - AXIS_HEIGHT));
+			TemporalContextRenderer.drawBands(g2, bands, axis,
+				new Rectangle(contentBounds.x, AXIS_HEIGHT, contentBounds.width, Math.max(1, rows.size() * ROW_HEIGHT)));
+			g2.setClip(originalClip);
 		}
 
 		private void paintAxis(final Graphics2D g2, final Rectangle contentBounds){

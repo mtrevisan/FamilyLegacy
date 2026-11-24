@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 
+import java.util.List;
+
 
 /** Which conflicts the Conflicts report lists, by the confidence given to the competing assertions. */
 public enum ConflictConfidence{
@@ -52,11 +54,16 @@ public enum ConflictConfidence{
 
 	/** @return	Whether the conflict is listed: at least one of its assertions has this confidence. */
 	public boolean accepts(final ReportConflict conflict){
+		return accepts(conflict.assertions());
+	}
+
+	/** @return	Whether at least one of the assertions has this confidence. */
+	public boolean accepts(final List<ReportConflict.Assertion> assertions){
 		return switch(this){
 			case ALL -> true;
-			case NOT_STATED -> conflict.assertions().stream()
+			case NOT_STATED -> assertions.stream()
 				.anyMatch(assertion -> assertion.confidence() == null || assertion.confidence().isBlank());
-			default -> conflict.assertions().stream()
+			default -> assertions.stream()
 				.anyMatch(assertion -> level.equalsIgnoreCase(assertion.confidence()));
 		};
 	}

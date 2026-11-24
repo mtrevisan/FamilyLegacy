@@ -50,6 +50,12 @@ For many findings the assistant offers an action such as **Create Conclusion Dra
 
 The drafts of research questions, research tasks and identity hypotheses are completed, just before the editor opens, with what the tree already knows: the repositories placed at the places of the people involved (or at the places that contain them), the sources that cite their relatives and may name them too, and a due date for a task (14, 30 or 90 days from today for a high, normal or low priority). After you save a research question draft, the assistant offers to plan the first task that would follow it, already linked to the question. All of it is text and fields you can change or delete.
 
+## Generating research tasks
+
+**Generate Research Tasks from Findings...** (in the palette, under *Research*) turns what the findings ask you to do into research tasks that stay in the file. It lists the tasks it would create: *find a source* (a vital event with no source), *settle a conflict* (conflicting evidence), *decide whether they are the same* (possible duplicates), *find the parents*, *search an archive* (a research question with no activity, a stalled one, a person with no death, a census with no residence...), *check the dates against the sources*, and the relationships the records suggest but nothing documents (a marriage with no relationship, a partner of a parent not linked). Each one has the description, the priority (from how serious the finding is), a due date, the records it is about, and **why** (what the finding says, in the box below the list).
+
+Tick the ones to create (all are ticked at first) and press **Create Tasks**; nothing is written until then, and ESC leaves the file untouched. The new tasks are *open*, and go to the **inbox** of the [Task Dashboard](research.md#the-task-dashboard), which opens at once: accept the ones you will do, dismiss the others. For a single finding, **Create Research Task** is one of its actions in the palette (it takes the first key that is left after the others, shown next to it): it creates the task at once, without the list, and tells you so. A finding that already became a task is not proposed again, whatever happened to the task (completed or abandoned too), and neither are the findings you ignored.
+
 
 ## The Historical Date Assistant
 

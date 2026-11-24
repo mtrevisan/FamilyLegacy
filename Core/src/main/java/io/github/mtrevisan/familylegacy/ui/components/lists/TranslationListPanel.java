@@ -25,12 +25,14 @@
 package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.ui.components.fields.FlefLinkAssistant;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.util.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -52,8 +54,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 
-	public TranslationListPanel(final String path, final Window parent, final String panelTitle){
-		super(parent, panelTitle, null);
+	public TranslationListPanel(final String path, final Window parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 
@@ -117,6 +119,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
 
 		final BoundTextArea textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
+		if(model != null)
+			FlefLinkAssistant.install(textArea, dialog, model);
 		if(record != null)
 			textArea.setText(text);
 		GUIHelper.addLabeledComponent(dialog, GUIHelper.requiredLabel("dialog.note.text"), textArea);

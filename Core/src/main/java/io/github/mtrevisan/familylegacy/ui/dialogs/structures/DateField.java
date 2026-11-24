@@ -81,11 +81,15 @@ public final class DateField extends StructureField{
 	}
 
 	@Override
-	protected boolean openEditDialog(final FLEFRecord record){
+	protected FLEFRecord openEditDialog(final FLEFRecord record){
 		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record, placeSupplier);
 		dialog.setVisible(true);
 
-		return dialog.isSaved();
+		if(!dialog.isSaved())
+			return null;
+
+		// an emptied date is saved as no data: the structure is cleared
+		return (dialog.getRecord() != null? dialog.getRecord(): FLEFRecord.createEmpty());
 	}
 
 	@Override

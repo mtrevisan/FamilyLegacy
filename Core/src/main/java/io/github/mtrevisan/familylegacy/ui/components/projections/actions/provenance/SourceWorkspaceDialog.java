@@ -22,17 +22,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.tools.sources;
+package io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.sources.ExtractEvidence;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.sources.SourceWorkspace;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -69,7 +70,7 @@ import java.util.function.IntConsumer;
  * </ul>
  * A double-click opens the record to fix it on the spot; the workspace is read again afterwards. Nothing here changes the file by itself.
  */
-final class SourceWorkspaceDialog extends JDialog{
+public final class SourceWorkspaceDialog extends JDialog{
 
 	private static final int SOURCE_LIST_WIDTH = 300;
 
@@ -86,6 +87,8 @@ final class SourceWorkspaceDialog extends JDialog{
 	private boolean loading;
 	private SourceWorkspace workspace;
 	private JTable peopleTable;
+	private JTable extractAssertionsTable;
+	private final List<FLEFRecord> extractAssertionOwners = new ArrayList<>();
 	private final List<FLEFRecord> citationOwners = new ArrayList<>();
 	private final List<List<FLEFRecord>> citationPeople = new ArrayList<>();
 	private final List<FLEFRecord> peopleRecords = new ArrayList<>();
@@ -107,7 +110,7 @@ final class SourceWorkspaceDialog extends JDialog{
 	 * @param model	The model.
 	 * @param sourceId	The source to start from ({@code null} for none).
 	 */
-	SourceWorkspaceDialog(final Window owner, final FLEFModel model, final String sourceId){
+	public SourceWorkspaceDialog(final Window owner, final FLEFModel model, final String sourceId){
 		super(owner, I18N.t("dialog.source_workspace.title"), ModalityType.APPLICATION_MODAL);
 
 		ToolDialogs.installEscapeToClose(this);
@@ -255,6 +258,7 @@ final class SourceWorkspaceDialog extends JDialog{
 		citationPeople.clear();
 		peopleRecords.clear();
 		peopleTable = null;
+		extractAssertionsTable = null;
 
 		workspace = SourceWorkspace.of(model, selectedSourceId);
 		if(workspace == null){
@@ -265,12 +269,12 @@ final class SourceWorkspaceDialog extends JDialog{
 		summary.setText(I18N.tf("text.source_workspace.summary", workspace.citations().size(), workspace.individuals().size(),
 			workspace.families().size(), workspace.events().size(), workspace.extracts().size(), workspace.media().size()));
 
-		tabs.addTab(I18N.t("tab.title.workspace_citations"), createCitationsTab());
-		tabs.addTab(I18N.t("tab.title.workspace_individuals"), createRecordsTab(workspace.individuals()));
-		tabs.addTab(I18N.t("tab.title.workspace_families"), createRecordsTab(workspace.families()));
-		tabs.addTab(I18N.t("tab.title.workspace_events"), createRecordsTab(workspace.events()));
-		tabs.addTab(I18N.t("tab.title.workspace_extracts"), createRecordsTab(workspace.extracts()));
-		tabs.addTab(I18N.t("tab.title.workspace_media"), createRecordsTab(workspace.media()));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_citations"), "workspace_citations", createCitationsTab());
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_individuals"), "workspace_individuals", createRecordsTab(workspace.individuals()));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_families"), "workspace_families", createRecordsTab(workspace.families()));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_events"), "workspace_events", createRecordsTab(workspace.events()));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_extracts"), "workspace_extracts", createExtractsTab(workspace.extracts()));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_media"), "workspace_media", createRecordsTab(workspace.media()));
 		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
 	}
 
@@ -338,6 +342,67 @@ final class SourceWorkspaceDialog extends JDialog{
 		final JPanel tab = new JPanel(new BorderLayout());
 		tab.add(new JScrollPane(table), BorderLayout.CENTER);
 		return tab;
+	}
+
+	/**
+	 * The extracts of the source and, for the selected one, the assertions it supports and the ones it contradicts: the way from the
+	 * source material to the conclusions.
+	 */
+	private JPanel createExtractsTab(final List<FLEFRecord> records){
+		final List<FLEFRecord> extracts = List.copyOf(records);
+		final List<Object[]> rows = new ArrayList<>(extracts.size());
+		for(final FLEFRecord extract : extracts)
+			rows.add(new Object[]{extract.getId(), RecordDisplay.describe(extract, model)});
+		final JTable table = ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.id"), I18N.t("column.record")}, rows),
+			row -> open(extracts, row));
+		table.getColumnModel().getColumn(0).setPreferredWidth(110);
+		table.getColumnModel().getColumn(1).setPreferredWidth(600);
+		table.getSelectionModel()
+			.addListSelectionListener(e -> {
+				if(!e.getValueIsAdjusting()){
+					final int viewRow = table.getSelectedRow();
+					showAssertionsOf(viewRow >= 0? extracts.get(table.convertRowIndexToModel(viewRow)): null);
+				}
+			});
+
+		extractAssertionsTable = createPlainTable(List.of(), row -> open(extractAssertionOwners, row));
+		final JScrollPane assertions = new JScrollPane(extractAssertionsTable);
+		assertions.setBorder(BorderFactory.createTitledBorder(I18N.t("border.workspace_extract_assertions")));
+
+		final JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(table), assertions);
+		split.setResizeWeight(0.5);
+		split.setBorder(null);
+
+		final JPanel tab = new JPanel(new BorderLayout());
+		tab.add(split, BorderLayout.CENTER);
+		return tab;
+	}
+
+	/** Lists what the extract supports, then what it contradicts. */
+	private void showAssertionsOf(final FLEFRecord extract){
+		extractAssertionOwners.clear();
+		final List<Object[]> rows = new ArrayList<>();
+		final ExtractEvidence evidence = (extract != null? ExtractEvidence.of(model, extract.getId()): null);
+		if(evidence != null){
+			addAssertionRows(rows, "text.source_workspace.supports", evidence.supports());
+			addAssertionRows(rows, "text.source_workspace.contradicts", evidence.contradicts());
+		}
+		extractAssertionsTable.setModel(new RowTableModel(new String[]{I18N.t("column.workspace.relation"),
+			I18N.t("column.provenance.owner"), I18N.t("column.individuals")}, rows));
+		extractAssertionsTable.getColumnModel().getColumn(0).setPreferredWidth(110);
+		extractAssertionsTable.getColumnModel().getColumn(1).setPreferredWidth(380);
+		extractAssertionsTable.getColumnModel().getColumn(2).setPreferredWidth(240);
+	}
+
+	private void addAssertionRows(final List<Object[]> rows, final String relationKey, final List<SourceWorkspace.Citation> citations){
+		for(final SourceWorkspace.Citation citation : citations){
+			final List<String> names = new ArrayList<>(citation.individuals().size());
+			for(final FLEFRecord person : citation.individuals())
+				names.add(RecordDisplay.describe(person, model));
+			rows.add(new Object[]{I18N.t(relationKey), typeLabel(citation.owner().getTag()) + ": "
+				+ RecordDisplay.describe(citation.owner(), model), String.join("; ", names)});
+			extractAssertionOwners.add(citation.owner());
+		}
 	}
 
 	/** A table whose model is replaced as the selection changes: the sorter that the factory installs would stay bound to the first model. */

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.reports;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.reports.i18n.ReportLabels;
@@ -268,7 +267,7 @@ public final class ConflictReportGenerator{
 
 		final List<List<String>> rows = new ArrayList<>(conflict.assertions().size());
 		for(final ReportConflict.Assertion assertion : conflict.assertions()){
-			final int[] citations = citations(assertion);
+			final int[] citations = ConflictDashboard.citations(model, assertion);
 			final List<String> row = new ArrayList<>();
 			row.add(ReportFormatters.escape(assertion.recordId()));
 			row.add(ReportFormatters.escape(assertion.value() != null && !assertion.value().isBlank()? assertion.value(): "?"));
@@ -282,23 +281,6 @@ public final class ConflictReportGenerator{
 			rows.add(row);
 		}
 		return new ReportSection.Table(headers, rows);
-	}
-
-	/** @return	How many citations of the record support it and how many contradict it. */
-	private int[] citations(final ReportConflict.Assertion assertion){
-		if(assertion.supporting() != null && assertion.contradicting() != null)
-			return new int[]{assertion.supporting(), assertion.contradicting()};
-
-		final FLEFRecord record = model.getRecordById(assertion.recordId());
-		int supporting = 0;
-		int contradicting = 0;
-		if(record != null)
-			for(final FLEFRecord citation : FLEFRecordHelper.findChildren(record, SourceCitationReader.TAG_SOURCE))
-				if(SourceCitationReader.isContradicting(citation))
-					contradicting ++;
-				else
-					supporting ++;
-		return new int[]{supporting, contradicting};
 	}
 
 	/** @return	The research questions the conclusion answers, and the ones about the individuals or the assertions. */

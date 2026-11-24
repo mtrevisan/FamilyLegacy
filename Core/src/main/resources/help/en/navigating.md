@@ -6,7 +6,7 @@ The **View > Projection** menu (and the toolbar buttons) switch between four vie
 
 | View | Shortcut | What it shows |
 |---|---|---|
-| **Biological Tree** | `Ctrl+1` | A classical pedigree: one box per individual, couples side by side. |
+| **Family Tree** | `Ctrl+1` | A classical pedigree: one box per individual, couples side by side. |
 | **Sugiyama Graph** | `Ctrl+2` | The same pedigree as a layered graph. Each person appears once, so endogamy and pedigree collapse show up as converging lines instead of repeated boxes. |
 | **Ego Network** | `Ctrl+3` | The relations of one individual or group, drawn as a graph. |
 | **Chronomap** | `Ctrl+4` | The individuals on a map and in a list, filtered by a timeline: where and when things happened. |

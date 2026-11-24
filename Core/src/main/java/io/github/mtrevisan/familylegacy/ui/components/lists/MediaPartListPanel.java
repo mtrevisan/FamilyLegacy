@@ -35,9 +35,11 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
+import io.github.mtrevisan.familylegacy.ui.components.media.MediaViewerDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.PagedDocuments;
 import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -82,6 +84,16 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 
+	/**
+	 * Tells that the crops of this list are regions as well (the media of an individual: the crop tags it in the image), and says it in the
+	 * dialog where the crop is edited.
+	 *
+	 * @param cropIsRegion	Whether the crop of an item also tags the individual in the image.
+	 */
+	public void setCropIsRegion(final boolean cropIsRegion){
+		cropDialog.setHint(cropIsRegion? I18N.t("dialog.preferred.image.crop.region_hint"): null);
+	}
+
 	@Override
 	protected void initComponents(){
 		super.initComponents();
@@ -93,11 +105,26 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem(I18N.t("popupmenu.edit.crop"), this::editDocumentPart);
+				builder.selectionSensitiveItem(I18N.t("dialog.media.view"), this::viewMedia);
 				if(citation)
 					builder.selectionSensitiveItem(I18N.t("popupmenu.edit.caption"), this::editCaption);
 				builder.selectionSensitiveItem(I18N.t("popupmenu.remove"), this::removeItem);
 			}
 		);
+	}
+
+	/** Opens the image of the selected item at full size, with the regions in which people are tagged. */
+	private void viewMedia(){
+		final int itemIndex = list.getSelectedIndex();
+		if(itemIndex < 0)
+			return;
+
+		final FLEFRecord media = model.getRecordById(FLEFRecordHelper.getChildValue(listModel.get(itemIndex), ExtractReader.TAG_MEDIA));
+		if(media != null){
+			MediaViewerDialog.open(parent, model, media);
+
+			list.repaint();
+		}
 	}
 
 	/**
@@ -261,11 +288,7 @@ public class MediaPartListPanel extends AbstractListPanel<FLEFRecord>{
 	// --- Helper methods for media type detection and safe updating ---
 
 	private boolean isPagedDocument(final String uri){
-		if(uri == null)
-			return false;
-
-		final String lowerUri = uri.toLowerCase(Locale.ROOT);
-		return (lowerUri.endsWith(EXTENSION_PDF) || lowerUri.endsWith(".tif") || lowerUri.endsWith(".tiff"));
+		return PagedDocuments.isPaged(uri);
 	}
 
 	private boolean isAudioVideo(final String uri){

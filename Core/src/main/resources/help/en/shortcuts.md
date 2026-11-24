@@ -32,7 +32,7 @@ These commands are in the **Individual** and **Group** menus (and in the **Place
 
 | Shortcut | Command |
 |---|---|
-| `Ctrl+1` | Biological Tree |
+| `Ctrl+1` | Family Tree |
 | `Ctrl+2` | Sugiyama Graph |
 | `Ctrl+3` | Ego Network |
 | `Ctrl+4` | Chronomap |

@@ -24,11 +24,9 @@ a dashboard (Source > Documentation Coverage), the source-centric workspace (Sou
 
 ## LOW
 
-3. **Research timeline** (the work, not the life): research task created, repository visited, source added, extract and
-   citation created, conclusion updated, conflict resolved, task completed; filters by person, family, source, date range, repository.
-4. **AI-ready abstractions** (`ExtractionProvider`, `InferenceProvider`, `ResearchAssistant`) without provider-specific
+3. **AI-ready abstractions** (`ExtractionProvider`, `InferenceProvider`, `ResearchAssistant`) without provider-specific
    integrations, and a UI that shows AI suggestions, proposed citations, possible record matches, confidence scores and explanation chains;
    final decisions always with the user. See also the optional AI layer in `README.md` of this folder.
-5. **Association network view** beyond family links (witnesses, godparents, sponsors, associates, neighbors, shared sources, events and
+4. **Association network view** beyond family links (witnesses, godparents, sponsors, associates, neighbors, shared sources, events and
    places; expand/collapse, shortest relationship path). Careful: the graph social network was deleted on 2026-11-17 (a list, the FAN
     panel, answers the genealogist's question better); revive only the parts a list cannot give.

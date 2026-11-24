@@ -44,8 +44,9 @@ class SearchBoxTest{
 		Assertions.assertTrue(plain.modes().isEmpty());
 
 		final SearchBox withNotes = new SearchBox(10, true);
-		Assertions.assertEquals(3, withNotes.popupItemCount());
+		Assertions.assertEquals(4, withNotes.popupItemCount());
 		Assertions.assertEquals(SearchMode.NOTES_AND_CITATIONS, withNotes.options().get(2).mode());
+		Assertions.assertEquals(SearchMode.STORIES, withNotes.options().get(3).mode());
 	}
 
 	@Test

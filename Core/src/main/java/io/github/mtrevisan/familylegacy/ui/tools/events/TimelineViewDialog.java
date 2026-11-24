@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.dates.DatePicker;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
@@ -92,7 +93,6 @@ public final class TimelineViewDialog extends JDialog{
 	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JTextField participantField = new JTextField(StringUtils.EMPTY, 22);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
-	private final JButton openButton = new JButton(I18N.t("button.open_record"));
 
 	private String participantId;
 
@@ -133,12 +133,12 @@ public final class TimelineViewDialog extends JDialog{
 		toolbar.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 
 		toolbar.add(new JLabel(I18N.l("label.from")));
-		toolbar.add(fromField);
+		toolbar.add(DatePicker.withPicker(fromField));
 		fromField.getDocument()
 			.addDocumentListener(refreshListener());
 
 		toolbar.add(new JLabel(I18N.l("label.to")));
-		toolbar.add(toField);
+		toolbar.add(DatePicker.withPicker(toField));
 		toField.getDocument()
 			.addDocumentListener(refreshListener());
 
@@ -187,8 +187,6 @@ public final class TimelineViewDialog extends JDialog{
 					openSelected();
 			}
 		});
-		table.getSelectionModel()
-			.addListSelectionListener(e -> openButton.setEnabled(table.getSelectedRow() >= 0));
 
 		final JScrollPane scroll = new JScrollPane(table);
 		scroll.setBorder(BorderFactory.createTitledBorder(I18N.t("border.timeline")));
@@ -196,10 +194,8 @@ public final class TimelineViewDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		openButton.setEnabled(false);
-		openButton.addActionListener(e -> openSelected());
 
-		return GUIHelper.createStatusFooter(statusLabel, openButton, ToolDialogs.createCopyButton(tableModel::toText));
+		return GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText));
 	}
 
 

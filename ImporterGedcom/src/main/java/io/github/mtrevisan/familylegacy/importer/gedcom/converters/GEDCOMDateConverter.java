@@ -165,7 +165,7 @@ public final class GEDCOMDateConverter{
 			final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
 				.addChild(value);
 			if(StringUtils.isNotBlank(dateInfo.getPhrase()))
-				dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
+				dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ASSISTANT_FINDING_IDAL_TEXT, dateInfo.getPhrase()));
 			structures.add(dateStructure);
 		}
 		return structures;
@@ -234,7 +234,7 @@ public final class GEDCOMDateConverter{
 		final FLEFRecord dateStructure = FLEFRecord.createChildWithTag(tag)
 			.addChild(value);
 		if(StringUtils.isNotBlank(dateInfo.getPhrase()))
-			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ORIGINAL_TEXT, dateInfo.getPhrase()));
+			dateStructure.addChild(FLEFRecord.createChildWithTagAndValue(DateReader.TAG_ASSISTANT_FINDING_IDAL_TEXT, dateInfo.getPhrase()));
 		return dateStructure;
 	}
 

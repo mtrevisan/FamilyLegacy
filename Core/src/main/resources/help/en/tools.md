@@ -47,7 +47,7 @@ The report is **grouped by the kind of problem** ("Circular parentage (2)", "Med
 | **Without source citation** | Individuals whose own record has no citation (citations on their events or relationships do not count). |
 | **Without recorded sex** | Individuals whose sex is undetermined: no sex assertion, only unknown ones, or competing ones that nothing settles (see [the sex and the preferred assertion](editors-people.md#individual-attribute)). |
 
-Double-click a category to list those records. **Open record** (or a double-click) opens the editor.
+Double-click a category to list those records. A double-click opens the editor.
 
 **Distribution.** The count of males, females and unknown, and two tables, **Top 20 surnames** and **Top 20 given names**, with the columns *Canonical*, *Variants* and *Total*. All the names of an individual count, not only the first. Names written in a similar way are **grouped**: the most frequent spelling becomes the canonical form, and a spelling that is very similar to it (an exact match, or a very high similarity of letters) is counted as one of its variants. The *Total* of a group is the sum of its variants.
 
@@ -70,4 +70,5 @@ It lists the couples whose partners are related and the people who are the child
 - **Individual > Kinship Calculator...**: [Kinship and consanguinity](kinship.md).
 - **Group > Group Timeline...**, **Group > Group Network...** and **Individual > Memberships Over Time...**: [Group timeline, group network and memberships over time](group-views.md).
 - **Place > Jurisdiction Timeline...**: how a place changed jurisdiction in time, in the same page.
+- **Event > Historical Timeline...**: [Historical timeline and lifespan comparison](historical-timeline.md).
 - **File > Backup...** and **Restore from Backup...**: see [Files](files.md#backup-and-restore).

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.images;
 
+import io.github.mtrevisan.familylegacy.imaging.MediaRegions.Region;
 import io.github.mtrevisan.familylegacy.imaging.PortraitCrops;
 import io.github.mtrevisan.familylegacy.util.math.AffineTransform;
 import io.github.mtrevisan.familylegacy.util.math.Quaternion;
@@ -33,6 +34,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -52,6 +54,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 
 public class ScaledImage extends JLabel{
@@ -121,6 +125,9 @@ public class ScaledImage extends JLabel{
 
 	/** The crops of the heads found from the faces: a click inside one of them makes it the crop. */
 	private volatile List<PortraitCrops.Proposal> cropProposals = List.of();
+
+	/** The regions of the media drawn over the image (the viewer): hover, tooltip and click. */
+	private final RegionOverlay regionOverlay = new RegionOverlay();
 
 
 	public static ScaledImage create(){
@@ -288,8 +295,10 @@ public class ScaledImage extends JLabel{
 			// Crop selection & external dimming overlay:
 			if(cropStartPointX >= 0)
 				drawCropRectangle(g2);
-			if(!isCurved())
+			if(!isCurved()){
 				drawCropProposals(g2);
+				regionOverlay.paint(g2, transformation, imageWidth, imageHeight);
+			}
 
 			g2.dispose();
 		}
@@ -540,6 +549,68 @@ public class ScaledImage extends JLabel{
 		return !cropProposals.isEmpty();
 	}
 
+	/**
+	 * Sets the regions of the media to draw over the image.
+	 *
+	 * @param marks	The regions, each with whether it is the portrait of one of its people.
+	 * @param page	The 1-based page shown ({@code null} for the media that has no pages).
+	 */
+	public final void setRegions(final List<RegionOverlay.Mark> marks, final Integer page){
+		regionOverlay.setMarks(marks, page);
+
+		repaint();
+	}
+
+	public final void setRegionsVisible(final boolean visible){
+		regionOverlay.setVisible(visible);
+		setCursor(Cursor.getDefaultCursor());
+
+		repaint();
+	}
+
+	public final boolean isRegionsVisible(){
+		return regionOverlay.isVisible();
+	}
+
+	/** @param tooltip	The text shown over the regions under the mouse (smallest first); {@code null} for none. */
+	public final void setRegionTooltip(final Function<List<Region>, String> tooltip){
+		regionOverlay.setTooltip(tooltip);
+		if(tooltip != null)
+			ToolTipManager.sharedInstance().registerComponent(this);
+	}
+
+	/** @param listener	What to do when the regions are clicked (smallest first), with the point of the click in the pixels of the component. */
+	public final void setRegionClickListener(final BiConsumer<List<Region>, Point> listener){
+		regionOverlay.setClickListener(listener);
+	}
+
+	/** The regions under a point (in the pixels of the component), smallest first. */
+	private List<Region> regionsAt(final Point point){
+		if(imageWidth <= 0 || imageHeight <= 0 || !regionOverlay.isActive() || isCurved())
+			return List.of();
+
+		return regionOverlay.regionsAt(getInverseX(point.x), getInverseY(point.y));
+	}
+
+	/** Lights the region under the mouse, and shows the hand over the ones that can be clicked. */
+	private void updateRegionHover(final Point point){
+		final List<Region> under = regionsAt(point);
+		if(regionOverlay.hover(under))
+			repaint();
+		if(regionOverlay.hasClickListener())
+			setCursor(under.isEmpty()? Cursor.getDefaultCursor(): Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	}
+
+	@Override
+	public String getToolTipText(final MouseEvent evt){
+		if(regionOverlay.hasTooltip()){
+			final String text = regionOverlay.tooltipFor(regionsAt(evt.getPoint()));
+			if(text != null)
+				return text;
+		}
+		return super.getToolTipText(evt);
+	}
+
 	/** Makes the proposal that a click at the point (in the pixels of the component) chooses the crop; nothing if none contains the point. */
 	private boolean applyProposalAt(final Point point){
 		final PortraitCrops.Proposal proposal = PortraitCrops.pick(cropProposals, getInverseX(point.x), getInverseY(point.y));
@@ -635,6 +706,7 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public void mouseMoved(final MouseEvent evt){
+			updateRegionHover(evt.getPoint());
 			if(viewOnly)
 				return;
 
@@ -660,6 +732,8 @@ public class ScaledImage extends JLabel{
 		@Override
 		public void mouseExited(final MouseEvent evt){
 			setCursor(Cursor.getDefaultCursor());
+			if(regionOverlay.hover(List.of()))
+				repaint();
 		}
 
 		@Override
@@ -677,8 +751,12 @@ public class ScaledImage extends JLabel{
 
 					return;
 				}
-				if(viewOnly)
+				if(viewOnly){
+					//(a click on a region is told from a pan, which has the Control key, by the distance of the release)
+					pressPoint = evt.getPoint();
+
 					return;
+				}
 
 				pressPoint = evt.getPoint();
 				final char handle = getCropHandleAt(pressPoint);
@@ -780,8 +858,14 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public final void mouseReleased(final MouseEvent evt){
-			if(viewOnly)
+			if(viewOnly){
+				final Point press = pressPoint;
+				pressPoint = null;
+				if(press != null && !evt.isControlDown() && press.distance(evt.getPoint()) < DRAG_THRESHOLD)
+					regionOverlay.click(regionsAt(press), evt.getPoint());
+
 				return;
+			}
 
 			//a click (not a drag) away from the handles of the crop, or inside it, on a face found: the crop is proposed
 			final boolean click = (pressPoint != null && !cropDefinition && pressPoint.distance(evt.getPoint()) < DRAG_THRESHOLD

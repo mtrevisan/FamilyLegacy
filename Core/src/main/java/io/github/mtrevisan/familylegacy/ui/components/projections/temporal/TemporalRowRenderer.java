@@ -64,6 +64,9 @@ public final class TemporalRowRenderer{
 	/** Color of the row label text. */
 	public static final Color COLOR_LABEL = new Color(50, 40, 30);
 
+	/** Base color for the {@link TemporalTrackType#LIFESPAN} track: the bar of a life. */
+	public static final Color COLOR_LIFESPAN = new Color(138, 122, 92);
+
 	/** Base color for the {@link TemporalTrackType#EVENT} track. */
 	public static final Color COLOR_EVENT = new Color(70, 120, 190);
 
@@ -220,6 +223,7 @@ public final class TemporalRowRenderer{
 	 */
 	public static Color colorForTrack(final TemporalTrackType type){
 		return switch(type){
+			case LIFESPAN -> COLOR_LIFESPAN;
 			case EVENT -> COLOR_EVENT;
 			case ATTRIBUTE -> COLOR_ATTRIBUTE;
 			case CONTEXT -> COLOR_CONTEXT;

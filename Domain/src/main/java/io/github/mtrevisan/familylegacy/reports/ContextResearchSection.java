@@ -506,7 +506,7 @@ public final class ContextResearchSection implements SectionBuilder{
 					"**" + ctx.labels.sections().identityComment() + ":** "
 						+ ReportFormatters.escape(comment)));
 
-			if(ctx.config.notes())
+			if(ctx.writesNotes())
 				out.addAll(ctx.citations().notes(h));
 			if(ctx.config.sources())
 				out.addAll(ctx.citations().citations(h));

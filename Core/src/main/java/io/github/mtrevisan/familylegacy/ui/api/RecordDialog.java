@@ -75,6 +75,17 @@ public interface RecordDialog{
 	/** Presets the sex of a new individual, and keeps it (the editors of the other records ignore it). */
 	default void presetSex(final SexType sex){}
 
+	/**
+	 * Hands a note whose kind changed to the list of notes that shows its new kind (the stories are apart from the other notes): the
+	 * editors that have one list of notes ignore it.
+	 *
+	 * @param note	the note
+	 */
+	default void adoptNote(final FLEFRecord note){}
+
+	/** Presets the kind (general, research, story...) of a new note (the editors of the other records ignore it). */
+	default void presetNoteKind(final String kind){}
+
 	/** Forces the sex of a new individual: the editors refuse to save it with another sex (the editors of the other records ignore it). */
 	default void requireSex(final SexType sex, final String reason){}
 

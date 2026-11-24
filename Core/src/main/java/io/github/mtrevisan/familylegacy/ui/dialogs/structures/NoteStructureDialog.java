@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.fields.FlefLinkAssistant;
 import io.github.mtrevisan.familylegacy.ui.components.lists.TranslationListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
@@ -52,6 +53,7 @@ import java.awt.Window;
  * <pre>
  * struct NoteStructure {
  *   title?: Text
+ *   kind?: enum | Text
  *   text: Text
  *   mime?: Text
  *   locale?: LocaleCode
@@ -66,7 +68,7 @@ import java.awt.Window;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): title, value, mime, locale, translation
+ * Tab 1 (Properties): title, kind, value, mime, locale, translation
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -82,6 +84,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
+	private final BoundComboBox<String> kindCombo;
 	private final BoundTextArea textArea;
 	private final BoundComboBox<String> mimeCombo;
 	private final BoundFilteredComboBox<String> localeCombo;
@@ -100,15 +103,20 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private NoteStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, NoteHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]5[]10[]");
 
 		titleField = new BoundTextField(NoteReader.TAG_TITLE);
+		kindCombo = new BoundComboBox<>(NoteReader.TAG_KIND, GUIHelper.fillCombo(NoteReader.KINDS, null));
+		kindCombo.setI18NPrefix("enum.note.kind");
+		kindCombo.setToolTipText(I18N.t("dialog.note.kind.tooltip"));
 		textArea = new BoundTextArea(NoteReader.TAG_TEXT, 3, 25);
 		textArea.setToolTipText(I18N.t("dialog.note.text.tooltip"));
+		//typing flef: offers to choose the record to link (or the confidential marker)
+		FlefLinkAssistant.install(textArea, this, model);
 		mimeCombo = new BoundComboBox<>(NoteReader.TAG_MIME, MIME_TYPES);
 		mimeCombo.setI18NPrefix("enum.note.mime_type");
 		localeCombo = new BoundFilteredComboBox<>(NoteReader.TAG_LOCALE, GUIHelper.fillCombo(LocaleHelper.getAvailableLanguageTags().toArray(String[]::new), null));
-		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"));
+		translationPanel = new TranslationListPanel(NoteReader.TAG_TRANSLATION, this, I18N.t("dialog.note.translations"), model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
@@ -118,6 +126,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(titleField);
+		components.bind(kindCombo);
 		components.bind(textArea);
 		components.bind(mimeCombo);
 		components.bind(localeCombo);
@@ -131,9 +140,17 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 
 	@Override
+	public void presetNoteKind(final String kind){
+		kindCombo.setSelectedItem(kind);
+	}
+
+	@Override
 	protected JPanel createPropertiesPanel(){
 		// title
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.note.title"), titleField);
+
+		// kind
+		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.note.kind"), kindCombo);
 
 		// text
 		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.note.text"), textArea);

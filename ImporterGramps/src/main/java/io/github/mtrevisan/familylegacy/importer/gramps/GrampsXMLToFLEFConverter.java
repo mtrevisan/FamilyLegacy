@@ -150,6 +150,8 @@ public final class GrampsXMLToFLEFConverter{
 	private static final String GRAMPS_EVENTREF = "eventref";
 	private static final String GRAMPS_NOTEREF = "noteref";
 	private static final String GRAMPS_NOTE = "note";
+	/** The types of note of Gramps that are the working material of the research (the others say what the note is about, or are text). */
+	private static final List<String> GRAMPS_NOTE_TYPES_OF_RESEARCH = List.of("Research", "To Do");
 	private static final String GRAMPS_OBJREF = "objref";
 	private static final String GRAMPS_URL = "url";
 	private static final String GRAMPS_PHONE = "phone";
@@ -616,11 +618,18 @@ public final class GrampsXMLToFLEFConverter{
 	}
 
 	private FLEFRecord noteStructure(final String title, final String text, final String mime, final String iso, final boolean isRestricted){
+		return noteStructure(title, null, text, mime, iso, isRestricted);
+	}
+
+	/** @param kind	The kind of the note ({@code null} for an ordinary one). */
+	private FLEFRecord noteStructure(final String title, final String kind, final String text, final String mime, final String iso,
+			final boolean isRestricted){
 		if(StringUtils.isBlank(text))
 			return null;
 
 		return FLEFRecord.createChildWithTag(NoteReader.TAG_NOTE)
 			.addChild(StringUtils.isNotBlank(title)? child(NoteReader.TAG_TITLE, title): null)
+			.addChild(kind != null? child(NoteReader.TAG_KIND, kind): null)
 			.addChild(child(NoteReader.TAG_TEXT, text.trim()))
 			.addChild(StringUtils.isNotBlank(mime)? child(NoteReader.TAG_MIME, mime): null)
 			.addChild(isRestricted? restricted(): null)
@@ -658,9 +667,12 @@ public final class GrampsXMLToFLEFConverter{
 		//the types that only say what the note is about are of no use
 		final String title = (type != null && !type.endsWith(" Note") && !"General".equalsIgnoreCase(type)
 			&& !"Unknown".equalsIgnoreCase(type)? type: null);
+		//the notes that Gramps types as research or as things to do are working material of the research
+		final String kind = (GRAMPS_NOTE_TYPES_OF_RESEARCH.stream().anyMatch(researchType -> researchType.equalsIgnoreCase(type))
+			? NoteReader.ENUM_KIND_RESEARCH: null);
 		return (markdown != null
-			? noteStructure(title, markdown, MIME_MARKDOWN, isoOf(note), isPrivate(note))
-			: noteStructure(title, text, null, isoOf(note), isPrivate(note)));
+			? noteStructure(title, kind, markdown, MIME_MARKDOWN, isoOf(note), isPrivate(note))
+			: noteStructure(title, kind, text, null, isoOf(note), isPrivate(note)));
 	}
 
 	/** @return	The text with the styles of the note written as Markdown, or {@code null} if it has none. */

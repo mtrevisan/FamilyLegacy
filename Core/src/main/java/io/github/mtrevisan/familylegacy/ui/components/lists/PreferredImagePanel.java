@@ -109,6 +109,16 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 
+	/**
+	 * Tells that the crop of the preferred image is a region as well (the image of an individual: the crop tags it in the image), and says it
+	 * in the dialog where the crop is edited.
+	 *
+	 * @param cropIsRegion	Whether the crop also tags the individual in the image.
+	 */
+	public void setCropIsRegion(final boolean cropIsRegion){
+		cropDialog.setHint(cropIsRegion? I18N.t("dialog.preferred.image.crop.region_hint"): null);
+	}
+
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0,fillx", "[grow,align center]"));
 

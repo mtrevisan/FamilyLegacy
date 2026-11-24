@@ -43,6 +43,9 @@ package io.github.mtrevisan.familylegacy.temporal;
  */
 public enum TemporalTrackType{
 
+	/** The span of the life of an individual, from birth to death: the lifespan comparison draws it above everything else. */
+	LIFESPAN(-1),
+
 	/** Events the row entity participated in. */
 	EVENT(0),
 

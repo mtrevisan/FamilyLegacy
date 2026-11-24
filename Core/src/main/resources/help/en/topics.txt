@@ -24,6 +24,7 @@ tools.md
 merging.md
 kinship.md
 group-views.md
+historical-timeline.md
 import.md
 privacy.md
 undo.md

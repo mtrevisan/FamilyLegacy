@@ -98,7 +98,7 @@ public final class SearchBox extends JPanel{
 
 
 	/**
-	 * Creates a box with the options <em>Whole word</em> and <em>Fuzzy</em>, and <em>Search in notes and citations</em> if asked.
+	 * Creates a box with the options <em>Whole word</em> and <em>Fuzzy</em>, and <em>Search in notes and citations</em> and <em>Search in stories</em> if asked.
 	 *
 	 * @param columns	The width of the text field.
 	 * @param withNotes	Whether the search can include the notes and the citations (the text of the record is not all there is to find).
@@ -108,9 +108,11 @@ public final class SearchBox extends JPanel{
 
 		addOption(SearchMode.WHOLE_WORD, I18N.t("search.mode.whole_word"), I18N.t("search.mode.whole_word.tooltip"));
 		addOption(SearchMode.FUZZY, I18N.t("search.mode.fuzzy"), I18N.t("search.mode.fuzzy.tooltip"));
-		if(withNotes)
+		if(withNotes){
 			addOption(SearchMode.NOTES_AND_CITATIONS, I18N.t("search.mode.notes_and_citations"),
 				I18N.t("search.mode.notes_and_citations.tooltip"));
+			addOption(SearchMode.STORIES, I18N.t("search.mode.stories"), I18N.t("search.mode.stories.tooltip"));
+		}
 	}
 
 	/**

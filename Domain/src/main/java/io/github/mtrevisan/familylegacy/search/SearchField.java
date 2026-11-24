@@ -43,8 +43,11 @@ public enum SearchField{
 	/** All the names of the members of a group. */
 	MEMBER_NAMES,
 
-	/** The notes and the citations of the record (only with {@link SearchMode#NOTES_AND_CITATIONS}). */
+	/** The notes (the stories excepted) and the citations of the record (only with {@link SearchMode#NOTES_AND_CITATIONS}). */
 	NOTES_AND_CITATIONS,
+
+	/** The stories of the record (only with {@link SearchMode#STORIES}). */
+	STORIES,
 
 	/** The free tags of the record. */
 	TAGS

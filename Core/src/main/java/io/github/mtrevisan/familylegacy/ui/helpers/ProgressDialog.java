@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import org.apache.commons.lang3.StringUtils;
 

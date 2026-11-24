@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.NoteReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.ui.components.AuditPanel;
@@ -153,6 +154,10 @@ public enum PanelKey{
 	RESEARCH_QUESTION_ON_TARGET((owner, cfg, model, record) ->
 		createOneOfReferencePanel(owner, cfg, model, null, record, ResearchQuestionHandler.class)),
 
+	// ResearchTaskRecord (related[...] = this record)
+	RESEARCH_TASK_ON_RELATED((owner, cfg, model, record) ->
+		createOneOfReferencePanel(owner, cfg, model, null, record, ResearchTaskHandler.class)),
+
 	// ResearchActivityRecord (question contains this question)
 	RESEARCH_ACTIVITY_ON_QUESTION((owner, cfg, model, record) ->
 		createOneOfReferencePanel(owner, cfg, model, null, record, ResearchActivityHandler.class)),
@@ -182,6 +187,13 @@ public enum PanelKey{
 
 	// Structure panel
 	NOTE((owner, cfg, model, record) -> createStructurePanel(owner, cfg, model, NoteHandler.class)),
+	// the stories of a record, in a tab of their own: a new one starts as a story
+	STORY((owner, cfg, model, record) -> createStructurePanel(owner, cfg, model, NoteHandler.class)
+		.withItemFilter(NoteReader::isStory)
+		.withNewNoteKind(NoteReader.ENUM_KIND_STORY)),
+	// the notes of a record that are not stories (the ones of the tab that has the stories apart)
+	NOTE_EXCEPT_STORIES((owner, cfg, model, record) -> createStructurePanel(owner, cfg, model, NoteHandler.class)
+		.withItemFilter(note -> !NoteReader.isStory(note))),
 
 	// Entity reference panels
 	DOCUMENT((owner, cfg, model, record) -> createEntityReferencePanel(owner, cfg, model, MediaHandler.class)),
@@ -202,6 +214,16 @@ public enum PanelKey{
 	}
 
 
+	/** @return the panel of the stories of a record: its own one if the stories are apart from the notes, otherwise the one of all the notes */
+	public static PanelKey storyPanel(final boolean apart){
+		return (apart? STORY: NOTE);
+	}
+
+	/** @return the panel of the notes of a record: the ones that are not stories if the stories are apart, otherwise all of them */
+	public static PanelKey notePanel(final boolean apart){
+		return (apart? NOTE_EXCEPT_STORIES: NOTE);
+	}
+
 	/**
 	 * @return the lowest interface level the panel is shown at (progressive disclosure): conclusions, context impacts and evidence
 	 * 	qualifiers are for the advanced level, the other panels of the research workflow for the standard one, all the others for everyone.
@@ -210,7 +232,7 @@ public enum PanelKey{
 	public UxLevel minimumLevel(){
 		return switch(this){
 			case CONTEXT_IMPACT_ON_TARGET, CONTEXT_IMPACT_ON_CONTEXT, CONCLUSION_ON_RESOLVES, CONCLUSION_ON_RESEARCH, EVIDENCE -> UxLevel.ADVANCED;
-			case IDENTITY_HYPOTHESIS_ON_IDENTITY, RESEARCH_QUESTION_ON_TARGET, RESEARCH_ACTIVITY_ON_QUESTION, RESEARCH_ACTIVITY_ON_SOURCE,
+			case IDENTITY_HYPOTHESIS_ON_IDENTITY, RESEARCH_QUESTION_ON_TARGET, RESEARCH_TASK_ON_RELATED, RESEARCH_ACTIVITY_ON_QUESTION, RESEARCH_ACTIVITY_ON_SOURCE,
 				RESEARCH_TASK_ON_QUESTION, RESEARCH_QUESTION, TASK -> UxLevel.STANDARD;
 			default -> UxLevel.BASIC;
 		};

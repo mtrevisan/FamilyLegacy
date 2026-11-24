@@ -164,7 +164,7 @@ public final class SourcesSection implements SectionBuilder{
 		appendRepositories(out, src, depth);
 		appendDocuments(out, src, depth);
 
-		if(ctx.config.notes())
+		if(ctx.writesNotes())
 			out.addAll(ctx.citations().notes(src));
 		if(ctx.config.evidence())
 			ctx.citations()

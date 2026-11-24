@@ -76,8 +76,8 @@ public final class MediaRootSection implements SectionBuilder{
 		writeReferencingSources(out);
 		writeReferencingCitations(out);
 
-		if(ctx.config.notes())
-			out.addAll(ctx.citations().notes(ctx.root));
+		if(ctx.writesNotes())
+			out.addAll(ctx.citations().rootNotes(ctx.root));
 		out.addAll(ctx.citations().audit(ctx.root));
 		out.addAll(ctx.citations().privacyInfo(ctx.root));
 		return out;

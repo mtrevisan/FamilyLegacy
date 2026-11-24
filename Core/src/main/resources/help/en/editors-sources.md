@@ -4,7 +4,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 ## Source
 
-Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Notes, Privacy, Audit. The only thing checked on OK is that no *Derived from* entry is this source or derives from it.
+Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Stories, Notes, Privacy, Audit (the Stories tab is from the standard level). The only thing checked on OK is that no *Derived from* entry is this source or derives from it.
 
 | Field | Meaning |
 |---|---|
@@ -100,9 +100,30 @@ A record that points to a file. Open it with **Source > Manage Media...** (*New.
 | **Mapping** | Editable. planar, spherical-equirectangular, spherical-UV, cubemap, cylindrical-equirectangular horizontal, cylindrical-equirectangular vertical. |
 | **Description** | Free text. |
 
-**Where Used...** lists every record that uses the media (as a media of a source, in a media part of an extract, as a preferred image or in the *Media* list of an individual, group, place, event or repository, and so on); double-click a line, or select it and press **Open**, to open that record's editor. It is disabled while the media is new. Deleting a media removes it from all those places, and merging two media makes them all point to the one that is kept.
+**Where Used...** lists every record that uses the media (as a media of a source, in a media part of an extract, as a preferred image or in the *Media* list of an individual, group, place, event or repository, and so on); double-click a line to open that record's editor. It is disabled while the media is new. **View in Folder** opens the folder that holds the file, with the file selected. Deleting a media removes it from all those places, and merging two media makes them all point to the one that is kept.
 
 URI and kind are required. The field always shows the location whole; how it is *shown* in the lists is a preference, see [Preferences](preferences.md#media-paths).
+
+**View...** opens the image at full size (disabled while the media is new, and for a file that is not an image). It is also opened by double-clicking a thumbnail in the *Images* strip of the editors that have one. See [Regions of an image](#regions-of-an-image).
+
+### Regions of an image
+
+A **region** is a part of an image that says who is in it: a face in a group photograph, the couple in a wedding picture. A region is not a record of its own and nothing is cut out of the file: it is the **crop** that an individual has on the media, either in a *Media* citation of the individual (*Edit Crop...* on its *Media* list) or in its preferred image. Individuals with the same crop share a region (the two people of a couple photograph), and regions that overlap (a face inside the group it belongs to) are told apart by their size. A citation with a crop is a region of its individual whatever its caption says; a citation without a crop (the whole image) is not. The crop dialogs of an individual (*Edit Crop...* on its *Media* list and on its preferred image) say it under the image. Crops are in pixels of the image, like all crops. Because the regions are the crops of the individuals, deleting or merging individuals takes care of them with no further step.
+
+In the viewer:
+
+- All the regions are drawn over the image. The check box **Show regions** hides them (useful on a crowded photograph) and shows them again; it is disabled when the media has none.
+- The mouse over a region lights it and shows who is in it. Where regions overlap the list has all of them, the smallest first.
+- A region that is the **portrait** of one of its people, that is, the preferred image of that individual is this media cropped to this region, has a small bust in a blue circle at its top right corner, and its line is thicker if the region is too small for the circle. The list says whose portrait it is ("Anna Rossi (portrait)").
+- **Click** a region to open the editor of the person. If more than one person is under the point, a small menu asks which one.
+- **Ctrl + wheel** zooms, **Ctrl + drag** moves the image, **right click** fits it again. A document with pages (a PDF, a multi-page TIFF) is browsed page by page with the **Page** spinner or **Page Up** / **Page Down**, each page with its own regions (the page of a crop is the one chosen in its *Edit Crop...* dialog; a PDF is shown as there, at 150 dpi); the pages are drawn in the background, so the viewer does not freeze on a big file.
+- **Esc** closes the viewer; the editor of a person opened from it closes first, with its own Esc.
+
+To go from a person to its images, and the other way round:
+
+- The dossier of a group has a **Media** section too (the media the group cites and its preferred image); the crop of a group tags nobody, so it only says whether a media is the group's portrait. The dossier of an individual has a **Media** section: the media that the individual cites and its preferred image, each with how many regions the individual is tagged in and whether it is its portrait. The number in the header is how many media the individual has.
+- In the *Media* list of an individual (on the *Sources* tab), right-click an item and choose **View...** to open its image at full size. The same item is in the *Media Parts* list of an extract.
+- In **Source > Manage Media...** **Media of...** shows only the media of one individual or group (the ones it cites and its preferred image; it works together with the search field, and **Show all media** goes back to the whole list). The column **People tagged** counts the individuals tagged in each media, and **View...** opens the selected one. The count is how many people have a crop on the media, whoever else cites it.
 
 ## Source citation
 
@@ -167,6 +188,7 @@ Open it from a **Notes** tab. **Tabs:** Properties, Sources, Privacy, Audit.
 | Field | Meaning |
 |---|---|
 | **Title** | Optional. |
+| **Kind** | What the note is for. Blank or *general*: an ordinary note. *research*: working material of the research (reasoning, findings, comments). *story*: narrative prose meant to be read and published (a biography, a family tradition, a migration, a military service, an oral history), which is not evidence. The kind lets the views and the reports tell the narrative notes from the technical ones. |
 | **Text** | The note (required). Markdown is supported, with two special links, shown below. |
 | **MIME Type** | blank, text/plain, text/html or text/markdown. |
 | **Locale** | The language of the note. |
@@ -175,11 +197,13 @@ Open it from a **Notes** tab. **Tabs:** Properties, Sources, Privacy, Audit.
 The two special links of the note text:
 
 ```
-[text](@<XREF:ID>@)         a reference to a record
+[text](flef:<ID>)           a reference to a record
 [text](flef:confidential)   data to be treated as confidential
 ```
 
-The second one only acts in the FLEF export, not on screen or in the reports: do not rely on it alone to keep something private. See [Privacy](privacy.md#the-confidential-marker-in-notes).
+When you type `flef:` after the text of a link in the text of a note (or of a translation), that is after `[text](`, a small menu appears under the cursor (not for a `flef:` written elsewhere): **Choose a record...** opens the search of records and writes the identifier of the one you pick after the colon, and *confidential* writes the confidential marker; in both cases the closing parenthesis is added if the link has none. The `Up` and `Down` arrows move between the two entries, `Enter` takes the one selected (the first at the start) and `Esc` closes the menu; if you go on typing, the menu goes away.
+
+The second one is dropped, text included, from the FLEF export and from the reports when a privacy policy hides confidential data (with *Show all* the export is unchanged and the reports write only its text), but not on screen: do not rely on it alone to keep something private. See [Privacy](privacy.md#the-confidential-marker-in-notes).
 
 ## Agent
 

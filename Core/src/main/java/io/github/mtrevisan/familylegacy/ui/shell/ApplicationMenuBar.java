@@ -52,14 +52,15 @@ import io.github.mtrevisan.familylegacy.ui.tools.maintenance.MaintenanceToolRegi
 import io.github.mtrevisan.familylegacy.ui.tools.places.PlaceToolRegistry;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.AncestorReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BookBuilderOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ConflictsOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DatabaseSummaryOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.DescendantReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.EndOfLineOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.BookBuilderOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyBookOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FamilyGroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.FullBibliographyOperation;
+import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GroupSheetOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IdentityHypothesesOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.IndividualSummaryOperation;
@@ -68,7 +69,6 @@ import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PedigreeColl
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.PlaceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.RelationshipReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchProgressOperation;
-import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.GpsProofReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.ResearchQuestionReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SourceReportOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.reports.operations.SurnamesOperation;

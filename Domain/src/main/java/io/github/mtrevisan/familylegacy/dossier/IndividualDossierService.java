@@ -141,10 +141,13 @@ public final class IndividualDossierService{
 		sections.put(DossierSectionType.ATTRIBUTES, buildAttributes(individualId));
 		sections.put(DossierSectionType.RELATIONSHIPS, buildRelationships(individualId));
 		sections.put(DossierSectionType.SOURCES, buildSources(individual, individualId));
+		sections.put(DossierSectionType.MEDIA, MediaEntries.ofIndividual(model, individual));
 		sections.put(DossierSectionType.CONTEXT, buildContext(individualId));
 		sections.put(DossierSectionType.IDENTITY_HYPOTHESES, buildIdentityHypotheses(individualId));
 		sections.put(DossierSectionType.RESEARCH, buildResearch(individualId));
-		sections.put(DossierSectionType.NOTES, buildNotes(individual, individualId));
+		sections.put(DossierSectionType.STORIES, buildNotes(individual, individualId, true));
+		sections.put(DossierSectionType.MENTIONS, buildMentions(individualId));
+		sections.put(DossierSectionType.NOTES, buildNotes(individual, individualId, false));
 
 		return new IndividualDossier(individual, data, displayName, sections);
 	}
@@ -639,19 +642,19 @@ public final class IndividualDossierService{
 	 *                          Notes
 	 * ====================================================================== */
 
-	private List<DossierEntry> buildNotes(final FLEFRecord individual, final String individualId){
+	private List<DossierEntry> buildNotes(final FLEFRecord individual, final String individualId, final boolean stories){
 		final List<DossierEntry> entries = new ArrayList<>();
 
-		collectNotes(individual, I18N.t("text.dossier.individual"), entries);
+		collectNotes(individual, I18N.t("text.dossier.individual"), entries, stories);
 
 		for(final FLEFRecord event : eventMap.getOrDefault(individualId, List.of()))
-			collectNotes(event, I18N.t("text.dossier.event"), entries);
+			collectNotes(event, I18N.t("text.dossier.event"), entries, stories);
 
 		final List<FLEFRecord> attributes = PrivacyService.visible(model, model.getRecordsByType(IndividualAttributeReader.TYPE));
 		for(final FLEFRecord attribute : attributes){
 			final String ownerId = FLEFRecordHelper.getChildValue(attribute, IndividualReader.TYPE);
 			if(individualId.equals(ownerId))
-				collectNotes(attribute, I18N.t("text.dossier.attribute"), entries);
+				collectNotes(attribute, I18N.t("text.dossier.attribute"), entries, stories);
 		}
 
 		final List<FLEFRecord> relationships = PrivacyService.visible(model, model.getRecordsByType(RelationshipReader.TYPE));
@@ -659,14 +662,14 @@ public final class IndividualDossierService{
 			final String subjectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_SUBJECT);
 			final String objectId = EventParticipationReader.extractParticipantRef(relationship, RelationshipReader.TAG_TARGET);
 			if(individualId.equals(subjectId) || individualId.equals(objectId))
-				collectNotes(relationship, I18N.t("text.dossier.relationship"), entries);
+				collectNotes(relationship, I18N.t("text.dossier.relationship"), entries, stories);
 		}
 
 		final List<FLEFRecord> impacts = PrivacyService.visible(model, model.getRecordsByType(ContextImpactReader.TYPE));
 		for(final FLEFRecord impact : impacts){
 			final String targetId = extractRef(impact, ContextImpactReader.TAG_TARGET);
 			if(individualId.equals(targetId))
-				collectNotes(impact, I18N.t("text.dossier.context"), entries);
+				collectNotes(impact, I18N.t("text.dossier.context"), entries, stories);
 		}
 
 		final List<FLEFRecord> hypotheses = PrivacyService.visible(model, model.getRecordsByType(IdentityHypothesisReader.TYPE));
@@ -678,7 +681,7 @@ public final class IndividualDossierService{
 					break;
 				}
 			if(targets)
-				collectNotes(hypothesis, I18N.t("text.dossier.identity_hypothesis"), entries);
+				collectNotes(hypothesis, I18N.t("text.dossier.identity_hypothesis"), entries, stories);
 		}
 
 		final List<FLEFRecord> questions = PrivacyService.visible(model, model.getRecordsByType(ResearchQuestionReader.TYPE));
@@ -690,7 +693,7 @@ public final class IndividualDossierService{
 					break;
 				}
 			if(targets)
-				collectNotes(question, I18N.t("text.dossier.research_question"), entries);
+				collectNotes(question, I18N.t("text.dossier.research_question"), entries, stories);
 		}
 
 		final List<FLEFRecord> conclusions = PrivacyService.visible(model, model.getRecordsByType(ConclusionReader.TYPE));
@@ -704,10 +707,15 @@ public final class IndividualDossierService{
 			if(!targets && individualId.equals(extractRef(conclusion, ConclusionReader.TAG_PREFERRED)))
 				targets = true;
 			if(targets)
-				collectNotes(conclusion, I18N.t("text.dossier.conclusion"), entries);
+				collectNotes(conclusion, I18N.t("text.dossier.conclusion"), entries, stories);
 		}
 
 		return entries;
+	}
+
+	/** The stories, written in other records, that link to the individual. */
+	private List<DossierEntry> buildMentions(final String individualId){
+		return StoryMentionEntries.of(model, individualId, this::proofStatusFor);
 	}
 
 	/**
@@ -752,17 +760,25 @@ public final class IndividualDossierService{
 		return joinWith(" · ", owner, detail);
 	}
 
-	private void collectNotes(final FLEFRecord parent, final String origin, final List<DossierEntry> entries){
+	/**
+	 * @param stories	Whether the stories (the notes of kind story) are collected, or the other notes: they are two sections of the dossier.
+	 */
+	private void collectNotes(final FLEFRecord parent, final String origin, final List<DossierEntry> entries, final boolean stories){
 		for(final FLEFRecord note : FLEFRecordHelper.findChildren(parent, TAG_NOTE)){
+			if(NoteReader.isStory(note) != stories)
+				continue;
+
 			final String title = FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TITLE);
 			final String text = NoteReader.extractText(note);
-			final String label = I18N.tf("text.dossier.note", origin);
+			final String label = I18N.tf((stories? "text.dossier.story": "text.dossier.note"), origin);
 			final String value = (StringUtils.isNotEmpty(title)? title: text);
 			final String subtitle = joinSubtitle(describeOwner(parent), (StringUtils.isNotEmpty(title)? text: null));
 
 			entries.add(new DossierEntry(label, value, subtitle, StringUtils.EMPTY, parent,
 				DossierEntry.Kind.NORMAL, proofStatusFor(parent))
-				.withFocus(EditorTab.NOTES, note));
+				//(the editors of an individual and of an event have a tab of the stories)
+				.withFocus((stories && (IndividualReader.TYPE.equalsIgnoreCase(parent.getTag()) || EventReader.TYPE.equalsIgnoreCase(parent.getTag()))
+					? EditorTab.STORIES: EditorTab.NOTES), note));
 		}
 	}
 

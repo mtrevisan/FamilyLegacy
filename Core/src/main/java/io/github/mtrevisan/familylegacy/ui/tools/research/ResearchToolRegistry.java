@@ -46,7 +46,8 @@ public final class ResearchToolRegistry{
 			new ResearchBoardTool(),
 			new ManageResearchQuestionsTool(),
 			new ManageResearchActivitiesTool(),
-			new ManageResearchTasksTool()
+			new ManageResearchTasksTool(),
+			new TaskDashboardTool()
 		);
 	}
 
@@ -69,7 +70,8 @@ public final class ResearchToolRegistry{
 			new EvidenceQualifiersTool(),
 			new ProofSummaryTool(),
 			new InferenceInspectionTool(),
-			new ResearchLogTool()
+			new ResearchLogTool(),
+			new ResearchTimelineTool()
 		);
 	}
 

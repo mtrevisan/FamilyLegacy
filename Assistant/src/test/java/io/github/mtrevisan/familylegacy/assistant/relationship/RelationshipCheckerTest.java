@@ -273,7 +273,7 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
-		Assertions.assertTrue(finding.title().startsWith("Role on a biological_child relationship"));
+		Assertions.assertTrue(finding.title().startsWith("Role on a biological child relationship"));
 		//a role is expected on a membership
 		Assertions.assertTrue(family()
 			.relationship("c", "g", RelationshipReader.ENUM_TYPE_GROUP_MEMBER, "president", null, null, false)
@@ -289,7 +289,7 @@ public class RelationshipCheckerTest{
 
 		Assertions.assertEquals(Diagnostic.Severity.INFORMATION, finding.severity());
 		Assertions.assertTrue(finding.title().startsWith("Child relationship that looks adoptive: Person c"));
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD)));
 		Assertions.assertTrue(finding.explanation().contains("E1"));
 		Assertions.assertTrue(finding.recordIds().contains("E1"));
 	}
@@ -319,7 +319,7 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Child relationship that looks like a step-parent: Person c"));
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_STEP_CHILD));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_STEP_CHILD)));
 		Assertions.assertTrue(finding.recordIds().containsAll(List.of("c", "p", "q")));
 	}
 
@@ -355,7 +355,7 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Marriage type: Person p and Person q"));
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE)));
 		Assertions.assertTrue(finding.explanation().contains(EventReader.ENUM_TYPE_MARRIAGE_BANN));
 	}
 
@@ -368,7 +368,7 @@ public class RelationshipCheckerTest{
 				new RelationshipData.Participant("q", true))
 			.check());
 
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE)));
 		Assertions.assertTrue(finding.explanation().contains("place of the church"));
 		Assertions.assertTrue(finding.explanation().contains("only a hint"));
 	}
@@ -384,7 +384,7 @@ public class RelationshipCheckerTest{
 				new RelationshipData.Participant("x", false, EventParticipationReader.ENUM_ROLE_OFFICIANT))
 			.check());
 
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE)));
 		Assertions.assertTrue(finding.explanation().contains("is of the clergy"));
 	}
 
@@ -423,7 +423,7 @@ public class RelationshipCheckerTest{
 			.event("E1", EventReader.ENUM_TYPE_MARRIAGE_LICENSE, "p", "q")
 			.check());
 
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE)));
 	}
 
 	@Test
@@ -564,7 +564,7 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertTrue(finding.title().startsWith("Association between relatives: Person p and Person c"));
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD));
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD)));
 		//between two that are not relatives it is what it should be
 		Assertions.assertTrue(family().relationship("c", "q", RelationshipReader.ENUM_TYPE_ASSOCIATE, null, null, null, false).check().isEmpty());
 	}
@@ -849,14 +849,14 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertTrue(religious.key().startsWith("relationship.suggest_spouse|"), religious.key());
-		Assertions.assertTrue(religious.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE), religious.explanation());
+		Assertions.assertTrue(religious.explanation().contains(label(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE)), religious.explanation());
 		Assertions.assertTrue(religious.explanation().contains("marriage Rossi Mario + Bianchi Anna 18500112 religious"));
 
 		final Diagnostic civil = only(family()
 			.relationship("p", "q", RelationshipReader.ENUM_TYPE_SPOUSE)
 			.marriageAt("E1", null, null, List.of("marriage Verdi Luigi + Neri Maria 19100203 civil"), "p", "q")
 			.check());
-		Assertions.assertTrue(civil.explanation().contains(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE), civil.explanation());
+		Assertions.assertTrue(civil.explanation().contains(label(RelationshipReader.ENUM_TYPE_CIVIL_SPOUSE)), civil.explanation());
 	}
 
 	@Test
@@ -868,7 +868,7 @@ public class RelationshipCheckerTest{
 			.check());
 
 		Assertions.assertTrue(finding.key().startsWith("relationship.suggest_spouse|"), finding.key());
-		Assertions.assertTrue(finding.explanation().contains(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE), finding.explanation());
+		Assertions.assertTrue(finding.explanation().contains(label(RelationshipReader.ENUM_TYPE_RELIGIOUS_SPOUSE)), finding.explanation());
 		Assertions.assertTrue(finding.explanation().contains("weak hint"), finding.explanation());
 	}
 
@@ -910,6 +910,11 @@ public class RelationshipCheckerTest{
 
 		//none is left out, none is chosen over the others
 		Assertions.assertTrue(duplicate.explanation().contains("[R1, R2, R3]"), duplicate.explanation());
+	}
+
+	/** @return the type as the user sees it */
+	private static String label(final String type){
+		return io.github.mtrevisan.familylegacy.i18n.I18N.t("enum.relationship.type." + type);
 	}
 
 }

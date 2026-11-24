@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Collects the text of the notes and of the citations that belong to a record, so that the search can look into them
- * ({@link SearchMode#NOTES_AND_CITATIONS}).
+ * ({@link SearchMode#NOTES_AND_CITATIONS}), and the text of its stories ({@link SearchMode#STORIES}), that are kept apart.
  * <p>
  * The notes of a record are the {@code note} structures written in it, at any depth (e.g. in a name, a date, a citation), and, for
  * a record that is itself a note, its own text. For each note the title, the text and the text of its translations are taken.
@@ -58,20 +58,46 @@ public final class AttachedTextExtractor{
 			return StringUtils.EMPTY;
 
 		final StringBuilder sb = new StringBuilder();
-		if(NoteReader.isOfType(record))
+		if(NoteReader.isOfType(record) && !NoteReader.isStory(record))
 			appendNote(record, sb);
 		collect(record, lookup, sb);
+		return sb.toString();
+	}
+
+	/**
+	 * @param record	The record to read.
+	 * @return	The text of its stories (the notes of kind story, written at any depth, or the record itself if it is one), separated by a
+	 * 	line break; empty if it has none.
+	 */
+	public static String extractStories(final FLEFRecord record){
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final StringBuilder sb = new StringBuilder();
+		if(NoteReader.isOfType(record) && NoteReader.isStory(record))
+			appendNote(record, sb);
+		collectStories(record, sb);
 		return sb.toString();
 	}
 
 	private static void collect(final FLEFRecord node, final RecordLookup lookup, final StringBuilder sb){
 		for(final FLEFRecord child : node.getChildren()){
 			final String tag = child.getTag();
-			if(NoteReader.TYPE.equalsIgnoreCase(tag))
-				appendNote(child, sb);
+			if(NoteReader.TYPE.equalsIgnoreCase(tag)){
+				if(!NoteReader.isStory(child))
+					appendNote(child, sb);
+			}
 			else if(SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(tag) || SourceReader.TAG_DERIVED_FROM.equalsIgnoreCase(tag))
 				appendCitation(child, lookup, sb);
 			collect(child, lookup, sb);
+		}
+	}
+
+	private static void collectStories(final FLEFRecord node, final StringBuilder sb){
+		for(final FLEFRecord child : node.getChildren()){
+			if(NoteReader.TYPE.equalsIgnoreCase(child.getTag()) && NoteReader.isStory(child))
+				appendNote(child, sb);
+			collectStories(child, sb);
 		}
 	}
 

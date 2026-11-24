@@ -26,16 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.PagedDocuments;
 import io.github.mtrevisan.familylegacy.ui.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
@@ -52,8 +48,6 @@ import javax.swing.SwingWorker;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.DefaultFormatter;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -67,10 +61,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -421,73 +412,17 @@ public class PageInputDialog extends JDialog{
 		imageHolder.repaint();
 	}
 
-	/**
-	 * Renders a specific page of a document to an Image.
-	 * Uses Apache PDFBox for PDF files and ImageIO (with TwelveMonkeys) for images/TIFFs.
-	 */
+	/** Renders a specific page of a document to an image (see {@link PagedDocuments}), and sets the number of pages of the document as the limit. */
 	private BufferedImage renderPage(final String uri, final int page){
-		final File file = new File(uri);
-		if(!file.exists())
+		final PagedDocuments.Page rendered = PagedDocuments.render(new File(uri), page);
+		if(rendered == null)
 			return null;
 
-		final String lowerUri = uri.toLowerCase(Locale.ROOT);
-
-		// --- 1. PDF Rendering (Apache PDFBox 3.x) ---
-		if(lowerUri.endsWith(MediaPartListPanel.EXTENSION_PDF)){
-			try(final PDDocument document = Loader.loadPDF(file)){
-				final int totalPages = document.getNumberOfPages();
-				// Update spinner maximum on the EDT thread
-				SwingUtilities.invokeLater(() -> updatePageLimit(totalPages));
-
-				final PDFRenderer renderer = new PDFRenderer(document);
-				if(page > 0 && page <= totalPages){
-					final Image renderedImg = renderer.renderImageWithDPI(page - 1, 150, ImageType.RGB);
-					if(renderedImg instanceof BufferedImage bufferedImage)
-						return bufferedImage;
-
-					final BufferedImage bimage = new BufferedImage(renderedImg.getWidth(null),
-						renderedImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
-					final Graphics2D g = bimage.createGraphics();
-					g.drawImage(renderedImg, 0, 0, null);
-					g.dispose();
-					return bimage;
-				}
-			}
-			catch(final IOException e){
-				// Log only if it's not a normal interruption/closed channel due to fast navigation
-				if(!(e instanceof ClosedChannelException))
-					LOGGER.error("Error reading PDF: {}", e.getMessage());
-			}
-			return null;
-		}
-
-		// --- 2. Image/TIFF Rendering (ImageIO + TwelveMonkeys) ---
-		try(var imageInputStream = ImageIO.createImageInputStream(file)){
-			if(imageInputStream != null){
-				final var readers = ImageIO.getImageReaders(imageInputStream);
-				if(readers.hasNext()){
-					final var reader = readers.next();
-					try{
-						reader.setInput(imageInputStream, true, true);
-						final int totalPages = reader.getNumImages(true);
-						SwingUtilities.invokeLater(() -> updatePageLimit(totalPages));
-
-						if(page > 0 && page <= totalPages)
-							return reader.read(page - 1);
-					}
-					finally{
-						reader.dispose();
-					}
-				}
-			}
-		}
-		catch(final IOException e){
-			LOGGER.error("Error reading image file: {}", e.getMessage());
-		}
-
-		return null;
+		// Update spinner maximum on the EDT thread
+		final int totalPages = rendered.pageCount();
+		SwingUtilities.invokeLater(() -> updatePageLimit(totalPages));
+		return rendered.image();
 	}
-
 	private void closeCurrentDocument(){
 		pageCache.clear();
 		cropRectInOriginalSpace = null;

@@ -41,8 +41,7 @@ is in `../../assistant/README.md`.
 - **Dossier:** filters (only event type and interval; the rest is in the sections); direct export (a report that uses it is enough); the
   provenance of an individual at dossier/report level; evidence as a graphic badge; ages at events with "~X years" for imprecise dates
   (also in the lifespans strip tooltips); duration of relationships.
-- **Lifespans strip (`MultiLifespanStripPanel`):** historical and normative context bands behind the lives (`TemporalContextBands`, Domain
-  `temporal`, as in the group views); birth and death distinct on the bar, uncertain death dashed; negative evidence (`evidence_type =
+- **Lifespans strip (`MultiLifespanStripPanel`):** birth and death distinct on the bar, uncertain death dashed; negative evidence (`evidence_type =
   negative`: faded body with a diagonal hatch, X on points, as `TemporalSpanRenderer` draws it in the group views).
 - **Export:** CSV of subsets (`ExportExcelTool` is commented; CSV only).
 - **DNA:** CSV import of segments (chromosome, start, end, cM, SNP) and a chromosome browser with paternal and maternal bars (a block of

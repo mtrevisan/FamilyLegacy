@@ -6,7 +6,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 Open it with **Individual > Edit Individual...** (or `F2`); **Individual > Add Individual...** creates a new one.
 
-**Tabs:** Properties, Attributes, Relationships, Participations, Context, Research, Sources, Notes, Privacy, Audit.
+**Tabs:** Properties, Attributes, Relationships, Participations, Context, Research, Sources, Stories, Notes, Privacy, Audit. From the *standard* [interface level](preferences.md#interface-level) the **Stories** tab lists the notes of kind *story* (narrative prose meant to be read and published: a biography, a family tradition, a migration) and the **Notes** tab all the other notes; below it there is no Stories tab and the **Notes** tab lists all of them, each with its *Kind*. A new item of the Stories tab starts as a story, and changing the *Kind* of an item moves it at once to the other tab.
 
 **Properties**
 
@@ -51,7 +51,7 @@ An assertion whose value is *unknown* says nothing, so a *male* and an *unknown*
 
 Open it with **Group > Edit Group...**; **Group > Add Group...** creates one.
 
-**Tabs:** Properties, Attributes, Relationships, Participations, Context, Research, Sources, Notes, Privacy, Audit.
+**Tabs:** Properties, Attributes, Relationships, Participations, Context, Research, Sources, Stories, Notes, Privacy, Audit (the Stories tab is from the standard level, as in the editor of an individual).
 
 **Properties**
 

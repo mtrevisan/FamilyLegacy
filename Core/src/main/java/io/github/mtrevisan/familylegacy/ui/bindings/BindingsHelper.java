@@ -27,10 +27,12 @@ package io.github.mtrevisan.familylegacy.ui.bindings;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionListEnhancer;
 import io.github.mtrevisan.familylegacy.ui.helpers.DualActionTextFieldEnhancer;
+import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -101,6 +103,17 @@ public class BindingsHelper{
 	 * @param keyDeleteAction	Action invoked by the DELETE key (it may be {@code null}).
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
+	@SuppressWarnings("unchecked")
+	private static <T> void move(final JList<T> list, final boolean up){
+		if(!(list.getModel() instanceof DefaultListModel<T> model))
+			return;
+
+		if(up)
+			GUIHelper.moveSelectedItemUp(list, model);
+		else
+			GUIHelper.moveSelectedItemDown(list, model);
+	}
+
 	public static void installBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
 			final Runnable doubleClickAction, final Runnable shiftDoubleClickAction, final Runnable keyInsertAction,
 			final Runnable keyDeleteAction, final Consumer<MenuBuilder> menuBuilder){
@@ -119,6 +132,15 @@ public class BindingsHelper{
 		// Collect the menu entries from the builder
 		final MenuBuilder builder = new MenuBuilder(hasSelection);
 		menuBuilder.accept(builder);
+		//the items of a list that can be arranged can be moved from the menu too (and with Ctrl + Up and Ctrl + Down, or by dragging)
+		if(component instanceof JList<?> movable && Boolean.TRUE.equals(movable.getClientProperty(GUIHelper.PROPERTY_REORDERABLE))){
+			builder.separator();
+			//moving makes sense only if there is somewhere to go: a single element, or the first/last one, cannot move that way
+			builder.item(I18N.t("popupmenu.move_up"), () -> move(movable, true),
+				() -> hasSelection.get() && movable.getSelectedIndex() > 0);
+			builder.item(I18N.t("popupmenu.move_down"), () -> move(movable, false),
+				() -> hasSelection.get() && movable.getSelectedIndex() < movable.getModel().getSize() - 1);
+		}
 		final List<MenuBuilder.MenuEntry> entries = builder.getEntries();
 
 		// Mouse listener for popup trigger and double‑click

@@ -79,8 +79,8 @@ public final class ProvenanceDialog extends JDialog{
 	private final JCheckBox related = new JCheckBox(I18N.t("checkbox.provenance.related"));
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
 	private final JTable table = new JTable();
-	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton openSource = new JButton(I18N.t("button.open_source"));
+	private final JButton explain = new JButton(I18N.t("button.explain"));
 	private List<ProvenanceService.Row> rows = List.of();
 
 
@@ -122,8 +122,9 @@ public final class ProvenanceDialog extends JDialog{
 		related.setToolTipText(I18N.t("checkbox.provenance.related.tooltip"));
 		related.addActionListener(e -> reload());
 
-		openRecord.addActionListener(e -> openSelectedRecord());
 		openSource.addActionListener(e -> openSelectedSource());
+		explain.setToolTipText(I18N.t("button.explain.tooltip"));
+		explain.addActionListener(e -> explainSelected());
 
 		final JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
 		top.add(summary);
@@ -135,7 +136,7 @@ public final class ProvenanceDialog extends JDialog{
 		setLayout(new BorderLayout(8, 8));
 		add(top, BorderLayout.NORTH);
 		add(scroll, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringUtils.EMPTY, openRecord, openSource,
+		add(ToolDialogs.createFooter(StringUtils.EMPTY, explain, openSource,
 			ToolDialogs.createCopyButton(() -> ((RowTableModel)table.getModel()).toText())),
 			BorderLayout.SOUTH);
 
@@ -211,7 +212,7 @@ public final class ProvenanceDialog extends JDialog{
 
 	private void updateButtons(){
 		final ProvenanceService.Row row = selectedRow();
-		openRecord.setEnabled(row != null);
+		explain.setEnabled(row != null);
 		openSource.setEnabled(row != null && row.sourceId() != null && model.hasRecord(row.sourceId()));
 	}
 
@@ -221,6 +222,16 @@ public final class ProvenanceDialog extends JDialog{
 			return;
 
 		ToolDialogs.openRecordEditor(this, model, model.getRecordById(row.ownerId()));
+		reload();
+	}
+
+	/** Explains the assertion of the row: why do we believe it (the citations that back it, the ones against, the conclusions). */
+	private void explainSelected(){
+		final ProvenanceService.Row row = selectedRow();
+		if(row == null)
+			return;
+
+		EvidenceTraceDialog.open(this, model, row.ownerId());
 		reload();
 	}
 

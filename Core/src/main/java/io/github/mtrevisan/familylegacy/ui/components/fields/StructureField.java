@@ -84,12 +84,12 @@ public abstract class StructureField extends BoundTextField{
 	protected abstract FLEFRecord openNewDialog();
 
 	/**
-	 * Opens the dialog for editing an existing structure in place.
+	 * Opens the dialog for editing an existing structure.
 	 *
 	 * @param record	the structure to edit.
-	 * @return	whether the dialog was saved.
+	 * @return	the edited structure, or {@code null} if the dialog was cancelled.
 	 */
-	protected abstract boolean openEditDialog(FLEFRecord record);
+	protected abstract FLEFRecord openEditDialog(FLEFRecord record);
 
 	/**
 	 * Renders the structure as text for the field.
@@ -199,9 +199,9 @@ public abstract class StructureField extends BoundTextField{
 			return;
 		}
 
-		if(openEditDialog(record))
-			// Needed because the structure is edited in place: the reference does not change, its content does
-			updateDisplay();
+		final FLEFRecord edited = openEditDialog(record);
+		if(edited != null)
+			setRecord(edited);
 	}
 
 	protected void updateDisplay(){

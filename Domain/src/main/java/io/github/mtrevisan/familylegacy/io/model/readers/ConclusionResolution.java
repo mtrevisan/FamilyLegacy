@@ -71,6 +71,18 @@ public final class ConclusionResolution{
 		return false;
 	}
 
+	/**
+	 * @return whether the conclusion is still to be made: it takes no position (no preferred assertion, no status that says that none
+	 * 	prevails) and it either has no proof status at all or lists at least two records to judge. A single claim that is simply marked
+	 * 	{@code supported} or {@code proven} is a conclusion that is made.
+	 */
+	public static boolean isOpen(final Evaluation evaluation){
+		if(evaluation.preferred() != null || evaluation.proofStatus() != null && NO_PREVAILING_STATUSES.contains(evaluation.proofStatus()))
+			return false;
+
+		return (evaluation.proofStatus() == null || evaluation.resolves().size() >= 2);
+	}
+
 	/** @return whether the conclusion evaluates at least two of the competing records and takes a position on them */
 	public static boolean settles(final Set<String> competing, final Evaluation evaluation){
 		final long evaluated = evaluation.resolves().stream()

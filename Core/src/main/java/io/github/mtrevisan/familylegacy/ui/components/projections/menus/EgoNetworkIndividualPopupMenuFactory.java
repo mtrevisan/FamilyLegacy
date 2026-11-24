@@ -53,6 +53,7 @@ import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceTool;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -113,6 +114,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		final JMenu analyzeMenu = new JMenu(I18N.t("menu.individual.submenu.analyze"));
 		final JMenuItem careerItem = new JMenuItem(I18N.t("menu.individual.group_career"));
 		final JMenuItem provenanceItem = new JMenuItem(I18N.t("menu.source_citation.provenance"));
+		final JMenuItem explainItem = new JMenuItem(I18N.t("menu.individual.explain"));
 		final JMenuItem loopsItem = new JMenuItem(I18N.t("menu.individual.consanguinity_loops"));
 
 		// Evaluate item states right before display
@@ -122,6 +124,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
 				//the provenance (citation by citation, with stance and evidence) is offered from the standard level, as in the menu bar
 				provenanceItem.setVisible(FeatureVisibilityService.shared().isVisible(new ProvenanceTool().minimumLevel()));
+				explainItem.setVisible(FeatureVisibilityService.shared().isVisible(new EvidenceTraceTool().minimumLevel()));
 				final IndividualSummary data = panel.getData();
 				final boolean hasData = (data != null && !data.isEmpty());
 				final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
@@ -146,6 +149,7 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 				careerItem.setEnabled(hasData);
 				//both read the selected individual: on an empty box there is nothing to show
 				provenanceItem.setEnabled(hasData);
+				explainItem.setEnabled(hasData);
 				loopsItem.setEnabled(hasData);
 				if(isEgo){
 					addPartnerItem.setEnabled(hasData);
@@ -246,6 +250,11 @@ public class EgoNetworkIndividualPopupMenuFactory implements EntityPopupMenuFact
 		PopupMenuHelper.addMenuItem(analyzeMenu, provenanceItem, panel, record -> {
 			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
 			new ProvenanceTool()
+				.run(context);
+		});
+		PopupMenuHelper.addMenuItem(analyzeMenu, explainItem, panel, record -> {
+			final ToolContext context = ToolContexts.withMutator(model, listener, panel, record.getId());
+			new EvidenceTraceTool()
 				.run(context);
 		});
 		PopupMenuHelper.addMenuItem(analyzeMenu, loopsItem, panel, record -> {

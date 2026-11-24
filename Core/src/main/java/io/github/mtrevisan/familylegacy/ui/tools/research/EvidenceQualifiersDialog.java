@@ -72,11 +72,11 @@ final class EvidenceQualifiersDialog extends JDialog{
 		this.recordModel = recordModel;
 
 		final JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(I18N.t("tab.title.overview"), createOverviewTab(withQualifiers, withoutQualifiers));
-		tabs.addTab(I18N.t("tab.title.source_type"), createDimensionTab(sourceTypes));
-		tabs.addTab(I18N.t("tab.title.information_type"), createDimensionTab(informationTypes));
-		tabs.addTab(I18N.t("tab.title.evidence_type"), createDimensionTab(evidenceTypes));
-		tabs.addTab(I18N.t("tab.title.without_qualifiers") + " (" + withoutQualifiers + ")", createMissingTab(missing));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.overview"), "overview", createOverviewTab(withQualifiers, withoutQualifiers));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.source_type"), "source_type", createDimensionTab(sourceTypes));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.information_type"), "information_type", createDimensionTab(informationTypes));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.evidence_type"), "evidence_type", createDimensionTab(evidenceTypes));
+		GUIHelper.addTab(tabs, I18N.t("tab.title.without_qualifiers") + " (" + withoutQualifiers + ")", "without_qualifiers", createMissingTab(missing));
 		tabs.setPreferredSize(new Dimension(640, 420));
 
 		setLayout(new BorderLayout(8, 8));
