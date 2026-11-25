@@ -89,6 +89,11 @@ Every major feature should reinforce those capabilities.
 
 ## TODO
 
+### HIGH
+
+root 3689 non c'è la figlia, se root 3688 ricompare il padre 3689
+root 436, l'immagine di 1431 è tutta a destra, forse perché la label delle date di nascita e morte è troppo lunga ("1623-1630 - 1656 (~29 y/o)"), forse è il caso di scrivere "1623-30"?
+
 ### MEDIUM
 
 1. **Advanced search and saved groups** (high value).
