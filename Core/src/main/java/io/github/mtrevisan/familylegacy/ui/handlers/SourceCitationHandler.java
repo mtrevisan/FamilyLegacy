@@ -88,7 +88,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<RecordDialo
 		final FLEFRecord source = model.getRecordById(sourceId);
 		final String stance = FLEFRecordHelper.getChildValue(record, SourceCitationReader.TAG_STANCE);
 		final String stanceText = (stance != null? I18N.t("enum.source_citation.stance." + stance): "--");
-		return "❝ [" + stanceText + "] "
+		return "“ [" + stanceText + "] "
 			+ (source != null? SourceHandler.getInstance().getDisplayText(source, model): "--");
 	}
 

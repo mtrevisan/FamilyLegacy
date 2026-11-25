@@ -142,6 +142,47 @@ class TreeSugiyamaUniformityTest{
 		final Rectangle root = tree.stream().filter(r -> r.y == rootY).reduce(Rectangle::union).orElseThrow();
 		Assertions.assertEquals(parents.getCenterX(), root.getCenterX(), 2., "parents " + parents + " root " + root);
 	}
+
+	@Test
+	void parentsAreCenteredOverARootWithoutPartner() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless());
+
+		final FLEFModel model = new FLEFParser().parse("""
+			header {
+				protocol {
+					name Family LEgacy Format
+					version 0.2.0
+				}
+				date 2026-01-01T00:00:00Z
+			}
+			""" + person("A", "Agnol", "male") + person("B", "Antonia", "female") + person("C1", "Lucia", "female")
+			+ person("FA", "Francesco", "male") + person("MA", "Mother", "female") + person("FB", "Hieronimo", "male")
+			+ person("MB", "Menega", "female")
+			+ rel("R1", "spouse", "A", "B") + rel("R2", "biological_child", "C1", "A") + rel("R3", "biological_child", "C1", "B")
+			+ rel("R8", "biological_child", "A", "FA") + rel("R9", "biological_child", "A", "MA")
+			+ rel("R10", "biological_child", "B", "FB") + rel("R11", "biological_child", "B", "MB"));
+		final GenealogyRepository repository = new GenealogyRepository(RelationshipReader.BIOLOGICAL, model);
+		final IndividualTreeGraphPanel panel = new IndividualTreeGraphPanel(TreeLayout.VERTICAL, new TreeLayoutEngine(), repository, model)
+			.withShowPartner();
+		final JFrame[] frame = new JFrame[1];
+		SwingUtilities.invokeAndWait(() -> {
+			panel.load("C1", 2);
+			frame[0] = new JFrame();
+			frame[0].add(panel);
+			frame[0].setSize(1000, 700);
+			frame[0].setVisible(true);
+		});
+		flush();
+		final List<Rectangle> tree = boxes(panel, frame[0], "singleChild");
+		SwingUtilities.invokeAndWait(() -> frame[0].dispose());
+
+		final List<Integer> ys = tree.stream().map(r -> r.y).distinct().sorted().toList();
+		//a root without a partner is alone on its row: its parents are centered over it
+		final Rectangle root = tree.stream().filter(r -> r.y == ys.getLast()).reduce(Rectangle::union).orElseThrow();
+		final Rectangle parents = tree.stream().filter(r -> r.y == ys.get(ys.size() - 2)).reduce(Rectangle::union).orElseThrow();
+		Assertions.assertEquals(root.getCenterX(), parents.getCenterX(), 2., "root " + root + " parents " + parents);
+	}
+
 	private static void flush() throws Exception{
 		for(int i = 0; i < 5; i ++){
 			SwingUtilities.invokeAndWait(() -> {});

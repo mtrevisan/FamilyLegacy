@@ -65,7 +65,9 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.LayoutManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -297,8 +299,8 @@ public final class ReportOptionsPanel extends JPanel{
 
 
 	@Override
-	public java.awt.Dimension getMinimumSize(){
-		return new java.awt.Dimension(0, super.getMinimumSize().height);
+	public Dimension getMinimumSize(){
+		return new Dimension(0, super.getMinimumSize().height);
 	}
 
 	/**
@@ -833,18 +835,18 @@ public final class ReportOptionsPanel extends JPanel{
 		label.setToolTipText(I18N.t(tooltipKey, null));
 		combo.setToolTipText(I18N.t(tooltipKey, null));
 		//(the width is the one of the column, not the one of the longest item)
-		combo.setMinimumSize(new java.awt.Dimension(0, combo.getMinimumSize().height));
-		combo.setPreferredSize(new java.awt.Dimension(0, combo.getPreferredSize().height));
+		combo.setMinimumSize(new Dimension(0, combo.getMinimumSize().height));
+		combo.setPreferredSize(new Dimension(0, combo.getPreferredSize().height));
 		group.add(label);
 		group.add(combo);
 	}
 
 	/** A group that can be narrower than its widest text (the dialog follows the width of the window, a text that does not fit is cut). */
-	private static JPanel shrinkable(final java.awt.LayoutManager layout){
+	private static JPanel shrinkable(final LayoutManager layout){
 		return new JPanel(layout){
 			@Override
-			public java.awt.Dimension getMinimumSize(){
-				return new java.awt.Dimension(0, super.getMinimumSize().height);
+			public Dimension getMinimumSize(){
+				return new Dimension(0, super.getMinimumSize().height);
 			}
 		};
 	}

@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -113,7 +112,7 @@ public class CoordinateAssigner{
 		// layout and as the column index in horizontal layout.
 		int gridRow = 0;
 		if(!isVertical && hasChildren){
-			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical, treeLayout);
+			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical);
 			gridRow ++;
 		}
 
@@ -121,7 +120,7 @@ public class CoordinateAssigner{
 			existingPanels, treeLayout, genealogyRepository, partnerCycleHandler, nodeToPanelMap);
 
 		if(isVertical && hasChildren)
-			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical, treeLayout);
+			addChildrenStrip(canvas, siblingsPanel, gridRow, isVertical);
 
 		parentIndex.fillChildMappings(layers, nodeToPanelMap);
 		parentIndex.fillRootMapping(rootNode, nodeToPanelMap);
@@ -228,15 +227,15 @@ public class CoordinateAssigner{
 	}
 
 	private static void addChildrenStrip(final JPanel canvas, final SiblingsPanel siblingsPanel,
-			final int gridRow, final boolean isVertical, final TreeLayout treeLayout){
-		final JScrollPane strip = ChildrenStripBuilder.wrap(siblingsPanel, treeLayout);
+			final int gridRow, final boolean isVertical){
+		//no nested scroll pane: the strip lives on the main canvas, which is the only scrolling/panning surface
 		final String cellConstraints = (isVertical
-			? "cell 0 " + gridRow + ",align center,wmax pref"
-			: "cell " + gridRow + " 0,align center,hmax pref");
+			? "cell 0 " + gridRow + ",align center"
+			: "cell " + gridRow + " 0,align center");
 
 		LOGGER.debug("add children with constraints {}", cellConstraints);
 
-		canvas.add(strip, cellConstraints);
+		canvas.add(siblingsPanel, cellConstraints);
 	}
 
 }

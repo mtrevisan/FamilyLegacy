@@ -420,6 +420,7 @@ public final class GEDCOMMapper{
 		SOURCE_KIND_MAP.put("death_certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
 		SOURCE_KIND_MAP.put("certificate", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
 		SOURCE_KIND_MAP.put("registry_office", SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+		SOURCE_KIND_MAP.put("religious", SourceReader.ENUM_KIND_CHURCH_REGISTER);
 		SOURCE_KIND_MAP.put("church", SourceReader.ENUM_KIND_CHURCH_REGISTER);
 		SOURCE_KIND_MAP.put("parish", SourceReader.ENUM_KIND_CHURCH_REGISTER);
 		SOURCE_KIND_MAP.put("parish_register", SourceReader.ENUM_KIND_CHURCH_REGISTER);
@@ -878,6 +879,18 @@ public final class GEDCOMMapper{
 	public static String mapKnownSourceKind(final String text){
 		final String token = toTypeToken(text);
 		return (token != null? SOURCE_KIND_MAP.get(token): null);
+	}
+
+	/**
+	 * The kind of the source that a TYPE of an event (e.g. {@code BIRT.TYPE religious}) tells: a civil or religious event is
+	 * recorded in a civil registration or in a church register.
+	 *
+	 * @param eventType	The TYPE of the event, may be {@code null}.
+	 * @return	{@code civil_registration} or {@code church_register}, {@code null} if the TYPE says neither.
+	 */
+	public static String mapEventTypeSourceKind(final String eventType){
+		final String kind = mapKnownSourceKind(eventType);
+		return (SourceReader.ENUM_KIND_CIVIL_REGISTRATION.equals(kind) || SourceReader.ENUM_KIND_CHURCH_REGISTER.equals(kind)? kind: null);
 	}
 
 	public static String mapMediaType(String gedcomMedia){

@@ -199,8 +199,16 @@ public final class LayoutRenderer{
 			final Point[] enterPoints = childrenPanel.getPaintingEnterPoints();
 			if(enterPoints.length > 0){
 				final Point targetPoint = SwingUtilities.convertPoint(childrenPanel, enterPoints[0], container);
-				path.moveTo(homeExit.x, homeExit.y);
-				path.lineTo(targetPoint.x, homeExit.y);
+				//the lines of the boxes and the one of the parents are rounded each on its own: when the line of the parents
+				//would run a pixel off the line of the child in front of it, it takes the line of that child, so that they join
+				int y = homeExit.y;
+				for(final Point enterPoint : enterPoints){
+					final int childY = SwingUtilities.convertPoint(childrenPanel, enterPoint, container).y;
+					if(Math.abs(childY - homeExit.y) == 1)
+						y = childY;
+				}
+				path.moveTo(homeExit.x, y);
+				path.lineTo(targetPoint.x, y);
 			}
 		}
 	}

@@ -49,6 +49,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.indivi
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.PasteIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.RelocateIndividualTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals.UnlinkIndividualRelationshipsTool;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceTool;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.EntityPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
@@ -57,7 +58,6 @@ import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceTool;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;

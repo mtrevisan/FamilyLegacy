@@ -26,9 +26,16 @@ package io.github.mtrevisan.familylegacy.i18n;
 
 import com.ibm.icu.text.MessageFormat;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -123,19 +130,58 @@ public final class I18N{
 
 	/**
 	 * Returns every distinct printable character used by the messages of the current language (in code point
-	 * order), i.e. the characters a font must be able to draw to render the whole user interface.
+	 * order) that belongs to the main script of the bundle (the script most letters are written in, e.g. Latin) or to
+	 * no script in particular (digits, punctuation, symbols, combining marks), i.e. the characters a font must be
+	 * able to draw to render the user interface.
+	 * <p>Letters of other scripts are left out on purpose: they appear as occasional native-script labels (e.g. a
+	 * Japanese or Arabic name next to its transliteration) that no single font covers together with the main script,
+	 * and the Java runtime draws them with a fallback font anyway. Requiring them would exclude every real font.</p>
 	 */
 	public static String allCharacters(){
-		final java.util.TreeSet<Integer> codePoints = new java.util.TreeSet<>();
-		final java.util.Enumeration<String> keys = BUNDLE.getKeys();
-		while(keys.hasMoreElements()){
-			final String value = BUNDLE.getString(keys.nextElement());
+		final List<String> values = values();
+		final TreeSet<Integer> codePoints = new TreeSet<>();
+		for(final String value : values)
 			value.codePoints()
 				.filter(cp -> !Character.isISOControl(cp) && !Character.isWhitespace(cp))
 				.forEach(codePoints::add);
-		}
+		return mainScriptCharacters(codePoints, countLetters(values));
+	}
+
+	private static List<String> values(){
+		final List<String> values = new ArrayList<>();
+		final Enumeration<String> keys = BUNDLE.getKeys();
+		while(keys.hasMoreElements())
+			values.add(BUNDLE.getString(keys.nextElement()));
+		return values;
+	}
+
+	private static Map<Character.UnicodeScript, Integer> countLetters(final List<String> values){
+		final Map<Character.UnicodeScript, Integer> letters = new EnumMap<>(Character.UnicodeScript.class);
+		for(final String value : values)
+			value.codePoints()
+				.filter(Character::isLetter)
+				.forEach(cp -> letters.merge(Character.UnicodeScript.of(cp), 1, Integer::sum));
+		return letters;
+	}
+
+	/**
+	 * Keeps the characters of the most frequent script among the letters, plus the script-neutral ones.
+	 *
+	 * @param codePoints	The distinct characters.
+	 * @param letters	The number of letters per script.
+	 */
+	static String mainScriptCharacters(final Collection<Integer> codePoints,
+			final Map<Character.UnicodeScript, Integer> letters){
+		final Character.UnicodeScript main = letters.entrySet().stream()
+			.max(Map.Entry.comparingByValue())
+			.map(Map.Entry::getKey)
+			.orElse(Character.UnicodeScript.LATIN);
 		final StringBuilder sb = new StringBuilder();
-		codePoints.forEach(sb::appendCodePoint);
+		for(final int cp : codePoints){
+			final Character.UnicodeScript script = Character.UnicodeScript.of(cp);
+			if(script == main || script == Character.UnicodeScript.COMMON || script == Character.UnicodeScript.INHERITED)
+				sb.appendCodePoint(cp);
+		}
 		return sb.toString();
 	}
 

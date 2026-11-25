@@ -48,10 +48,10 @@ import java.util.function.Consumer;
  */
 public class ResearchActivityFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> activityTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.TYPES, I18N.t("search.combo.any"))));
-	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.STATUSES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> activityTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.TYPES, I18N.t("search.combo.any"))), "enum.research_activity.type");
+	private final JComboBox<String> statusCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.STATUSES, I18N.t("search.combo.any"))), "enum.research_activity.status");
 	private final JTextField actionField = new JTextField(20);
-	private final JComboBox<String> resultCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.RESULTS, I18N.t("search.combo.any"))));
+	private final JComboBox<String> resultCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchActivityReader.RESULTS, I18N.t("search.combo.any"))), "enum.research_activity.result");
 	private final JTextField observationField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

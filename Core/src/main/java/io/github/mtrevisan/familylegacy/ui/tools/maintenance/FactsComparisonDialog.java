@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 
 import io.github.mtrevisan.familylegacy.comparison.IndividualFacts;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import org.apache.commons.lang3.StringUtils;
 
@@ -82,8 +83,12 @@ public final class FactsComparisonDialog extends JDialog{
 
 		this.comparison = comparison;
 		tableModel = new FactsTableModel(comparison);
-		table = new JTable(tableModel);
+		table = new SortableTable(tableModel);
 
+		table.setAutoCreateRowSorter(true);
+		//the rows change place when sorted: their heights follow
+		table.getRowSorter()
+			.addRowSorterListener(e -> fitRowHeights());
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 		table.setTableHeader(table.getTableHeader());
 		table.getTableHeader()
@@ -239,7 +244,7 @@ public final class FactsComparisonDialog extends JDialog{
 			setText(value != null? value.toString(): StringUtils.EMPTY);
 			setFont(column == 0? table.getFont().deriveFont(Font.BOLD): table.getFont());
 
-			final IndividualFacts.State state = ((FactsTableModel)table.getModel()).stateOf(row);
+			final IndividualFacts.State state = ((FactsTableModel)table.getModel()).stateOf(table.convertRowIndexToModel(row));
 			Color background = table.getBackground();
 			if(column > 0 && state == IndividualFacts.State.DIFFERENT)
 				background = COLOR_DIFFERENT;

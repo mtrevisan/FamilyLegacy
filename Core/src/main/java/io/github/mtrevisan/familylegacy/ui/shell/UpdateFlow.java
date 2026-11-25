@@ -178,7 +178,7 @@ final class UpdateFlow{
 
 		//Esc (or closing the window) is "later": it needs no button
 		final Object[] options = {I18N.t("menu.help.check.updates.install"), I18N.t("menu.help.check.updates.page")};
-		final int choice = JOptionPane.showOptionDialog(frame, message(headline, release),
+		final int choice = MessageDialogs.option(frame, message(headline, release),
 			I18N.t("menu.help.check.updates.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if(choice == 0)
 			downloadAndInstall(release);
@@ -188,7 +188,7 @@ final class UpdateFlow{
 
 	private void offerPage(final String message, final ReleaseInfo release){
 		final Object[] options = {I18N.t("menu.help.check.updates.page")};
-		final int choice = JOptionPane.showOptionDialog(frame, message(message, release), I18N.t("menu.help.check.updates.title"),
+		final int choice = MessageDialogs.option(frame, message(message, release), I18N.t("menu.help.check.updates.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if(choice == 0)
 			openPage(release.pageUrl());
@@ -259,7 +259,7 @@ final class UpdateFlow{
 
 		//Esc (or closing the window) is "later": it needs no button
 		final Object[] options = {I18N.t("menu.help.check.updates.run")};
-		final int choice = JOptionPane.showOptionDialog(frame,
+		final int choice = MessageDialogs.option(frame,
 			I18N.tf("menu.help.check.updates.downloaded", release.version().toString()), I18N.t("menu.help.check.updates.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
 		if(choice != 0)

@@ -145,6 +145,59 @@ public final class ChronomapWorkspace extends JPanel{
 	}
 
 
+	/** The outcome of {@link #goTo(String)}. */
+	public enum JumpResult{
+		/** The timeline was set to a moment the person is alive, and the map is centered on them. */
+		OK,
+		/** The person has no event or attribute with a position, so they cannot be shown on the map. */
+		NO_POSITION,
+		/** The person has positions, but no moment in which they were alive can be determined. */
+		NO_TIME
+	}
+
+	/**
+	 * Goes to an individual: moves the timeline to a moment they are alive (left unchanged if they already are), then selects
+	 * them and centers the map on them. Nothing changes when the individual cannot be placed.
+	 *
+	 * @param id	The id of the individual.
+	 * @return	What happened.
+	 */
+	public JumpResult goTo(final String id){
+		final List<ChronomapIndex.GeoAnchor> anchors = index.anchorsOf(id);
+		if(anchors.isEmpty())
+			return JumpResult.NO_POSITION;
+
+		if(!index.isAliveAt(id, timeline.getCurrentTime())){
+			final Long born = index.effectiveBirthJdn(id);
+			if(born == null)
+				return JumpResult.NO_TIME;
+
+			//prefer the first moment with a known position, so that the marker can be placed
+			long firstAnchor = Long.MAX_VALUE;
+			for(final ChronomapIndex.GeoAnchor anchor : anchors)
+				if(anchor.startJdn() != Long.MIN_VALUE)
+					firstAnchor = Math.min(firstAnchor, anchor.startJdn());
+			final long preferred = Math.max(born, firstAnchor);
+
+			if(index.isAliveAt(id, preferred))
+				timeline.setCurrentTime(preferred);
+			else if(index.isAliveAt(id, born))
+				timeline.setCurrentTime(born);
+			else
+				return JumpResult.NO_TIME;
+
+			//the timeline domain may have clamped the value
+			if(!index.isAliveAt(id, timeline.getCurrentTime()))
+				return JumpResult.NO_TIME;
+		}
+
+		selection.select(id);
+		agoraPanel.showAtTop(id);
+		selection.requestFocus(id);
+		return JumpResult.OK;
+	}
+
+
 	/** Exposes the shared selection, for external synchronization. */
 	public WorkspaceSelection selection(){
 		return selection;

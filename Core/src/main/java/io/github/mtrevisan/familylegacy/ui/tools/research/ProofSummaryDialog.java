@@ -96,9 +96,6 @@ final class ProofSummaryDialog extends JDialog{
 
 		distributionTable = ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.status"), I18N.t("column.conclusions")}, List.of()),
 			null);
-		distributionTable.setAutoCreateRowSorter(false);
-		//the sorter made with the empty model would be kept, and would show no rows once the model is replaced
-		distributionTable.setRowSorter(null);
 		conclusionsTable = ToolDialogs.createTable(new RowTableModel(columns(), List.of()), row -> openRow(row));
 		conclusionsTable.getSelectionModel()
 			.addListSelectionListener(e -> updateOpenButton());
@@ -138,7 +135,7 @@ final class ProofSummaryDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(tabs, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter("", openRecord, inspect, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText())), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter("", openRecord, inspect, ToolDialogs.createCopyButton(() -> ((RowTableModel)conclusionsTable.getModel()).toText(), conclusionsTable)), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);
@@ -192,7 +189,7 @@ final class ProofSummaryDialog extends JDialog{
 		distributionTable.setModel(new RowTableModel(new String[]{I18N.t("column.status"), I18N.t("column.conclusions")}, distributionRows));
 		distributionTable.getColumnModel().getColumn(0).setPreferredWidth(420);
 		distributionTable.getColumnModel().getColumn(1).setPreferredWidth(120);
-		conclusionsTable.setModel(new RowTableModel(columns(), conclusionRows));
+		RowTableModel.replaceModel(conclusionsTable, new RowTableModel(columns(), conclusionRows));
 		final TableColumnModel columns = conclusionsTable.getColumnModel();
 		columns.getColumn(0).setPreferredWidth(150);
 		columns.getColumn(1).setPreferredWidth(100);

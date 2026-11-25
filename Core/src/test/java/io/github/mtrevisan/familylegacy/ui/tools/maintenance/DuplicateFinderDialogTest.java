@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -170,6 +172,39 @@ class DuplicateFinderDialogTest{
 			search(dialog);
 			Assertions.assertEquals(2, dialog.computations());
 			Assertions.assertTrue(table.getRowCount() <= atTwentyFive);
+		}
+		finally{
+			frame.dispose();
+			SwingUtilities.invokeAndWait(dialog::dispose);
+		}
+	}
+
+	@Test
+	void theFuzzyOptionFiltersTheCandidatesAgain() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "needs a display");
+		final JFrame frame = new JFrame("main");
+		final DuplicateFinderDialog dialog = open(frame);
+		try{
+			final JTable table = findTable(dialog.getContentPane());
+			final JLabel status = (JLabel)field(dialog, "statusLabel");
+			final SearchBox box = (SearchBox)field(dialog, "searchBox");
+			waitFor(() -> !status.getText().isBlank());
+			setThreshold(dialog, 25);
+			waitFor(() -> table.getRowCount() > 0);
+			final int all = table.getRowCount();
+			Assertions.assertTrue(all > 1);
+
+			//a word with a typo matches nothing...
+			SwingUtilities.invokeAndWait(() -> box.field().setText("Anaa"));
+			Thread.sleep(600);
+			SwingUtilities.invokeAndWait(() -> {});
+			Assertions.assertEquals(0, table.getRowCount());
+			//...until the fuzzy option is switched on: the filter is made again, and the status says how many are shown
+			SwingUtilities.invokeAndWait(() -> box.setSelected(SearchMode.FUZZY, true));
+			Assertions.assertEquals(1, table.getRowCount());
+			Assertions.assertEquals(I18N.tf("text.duplicates.shown", 1, all), status.getText());
+			SwingUtilities.invokeAndWait(() -> box.setSelected(SearchMode.FUZZY, false));
+			Assertions.assertEquals(0, table.getRowCount());
 		}
 		finally{
 			frame.dispose();

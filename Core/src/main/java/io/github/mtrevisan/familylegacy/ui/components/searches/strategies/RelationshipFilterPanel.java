@@ -48,7 +48,7 @@ import java.util.function.Consumer;
  */
 public class RelationshipFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(RelationshipReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(RelationshipReader.TYPES, I18N.t("search.combo.any"))), "enum.relationship.type");
 	private final JTextField roleField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

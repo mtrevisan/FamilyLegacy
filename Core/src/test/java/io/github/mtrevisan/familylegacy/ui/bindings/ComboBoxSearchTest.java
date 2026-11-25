@@ -27,6 +27,13 @@ package io.github.mtrevisan.familylegacy.ui.bindings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import java.awt.Component;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 
 class ComboBoxSearchTest{
 
@@ -89,8 +96,8 @@ class ComboBoxSearchTest{
 
 		Assertions.assertEquals("beta", model.getSearchText());
 		Assertions.assertEquals(1, combo.getItemCount());
-		final java.awt.Component face = combo.getRenderer().getListCellRendererComponent(new javax.swing.JList<>(), "x", -1, false, false);
-		Assertions.assertEquals("→ beta", ((javax.swing.JLabel)face).getText());
+		final Component face = combo.getRenderer().getListCellRendererComponent(new JList<>(), "x", -1, false, false);
+		Assertions.assertEquals("→ beta", ((JLabel)face).getText());
 
 		type(combo, '');
 
@@ -132,17 +139,15 @@ class ComboBoxSearchTest{
 		Assertions.assertEquals(5, combo.getItemCount());
 	}
 
-	private static void release(final java.awt.Component component, final char c){
-		final java.awt.event.KeyEvent event = new java.awt.event.KeyEvent(component, java.awt.event.KeyEvent.KEY_RELEASED, 0L, 0,
-			java.awt.event.KeyEvent.VK_A, c);
-		for(final java.awt.event.KeyListener listener : component.getKeyListeners())
+	private static void release(final Component component, final char c){
+		final KeyEvent event = new KeyEvent(component, KeyEvent.KEY_RELEASED, 0L, 0, KeyEvent.VK_A, c);
+		for(final KeyListener listener : component.getKeyListeners())
 			listener.keyReleased(event);
 	}
 
-	private static void type(final javax.swing.JComboBox<String> combo, final char c){
-		final java.awt.event.KeyEvent event = new java.awt.event.KeyEvent(combo, java.awt.event.KeyEvent.KEY_TYPED, 0L, 0,
-			java.awt.event.KeyEvent.VK_UNDEFINED, c);
-		for(final java.awt.event.KeyListener listener : combo.getKeyListeners())
+	private static void type(final JComboBox<String> combo, final char c){
+		final KeyEvent event = new KeyEvent(combo, KeyEvent.KEY_TYPED, 0L, 0, KeyEvent.VK_UNDEFINED, c);
+		for(final KeyListener listener : combo.getKeyListeners())
 			listener.keyTyped(event);
 	}
 

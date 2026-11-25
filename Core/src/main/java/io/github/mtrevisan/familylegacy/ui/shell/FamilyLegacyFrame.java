@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.ChronomapWorkspace;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.TreeType;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.FindRecordDialog;
@@ -276,6 +277,8 @@ public class FamilyLegacyFrame extends JFrame{
 			dossierManager.syncDossier(id, model);
 			tasksPanel.selectionChanged();
 		});
+		switcher.setHistoryListener(() -> toolBarBuilder.updateNavigationState(switcher.canGoBack(), switcher.canGoForward()));
+		toolBarBuilder.updateNavigationState(switcher.canGoBack(), switcher.canGoForward());
 	}
 
 	/** Rebuilds the views after the privacy policy changed. */
@@ -367,7 +370,7 @@ public class FamilyLegacyFrame extends JFrame{
 	void undo(){
 		final ModelHistory.Origin origin = history.peekUndoOrigin();
 		if(origin == ModelHistory.Origin.DIALOG
-				&& JOptionPane.showConfirmDialog(this, I18N.t("confirmation.undo.dialog.message"),
+				&& MessageDialogs.confirm(this, I18N.t("confirmation.undo.dialog.message"),
 				I18N.t("confirmation.undo.dialog.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
 				!= JOptionPane.YES_OPTION)
 			return;
@@ -408,7 +411,23 @@ public class FamilyLegacyFrame extends JFrame{
 	private void openJumpToDialog(){
 		final ProjectionType projectionType = switcher.getCurrentProjectionType();
 		final String id = JumpToIndividualDialog.showAndGet(this, model, projectionType == ProjectionType.EGO_NETWORK);
-		if(id != null)
+		if(id == null)
+			return;
+
+		final ChronomapWorkspace.JumpResult result = switcher.jumpInChronomap(id);
+		if(result == null || result == ChronomapWorkspace.JumpResult.OK){
+			//not in the chronomap: re-root the view; in the chronomap, the jump has been done
+			if(result == null)
+				loadRoot(id);
+			return;
+		}
+
+		final String[] options = {I18N.t("button.ok"), I18N.t("chronomap.jump.show_anyway")};
+		final String message = I18N.t(result == ChronomapWorkspace.JumpResult.NO_POSITION? "chronomap.jump.no_position":
+			"chronomap.jump.no_time");
+		final int choice = MessageDialogs.option(this, message, I18N.t("chronomap.jump.title"), JOptionPane.DEFAULT_OPTION,
+			JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+		if(choice == 1)
 			loadRoot(id);
 	}
 
@@ -790,6 +809,11 @@ public class FamilyLegacyFrame extends JFrame{
 	ToolContext createToolContext(){
 		return ToolContexts.custom(model, currentSelectionId(), switcher.getSelectedPanel(),
 			new ToolDispatcher(){
+				@Override
+				public boolean isEgoNetworkActive(){
+					return (switcher.getCurrentProjectionType() == ProjectionType.EGO_NETWORK);
+				}
+
 				@Override
 				public String[] getRootIds(){
 					return switcher.getRootIds();

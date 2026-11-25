@@ -217,7 +217,8 @@ public class KinshipDialog extends JDialog{
 		final FLEFRecord b = fieldB.getEntity();
 
 		final boolean bothSet = (a != null && b != null);
-		swapButton.setEnabled(bothSet);
+		// swapping is meaningful only when a relationship exists (the result is otherwise symmetric)
+		swapButton.setEnabled(false);
 
 		if(!bothSet){
 			resultArea.setText(StringUtils.EMPTY);
@@ -237,6 +238,7 @@ public class KinshipDialog extends JDialog{
 		final KinshipResult result = calculator.calculate(a.getId(), b.getId());
 		resultArea.setText(formatResult(result));
 		resultArea.setCaretPosition(0);
+		swapButton.setEnabled(result.isRelated() && !result.isSameIndividual());
 	}
 
 

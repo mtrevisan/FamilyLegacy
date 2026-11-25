@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
@@ -81,7 +81,7 @@ public final class RestoreFromBackupTool implements ToolOperation{
 			return;
 		}
 
-		final int choice = JOptionPane.showConfirmDialog(context.owner(),
+		final int choice = MessageDialogs.confirm(context.owner(),
 			I18N.tf("confirmation.restore_from_backup.message", file.getName()),
 			I18N.t("confirmation.restore_from_backup.title"),
 			JOptionPane.YES_NO_OPTION,

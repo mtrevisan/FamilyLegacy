@@ -341,6 +341,9 @@ class DocumentSavingTest{
 			final Thread chooser = pressOneOf(UIManager.getString("FileChooser.cancelButtonText"));
 			edit(second, "P9");
 			chooser.join(20_000);
+			//the user is told once that the changes are only in memory, and closes the message
+			final Thread warning = closeDialog();
+			warning.join(20_000);
 			flushEventQueue();
 			Assertions.assertNull(second.fileController().currentFile());
 			Assertions.assertTrue(history(second).isModified());

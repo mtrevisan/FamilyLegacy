@@ -79,6 +79,7 @@ In questo modo la documentazione del lavoro genealogico rimane collegata alle pe
 - gestione delle fonti con estratti e riferimenti ai documenti
 - foto con le persone indicate: il ritaglio di un volto (o di un gruppo) in un'immagine è collegato alla persona, senza copie del file; il visualizzatore disegna i riquadri, mostra i nomi al passaggio del mouse e con un clic apre la scheda della persona
 - "Perché lo crediamo?": per un fatto (una data di nascita, un attributo, una relazione) la catena completa asserzione, citazione, estratto, fonte, con le citazioni a favore e quelle contrarie, la confidenza, le asserzioni concorrenti, le conclusioni collegate e il percorso del ragionamento
+- flusso di lavoro secondo il Genealogical Proof Standard: domanda di ricerca, raccolta delle prove, analisi dei conflitti, conclusione e dichiarazione di prova (generata dal file); per ogni domanda dice cosa manca ancora perché la conclusione si possa considerare ragionevolmente provata
 - tracciamento delle attività di ricerca
 - supporto alla documentazione del ragionamento genealogico
 - strumenti di assistenza alla ricerca

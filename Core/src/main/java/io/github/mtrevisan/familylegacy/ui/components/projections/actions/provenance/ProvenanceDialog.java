@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.ProvenanceService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +79,7 @@ public final class ProvenanceDialog extends JDialog{
 
 	private final JCheckBox related = new JCheckBox(I18N.t("checkbox.provenance.related"));
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
-	private final JTable table = new JTable();
+	private final JTable table = new SortableTable();
 	private final JButton openSource = new JButton(I18N.t("button.open_source"));
 	private final JButton explain = new JButton(I18N.t("button.explain"));
 	private List<ProvenanceService.Row> rows = List.of();
@@ -137,7 +138,7 @@ public final class ProvenanceDialog extends JDialog{
 		add(top, BorderLayout.NORTH);
 		add(scroll, BorderLayout.CENTER);
 		add(ToolDialogs.createFooter(StringUtils.EMPTY, explain, openSource,
-			ToolDialogs.createCopyButton(() -> ((RowTableModel)table.getModel()).toText())),
+			ToolDialogs.createCopyButton(() -> ((RowTableModel)table.getModel()).toText(), table)),
 			BorderLayout.SOUTH);
 
 		reload();
@@ -167,7 +168,7 @@ public final class ProvenanceDialog extends JDialog{
 		for(final ProvenanceService.Row row : rows)
 			tableRows.add(new Object[]{typeLabel(row.ownerType()) + ": " + row.ownerText(), sourceText(row), row.locator(),
 				row.stance(), row.extractText(), row.evidence(), row.repositories()});
-		table.setModel(new RowTableModel(new String[]{I18N.t("column.provenance.owner"), I18N.t("column.source"),
+		RowTableModel.replaceModel(table, new RowTableModel(new String[]{I18N.t("column.provenance.owner"), I18N.t("column.source"),
 			I18N.t("column.provenance.locator"), I18N.t("column.provenance.stance"), I18N.t("column.provenance.extract"),
 			I18N.t("column.provenance.evidence"), I18N.t("column.provenance.repository")}, tableRows));
 		final int[] widths = {260, 220, 120, 80, 220, 140, 150};

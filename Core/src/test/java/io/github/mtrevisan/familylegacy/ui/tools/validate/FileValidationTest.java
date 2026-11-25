@@ -53,6 +53,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -874,7 +875,7 @@ class FileValidationTest{
 
 	@Test
 	void aFileThatIsNotWhatTheRecordSaysIsAWarning(@TempDir final Path directory) throws IOException{
-		final byte[] pdf = "%PDF-1.7\n".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		final byte[] pdf = "%PDF-1.7\n".getBytes(StandardCharsets.US_ASCII);
 		final byte[] png = {(byte)0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A};
 		Files.write(directory.resolve("really-a-pdf.jpg"), pdf);
 		Files.write(directory.resolve("really-a-png.png"), png);
@@ -907,7 +908,7 @@ class FileValidationTest{
 
 	@Test
 	void theStructuralChecksTellHowFarTheyAre() throws IOException{
-		final java.util.List<Double> values = new java.util.ArrayList<>();
+		final List<Double> values = new ArrayList<>();
 
 		ConsistencyService.check(model(), values::add);
 

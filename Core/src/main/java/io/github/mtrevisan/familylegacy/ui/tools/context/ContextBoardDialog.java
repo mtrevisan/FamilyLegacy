@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -325,7 +326,7 @@ public final class ContextBoardDialog extends JDialog{
 		//the impacts of a context are not deleted with it: they are left under "(no context)"
 		if(node.kind().isContext() && !node.children().isEmpty())
 			message += "\n\n" + I18N.tf("confirmation.delete.context_record.orphaned", node.children().size());
-		final int confirm = JOptionPane.showConfirmDialog(this, message, I18N.t("confirmation.delete.record.title"),
+		final int confirm = MessageDialogs.confirm(this, message, I18N.t("confirmation.delete.record.title"),
 			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;

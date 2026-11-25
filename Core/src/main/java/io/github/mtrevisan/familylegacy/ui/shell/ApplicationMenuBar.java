@@ -87,6 +87,8 @@ import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -176,11 +178,11 @@ final class ApplicationMenuBar{
 	 * its text: room is added to every submenu (the menus of the bar are left alone).
 	 */
 	private static void reserveArrowSpace(final JMenu menu){
-		for(final java.awt.Component component : menu.getMenuComponents())
+		for(final Component component : menu.getMenuComponents())
 			if(component instanceof JMenu submenu){
 				reserveArrowSpace(submenu);
-				final java.awt.Dimension size = submenu.getPreferredSize();
-				submenu.setPreferredSize(new java.awt.Dimension(size.width + 24, size.height));
+				final Dimension size = submenu.getPreferredSize();
+				submenu.setPreferredSize(new Dimension(size.width + 24, size.height));
 			}
 	}
 

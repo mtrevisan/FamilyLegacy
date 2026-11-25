@@ -29,10 +29,17 @@ import io.github.mtrevisan.familylegacy.reports.i18n.ReportLanguage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 /** The coefficients of Wright, on the pedigrees whose values are known. */
@@ -59,7 +66,7 @@ class ConsanguinityCalculatorTest{
 	void theClosestCommonAncestorsAreTheOnesWithNoCommonAncestorBelowThem(){
 		//random pedigrees of a closed population: the closest ones by the definition (no other common ancestor descends from it) against the
 		//ones the calculator gives
-		final java.util.Random random = new java.util.Random(7);
+		final Random random = new Random(7);
 		for(int round = 0; round < 20; round ++){
 			final int size = 40;
 			final Map<String, List<String>> parents = new LinkedHashMap<>();
@@ -70,15 +77,15 @@ class ConsanguinityCalculatorTest{
 				final String first = "P" + (6 + random.nextInt(size - 6));
 				final String second = "P" + (6 + random.nextInt(size - 6));
 
-				final java.util.Set<String> common = new java.util.TreeSet<>(ancestors(parents, first));
+				final Set<String> common = new TreeSet<>(ancestors(parents, first));
 				common.retainAll(ancestors(parents, second));
-				final java.util.Set<String> expected = new java.util.TreeSet<>(common);
+				final Set<String> expected = new TreeSet<>(common);
 				for(final String candidate : common)
 					for(final String other : common)
 						if(!other.equals(candidate) && ancestors(parents, other).contains(candidate))
 							expected.remove(candidate);
 
-				final java.util.Set<String> actual = new java.util.TreeSet<>();
+				final Set<String> actual = new TreeSet<>();
 				for(final ConsanguinityCalculator.CommonAncestor ancestor : calculator.closestCommonAncestors(first, second))
 					actual.add(ancestor.id());
 				Assertions.assertEquals(expected, actual, first + " and " + second);
@@ -87,9 +94,9 @@ class ConsanguinityCalculatorTest{
 	}
 
 	/** @return the individual and all its ancestors */
-	private static java.util.Set<String> ancestors(final Map<String, List<String>> parents, final String id){
-		final java.util.Set<String> result = new java.util.LinkedHashSet<>();
-		final java.util.Deque<String> pending = new java.util.ArrayDeque<>(List.of(id));
+	private static Set<String> ancestors(final Map<String, List<String>> parents, final String id){
+		final Set<String> result = new LinkedHashSet<>();
+		final Deque<String> pending = new ArrayDeque<>(List.of(id));
 		while(!pending.isEmpty()){
 			final String current = pending.pop();
 			if(result.add(current))
@@ -102,7 +109,7 @@ class ConsanguinityCalculatorTest{
 	void aSmallPopulationMarryingAmongItselfForFortyGenerationsIsQuick(){
 		//8 people a generation, each the child of two of the previous one: the paths between two of them are astronomically many
 		final Map<String, List<String>> parents = new LinkedHashMap<>();
-		final java.util.Random random = new java.util.Random(5);
+		final Random random = new Random(5);
 		for(int generation = 1; generation <= 40; generation ++)
 			for(int i = 0; i < 8; i ++){
 				final int father = random.nextInt(8);
@@ -114,7 +121,7 @@ class ConsanguinityCalculatorTest{
 		final ConsanguinityCalculator calculator = new ConsanguinityCalculator(new AncestryGraph(parents));
 
 		final double[] relationship = new double[1];
-		Assertions.assertTimeoutPreemptively(java.time.Duration.ofSeconds(10),
+		Assertions.assertTimeoutPreemptively(Duration.ofSeconds(10),
 			() -> relationship[0] = calculator.relationship("G40_0", "G40_1"));
 
 		//after so many generations of a closed population everybody is nearly the same person

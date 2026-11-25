@@ -37,18 +37,11 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individual.Ind
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout.IndividualTreeGraphListener;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import java.awt.ComponentOrientation;
 import java.util.List;
 
 
 /**
- * Builds the bottom strip that shows the children of the root couple,
- * and wraps it in a scroll pane suitable for the tree orientation.
+ * Builds the bottom strip that shows the children of the root couple.
  */
 final class ChildrenStripBuilder{
 
@@ -84,38 +77,6 @@ final class ChildrenStripBuilder{
 		final List<IndividualSummary> children = rootNode.getBiologicalChildrenData()
 			.getSiblings();
 		return (children != null && !children.isEmpty());
-	}
-
-	/**
-	 * Wraps the strip in a scroll pane whose scrollbar policies and padding
-	 * match the tree orientation.
-	 */
-	static JScrollPane wrap(final JPanel content, final TreeLayout treeLayout){
-		final JScrollPane scrollPane = new JScrollPane(content);
-		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setBorder(null);
-
-		scrollPane.setVerticalScrollBarPolicy(treeLayout == TreeLayout.VERTICAL
-			? ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
-			: ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(treeLayout == TreeLayout.VERTICAL
-			? ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-			: ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-		if(treeLayout == TreeLayout.VERTICAL){
-			final JScrollBar scrollBar = scrollPane.getHorizontalScrollBar();
-			final int scrollBarHeight = scrollBar.getPreferredSize().height;
-			content.setBorder(BorderFactory.createEmptyBorder(0, 0, scrollBarHeight, 0));
-		}
-		else{
-			scrollPane.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-			final JScrollBar scrollBar = scrollPane.getVerticalScrollBar();
-			final int scrollBarWidth = scrollBar.getPreferredSize().width;
-			content.setBorder(BorderFactory.createEmptyBorder(0, scrollBarWidth, 0, 0));
-		}
-
-		return scrollPane;
 	}
 
 

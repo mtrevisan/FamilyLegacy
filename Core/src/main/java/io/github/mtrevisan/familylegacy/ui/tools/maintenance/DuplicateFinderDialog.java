@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.DuplicateFinderService;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
@@ -91,7 +92,7 @@ public final class DuplicateFinderDialog extends JDialog{
 
 	private final ToolContext context;
 	private final CandidateTableModel tableModel = new CandidateTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JSpinner thresholdSpinner = new JSpinner(new SpinnerNumberModel(
 		DuplicateFinderService.DEFAULT_THRESHOLD, 0, 500, 5));
@@ -295,7 +296,6 @@ public final class DuplicateFinderDialog extends JDialog{
 		applyFilter();
 		if(table.getRowCount() > 0)
 			table.setRowSelectionInterval(0, 0);
-		statusLabel.setText(I18N.plural("text.duplicates.candidates", allCandidates.size()));
 	}
 
 	/**
@@ -403,7 +403,10 @@ public final class DuplicateFinderDialog extends JDialog{
 				}
 			});
 		}
-		statusLabel.setText(I18N.tf("text.duplicates.shown", table.getRowCount(), allCandidates.size()));
+		//the status says how many are shown only while a text narrows the list
+		statusLabel.setText(searchBox.isBlank()
+			? I18N.plural("text.duplicates.candidates", allCandidates.size())
+			: I18N.tf("text.duplicates.shown", table.getRowCount(), allCandidates.size()));
 	}
 
 	private static boolean matchesAnyFeature(final DuplicateFinderService.Candidate c,
@@ -606,6 +609,11 @@ public final class DuplicateFinderDialog extends JDialog{
 		@Override
 		public String getColumnName(final int column){
 			return COLUMNS[column];
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			return (column == 0? Integer.class: String.class);
 		}
 
 		@Override

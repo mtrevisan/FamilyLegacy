@@ -51,8 +51,8 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField questionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any"))));
-	private final JComboBox<String> confidenceCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> statusCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchQuestionReader.STATUSES, I18N.t("search.combo.any"))), "enum.research_question.status");
+	private final JComboBox<String> confidenceCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, I18N.t("search.combo.any"))), "enum.confidence");
 
 	private final Consumer<SearchCriteria> onChanged;
 

@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.EntityListener;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.tree.TreeOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupPanel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
@@ -93,12 +92,6 @@ public final class ToolContexts{
 					else if(listener instanceof GroupListener grpListener && component instanceof GroupPanel panel)
 						grpListener.onGroupPaste(panel);
 				}
-			}
-
-			@Override
-			public void connectChild(){
-				if(listener instanceof IndividualListener indListener && component instanceof IndividualPanel panel)
-					indListener.onChildAddOrConnect(panel, TreeOperation.CONNECT);
 			}
 
 			@Override

@@ -35,9 +35,13 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+
 
 /**
  * A family file made up to measure the program on a big one (see {@link BigFileBenchmark}): people in generations, with their names, sex,
@@ -64,7 +68,7 @@ public class SyntheticFamily{
 		public String surname;
 		public int coupleOfParents = -1;
 		public Person p1, p2;
-		public java.util.List<Person> kids = new java.util.ArrayList<>();
+		public List<Person> kids = new ArrayList<>();
 	}
 
 	public final List<Person> people = new ArrayList<>();
@@ -272,8 +276,8 @@ public class SyntheticFamily{
 	}
 
 	public static int ancestors(final Person p){
-		final java.util.Set<Person> seen = new java.util.HashSet<>();
-		final java.util.ArrayDeque<Person> q = new java.util.ArrayDeque<>();
+		final Set<Person> seen = new HashSet<>();
+		final ArrayDeque<Person> q = new ArrayDeque<>();
 		q.add(p);
 		while(!q.isEmpty()){
 			final Person x = q.poll();
@@ -286,8 +290,8 @@ public class SyntheticFamily{
 	}
 
 	public static int descendants(final Person p){
-		final java.util.Set<Person> seen = new java.util.HashSet<>();
-		final java.util.ArrayDeque<Person> q = new java.util.ArrayDeque<>();
+		final Set<Person> seen = new HashSet<>();
+		final ArrayDeque<Person> q = new ArrayDeque<>();
 		q.add(p);
 		while(!q.isEmpty())
 			for(final Person k : q.poll().kids)

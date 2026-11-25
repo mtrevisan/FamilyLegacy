@@ -58,6 +58,27 @@ The tasks are generated from the findings of the [Research Assistant](assistant.
 
 The context is not proof that something happened to a person: an impact is an interpretation, and says why. The [Research Assistant](assistant.md) can suggest impacts that are worth checking.
 
+## The Genealogical Proof Standard workflow
+
+**Research > GPS Workflow...** follows a research question from the question to the proof, and answers one thing: *what is still missing before this conclusion can be considered reasonably proven?* It reads the file and never decides anything: it says what the records do not show yet, the judgement stays with you. It starts on the research question (or the conclusion) selected, otherwise on the first question; the list at the top changes it.
+
+The dialog shows three things.
+
+- **Workflow**: the five stages, each *done*, *done, with recommendations* or *to do*, with how many required and recommended things are missing in it. They are the *research question* (it says which people, events or records it is about), the *evidence collection* (research done, sources cited and assessed), the *conflict analysis* (competing assertions and the conclusions that judge them), the *conclusion* (proof status, preferred assertion, reasoning) and the *proof statement*, which can be written without caveats when nothing required is missing.
+- **GPS elements**: the five elements of the Genealogical Proof Standard, each *met* or with the number of things missing in it: reasonably exhaustive research, complete and accurate citations, analysis and correlation of the evidence, resolution of conflicting evidence, a soundly reasoned conclusion.
+- **What is still missing**: the list. *Required* items keep the conclusion from being considered reasonably proven: no search completed, an assertion with no citation, competing assertions that no conclusion evaluates, an assertion that only citations contradict, a conclusion with no proof status, no narrative, no preferred assertion, or whose preferred assertion has no supporting citation (or, for *proven*, no direct evidence from an original source), or an alternative that weighs more than the preferred one, or no conclusion at all. *Recommended* items make the proof stronger: planned or unfinished activities and open tasks of the question, fewer than two sources, no original source, citations with no page or passage, citations whose evidence is not assessed (original or derived, primary or secondary, direct or indirect), no recorded analysis, a rival reading that is also supported, a conclusion that is *supported* but not *proven*, a question with no summary of its conclusion. A question marked *resolved* while something required is missing is flagged too. The verdict above the lists is *not started*, *in progress*, *reasonably proven* (nothing required is missing) or *complete* (nothing is missing at all).
+
+The assertions looked at are the ones the question is about (an individual stands for everything said about them: their events, attributes and relationships) and the one each conclusion prefers; the ones a conclusion sets aside are compared with it, not asked for their own evidence. A long list of the same kind is cut after a few lines, with the number left.
+
+Buttons:
+
+- **Open record** opens the record the selected item is about (the activity, task, assertion or conclusion), or the question when the item is about the whole research. A double-click does the same.
+- **Create conclusion** starts a conclusion for the question with the competing assertions of the selected item already in *Resolves*; nothing is saved until you save it. It is enabled for *no conclusion*, *unresolved conflict*, *contradicted* and *contradiction not addressed*; a double-click on those items does the same.
+- **Proof statement...** writes the argument from what the file holds: the question, the research done, the evidence with its sources, the conflicts and how they were resolved, the conclusion with its reasoning, and, at the end, the limits (what is not yet shown). The text can be edited, copied (**Copy all**) or kept as a *research* note of the question called *Proof statement* (**Save as note of the question**; saving again replaces it). It is a draft for you to complete, nothing in it is invented.
+- **Refresh** reads the file again; it is also read again after anything is edited from the dialog.
+
+The workflow is also an action of the Research Assistant palette (**Ctrl+Shift+A**). It is shown from the *Standard* level.
+
 ## Weighing the evidence
 
 - **Conclusions...** lists every conclusion; **Identity Hypotheses...** lists the hypotheses, each with the two candidates it compares. An identity hypothesis is how you record "these two individuals may be the same person" without merging them. A conclusion on the hypothesis then says whether it is proven or disproven.

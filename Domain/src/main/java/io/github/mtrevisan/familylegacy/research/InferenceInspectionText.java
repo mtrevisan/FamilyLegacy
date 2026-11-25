@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.research.InferenceInspection.Inspection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -93,8 +94,8 @@ public final class InferenceInspectionText{
 			line(text, I18N.t("text.inference.checks.none"));
 		for(final Finding finding : inspection.findings())
 			line(text, "- " + (finding.subject() != null
-				? I18N.tf("text.inference.finding." + finding.kind().name().toLowerCase(java.util.Locale.ROOT), finding.subject())
-				: I18N.t("text.inference.finding." + finding.kind().name().toLowerCase(java.util.Locale.ROOT))));
+				? I18N.tf("text.inference.finding." + finding.kind().name().toLowerCase(Locale.ROOT), finding.subject())
+				: I18N.t("text.inference.finding." + finding.kind().name().toLowerCase(Locale.ROOT))));
 		return text.toString();
 	}
 

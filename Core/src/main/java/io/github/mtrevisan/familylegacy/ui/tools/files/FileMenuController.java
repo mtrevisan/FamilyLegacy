@@ -30,8 +30,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.io.FilenameUtils;
@@ -232,6 +232,9 @@ public final class FileMenuController{
 		final File target = chooseSaveTarget(I18N.t("dialog.file.autosave.title"), lastDirectory, null);
 		if(target == null){
 			saveDeclined = true;
+			//said once: from now on the changes are only in memory, and the user is asked again when leaving the document
+			MessageDialogs.show(owner, I18N.t("warning.file.autosave_declined"), I18N.t("warning.file.autosave_declined.title"),
+				JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 
@@ -281,7 +284,7 @@ public final class FileMenuController{
 			return true;
 		}
 		catch(final IOException | RuntimeException e){
-			return JOptionPane.showConfirmDialog(owner,
+			return MessageDialogs.confirm(owner,
 				I18N.tf("confirmation.autosave_failed.message", e.getMessage()), I18N.t("confirmation.autosave_failed.title"),
 				JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
 		}
@@ -292,7 +295,7 @@ public final class FileMenuController{
 
 	/** The document has changes and no file: choose one, lose them, or give up what was being done (closing the question with ESC). */
 	private boolean askWhatToDoWithTheDocument(){
-		final int choice = JOptionPane.showOptionDialog(owner,
+		final int choice = MessageDialogs.option(owner,
 			I18N.t("dialog.unsaved.message"), I18N.t("dialog.unsaved.title"),
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE,
@@ -435,7 +438,7 @@ public final class FileMenuController{
 			return;
 		}
 
-		final int remove = JOptionPane.showConfirmDialog(owner,
+		final int remove = MessageDialogs.confirm(owner,
 			I18N.tf("confirmation.recent_file_missing.message", file.getAbsolutePath()),
 			I18N.t("confirmation.recent_file_missing.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		if(remove == JOptionPane.YES_OPTION)
@@ -520,7 +523,7 @@ public final class FileMenuController{
 			target = new File(target.getParentFile(), target.getName() + "." + FLEF_EXTENSION);
 
 		if(target.exists()){
-			final int confirm = JOptionPane.showConfirmDialog(owner,
+			final int confirm = MessageDialogs.confirm(owner,
 				I18N.t("confirmation.overwrite.save_as.message"),
 				I18N.t("confirmation.overwrite.save_as.title"),
 				JOptionPane.YES_NO_OPTION,

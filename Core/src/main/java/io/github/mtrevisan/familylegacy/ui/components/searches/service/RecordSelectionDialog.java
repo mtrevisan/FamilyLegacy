@@ -47,6 +47,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.bindings.FilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
+import io.github.mtrevisan.familylegacy.ui.components.searches.strategies.IndividualFilterPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventParticipationHandler;
@@ -199,6 +200,7 @@ public class RecordSelectionDialog extends JDialog{
 	private Consumer<RecordDialog> setupDialog;
 
 	private final Map<String, String> initialFilters = new HashMap<>();
+	private String lockedSex;
 
 	// Cache display text for each record to avoid recomputing on repeated
 	// filtering operations. Filled on the background thread during a
@@ -332,6 +334,19 @@ public class RecordSelectionDialog extends JDialog{
 	 * @param value the filter value
 	 * @return this dialog instance
 	 */
+	/**
+	 * Restricts the search to the individuals of a sex, that the user cannot change.
+	 *
+	 * @param sex	the sex, as it is stored (for example {@code male}).
+	 */
+	public RecordSelectionDialog withLockedSex(final String sex){
+		lockedSex = sex;
+		if(sex != null && filterPanelHolder.getComponentCount() > 0 && filterPanelHolder.getComponent(0) instanceof IndividualFilterPanel individualPanel)
+			individualPanel.lockSex(sex);
+
+		return this;
+	}
+
 	public RecordSelectionDialog withFilter(final String key, final String value){
 		if(key != null && value != null)
 			initialFilters.put(key, value);
@@ -718,6 +733,8 @@ public class RecordSelectionDialog extends JDialog{
 		filterPanelHolder.removeAll();
 		if(handler != null){
 			final JPanel panel = FilterPanelFactory.createPanel(handler, criteria -> scheduleSearch());
+			if(panel instanceof IndividualFilterPanel individualPanel && lockedSex != null)
+				individualPanel.lockSex(lockedSex);
 			if(panel != null)
 				filterPanelHolder.add(panel, BorderLayout.CENTER);
 		}
@@ -1076,7 +1093,7 @@ public class RecordSelectionDialog extends JDialog{
 		}
 
 		// 2. Ask for confirmation
-		final int confirm = JOptionPane.showConfirmDialog(this,
+		final int confirm = MessageDialogs.confirm(this,
 			I18N.tf("confirmation.delete.record.message", false,
 				I18N.t("confirmation.exist_record." + record.getTag()), displayText),
 			I18N.t("confirmation.delete.record.title"),
@@ -1142,7 +1159,7 @@ public class RecordSelectionDialog extends JDialog{
 			return;
 
 		// 3. Prompt confirmation before deleting the record itself
-		final int confirm = JOptionPane.showConfirmDialog(this,
+		final int confirm = MessageDialogs.confirm(this,
 			I18N.tf("confirmation.delete.record.message", dialog.removeParentRecord(),
 				I18N.t("confirmation.exist_record." + record.getTag()), displayText),
 			I18N.t("confirmation.delete.record.title"),

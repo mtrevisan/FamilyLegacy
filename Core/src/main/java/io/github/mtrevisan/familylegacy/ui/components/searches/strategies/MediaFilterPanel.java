@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class MediaFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> mappingCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(MediaReader.MAPPINGS, I18N.t("search.combo.any"))));
+	private final JComboBox<String> mappingCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(MediaReader.MAPPINGS, I18N.t("search.combo.any"))), "enum.media.mapping");
 	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Function;
 
 
@@ -52,7 +53,7 @@ public final class AssistantTuning{
 		CONTEXT;
 
 		public String title(){
-			return I18N.t("assistant.tuning.group." + name().toLowerCase(java.util.Locale.ROOT));
+			return I18N.t("assistant.tuning.group." + name().toLowerCase(Locale.ROOT));
 		}
 	}
 
@@ -144,12 +145,12 @@ public final class AssistantTuning{
 
 		/** @return the key of the preferences */
 		public String key(){
-			return KEY_PREFIX + name().toLowerCase(java.util.Locale.ROOT);
+			return KEY_PREFIX + name().toLowerCase(Locale.ROOT);
 		}
 
 		/** @return what the number is, in words */
 		public String label(){
-			return I18N.t("assistant.tuning." + name().toLowerCase(java.util.Locale.ROOT));
+			return I18N.t("assistant.tuning." + name().toLowerCase(Locale.ROOT));
 		}
 
 	}
@@ -267,7 +268,7 @@ public final class AssistantTuning{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder("AssistantTuning{");
 		for(final Parameter parameter : Parameter.values())
-			sb.append(parameter.name().toLowerCase(java.util.Locale.ROOT)).append('=').append(get(parameter)).append(' ');
+			sb.append(parameter.name().toLowerCase(Locale.ROOT)).append('=').append(get(parameter)).append(' ');
 		return sb.append('}').toString();
 	}
 

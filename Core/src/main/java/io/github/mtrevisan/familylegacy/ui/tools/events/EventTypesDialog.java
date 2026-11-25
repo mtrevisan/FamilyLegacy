@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
@@ -85,7 +86,7 @@ public final class EventTypesDialog extends JDialog{
 
 	private final ToolContext context;
 	private final TypeTableModel tableModel = new TypeTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
@@ -248,6 +249,11 @@ public final class EventTypesDialog extends JDialog{
 		@Override public int getRowCount(){ return rows.size(); }
 		@Override public int getColumnCount(){ return COLUMNS.length; }
 		@Override public String getColumnName(final int column){ return COLUMNS[column]; }
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			return (column == 1? Integer.class: String.class);
+		}
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex){

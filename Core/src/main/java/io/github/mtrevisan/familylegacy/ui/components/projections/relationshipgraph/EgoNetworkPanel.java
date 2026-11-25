@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.GroupReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.GenealogyRepository;
@@ -345,6 +346,38 @@ public class EgoNetworkPanel extends JPanel implements TreeChangeListener{
 
 	public String getSelectedEntityId(){
 		return selectionController.getSelectedEntityId();
+	}
+
+	/**
+	 * Resolves an entity of this view to an individual, for the projections that can only be rooted on one (family tree,
+	 * chronomap): an individual is returned as is, while a group yields its first member (or, failing that, its first
+	 * parent, partner or associate).
+	 *
+	 * @param entityId	The id of an individual or of a group.
+	 * @return	The id of an individual, or {@code null} if the entity is not an individual and has none connected.
+	 */
+	public String resolveIndividualId(final String entityId){
+		if(entityId == null)
+			return null;
+
+		final FLEFRecord record = model.getRecordById(entityId);
+		if(record == null)
+			return null;
+		if(!GroupReader.isOfType(record))
+			return entityId;
+
+		final EgoNode groupNode = networkService.buildEgoNetwork(entityId);
+		if(groupNode == null)
+			return null;
+
+		for(final EgoNode.RelationshipCategory category : new EgoNode.RelationshipCategory[]{EgoNode.RelationshipCategory.CHILD,
+				EgoNode.RelationshipCategory.PARENT, EgoNode.RelationshipCategory.PARTNER, EgoNode.RelationshipCategory.ASSOCIATE})
+			for(final EgoNode node : groupNode.getRelatedNodes(category)){
+				final String id = node.getEgoId();
+				if(id != null && !GroupReader.isOfType(node.getEgoRecord()))
+					return id;
+			}
+		return null;
 	}
 
 	public Component getSelectedPanel(){

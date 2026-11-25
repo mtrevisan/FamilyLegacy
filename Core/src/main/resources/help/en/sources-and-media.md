@@ -57,7 +57,7 @@ A **citation** ties a statement to its source and says where in the source it is
 
 What the privacy policy hides is neither counted nor listed. The report section *Coverage* gives the same kind of figures for the subject of a report.
 
-The rows can be opened (double-click) to fix the problem on the spot; the lists are made again afterwards. The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
+The rows can be opened (double-click) to fix the problem on the spot; the lists are made again afterwards. The tables open in the order described above, and a column can be sorted by clicking its heading (click again to reverse the order, a third time to go back to the original one). The command is available whenever a file is open: in a file with no source at all, every assertion is uncited.
 
 ## Where a fact comes from (provenance)
 

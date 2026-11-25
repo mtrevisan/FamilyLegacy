@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField issueField = new JTextField(20);
-	private final JComboBox<String> proofStatusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ConclusionReader.PROOF_STATUSES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> proofStatusCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ConclusionReader.PROOF_STATUSES, I18N.t("search.combo.any"))), "enum.proof_status");
 	private final JTextField narrativeField = new JTextField(20);
 	private final JTextField researchQuestionField = new JTextField(20);
 

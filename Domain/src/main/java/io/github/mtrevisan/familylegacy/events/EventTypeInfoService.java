@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -151,7 +152,7 @@ public final class EventTypeInfoService{
 
 	private static void add(final String type, final int principals, final boolean allowedAfterDeath, final boolean marital,
 			final String... roles){
-		CATALOG.put(type, new EventTypeInfo(type, principals, allowedAfterDeath, marital, new LinkedHashSet<>(java.util.List.of(roles))));
+		CATALOG.put(type, new EventTypeInfo(type, principals, allowedAfterDeath, marital, new LinkedHashSet<>(List.of(roles))));
 	}
 
 

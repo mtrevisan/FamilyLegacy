@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
+
 import javax.accessibility.Accessible;
 import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
@@ -39,6 +41,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Locale;
 import java.util.function.Function;
 
 
@@ -72,6 +75,31 @@ public final class ComboBoxSearch{
 	 */
 	public static <E> JComboBox<E> searchable(final JComboBox<E> combo){
 		return searchable(combo, rendered(combo));
+	}
+
+	/**
+	 * Makes a filter combo box searchable and shows its items localized: the items stay the codes (so that the selection is
+	 * the code), the labels are {@code <i18nPrefix>.<code>}, falling back to the code with spaces instead of underscores.
+	 * The first item (the "any" entry of a filter) is shown as it is.
+	 *
+	 * @param combo	The combo box (not editable), whose first item is the "any" entry.
+	 * @param i18nPrefix	The key prefix, e.g. {@code "enum.place.type"}.
+	 * @return	The same combo box.
+	 */
+	public static JComboBox<String> localized(final JComboBox<String> combo, final String i18nPrefix){
+		final String any = combo.getItemAt(0);
+		final Function<Object, String> label = item -> {
+			if(!(item instanceof String code) || code.equals(any))
+				return (item != null? item.toString(): null);
+
+			return I18N.t(i18nPrefix + "." + code.toLowerCase(Locale.ROOT), code.replace('_', ' '));
+		};
+		searchable(combo, label);
+
+		final ListCellRenderer<? super String> base = combo.getRenderer();
+		combo.setRenderer((list, value, index, selected, focus) -> base.getListCellRendererComponent(list, label.apply(value), index,
+			selected, focus));
+		return combo;
 	}
 
 	/**

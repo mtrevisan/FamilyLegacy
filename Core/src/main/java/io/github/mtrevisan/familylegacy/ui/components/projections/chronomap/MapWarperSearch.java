@@ -37,6 +37,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,7 +65,7 @@ final class MapWarperSearch{
 	private static final Pattern MAP_START = Pattern.compile("\"id\":\"(\\d+)\",\"type\":\"maps\",\"attributes\":\\{");
 	private static final String RELATIONSHIPS_KEY = "\"relationships\"";
 	/** Compiled once per field name. */
-	private static final java.util.Map<String, Pattern> STRING_FIELD_PATTERNS = new java.util.concurrent.ConcurrentHashMap<>();
+	private static final Map<String, Pattern> STRING_FIELD_PATTERNS = new ConcurrentHashMap<>();
 	private static final Pattern TOTAL_PAGES = Pattern.compile("\"total_pages\":(\\d+)");
 
 	/**

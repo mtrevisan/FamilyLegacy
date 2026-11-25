@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 
 class RecordMergerTest{
@@ -107,7 +108,7 @@ class RecordMergerTest{
 		merger.apply(merger.plan("I2", "I1"));
 
 		Assertions.assertNull(model.getRecordById("I2"));
-		Assertions.assertEquals(java.util.List.of("Brick Wall", "DNA Candidate", "To Verify"), model.tags().get("I1"));
+		Assertions.assertEquals(List.of("Brick Wall", "DNA Candidate", "To Verify"), model.tags().get("I1"));
 		Assertions.assertTrue(model.tags().get("I2").isEmpty());
 	}
 

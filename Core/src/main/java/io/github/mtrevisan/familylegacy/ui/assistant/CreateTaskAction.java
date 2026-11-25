@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.assistant.task.TaskProposals;
 import io.github.mtrevisan.familylegacy.assistant.task.TaskTopic;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JOptionPane;
 import java.time.Clock;
@@ -95,7 +96,7 @@ final class CreateTaskAction implements DiagnosticAction{
 			TaskProposals.create(model, proposals.getFirst(), clock);
 			message = I18N.tf("assistant.tasks.created", proposals.getFirst().description());
 		}
-		JOptionPane.showMessageDialog(SwingAssistantContext.owner(context), message, title(), JOptionPane.INFORMATION_MESSAGE);
+		MessageDialogs.show(SwingAssistantContext.owner(context), message, title(), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 }

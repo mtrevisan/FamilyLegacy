@@ -36,10 +36,14 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -87,61 +91,93 @@ final class EgoNetworkRenderer{
 		if(centerPanel == null)
 			return;
 
-		final Point centerPoint = getPanelCenter(centerPanel, container);
+		final Rectangle egoBounds = getPanelBounds(centerPanel, container);
+		final SegmentLedger ledger = new SegmentLedger();
 
-		// Connect to Parent nodes
-		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARENT),
-			nodeToPanelMap, container);
-
-		// Connect to Partner nodes
-		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.PARTNER),
-			nodeToPanelMap, container);
-
-		// Connect to Child nodes
-		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.CHILD),
-			nodeToPanelMap, container);
-
-		// Connect to Associate nodes
-		connectCategoryNodes(g2, centerPoint, rootEgoNode.getRelatedNodes(EgoNode.RelationshipCategory.ASSOCIATE),
-			nodeToPanelMap, container);
-
-		// Connect to Group cards
-		connectGroupRecords(g2, centerPoint, rootEgoNode, groupToPanelMap, container);
-	}
-
-	private static void connectCategoryNodes(final Graphics2D g2, final Point centerPoint, final Set<EgoNode> nodes,
-			final Map<EgoNode, JPanel> nodeToPanelMap, final Component container){
-		for(final EgoNode node : nodes){
-			final JPanel targetPanel = nodeToPanelMap.get(node);
-			if(targetPanel != null){
-				final Point targetPoint = getPanelCenter(targetPanel, container);
-				drawOrthogonalLine(g2, centerPoint, targetPoint, STROKE_UNKNOWN);
-				//only partners carry a union mark
-				if(node.getConsanguineousUnion() != null)
-					drawConsanguinityBadge(g2, lineMidpoint(centerPoint, targetPoint));
+		final List<JPanel> targets = new ArrayList<>(0);
+		final List<Boolean> consanguineous = new ArrayList<>(0);
+		for(final EgoNode.RelationshipCategory category : new EgoNode.RelationshipCategory[]{EgoNode.RelationshipCategory.PARENT,
+				EgoNode.RelationshipCategory.PARTNER, EgoNode.RelationshipCategory.CHILD, EgoNode.RelationshipCategory.ASSOCIATE})
+			for(final EgoNode node : rootEgoNode.getRelatedNodes(category)){
+				final JPanel panel = nodeToPanelMap.get(node);
+				if(panel != null){
+					targets.add(panel);
+					//only partners carry a union mark
+					consanguineous.add(node.getConsanguineousUnion() != null);
+				}
 			}
-		}
-	}
-
-	private static void connectGroupRecords(final Graphics2D g2, final Point centerPoint,
-			final EgoNode rootEgoNode, final Map<FLEFRecord, JPanel> groupToPanelMap, final Component container){
 		for(final FLEFRecord groupRecord : rootEgoNode.getGroupRecords()){
-			final JPanel targetPanel = groupToPanelMap.get(groupRecord);
-			if(targetPanel != null){
-				final Point targetPoint = getPanelCenter(targetPanel, container);
-				drawOrthogonalLine(g2, centerPoint, targetPoint, STROKE_UNKNOWN);
+			final JPanel panel = groupToPanelMap.get(groupRecord);
+			if(panel != null){
+				targets.add(panel);
+				consanguineous.add(Boolean.FALSE);
 			}
+		}
+
+		//a trunk for each side, placed in the gap between the ego and the nearest card of that side: the segments never run over
+		//the cards, and the cards of a side hang from the same bar
+		int rightTrunk = Integer.MAX_VALUE;
+		int leftTrunk = Integer.MIN_VALUE;
+		final List<Rectangle> bounds = new ArrayList<>(targets.size());
+		for(final JPanel target : targets){
+			final Rectangle r = getPanelBounds(target, container);
+			bounds.add(r);
+			if(r.x >= egoBounds.x + egoBounds.width)
+				rightTrunk = Math.min(rightTrunk, r.x);
+			else if(r.x + r.width <= egoBounds.x)
+				leftTrunk = Math.max(leftTrunk, r.x + r.width);
+		}
+		if(rightTrunk != Integer.MAX_VALUE)
+			rightTrunk = (egoBounds.x + egoBounds.width + rightTrunk) / 2;
+		if(leftTrunk != Integer.MIN_VALUE)
+			leftTrunk = (leftTrunk + egoBounds.x) / 2;
+
+		final int egoCenterX = egoBounds.x + egoBounds.width / 2;
+		final int egoCenterY = egoBounds.y + egoBounds.height / 2;
+		for(int i = 0; i < bounds.size(); i ++){
+			final Rectangle r = bounds.get(i);
+			final int targetY = r.y + r.height / 2;
+			final Point badge;
+			g2.setStroke(STROKE_UNKNOWN);
+			if(r.x >= egoBounds.x + egoBounds.width){
+				final int startX = egoBounds.x + egoBounds.width;
+				drawHorizontalBranch(g2, startX, egoCenterY, rightTrunk, r.x, targetY, ledger);
+				badge = new Point((startX + r.x) / 2, targetY);
+			}
+			else if(r.x + r.width <= egoBounds.x){
+				final int startX = egoBounds.x;
+				drawHorizontalBranch(g2, startX, egoCenterY, leftTrunk, r.x + r.width, targetY, ledger);
+				badge = new Point((startX + r.x + r.width) / 2, targetY);
+			}
+			else{
+				//above or below: a vertical line from the edge of the ego to the edge of the card
+				final int targetX = Math.max(egoBounds.x, Math.min(egoBounds.x + egoBounds.width, r.x + r.width / 2));
+				final boolean above = (r.y + r.height / 2 < egoCenterY);
+				final int fromY = (above? egoBounds.y: egoBounds.y + egoBounds.height);
+				final int toY = (above? r.y + r.height: r.y);
+				ledger.draw(g2, targetX, fromY, targetX, toY);
+				badge = new Point(targetX, (fromY + toY) / 2);
+			}
+			if(consanguineous.get(i))
+				drawConsanguinityBadge(g2, badge);
 		}
 	}
 
-	private static Point getPanelCenter(final JPanel panel, final Component container){
-		final Point localCenter = new Point(panel.getWidth() / 2, panel.getHeight() / 2);
-		return SwingUtilities.convertPoint(panel, localCenter, container);
+	/** Ego edge, horizontal to the trunk, along the trunk, horizontal to the card (straight when the heights coincide). */
+	private static void drawHorizontalBranch(final Graphics2D g2, final int startX, final int startY, final int trunkX,
+			final int endX, final int endY, final SegmentLedger ledger){
+		if(startY == endY){
+			ledger.draw(g2, startX, startY, endX, endY);
+			return;
+		}
+
+		ledger.draw(g2, startX, startY, trunkX, startY);
+		ledger.draw(g2, trunkX, startY, trunkX, endY);
+		ledger.draw(g2, trunkX, endY, endX, endY);
 	}
 
-	/** @return	The middle of the line drawn by {@link #drawOrthogonalLine}: on its vertical segment. */
-	private static Point lineMidpoint(final Point start, final Point end){
-		return new Point((start.x + end.x) / 2, (start.y + end.y) / 2);
+	private static Rectangle getPanelBounds(final JPanel panel, final Component container){
+		return SwingUtilities.convertRectangle(panel, new Rectangle(0, 0, panel.getWidth(), panel.getHeight()), container);
 	}
 
 	/** Draws the badge that signals a consanguineous union: a small amber disc with a "C". */
@@ -177,41 +213,55 @@ final class EgoNetworkRenderer{
 	}
 
 	/**
-	 * Draws an orthogonal stepped line connecting two points.
-	 * <p>
-	 * When the two points share the same X or Y coordinate, the intermediate
-	 * segments degenerate to zero length; in that case a straight line is
-	 * drawn directly to avoid rendering artifacts produced by some
-	 * platform-specific stroke implementations on zero-length segments.
+	 * Remembers the axis-aligned segments already drawn, so that a segment (or part of it) lying over another one is not
+	 * drawn again: a dotted line drawn twice, with a different dash phase, would look solid.
 	 */
-	private static void drawOrthogonalLine(final Graphics2D g2, final Point start, final Point end, final Stroke stroke){
-		final Stroke original = g2.getStroke();
-		try{
-			g2.setStroke(stroke);
-			if(start.x == end.x || start.y == end.y){
-				g2.drawLine(start.x, start.y,
-					end.x, end.y);
+	private static final class SegmentLedger{
 
-				return;
+		/** Covered intervals of the horizontal segments, by y: each interval is {from, to}. */
+		private final Map<Integer, List<int[]>> horizontal = new HashMap<>(0);
+		/** Covered intervals of the vertical segments, by x: each interval is {from, to}. */
+		private final Map<Integer, List<int[]>> vertical = new HashMap<>(0);
+
+
+		void draw(final Graphics2D g2, final int x1, final int y1, final int x2, final int y2){
+			if(y1 == y2){
+				for(final int[] part : uncovered(horizontal.computeIfAbsent(y1, k -> new ArrayList<>(1)),
+						Math.min(x1, x2), Math.max(x1, x2)))
+					g2.drawLine(part[0], y1, part[1], y1);
 			}
-
-			final int midX = (start.x + end.x) / 2;
-
-			// Horizontal segment to midpoint X
-			g2.drawLine(start.x, start.y,
-				midX, start.y);
-
-			// Vertical segment to end Y
-			g2.drawLine(midX, start.y,
-				midX, end.y);
-
-			// Horizontal segment to end X
-			g2.drawLine(midX, end.y,
-				end.x, end.y);
+			else if(x1 == x2){
+				for(final int[] part : uncovered(vertical.computeIfAbsent(x1, k -> new ArrayList<>(1)),
+						Math.min(y1, y2), Math.max(y1, y2)))
+					g2.drawLine(x1, part[0], x1, part[1]);
+			}
+			else
+				g2.drawLine(x1, y1, x2, y2);
 		}
-		finally{
-			g2.setStroke(original);
+
+		/** Returns the parts of [from, to] not yet covered, and marks the whole interval as covered. */
+		private static List<int[]> uncovered(final List<int[]> covered, final int from, final int to){
+			final List<int[]> result = new ArrayList<>(1);
+			int cursor = from;
+			final List<int[]> sorted = new ArrayList<>(covered);
+			sorted.sort(Comparator.comparingInt(interval -> interval[0]));
+			for(final int[] interval : sorted){
+				if(interval[1] <= cursor)
+					continue;
+				if(interval[0] >= to)
+					break;
+
+				if(interval[0] > cursor)
+					result.add(new int[]{cursor, interval[0]});
+				cursor = Math.max(cursor, interval[1]);
+			}
+			if(cursor < to)
+				result.add(new int[]{cursor, to});
+			if(from < to)
+				covered.add(new int[]{from, to});
+			return result;
 		}
+
 	}
 
 }

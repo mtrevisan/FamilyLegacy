@@ -44,6 +44,8 @@ import org.jxmapviewer.viewer.GeoPosition;
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -129,11 +131,11 @@ class AssistantDialogsEscapeTest{
 		picker.dispose();
 	}
 
-	private static JXMapViewer findViewer(final java.awt.Container container){
-		for(final java.awt.Component component : container.getComponents()){
+	private static JXMapViewer findViewer(final Container container){
+		for(final Component component : container.getComponents()){
 			if(component instanceof JXMapViewer viewer)
 				return viewer;
-			if(component instanceof java.awt.Container child){
+			if(component instanceof Container child){
 				final JXMapViewer found = findViewer(child);
 				if(found != null)
 					return found;

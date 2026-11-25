@@ -30,8 +30,8 @@ import io.github.mtrevisan.familylegacy.importer.ImportReport;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +116,7 @@ public final class ImportFileTool implements ToolOperation{
 		if(importer == null)
 			return;
 
-		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
+		final int confirm = MessageDialogs.confirm(context.owner(),
 			I18N.tf("confirmation.overwrite.import.message", file.getName()),
 			I18N.t("confirmation.overwrite.import.title"),
 			JOptionPane.YES_NO_OPTION,
@@ -229,7 +229,7 @@ public final class ImportFileTool implements ToolOperation{
 		if(count == 0)
 			return;
 
-		final int answer = JOptionPane.showConfirmDialog(owner, I18N.tf("dialog.import.files.message", count),
+		final int answer = MessageDialogs.confirm(owner, I18N.tf("dialog.import.files.message", count),
 			I18N.t("dialog.import.files.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE);
 		File folder = null;
 		if(answer == JOptionPane.OK_OPTION){

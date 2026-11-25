@@ -65,11 +65,13 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Rectangle;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -581,18 +583,18 @@ public final class ReportDialog extends JDialog{
 		}
 
 		@Override
-		public java.awt.Dimension getPreferredScrollableViewportSize(){
+		public Dimension getPreferredScrollableViewportSize(){
 			return getPreferredSize();
 		}
 
 		@Override
-		public int getScrollableUnitIncrement(final java.awt.Rectangle visibleRect, final int orientation, final int direction){
+		public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction){
 			return GUIHelper.SCROLLBAR_UNIT_INCREMENT;
 		}
 
 		@Override
-		public int getScrollableBlockIncrement(final java.awt.Rectangle visibleRect, final int orientation, final int direction){
-			return (orientation == javax.swing.SwingConstants.VERTICAL? visibleRect.height: visibleRect.width);
+		public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction){
+			return (orientation == SwingConstants.VERTICAL? visibleRect.height: visibleRect.width);
 		}
 
 		@Override

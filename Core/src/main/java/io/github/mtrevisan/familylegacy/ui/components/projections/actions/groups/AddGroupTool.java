@@ -41,6 +41,12 @@ public final class AddGroupTool implements ToolOperation{
 		return I18N.t("menu.group.add.group");
 	}
 
+	/** A new group is shown as the root, which only the ego network can display: the other projections would show an individual box. */
+	@Override
+	public boolean isEnabled(final ToolContext context){
+		return context.isEgoNetworkActive();
+	}
+
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();

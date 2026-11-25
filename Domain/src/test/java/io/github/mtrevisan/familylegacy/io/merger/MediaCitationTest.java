@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -91,7 +92,7 @@ class MediaCitationTest{
 
 		Assertions.assertEquals(2, uses.size());
 		Assertions.assertEquals("One", uses.getFirst().caption());
-		Assertions.assertEquals(new java.awt.Rectangle(1, 2, 30, 40), uses.getFirst().crop());
+		Assertions.assertEquals(new Rectangle(1, 2, 30, 40), uses.getFirst().crop());
 		Assertions.assertEquals(2, uses.getFirst().page());
 		Assertions.assertEquals("a.jpg", uses.getFirst().uri());
 		//only the preferred image is the one shown for the record

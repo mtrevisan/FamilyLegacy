@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateService;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 
 import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
 
@@ -135,7 +136,7 @@ public final class ReportLabels{
 		try{
 			return getString("COVERAGE_KIND_" + kind.trim().toUpperCase(Locale.ROOT));
 		}
-		catch(final java.util.MissingResourceException ignored){
+		catch(final MissingResourceException ignored){
 			return kind.trim().replace('_', ' ');
 		}
 	}

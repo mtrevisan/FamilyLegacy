@@ -12,8 +12,7 @@ Fields marked with an asterisk are required. **OK** checks the fields that are r
 ## Adding people
 
 - **Individual > Add Individual...** creates a new individual.
-- **Individual > Add Child...** opens the editor of the selected individual on the **Relationships** tab, where you add the relationship that makes the new person a child of this one.
-- **Individual > Add Partner...** and **Add Parent...** create a new individual and link it to the selected one (the type of the relationship is asked); **Connect Partner...**, **Connect Parent...** and **Connect Child...** do the same with an existing person. **Paste as Partner**, **Paste as Parent** and **Paste as Child** move the person copied with **Relocate**.
+- **Individual > Add Partner...**, **Add Parent...** and **Add Child...** create a new individual and link it to the selected one (the type of the relationship is asked). When the person is a child (new, or existing with **Connect Child...**) and the selected individual has partners, the same window also asks who the other parent is: one of the partners (preselected), another individual, or nobody (while both parents are *biological children* links and the sex of the selected one is known, only individuals of the opposite sex are offered, and the search and creation windows have that sex fixed; with the generic *child* or other kinds of link any sex is accepted); each parent has its own relationship type; **Connect Partner...**, **Connect Parent...** and **Connect Child...** do the same with an existing person. **Paste as Partner**, **Paste as Parent** and **Paste as Child** move the person copied with **Relocate**.
 
 How the links between people are recorded, and the shortcuts of the tree (**Connect > Child...**), are explained in [Relationships](relationships.md).
 
@@ -46,7 +45,7 @@ Every change can be undone with `Ctrl+Z`; **Edit > Recent Changes...** lists wha
 
 A group is a set of individuals (a family, a household, a congregation...). Membership is stored as relationships, so a group can have members with roles, and a group can be part of a larger one.
 
-- **Group > Add Group...** and **Add Members...** create a group and add people to it.
+- **Group > Add Group...** and **Add Members...** create a group and add people to it. **Add Group...** is available only in the ego network view, the one that can show a group as its root.
 - **Group Timeline...** and **Group Network...** show what the members did and how they are connected.
 - **Group > Delete**, **Unlink Relationships...** and **Set as Root** work as for individuals. Adding a member is described in [Relationships](relationships.md#a-member-of-a-group-with-a-role).
 

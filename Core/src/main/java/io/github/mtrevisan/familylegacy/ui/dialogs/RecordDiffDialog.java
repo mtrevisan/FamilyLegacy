@@ -34,6 +34,8 @@ import io.github.mtrevisan.familylegacy.ui.components.comparison.RecordAlignment
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
@@ -114,8 +116,8 @@ public class RecordDiffDialog extends JDialog{
 	private final DiffTextArea rightArea;
 	private final JScrollPane leftScroll;
 	private final JScrollPane rightScroll;
-	private final JButton previousButton = new JButton("\u25B2 " + I18N.t("dialog.record_diff.nav.previous"));
-	private final JButton nextButton = new JButton("\u25BC " + I18N.t("dialog.record_diff.nav.next"));
+	private final JButton previousButton = new JButton(I18N.t("dialog.record_diff.nav.previous"), SymbolIcon.of(Symbol.UP));
+	private final JButton nextButton = new JButton(I18N.t("dialog.record_diff.nav.next"), SymbolIcon.of(Symbol.DOWN));
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
 
 	/** The model the references are records of ({@code null}: there are no links). */

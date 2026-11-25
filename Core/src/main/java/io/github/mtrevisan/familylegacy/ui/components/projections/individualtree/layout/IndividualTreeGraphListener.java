@@ -24,14 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.layout;
 
-import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.tree.TreeMutator;
 import io.github.mtrevisan.familylegacy.tree.TreeNode;
-import io.github.mtrevisan.familylegacy.tree.TreeOperation;
 import io.github.mtrevisan.familylegacy.tree.TreeService;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
@@ -52,7 +49,6 @@ import java.awt.Window;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -159,31 +155,6 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 	/* ======================================================================
 	 *                          Add and connect
 	 * ====================================================================== */
-
-	@Override
-	public void onChildAddOrConnect(final IndividualPanel selectedPanel, final TreeOperation operation){
-		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel,
-			nodeToPanelMapSupplier.get());
-		if(ctx == null || ctx.isChildContext() || !ctx.hasPartnerPanel())
-			return;
-
-		final Function<SexType, FLEFRecord> fn = (operation == TreeOperation.ADD
-			? this::showCreateIndividualDialog: this::showSearchIndividualDialog);
-		final FLEFRecord child = fn.apply(null);
-		if(child == null)
-			return;
-
-		final IndividualSummary fatherData = ctx.partnerPanel.getFatherData();
-		final IndividualSummary motherData = ctx.partnerPanel.getMotherData();
-		final FLEFRecord targetFather = (fatherData != null? fatherData.getIndividual(): null);
-		final FLEFRecord targetMother = (motherData != null? motherData.getIndividual(): null);
-		if(targetFather == null && targetMother == null)
-			return;
-
-		performChildRelationOperation(child, targetFather, targetMother, false, currentRootId.get());
-		onRootEntitySelected(targetFather != null? targetFather.getId(): targetMother.getId());
-	}
-
 
 	/* ======================================================================
 	 *                          Unlink, relocate, paste
@@ -303,16 +274,6 @@ public final class IndividualTreeGraphListener implements IndividualListener{
 		final Window parent = SwingUtilities.getWindowAncestor(component);
 		operationCoordinator.performParentOperation(parent, individual, ctx, this);
 		treeMutator.invalidateAndNotifyTreeChanged(rootId);
-	}
-
-	private FLEFRecord showCreateIndividualDialog(final SexType sex){
-		return dialogProvider.showCreateDialog(
-			SwingUtilities.getWindowAncestor(component), sex);
-	}
-
-	private FLEFRecord showSearchIndividualDialog(final SexType sex){
-		return dialogProvider.showSearchDialog(
-			SwingUtilities.getWindowAncestor(component), sex);
 	}
 
 }

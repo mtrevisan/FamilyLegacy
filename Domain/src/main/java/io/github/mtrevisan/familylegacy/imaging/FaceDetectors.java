@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.util.PluginLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -92,7 +93,7 @@ public final class FaceDetectors{
 					return null;
 				}
 			})
-			.filter(java.util.Objects::nonNull)
+			.filter(Objects::nonNull)
 			.findFirst()
 			.orElse(null);
 	}

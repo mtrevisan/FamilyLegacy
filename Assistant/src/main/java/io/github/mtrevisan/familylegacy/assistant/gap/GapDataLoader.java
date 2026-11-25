@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.assistant.gap;
 import io.github.mtrevisan.calendars.CalendarType;
 import io.github.mtrevisan.familylegacy.assistant.PlaceAncestors;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.ConclusionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
@@ -37,6 +39,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateNormalizer;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateRange;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -49,6 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +67,8 @@ import java.util.TreeSet;
 public final class GapDataLoader{
 
 	private static final String TAG_FOLLOW_UP = ResearchActivityReader.TAG_FOLLOW_UP;
+	/** How many repositories of the relatives are kept for an individual. */
+	private static final int MAX_LEADS = 6;
 	private static final long UNIX_EPOCH_JDN = 2_440_588L;
 	/** The place of an event is the place of the place citation of the event. */
 	private static final String EVENT_PLACE = FLEFRecordHelper.composePath(PlaceReader.TYPE, PlaceReader.TYPE);
@@ -80,6 +87,9 @@ public final class GapDataLoader{
 		final Map<String, List<String>> principals = new HashMap<>();
 		final Map<String, Set<String>> eventsOfPerson = new HashMap<>();
 		final Map<String, Integer> participationSources = new HashMap<>();
+		final Map<String, Set<String>> sourcesOfPerson = new HashMap<>();
+		for(final FLEFRecord individual : filteredIndividuals.values())
+			collectSources(individual, sourcesOfPerson.computeIfAbsent(individual.getId(), k -> new LinkedHashSet<>()));
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationReader.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final String personId = armValue(FLEFRecordHelper.findChild(eventParticipation, EventParticipationReader.TAG_PARTICIPANT));
@@ -91,6 +101,7 @@ public final class GapDataLoader{
 
 			principals.computeIfAbsent(eventId, k -> new ArrayList<>())
 				.add(personId);
+			collectSources(eventParticipation, sourcesOfPerson.get(personId));
 			participationSources.merge(eventId, FLEFRecordHelper.findChildren(eventParticipation, EventParticipationReader.TAG_SOURCE).size(),
 				Integer::sum);
 			eventsOfPerson.computeIfAbsent(personId, k -> new HashSet<>())
@@ -117,6 +128,8 @@ public final class GapDataLoader{
 			for(final String personId : entry.getValue())
 				sources += FLEFRecordHelper.findChildren(filteredIndividuals.get(personId), IndividualReader.TAG_SOURCE).size();
 			events.add(new GapData.Event(entry.getKey(), type, sources, entry.getValue()));
+			for(final String personId : entry.getValue())
+				collectSources(event, sourcesOfPerson.get(personId));
 			final String placeId = FLEFRecordHelper.getChildValue(event, EVENT_PLACE);
 			if(placeId != null)
 				for(final String personId : entry.getValue())
@@ -150,18 +163,6 @@ public final class GapDataLoader{
 			if(IndividualAttributeReader.ENUM_TYPE_RESIDENCE.equals(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_TYPE)))
 				withResidence.add(FLEFRecordHelper.getChildValue(individualAttribute, IndividualAttributeReader.TAG_INDIVIDUAL));
 
-		final Map<String, Set<String>> repositoriesOfPlace = repositoriesByPlace(model);
-		final Map<String, Set<String>> ancestors = (repositoriesOfPlace.isEmpty()? Map.of(): PlaceAncestors.of(model));
-		final Map<String, GapData.Person> persons = new LinkedHashMap<>();
-		for(final FLEFRecord individual : filteredIndividuals.values()){
-			final String id = individual.getId();
-			final String name = IndividualReader.extractPrimaryFullname(individual);
-			persons.put(id, new GapData.Person(id, (name != null && !name.isBlank()? name: id), birthYears.get(id),
-				withBirth.contains(id), withDeath.contains(id), withResidence.contains(id), withCensus.contains(id),
-				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of())), deathYears.get(id),
-				repositoriesOf(placeIdsOfPerson.getOrDefault(id, Set.of()), repositoriesOfPlace, ancestors)));
-		}
-
 		final List<GapData.ParentLink> parents = new ArrayList<>();
 		final List<GapData.Union> unions = new ArrayList<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipReader.TYPE);
@@ -169,9 +170,11 @@ public final class GapDataLoader{
 			final String type = RelationshipReader.extractType(relationship);
 			final String subject = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
 			final String target = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
-			if(type == null || subject == null || target == null || !persons.containsKey(subject) || !persons.containsKey(target))
+			if(type == null || subject == null || target == null || !filteredIndividuals.containsKey(subject) || !filteredIndividuals.containsKey(target))
 				continue;
 
+			collectSources(relationship, sourcesOfPerson.get(subject));
+			collectSources(relationship, sourcesOfPerson.get(target));
 			//the subject of a relationship of descent is the child, the target the parent
 			if(RelationshipReader.isTypeChild(type))
 				parents.add(new GapData.ParentLink(subject, target, FLEFRecordHelper.findChildren(relationship, RelationshipReader.TAG_SOURCE).size()));
@@ -179,9 +182,108 @@ public final class GapDataLoader{
 				unions.add(new GapData.Union(subject, target, FLEFRecordHelper.findChildren(relationship, RelationshipReader.TAG_SOURCE).size()));
 		}
 
+		final Map<String, Set<String>> repositoriesOfPlace = repositoriesByPlace(model);
+		final Map<String, Set<String>> ancestors = (repositoriesOfPlace.isEmpty()? Map.of(): PlaceAncestors.of(model));
+		final Map<String, List<Relative>> relatives = relativesOf(parents, unions);
+		final Map<String, String> names = new HashMap<>();
+		for(final FLEFRecord individual : filteredIndividuals.values()){
+			final String name = IndividualReader.extractPrimaryFullname(individual);
+			names.put(individual.getId(), (name != null && !name.isBlank()? name: individual.getId()));
+		}
+		final Map<String, GapData.Person> persons = new LinkedHashMap<>();
+		for(final FLEFRecord individual : filteredIndividuals.values()){
+			final String id = individual.getId();
+			final List<String> repositories = repositoriesOf(placeIdsOfPerson.getOrDefault(id, Set.of()), repositoriesOfPlace, ancestors);
+			final List<GapData.RepositoryLead> leads = new ArrayList<>();
+			final Set<String> seen = new HashSet<>(repositories);
+			for(final Relative relative : relatives.getOrDefault(id, List.of()))
+				for(final String repository : repositoriesOf(placeIdsOfPerson.getOrDefault(relative.id(), Set.of()), repositoriesOfPlace, ancestors))
+					if(leads.size() < MAX_LEADS && seen.add(repository))
+						leads.add(new GapData.RepositoryLead(repository, names.get(relative.id()) + " [" + relative.id() + "]", relative.relation()));
+			persons.put(id, new GapData.Person(id, names.get(id), birthYears.get(id),
+				withBirth.contains(id), withDeath.contains(id), withResidence.contains(id), withCensus.contains(id),
+				eventsOfPerson.getOrDefault(id, Set.of()).size(), List.copyOf(placesOfPerson.getOrDefault(id, Set.of())), deathYears.get(id),
+				repositories).withLeads(kindsOf(model, sourcesOfPerson.getOrDefault(id, Set.of())), leads));
+		}
+
 		return loadResearch(model, today, persons, events, parents, unions);
 	}
 
+
+	/** The relatives of an individual that are looked at for the places where its records may be: parents, partners and children. */
+	private record Relative(String id, String relation){}
+
+	private static Map<String, List<Relative>> relativesOf(final List<GapData.ParentLink> parents, final List<GapData.Union> unions){
+		final Map<String, List<Relative>> relatives = new HashMap<>();
+		for(final GapData.ParentLink link : parents){
+			relatives.computeIfAbsent(link.childId(), k -> new ArrayList<>()).add(new Relative(link.parentId(), GapData.RELATION_PARENT));
+			relatives.computeIfAbsent(link.parentId(), k -> new ArrayList<>()).add(new Relative(link.childId(), GapData.RELATION_CHILD));
+		}
+		for(final GapData.Union union : unions){
+			relatives.computeIfAbsent(union.firstId(), k -> new ArrayList<>()).add(new Relative(union.secondId(), GapData.RELATION_PARTNER));
+			relatives.computeIfAbsent(union.secondId(), k -> new ArrayList<>()).add(new Relative(union.firstId(), GapData.RELATION_PARTNER));
+		}
+		return relatives;
+	}
+
+	/** @return the kinds of the sources (the sources with no known kind are left out) */
+	private static Set<String> kindsOf(final FLEFModel model, final Set<String> sourceIds){
+		final Set<String> kinds = new HashSet<>();
+		for(final String sourceId : sourceIds){
+			final FLEFRecord source = model.getRecordById(sourceId);
+			final String kind = (SourceReader.isOfType(source)? SourceReader.extractKind(source): null);
+			if(notBlank(kind))
+				kinds.add(kind.strip());
+		}
+		return kinds;
+	}
+
+	/** Adds the identifiers of the sources that a record cites. */
+	private static void collectSources(final FLEFRecord record, final Set<String> out){
+		if(out == null)
+			return;
+
+		for(final FLEFRecord child : record.getChildren()){
+			if(!SourceCitationReader.TAG_SOURCE.equalsIgnoreCase(child.getTag()))
+				continue;
+
+			final String sourceId = FLEFRecordHelper.getChildValue(child, SourceCitationReader.TAG_SOURCE);
+			if(sourceId != null)
+				out.add(sourceId);
+			else{
+				//the nested form: source { source S1 }
+				final FLEFRecord inner = FLEFRecordHelper.findChild(child, SourceCitationReader.TAG_SOURCE);
+				final String value = (inner == null? null: (inner.getTheOnlyChild() != null? inner.getTheOnlyChild().getValue(): inner.getValue()));
+				if(value != null)
+					out.add(value);
+			}
+		}
+	}
+
+	/** @return the identity hypotheses between two individuals, and whether a conclusion evaluates each */
+	private static List<GapData.Hypothesis> loadHypotheses(final FLEFModel model, final Map<String, GapData.Person> persons){
+		final Set<String> evaluated = new HashSet<>();
+		final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionReader.TYPE);
+		for(final FLEFRecord conclusion : conclusions)
+			for(final FLEFRecord target : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESOLVES))
+				if(armValue(target) != null)
+					evaluated.add(armValue(target));
+
+		final List<GapData.Hypothesis> hypotheses = new ArrayList<>();
+		final List<FLEFRecord> records = model.getRecordsByType(IdentityHypothesisReader.TYPE);
+		for(final FLEFRecord hypothesis : records){
+			final List<String> candidates = new ArrayList<>();
+			for(final FLEFRecord identity : FLEFRecordHelper.findChildren(hypothesis, IdentityHypothesisReader.TAG_IDENTITY))
+				if(!identity.getChildren().isEmpty()
+						&& IdentityHypothesisReader.TAG_IDENTITY_INDIVIDUAL.equals(identity.getChildren().getFirst().getTag())
+						&& armValue(identity) != null)
+					candidates.add(armValue(identity));
+			if(hypothesis.getId() != null && candidates.size() == 2 && persons.containsKey(candidates.get(0)) && persons.containsKey(candidates.get(1)))
+				hypotheses.add(new GapData.Hypothesis(hypothesis.getId(), candidates.get(0), candidates.get(1),
+					FLEFRecordHelper.getChildValue(hypothesis, IdentityHypothesisReader.TAG_CONFIDENCE), evaluated.contains(hypothesis.getId())));
+		}
+		return hypotheses;
+	}
 
 	private static GapData loadResearch(final FLEFModel model, final LocalDate today, final Map<String, GapData.Person> persons,
 			final List<GapData.Event> events, final List<GapData.ParentLink> parents, final List<GapData.Union> unions){
@@ -225,7 +327,7 @@ public final class GapDataLoader{
 					ResearchTaskReader.extractPriority(task), due(FLEFRecordHelper.getChildValue(task, ResearchTaskReader.TAG_DUE_DATE)),
 					values(task, ResearchTaskReader.TAG_QUESTION)));
 
-		return new GapData(today, persons, events, parents, unions, filteredQuestions, activities, tasks);
+		return new GapData(today, persons, events, parents, unions, filteredQuestions, activities, tasks, loadHypotheses(model, persons));
 	}
 
 

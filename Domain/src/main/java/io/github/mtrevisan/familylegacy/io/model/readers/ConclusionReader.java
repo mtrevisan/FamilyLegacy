@@ -108,6 +108,11 @@ public final class ConclusionReader{
 
 	private ConclusionReader(){}
 
+	/** @return whether the record is of this type (its tag is the type, ignoring case) */
+	public static boolean isOfType(final FLEFRecord record){
+		return (record != null && TYPE.equalsIgnoreCase(record.getTag()));
+	}
+
 
 	public static String extractIssues(final FLEFRecord record){
 		return FLEFRecordHelper.getChildValue(record, TAG_ISSUE);

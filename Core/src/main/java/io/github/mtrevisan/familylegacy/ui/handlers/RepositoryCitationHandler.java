@@ -89,7 +89,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RecordD
 
 		final String repositoryId = RepositoryCitationReader.extractRepository(record);
 		final FLEFRecord repository = model.getRecordById(repositoryId);
-		final StringBuilder text = new StringBuilder("❝ ")
+		final StringBuilder text = new StringBuilder("“ ")
 			.append(repository != null? RepositoryHandler.getInstance().getDisplayText(repository, model): "--");
 		//where the source is found in the repository
 		final List<String> identifiers = new ArrayList<>(0);

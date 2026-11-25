@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -76,7 +77,7 @@ class ReportFileOrderTest{
 	private static List<String> orderOf(final List<String> texts, final List<String> values){
 		final String all = String.join(String.valueOf((char)10), texts);
 		final List<String> order = new ArrayList<>(values);
-		order.sort(java.util.Comparator.comparingInt(value -> {
+		order.sort(Comparator.comparingInt(value -> {
 			final int position = all.indexOf(value);
 			return (position >= 0? position: Integer.MAX_VALUE);
 		}));

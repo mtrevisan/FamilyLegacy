@@ -82,7 +82,13 @@ import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -98,10 +104,12 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -170,6 +178,8 @@ public class HistoricalDateAssistantDialog extends JDialog{
 	//the day written in the calendars of the table, in the conversion tool
 	private final JTable calendarTable = ToolDialogs.createTable(new RowTableModel(calendarColumns(), List.of()), null);
 	private RowTableModel calendarModel = new RowTableModel(calendarColumns(), List.of());
+	//the run buttons disabled because their result is on display
+	private final Set<JButton> spentButtons = new HashSet<>();
 
 
 	/**
@@ -228,6 +238,19 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.verify"), "assistant_verify", createVerifyPanel(calendarCode, dateText));
 		GUIHelper.addTab(tools, I18N.t("dialog.date_assistant.tool.roman"), "assistant_roman", createRomanPanel());
 		tools.setSelectedIndex(initialTool.ordinal());
+		//a result is not recomputed until the input changes: any change in a tab enables its run buttons again
+		for(int i = 0; i < tools.getTabCount(); i ++){
+			final Component tab = tools.getComponentAt(i);
+			watchInputs(tab, () -> rearmRunButtons(tab));
+		}
+		//another tool has nothing to do with the result on display: it is cleared
+		tools.addChangeListener(e -> {
+			spentButtons.forEach(button -> button.setEnabled(true));
+			spentButtons.clear();
+			suggestionsModel.clear();
+			messageLabel.setText(StringUtils.SPACE);
+			showSelected();
+		});
 
 		suggestionsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		final DefaultListCellRenderer baseRenderer = new DefaultListCellRenderer();
@@ -292,13 +315,11 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JTextField date = new JTextField(StringUtils.defaultString(dateText), 24);
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
 		run.addActionListener(e -> {
-			compute(() -> CalendarConversionTool.convertWithDualDating((String)calendar.getSelectedItem(), date.getText()));
+			compute(run, () -> CalendarConversionTool.convertWithDualDating((String)calendar.getSelectedItem(), date.getText()));
 			showCalendarTable((String)calendar.getSelectedItem(), date.getText());
 		});
 
-		//the rows are in a fixed order, and a sorter would stay bound to the model it was created for
-		calendarTable.setRowSorter(null);
-		calendarTable.setAutoCreateRowSorter(false);
+		//the table creates its row sorter again each time the model is replaced
 		calendarTable.setFocusable(false);
 		final JLabel note = new JLabel("<html><i>" + I18N.t("dialog.date_assistant.conversion.table.note") + "</i></html>");
 
@@ -312,7 +333,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		note.setToolTipText(I18N.t("dialog.date_assistant.conversion.table.tooltip"));
 		calendarTable.setToolTipText(I18N.t("dialog.date_assistant.conversion.table.tooltip"));
 		panel.add(new JScrollPane(calendarTable), "span 4,growx,h 200!");
-		panel.add(ToolDialogs.createCopyButton(() -> calendarModel.toText()), "aligny top");
+		panel.add(ToolDialogs.createCopyButton(() -> calendarModel.toText(), calendarTable), "aligny top");
 		return panel;
 	}
 
@@ -354,18 +375,18 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		if(initialReform != null)
 			reform.setSelectedIndex(reformIndex(initialReform));
 		final JButton feasts = new JButton(I18N.t("dialog.date_assistant.run"));
-		feasts.addActionListener(e -> compute(() -> LiturgicalTool.feasts((int)year.getValue(), selectedReform(reform))));
+		feasts.addActionListener(e -> compute(feasts, () -> LiturgicalTool.feasts((int)year.getValue(), selectedReform(reform))));
 
 		final JTextField expression = new JTextField(24);
 		expression.setToolTipText(I18N.t("dialog.date_assistant.liturgical.expression.tooltip"));
 		final JButton resolve = new JButton(I18N.t("dialog.date_assistant.run"));
-		resolve.addActionListener(e -> compute(() -> List.of(LiturgicalTool.resolveFeast(expression.getText(), selectedReform(reform)))));
+		resolve.addActionListener(e -> compute(resolve, () -> List.of(LiturgicalTool.resolveFeast(expression.getText(), selectedReform(reform)))));
 
 		final JSpinner days = new JSpinner(new SpinnerNumberModel(3, 0, 400, 1));
 		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
 			I18N.t("dialog.date_assistant.before")}));
 		final JButton relative = new JButton(I18N.t("dialog.date_assistant.run"));
-		relative.addActionListener(e -> compute(() -> List.of(LiturgicalTool.relativeToEaster((int)year.getValue(),
+		relative.addActionListener(e -> compute(relative, () -> List.of(LiturgicalTool.relativeToEaster((int)year.getValue(),
 			(direction.getSelectedIndex() == 0? 1: -1) * (long)(int)days.getValue(), selectedReform(reform)))));
 
 		final JPanel panel = createToolPanel();
@@ -404,7 +425,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			I18N.t("dialog.date_assistant.sun.hours.unequal")}));
 		hours.setToolTipText(I18N.t("dialog.date_assistant.sun.hours.tooltip"));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> SunTool.analyze((String)calendar.getSelectedItem(), date.getText(),
+		run.addActionListener(e -> compute(run, () -> SunTool.analyze((String)calendar.getSelectedItem(), date.getText(),
 			Double.parseDouble(latitude.getText().trim().replace(',', '.')), Double.parseDouble(longitude.getText().trim().replace(',', '.')),
 			(hourSystem.getSelectedIndex() == 0? SunTool.HourSystem.EQUAL: SunTool.HourSystem.UNEQUAL),
 			(StringUtils.isBlank(hours.getText())? null: Double.valueOf(hours.getText().trim().replace(',', '.'))))));
@@ -464,7 +485,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
 			I18N.t("dialog.date_assistant.before")}));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> RelativeDateTool.offset((String)calendar.getSelectedItem(), date.getText(),
+		run.addActionListener(e -> compute(run, () -> RelativeDateTool.offset((String)calendar.getSelectedItem(), date.getText(),
 			(int)amount.getValue(), (RelativeDateTool.Unit)unit.getSelectedItem(), direction.getSelectedIndex() == 0)));
 
 		final JPanel panel = createToolPanel();
@@ -488,7 +509,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final JComboBox<String> direction = ComboBoxSearch.searchable(new JComboBox<>(new String[]{I18N.t("dialog.date_assistant.after"),
 			I18N.t("dialog.date_assistant.before")}));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> {
+		run.addActionListener(e -> compute(run, () -> {
 			final EventChoice choice = (EventChoice)event.getSelectedItem();
 			if(choice == null)
 				throw new IllegalArgumentException(I18N.t("dialog.date_assistant.event.none"));
@@ -513,7 +534,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		expression.setToolTipText(I18N.t("dialog.date_assistant.roman.expression.tooltip"));
 		final JSpinner year = createYearSpinner();
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> RomanDateTool.interpret(expression.getText(), (int)year.getValue())));
+		run.addActionListener(e -> compute(run, () -> RomanDateTool.interpret(expression.getText(), (int)year.getValue())));
 
 		final JPanel panel = createToolPanel();
 		panel.add(new JLabel(I18N.l("dialog.date_assistant.roman.expression")));
@@ -538,7 +559,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 			I18N.t("dialog.date_assistant.age.ordinal")}));
 		reading.setToolTipText(I18N.t("dialog.date_assistant.age.ordinal.tooltip"));
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> {
+		run.addActionListener(e -> compute(run, () -> {
 			final Integer m = parseOptionalInt(months.getText());
 			final Integer d = parseOptionalInt(days.getText());
 			final boolean ordinal = (reading.getSelectedIndex() == 1);
@@ -628,7 +649,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		//the second date is, as a starting point, today: with a birth as the first date the result is the age today
 		final DateSource to = new DateSource(events, null, DayRange.today());
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> IntervalTool.between(from.range(), to.range())));
+		run.addActionListener(e -> compute(run, () -> IntervalTool.between(from.range(), to.range())));
 
 		final JPanel panel = createToolPanel();
 		panel.setToolTipText(I18N.t("dialog.date_assistant.interval.tooltip"));
@@ -676,7 +697,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 				clues.remove(index);
 		});
 		final JButton run = new JButton(I18N.t("dialog.date_assistant.run"));
-		run.addActionListener(e -> compute(() -> AgeCluesTool.intersect(Collections.list(clues.elements()).stream()
+		run.addActionListener(e -> compute(run, () -> AgeCluesTool.intersect(Collections.list(clues.elements()).stream()
 			.map(ClueEntry::clue)
 			.toList())));
 
@@ -725,7 +746,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		indiction.setToolTipText(I18N.t("dialog.date_assistant.verify.indiction.tooltip"));
 
 		final JButton verify = new JButton(I18N.t("dialog.date_assistant.verify.check"));
-		verify.addActionListener(e -> compute(() -> {
+		verify.addActionListener(e -> compute(verify, () -> {
 			final DayOfWeek claimedDay = (DayOfWeek)weekday.getSelectedItem();
 			final Integer claimedIndiction = (Integer)indiction.getSelectedItem();
 			if(claimedDay == null && claimedIndiction == null)
@@ -744,7 +765,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		fromYear.setValue(1400);
 		final JSpinner toYear = createYearSpinner();
 		final JButton years = new JButton(I18N.t("dialog.date_assistant.run"));
-		years.addActionListener(e -> compute(() -> IndictionTool.years((int)yearsIndiction.getValue(), (int)fromYear.getValue(),
+		years.addActionListener(e -> compute(years, () -> IndictionTool.years((int)yearsIndiction.getValue(), (int)fromYear.getValue(),
 			(int)toYear.getValue())));
 
 		final JPanel panel = createToolPanel();
@@ -953,14 +974,27 @@ public class HistoricalDateAssistantDialog extends JDialog{
 
 	/** Runs a tool and shows its suggestions, or the reason it failed. */
 	private void compute(final Supplier<List<DateSuggestion>> tool){
+		compute(null, tool);
+	}
+
+	/**
+	 * Runs a tool and shows its suggestions, or the reason it failed.
+	 * <p>The button that ran the tool stays disabled while its result is on display, that is, until an input of its tab changes or
+	 * another tab is chosen: running it again would give the same result. After a failure it stays enabled, to retry.</p>
+	 *
+	 * @param run	the button that runs the tool (can be {@code null})
+	 */
+	private void compute(final JButton run, final Supplier<List<DateSuggestion>> tool){
 		suggestionsModel.clear();
 		messageLabel.setText(StringUtils.SPACE);
 		messageLabel.setForeground(errorColor());
+		boolean computed = false;
 		try{
 			tool.get()
 				.forEach(suggestionsModel::addElement);
 			if(!suggestionsModel.isEmpty())
 				suggestionsList.setSelectedIndex(0);
+			computed = true;
 		}
 		catch(final AssistantStateException ase){
 			messageLabel.setText(AssistantMessages.translate(ase.reason()));
@@ -977,7 +1011,66 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		catch(final IllegalArgumentException iae){
 			messageLabel.setText(I18N.t("dialog.date_assistant.error.input") + ": " + iae.getMessage());
 		}
+		if(computed && run != null){
+			run.setEnabled(false);
+			spentButtons.add(run);
+		}
 		showSelected();
+	}
+
+	/** Enables again the run buttons of a tab: the input is no more the one of the result on display. */
+	private void rearmRunButtons(final Component tab){
+		spentButtons.removeIf(button -> {
+			final boolean inTab = SwingUtilities.isDescendingFrom(button, tab);
+			if(inTab)
+				button.setEnabled(true);
+			return inTab;
+		});
+	}
+
+	/** Calls the action when the value of an input of the component (a field, a combo box, a spinner or a list) changes. */
+	private static void watchInputs(final Component component, final Runnable onChange){
+		if(component instanceof final JTextComponent field)
+			field.getDocument().addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					onChange.run();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					onChange.run();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){
+					onChange.run();
+				}
+			});
+		else if(component instanceof final JComboBox<?> combo)
+			combo.addItemListener(e -> onChange.run());
+		else if(component instanceof final JSpinner spinner)
+			spinner.addChangeListener(e -> onChange.run());
+		else if(component instanceof final JList<?> list)
+			list.getModel().addListDataListener(new ListDataListener(){
+				@Override
+				public void intervalAdded(final ListDataEvent e){
+					onChange.run();
+				}
+
+				@Override
+				public void intervalRemoved(final ListDataEvent e){
+					onChange.run();
+				}
+
+				@Override
+				public void contentsChanged(final ListDataEvent e){
+					onChange.run();
+				}
+			});
+		else if(component instanceof final Container container)
+			for(final Component child : container.getComponents())
+				watchInputs(child, onChange);
 	}
 
 	/**

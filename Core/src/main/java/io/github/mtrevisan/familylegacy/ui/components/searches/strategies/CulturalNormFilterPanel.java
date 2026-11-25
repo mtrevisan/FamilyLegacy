@@ -52,7 +52,7 @@ import java.util.function.Consumer;
 public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField titleField = new JTextField(20);
-	private final JComboBox<String> ruleTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> ruleTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(CulturalNormReader.TYPES, I18N.t("search.combo.any"))), "enum.cultural_norm.rule_type");
 	private final JTextField placeField = new JTextField(20);
 	private final JTextField dateFromField = new JTextField(10);
 	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);

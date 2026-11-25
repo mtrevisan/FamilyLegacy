@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JButton;
+import java.awt.Color;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayDeque;
@@ -332,12 +333,12 @@ class AssistantIndicatorTest{
 
 	@Test
 	void theColourOfTheIndicatorFollowsTheMostSeriousFinding(){
-		final java.awt.Color neutral = AssistantIndicator.severityColor(null);
+		final Color neutral = AssistantIndicator.severityColor(null);
 
 		Assertions.assertEquals(neutral, AssistantIndicator.severityColor(new FindingCounts(0, 0, 0)));
 		Assertions.assertEquals(neutral, AssistantIndicator.severityColor(new FindingCounts(0, 0, 7)));
-		final java.awt.Color warning = AssistantIndicator.severityColor(new FindingCounts(0, 2, 7));
-		final java.awt.Color error = AssistantIndicator.severityColor(new FindingCounts(1, 2, 7));
+		final Color warning = AssistantIndicator.severityColor(new FindingCounts(0, 2, 7));
+		final Color error = AssistantIndicator.severityColor(new FindingCounts(1, 2, 7));
 		Assertions.assertNotEquals(neutral, warning);
 		Assertions.assertNotEquals(neutral, error);
 		Assertions.assertNotEquals(warning, error);

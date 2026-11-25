@@ -34,10 +34,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.BooleanSupplier;
@@ -250,7 +254,7 @@ public final class AssistantStatistics{
 		final List<Row> rows = new ArrayList<>();
 		if(ofKinds != null)
 			ofKinds.forEach((kind, found) -> {
-				final Map<Event, Long> byEvent = new java.util.EnumMap<>(Event.class);
+				final Map<Event, Long> byEvent = new EnumMap<>(Event.class);
 				for(final Event event : Event.values())
 					byEvent.put(event, found.counts[event.ordinal()]);
 				rows.add(new Row(kind, byEvent, (found.positionCount > 0L? (double)found.positionSum / found.positionCount: -1.)));
@@ -408,11 +412,11 @@ public final class AssistantStatistics{
 	/** @return a short digest of the numbers of the assistants (the same numbers, the same digest) */
 	static String digest(final AssistantTuning tuning){
 		try{
-			final byte[] hash = java.security.MessageDigest.getInstance("SHA-256")
+			final byte[] hash = MessageDigest.getInstance("SHA-256")
 				.digest(describe(tuning).getBytes(StandardCharsets.UTF_8));
 			return HexFormat.of().formatHex(hash, 0, DIGEST_CHARS / 2);
 		}
-		catch(final java.security.NoSuchAlgorithmException nsae){
+		catch(final NoSuchAlgorithmException nsae){
 			//every Java platform has SHA-256
 			throw new IllegalStateException(nsae);
 		}
@@ -423,7 +427,7 @@ public final class AssistantStatistics{
 		final List<String> changed = new ArrayList<>();
 		for(final AssistantTuning.Parameter parameter : AssistantTuning.Parameter.values())
 			if(tuning.get(parameter) != parameter.defaultValue())
-				changed.add(parameter.name().toLowerCase(java.util.Locale.ROOT) + '=' + tuning.get(parameter));
+				changed.add(parameter.name().toLowerCase(Locale.ROOT) + '=' + tuning.get(parameter));
 		return (changed.isEmpty()? DEFAULTS: String.join(" ", changed));
 	}
 

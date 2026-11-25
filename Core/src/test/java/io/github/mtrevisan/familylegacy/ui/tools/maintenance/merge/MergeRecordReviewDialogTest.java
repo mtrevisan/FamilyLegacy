@@ -39,12 +39,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dialog;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 
 /** The review of the whole record: the middle column is what the kept record gets, and it is read back on Merge. */
@@ -338,7 +340,7 @@ class MergeRecordReviewDialogTest{
 		}
 	}
 
-	private static void waitFor(final java.util.function.BooleanSupplier condition) throws Exception{
+	private static void waitFor(final BooleanSupplier condition) throws Exception{
 		for(int i = 0; i < 200 && !condition.getAsBoolean(); i ++)
 			Thread.sleep(50);
 	}
@@ -369,7 +371,7 @@ class MergeRecordReviewDialogTest{
 
 		final MergeRecordReviewDialog dialog = open(manyNames());
 		SwingUtilities.invokeAndWait(() -> {
-			dialog.setModalityType(java.awt.Dialog.ModalityType.MODELESS);
+			dialog.setModalityType(Dialog.ModalityType.MODELESS);
 			dialog.setVisible(true);
 		});
 		try{
@@ -445,7 +447,7 @@ class MergeRecordReviewDialogTest{
 
 		final MergeRecordReviewDialog dialog = open(ROSSI_AND_ROSSA);
 		SwingUtilities.invokeAndWait(() -> {
-			dialog.setModalityType(java.awt.Dialog.ModalityType.MODELESS);
+			dialog.setModalityType(Dialog.ModalityType.MODELESS);
 			dialog.setVisible(true);
 		});
 		try{

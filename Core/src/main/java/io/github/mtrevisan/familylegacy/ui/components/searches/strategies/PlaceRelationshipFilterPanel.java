@@ -59,7 +59,7 @@ import java.util.function.Consumer;
  */
 public class PlaceRelationshipFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(PlaceRelationshipReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(PlaceRelationshipReader.TYPES, I18N.t("search.combo.any"))), "enum.place_relationship.type");
 
 	private final Consumer<SearchCriteria> onChanged;
 

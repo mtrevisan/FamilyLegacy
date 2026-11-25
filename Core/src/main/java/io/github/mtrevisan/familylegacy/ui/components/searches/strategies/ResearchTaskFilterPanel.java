@@ -49,8 +49,8 @@ import java.util.function.Consumer;
 public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField descriptionField = new JTextField(20);
-	private final JComboBox<String> statusCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.STATUSES, I18N.t("search.combo.any"))));
-	private final JComboBox<String> priorityCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> statusCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.STATUSES, I18N.t("search.combo.any"))), "enum.research_task.status");
+	private final JComboBox<String> priorityCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(ResearchTaskReader.PRIORITIES, I18N.t("search.combo.any"))), "enum.research_task.priority");
 	private final JTextField outcomeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

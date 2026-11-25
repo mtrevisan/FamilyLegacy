@@ -36,6 +36,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.CyclingRowSorter;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -53,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingConstants;
@@ -70,6 +73,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -140,8 +145,8 @@ public final class AgoraPanel extends JPanel{
 	private final JLabel countLabel = new JLabel();
 	private final SearchBox searchBox = new SearchBox(20, false);
 	private final AgoraTableModel tableModel = new AgoraTableModel();
-	private final JTable table = new JTable(tableModel);
-	private final TableRowSorter<AgoraTableModel> sorter = new TableRowSorter<>(tableModel);
+	private final JTable table = new SortableTable(tableModel);
+	private final TableRowSorter<AgoraTableModel> sorter = new CyclingRowSorter<>(tableModel);
 
 	private final Timer refreshTimer;
 
@@ -154,6 +159,8 @@ public final class AgoraPanel extends JPanel{
 	 * being updated programmatically from the shared selection.
 	 */
 	private boolean updatingSelection;
+	/** The person to bring to the top of the list as soon as they appear in it (set by a jump). */
+	private String pendingScrollToTop = StringUtils.EMPTY;
 
 
 	/* ======================================================================
@@ -258,7 +265,7 @@ public final class AgoraPanel extends JPanel{
 				if(id == null)
 					table.clearSelection();
 				else
-					selectRowById(id);
+					selectRowById(id, false);
 			}
 			finally{
 				updatingSelection = false;
@@ -288,13 +295,42 @@ public final class AgoraPanel extends JPanel{
 	 * the selection is applied to the correct visual row even when the
 	 * sorter has reordered the table.
 	 */
-	private void selectRowById(final String id){
+	/**
+	 * Asks to show the given person as the first row of the list, as soon as they are among those alive (the list is rebuilt a
+	 * moment after the timeline moves). The row is also selected.
+	 */
+	public void showAtTop(final String id){
+		pendingScrollToTop = (id != null? id: StringUtils.EMPTY);
+
+		//already in the list
+		updatingSelection = true;
+		try{
+			if(id != null)
+				selectRowById(id, true);
+		}
+		finally{
+			updatingSelection = false;
+		}
+	}
+
+	private void scrollToRow(final int viewRow, final boolean toTop){
+		final Rectangle cell = table.getCellRect(viewRow, 0, true);
+		if(toTop && table.getParent() instanceof JViewport viewport){
+			//the person goes to the top of the visible list, not wherever the minimal scroll leaves it
+			final int maxY = Math.max(0, table.getHeight() - viewport.getHeight());
+			viewport.setViewPosition(new Point(0, Math.min(cell.y, maxY)));
+		}
+		else
+			table.scrollRectToVisible(cell);
+	}
+
+	private void selectRowById(final String id, final boolean toTop){
 		for(int modelRow = 0; modelRow < tableModel.getRowCount(); modelRow ++){
 			final AgoraRow row = tableModel.getRow(modelRow);
 			if(row != null && id.equals(row.id())){
 				final int viewRow = table.convertRowIndexToView(modelRow);
 				table.setRowSelectionInterval(viewRow, viewRow);
-				table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+				scrollToRow(viewRow, toTop);
 
 				return;
 			}
@@ -526,6 +562,20 @@ public final class AgoraPanel extends JPanel{
 		rows.sort(Comparator.comparing(AgoraRow::name, String.CASE_INSENSITIVE_ORDER));
 		tableModel.setRows(rows);
 		countLabel.setText(I18N.tf("text.agora.alive", rows.size()));
+
+		//the rows have been replaced: highlight again the selected person, if they are among those alive
+		final String selectedId = (selection != null? selection.get(): null);
+		if(selectedId != null){
+			updatingSelection = true;
+			try{
+				//a rebuild caused by the timeline: the person goes to the top only when it has been brought here by a jump
+				selectRowById(selectedId, pendingScrollToTop.equals(selectedId));
+				pendingScrollToTop = StringUtils.EMPTY;
+			}
+			finally{
+				updatingSelection = false;
+			}
+		}
 	}
 
 	/**

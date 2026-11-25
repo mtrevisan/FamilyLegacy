@@ -52,8 +52,8 @@ import java.util.function.Consumer;
  */
 public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> sexCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any"))));
-	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> sexCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(IndividualReader.SEXES, I18N.t("search.combo.any"))), "enum.individual.sex");
+	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))), "enum.event.type");
 	private final JTextField dateFromField = new JTextField(10);
 	private final BoundComboBox<String> calendarFromCombo = new BoundComboBox<>(DateReader.TAG_CALENDAR, DateReader.CALENDARS);
 	private final JTextField dateToField = new JTextField(10);
@@ -130,6 +130,12 @@ public class IndividualFilterPanel extends JPanel implements RecordFilterPanel{
 		filters.put(IndividualSearchStrategy.KEY_CALENDAR_TO, getEventCalendarTo());
 		filters.put(EventReader.TAG_PLACE, getEventPlace());
 		return filters;
+	}
+
+	/** Selects the sex and does not let the user change it. */
+	public void lockSex(final String sex){
+		sexCombo.setSelectedItem(sex);
+		sexCombo.setEnabled(false);
 	}
 
 	// Getters for the parent to read values

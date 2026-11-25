@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individual;
 
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.tree.EntityListener;
-import io.github.mtrevisan.familylegacy.tree.TreeOperation;
 
 
 /**
@@ -44,8 +43,6 @@ public interface IndividualListener extends EntityListener{
 	 * @param individual the individual displayed by the panel
 	 */
 	void onIndividualSelected(IndividualPanel selectedPanel, FLEFRecord individual);
-
-	void onChildAddOrConnect(IndividualPanel selectedPanel, TreeOperation operation);
 
 	void onIndividualUnlink(IndividualPanel selectedPanel, FLEFRecord individual);
 

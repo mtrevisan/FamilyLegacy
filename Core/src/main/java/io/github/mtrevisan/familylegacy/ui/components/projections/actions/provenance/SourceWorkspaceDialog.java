@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.IntConsumer;
 
 
@@ -83,6 +84,8 @@ public final class SourceWorkspaceDialog extends JDialog{
 	private final JTabbedPane tabs = new JTabbedPane();
 
 	private String selectedSourceId;
+	/** The source whose tabs are on screen. */
+	private String shownSourceId;
 	/** Whether the tree is being rebuilt: the selection that this causes is not a choice of the user. */
 	private boolean loading;
 	private SourceWorkspace workspace;
@@ -253,6 +256,10 @@ public final class SourceWorkspaceDialog extends JDialog{
 	/** Reads the model again for the selected source and builds the tabs, keeping the one in view. */
 	private void showSource(){
 		final int selectedTab = Math.max(tabs.getSelectedIndex(), 0);
+		//the selected rows are kept only if it is still the same source (after the editing of a record), not if another one was picked
+		final List<List<Integer>> selections = (Objects.equals(selectedSourceId, shownSourceId)
+			? RowTableModel.selectionsOf(tabs): List.of());
+		shownSourceId = selectedSourceId;
 		tabs.removeAll();
 		citationOwners.clear();
 		citationPeople.clear();
@@ -276,6 +283,7 @@ public final class SourceWorkspaceDialog extends JDialog{
 		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_extracts"), "workspace_extracts", createExtractsTab(workspace.extracts()));
 		GUIHelper.addTab(tabs, I18N.t("tab.title.workspace_media"), "workspace_media", createRecordsTab(workspace.media()));
 		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
+		RowTableModel.restoreSelections(tabs, selections);
 	}
 
 	private JPanel createCitationsTab(){
@@ -405,13 +413,9 @@ public final class SourceWorkspaceDialog extends JDialog{
 		}
 	}
 
-	/** A table whose model is replaced as the selection changes: the sorter that the factory installs would stay bound to the first model. */
+	/** A table whose model is replaced as the selection changes: the table creates its row sorter again at each replacement. */
 	private static JTable createPlainTable(final List<Object[]> rows, final IntConsumer onOpen){
-		final JTable table = ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.id"), I18N.t("column.record")}, rows),
-			onOpen);
-		table.setAutoCreateRowSorter(false);
-		table.setRowSorter(null);
-		return table;
+		return ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.id"), I18N.t("column.record")}, rows), onOpen);
 	}
 
 	private void open(final List<FLEFRecord> records, final int row){

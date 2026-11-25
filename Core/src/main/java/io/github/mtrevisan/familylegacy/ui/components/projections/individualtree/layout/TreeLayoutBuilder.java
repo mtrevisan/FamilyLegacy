@@ -43,12 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import java.awt.ComponentOrientation;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -169,13 +164,15 @@ public final class TreeLayoutBuilder{
 			// Expand only existing parent nodes
 			if(depth < maxDepth){
 				final int nextDepth = depth + 1;
-				final int halfSpan = span >> 1;
+				final TreeNode motherNode = node.getMother();
+				final TreeNode fatherNode = node.getFather();
+				//a root without a partner is shown alone, centered on the whole width: the parents row has to be centered too, not
+				//pushed in one half
+				final boolean loneRoot = (depth == 0 && (fatherNode == null ^ motherNode == null));
+				final int halfSpan = (loneRoot? span: span >> 1);
 
 				// Push MOTHER first, then FATHER, so that FATHER is processed first (LIFO order)
-				final TreeNode motherNode = node.getMother();
-				stack.push(new LayoutNodeItem(motherNode, nextDepth, dimension + halfSpan, halfSpan));
-
-				final TreeNode fatherNode = node.getFather();
+				stack.push(new LayoutNodeItem(motherNode, nextDepth, (loneRoot? dimension: dimension + halfSpan), halfSpan));
 				stack.push(new LayoutNodeItem(fatherNode, nextDepth, dimension, halfSpan));
 			}
 		}
@@ -195,11 +192,11 @@ public final class TreeLayoutBuilder{
 		// Add the children panel at the end of the primary axis
 		final SiblingsPanel childrenPanel = createChildrenPanel(father, mother, model, listener, popupFactory, rootNode,
 			showPartner, treeLayout);
-		final JScrollPane childrenScrollPane = createChildrenScrollPane(childrenPanel, treeLayout);
+		//no nested scroll pane: the children live on the main canvas, which is the only scrolling/panning surface
 		final String childrenCellConstraints = (isVertical
-			? "cell 0 " + (maxDepth + 1) + ",span " + maxLeafUnits + ",align center,wmax pref"
-			: "cell 0 0,span 1 " + maxLeafUnits + ",align center,hmax pref");
-		mainPanel.add(childrenScrollPane, childrenCellConstraints);
+			? "cell 0 " + (maxDepth + 1) + ",span " + maxLeafUnits + ",align center"
+			: "cell 0 0,span 1 " + maxLeafUnits + ",align center");
+		mainPanel.add(childrenPanel, childrenCellConstraints);
 
 		return childrenPanel;
 	}
@@ -348,31 +345,6 @@ public final class TreeLayoutBuilder{
 		if(rootNode != null)
 			panel.withSiblingsData(rootNode.getBiologicalChildrenData());
 		return panel;
-	}
-
-	public static JScrollPane createChildrenScrollPane(final JPanel content, final TreeLayout treeLayout){
-		final JScrollPane scrollPane = new JScrollPane(content);
-		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setBorder(null);
-
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-		// Dynamically compute horizontal scrollbar height without forcing container expansion
-		if(treeLayout == TreeLayout.VERTICAL){
-			final JScrollBar scrollBar = scrollPane.getHorizontalScrollBar();
-			final int scrollBarHeight = scrollBar.getPreferredSize().height;
-			content.setBorder(BorderFactory.createEmptyBorder(0, 0, scrollBarHeight, 0));
-		}
-		else{
-			scrollPane.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-			final JScrollBar scrollBar = scrollPane.getVerticalScrollBar();
-			final int scrollBarWidth = scrollBar.getPreferredSize().width;
-			content.setBorder(BorderFactory.createEmptyBorder(0, scrollBarWidth, 0, 0));
-		}
-
-		return scrollPane;
 	}
 
 }

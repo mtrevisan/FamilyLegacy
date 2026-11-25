@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.AgentReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IdentityHypothesisReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -116,6 +117,37 @@ class PlannerAssistantTest{
 		Assertions.assertTrue(steps.stream().allMatch(d -> d.action() != null));
 		//suggesting does not touch the model
 		Assertions.assertEquals(count, model.getRecordCount());
+	}
+
+	@Test
+	void anOpenQuestionHasAKindOfSourceToSearch() throws IOException{
+		final FLEFModel model = convert();
+		model.addRecord(question("RQ1", idOf(model, "Bruno")));
+
+		final List<Diagnostic> found = diagnose(model);
+
+		final List<Diagnostic> kinds = found.stream().filter(d -> d.key().startsWith("planner.source_kind|")).toList();
+		Assertions.assertEquals(1, kinds.size(), found.toString());
+		Assertions.assertNotNull(kinds.getFirst().action());
+	}
+
+	@Test
+	void anIdentityHypothesisNoConclusionEvaluatesDeservesAttention() throws IOException{
+		final FLEFModel model = convert();
+		final String anna = idOf(model, "Anna");
+		final String bruno = idOf(model, "Bruno");
+		model.addRecord(FLEFRecord.createMainRecord("IH1", IdentityHypothesisReader.TYPE)
+			.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_IDENTITY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TAG_IDENTITY_INDIVIDUAL, anna)))
+			.addChild(FLEFRecord.createChildWithTag(IdentityHypothesisReader.TAG_IDENTITY)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TAG_IDENTITY_INDIVIDUAL, bruno)))
+			.addChild(FLEFRecord.createChildWithTagAndValue(IdentityHypothesisReader.TAG_CONFIDENCE, "high")));
+
+		final List<Diagnostic> found = diagnose(model);
+
+		final List<Diagnostic> identities = found.stream().filter(d -> d.key().startsWith("planner.identity|")).toList();
+		Assertions.assertEquals(1, identities.size(), found.toString());
+		Assertions.assertTrue(identities.getFirst().recordIds().contains("IH1"));
 	}
 
 	@Test

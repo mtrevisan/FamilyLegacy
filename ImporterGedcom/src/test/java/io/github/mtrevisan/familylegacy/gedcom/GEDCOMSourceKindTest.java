@@ -98,6 +98,45 @@ class GEDCOMSourceKindTest{
 	}
 
 	@Test
+	void theCivilOrReligiousTypeOfAnEventIsTheKindOfItsSource() throws IOException{
+		final FLEFModel model = convert("""
+			0 @I1@ INDI
+			1 NAME Mario /Rossi/
+			1 BIRT
+			2 TYPE religious
+			2 DATE 1 JAN 1850
+			2 SOUR @S1@
+			1 DEAT
+			2 TYPE civil
+			2 DATE 1 JAN 1900
+			2 SOUR @S2@
+			1 BURI
+			2 TYPE religious
+			2 SOUR @S3@
+			1 CHR
+			2 TYPE religious
+			0 @S1@ SOUR
+			1 TITL Register A
+			0 @S2@ SOUR
+			1 TITL Register B
+			0 @S3@ SOUR
+			1 TITL Register C
+			1 _TYPE Census Record
+			""");
+
+		Assertions.assertEquals(SourceReader.ENUM_KIND_CHURCH_REGISTER, SourceReader.extractKind(model.getRecordById("S1")));
+		Assertions.assertEquals(SourceReader.ENUM_KIND_CIVIL_REGISTRATION, SourceReader.extractKind(model.getRecordById("S2")));
+		//a source that already has another kind keeps it, and the type of the event is not lost
+		Assertions.assertEquals(SourceReader.ENUM_KIND_CENSUS, SourceReader.extractKind(model.getRecordById("S3")));
+		//with a cited source the type is not a description (the baptism cites none: its type stays as the description)
+		final List<String> descriptions = model.getRecordsByType("event").stream()
+			.map(event -> FLEFRecordHelper.getChildValue(event, "description"))
+			.filter(java.util.Objects::nonNull)
+			.toList();
+		Assertions.assertEquals(List.of("religious"), descriptions);
+	}
+
+	@Test
 	void theKindAndTheMediaTypeAreIndependent() throws IOException{
 		final FLEFModel model = convert("""
 			0 @R1@ REPO

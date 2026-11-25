@@ -24,8 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
 
+import io.github.mtrevisan.familylegacy.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 
 class IndividualToolRegistryTest{
@@ -37,6 +43,17 @@ class IndividualToolRegistryTest{
 		Assertions.assertTrue(tools.stream().anyMatch(ConnectPartnerTool.class::isInstance));
 		Assertions.assertTrue(tools.stream().anyMatch(ConnectParentTool.class::isInstance));
 		Assertions.assertTrue(tools.stream().anyMatch(ConnectChildTool.class::isInstance));
+	}
+
+	@Test
+	void everyConnectIsDisabledWithoutAnythingSelected(){
+		final ToolContext noModel = null;
+		final ToolContext emptyFile = ToolContexts.readOnly(new FLEFParser().parse(""), "I1", null);
+
+		for(final ToolOperation tool : List.of(new ConnectPartnerTool(), new ConnectParentTool(), new ConnectChildTool())){
+			Assertions.assertFalse(tool.isEnabled(noModel), tool.getClass().getSimpleName());
+			Assertions.assertFalse(tool.isEnabled(emptyFile), tool.getClass().getSimpleName());
+		}
 	}
 
 	@Test

@@ -24,13 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.projections.common;
 
-import io.github.mtrevisan.familylegacy.ui.helpers.ResourceHelper;
-
-import javax.swing.GrayFilter;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import java.awt.Dimension;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 
@@ -52,9 +48,9 @@ import java.util.Map;
  * {@link #ARROW_SIZE} that both panels use to reserve the right amount of
  * space in their layouts.
  * <p>
- * The four icons are pre-loaded at class-load time and shared by every
- * consumer; the disabled variants (greyed-out versions) are also cached
- * on first request through {@link #disabled(ImageIcon)}.
+ * The four icons are created at class-load time and shared by every
+ * consumer. They are drawn as vector shapes ({@link TreeArrowIcon}) in the colour of the
+ * component they are on (a lighter one when it is disabled).
  */
 public final class TreeIcons{
 
@@ -67,25 +63,26 @@ public final class TreeIcons{
 	public static final Dimension ARROW_SIZE = new Dimension(
 		(int)((float)ARROW_HEIGHT / ARROW_ASPECT_RATIO), ARROW_HEIGHT);
 
-	private static final Map<TreeLayout, ImageIcon> ANCESTORS = new EnumMap<>(TreeLayout.class);
-	private static final Map<TreeLayout, ImageIcon> DESCENDANTS = new EnumMap<>(TreeLayout.class);
-	private static final Map<ImageIcon, ImageIcon> DISABLED = new HashMap<>();
+	/**
+	 * The area of the arrows that point sideways (the horizontal layout): as wide as the others, lower, as the images they
+	 * replace were (the label that holds them is as tall as {@link #ARROW_SIZE}, and centres them).
+	 */
+	private static final Dimension SIDEWAYS_ARROW_SIZE = new Dimension(ARROW_SIZE.width, 8);
+
+	private static final Map<TreeLayout, Icon> ANCESTORS = new EnumMap<>(TreeLayout.class);
+	private static final Map<TreeLayout, Icon> DESCENDANTS = new EnumMap<>(TreeLayout.class);
 
 
 	static{
 		// Ancestor arrow: points up in the vertical layout, right in the
 		// horizontal one (ancestors are above, or to the right of, the box).
-		ANCESTORS.put(TreeLayout.VERTICAL,
-			ResourceHelper.getResizedImageFromResource("/images/union_up.png", ARROW_SIZE));
-		ANCESTORS.put(TreeLayout.HORIZONTAL,
-			ResourceHelper.getResizedImageFromResource("/images/union_next.png", ARROW_SIZE));
+		ANCESTORS.put(TreeLayout.VERTICAL, new TreeArrowIcon(TreeArrowIcon.Direction.UP, ARROW_SIZE));
+		ANCESTORS.put(TreeLayout.HORIZONTAL, new TreeArrowIcon(TreeArrowIcon.Direction.RIGHT, SIDEWAYS_ARROW_SIZE));
 
 		// Descendant arrow: points down in the vertical layout, left in the
 		// horizontal one (children are below, or to the left of, the box).
-		DESCENDANTS.put(TreeLayout.VERTICAL,
-			ResourceHelper.getResizedImageFromResource("/images/union_down.png", ARROW_SIZE));
-		DESCENDANTS.put(TreeLayout.HORIZONTAL,
-			ResourceHelper.getResizedImageFromResource("/images/union_previous.png", ARROW_SIZE));
+		DESCENDANTS.put(TreeLayout.VERTICAL, new TreeArrowIcon(TreeArrowIcon.Direction.DOWN, ARROW_SIZE));
+		DESCENDANTS.put(TreeLayout.HORIZONTAL, new TreeArrowIcon(TreeArrowIcon.Direction.LEFT, SIDEWAYS_ARROW_SIZE));
 	}
 
 
@@ -103,7 +100,7 @@ public final class TreeIcons{
 	 * @param treeLayout the tree orientation; must not be {@code null}
 	 * @return the shared arrow icon, never {@code null}
 	 */
-	public static ImageIcon ancestors(final TreeLayout treeLayout){
+	public static Icon ancestors(final TreeLayout treeLayout){
 		return ANCESTORS.get(treeLayout);
 	}
 
@@ -114,24 +111,8 @@ public final class TreeIcons{
 	 * @param treeLayout the tree orientation; must not be {@code null}
 	 * @return the shared arrow icon, never {@code null}
 	 */
-	public static ImageIcon descendants(final TreeLayout treeLayout){
+	public static Icon descendants(final TreeLayout treeLayout){
 		return DESCENDANTS.get(treeLayout);
-	}
-
-	/**
-	 * Returns a greyed-out copy of the given icon, caching the result so
-	 * repeated requests for the same source return the same instance.
-	 *
-	 * @param icon the source icon; may be {@code null}
-	 * @return the disabled variant, or {@code null} when the input is
-	 *         {@code null}
-	 */
-	public static ImageIcon disabled(final ImageIcon icon){
-		if(icon == null)
-			return null;
-
-		return DISABLED.computeIfAbsent(icon,
-			source -> new ImageIcon(GrayFilter.createDisabledImage(source.getImage())));
 	}
 
 }

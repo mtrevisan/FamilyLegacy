@@ -81,17 +81,49 @@ class GenerateTasksDialogTest{
 		SwingUtilities.invokeAndWait(() -> {
 			final GenerateTasksDialog dialog = new GenerateTasksDialog(null, model, CLOCK);
 			dialog.setProposals(proposals);
-			//the researcher leaves out the second one
-			dialog.setChecked(1, false);
+			//nothing is ticked at first: creating the ticked ones does nothing
 			dialog.create();
 			created.add(dialog.created());
+			//the researcher ticks the first one
+			dialog.setChecked(0, true);
+			dialog.create();
+			created.add(dialog.created());
+			//the row stays, as the task it became, so that it can be opened
+			created.add(dialog.pending());
+			created.add(dialog.taskIds().size());
 		});
 
-		Assertions.assertEquals(List.of(1), created);
+		Assertions.assertEquals(List.of(0, 1, 1, 1), created);
 		final List<TaskBoard.Entry> tasks = TaskBoard.list(model);
 		Assertions.assertEquals(1, tasks.size());
 		Assertions.assertEquals(proposals.getFirst().origin(), tasks.getFirst().origin());
 		Assertions.assertTrue(tasks.getFirst().isInInbox());
+	}
+
+	@Test
+	void theSelectedTaskIsCreatedAndLeavesTheList() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialog needs a display");
+		final FLEFModel model = model();
+		final List<TaskProposal> proposals = TaskProposals.propose(findings(), model, LocalDate.of(2026, 11, 24));
+		final List<Integer> counts = new ArrayList<>();
+
+		SwingUtilities.invokeAndWait(() -> {
+			final GenerateTasksDialog dialog = new GenerateTasksDialog(null, model, CLOCK);
+			dialog.setProposals(proposals);
+			//the first row is selected at first
+			dialog.createSelected();
+			counts.add(dialog.created());
+			counts.add(dialog.pending());
+			dialog.createSelected();
+			//a row that already is a task creates nothing
+			dialog.createSelected();
+			counts.add(dialog.created());
+			counts.add(dialog.pending());
+			counts.add(dialog.proposals().size());
+		});
+
+		Assertions.assertEquals(List.of(1, 1, 2, 0, 2), counts);
+		Assertions.assertEquals(2, TaskBoard.list(model).size());
 	}
 
 	@Test

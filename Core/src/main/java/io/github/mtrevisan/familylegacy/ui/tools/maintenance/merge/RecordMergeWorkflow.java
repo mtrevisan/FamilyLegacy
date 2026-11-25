@@ -165,7 +165,7 @@ public final class RecordMergeWorkflow{
 
 	private static boolean confirm(final Window owner, final FLEFRecord source, final FLEFRecord target){
 		final String message = I18N.tf("dialog.merge.records.confirm.message", displayOf(source), displayOf(target));
-		final int choice = JOptionPane.showConfirmDialog(owner, message, I18N.t("dialog.merge.records.confirm.title"),
+		final int choice = MessageDialogs.confirm(owner, message, I18N.t("dialog.merge.records.confirm.title"),
 			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		return (choice == JOptionPane.YES_OPTION);
 	}

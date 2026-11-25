@@ -31,11 +31,15 @@ import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.CyclingRowSorter;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -50,6 +54,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
+import javax.swing.SortOrder;
 import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -184,7 +189,10 @@ public final class ValidationReportDialog extends JDialog{
 		this.viewSupplier = viewSupplier;
 		this.validator = validator;
 		tableModel = new ErrorTableModel(model);
-		table = new JTable(tableModel);
+		table = new SortableTable(tableModel);
+		//the sort works inside each group (the lines of the groups stay in place): the column the sorter keeps the groups with is not shown
+		table.setRowSorter(new GroupedRowSorter(tableModel));
+		table.removeColumn(table.getColumnModel().getColumn(ErrorTableModel.GROUP_COLUMN));
 
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -198,9 +206,11 @@ public final class ValidationReportDialog extends JDialog{
 		table.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
-				final int row = table.rowAtPoint(e.getPoint());
-				if(row < 0)
+				final int viewRow = table.rowAtPoint(e.getPoint());
+				if(viewRow < 0)
 					return;
+
+				final int row = table.convertRowIndexToModel(viewRow);
 
 				//a click on the line of a group opens or closes it, a double click on a problem opens its record
 				if(tableModel.isHeader(row)){
@@ -228,6 +238,8 @@ public final class ValidationReportDialog extends JDialog{
 		filterBar.add(filter);
 
 		copy.addActionListener(e -> copyToClipboard());
+		copy.setEnabled(false);
+		tableModel.addTableModelListener(e -> copy.setEnabled(!tableModel.groups().isEmpty()));
 
 		final JPanel detailPanel = new JPanel(new BorderLayout());
 		detailPanel.setBorder(BorderFactory.createTitledBorder(I18N.t("border.details")));
@@ -349,8 +361,8 @@ public final class ValidationReportDialog extends JDialog{
 	}
 
 	private void onSelectionChanged(){
-		final int row = table.getSelectedRow();
-		final FLEFValidator.ValidationError err = tableModel.errorAt(row);
+		final int viewRow = table.getSelectedRow();
+		final FLEFValidator.ValidationError err = tableModel.errorAt(viewRow >= 0? table.convertRowIndexToModel(viewRow): -1);
 		if(err == null){
 			detail.setText(StringUtils.EMPTY);
 
@@ -489,7 +501,7 @@ public final class ValidationReportDialog extends JDialog{
 	 * ====================================================================== */
 
 	/** A line of the table: the line of a group, or a problem. */
-	private record Row(Group group, FLEFValidator.ValidationError error, boolean collapsed){
+	private record Row(Group group, int groupIndex, FLEFValidator.ValidationError error, boolean collapsed){
 
 		boolean isHeader(){
 			return (error == null);
@@ -499,6 +511,8 @@ public final class ValidationReportDialog extends JDialog{
 	private static final class ErrorTableModel extends AbstractTableModel{
 
 		private static final String[] COLUMNS = {I18N.t("column.severity"), I18N.t("column.error"), I18N.t("column.record")};
+		/** The column that is not shown: the position of the line (the group, and the line of the group before its problems). */
+		static final int GROUP_COLUMN = COLUMNS.length;
 
 		private final FLEFModel model;
 		private List<FLEFValidator.ValidationError> errors = List.of();
@@ -541,6 +555,11 @@ public final class ValidationReportDialog extends JDialog{
 			return (row >= 0 && row < rows.size() && rows.get(row).isHeader());
 		}
 
+		/** @return	Whether the line is the one of a group that is closed. */
+		boolean isCollapsed(final int row){
+			return (isHeader(row) && rows.get(row).collapsed());
+		}
+
 		/** @return	The problem of the line; {@code null} if it is the line of a group or there is no such line. */
 		FLEFValidator.ValidationError errorAt(final int row){
 			return (row >= 0 && row < rows.size()? rows.get(row).error(): null);
@@ -552,12 +571,13 @@ public final class ValidationReportDialog extends JDialog{
 				.toList();
 			groups = groupsOf(shown, model);
 			rows.clear();
-			for(final Group group : groups){
+			for(int index = 0; index < groups.size(); index ++){
+				final Group group = groups.get(index);
 				final boolean isClosed = !opened.contains(group.kind());
-				rows.add(new Row(group, null, isClosed));
+				rows.add(new Row(group, index, null, isClosed));
 				if(!isClosed)
 					for(final FLEFValidator.ValidationError error : group.errors())
-						rows.add(new Row(group, error, false));
+						rows.add(new Row(group, index, error, false));
 			}
 			fireTableDataChanged();
 		}
@@ -575,21 +595,28 @@ public final class ValidationReportDialog extends JDialog{
 
 		@Override
 		public int getColumnCount(){
-			return COLUMNS.length;
+			return COLUMNS.length + 1;
 		}
 
 		@Override
 		public String getColumnName(final int column){
-			return COLUMNS[column];
+			return (column < COLUMNS.length? COLUMNS[column]: StringUtils.EMPTY);
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			return (column == GROUP_COLUMN? Integer.class: String.class);
 		}
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex){
 			final Row row = rows.get(rowIndex);
+			if(columnIndex == GROUP_COLUMN)
+				return row.groupIndex() * 2 + (row.isHeader()? 0: 1);
 			if(row.isHeader())
 				return switch(columnIndex){
 					case 0 -> I18N.t(row.group().hasErrors()? "text.validate.error": "text.validate.warning");
-					case 1 -> (row.collapsed()? "\u25B6 ": "\u25BC ") + row.group().label() + " (" + row.group().errors().size() + ")";
+					case 1 -> row.group().label() + " (" + row.group().errors().size() + ")";
 					default -> StringUtils.EMPTY;
 				};
 
@@ -600,6 +627,42 @@ public final class ValidationReportDialog extends JDialog{
 				case 2 -> (e.hasRecord()? recordLabel(e.recordId()): "\u2014");
 				default -> null;
 			};
+		}
+
+	}
+
+
+	/**
+	 * Sorts the problems inside each group: the line of a group stays where it is, above the problems of the group, whatever the
+	 * column and the direction that are chosen. The groups are kept in order by a column of the model that is not shown, that is always
+	 * the first to sort by.
+	 */
+	private static final class GroupedRowSorter extends CyclingRowSorter<ErrorTableModel>{
+
+		GroupedRowSorter(final ErrorTableModel model){
+			super(model);
+		}
+
+
+		@Override
+		public void setSortKeys(final List<? extends SortKey> keys){
+			if(keys == null || keys.isEmpty()){
+				super.setSortKeys(keys);
+				return;
+			}
+
+			final List<SortKey> all = new ArrayList<>(keys.size() + 1);
+			all.add(new SortKey(ErrorTableModel.GROUP_COLUMN, SortOrder.ASCENDING));
+			all.addAll(keys);
+			super.setSortKeys(all);
+		}
+
+		/** @return	The keys the user chose (without the one of the groups). */
+		@Override
+		public List<? extends SortKey> getSortKeys(){
+			return super.getSortKeys().stream()
+				.filter(key -> key.getColumn() != ErrorTableModel.GROUP_COLUMN)
+				.toList();
 		}
 
 	}
@@ -619,8 +682,12 @@ public final class ValidationReportDialog extends JDialog{
 			if(value != null)
 				setToolTipText(value.toString());
 
-			final boolean header = tableModel.isHeader(row);
+			final int modelRow = table.convertRowIndexToModel(row);
+			final boolean header = tableModel.isHeader(modelRow);
 			setFont(table.getFont().deriveFont(header? Font.BOLD: Font.PLAIN));
+			//the arrow of a group tells whether it is closed or open
+			setIcon(header && column == 1? SymbolIcon.of(tableModel.isCollapsed(modelRow)? Symbol.SMALL_RIGHT: Symbol.SMALL_DOWN): null);
+			setIconTextGap(4);
 			if(isSelected){
 				setForeground(table.getSelectionForeground());
 				setBackground(table.getSelectionBackground());

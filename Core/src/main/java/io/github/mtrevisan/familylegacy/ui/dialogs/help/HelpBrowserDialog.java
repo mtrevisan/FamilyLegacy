@@ -46,6 +46,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Window;
@@ -114,9 +115,9 @@ public final class HelpBrowserDialog extends JDialog{
 		editor.setEditable(false);
 		editor.addHyperlinkListener(e -> {
 			if(e.getEventType() == HyperlinkEvent.EventType.ENTERED)
-				editor.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+				editor.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			else if(e.getEventType() == HyperlinkEvent.EventType.EXITED)
-				editor.setCursor(java.awt.Cursor.getDefaultCursor());
+				editor.setCursor(Cursor.getDefaultCursor());
 			if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
 				follow(e.getDescription());
 		});

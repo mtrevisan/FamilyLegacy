@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.io.model.record;
 
 
+import java.util.List;
+
+
 /**
  * Counts the changes made to the records and to the lists of records of the models, all of them, wherever they are: it tells that
  * <em>nothing</em> changed since a moment (the value is the same), so that who keeps a copy of a model need not compare it with the
@@ -88,7 +91,7 @@ static synchronized void log(final FLEFRecord root, final long stamp){
  * @return	Whether {@code modified} has all of them: {@code false} if some may have been forgotten (too many were modified), or if they
  * 	are more than {@code limit}. No record is modified without being remembered, unless {@link #sharedNodesSeen()}.
  */
-public static synchronized boolean modifiedSince(final long stamp, final java.util.List<FLEFRecord> modified, final int limit){
+public static synchronized boolean modifiedSince(final long stamp, final List<FLEFRecord> modified, final int limit){
 	if(ringForgotten > stamp)
 		return false;
 
@@ -104,7 +107,7 @@ public static synchronized boolean modifiedSince(final long stamp, final java.ut
 	return true;
 }
 
-private static boolean containsIdentity(final java.util.List<FLEFRecord> records, final FLEFRecord record){
+private static boolean containsIdentity(final List<FLEFRecord> records, final FLEFRecord record){
 	for(int i = 0, size = records.size(); i < size; i ++)
 		if(records.get(i) == record)
 			return true;

@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
@@ -123,6 +124,8 @@ public final class AssistantIndicator{
 	/** The findings, as computed the last time (and {@code null} until the first computation ends). */
 	private List<Diagnostic> findings;
 	private boolean running;
+	/** The words of the button, symbols included. */
+	private String shownText = "";
 	/** How far the running computation is, in thousandths (event dispatch thread only). */
 	private int progressSteps;
 	/** Whether the model changed after the computation that is running started. */
@@ -210,8 +213,9 @@ public final class AssistantIndicator{
 		return currentCounts();
 	}
 
+	/** @return	What the button says, symbols included (it shows them as images). */
 	String text(){
-		return button.getText();
+		return shownText;
 	}
 
 	String tooltip(){
@@ -372,7 +376,10 @@ public final class AssistantIndicator{
 		final String label = I18N.t("assistant.indicator.label");
 		final String shortcut = ShortcutRegistry.TOOLS_RESEARCH_ASSISTANT.displayKeys();
 		if(counts == null){
-			button.setText(I18N.tf("assistant.indicator.text", label, CHECKING));
+			shownText = I18N.tf("assistant.indicator.text", label, CHECKING);
+			button.setIcon(null);
+			button.setText(shownText);
+			button.getAccessibleContext().setAccessibleName(shownText);
 			button.setToolTipText(I18N.tf("assistant.indicator.tooltip", shortcut, I18N.t("assistant.indicator.checking")));
 			return;
 		}
@@ -381,8 +388,14 @@ public final class AssistantIndicator{
 		//while it blinks the colour is the one of the blinking
 		if(!isBlinking())
 			button.setForeground(severityColor(counts));
-		button.setText(running? I18N.tf("assistant.indicator.text.running", label, counts.label(), CHECKING)
+		shownText = (running? I18N.tf("assistant.indicator.text.running", label, counts.label(), CHECKING)
 			: I18N.tf("assistant.indicator.text", label, counts.label()));
+		//the symbols of the counts are images: a font may not have them
+		button.setText(label);
+		button.setIcon(new CountsIcon(button, counts, (running? CHECKING: null)));
+		button.setHorizontalTextPosition(SwingConstants.LEFT);
+		button.setIconTextGap(6);
+		button.getAccessibleContext().setAccessibleName(shownText);
 		button.setToolTipText(I18N.tf("assistant.indicator.tooltip", shortcut,
 			(running? I18N.tf("assistant.indicator.summary.running", counts.summary(), I18N.t("assistant.indicator.checking")): counts.summary())));
 	}

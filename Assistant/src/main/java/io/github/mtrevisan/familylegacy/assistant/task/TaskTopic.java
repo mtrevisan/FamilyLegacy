@@ -64,12 +64,12 @@ public enum TaskTopic{
 		if(kind.equals("gap.overdue_task"))
 			return null;
 		//a relationship that the records suggest but nothing documents: the archives may have the evidence
-		if(kind.startsWith("gap.") || kind.equals("planner.next_step") || kind.equals("relationship.marriage_without_relationship")
+		if(kind.startsWith("gap.") || kind.equals("planner.next_step") || kind.equals("planner.source_kind") || kind.equals("planner.repository") || kind.equals("relationship.marriage_without_relationship")
 				|| kind.equals("relationship.partner_of_parent_not_linked") || kind.equals("relationship.birth_informant_not_linked"))
 			return ARCHIVE_SEARCH;
 		if(kind.startsWith("conclusion."))
 			return CONFLICT;
-		if(kind.startsWith("identity.possible_duplicate") || kind.equals("place.possible_duplicate")
+		if(kind.equals("planner.identity") || kind.startsWith("identity.possible_duplicate") || kind.equals("place.possible_duplicate")
 				|| kind.equals("relationship.duplicate_relationship"))
 			return DUPLICATE;
 		if(kind.startsWith("chronology.") && !kind.equals("chronology.date_not_checked"))

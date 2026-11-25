@@ -66,7 +66,7 @@ public final class SavedFileNotice{
 		final String text = (message.contains(file.getName()) || message.contains(file.getAbsolutePath())
 			? message
 			: message + StringUtils.LF + file.getAbsolutePath());
-		final int choice = JOptionPane.showOptionDialog(owner, text, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+		final int choice = MessageDialogs.option(owner, text, title, JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
 			null, options, options[0]);
 		if(choice == 0 && !reveal(file))
 			MessageDialogs.show(owner, I18N.l("dialog.report.open_directory.error") + StringUtils.LF + file.getParent(),

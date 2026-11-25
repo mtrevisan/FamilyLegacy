@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 
@@ -97,7 +98,7 @@ public final class ClippedTextTooltips{
 	}
 
 	/** The tooltip of a list is the whole text of the item under the mouse, if that is cut (and the one of the list otherwise). */
-	static void updateList(final JList<?> list, final java.awt.Point point){
+	static void updateList(final JList<?> list, final Point point){
 		if(list instanceof ComposesOwnTooltip)
 			return;
 

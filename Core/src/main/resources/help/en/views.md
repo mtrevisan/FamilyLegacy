@@ -64,6 +64,7 @@ The entries are enabled or disabled according to the box (a submenu is grey when
 
 The **Ego Network** is a hub with spokes around one individual or group, the *ego*: the parents, partners, children, associates and the groups the ego belongs to, each as a box joined by a stepped line. Re-root by clicking a name, or by selecting a box with the arrow keys and pressing Enter.
 
+- When a group is selected and you switch to the Family Tree, the Sugiyama Graph or the Chronomap, which can only be rooted on a person, the view opens on the first member of the group (or, if it has none, on its first related person). If the group has no person at all, the view keeps its previous root.
 - `Ctrl+L` switches the layout. `Ctrl+T` shows or hides the bottom bar **Events**, a timeline of the events of the people shown, with the historic events and cultural norms of the places where they lived behind the rows (hover an empty spot of a row to read them).
 - A small amber disc with a **C**, in the middle of the line to a partner, marks a possible **consanguineous union** with the ego; the tooltip of the partner explains it.
 - All the lines are drawn dotted in this version.

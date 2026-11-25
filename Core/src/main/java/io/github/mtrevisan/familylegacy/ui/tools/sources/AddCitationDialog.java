@@ -241,7 +241,7 @@ public final class AddCitationDialog extends JDialog{
 
 		//the editor of the record is offered, to complete the citation (extract, evidence qualifiers)
 		final RecordDialog editor = openEditorFor(targetRecord);
-		if(editor != null && JOptionPane.showConfirmDialog(context.owner(), message + StringUtils.LF + StringUtils.LF
+		if(editor != null && MessageDialogs.confirm(context.owner(), message + StringUtils.LF + StringUtils.LF
 				+ I18N.t("dialog.add_citation.open_editor"), I18N.t("dialog.add_citation.title"), JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 			editor.setVisible(true);

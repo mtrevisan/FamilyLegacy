@@ -26,9 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dialogs;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -36,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -49,6 +52,9 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 
 /**
@@ -66,14 +72,61 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 */
 	public record Item(String id, String label, String defaultType){}
 
+	/**
+	 * An extra row where the user also chooses <em>who</em> the other end of the relationship is.
+	 *
+	 * @param partners	the suggested individuals (the first one is preselected; may be empty).
+	 * @param picker	called when the user asks for another individual, with whether both parents are biological: returns it, or {@code null}
+	 *	if none was picked.
+	 * @param compatible	whether an individual can be the other parent of a child whose parents are both biological (the biological parents
+	 * 	of a child are of different sexes): the others are not offered, and not accepted, while both types are biological child.
+	 */
+	public record OtherParentRow(List<Item> partners, Function<Boolean, Item> picker, Predicate<Item> compatible){
+
+		/** A row where every individual is accepted as the other parent. */
+		public OtherParentRow(final List<Item> partners, final Supplier<Item> picker){
+			this(partners, biological -> (picker != null? picker.get(): null), item -> true);
+		}
+
+	}
+
+	/**
+	 * The outcome of {@link #selectParents}.
+	 *
+	 * @param parentType	the type chosen for the first parent.
+	 * @param otherParent	the other parent ({@code null} if the user chose nobody).
+	 * @param otherType	the type chosen for the other parent ({@code null} if there is none).
+	 */
+	public record ParentsChoice(String parentType, Item otherParent, String otherType){}
+
+	/** An entry of the "other parent" combo: an individual, or one of the two commands. */
+	private record Choice(Item item, String text){
+
+		@Override
+		public String toString(){
+			return text;
+		}
+
+	}
+
 
 	private final FLEFModel model;
 	private final List<Item> items;
 	private final String[] allowedTypes;
 	private final IndividualListener listener;
+	private final OtherParentRow otherParentRow;
 
 	private final List<JComboBox<String>> comboBoxes = new ArrayList<>();
+	private JComboBox<Choice> otherParentCombo;
+	private JComboBox<String> otherTypeCombo;
+	private final List<Item> otherCandidates = new ArrayList<>();
+	private Choice anotherChoice;
+	private Choice nobodyChoice;
+	private int previousOtherParent;
+	private boolean refillingOtherParent;
 	private List<String> selectedTypes;
+	private Item selectedOther;
+	private String selectedOtherType;
 	private boolean canceled = true;
 
 
@@ -88,6 +141,11 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 */
 	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
 			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model){
+		this(owner, items, allowedTypes, listener, model, null);
+	}
+
+	private RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
+			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model, final OtherParentRow otherParentRow){
 		super(owner, I18N.t("dialog.relationship_types.title"), ModalityType.APPLICATION_MODAL);
 
 		if(items == null || items.isEmpty())
@@ -99,6 +157,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		this.items = items;
 		this.allowedTypes = allowedTypes;
 		this.listener = listener;
+		this.otherParentRow = otherParentRow;
 
 		initComponents();
 
@@ -137,6 +196,25 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		dialog.setVisible(true);
 
 		return dialog.getSelectedTypes();
+	}
+
+	/**
+	 * Shows the dialog for a new child: the first parent with its type, and a second row where the user chooses the other parent
+	 * (one of the suggested partners, another individual, or nobody) and its type.
+	 *
+	 * @return	The choice, or {@code null} if cancelled.
+	 */
+	public static ParentsChoice selectParents(final Window owner, final Item parent, final OtherParentRow otherParent,
+			final String[] allowedTypes, final FLEFModel model){
+		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, List.of(parent), allowedTypes, null, model,
+			otherParent);
+		dialog.setVisible(true);
+
+		final List<String> types = dialog.getSelectedTypes();
+		if(types == null)
+			return null;
+
+		return new ParentsChoice(types.getFirst(), dialog.selectedOther, dialog.selectedOtherType);
 	}
 
 
@@ -179,10 +257,13 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 			tablePanel.add(allowedTypeCombo, "wrap");
 		}
 
+		if(otherParentRow != null)
+			addOtherParentRow(tablePanel);
+
 		final JScrollPane scrollPane = new JScrollPane(tablePanel);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-		final int preferredHeight = Math.min(250, items.size() * 38 + 30);
+		final int preferredHeight = Math.min(250, (items.size() + (otherParentRow != null? 1: 0)) * 38 + 30);
 		scrollPane.setPreferredSize(new Dimension(450, preferredHeight));
 
 		add(scrollPane, "grow,wrap,gapbottom 10");
@@ -196,11 +277,118 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 
+	/**
+	 * Adds the row where the other parent is chosen: a combo with the suggested individuals, "Another individual…" and "Nobody", and
+	 * the combo of its type (disabled while nobody is chosen). While both parents are biological, only the individuals that can be the
+	 * other biological parent are offered and accepted.
+	 */
+	private void addOtherParentRow(final JPanel tablePanel){
+		anotherChoice = new Choice(null, I18N.t("dialog.other_parent.other"));
+		nobodyChoice = new Choice(null, I18N.t("dialog.other_parent.none"));
+		otherCandidates.addAll(otherParentRow.partners());
+
+		otherParentCombo = new JComboBox<>();
+
+		final String defaultType = (items.getFirst().defaultType() != null? items.getFirst().defaultType(): allowedTypes[0]);
+		final BoundComboBox<String> typeCombo = new BoundComboBox<>(null, allowedTypes);
+		typeCombo.setI18NPrefix("enum.relationship.type");
+		typeCombo.setSelectedItem(defaultType);
+		otherTypeCombo = typeCombo;
+
+		refillOtherParent();
+
+		otherParentCombo.addActionListener(e -> {
+			if(refillingOtherParent)
+				return;
+
+			final Choice selected = (Choice)otherParentCombo.getSelectedItem();
+			if(selected == anotherChoice){
+				final Item picked = (otherParentRow.picker() != null? otherParentRow.picker().apply(areBothParentsBiological()): null);
+				if(picked == null || !isAcceptedAsOtherParent(picked)){
+					if(picked != null)
+						MessageDialogs.show(this, I18N.tf("validation.other_parent_sex", picked.label()), I18N.t("validation.title"),
+							JOptionPane.ERROR_MESSAGE);
+
+					//nothing (valid) was picked: back to the previous choice
+					otherParentCombo.setSelectedIndex(previousOtherParent);
+
+					return;
+				}
+
+				//the picked individual becomes an entry of the combo, right before the commands
+				otherCandidates.add(picked);
+				final int index = otherParentCombo.getItemCount() - 2;
+				otherParentCombo.insertItemAt(new Choice(picked, picked.label()), index);
+				otherParentCombo.setSelectedIndex(index);
+
+				return;
+			}
+
+			previousOtherParent = otherParentCombo.getSelectedIndex();
+			otherTypeCombo.setEnabled(selected != nobodyChoice);
+		});
+		//the choice of the types changes who can be the other parent
+		comboBoxes.getFirst().addActionListener(e -> refillOtherParent());
+		otherTypeCombo.addActionListener(e -> refillOtherParent());
+
+		tablePanel.add(otherParentCombo, "aligny center");
+		tablePanel.add(otherTypeCombo, "wrap");
+	}
+
+	/** @return	Whether both parents are biological, that is the biological parents of the child must be of different sexes. */
+	private boolean areBothParentsBiological(){
+		return (RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD.equals(comboBoxes.getFirst().getSelectedItem())
+			&& RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD.equals(otherTypeCombo.getSelectedItem()));
+	}
+
+	private boolean isAcceptedAsOtherParent(final Item candidate){
+		return (!areBothParentsBiological() || otherParentRow.compatible().test(candidate));
+	}
+
+	/** Fills the combo with the candidates that are accepted now, keeping the current choice if it is still there. */
+	private void refillOtherParent(){
+		final Choice current = (Choice)otherParentCombo.getSelectedItem();
+
+		refillingOtherParent = true;
+		try{
+			otherParentCombo.removeAllItems();
+			int selectedIndex = -1;
+			for(final Item candidate : otherCandidates)
+				if(isAcceptedAsOtherParent(candidate)){
+					if(current != null && current.item != null && current.item.id().equals(candidate.id()))
+						selectedIndex = otherParentCombo.getItemCount();
+					otherParentCombo.addItem(new Choice(candidate, candidate.label()));
+				}
+			final boolean hasCandidates = (otherParentCombo.getItemCount() > 0);
+			otherParentCombo.addItem(anotherChoice);
+			otherParentCombo.addItem(nobodyChoice);
+
+			if(selectedIndex < 0)
+				//the first candidate, or nobody if there is none (or if nobody was chosen)
+				selectedIndex = (hasCandidates && (current == null || current != nobodyChoice)? 0: otherParentCombo.getItemCount() - 1);
+			otherParentCombo.setSelectedIndex(selectedIndex);
+			previousOtherParent = selectedIndex;
+			otherTypeCombo.setEnabled(otherParentCombo.getSelectedItem() != nobodyChoice);
+		}
+		finally{
+			refillingOtherParent = false;
+		}
+	}
+
+
 	private void onOk(){
 		selectedTypes = new ArrayList<>();
 		for(final JComboBox<String> combo : comboBoxes){
 			final String selected = (String)combo.getSelectedItem();
 			selectedTypes.add(selected != null? selected: allowedTypes[0]);
+		}
+		if(otherParentCombo != null){
+			final Choice chosen = (Choice)otherParentCombo.getSelectedItem();
+			selectedOther = (chosen != null? chosen.item: null);
+			if(selectedOther != null){
+				final String type = (String)otherTypeCombo.getSelectedItem();
+				selectedOtherType = (type != null? type: allowedTypes[0]);
+			}
 		}
 		canceled = false;
 

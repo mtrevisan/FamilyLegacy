@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Locale;
 
 
 /** The Identity Assistant for the kinds of record other than individuals: the same source twice, the same repository twice. */
@@ -172,7 +173,7 @@ class IdentityOtherKindsTest{
 		model.addRecord(copy);
 
 		Assertions.assertTrue(found(model).isEmpty(), found(model).stream().map(Diagnostic::title).toList().toString());
-		Assertions.assertFalse(IdentityOtherKinds.KINDS.contains(PlaceReader.TYPE.toLowerCase(java.util.Locale.ROOT)));
+		Assertions.assertFalse(IdentityOtherKinds.KINDS.contains(PlaceReader.TYPE.toLowerCase(Locale.ROOT)));
 	}
 
 	@Test

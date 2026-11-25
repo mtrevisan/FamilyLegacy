@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField nameField = new JTextField(20);
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(GroupReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(GroupReader.TYPES, I18N.t("search.combo.any"))), "enum.group.type");
 
 	private final Consumer<SearchCriteria> onChanged;
 

@@ -36,8 +36,8 @@ import java.util.Map;
 /**
  * Two biological parents of the same child are of different sexes: this finds who would break that.
  * <p>
- * A {@code biological_child} link is certain; a plain {@code child} link does not say whether the parentage is biological, so a clash
- * that involves it is only possible (a warning, not an error). Other kinds of parentage (adoptive, foster, step, ...) and the unions
+ * Only {@code biological_child} links are considered: a plain {@code child} link does not say whether the parentage is biological, so nothing
+ * can be said about it and every sex is accepted. Other kinds of parentage (adoptive, foster, step, ...) and the unions
  * (marriage, civil union, ...) are never considered.
  */
 public final class CoParentSex{
@@ -195,7 +195,7 @@ public final class CoParentSex{
 	}
 
 	private static boolean isBiological(final String type){
-		return (RelationshipReader.isTypeBiologicalChild(type) || RelationshipReader.ENUM_TYPE_CHILD.equals(type));
+		return RelationshipReader.isTypeBiologicalChild(type);
 	}
 
 }

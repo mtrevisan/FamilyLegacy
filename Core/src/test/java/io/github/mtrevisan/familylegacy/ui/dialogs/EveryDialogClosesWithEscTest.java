@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;

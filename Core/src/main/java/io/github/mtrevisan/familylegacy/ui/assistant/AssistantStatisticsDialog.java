@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.assistant;
 import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics;
 import io.github.mtrevisan.familylegacy.assistant.AssistantStatistics.Event;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JButton;
@@ -68,8 +69,13 @@ public final class AssistantStatisticsDialog{
 			public boolean isCellEditable(final int row, final int column){
 				return false;
 			}
+
+			@Override
+			public Class<?> getColumnClass(final int column){
+				return (column == 0? String.class: (column == 3 || column == 4? Double.class: Long.class));
+			}
 		};
-		final JTable table = new JTable(model);
+		final JTable table = new SortableTable(model);
 		table.setAutoCreateRowSorter(true);
 		table.getTableHeader().setReorderingAllowed(false);
 		final JLabel summary = new JLabel();
@@ -86,7 +92,7 @@ public final class AssistantStatisticsDialog{
 			.setContents(new StringSelection(statistics.export()), null));
 		final JButton reset = new JButton(I18N.t("dialog.assistant_statistics.reset"));
 		reset.addActionListener(e -> {
-			if(JOptionPane.showConfirmDialog(reset, I18N.t("dialog.assistant_statistics.reset.confirm"),
+			if(MessageDialogs.confirm(reset, I18N.t("dialog.assistant_statistics.reset.confirm"),
 					I18N.t("dialog.assistant_statistics.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION){
 				statistics.reset();
 				fill.run();

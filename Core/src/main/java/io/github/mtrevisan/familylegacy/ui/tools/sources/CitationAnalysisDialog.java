@@ -32,6 +32,8 @@ import io.github.mtrevisan.familylegacy.search.AttachedTextExtractor;
 import io.github.mtrevisan.familylegacy.search.SearchMatcher;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
@@ -111,7 +113,7 @@ final class CitationAnalysisDialog extends JDialog{
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
 	private final List<JTable> tables = new ArrayList<>();
 	/** The uncited list of the types chosen in the summary; the tab shows the summary until a type is chosen. */
-	private final JTable uncitedTable = new JTable();
+	private final JTable uncitedTable = new SortableTable();
 	//the same search as the record selection dialog: word by word, whole words, fuzzy, notes and citations
 	private final SearchBox searchBox = new SearchBox(24, true);
 	private final JLabel listTitle = new JLabel();
@@ -122,6 +124,7 @@ final class CitationAnalysisDialog extends JDialog{
 	private SwingWorker<List<FLEFRecord>, Void> searchWorker;
 	/** All the uncited records, for the export of the summary. */
 	private RecordTableModel allUncited;
+	private final JButton copy = new JButton();
 	/** What the uncited tab shows: {@code null} the summary, {@link #ALL_TYPES} every type, else the type. */
 	private String listedType;
 
@@ -140,7 +143,7 @@ final class CitationAnalysisDialog extends JDialog{
 		configureRecordTable(uncitedTable);
 
 		exportCsv.addActionListener(e -> exportToCsv());
-		final JButton copy = new JButton(I18N.t("button.copy_all"));
+		copy.setText(I18N.t("button.copy_all"));
 		copy.addActionListener(e -> copyToClipboard());
 
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -250,7 +253,7 @@ final class CitationAnalysisDialog extends JDialog{
 	}
 
 	private JScrollPane createSummaryCard(final CitationAnalysisTool.Analysis analysis){
-		final List<String[]> rows = new ArrayList<>();
+		final List<Object[]> rows = new ArrayList<>();
 		final List<String> keys = new ArrayList<>();
 		rows.add(summaryRow(I18N.t("text.citation_analysis.all_types"), analysis.uncited().size(),
 			analysis.assertionTotals().values().stream().mapToInt(Integer::intValue).sum()));
@@ -265,7 +268,7 @@ final class CitationAnalysisDialog extends JDialog{
 
 		final String[] columns = {I18N.t("column.record_type"), I18N.t("column.uncited"), I18N.t("column.total"),
 			I18N.t("column.coverage")};
-		final JTable table = new JTable(new AbstractTableModel(){
+		final JTable table = new SortableTable(new AbstractTableModel(){
 			@Override
 			public int getRowCount(){
 				return rows.size();
@@ -282,10 +285,18 @@ final class CitationAnalysisDialog extends JDialog{
 			}
 
 			@Override
+			public Class<?> getColumnClass(final int column){
+				return (column == 1 || column == 2? Integer.class: String.class);
+			}
+
+			@Override
 			public Object getValueAt(final int row, final int column){
 				return rows.get(row)[column];
 			}
 		});
+		table.setAutoCreateRowSorter(true);
+		//the coverage is shown as text ("12.5%"): it is sorted as a number
+		ToolDialogs.sortColumnAsNumber(table, 3);
 		table.setRowHeight(24);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setToolTipText(I18N.t("tooltip.citation_analysis.summary"));
@@ -298,16 +309,16 @@ final class CitationAnalysisDialog extends JDialog{
 			public void mouseClicked(final MouseEvent e){
 				final int row = table.rowAtPoint(e.getPoint());
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && row >= 0)
-					showList(keys.get(row));
+					showList(keys.get(table.convertRowIndexToModel(row)));
 			}
 		});
 		return new JScrollPane(table);
 	}
 
 	/** @return	The columns of a row of the summary: the type, how many are uncited, how many there are, and the share that is cited. */
-	private static String[] summaryRow(final String label, final int uncited, final int total){
+	private static Object[] summaryRow(final String label, final int uncited, final int total){
 		final String coverage = (total > 0? String.format(Locale.ROOT, "%.1f%%", 100. * (total - uncited) / total): "-");
-		return new String[]{label, String.valueOf(uncited), String.valueOf(total), coverage};
+		return new Object[]{label, uncited, total, coverage};
 	}
 
 	private JPanel createListCard(){
@@ -424,7 +435,7 @@ final class CitationAnalysisDialog extends JDialog{
 		if(listedType == null)
 			return;
 
-		uncitedTable.setModel(shown);
+		RowTableModel.replaceModel(uncitedTable, shown);
 		configureColumns(uncitedTable);
 		listTitle.setText((ALL_TYPES.equals(listedType)? I18N.t("text.citation_analysis.all_types"): typeLabel(listedType))
 			+ " (" + shown.getRowCount() + ")");
@@ -437,7 +448,7 @@ final class CitationAnalysisDialog extends JDialog{
 
 	private JTable createRecordTable(final List<FLEFRecord> records, final String idColumn, final String firstColumn,
 			final String secondColumn, final Function<FLEFRecord, String> first, final Function<FLEFRecord, String> second){
-		final JTable table = new JTable(new RecordTableModel(records, new String[]{idColumn, firstColumn, secondColumn}, first, second));
+		final JTable table = new SortableTable(new RecordTableModel(records, new String[]{idColumn, firstColumn, secondColumn}, first, second));
 		configureRecordTable(table);
 		return table;
 	}
@@ -487,6 +498,7 @@ final class CitationAnalysisDialog extends JDialog{
 	private void updateButtons(){
 		final JTable table = activeRecordTable();
 		exportCsv.setEnabled(table != null && (summaryShown()? allUncited.getRowCount(): table.getModel().getRowCount()) > 0);
+		copy.setEnabled(allUncited.getRowCount() > 0 || tables.stream().anyMatch(t -> t.getModel().getRowCount() > 0));
 	}
 
 	private void openSelected(){
@@ -534,7 +546,7 @@ final class CitationAnalysisDialog extends JDialog{
 		File target = chooser.getSelectedFile();
 		if(!target.getName().toLowerCase(Locale.ROOT).endsWith(".csv"))
 			target = new File(target.getParentFile(), target.getName() + ".csv");
-		if(target.exists() && JOptionPane.showConfirmDialog(this, I18N.t("confirmation.overwrite.export.message"),
+		if(target.exists() && MessageDialogs.confirm(this, I18N.t("confirmation.overwrite.export.message"),
 				I18N.t("confirmation.overwrite.export.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)
 				!= JOptionPane.YES_OPTION)
 			return;

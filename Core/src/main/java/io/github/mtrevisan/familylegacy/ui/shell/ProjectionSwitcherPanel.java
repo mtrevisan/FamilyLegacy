@@ -133,6 +133,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 * sync with the active projection.
 	 */
 	private Consumer<String> navigationListener;
+	private Runnable historyListener;
 
 	/** Listener fired whenever the active projection changes. */
 	private Consumer<ProjectionType> projectionChangeListener;
@@ -204,6 +205,24 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		notifyNavigation(individualId);
 	}
 
+	/**
+	 * Goes to the individual in the chronomap (see {@link ChronomapWorkspace#goTo(String)}), and records the move in the history when
+	 * it succeeds.
+	 *
+	 * @param individualId	The id of the individual.
+	 * @return	The outcome; {@code null} if the chronomap is not the view shown.
+	 */
+	public ChronomapWorkspace.JumpResult jumpInChronomap(final String individualId){
+		if(individualId == null || !isChronomapShown())
+			return null;
+
+		refreshChronomap();
+		final ChronomapWorkspace.JumpResult result = chronomapPanel.goTo(individualId);
+		if(result == ChronomapWorkspace.JumpResult.OK)
+			notifyNavigation(individualId);
+		return result;
+	}
+
 	/** @return	The individual the current projection is rooted on. */
 	public String getCurrentRootId(){
 		if(isChronomapShown())
@@ -260,7 +279,9 @@ public final class ProjectionSwitcherPanel extends JPanel{
 		};
 
 		// Synchronize the target projection's root before swapping
-		final String currentRootId = getSelectedEntityId();
+		//the family tree and the chronomap can only be rooted on an individual: a selected group becomes one of its members
+		final String selectedId = getSelectedEntityId();
+		final String currentRootId = (target == egoPanel? selectedId: egoPanel.resolveIndividualId(selectedId));
 		if(target == chronomapPanel)
 			refreshChronomap();
 		if(currentRootId != null){
@@ -498,6 +519,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	 */
 	public void clearHistory(){
 		navigationHistory.clear();
+		fireHistoryChanged();
 	}
 
 	/** Whether the record of an entry of the history is still in the model: one that was deleted is skipped by Back and Forward. */
@@ -623,6 +645,17 @@ public final class ProjectionSwitcherPanel extends JPanel{
 	private void notifyNavigation(final String id){
 		if(navigationListener != null && id != null)
 			navigationListener.accept(id);
+		fireHistoryChanged();
+	}
+
+	private void fireHistoryChanged(){
+		if(historyListener != null)
+			historyListener.run();
+	}
+
+	/** Registers what is told whenever the navigation history changes (to enable or disable Back and Forward). */
+	public void setHistoryListener(final Runnable listener){
+		historyListener = listener;
 	}
 
 	/**

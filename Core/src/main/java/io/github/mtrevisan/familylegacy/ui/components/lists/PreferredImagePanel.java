@@ -334,7 +334,7 @@ public class PreferredImagePanel extends JPanel{
 	 */
 	private void removeItem(){
 		if(hasImage()){
-			final int response = JOptionPane.showConfirmDialog(this,
+			final int response = MessageDialogs.confirm(this,
 				I18N.t("confirmation.remove.image.message"),
 				I18N.t("confirmation.remove.title"),
 				JOptionPane.YES_NO_OPTION);

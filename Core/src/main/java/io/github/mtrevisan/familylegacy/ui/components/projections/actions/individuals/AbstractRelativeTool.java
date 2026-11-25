@@ -91,7 +91,7 @@ abstract class AbstractRelativeTool implements ToolOperation{
 		final SexType requiredSex = (role == Role.PARENT? requiredParentSex(selectedId, model): null);
 		final FLEFRecord other = switch(source){
 			case CREATE -> showCreateDialog(owner, model, selectedId, requiredSex);
-			case SEARCH -> showSearchDialog(owner, model, requiredSex);
+			case SEARCH -> showSearchDialog(owner, model, requiredSex, selectedId);
 			case CLIPBOARD -> context.clippedRecord();
 		};
 		if(other == null || selectedId.equals(other.getId()) || !IndividualHandler.isOfType(other))
@@ -104,20 +104,56 @@ abstract class AbstractRelativeTool implements ToolOperation{
 			return;
 		}
 
-		final String label = IndividualHandler.getInstance()
-			.getDisplayText(other, model);
-		final List<RelationshipTypeSelectionDialog.Item> items = List.of(
-			new RelationshipTypeSelectionDialog.Item(other.getId(), label, allowedTypes[0]));
-		final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(owner, items, allowedTypes, null, model);
-		if(selectedTypes == null || selectedTypes.isEmpty()){
-			//a new individual stays in the file, even if it is not linked yet
-			mutator.invalidateAndNotifyTreeChanged(selectedId);
+		final IndividualHandler handler = IndividualHandler.getInstance();
+		final String label = handler.getDisplayText(other, model);
+		//for a new or an existing child of an individual with partners the same dialog also asks who the other parent is
+		final List<FLEFRecord> partners = (role == Role.CHILD && source != Source.CLIPBOARD? partnersOf(selectedId, other.getId(), model): List.of());
+		final String type;
+		String otherParentId = null;
+		String otherParentType = null;
+		if(!partners.isEmpty()){
+			final RelationshipTypeSelectionDialog.Item parent = new RelationshipTypeSelectionDialog.Item(selectedId,
+				handler.getDisplayText(model.getRecordById(selectedId), model), allowedTypes[0]);
+			//the other parent must be of the opposite sex of the first one (when this is known)
+			final SexType parentSex = PreferredSex.of(model.getRecordById(selectedId), model);
+			final SexType otherSex = (parentSex == SexType.MALE || parentSex == SexType.FEMALE? oppositeOf(parentSex): null);
+			final RelationshipTypeSelectionDialog.OtherParentRow otherRow = new RelationshipTypeSelectionDialog.OtherParentRow(
+				partners.stream()
+						.map(partner -> new RelationshipTypeSelectionDialog.Item(partner.getId(), handler.getDisplayText(partner, model),
+						allowedTypes[0]))
+					.toList(),
+				biological -> pickOtherParent(owner, model, other.getId(), selectedId, (biological? otherSex: null)),
+				item -> otherSex == null || PreferredSex.of(model.getRecordById(item.id()), model) != parentSex);
+			final RelationshipTypeSelectionDialog.ParentsChoice choice = RelationshipTypeSelectionDialog.selectParents(owner, parent,
+				otherRow, allowedTypes, model);
+			if(choice == null){
+				//a new individual stays in the file, even if it is not linked yet
+				mutator.invalidateAndNotifyTreeChanged(selectedId);
 
-			return;
+				return;
+			}
+
+			type = choice.parentType();
+			if(choice.otherParent() != null){
+				otherParentId = choice.otherParent().id();
+				otherParentType = choice.otherType();
+			}
+		}
+		else{
+			final List<RelationshipTypeSelectionDialog.Item> items = List.of(
+				new RelationshipTypeSelectionDialog.Item(other.getId(), label, allowedTypes[0]));
+			final List<String> selectedTypes = RelationshipTypeSelectionDialog.selectRelationshipType(owner, items, allowedTypes, null, model);
+			if(selectedTypes == null || selectedTypes.isEmpty()){
+				//a new individual stays in the file, even if it is not linked yet
+				mutator.invalidateAndNotifyTreeChanged(selectedId);
+
+				return;
+			}
+
+			type = selectedTypes.getFirst();
 		}
 
 		//the subject of a child type is the child, the target is the parent; the other types have the selected individual as subject
-		final String type = selectedTypes.getFirst();
 		final String subjectId = (role == Role.CHILD? other.getId(): selectedId);
 		final String targetId = (role == Role.CHILD? selectedId: other.getId());
 		if(role != Role.PARTNER && !ParentSexGuard.confirm(owner, CoParentSex.findClashingParent(subjectId, targetId, type, null, model),
@@ -130,8 +166,49 @@ abstract class AbstractRelativeTool implements ToolOperation{
 			context.clearClippedRecord();
 		}
 
+		if(otherParentId != null && !ParentSexGuard.confirm(owner,
+				CoParentSex.findClashBetween(subjectId, targetId, type, otherParentId, otherParentType, model), targetId, model))
+			return;
+
 		mutator.createRelationship(subjectId, targetId, type);
+		if(otherParentId != null && ParentSexGuard.confirm(owner,
+				CoParentSex.findClashingParent(subjectId, otherParentId, otherParentType, null, model), otherParentId, model))
+			mutator.createRelationship(subjectId, otherParentId, otherParentType);
 		mutator.invalidateAndNotifyTreeChanged(selectedId);
+	}
+
+	/** @return	The individual picked as the other parent of the child, as a row of the dialog ({@code null} if none or not valid). */
+	private static RelationshipTypeSelectionDialog.Item pickOtherParent(final Window owner, final FLEFModel model, final String childId,
+			final String parentId, final SexType requiredSex){
+		final FLEFRecord picked = showSearchDialog(owner, model, requiredSex, childId);
+		if(picked == null || !IndividualHandler.isOfType(picked) || childId.equals(picked.getId()) || parentId.equals(picked.getId()))
+			return null;
+
+		return new RelationshipTypeSelectionDialog.Item(picked.getId(), IndividualHandler.getInstance().getDisplayText(picked, model),
+			null);
+	}
+
+	/** @return	The partners of the individual, the child excluded. */
+	static List<FLEFRecord> partnersOf(final String individualId, final String childId, final FLEFModel model){
+		final List<FLEFRecord> partners = new ArrayList<>();
+		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipReader.TYPE)){
+			if(!RelationshipReader.isTypePartner(RelationshipReader.extractType(relationship)))
+				continue;
+
+			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
+			final String targetId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
+			if(subjectId == null || targetId == null)
+				continue;
+
+			final String partnerId = (individualId.equals(subjectId)? targetId: (individualId.equals(targetId)? subjectId: null));
+			if(partnerId == null || partnerId.equals(childId) || partners.stream().anyMatch(p -> partnerId.equals(p.getId())))
+				continue;
+
+			final FLEFRecord partner = model.getRecordById(partnerId);
+			if(partner != null)
+				partners.add(partner);
+		}
+		return partners;
 	}
 
 	/**
@@ -141,7 +218,7 @@ abstract class AbstractRelativeTool implements ToolOperation{
 	static SexType requiredParentSex(final String childId, final FLEFModel model){
 		for(final FLEFRecord relationship : model.getRecordsByType(RelationshipReader.TYPE)){
 			if(!childId.equals(relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE))
-					|| !RelationshipReader.isTypeChild(RelationshipReader.extractType(relationship)))
+					|| !RelationshipReader.isTypeBiologicalChild(RelationshipReader.extractType(relationship)))
 				continue;
 
 			final String parentId = relationship.extractReferencedId(RelationshipReader.TAG_TARGET, IndividualReader.TYPE);
@@ -185,14 +262,18 @@ abstract class AbstractRelativeTool implements ToolOperation{
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	private static FLEFRecord showSearchDialog(final Window owner, final FLEFModel model, final SexType requiredSex){
+	private static FLEFRecord showSearchDialog(final Window owner, final FLEFModel model, final SexType requiredSex,
+			final String childId){
 		final FLEFRecord[] result = {null};
 		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(owner, model,
 			(record, handler) -> result[0] = record,
 			IndividualHandler.class);
 		if(requiredSex != null)
-			dialog.withFilter(IndividualSearchStrategy.KEY_SEX, I18N.t("enum.individual.sex." + requiredSex.name().toLowerCase(Locale.ROOT)));
+			dialog.withSetupDialog(newDialog -> newDialog.requireSex(requiredSex, parentSexMessage(childId, requiredSex, model)));
+		if(requiredSex != null)
+			dialog.withFilter(IndividualSearchStrategy.KEY_SEX, I18N.t("enum.individual.sex." + requiredSex.name().toLowerCase(Locale.ROOT)))
+				.withLockedSex(requiredSex.name().toLowerCase(Locale.ROOT));
 		dialog.setVisible(true);
 
 		return result[0];

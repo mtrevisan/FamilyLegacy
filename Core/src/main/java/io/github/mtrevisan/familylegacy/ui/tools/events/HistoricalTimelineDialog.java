@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.temporal.HistoricalTimeline;
 import io.github.mtrevisan.familylegacy.temporal.Lifetime;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalSvgWriter;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionPanel;
@@ -42,6 +43,8 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -113,7 +116,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 	private final JCheckBox normsBox = new JCheckBox(I18N.t("dialog.historical_timeline.cultural_norms"), true);
 	private final JCheckBox attributesBox = new JCheckBox(I18N.t("dialog.historical_timeline.attributes"), true);
 	private final TimelineTableModel tableModel = new TimelineTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final TemporalProjectionPanel personStrip;
 	private TemporalProjectionModel personModel = TemporalProjectionModel.empty();
@@ -229,7 +232,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 		final JPanel tab = new JPanel(new BorderLayout(6, 6));
 		tab.add(top, BorderLayout.NORTH);
 		tab.add(split, BorderLayout.CENTER);
-		tab.add(GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText), saveSvg),
+		tab.add(GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText, table), saveSvg),
 			BorderLayout.SOUTH);
 		return tab;
 	}
@@ -432,7 +435,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 		File target = chooser.getSelectedFile();
 		if(!target.getName().toLowerCase(Locale.ROOT).endsWith(".svg"))
 			target = new File(target.getParentFile(), target.getName() + ".svg");
-		if(target.exists() && JOptionPane.showConfirmDialog(this, I18N.t("confirmation.overwrite.export.message"),
+		if(target.exists() && MessageDialogs.confirm(this, I18N.t("confirmation.overwrite.export.message"),
 				I18N.t("confirmation.overwrite.export.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)
 				!= JOptionPane.YES_OPTION)
 			return;
@@ -485,15 +488,24 @@ public final class HistoricalTimelineDialog extends JDialog{
 			return (item.scope() != null? I18N.t(item.scope().key()): StringUtils.EMPTY);
 		}
 
-		/** @return	The impact of the context impact that links the item to the individual ("explains"), "✓" if it has no type. */
+		/** @return	The impact of the context impact that links the item to the individual ("explains"), nothing if it has no type. */
 		String impact(){
-			if(!item.isLinked())
+			if(!item.isLinked() || item.impact().isEmpty())
 				return StringUtils.EMPTY;
 
-			return (item.impact().isEmpty()? "✓": I18N.t("enum.context_impact.type." + item.impact(), item.impact()));
+			return (I18N.t("enum.context_impact.type." + item.impact(), item.impact()));
+		}
+
+		/** @return	Whether a context impact links the item to the individual, without saying what it does (a tick is shown). */
+		boolean isLinkedWithoutImpact(){
+			return (item.isLinked() && item.impact().isEmpty());
 		}
 
 	}
+
+
+	/** The column of the impact (of the model), where a tick says that a context impact links the item without telling more. */
+	private static final int IMPACT_COLUMN = 7;
 
 
 	/** Shades the historic events and the cultural norms, more if a context impact links them to the individual. */
@@ -509,6 +521,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 				component.setBackground(timelineRow.item().isContext()? (linked? LINKED_ROW: CONTEXT_ROW): table.getBackground());
 			component.setFont(component.getFont()
 				.deriveFont(timelineRow.item().isContext()? (linked? Font.BOLD: Font.ITALIC): Font.PLAIN));
+			setIcon(table.convertColumnIndexToModel(column) == IMPACT_COLUMN && timelineRow.isLinkedWithoutImpact()? SymbolIcon.of(Symbol.CHECK): null);
 			return component;
 		}
 
@@ -551,7 +564,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 				case 4 -> item.detail();
 				case 5 -> item.place();
 				case 6 -> row.scope();
-				case 7 -> row.impact();
+				case IMPACT_COLUMN -> row.impact();
 				default -> StringUtils.EMPTY;
 			};
 		}

@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceDialog;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
@@ -38,6 +37,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.sources.ProvenanceService;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.ProvenanceDialog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

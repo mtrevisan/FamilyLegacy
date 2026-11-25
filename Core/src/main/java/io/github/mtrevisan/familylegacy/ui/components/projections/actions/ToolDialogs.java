@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -44,6 +45,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -51,6 +58,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Comparator;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
 
@@ -87,7 +95,7 @@ public final class ToolDialogs{
 	 * @param onOpen	What to do when a row is double-clicked, given the model index of the row; {@code null} for none.
 	 */
 	public static JTable createTable(final RowTableModel model, final IntConsumer onOpen){
-		final JTable table = new JTable(model);
+		final JTable table = new SortableTable(model);
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setAutoCreateRowSorter(true);
@@ -100,6 +108,30 @@ public final class ToolDialogs{
 				}
 			});
 		return table;
+	}
+
+	/**
+	 * Makes a column of the table whose cells are texts that start with a number ("12.5 %", "1,234") sort by that number and not as
+	 * text; a cell that does not start with a number comes before all the others.
+	 * <p>
+	 * To be called after the model is set, as the row sorter belongs to the model (a table whose model is replaced creates a new one).
+	 *
+	 * @param table	The table, with a {@link TableRowSorter}.
+	 * @param column	The index of the column in the model.
+	 */
+	public static void sortColumnAsNumber(final JTable table, final int column){
+		final Comparator<Object> byNumber = Comparator.comparingDouble(value -> {
+			final String text = StringUtils.remove(String.valueOf(value), ',');
+			final int end = StringUtils.indexOfAnyBut(text, "0123456789.-");
+			final String number = (end >= 0? text.substring(0, end): text);
+			try{
+				return Double.parseDouble(number);
+			}
+			catch(final NumberFormatException ignored){
+				return Double.NEGATIVE_INFINITY;
+			}
+		});
+		((TableRowSorter<?>)table.getRowSorter()).setComparator(column, byNumber);
 	}
 
 	/**
@@ -158,6 +190,47 @@ public final class ToolDialogs{
 				.getSystemClipboard()
 				.setContents(selection, selection);
 		});
+		return copy;
+	}
+
+	/**
+	 * Creates the "Copy all" button of a table, enabled only while the model of the table has at least one row (also when the model is
+	 * replaced or its rows change).
+	 */
+	public static JButton createCopyButton(final Supplier<String> text, final JTable table){
+		final JButton copy = createCopyButton(text);
+		final TableModelListener listener = e -> copy.setEnabled(table.getModel().getRowCount() > 0);
+		table.getModel().addTableModelListener(listener);
+		table.addPropertyChangeListener("model", e -> {
+			((TableModel)e.getOldValue()).removeTableModelListener(listener);
+			((TableModel)e.getNewValue()).addTableModelListener(listener);
+			listener.tableChanged(null);
+		});
+		listener.tableChanged(null);
+		return copy;
+	}
+
+	/** Creates the "Copy all" button of a text area, enabled only while the text is not blank. */
+	public static JButton createCopyButton(final JTextComponent component){
+		final JButton copy = createCopyButton(component::getText);
+		final Runnable update = () -> copy.setEnabled(!component.getText().isBlank());
+		component.getDocument().addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				update.run();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				update.run();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				update.run();
+			}
+		});
+		update.run();
 		return copy;
 	}
 

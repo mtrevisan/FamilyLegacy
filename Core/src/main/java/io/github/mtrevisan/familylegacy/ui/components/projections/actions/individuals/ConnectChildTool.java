@@ -25,21 +25,20 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 
 /** Connects an existing individual as a child of the selected individual. */
-public final class ConnectChildTool implements ToolOperation{
+public final class ConnectChildTool extends AbstractRelativeTool{
+
+	public ConnectChildTool(){
+		super(Role.CHILD, Source.SEARCH, RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES);
+	}
+
 
 	@Override
 	public String getName(){
 		return I18N.t("menu.individual.connect.child");
-	}
-
-	@Override
-	public void run(final ToolContext context){
-		context.performConnectChild();
 	}
 
 }

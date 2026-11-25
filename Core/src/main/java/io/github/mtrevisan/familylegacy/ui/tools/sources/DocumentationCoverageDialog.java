@@ -108,6 +108,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		coverage = DocumentationCoverage.analyze(model);
 
 		final int selectedTab = Math.max(tabs.getSelectedIndex(), 0);
+		final List<List<Integer>> selections = RowTableModel.selectionsOf(tabs);
 		tabs.removeAll();
 		placeRecords.clear();
 		branchRecords.clear();
@@ -116,6 +117,9 @@ final class DocumentationCoverageDialog extends JDialog{
 		GUIHelper.addTab(tabs, I18N.t("tab.title.coverage_hotspots"), "coverage_hotspots", createHotspotsTab());
 		GUIHelper.addTab(tabs, I18N.t("tab.title.coverage_branches"), "coverage_branches", createBranchesTab());
 		tabs.setSelectedIndex(Math.min(selectedTab, tabs.getTabCount() - 1));
+
+		//the row that was selected in each table (after the editing of a record) is selected again
+		RowTableModel.restoreSelections(tabs, selections);
 	}
 
 	private String overallText(){
@@ -130,7 +134,7 @@ final class DocumentationCoverageDialog extends JDialog{
 	}
 
 	static String percent(final double value){
-		return String.format(Locale.ROOT, "%.1f %%", value);
+		return String.format(Locale.ROOT, "%.1f%%", value);
 	}
 
 	static String kindLabel(final DocumentationCoverage.Kind kind){
@@ -155,6 +159,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		kindTable = createTable(new String[]{I18N.t("column.record_type"), I18N.t("column.total"), I18N.t("column.uncited"),
 			I18N.t("column.coverage")}, rows, null);
 		rightAlign(kindTable, 1, 2, 3);
+		ToolDialogs.sortColumnAsNumber(kindTable, 3);
 		kindTable.getSelectionModel()
 			.addListSelectionListener(e -> {
 				if(!e.getValueIsAdjusting())
@@ -179,7 +184,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		//what was listed stays listed after an edit
 		final int index = (selectedKind != null? selectedKind.ordinal(): -1);
 		if(index >= 0)
-			kindTable.setRowSelectionInterval(index, index);
+			kindTable.setRowSelectionInterval(kindTable.convertRowIndexToView(index), kindTable.convertRowIndexToView(index));
 		return tab;
 	}
 
@@ -193,7 +198,7 @@ final class DocumentationCoverageDialog extends JDialog{
 			return;
 		}
 
-		final DocumentationCoverage.KindCoverage entry = coverage.byKind().get(row);
+		final DocumentationCoverage.KindCoverage entry = coverage.byKind().get(kindTable.convertRowIndexToModel(row));
 		selectedKind = entry.kind();
 
 		final List<FLEFRecord> undocumented = entry.undocumented();
@@ -242,6 +247,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		final JTable places = createTable(new String[]{I18N.t("column.place"), I18N.t("column.uncited"), I18N.t("column.events"),
 			I18N.t("column.coverage")}, placeRows, row -> open(placeRecords, row));
 		rightAlign(places, 1, 2, 3);
+		ToolDialogs.sortColumnAsNumber(places, 3);
 		places.getColumnModel().getColumn(0).setPreferredWidth(420);
 
 		final List<Object[]> typeRows = new ArrayList<>();
@@ -251,6 +257,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		final JTable types = createTable(new String[]{I18N.t("column.event"), I18N.t("column.uncited"), I18N.t("column.events"),
 			I18N.t("column.coverage")}, typeRows, null);
 		rightAlign(types, 1, 2, 3);
+		ToolDialogs.sortColumnAsNumber(types, 3);
 		types.getColumnModel().getColumn(0).setPreferredWidth(420);
 
 		final JScrollPane typeScroll = new JScrollPane(types);
@@ -284,6 +291,7 @@ final class DocumentationCoverageDialog extends JDialog{
 		final JTable table = createTable(new String[]{I18N.t("column.founder"), I18N.t("column.individuals"), I18N.t("column.documented"),
 			I18N.t("column.coverage")}, rows, row -> open(branchRecords, row));
 		rightAlign(table, 1, 2, 3);
+		ToolDialogs.sortColumnAsNumber(table, 3);
 		table.getColumnModel().getColumn(0).setPreferredWidth(420);
 		tab.add(new JScrollPane(table), BorderLayout.CENTER);
 		return tab;
@@ -294,13 +302,12 @@ final class DocumentationCoverageDialog extends JDialog{
 	 *                          Tables
 	 * ====================================================================== */
 
-	/** The rows are already in the order that matters (the worst first), so the table is not sortable and a row is a row of the model. */
+	/**
+	 * The rows come in the order that matters (the worst first), and the columns can be sorted by clicking the header; the row
+	 * sorter is created again by the table each time its model is replaced, so it never stays bound to an old model.
+	 */
 	private static JTable createTable(final String[] columns, final List<Object[]> rows, final IntConsumer onOpen){
-		final JTable table = ToolDialogs.createTable(new RowTableModel(columns, rows), onOpen);
-		table.setAutoCreateRowSorter(false);
-		//the sorter that the factory installed would stay bound to the first model, and a table whose model is replaced would show no row
-		table.setRowSorter(null);
-		return table;
+		return ToolDialogs.createTable(new RowTableModel(columns, rows), onOpen);
 	}
 
 	private static void rightAlign(final JTable table, final int... columns){

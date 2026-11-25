@@ -10,6 +10,8 @@ From the left, the toolbar has **◄** and **►** (back and forward in the hist
 
 It searches **individuals** by name and **re-roots** the current view on the one you choose. In the **Ego Network** view it also finds groups, and the menu entry reads *Jump to individual/Group...*; a *Type* list then appears.
 
+In the **Chronomap** view nothing is re-rooted: the list holds every individual, and choosing one **moves the timeline** to a moment when that person is alive (it is left alone if they already are; otherwise it goes to their birth, or to their first event with a position), then selects them and centers the map on them. If the person has no event or attribute with a position, or no moment of their life can be determined (no birth date is known), a message explains why, the timeline and the map are left unchanged, and the **Show in the other views** button re-roots the view as usual.
+
 ## Find record (`Ctrl+F`)
 
 It searches **any type of record**: individual, group, event, event participation, place, source, repository, media, relationship, place relationship, conclusion, identity hypothesis, research question, research activity, research task, historic event and cultural norm. What happens when you choose one:

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.search.SearchMode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
@@ -76,7 +77,7 @@ public final class ResearchLogDialog extends JDialog{
 
 	private final ToolContext context;
 	private final LogTableModel tableModel = new LogTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 

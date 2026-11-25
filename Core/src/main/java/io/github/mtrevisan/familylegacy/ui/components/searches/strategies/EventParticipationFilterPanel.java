@@ -52,11 +52,9 @@ public class EventParticipationFilterPanel extends JPanel implements RecordFilte
 		EventParticipationReader.TAG_PARTICIPANT_PLACE};
 
 
-	private final JComboBox<String> roleCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventParticipationReader.ROLES,
-		I18N.t("search.combo.any"))));
-	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
-	private final JComboBox<String> participantTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(PARTICIPANT_TYPES,
-		I18N.t("search.combo.any"))));
+	private final JComboBox<String> roleCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(EventParticipationReader.ROLES, I18N.t("search.combo.any"))), "enum.event_participation.role");
+	private final JComboBox<String> eventTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))), "enum.event.type");
+	private final JComboBox<String> participantTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(PARTICIPANT_TYPES, I18N.t("search.combo.any"))), "enum.event_participation.participant");
 
 	private final Consumer<SearchCriteria> onChanged;
 

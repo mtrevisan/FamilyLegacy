@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -290,7 +291,7 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		if(!suggestion.isApplicable())
 			return;
 
-		if(hasData() && JOptionPane.showConfirmDialog(this, I18N.t("dialog.date_assistant.replace_confirm"),
+		if(hasData() && MessageDialogs.confirm(this, I18N.t("dialog.date_assistant.replace_confirm"),
 				I18N.t("dialog.date_assistant.title"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 			return;
 

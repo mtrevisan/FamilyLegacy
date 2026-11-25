@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProjectInfo;
@@ -33,6 +34,7 @@ import io.github.mtrevisan.updater.Component;
 import io.github.mtrevisan.updater.ComponentManager;
 import io.github.mtrevisan.updater.InstallerDownloader;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -45,6 +47,7 @@ import javax.swing.JTable;
 import javax.swing.SwingWorker;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -99,9 +103,13 @@ public final class ComponentsDialog extends JDialog{
 
 		GUIHelper.installEscapeToClose(this);
 
-		final JTable table = new JTable(model);
+		final JTable table = new SortableTable(model);
 		table.setRowHeight(table.getRowHeight() + 6);
 		table.setFillsViewportHeight(true);
+		table.setAutoCreateRowSorter(true);
+		//the size is shown as text ("1.5 MB"): it is sorted as a number
+		((TableRowSorter<?>)table.getRowSorter()).setComparator(SIZE,
+			Comparator.<Object>comparingDouble(value -> NumberUtils.toDouble(StringUtils.substringBefore((String)value, " "), -1.)));
 		table.getTableHeader().setReorderingAllowed(false);
 		column(table, 0, 40);
 		column(table, NAME, 220);
@@ -238,7 +246,7 @@ public final class ComponentsDialog extends JDialog{
 		final List<String> names = new ArrayList<>();
 		for(final ComponentManager.Entry entry : selected)
 			names.add(nameOf(entry.component()));
-		if(selected.isEmpty() || JOptionPane.showConfirmDialog(this, I18N.tf("dialog.components.uninstall.confirm", String.join(", ", names)),
+		if(selected.isEmpty() || MessageDialogs.confirm(this, I18N.tf("dialog.components.uninstall.confirm", String.join(", ", names)),
 				I18N.t("dialog.components.title"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION)
 			return;
 

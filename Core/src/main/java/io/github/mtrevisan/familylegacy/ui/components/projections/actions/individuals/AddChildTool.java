@@ -25,50 +25,20 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.actions.individuals;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
-import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.handlers.RecordDialogs;
-
-import java.awt.Window;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 
 
-/**
- * Opens the editor of the currently selected individual on the relationships it has as a parent, where the child is added.
- */
-public final class AddChildTool implements ToolOperation{
+/** Creates a new individual as a child of the selected individual (same flow as the parent and the partner). */
+public final class AddChildTool extends AbstractRelativeTool{
+
+	public AddChildTool(){
+		super(Role.CHILD, Source.CREATE, RelationshipReader.INDIVIDUAL_TO_INDIVIDUAL_CHILD_TYPES);
+	}
+
 
 	@Override
 	public String getName(){
 		return I18N.t("menu.individual.add.child");
-	}
-
-	@Override
-	public void run(final ToolContext context){
-		final Window owner = context.owner();
-		final FLEFModel model = context.model();
-		final FLEFRecord record = context.getSelectedEntity();
-		final RecordDialog dialog = RecordDialogs.createEdit(IndividualReader.TYPE, owner, model, record);
-		dialog.showRelationshipsAsObject();
-		dialog.setVisible(true);
-
-		if(!dialog.isSaved())
-			return;
-
-		//the relationships were saved by the editor (the child is added in the "Inverse Relationships" panel): the tree has only
-		//to be rebuilt from the updated model, keeping the current root and scroll position
-		final ProjectionMutator mutator = context.mutator();
-		if(mutator != null)
-			mutator.invalidateAndNotifyTreeChanged(context.selectedEntityId());
-	}
-
-	@Override
-	public boolean isEnabled(final ToolContext context){
-		return (context != null && context.hasSelectedIndividual());
 	}
 
 }

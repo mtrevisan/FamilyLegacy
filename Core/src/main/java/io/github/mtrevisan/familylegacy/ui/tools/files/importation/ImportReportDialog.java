@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.files.importation;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.importer.ImportIssue;
 import io.github.mtrevisan.familylegacy.importer.ImportReport;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
@@ -75,11 +76,12 @@ public final class ImportReportDialog extends JDialog{
 			+ "</body></html>");
 		intro.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 8));
 
-		final DefaultTableModel summaryModel = readOnlyModel(I18N.t("dialog.import.report.column.reason"),
-			I18N.t("dialog.import.report.column.count"));
+		final DefaultTableModel summaryModel = readOnlyModel(new Class<?>[]{String.class, Integer.class},
+			I18N.t("dialog.import.report.column.reason"), I18N.t("dialog.import.report.column.count"));
 		for(final Map.Entry<String, Integer> entry : report.countsByReason().entrySet())
 			summaryModel.addRow(new Object[]{I18N.t(entry.getKey()), entry.getValue()});
-		final JTable summary = new JTable(summaryModel);
+		final JTable summary = new SortableTable(summaryModel);
+		summary.setAutoCreateRowSorter(true);
 		summary.getColumnModel()
 			.getColumn(1)
 			.setMaxWidth(80);
@@ -87,11 +89,12 @@ public final class ImportReportDialog extends JDialog{
 		summaryScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.import.report.summary")));
 		summaryScroll.setPreferredSize(new Dimension(640, 150));
 
-		final DefaultTableModel detailModel = readOnlyModel(I18N.t("dialog.import.report.column.reason"),
-			I18N.t("dialog.import.report.column.item"), I18N.t("dialog.import.report.column.where"));
+		final DefaultTableModel detailModel = readOnlyModel(new Class<?>[]{String.class, String.class, String.class},
+			I18N.t("dialog.import.report.column.reason"), I18N.t("dialog.import.report.column.item"),
+			I18N.t("dialog.import.report.column.where"));
 		for(final ImportIssue issue : report.issues())
 			detailModel.addRow(new Object[]{I18N.t(issue.reasonKey()), issue.item(), issue.where()});
-		final JTable details = new JTable(detailModel);
+		final JTable details = new SortableTable(detailModel);
 		details.setAutoCreateRowSorter(true);
 		final JScrollPane detailScroll = new JScrollPane(details);
 		detailScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.import.report.details")));
@@ -171,11 +174,16 @@ public final class ImportReportDialog extends JDialog{
 		}
 	}
 
-	private static DefaultTableModel readOnlyModel(final String... columns){
+	private static DefaultTableModel readOnlyModel(final Class<?>[] columnClasses, final String... columns){
 		return new DefaultTableModel(columns, 0){
 			@Override
 			public boolean isCellEditable(final int row, final int column){
 				return false;
+			}
+
+			@Override
+			public Class<?> getColumnClass(final int column){
+				return columnClasses[column];
 			}
 		};
 	}

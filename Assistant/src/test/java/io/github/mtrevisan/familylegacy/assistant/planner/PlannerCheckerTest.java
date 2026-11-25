@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +41,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class PlannerCheckerTest{
@@ -55,6 +57,7 @@ public class PlannerCheckerTest{
 		private final List<GapData.Question> questions = new ArrayList<>();
 		private final List<GapData.Activity> activities = new ArrayList<>();
 		private final List<GapData.Task> tasks = new ArrayList<>();
+		private final List<GapData.Hypothesis> hypotheses = new ArrayList<>();
 
 		Builder person(final String id, final Integer birthYear){
 			return person(id, birthYear, false, false, 0);
@@ -70,6 +73,17 @@ public class PlannerCheckerTest{
 			final GapData.Person p = persons.get(id);
 			persons.put(id, new GapData.Person(p.id(), p.name(), p.birthYear(), p.hasBirth(), p.hasDeath(), p.hasResidence(), p.hasCensus(),
 				p.eventCount(), p.places(), p.deathYear(), List.of(names)));
+			return this;
+		}
+
+		/** The kinds of the sources already cited for a person already added, and the repositories of its relatives. */
+		Builder leads(final String id, final Set<String> kinds, final GapData.RepositoryLead... leads){
+			persons.put(id, persons.get(id).withLeads(kinds, List.of(leads)));
+			return this;
+		}
+
+		Builder hypothesis(final String id, final String first, final String second, final String confidence, final boolean evaluated){
+			hypotheses.add(new GapData.Hypothesis(id, first, second, confidence, evaluated));
 			return this;
 		}
 
@@ -104,7 +118,7 @@ public class PlannerCheckerTest{
 		}
 
 		List<PlannerFinding> findings(){
-			return PlannerChecker.findings(new GapData(TODAY, persons, events, parents, unions, questions, activities, tasks));
+			return PlannerChecker.findings(new GapData(TODAY, persons, events, parents, unions, questions, activities, tasks, hypotheses));
 		}
 
 	}
@@ -409,6 +423,90 @@ public class PlannerCheckerTest{
 		Assertions.assertEquals(ResearchTaskReader.ENUM_PRIORITY_NORMAL, PlannerChecker.priority(45));
 		Assertions.assertEquals(ConfidenceReader.ENUM_LOW, PlannerChecker.priority(44));
 		Assertions.assertEquals(ConfidenceReader.ENUM_MEDIUM, PlannerChecker.level(60));
+	}
+
+	@Test
+	void theKindOfSourceThatServesMostStepsIsRecommendedAndTheOnesAlreadyCitedAreNot(){
+		final Builder builder = new Builder()
+			.person("a", 1850)
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a");
+
+		final List<PlannerFinding> found = ofKind(builder.findings(), "planner.source_kind");
+		Assertions.assertEquals(1, found.size());
+		Assertions.assertTrue(found.getFirst().draft().text().contains("church register"), found.getFirst().draft().text());
+		Assertions.assertTrue(found.getFirst().diagnostic().explanation().contains("birth"), found.getFirst().diagnostic().explanation());
+
+		//with the church registers already cited the next kind is another one
+		final List<PlannerFinding> next = ofKind(builder.leads("a", Set.of(SourceReader.ENUM_KIND_CHURCH_REGISTER)).findings(),
+			"planner.source_kind");
+		Assertions.assertEquals(1, next.size());
+		Assertions.assertFalse(next.getFirst().draft().text().contains("church register"), next.getFirst().draft().text());
+		Assertions.assertTrue(next.getFirst().diagnostic().explanation().contains("church register"), next.getFirst().diagnostic().explanation());
+	}
+
+	@Test
+	void noKindOfSourceIsRecommendedWhenAllAreCitedOrNoStepIsOpen(){
+		Assertions.assertTrue(ofKind(new Builder()
+			.person("a", 1850)
+			.leads("a", Set.of(SourceReader.ENUM_KIND_CHURCH_REGISTER, SourceReader.ENUM_KIND_CIVIL_REGISTRATION,
+				SourceReader.ENUM_KIND_CENSUS, SourceReader.ENUM_KIND_TAX_ROLL, SourceReader.ENUM_KIND_DIRECTORY,
+				SourceReader.ENUM_KIND_CEMETERY_RECORD, SourceReader.ENUM_KIND_WILL_PROBATE))
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.findings(), "planner.source_kind").isEmpty());
+		Assertions.assertTrue(ofKind(new Builder()
+			.person("a", 1850)
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_RESOLVED, false, "a")
+			.findings(), "planner.source_kind").isEmpty());
+	}
+
+	@Test
+	void theRepositoriesOfTheRelativesAreRecommendedWithTheReason(){
+		final List<PlannerFinding> found = ofKind(new Builder()
+			.person("a", 1850)
+			.leads("a", Set.of(), new GapData.RepositoryLead("Archivio Diocesano di Treviso", "Parent [p]", GapData.RELATION_PARENT),
+				new GapData.RepositoryLead("Archivio di Stato", "Child [c]", GapData.RELATION_CHILD),
+				new GapData.RepositoryLead("Third", "Child [c]", GapData.RELATION_CHILD))
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.findings(), "planner.repository");
+
+		//two of the three are proposed
+		Assertions.assertEquals(2, found.size());
+		final String explanation = found.getFirst().diagnostic().explanation();
+		Assertions.assertTrue(explanation.contains("Archivio Diocesano di Treviso") && explanation.contains("Parent [p]")
+			&& explanation.contains("a parent"), explanation);
+		Assertions.assertTrue(found.getFirst().draft().text().contains("Archivio Diocesano di Treviso"));
+	}
+
+	@Test
+	void noRepositoryIsRecommendedWithoutALead(){
+		Assertions.assertTrue(ofKind(new Builder()
+			.person("a", 1850)
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "a")
+			.findings(), "planner.repository").isEmpty());
+	}
+
+	@Test
+	void theIdentityHypothesesNotEvaluatedAreOrderedByConfidenceQuestionAndParents(){
+		final List<PlannerFinding> found = ofKind(new Builder()
+			.person("a", 1850).person("b", 1851).person("c", 1800).person("d", 1801).person("e", 1700).person("f", 1700).person("p", 1820)
+			.parent("a", "p")
+			.hypothesis("IH1", "c", "d", ConfidenceReader.ENUM_LOW, false)
+			.hypothesis("IH2", "a", "b", ConfidenceReader.ENUM_HIGH, false)
+			.hypothesis("IH3", "e", "f", ConfidenceReader.ENUM_HIGH, true)
+			.question("q1", ResearchQuestionReader.ENUM_STATUS_OPEN, false, "c")
+			.findings(), "planner.identity");
+
+		//IH3 is evaluated already
+		Assertions.assertEquals(2, found.size());
+		final PlannerFinding high = found.stream().filter(f -> f.diagnostic().recordIds().contains("IH2")).findFirst().orElseThrow();
+		final PlannerFinding low = found.stream().filter(f -> f.diagnostic().recordIds().contains("IH1")).findFirst().orElseThrow();
+		//high confidence (70) plus the parents that b would gain; low (40) plus the open question about c
+		Assertions.assertEquals(80, high.diagnostic().rank());
+		Assertions.assertEquals(55, low.diagnostic().rank());
+		Assertions.assertTrue(high.diagnostic().explanation().contains("Person b [b] has no parents"), high.diagnostic().explanation());
+		Assertions.assertTrue(low.diagnostic().explanation().contains("open research question"), low.diagnostic().explanation());
+		Assertions.assertEquals(GapDraft.Kind.QUESTION, high.draft().kind());
+		Assertions.assertEquals(List.of("a", "b"), high.draft().records());
 	}
 
 	@Test

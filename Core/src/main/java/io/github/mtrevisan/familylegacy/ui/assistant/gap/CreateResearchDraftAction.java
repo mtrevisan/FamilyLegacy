@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.assistant.SwingAssistantContext;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchQuestionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 
 import javax.swing.JOptionPane;
 import java.awt.Window;
@@ -91,7 +92,7 @@ public final class CreateResearchDraftAction implements DiagnosticAction{
 				.withDraft(enriched.title(), enriched.text(), records);
 			dialog.setVisible(true);
 			if(dialog.isSaved() && dialog.getRecord() != null && enriched.followUp() != null
-					&& JOptionPane.showConfirmDialog(owner, I18N.t("gap.draft.follow_up.confirm"), title(),
+					&& MessageDialogs.confirm(owner, I18N.t("gap.draft.follow_up.confirm"), title(),
 					JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
 				ResearchTaskRecordDialog.createNew(owner, model)
 					.withDraft(enriched.followUp(), ResearchTaskReader.ENUM_PRIORITY_NORMAL, List.of(dialog.getRecord()))

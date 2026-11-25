@@ -67,7 +67,22 @@ public class IndividualSearchStrategy implements SearchStrategy{
 	public static final String KEY_DATE_TO = EventReader.TAG_DATE + "_" + DateReader.TAG_TO;
 	public static final String KEY_CALENDAR_TO = DateReader.TAG_CALENDAR + "_" + DateReader.TAG_TO;
 
-	private static final String SEX_ABBREVIATION_MALE = "[" + I18N.t("dialog.individual.sex.abbreviation.male") + "]";
+	/*
+	 * The display text is a plain string shown in places that cannot draw icons (result list, confirmation messages), so the
+	 * birth/death markers must be characters that the UI font (Segoe UI) contains, otherwise they are drawn as missing-glyph boxes
+	 * or taken from a fallback font with different metrics.
+	 * Checked with Font.canDisplay and the glyph visual bounds (font size 100):
+	 *  - U+2605 (star) is not in Segoe UI;
+	 *  - U+25CB/U+25CF (white/black circle) exist but have very different sizes (72 vs 43): the empty one looks twice the filled one;
+	 *  - the asterisk is drawn aligned to the top of the line, and the dagger is a religious symbol;
+	 *  - U+25E6 (white bullet) and U+2022 (bullet) are designed as a pair: same size (24.5 vs 24.6) and same vertical position.
+	 * Do not replace them without repeating that check.
+	 */
+	private static final String SYMBOL_BIRTH = "◦";
+	private static final String SYMBOL_DEATH = "•";
+//	private static final String SYMBOL_BIRTH = "★";
+//	private static final String SYMBOL_DEATH = "●";
+	private static final String SEX_ABBREVIATION_MALE ="[" + I18N.t("dialog.individual.sex.abbreviation.male") + "]";
 	private static final String SEX_ABBREVIATION_FEMALE = "[" + I18N.t("dialog.individual.sex.abbreviation.female") + "]";
 	private static final String SEX_ABBREVIATION_UNKNOWN = "[" + I18N.t("dialog.individual.sex.abbreviation.unknown") + "]";
 
@@ -243,9 +258,9 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		details.setEmptyValue(StringUtils.EMPTY);
 
 		if(birthDate != null || birthPlace != null)
-			details.add("★ " + SearchHelper.joinNonNull(" - ", birthDate, birthPlace));
+			details.add(SYMBOL_BIRTH + StringUtils.SPACE + SearchHelper.joinNonNull(" - ", birthDate, birthPlace));
 		if(deathDate != null || deathPlace != null)
-			details.add("● " + SearchHelper.joinNonNull(" - ", deathDate, deathPlace));
+			details.add(SYMBOL_DEATH + StringUtils.SPACE + SearchHelper.joinNonNull(" - ", deathDate, deathPlace));
 
 		return baseDisplayText + details;
 	}

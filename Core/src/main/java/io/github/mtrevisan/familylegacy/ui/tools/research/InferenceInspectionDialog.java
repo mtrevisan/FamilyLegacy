@@ -112,7 +112,7 @@ final class InferenceInspectionDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listPane, reportPane), BorderLayout.CENTER);
-		add(ToolDialogs.createFooter("", openRecord, ToolDialogs.createCopyButton(report::getText)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter("", openRecord, ToolDialogs.createCopyButton(report)), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);

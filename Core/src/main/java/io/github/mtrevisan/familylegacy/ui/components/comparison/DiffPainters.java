@@ -103,19 +103,24 @@ public final class DiffPainters{
 		@Override
 		public Shape paintLayer(final Graphics g, final int offset0, final int offset1, final Shape bounds,
 				final JTextComponent component, final View view){
+			//the graphics is shared with the painting of the text that follows: work on a copy, or the italic font leaks into it
+			final Graphics labelGraphics = g.create();
 			try{
 				//the position of the line feed is where the text of the line ends
 				final Rectangle2D end = component.modelToView2D(Math.max(offset0, offset1 - 1));
 				final Font font = component.getFont().deriveFont(Font.ITALIC);
-				g.setFont(font);
-				g.setColor(COLOR_MUTED);
+				labelGraphics.setFont(font);
+				labelGraphics.setColor(COLOR_MUTED);
 				final int x = (int)end.getMaxX() + 16;
-				final int y = (int)end.getY() + g.getFontMetrics().getAscent();
-				g.drawString(label, x, y);
-				return new Rectangle(x, (int)end.getY(), g.getFontMetrics().stringWidth(label), (int)end.getHeight());
+				final int y = (int)end.getY() + labelGraphics.getFontMetrics().getAscent();
+				labelGraphics.drawString(label, x, y);
+				return new Rectangle(x, (int)end.getY(), labelGraphics.getFontMetrics().stringWidth(label), (int)end.getHeight());
 			}
 			catch(final BadLocationException ignored){
 				return null;
+			}
+			finally{
+				labelGraphics.dispose();
 			}
 		}
 

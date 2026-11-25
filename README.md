@@ -6,225 +6,50 @@ Assistant in `Core/src/main/java/.../ui/assistant/README.md`, the proposed roadm
 
 # FamilyLegacy "WOW Features" Roadmap
 
-This roadmap focuses on capabilities that significantly differentiate FamilyLegacy from traditional genealogy applications by leveraging the unique strengths of FLEF: evidence, conclusions, hypotheses, historical context, and research workflow.
+Only what is still to do. Done so far (FAN table and findings, historical timeline with lifespan comparison and SVG, place-aware context, Book Builder, stories as a kind of note, Ahnentafel and d'Aboville numbering, Evidence Trace, planning findings and task generation) lives in the code and in the help pages.
 
 The emphasis is not on storing more data, but on helping genealogists reason about data.
 
 ---
 
-# Phase 1 — Research Workflow Engine
-
-Goal:
-Guide research rather than simply recording it.
-
-## 1. Research Gap Analysis
-
-Automatic identification of:
-
-- missing births;
-- missing deaths;
-- missing sources;
-- incomplete chronologies;
-- unresolved identity problems.
-
-Generate:
-
-- suggested tasks;
-- suggested searches;
-- suggested repositories.
-
----
-
-## 2. GPS Workflow Support
-
-Implement Genealogical Proof Standard-oriented workflows.
-
-Support:
-
-- research question;
-- evidence collection;
-- conflict analysis;
-- conclusion creation;
-- proof statement generation.
-
-Provide:
-
-    What is still missing before this conclusion can be considered reasonably proven?
-
-This is one of the most distinctive features FamilyLegacy can offer.
-
----
-
 # Phase 2 — FAN Network Intelligence
 
-Goal:
-Reveal connections beyond direct family relationships.
+## 1. FAN Network View
 
-## 3. FAN Network View
+Today the FAN network is a table in the dossier and a list of findings. Still missing:
 
-Use:
+- a graph visualization of the people around an individual (witnesses, godparents, neighbours, employers, associates, shared events and places);
+- a report section / report on the FAN network;
+- the "Why are these two individuals connected?" answer: relationships, shared events, shared groups, places and sources, for any two selected individuals.
 
-- witnesses;
-- godparents;
-- neighbours;
-- employers;
-- employees;
-- associates;
-- shared events;
-- shared places.
+## 2. Associate Discovery
 
-Provide graph visualization and reports.
-
-Example:
-
-    Why are these two individuals connected?
-
-Answer using:
-
-- relationships;
-- shared events;
-- shared groups;
-- places;
-- sources.
-
----
-
-## 4. Associate Discovery
-
-Allow identification of recurring associates.
-
-Examples:
-
-- witness appears in many family events;
-- repeated neighbours;
-- repeated godparents;
-- recurring migration companions.
-
-Highlight possible research leads.
+Recurring witnesses, neighbours and godparents are already found. Still missing: recurring migration companions (the same people moving to the same places in the same years).
 
 ---
 
 # Phase 3 — Historical Context Engine
 
-Goal:
-Place people inside history.
+## 3. Historical Overlay Timeline and Lifespan Comparison: remaining outputs
 
-## 5. Historical Overlay Timeline
-
-Combine:
-
-- personal events;
-- family events;
-- local historical events;
-- national historical events;
-- world historical events.
-
-Use:
-
-    HistoricEventRecord
-    ContextImpactRecord
-
-Provide:
-
-- interactive timeline;
-- report section;
-- PDF rendering.
-
----
-
-## 6. Place-Aware Historical Context
-
-When viewing a person, event, or place, automatically surface relevant context.
-
-Examples:
-
-    Napoleonic administration
-    Austrian rule
-    Civil registration introduction
-    Military conscription periods
-
-Prioritize context connected to associated places.
-
----
-
-## 7. Lifespan Comparison Charts
-
-Display:
-
-- multiple individuals;
-- historical events;
-- family milestones.
-
-Allow comparisons across generations.
-
-Export:
-
-- SVG
-- PDF
-- report sections
+- direct PDF rendering (today: SVG, and PDF by printing it);
+- the lifespan comparison as a report section;
+- entries in the individual popup menus (today only in the Event menu).
 
 ---
 
 # Phase 4 — Intelligent Publishing
 
-Goal:
-Generate publication-quality genealogical works.
+## 4. Book Builder: remaining
 
-## 8. Book Builder
+- save and reload a book definition;
+- page numbers inside the indexes;
+- true streaming (the document is fully in memory).
 
-Combine multiple reports into:
+## 5. Story Integration: remaining
 
-- PDF
-- DOCX
-- EPUB
-- HTML
-- Markdown
-
-Support:
-
-- cover page;
-- introduction;
-- table of contents;
-- combined indexes;
-- continuous pagination.
-
-Reuse existing report generators.
-
----
-
-## 9. Story Integration
-
-Support narrative stories within:
-
-- individual reports;
-- family books;
-- biographies.
-
-Stories should:
-
-- render as narrative sections;
-- support Markdown;
-- be searchable;
-- be optionally included in reports.
-
-Implement via:
-
-    Note + classification
-
-before considering a dedicated StoryRecord.
-
----
-
-## 10. Narrative Numbering Systems
-
-Provide:
-
-- Ahnentafel
-- d'Aboville
-
-and other genealogical numbering systems where appropriate.
-
-Use sensible defaults per report type.
+- tables, quotes and images in the story Markdown;
+- an action / search "find stories citing this record" and backlinks in the reports.
 
 ---
 
@@ -233,24 +58,7 @@ Use sensible defaults per report type.
 Goal:
 Use AI to assist research while keeping all reasoning transparent.
 
-## 11. Explain My Conclusion
-
-User asks:
-
-    Why was this conclusion generated?
-
-Provide:
-
-- supporting evidence;
-- contradictory evidence;
-- confidence;
-- research gaps.
-
-AI must never hide the evidence chain.
-
----
-
-## 12. Historical Interpretation Assistant
+## 6. Historical Interpretation Assistant
 
 User asks:
 
@@ -266,30 +74,9 @@ Generate contextual explanations linked to FLEF records.
 
 ---
 
-## 134. Research Advisor
-
-Provide recommendations such as:
-
-- which source type to search next;
-- which repository may help;
-- what evidence is missing;
-- which identity hypothesis deserves attention.
-
-All recommendations must be grounded in existing data and accompanied by explanations.
-
----
-
 # Ultimate Goal
 
-FamilyLegacy should become:
-
-    Not only a genealogy database.
-
-    Not only a genealogy report generator.
-
-    But a genealogy reasoning and research environment.
-
-The defining experience should be:
+FamilyLegacy should become a genealogy reasoning and research environment, not only a database or a report generator:
 
     "Show me the evidence."
     "Show me the conflicts."
@@ -343,7 +130,7 @@ Saved groups should be usable in:
 
 Avoid protocol changes unless long-term interchange of saved groups becomes a demonstrated requirement.
 
-3. Evaluate later (niche or heavy): genogram and health history view (GenoPro, RootsMagic), DNA tests and Leeds Method report, cemeteries and
+2. Evaluate later (niche or heavy): genogram and health history view (GenoPro, RootsMagic), DNA tests and Leeds Method report, cemeteries and
 headstones, user-scriptable reports, queue of proposed edits for collaboration, globe/migration view, gazetteer with Soundex for place
 standardisation.
 

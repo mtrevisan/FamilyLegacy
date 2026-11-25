@@ -70,6 +70,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
@@ -918,7 +919,7 @@ class GrampsXMLToFLEFConverterTest{
 			+ "<note handle=\"_n5\" id=\"N5\" change=\"1\"><text>no type</text></note>"
 			+ "</notes>");
 
-		final java.util.Map<String, String> kinds = new java.util.LinkedHashMap<>();
+		final Map<String, String> kinds = new LinkedHashMap<>();
 		for(final FLEFRecord note : FLEFRecordHelper.findChildren(record(model, "I1"), NoteReader.TAG_NOTE))
 			kinds.put(FLEFRecordHelper.getChildValue(note, NoteReader.TAG_TEXT), NoteReader.extractKind(note));
 

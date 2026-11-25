@@ -198,6 +198,8 @@ public final class MultiLifespanStripPanel extends JPanel{
 	/** The historic events and cultural norms of the places of the individuals, behind the rows. */
 	private List<TemporalContextBand> bands = List.of();
 	private List<String> currentIds = List.of();
+	/** {@code true} while the strip is shown but its content has not been computed yet. */
+	private boolean busy;
 
 	private int hoveredRowIndex = -1;
 	private EventIndex.EventDatum hoveredEvent;
@@ -336,6 +338,27 @@ public final class MultiLifespanStripPanel extends JPanel{
 
 		if(shown)
 			setIndividuals(currentIds);
+	}
+
+	/**
+	 * Shows the strip with a "calculating" message and without computing anything: the caller lets it be painted and then calls
+	 * {@link #finishShowing()}.
+	 */
+	public void showBusy(){
+		busy = true;
+		rows = List.of();
+		super.setVisible(true);
+		canvas.repaint();
+	}
+
+	/** Computes the content of a strip shown by {@link #showBusy()}. */
+	public void finishShowing(){
+		if(!busy)
+			return;
+
+		//(setIndividuals computes nothing if the strip was hidden again meanwhile)
+		busy = false;
+		setIndividuals(currentIds);
 	}
 
 
@@ -810,8 +833,12 @@ public final class MultiLifespanStripPanel extends JPanel{
 			g2.setColor(BACKGROUND);
 			g2.fillRect(0, 0, width, height);
 
-			if(rows.isEmpty()){
-				paintEmptyMessage(g2, width, height);
+			if(busy || rows.isEmpty()){
+				//centered in the part of the canvas the user actually sees (the canvas may be taller or shorter than the viewport)
+				final Rectangle visibleArea = getVisibleRect();
+				g2.translate(visibleArea.x, visibleArea.y);
+				paintEmptyMessage(g2, visibleArea.width, visibleArea.height);
+				g2.translate(-visibleArea.x, -visibleArea.y);
 
 				return;
 			}
@@ -830,7 +857,7 @@ public final class MultiLifespanStripPanel extends JPanel{
 			g2.setFont(EMPTY_FONT);
 			g2.setColor(EMPTY_MESSAGE);
 			final FontMetrics fm = g2.getFontMetrics();
-			final String msg = I18N.t("text.lifespan.no_events");
+			final String msg = I18N.t(busy? "text.lifespan.calculating": "text.lifespan.no_events");
 			final int tw = fm.stringWidth(msg);
 			g2.drawString(msg, (width - tw) / 2, height / 2 + fm.getAscent() / 2);
 		}

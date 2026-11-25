@@ -115,10 +115,6 @@ public record ToolContext(
 		dispatcher.paste();
 	}
 
-	public void performConnectChild(){
-		dispatcher.connectChild();
-	}
-
 	/**
 	 * @return	A copy of the model as it is now that nobody changes: what a tool does in the background reads this, not the model that the
 	 * 	user may be editing. Call it on the event dispatch thread. The model itself if the application has no such copy.
@@ -126,6 +122,11 @@ public record ToolContext(
 	public FLEFModel readOnlyModel(){
 		final FLEFModel view = dispatcher.readOnlyModel();
 		return (view != null? view: model);
+	}
+
+	/** @return	{@code true} if the active projection is the ego network. */
+	public boolean isEgoNetworkActive(){
+		return dispatcher.isEgoNetworkActive();
 	}
 
 	public void performRemove(final String id){

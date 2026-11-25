@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.assistant.source.SourceIdentifierAssista
 import io.github.mtrevisan.familylegacy.assistant.source.SourceKindAssistantContributor;
 import io.github.mtrevisan.familylegacy.assistant.tags.TagsAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.DateAssistantContributor;
+import io.github.mtrevisan.familylegacy.ui.assistant.GapAnalysisContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.ResearchAssistantService;
 import io.github.mtrevisan.familylegacy.ui.assistant.TaskAssistantContributor;
 import io.github.mtrevisan.familylegacy.ui.assistant.citation.CitationAssistantContributor;
@@ -108,6 +109,7 @@ public final class DefaultResearchAssistant{
 		service.register(new ContextAssistantContributor());
 		service.register(new ResearchToolsAssistantContributor());
 		service.register(new TaskAssistantContributor(service::visibleFindings));
+		service.register(new GapAnalysisContributor(service::visibleFindings));
 		ServiceLoader.load(AssistantContributor.class)
 			.forEach(service::register);
 		return service;

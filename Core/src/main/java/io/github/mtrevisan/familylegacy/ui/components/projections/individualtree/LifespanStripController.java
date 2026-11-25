@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individualtre
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.CollapsibleBar;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.services.MultiLifespanStripPanel;
 
+import javax.swing.SwingUtilities;
 import java.awt.Component;
+import java.awt.Container;
 import java.util.Set;
 
 
@@ -66,8 +68,31 @@ public final class LifespanStripController{
 	/** Toggles the strip on or off. */
 	public void toggle(){
 		visible = !visible;
-		strip.setVisible(visible);
 		toggleBar.setExpanded(visible);
+
+		if(!visible){
+			strip.setVisible(false);
+			notifyVisibilityChanged();
+
+			return;
+		}
+
+		//the strip is shown at once with a "calculating" message and painted; the computation (the indices are built on first display)
+		//follows right after: otherwise the user sees nothing happen until it is over
+		strip.showBusy();
+		notifyVisibilityChanged();
+		SwingUtilities.invokeLater(() -> {
+			final Container parent = strip.getParent();
+			if(parent != null)
+				parent.validate();
+			strip.paintImmediately(0, 0, strip.getWidth(), strip.getHeight());
+			toggleBar.paintImmediately(0, 0, toggleBar.getWidth(), toggleBar.getHeight());
+
+			SwingUtilities.invokeLater(strip::finishShowing);
+		});
+	}
+
+	private void notifyVisibilityChanged(){
 		if(onVisibilityChanged != null)
 			onVisibilityChanged.run();
 	}

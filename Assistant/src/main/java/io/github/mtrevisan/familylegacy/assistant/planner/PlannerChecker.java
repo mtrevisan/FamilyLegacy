@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchActivityReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchQuestionReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.ResearchTaskReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
@@ -45,6 +46,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -62,8 +64,16 @@ import java.util.Set;
  *   that no task or activity of the question already covers (a draft of a research task, with the reason; if the tree has repositories at the places of the individual, or at the places that
  *   contain them, the task names them and the years to look at);</li>
  *   <li>the brick walls worth working on: individuals whose parents are unknown, ranked by how much of the tree depends on them (a
+ *   draft of a research question);</li>
+ *   <li>the kind of source to search next: the one that would serve most of the steps of a question and that no source cited for the
+ *   individual is (a draft of a research task);</li>
+ *   <li>the repositories to try beyond the places of the individual: the ones at the places of its parents, partners and children
+ *   (a draft of a research task);</li>
+ *   <li>the identity hypotheses that deserve attention: the ones no conclusion evaluates yet, ordered by their confidence, by whether an
+ *   open question is about one of the two individuals and by whether the identity would give parents to an individual that has none (a
  *   draft of a research question).</li>
  * </ul>
+ * Each recommendation is made from what the tree already holds, and says which data it comes from.
  * Nothing is created: the drafts are the start of the usual editors, saved only if the researcher confirms.
  */
 public final class PlannerChecker{
@@ -84,6 +94,23 @@ public final class PlannerChecker{
 	private static final int MAX_REPOSITORIES = 3;
 	/** How many searches that found nothing make the records worth asking the archive for. */
 	private static final int FRUITLESS_SEARCHES = 2;
+	/** How many repositories of the relatives are proposed for one individual. */
+	private static final int MAX_LEADS_PER_PERSON = 2;
+	/** Civil registration started around 1800 in much of Europe, so the records of an individual born before are only in the church ones. */
+	private static final int CIVIL_REGISTRATION_FROM = 1780;
+	/** What a repository of a relative is worth less than the step it would serve: it is a lead, not a gap. */
+	private static final int LEAD_DISCOUNT = 10;
+	/** What each further step served by the same kind of source adds to its usefulness. */
+	private static final int SHARED_KIND_BONUS = 5;
+	/** The usefulness of an identity hypothesis not evaluated yet, by its confidence. */
+	private static final int HYPOTHESIS_HIGH = 70;
+	private static final int HYPOTHESIS_MEDIUM = 55;
+	private static final int HYPOTHESIS_LOW = 40;
+	/** What an open question about one of the two individuals adds to the usefulness of their hypothesis. */
+	private static final int HYPOTHESIS_QUESTION_BONUS = 15;
+	/** What the parents that one of the two individuals would gain add to the usefulness of their hypothesis. */
+	private static final int HYPOTHESIS_PARENTS_BONUS = 10;
+	private static final int MAX_USEFULNESS = 95;
 
 
 	/** The steps that can be proposed, with the words that say a task or an activity already covers them. */
@@ -142,6 +169,7 @@ public final class PlannerChecker{
 		final List<PlannerFinding> findings = new ArrayList<>();
 		findings.addAll(checker.steps(data));
 		findings.addAll(checker.brickWalls(data));
+		findings.addAll(checker.identityHypotheses(data));
 		return findings;
 	}
 
@@ -186,11 +214,15 @@ public final class PlannerChecker{
 				candidates.addAll(candidates(person, data, nothingStarted));
 			addArchive(question, persons.getFirst(), data, candidates);
 
-			candidates.stream()
+			final List<Candidate> retained = candidates.stream()
 				.filter(candidate -> !candidate.step().isCoveredBy(covered))
 				.sorted(Comparator.comparingInt(Candidate::usefulness).reversed())
 				.limit(MAX_STEPS_PER_QUESTION)
-				.forEach(candidate -> findings.add(step(question, candidate)));
+				.toList();
+			for(final Candidate candidate : retained)
+				findings.add(step(question, candidate));
+			sourceKind(question, retained, covered, findings);
+			repositories(question, retained, findings);
 		}
 		return findings;
 	}
@@ -320,6 +352,179 @@ public final class PlannerChecker{
 			priority(candidate.usefulness(), tuning)));
 	}
 
+
+	/** @return the kinds of source that can answer a step, the likeliest first */
+	private static List<String> kindsOf(final Candidate candidate){
+		final Integer birthYear = candidate.person().birthYear();
+		final boolean civil = (birthYear == null || birthYear >= CIVIL_REGISTRATION_FROM);
+		final List<String> kinds = new ArrayList<>();
+		switch(candidate.step()){
+			case BIRTH_MISSING, BIRTH_UNSOURCED, PARENTS, BAPTISMS, MARRIAGE -> {
+				kinds.add(SourceReader.ENUM_KIND_CHURCH_REGISTER);
+				if(civil)
+					kinds.add(SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+			}
+			case DEATH -> {
+				kinds.add(SourceReader.ENUM_KIND_CHURCH_REGISTER);
+				if(civil)
+					kinds.add(SourceReader.ENUM_KIND_CIVIL_REGISTRATION);
+				kinds.add(SourceReader.ENUM_KIND_CEMETERY_RECORD);
+				kinds.add(SourceReader.ENUM_KIND_WILL_PROBATE);
+			}
+			case CENSUS -> {
+				kinds.add(SourceReader.ENUM_KIND_CENSUS);
+				kinds.add(SourceReader.ENUM_KIND_TAX_ROLL);
+				kinds.add(SourceReader.ENUM_KIND_DIRECTORY);
+			}
+			case ARCHIVE -> {}
+		}
+		return kinds;
+	}
+
+	private record KindKey(String personId, String kind){}
+
+	private static String names(final List<Candidate> candidates){
+		return Sentences.list(candidates.stream()
+			.map(candidate -> I18N.t("planner.step." + candidate.step().key + ".label"))
+			.distinct()
+			.toList());
+	}
+
+	/**
+	 * Recommends the kind of source that would serve most of the steps of the question and that no source cited for the individual is
+	 * yet: it is where the records of the steps are written, not where the researcher happened to look.
+	 */
+	private void sourceKind(final GapData.Question question, final List<Candidate> retained, final String covered,
+			final List<PlannerFinding> findings){
+		final Map<KindKey, List<Candidate>> served = new LinkedHashMap<>();
+		for(final Candidate candidate : retained)
+			for(final String kind : kindsOf(candidate))
+				if(!candidate.person().sourceKinds().contains(kind)
+						&& !covered.contains(I18N.t("enum.source.kind." + kind, kind).toLowerCase(Locale.ROOT)))
+					served.computeIfAbsent(new KindKey(candidate.person().id(), kind), k -> new ArrayList<>()).add(candidate);
+		if(served.isEmpty())
+			return;
+
+		Map.Entry<KindKey, List<Candidate>> best = null;
+		int bestUsefulness = 0;
+		for(final Map.Entry<KindKey, List<Candidate>> entry : served.entrySet()){
+			final int usefulness = Math.min(MAX_USEFULNESS, entry.getValue().stream().mapToInt(Candidate::usefulness).max().orElse(0)
+				+ SHARED_KIND_BONUS * (entry.getValue().size() - 1));
+			if(usefulness > bestUsefulness){
+				best = entry;
+				bestUsefulness = usefulness;
+			}
+		}
+
+		final GapData.Person person = best.getValue().getFirst().person();
+		final String name = person.name() + " [" + person.id() + "]";
+		final String kind = I18N.t("enum.source.kind." + best.getKey().kind(), best.getKey().kind());
+		final String cited = (person.sourceKinds().isEmpty()
+			? I18N.tf("planner.source_kind.none_cited", name)
+			: I18N.tf("planner.source_kind.cited", name, Sentences.list(person.sourceKinds().stream()
+				.sorted()
+				.map(k -> I18N.t("enum.source.kind." + k, k))
+				.toList())));
+		findings.add(recommendation("planner.source_kind", question, person, best.getKey().kind(), bestUsefulness,
+			I18N.tf("planner.source_kind.title", kind, name),
+			I18N.tf("planner.source_kind.explanation", questionTitle(question), kind, names(best.getValue()), cited),
+			I18N.tf("planner.source_kind.task", kind, name)));
+	}
+
+	/**
+	 * Recommends the repositories at the places of the relatives of an individual whose steps are open: families move, and the records of
+	 * the place of a parent, a partner or a child may name the individual too.
+	 */
+	private void repositories(final GapData.Question question, final List<Candidate> retained, final List<PlannerFinding> findings){
+		final Map<String, List<Candidate>> byPerson = new LinkedHashMap<>();
+		for(final Candidate candidate : retained)
+			if(candidate.step() != Step.ARCHIVE)
+				byPerson.computeIfAbsent(candidate.person().id(), k -> new ArrayList<>()).add(candidate);
+
+		for(final List<Candidate> candidates : byPerson.values()){
+			final GapData.Person person = candidates.getFirst().person();
+			final int usefulness = Math.max(1, candidates.stream().mapToInt(Candidate::usefulness).max().orElse(0) - LEAD_DISCOUNT);
+			final String name = person.name() + " [" + person.id() + "]";
+			for(final GapData.RepositoryLead lead : person.leads().subList(0, Math.min(MAX_LEADS_PER_PERSON, person.leads().size())))
+				findings.add(recommendation("planner.repository", question, person, lead.repository(), usefulness,
+					I18N.tf("planner.repository.title", lead.repository(), name),
+					I18N.tf("planner.repository.explanation", questionTitle(question), name, lead.repository(), lead.relative(),
+						I18N.t("planner.repository.relation." + lead.relation()), names(candidates)),
+					I18N.tf("planner.repository.task", lead.repository(), name, lead.relative())));
+		}
+	}
+
+	private PlannerFinding recommendation(final String kind, final GapData.Question question, final GapData.Person person,
+			final String subject, final int usefulness, final String title, final String explanation, final String task){
+		final String level = level(usefulness, tuning);
+		final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH, title,
+			Sentences.join(explanation, I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level), String.valueOf(usefulness))),
+			List.of(question.id(), person.id()), null, DiagnosticKeys.of(kind, List.of(question.id(), person.id()), subject))
+			.withRank(usefulness);
+		return new PlannerFinding(diagnostic, new GapDraft(GapDraft.Kind.TASK, "", task, List.of(question.id()), priority(usefulness, tuning)));
+	}
+
+	private static String questionTitle(final GapData.Question question){
+		return (question.title() != null && !question.title().isBlank()? question.title() + " [" + question.id() + "]": question.id());
+	}
+
+
+	/**
+	 * The identity hypotheses that no conclusion evaluates yet: the ones with more confidence first, and those that an open question is
+	 * about, or that would give parents to an individual that has none, before the others.
+	 */
+	private List<PlannerFinding> identityHypotheses(final GapData data){
+		final Set<String> withParents = new HashSet<>();
+		for(final GapData.ParentLink link : data.parents())
+			withParents.add(link.childId());
+		final Set<String> asked = new HashSet<>();
+		for(final GapData.Question question : data.questions())
+			if(isOpen(question))
+				asked.addAll(question.targets());
+
+		final List<PlannerFinding> findings = new ArrayList<>();
+		for(final GapData.Hypothesis hypothesis : data.hypotheses()){
+			final GapData.Person first = data.persons().get(hypothesis.firstId());
+			final GapData.Person second = data.persons().get(hypothesis.secondId());
+			if(hypothesis.evaluated() || first == null || second == null)
+				continue;
+
+			final String confidence = (hypothesis.confidence() != null? hypothesis.confidence(): ConfidenceReader.ENUM_LOW);
+			int usefulness = switch(confidence){
+				case ConfidenceReader.ENUM_HIGH -> HYPOTHESIS_HIGH;
+				case ConfidenceReader.ENUM_MEDIUM -> HYPOTHESIS_MEDIUM;
+				default -> HYPOTHESIS_LOW;
+			};
+			final String firstName = first.name() + " [" + first.id() + "]";
+			final String secondName = second.name() + " [" + second.id() + "]";
+			final List<String> reasons = new ArrayList<>();
+			reasons.add(I18N.tf("planner.identity.reason.confidence", I18N.t("enum.confidence." + confidence)));
+			if(asked.contains(first.id()) || asked.contains(second.id())){
+				usefulness += HYPOTHESIS_QUESTION_BONUS;
+				reasons.add(I18N.t("planner.identity.reason.question"));
+			}
+			final boolean firstHasParents = withParents.contains(first.id());
+			if(firstHasParents != withParents.contains(second.id())){
+				usefulness += HYPOTHESIS_PARENTS_BONUS;
+				reasons.add(I18N.tf("planner.identity.reason.parents", (firstHasParents? secondName: firstName),
+					(firstHasParents? firstName: secondName)));
+			}
+			usefulness = Math.min(MAX_USEFULNESS, usefulness);
+
+			final String level = level(usefulness, tuning);
+			final Diagnostic diagnostic = new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
+				I18N.tf("planner.identity.title", firstName, secondName),
+				Sentences.join(I18N.tf("planner.identity.explanation", hypothesis.id(), firstName, secondName, Sentences.items(reasons)),
+					I18N.tf("gap.usefulness", I18N.t("gap.usefulness." + level), String.valueOf(usefulness))),
+				List.of(first.id(), second.id(), hypothesis.id()), null,
+				DiagnosticKeys.of("planner.identity", List.of(first.id(), second.id(), hypothesis.id())))
+				.withRank(usefulness);
+			findings.add(new PlannerFinding(diagnostic, new GapDraft(GapDraft.Kind.QUESTION,
+				I18N.tf("planner.identity.draft.title", first.name(), second.name()),
+				I18N.tf("planner.identity.draft.question", first.name(), second.name()), List.of(first.id(), second.id()), null)));
+		}
+		return findings;
+	}
 
 	private List<PlannerFinding> brickWalls(final GapData data){
 		final Map<String, List<String>> children = new HashMap<>();

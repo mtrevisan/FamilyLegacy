@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -231,7 +232,7 @@ public class CitationAssistantDialog extends JDialog{
 			return;
 
 		if(!currentLocator.isBlank() && !currentLocator.strip().equals(locator)
-				&& JOptionPane.showConfirmDialog(this, I18N.t("dialog.citation_assistant.replace_confirm"), getTitle(),
+				&& MessageDialogs.confirm(this, I18N.t("dialog.citation_assistant.replace_confirm"), getTitle(),
 				JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 			return;
 

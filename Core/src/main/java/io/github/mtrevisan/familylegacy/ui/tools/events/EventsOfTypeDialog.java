@@ -101,7 +101,7 @@ final class EventsOfTypeDialog extends JDialog{
 		setLayout(new BorderLayout(8, 8));
 		add(content, BorderLayout.CENTER);
 		add(ToolDialogs.createFooter(GUIHelper.format(I18N.t("text.events_of_type.summary"), type), openRecord,
-			ToolDialogs.createCopyButton(tableModel::toText)), BorderLayout.SOUTH);
+			ToolDialogs.createCopyButton(tableModel::toText, table)), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);

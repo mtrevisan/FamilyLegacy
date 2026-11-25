@@ -31,6 +31,7 @@ import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
 import javax.swing.Timer;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -42,6 +43,8 @@ import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -178,7 +181,7 @@ public final class SplashWindow extends JWindow{
 		g.setClip(null);
 
 		g.setColor(BORDER);
-		g.setStroke(new java.awt.BasicStroke(1.f));
+		g.setStroke(new BasicStroke(1.f));
 		g.draw(shape);
 
 		if(logo != null)
@@ -239,8 +242,8 @@ public final class SplashWindow extends JWindow{
 	}
 
 	/** The lines of the text, none wider than the room, broken between words. */
-	private static java.util.List<String> wrap(final String text, final FontMetrics metrics, final int room){
-		final java.util.List<String> lines = new java.util.ArrayList<>(3);
+	private static List<String> wrap(final String text, final FontMetrics metrics, final int room){
+		final List<String> lines = new ArrayList<>(3);
 		final StringBuilder line = new StringBuilder();
 		for(final String word : org.apache.commons.lang3.StringUtils.split(text, ' ')){
 			if(!line.isEmpty() && metrics.stringWidth(line + " " + word) > room){

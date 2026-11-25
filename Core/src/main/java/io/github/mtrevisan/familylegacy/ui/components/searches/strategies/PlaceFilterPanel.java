@@ -49,7 +49,7 @@ import java.util.function.Consumer;
 public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JTextField nameField = new JTextField(20);
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(PlaceReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(PlaceReader.TYPES, I18N.t("search.combo.any"))), "enum.place.type");
 
 	private final Consumer<SearchCriteria> onChanged;
 

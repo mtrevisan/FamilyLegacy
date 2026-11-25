@@ -32,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -69,9 +70,9 @@ public final class HelpViewerDialog extends JDialog{
 
 		editor.addHyperlinkListener(e -> {
 			if(e.getEventType() == HyperlinkEvent.EventType.ENTERED)
-				editor.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+				editor.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			else if(e.getEventType() == HyperlinkEvent.EventType.EXITED)
-				editor.setCursor(java.awt.Cursor.getDefaultCursor());
+				editor.setCursor(Cursor.getDefaultCursor());
 			if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
 				openExternal(e.getURL() != null? e.getURL().toString(): null);
 		});

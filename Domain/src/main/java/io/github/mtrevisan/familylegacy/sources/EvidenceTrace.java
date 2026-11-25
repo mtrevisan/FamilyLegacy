@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -345,7 +346,7 @@ public record EvidenceTrace(Assertion subject, List<Assertion> alternatives, Lis
 			verdict = Verdict.BEST_SUPPORTED;
 		else
 			verdict = Verdict.OPEN;
-		steps.add(step("verdict_" + verdict.name().toLowerCase(java.util.Locale.ROOT)));
+		steps.add(step("verdict_" + verdict.name().toLowerCase(Locale.ROOT)));
 		return verdict;
 	}
 

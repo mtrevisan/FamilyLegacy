@@ -368,7 +368,7 @@ public class SingleDatePanel extends JPanel{
 
 		//Esc (or closing the window) is "edit the date": it needs no button
 		final Object[] options = {I18N.t("validation.date.ambiguous.choose")};
-		final int choice = JOptionPane.showOptionDialog(this, messagePanel, I18N.t("validation.date.ambiguous.title"),
+		final int choice = MessageDialogs.option(this, messagePanel, I18N.t("validation.date.ambiguous.title"),
 			JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		if(choice != 0){
 			fullDateValueField.requestFocusInWindow();
@@ -405,7 +405,7 @@ public class SingleDatePanel extends JPanel{
 		}
 
 		final String calendarName = I18N.t("enum.date.calendar." + calendarType.getCode(), calendarType.getCode());
-		final int choice = JOptionPane.showConfirmDialog(this,
+		final int choice = MessageDialogs.confirm(this,
 			I18N.tf("validation.date.unrecognized", date, calendarName, reason),
 			I18N.t("validation.date.unrecognized.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(choice != JOptionPane.YES_OPTION){

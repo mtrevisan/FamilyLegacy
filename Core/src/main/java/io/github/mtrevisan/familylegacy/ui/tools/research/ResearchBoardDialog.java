@@ -47,6 +47,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -375,7 +376,7 @@ public final class ResearchBoardDialog extends JDialog{
 				|| node.count(ResearchTreeBuilder.Kind.TASK) > 0))
 			message += "\n\n" + I18N.tf("confirmation.delete.research_record.orphaned",
 				node.count(ResearchTreeBuilder.Kind.ACTIVITY) + node.count(ResearchTreeBuilder.Kind.TASK));
-		final int confirm = JOptionPane.showConfirmDialog(this, message, I18N.t("confirmation.delete.record.title"),
+		final int confirm = MessageDialogs.confirm(this, message, I18N.t("confirmation.delete.record.title"),
 			JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(confirm != JOptionPane.YES_OPTION)
 			return;

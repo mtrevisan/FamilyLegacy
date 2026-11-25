@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.research.ResearchTimeline;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.dates.DatePicker;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
@@ -96,7 +97,7 @@ public final class ResearchTimelineDialog extends JDialog{
 
 	private final ToolContext context;
 	private final TimelineTableModel tableModel = new TimelineTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JComboBox<Choice> individuals = new JComboBox<>();
 	private final JComboBox<Choice> families = new JComboBox<>();
 	private final JComboBox<Choice> sources = new JComboBox<>();
@@ -193,7 +194,9 @@ public final class ResearchTimelineDialog extends JDialog{
 	private JScrollPane createTable(){
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
-		//(the order is the chronological one: no sorter, so that equal instants keep the order of the timeline)
+		//(the order of the model is the chronological one: it is what the table shows until a column is clicked, and the sort is stable,
+		//so that equal instants keep the order of the timeline)
+		table.setAutoCreateRowSorter(true);
 		table.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
@@ -214,7 +217,7 @@ public final class ResearchTimelineDialog extends JDialog{
 	}
 
 	private JPanel createFooter(){
-		return GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText));
+		return GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText, table));
 	}
 
 
@@ -314,7 +317,7 @@ public final class ResearchTimelineDialog extends JDialog{
 		if(selected < 0)
 			return;
 
-		final ResearchTimeline.Entry entry = tableModel.getRow(selected);
+		final ResearchTimeline.Entry entry = tableModel.getRow(table.convertRowIndexToModel(selected));
 		final FLEFRecord record = context.model().getRecordById(entry.recordId());
 		if(record == null)
 			return;

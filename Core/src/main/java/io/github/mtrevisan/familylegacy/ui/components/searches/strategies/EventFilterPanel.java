@@ -50,7 +50,7 @@ import java.util.function.Consumer;
  */
 public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> typeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(EventReader.TYPES, I18N.t("search.combo.any"))), "enum.event.type");
 	private final JTextField descriptionField = new JTextField(20);
 	private final JTextField dateField = new JTextField(10);
 	private final JComboBox<String> calendarCombo = ComboBoxSearch.searchable(new JComboBox<>(DateReader.CALENDARS),

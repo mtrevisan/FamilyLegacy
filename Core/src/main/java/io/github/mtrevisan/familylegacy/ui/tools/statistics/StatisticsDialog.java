@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.quality.Statistics;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +88,7 @@ public final class StatisticsDialog extends JDialog{
 	/** Column index (in view coordinates) of the numeric count in each table. */
 	private static final int COUNT_COLUMN_COMPLETENESS = 1;
 	private static final int COUNT_COLUMN_NAMES = 2;
-	private static final int COUNT_COLUMN_SOURCES = 2;
+	private static final int COUNT_COLUMN_SOURCES = 1;
 
 
 	private final FLEFModel model;
@@ -132,7 +133,8 @@ public final class StatisticsDialog extends JDialog{
 
 	private JPanel createCompletenessTab(final Statistics stats){
 		final CompletenessTableModel model = new CompletenessTableModel(stats.completeness());
-		final JTable table = new JTable(model);
+		final JTable table = new SortableTable(model);
+		table.setAutoCreateRowSorter(true);
 		table.setRowHeight(24);
 		final TableColumnModel columnModel = table.getColumnModel();
 		columnModel.getColumn(0).setPreferredWidth(400);
@@ -144,7 +146,7 @@ public final class StatisticsDialog extends JDialog{
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
 					final int row = table.getSelectedRow();
 					if(row >= 0)
-						openCategory(model.categoryAt(row));
+						openCategory(model.categoryAt(table.convertRowIndexToModel(row)));
 				}
 			}
 		});
@@ -181,7 +183,8 @@ public final class StatisticsDialog extends JDialog{
 		final NameTableModel given = new NameTableModel(stats.distribution()
 			.givenNames());
 
-		final JTable surnameTable = new JTable(surnames);
+		final JTable surnameTable = new SortableTable(surnames);
+		surnameTable.setAutoCreateRowSorter(true);
 		surnameTable.setRowHeight(22);
 		final TableColumnModel surnameColumnModel = surnameTable.getColumnModel();
 		surnameColumnModel.getColumn(0).setPreferredWidth(120);
@@ -191,7 +194,8 @@ public final class StatisticsDialog extends JDialog{
 		surnameTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		attachSelectionSummary(surnameTable, COUNT_COLUMN_NAMES, stats.distribution().totalSurnames());
 
-		final JTable givenTable = new JTable(given);
+		final JTable givenTable = new SortableTable(given);
+		givenTable.setAutoCreateRowSorter(true);
 		givenTable.setRowHeight(22);
 		final TableColumnModel givenColumnModel = givenTable.getColumnModel();
 		givenColumnModel.getColumn(0).setPreferredWidth(120);
@@ -234,7 +238,8 @@ public final class StatisticsDialog extends JDialog{
 		final SourceUseTableModel sourcesModel = new SourceUseTableModel(stats.coverage()
 			.topSources());
 
-		final JTable coverageTable = new JTable(coverageModel);
+		final JTable coverageTable = new SortableTable(coverageModel);
+		coverageTable.setAutoCreateRowSorter(true);
 		coverageTable.setRowHeight(22);
 		final TableColumnModel coverageColumnModel = coverageTable.getColumnModel();
 		coverageColumnModel.getColumn(0).setPreferredWidth(200);
@@ -243,7 +248,8 @@ public final class StatisticsDialog extends JDialog{
 		coverageColumnModel.getColumn(3).setPreferredWidth(100);
 		coverageTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		final JTable sourcesTable = new JTable(sourcesModel);
+		final JTable sourcesTable = new SortableTable(sourcesModel);
+		sourcesTable.setAutoCreateRowSorter(true);
 		sourcesTable.setRowHeight(22);
 		final TableColumnModel sourcesColumnModel = sourcesTable.getColumnModel();
 		sourcesColumnModel.getColumn(0).setPreferredWidth(560);
@@ -257,7 +263,7 @@ public final class StatisticsDialog extends JDialog{
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)){
 					final int row = sourcesTable.getSelectedRow();
 					if(row >= 0)
-						openSource(sourcesModel.sourceAt(row));
+						openSource(sourcesModel.sourceAt(sourcesTable.convertRowIndexToModel(row)));
 				}
 			}
 		});
@@ -366,6 +372,8 @@ public final class StatisticsDialog extends JDialog{
 			return 0;
 		if(value instanceof Number n)
 			return n.longValue();
+		if(value instanceof Figure figure)
+			return (long)figure.value();
 		final String s = value.toString()
 			.replace(",", StringUtils.EMPTY)
 			.replace('\u00A0', ' ')
@@ -413,11 +421,16 @@ public final class StatisticsDialog extends JDialog{
 		}
 
 		@Override
+		public Class<?> getColumnClass(final int c){
+			return (c == 1? Figure.class: String.class);
+		}
+
+		@Override
 		public Object getValueAt(final int r, final int c){
 			final Statistics.Completeness.Category cat = rows.get(r);
 			return switch(c){
 				case 0 -> cat.label();
-				case 1 -> GUIHelper.format("%,d", cat.count());
+				case 1 -> Figure.ofCount(cat.count());
 				default -> null;
 			};
 		}
@@ -453,12 +466,17 @@ public final class StatisticsDialog extends JDialog{
 		}
 
 		@Override
+		public Class<?> getColumnClass(final int c){
+			return (c == 2? Figure.class: String.class);
+		}
+
+		@Override
 		public Object getValueAt(final int r, final int c){
 			final Statistics.NameGroup g = rows.get(r);
 			return switch(c){
 				case 0 -> g.canonical();
 				case 1 -> String.join(" / ", g.variants());
-				case 2 -> GUIHelper.format("%,d", g.count());
+				case 2 -> Figure.ofCount(g.count());
 				default -> null;
 			};
 		}
@@ -489,13 +507,18 @@ public final class StatisticsDialog extends JDialog{
 		}
 
 		@Override
+		public Class<?> getColumnClass(final int c){
+			return (c == 0? String.class: Figure.class);
+		}
+
+		@Override
 		public Object getValueAt(final int r, final int c){
 			final Statistics.TypeCoverage t = rows.get(r);
 			return switch(c){
 				case 0 -> t.tag();
-				case 1 -> GUIHelper.format("%,d", t.total());
-				case 2 -> GUIHelper.format("%,d", t.cited());
-				case 3 -> GUIHelper.format("%.1f%%", t.percentage());
+				case 1 -> Figure.ofCount(t.total());
+				case 2 -> Figure.ofCount(t.cited());
+				case 3 -> new Figure(t.percentage(), GUIHelper.format("%.1f%%", t.percentage()));
 				default -> null;
 			};
 		}
@@ -530,14 +553,44 @@ public final class StatisticsDialog extends JDialog{
 		}
 
 		@Override
+		public Class<?> getColumnClass(final int c){
+			return (c == 1? Figure.class: String.class);
+		}
+
+		@Override
 		public Object getValueAt(final int r, final int c){
 			final Statistics.SourceUse s = rows.get(r);
 			return switch(c){
 				case 0 -> s.displayName();
-				case 1 -> GUIHelper.format("%,d", s.count());
+				case 1 -> Figure.ofCount(s.count());
 				default -> null;
 			};
 		}
+	}
+
+
+	/**
+	 * A number shown as text formatted for the user ("1,234", "12.5%"): it is sorted as the number, and it is written as the text.
+	 *
+	 * @param value	The number.
+	 * @param text	How it is written.
+	 */
+	private record Figure(double value, String text) implements Comparable<Figure>{
+
+		static Figure ofCount(final long count){
+			return new Figure(count, GUIHelper.format("%,d", count));
+		}
+
+		@Override
+		public int compareTo(final Figure other){
+			return Double.compare(value, other.value);
+		}
+
+		@Override
+		public String toString(){
+			return text;
+		}
+
 	}
 
 

@@ -44,6 +44,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Set;
 
 
@@ -67,7 +71,9 @@ final class FontChooserDialog extends JDialog{
 	private FontChooserDialog(final Window owner, final Font current){
 		super(owner, I18N.t("menu.appearance.font"), ModalityType.APPLICATION_MODAL);
 
-		families = AppearanceManager.fontFamiliesCoveringMessages();
+		//the names of the list are the ones of the root locale: the family of the font in use has to be asked in the same way
+		final String currentFamily = (current != null? current.getFamily(Locale.ROOT): null);
+		families = withCurrent(AppearanceManager.fontFamiliesCoveringMessages(), currentFamily);
 		size = new JSpinner(new SpinnerNumberModel(current != null? current.getSize(): 12, 8, 48, 1));
 
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -86,7 +92,7 @@ final class FontChooserDialog extends JDialog{
 		size.addChangeListener(e -> updatePreview());
 		filter.onChange(() -> refill(null));
 
-		refill(current != null? current.getFamily(): null);
+		refill(currentFamily);
 
 		preview.setBorder(new EmptyBorder(8, 8, 8, 8));
 		final JScrollPane previewPane = new JScrollPane(preview, JScrollPane.VERTICAL_SCROLLBAR_NEVER,
@@ -116,6 +122,34 @@ final class FontChooserDialog extends JDialog{
 		add(buttons, BorderLayout.SOUTH);
 		pack();
 		setLocationRelativeTo(owner);
+		//the list has no size before the dialog is shown: the font in use is scrolled into view once it has
+		addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowOpened(final WindowEvent e){
+				final int selected = list.getSelectedIndex();
+				if(selected >= 0)
+					list.ensureIndexIsVisible(selected);
+			}
+		});
+	}
+
+
+	/** @return	The families, with the one in use too (a font of the look-and-feel may not cover every message), sorted. */
+	private static String[] withCurrent(final String[] families, final String currentFamily){
+		if(currentFamily == null || indexOf(families, currentFamily) >= 0)
+			return families;
+
+		final String[] all = Arrays.copyOf(families, families.length + 1);
+		all[families.length] = currentFamily;
+		Arrays.sort(all, String.CASE_INSENSITIVE_ORDER);
+		return all;
+	}
+
+	private static int indexOf(final String[] families, final String family){
+		for(int i = 0; i < families.length; i ++)
+			if(families[i].equalsIgnoreCase(family))
+				return i;
+		return -1;
 	}
 
 
@@ -141,8 +175,10 @@ final class FontChooserDialog extends JDialog{
 		for(final String family : families)
 			if(SearchBox.matches(text, modes, family))
 				model.addElement(family);
-		if(keep != null && model.contains(keep)){
-			list.setSelectedValue(keep, true);
+		final int index = (keep != null? indexOf(Arrays.copyOf(model.toArray(), model.size(), String[].class), keep): -1);
+		if(index >= 0){
+			list.setSelectedIndex(index);
+			list.ensureIndexIsVisible(index);
 		}
 		else if(!model.isEmpty())
 			list.setSelectedIndex(0);

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs.help;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
@@ -85,7 +86,7 @@ public final class KeyboardShortcutsDialog extends JDialog{
 			}
 		};
 
-		final JTable table = new JTable(model);
+		final JTable table = new SortableTable(model);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.setRowHeight(22);
 		table.setAutoCreateRowSorter(true);

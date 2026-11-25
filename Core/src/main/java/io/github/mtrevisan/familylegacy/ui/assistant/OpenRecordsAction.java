@@ -113,6 +113,18 @@ final class OpenRecordsAction implements DiagnosticAction{
 		return type + ": " + (text != null && !text.isBlank()? (text.contains(tag)? text: text + StringUtils.SPACE + tag): tag);
 	}
 
+	/** Opens the editor of the record, or a list to open them one after the other, or tells that they are gone. */
+	static void openAll(final Window owner, final FLEFModel model, final List<String> recordIds){
+		final List<FLEFRecord> records = records(model, recordIds);
+		if(records.isEmpty())
+			MessageDialogs.show(owner, I18N.t("assistant.open_records.gone"), I18N.t("assistant.open_records"),
+				JOptionPane.INFORMATION_MESSAGE);
+		else if(records.size() == 1)
+			open(owner, model, records.getFirst());
+		else
+			new RecordChooserDialog(owner, model, records, OpenRecordsAction::open).setVisible(true);
+	}
+
 	static void open(final Window owner, final FLEFModel model, final FLEFRecord record){
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		if(handler != null)

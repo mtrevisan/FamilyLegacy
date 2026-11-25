@@ -39,12 +39,14 @@ public interface ToolDispatcher{
 		return new String[2];
 	}
 
+	/** @return	{@code true} if the active projection is the ego network (the only one that can show a group as root). */
+	default boolean isEgoNetworkActive(){
+		return false;
+	}
+
 	default void editEntity(final String id){}
 
 	default void paste(){}
-
-	/** Connects an existing individual as a child of the selected individual. */
-	default void connectChild(){}
 
 	default void removeEntity(final String id){}
 

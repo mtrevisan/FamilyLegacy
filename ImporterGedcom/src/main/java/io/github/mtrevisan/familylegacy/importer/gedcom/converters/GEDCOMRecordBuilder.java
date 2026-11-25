@@ -1004,7 +1004,13 @@ public final class GEDCOMRecordBuilder{
 			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, type));
 
 		// Description: the value of the event (e.g. of EVEN), or else a TYPE that does not give the type of the event
-		final boolean typeConsumed = (GEDCOMMapper.TAG_GENERIC_EVENT.equals(tag) && GEDCOMMapper.toTypeToken(typeValue) != null);
+		//a TYPE 'civil' or 'religious' tells the kind of the source that records the event (a civil registration, a church register):
+		//with a cited source it is not a description of the event
+		final String sourceKind = (!GEDCOMMapper.TAG_GENERIC_EVENT.equals(tag)
+			&& !GEDCOMHelper.findChildren(node, GEDCOMMapper.TAG_SOURCE).isEmpty()?
+			GEDCOMMapper.mapEventTypeSourceKind(typeValue): null);
+		final boolean typeConsumed = (sourceKind != null
+			|| GEDCOMMapper.TAG_GENERIC_EVENT.equals(tag) && GEDCOMMapper.toTypeToken(typeValue) != null);
 		String description = (!GEDCOMHelper.isFlag(node.getValue())? StringUtils.trimToNull(GEDCOMHelper.extractFullText(node)): null);
 		if(typeValue != null && !typeConsumed){
 			if(description == null)
@@ -1025,7 +1031,30 @@ public final class GEDCOMRecordBuilder{
 				.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_REASON, cause)));
 
 		attachEventDetail(event, place, model, node, noteRawMap);
+		if(sourceKind != null && !applySourceKind(event, model, sourceKind))
+			event.addChild(NoteBuilder.createNoteStruct(GedcomTexts.t("title.type"), typeValue, node));
 		return event;
+	}
+
+	/**
+	 * Gives the kind to the sources cited by an event, those that have none.
+	 *
+	 * @return	{@code false} if a source has a different kind (the TYPE of the event is then to be kept, not lost).
+	 */
+	private static boolean applySourceKind(final FLEFRecord event, final FLEFModel model, final String kind){
+		boolean consistent = true;
+		for(final FLEFRecord citation : FLEFRecordHelper.findChildren(event, SourceCitationReader.TAG_SOURCE)){
+			final FLEFRecord source = model.getRecordById(FLEFRecordHelper.getChildValue(citation, SourceCitationReader.TAG_SOURCE));
+			if(source == null)
+				continue;
+
+			final FLEFRecord sourceKind = FLEFRecordHelper.findChild(source, SourceReader.TAG_KIND);
+			if(sourceKind == null)
+				source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_KIND, kind));
+			else if(!kind.equals(sourceKind.getValue()))
+				consistent = false;
+		}
+		return consistent;
 	}
 
 	/**

@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.ui.handlers.ExtractHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.util.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -240,7 +241,7 @@ public class ExtractRecordDialog extends BaseRecordDialog{
 				mediaToAddToSource.add(mediaId);
 		}
 		if(source != null && !mediaToAddToSource.isEmpty()){
-			final int answer = JOptionPane.showConfirmDialog(this,
+			final int answer = MessageDialogs.confirm(this,
 				I18N.tf("confirmation.extract.add_media_to_source", String.join(", ", mediaToAddToSource), sourceId),
 				I18N.t("dialog.extract.media.parts.title"),
 				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);

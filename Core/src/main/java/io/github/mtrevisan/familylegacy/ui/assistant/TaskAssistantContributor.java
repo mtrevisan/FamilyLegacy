@@ -32,15 +32,10 @@ import io.github.mtrevisan.familylegacy.assistant.Diagnostic;
 import io.github.mtrevisan.familylegacy.assistant.task.TaskProposals;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.research.TaskBoard;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
-import io.github.mtrevisan.familylegacy.ui.tools.research.TaskDashboardDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.RootPaneContainer;
 import javax.swing.SwingUtilities;
-import java.awt.Component;
 import java.awt.Window;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -130,17 +125,8 @@ public final class TaskAssistantContributor implements AssistantContributor{
 					else
 						dialog.setProposals(proposals);
 				}));
+			//what was created is in the inbox of the dashboard (the dialog has a button to open it), to accept or to dismiss
 			dialog.setVisible(true);
-
-			//what was created is in the inbox of the dashboard, to accept or to dismiss
-			if(dialog.created() > 0)
-				new TaskDashboardDialog(ToolContexts.custom(model, null, anchor(owner), null), TaskBoard.View.INBOX)
-					.setVisible(true);
-		}
-
-		/** @return the component whose window is the owner (a window is not the ancestor of itself) */
-		private static Component anchor(final Window owner){
-			return (owner instanceof RootPaneContainer container? container.getRootPane(): owner);
 		}
 
 	}

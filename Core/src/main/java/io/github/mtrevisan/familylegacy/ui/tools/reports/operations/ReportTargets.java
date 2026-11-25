@@ -149,7 +149,7 @@ final class ReportTargets{
 		if(existing.isEmpty())
 			return true;
 
-		return (JOptionPane.showConfirmDialog(parent,
+		return (MessageDialogs.confirm(parent,
 			I18N.l("dialog.report.overwrite.message") + StringUtils.LF + " • " + String.join(StringUtils.LF + " • ", existing),
 			I18N.t("dialog.report.overwrite.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
 	}
@@ -165,7 +165,7 @@ final class ReportTargets{
 				.append(f.getFileName())
 				.append(StringUtils.LF);
 
-		final int choice = JOptionPane.showOptionDialog(parent,
+		final int choice = MessageDialogs.option(parent,
 			msg.toString(),
 			I18N.t("dialog.report.complete.title"),
 			JOptionPane.DEFAULT_OPTION,

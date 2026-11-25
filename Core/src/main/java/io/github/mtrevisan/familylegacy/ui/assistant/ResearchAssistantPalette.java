@@ -43,6 +43,8 @@ import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,6 +79,7 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -139,7 +142,7 @@ final class ResearchAssistantPalette extends JDialog{
 
 	private record ActionRow(AssistantAction action) implements Row{}
 
-	private record DiagnosticRow(Diagnostic diagnostic) implements Row{}
+	private record DiagnosticRow(Diagnostic diagnostic, boolean indented) implements Row{}
 
 	/**
 	 * Where the palette was, to open it again in the same place after the user acted on a finding.
@@ -222,7 +225,9 @@ final class ResearchAssistantPalette extends JDialog{
 		@Override
 		public Dimension getPreferredSize(){
 			//the height of the text at the width the pane has (the pane wraps by itself); the width never drives the window
-			final int width = (getWidth() > 0? getWidth(): DETAIL_WIDTH);
+			//never narrower than the palette can be: while the window is laid out the pane is briefly narrow, and the text measured at that
+			//width is very tall (and the height, once taken, is never given back)
+			final int width = Math.max(getWidth(), DETAIL_WIDTH);
 			final Dimension current = getSize();
 			setSize(width, Short.MAX_VALUE);
 			final Dimension size = super.getPreferredSize();
@@ -412,7 +417,7 @@ final class ResearchAssistantPalette extends JDialog{
 			categoryComboBox.addItem(category);
 		categoryComboBox.setRenderer(new DefaultListCellRenderer(){
 			@Override
-			public java.awt.Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 					final boolean selected, final boolean focus){
 				return super.getListCellRendererComponent(list, (value instanceof AssistantCategory category? category.title(): value), index,
 					selected, focus);
@@ -674,7 +679,7 @@ final class ResearchAssistantPalette extends JDialog{
 		if(!matching.isEmpty())
 			if(showIgnored){
 				rowsModel.addElement(new Header(I18N.t("assistant.section.ignored")));
-				matching.forEach(d -> rowsModel.addElement(new DiagnosticRow(d)));
+				matching.forEach(d -> rowsModel.addElement(new DiagnosticRow(d, false)));
 			}
 			else
 				//errors, then warnings, then information, each with its own heading
@@ -706,7 +711,7 @@ final class ResearchAssistantPalette extends JDialog{
 						final boolean kindOpen = isOpen(kindId);
 						rowsModel.addElement(new Header(I18N.tf("assistant.group.count", kindLabel(group.getFirst()), group.size()), kindId, kindOpen));
 						if(kindOpen)
-							group.forEach(d -> rowsModel.addElement(new DiagnosticRow(d)));
+							group.forEach(d -> rowsModel.addElement(new DiagnosticRow(d, true)));
 					}
 				}
 
@@ -898,7 +903,7 @@ final class ResearchAssistantPalette extends JDialog{
 			return;
 
 		final File file = chooser.getSelectedFile();
-		if(file.exists() && JOptionPane.showConfirmDialog(this, I18N.tf("assistant.export.overwrite", file.getName()),
+		if(file.exists() && MessageDialogs.confirm(this, I18N.tf("assistant.export.overwrite", file.getName()),
 				I18N.t("assistant.ignored.export"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
 			return;
 
@@ -1131,7 +1136,7 @@ final class ResearchAssistantPalette extends JDialog{
 		final String lowerName = file.getName().toLowerCase(Locale.ROOT);
 		if(!lowerName.endsWith(".csv") && !lowerName.endsWith(".html") && !lowerName.endsWith(".htm"))
 			file = new File(file.getParentFile(), file.getName() + (chooser.getFileFilter() == html? ".html": ".csv"));
-		if(file.exists() && JOptionPane.showConfirmDialog(this, I18N.tf("assistant.export.overwrite", file.getName()),
+		if(file.exists() && MessageDialogs.confirm(this, I18N.tf("assistant.export.overwrite", file.getName()),
 				I18N.t("assistant.export"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION)
 			return;
 
@@ -1223,8 +1228,12 @@ final class ResearchAssistantPalette extends JDialog{
 		switch(row){
 			case Header h -> {
 				//a heading that can be collapsed says what a click does; a kind of finding is indented under its severity
-				label.setText((h.isCollapsible()? (h.open()? "▾ ": "▸ "): "") + (h.id() != null && h.id().startsWith("k:")? "   ": "")
-					+ h.title());
+				if(h.isCollapsible())
+					label.setIcon(SymbolIcon.of(h.open()? Symbol.SMALL_DOWN: Symbol.SMALL_RIGHT));
+				label.setText(h.title());
+					//the arrow too is indented, not only the text
+					if(h.id() != null && h.id().startsWith("k:"))
+						label.setBorder(BorderFactory.createEmptyBorder(2, 6 + 20, 2, 6));
 				label.setFont(label.getFont().deriveFont(Font.BOLD));
 				//the headings of the severities (errors, warnings, information) are in the full color of the text, the ones under them in
 				//the muted one, so that the two levels are told apart at a glance; a selected heading keeps the color of the selection
@@ -1233,8 +1242,15 @@ final class ResearchAssistantPalette extends JDialog{
 						? "Label.foreground": "Label.disabledForeground"));
 			}
 			case ActionRow a -> label.setText(a.action().title() + "  ·  " + a.action().category().title());
-			case DiagnosticRow d -> label.setText(severitySymbol(d.diagnostic().severity()) + StringUtils.SPACE + d.diagnostic().title());
+			case DiagnosticRow d -> {
+				if(d.indented())
+						//a finding is indented under the heading of its kind
+						label.setBorder(BorderFactory.createEmptyBorder(2, 6 + 44, 2, 6));
+					label.setIcon(SymbolIcon.of(severitySymbol(d.diagnostic().severity())));
+				label.setText(d.diagnostic().title());
+			}
 		}
+		label.setIconTextGap(4);
 		return label;
 	}
 
@@ -1315,11 +1331,11 @@ final class ResearchAssistantPalette extends JDialog{
 		return (ShortcutRegistry.IS_MAC? "⌘": "Ctrl+") + key;
 	}
 
-	private static String severitySymbol(final Diagnostic.Severity severity){
+	private static Symbol severitySymbol(final Diagnostic.Severity severity){
 		return switch(severity){
-			case ERROR -> "✖";
-			case WARNING -> "⚠";
-			case INFORMATION -> "ℹ";
+			case ERROR -> Symbol.CROSS;
+			case WARNING -> Symbol.WARNING;
+			case INFORMATION -> Symbol.INFORMATION;
 		};
 	}
 

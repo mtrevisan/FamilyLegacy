@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -188,7 +189,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
-		final int confirm = JOptionPane.showConfirmDialog(parent,
+		final int confirm = MessageDialogs.confirm(parent,
 			I18N.tf("confirmation.remove.message", getDisplayText(listModel.get(idx))),
 			I18N.t("confirmation.remove.title"),
 			JOptionPane.YES_NO_OPTION);

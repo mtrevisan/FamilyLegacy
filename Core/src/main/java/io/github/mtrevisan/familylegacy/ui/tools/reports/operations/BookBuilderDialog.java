@@ -321,7 +321,7 @@ public final class BookBuilderDialog extends JDialog{
 		final JPanel message = new JPanel(new MigLayout("ins 0,wrap 1,fillx", "[grow,fill]"));
 		message.add(new JLabel(I18N.l("label.book.report_type")));
 		message.add(types);
-		if(JOptionPane.showConfirmDialog(this, message, I18N.t("dialog.book.add.title"), JOptionPane.OK_CANCEL_OPTION,
+		if(MessageDialogs.confirm(this, message, I18N.t("dialog.book.add.title"), JOptionPane.OK_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE) != JOptionPane.OK_OPTION)
 			return;
 

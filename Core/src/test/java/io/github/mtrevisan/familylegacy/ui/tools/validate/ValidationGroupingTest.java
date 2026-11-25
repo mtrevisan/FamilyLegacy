@@ -28,11 +28,13 @@ import io.github.mtrevisan.familylegacy.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
@@ -195,22 +197,28 @@ class ValidationGroupingTest{
 		SwingUtilities.invokeAndWait(() -> {
 			//the groups start closed: the line of each, with the arrow of a closed one and the number of its problems
 			rows.add(table.getRowCount());
-			texts.add(String.valueOf(table.getValueAt(1, 1)));
+			texts.add(arrowAndText(table, 1));
 			//the second group (no_name, the larger): a click opens it, another closes it
 			click(table, 1);
 			rows.add(table.getRowCount());
-			texts.add(String.valueOf(table.getValueAt(1, 1)));
+			texts.add(arrowAndText(table, 1));
 			click(table, 1);
 			rows.add(table.getRowCount());
-			texts.add(String.valueOf(table.getValueAt(1, 1)));
+			texts.add(arrowAndText(table, 1));
 			dialog.dispose();
 		});
 
 		Assertions.assertEquals(List.of(2, 4, 2), rows);
 		//the arrow tells whether it is closed or open, and the count is of the problems of the group
-		Assertions.assertTrue(texts.get(0).startsWith("\u25B6") && texts.get(0).contains("(2)"), texts.get(0));
-		Assertions.assertTrue(texts.get(1).startsWith("\u25BC") && texts.get(1).contains("(2)"), texts.get(1));
-		Assertions.assertTrue(texts.get(2).startsWith("\u25B6"), texts.get(2));
+		Assertions.assertTrue(texts.get(0).startsWith("SMALL_RIGHT") && texts.get(0).contains("(2)"), texts.get(0));
+		Assertions.assertTrue(texts.get(1).startsWith("SMALL_DOWN") && texts.get(1).contains("(2)"), texts.get(1));
+		Assertions.assertTrue(texts.get(2).startsWith("SMALL_RIGHT"), texts.get(2));
+	}
+
+	/** @return	The symbol of the arrow of the line, then its text, as the table paints them. */
+	private static String arrowAndText(final JTable table, final int row){
+		final JLabel label = (JLabel)table.prepareRenderer(table.getCellRenderer(row, 1), row, 1);
+		return ((SymbolIcon)label.getIcon()).symbol() + " " + label.getText();
 	}
 
 	private static void click(final JTable table, final int row){

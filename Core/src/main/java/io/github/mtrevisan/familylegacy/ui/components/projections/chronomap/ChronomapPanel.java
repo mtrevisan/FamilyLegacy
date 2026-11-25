@@ -178,6 +178,9 @@ public class ChronomapPanel extends JPanel{
 	private final ButtonGroup viewModeGroup = new ButtonGroup();
 
 	private final JButton resetButton = new JButton(I18N.t("button.reset_view"));
+	/** True while the map is exactly in the state produced by the last {@link #resetView()}. */
+	private boolean viewIsReset;
+	private boolean applyingReset;
 	private final JButton geocodeButton = new JButton(I18N.t("button.geocode_places"));
 	private final GeocodingProgressPanel geocodingProgress = new GeocodingProgressPanel();
 	private SwingWorker<Integer, ?> geocodingWorker;
@@ -503,18 +506,26 @@ public class ChronomapPanel extends JPanel{
 		}
 
 		SwingUtilities.invokeLater(() -> {
-			if(points.isEmpty()){
-				mapViewer.setAddressLocation(WORLD_CENTER);
-				mapViewer.setZoom(WORLD_ZOOM);
-			}
-			else if(points.size() == 1){
-				mapViewer.setAddressLocation(points.iterator().next());
-				mapViewer.setZoom(8);
-			}
-			else
-				mapViewer.zoomToBestFit(points, 0.85);
+			applyingReset = true;
+			try{
+				if(points.isEmpty()){
+					mapViewer.setAddressLocation(WORLD_CENTER);
+					mapViewer.setZoom(WORLD_ZOOM);
+				}
+				else if(points.size() == 1){
+					mapViewer.setAddressLocation(points.iterator().next());
+					mapViewer.setZoom(8);
+				}
+				else
+					mapViewer.zoomToBestFit(points, 0.85);
 
-			timeline.resetZoom();
+				timeline.resetZoom();
+			}
+			finally{
+				applyingReset = false;
+			}
+			viewIsReset = true;
+			resetButton.setEnabled(!globeModeActive && !viewIsReset);
 		});
 	}
 
@@ -606,7 +617,7 @@ public class ChronomapPanel extends JPanel{
 		button2D.setSelected(true);
 		swapCenterComponent();
 
-		resetButton.setEnabled(true);
+		resetButton.setEnabled(!viewIsReset);
 	}
 
 	/**
@@ -829,6 +840,17 @@ public class ChronomapPanel extends JPanel{
 		mapViewer.addMouseListener(pan);
 		mapViewer.addMouseMotionListener(pan);
 		mapViewer.addMouseWheelListener(new ZoomMouseWheelListenerCursor(mapViewer));
+
+		//any pan or zoom made by the user makes "Reset view" meaningful again
+		mapViewer.addPropertyChangeListener(evt -> {
+			final String name = evt.getPropertyName();
+			if(applyingReset || !("center".equals(name) || "zoom".equals(name)))
+				return;
+
+			viewIsReset = false;
+			if(!globeModeActive)
+				resetButton.setEnabled(true);
+		});
 
 		// Trigger auto map selection passing current timeline JDN when viewport center changes
 	}

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.search.SearchMode;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.media.MediaViewerDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
@@ -44,6 +45,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
@@ -101,7 +103,7 @@ public final class MediaManagementDialog extends JDialog{
 
 	private final ToolContext context;
 	private final DocumentTableModel tableModel = new DocumentTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final SearchBox searchBox = new SearchBox(24, false);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 	private final JLabel previewLabel = new JLabel(I18N.t("label.select_document"), JLabel.CENTER);
@@ -442,7 +444,7 @@ public final class MediaManagementDialog extends JDialog{
 		if(document == null)
 			return;
 
-		final int confirm = JOptionPane.showConfirmDialog(this,
+		final int confirm = MessageDialogs.confirm(this,
 			I18N.tf("confirmation.delete.media.message", MediaReader.extractDescription(document)),
 			I18N.t("confirmation.delete.media.title"),
 			JOptionPane.YES_NO_OPTION,

@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.components.dates;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -40,6 +42,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.DayOfWeek;
@@ -64,7 +67,6 @@ public final class DatePicker{
 	private static final int ISO_DATE_LENGTH = 10;
 	private static final int MIN_YEAR = 1;
 	private static final int MAX_YEAR = 9999;
-	private static final String CALENDAR_SYMBOL = "📅";
 
 
 	private DatePicker(){}
@@ -75,7 +77,7 @@ public final class DatePicker{
 	 * @return	The field with the button that opens the calendar at its right.
 	 */
 	public static JComponent withPicker(final JTextField field){
-		final JButton button = new JButton(CALENDAR_SYMBOL);
+		final JButton button = new JButton(SymbolIcon.of(Symbol.CALENDAR));
 		button.setMargin(new Insets(1, 4, 1, 4));
 		button.setFocusable(false);
 		button.setToolTipText(I18N.t("dialog.date_picker.tooltip"));
@@ -135,10 +137,10 @@ public final class DatePicker{
 			months.addActionListener(e -> rebuild());
 			year.addChangeListener(e -> rebuild());
 
-			final JButton previous = new JButton("◀");
+			final JButton previous = new JButton(SymbolIcon.of(Symbol.PLAY_LEFT));
 			previous.setFocusable(false);
 			previous.addActionListener(e -> move(-1));
-			final JButton next = new JButton("▶");
+			final JButton next = new JButton(SymbolIcon.of(Symbol.PLAY_RIGHT));
 			next.setFocusable(false);
 			next.addActionListener(e -> move(1));
 
@@ -209,7 +211,7 @@ public final class DatePicker{
 				if(date.equals(selected))
 					button.setSelected(true);
 				if(date.equals(selected) || date.equals(today))
-					button.setFont(button.getFont().deriveFont(java.awt.Font.BOLD));
+					button.setFont(button.getFont().deriveFont(Font.BOLD));
 				button.addActionListener(e -> choose(date));
 				days.add(button);
 			}

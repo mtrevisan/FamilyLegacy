@@ -32,13 +32,16 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -120,10 +123,10 @@ class DuplicateFinderCompareTest{
 		final JTable table = findTable(dialog.getContentPane());
 		SwingUtilities.invokeAndWait(() -> {
 			try{
-				final java.lang.reflect.Field f = DuplicateFinderDialog.class.getDeclaredField("thresholdSpinner");
+				final Field f = DuplicateFinderDialog.class.getDeclaredField("thresholdSpinner");
 				f.setAccessible(true);
-				final javax.swing.JSpinner spinner = (javax.swing.JSpinner)f.get(dialog);
-				((javax.swing.SpinnerNumberModel)spinner.getModel()).setMinimum(0);
+				final JSpinner spinner = (JSpinner)f.get(dialog);
+				((SpinnerNumberModel)spinner.getModel()).setMinimum(0);
 				spinner.setValue(25);
 				final Method run = DuplicateFinderDialog.class.getDeclaredMethod("runSearch");
 				run.setAccessible(true);

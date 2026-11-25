@@ -41,7 +41,7 @@ Details:
 | Level | For | The Research menu and the reports show |
 |---|---|---|
 | **Basic** (the default) | Building a family tree, as in a traditional genealogy program. | Nothing: no Research menu. People, groups, events, places, sources and media are all there. |
-| **Standard** | Active research. | The Research Board, Research Questions, Activities and Tasks, Identity Hypotheses, the Research Log, the Research Timeline, the tasks panel (**View > Show Tasks Panel**), and the research question and research progress reports. |
+| **Standard** | Active research. | The Research Board, Research Questions, Activities and Tasks, Identity Hypotheses, the GPS Workflow, the Research Log, the Research Timeline, the tasks panel (**View > Show Tasks Panel**), and the research question and research progress reports. |
 | **Advanced** | Evidence-based research. | Everything: also Conclusions, the Context Board (historic events, cultural norms, context impacts), Evidence Qualifiers and the Proof Summary. |
 
 The **Research** tab of the record editors (individual, group, event, place, source, media) is shown from the *Standard* level, and the **Context** tab from the *Advanced* level; the editors of the research and context records themselves always show all their tabs. Inside the Research tab each panel has its own level: research questions, activities, tasks and identity hypotheses are from *Standard*, **Conclusions** (and the conclusion badge in the lists of attributes, relationships and sources) and the **Evidence** qualifiers of a source citation only from *Advanced*.

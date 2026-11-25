@@ -36,7 +36,7 @@ A characteristic or status of a person that is not an event: an occupation, a re
 | **Place** | Where it held (a place with its citations). |
 | **Confidence** | See [The record editors](editors.md#confidence). |
 
-On OK the type is required, and the attribute must belong to an individual; for a *sex* the value must be *male*, *female* or *unknown*, and it cannot be the same as the sex of someone who is a *biological child*'s other parent (the two biological parents of a child must be of different sexes; if the link is the generic *child* you only get a warning). Marriages and civil unions have no such limit: two people of the same sex can be spouses, just not biological parents of the same child.
+On OK the type is required, and the attribute must belong to an individual; for a *sex* the value must be *male*, *female* or *unknown*, and it cannot be the same as the sex of someone who is a *biological child*'s other parent (the two biological parents of a child must be of different sexes; the generic *child* link says nothing about the parentage, so it never conflicts). Marriages and civil unions have no such limit: two people of the same sex can be spouses, just not biological parents of the same child.
 
 **The sex and the preferred assertion.** A person can have several *sex* attributes, for instance one for each source that states it, and they may disagree. The application uses one of them, the **preferred** one, chosen in this order:
 

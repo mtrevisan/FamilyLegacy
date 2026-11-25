@@ -30,9 +30,10 @@ import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceCitationReader;
 import io.github.mtrevisan.familylegacy.sources.EvidenceTrace;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,8 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -84,7 +87,7 @@ public final class EvidenceTraceDialog extends JDialog{
 	private final DefaultListModel<EvidenceTrace> facts = new DefaultListModel<>();
 	private final JList<EvidenceTrace> factList = new JList<>(facts);
 	private final JLabel verdict = new JLabel(StringUtils.SPACE);
-	private final JTable table = new JTable();
+	private final JTable table = new SortableTable();
 	private final JTextArea reasoning = new JTextArea();
 	private final JButton openSource = new JButton(I18N.t("button.open_source"));
 	private List<EvidenceTrace.Assertion> assertions = List.of();
@@ -163,6 +166,7 @@ public final class EvidenceTraceDialog extends JDialog{
 		});
 
 		table.setRowHeight(22);
+		table.setAutoCreateRowSorter(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		table.getSelectionModel()
 			.addListSelectionListener(e -> updateButtons());
@@ -196,8 +200,26 @@ public final class EvidenceTraceDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, factsScroll, detail), BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(StringUtils.EMPTY, openSource,
-			ToolDialogs.createCopyButton(this::toText)), BorderLayout.SOUTH);
+		final JButton copy = ToolDialogs.createCopyButton(this::toText);
+		final ListDataListener copyEnabler = new ListDataListener(){
+			@Override
+			public void intervalAdded(final ListDataEvent e){
+				copy.setEnabled(!facts.isEmpty());
+			}
+
+			@Override
+			public void intervalRemoved(final ListDataEvent e){
+				copy.setEnabled(!facts.isEmpty());
+			}
+
+			@Override
+			public void contentsChanged(final ListDataEvent e){
+				copy.setEnabled(!facts.isEmpty());
+			}
+		};
+		facts.addListDataListener(copyEnabler);
+		copy.setEnabled(!facts.isEmpty());
+		add(ToolDialogs.createFooter(StringUtils.EMPTY, openSource, copy), BorderLayout.SOUTH);
 
 		load(traces);
 
@@ -258,13 +280,13 @@ public final class EvidenceTraceDialog extends JDialog{
 					+ (assertion.confidence().isEmpty()? StringUtils.EMPTY: " [" + assertion.confidence() + "]");
 				if(assertion.links().isEmpty()){
 					rows.add(new Object[]{label, I18N.t("text.evidence_trace.uncited"), StringUtils.EMPTY, StringUtils.EMPTY,
-						StringUtils.EMPTY, StringUtils.EMPTY});
+						StringUtils.EMPTY, null});
 					owners.add(assertion);
 					links.add(null);
 				}
 				for(final EvidenceTrace.Link link : assertion.links()){
 					rows.add(new Object[]{label, link.sourceTitle() + (link.locator().isEmpty()? StringUtils.EMPTY: ", " + link.locator()),
-						link.stance(), extractText(link), link.evidence(), Integer.toString(link.weight())});
+						link.stance(), extractText(link), link.evidence(), link.weight()});
 					owners.add(assertion);
 					links.add(link);
 				}
@@ -272,7 +294,7 @@ public final class EvidenceTraceDialog extends JDialog{
 		}
 		assertions = owners;
 		rowLinks = links;
-		table.setModel(new RowTableModel(new String[]{I18N.t("column.evidence_trace.assertion"), I18N.t("column.source"),
+		RowTableModel.replaceModel(table, new RowTableModel(new String[]{I18N.t("column.evidence_trace.assertion"), I18N.t("column.source"),
 			I18N.t("column.provenance.stance"), I18N.t("column.provenance.extract"), I18N.t("column.provenance.evidence"),
 			I18N.t("column.evidence_trace.weight")}, rows));
 		final int[] widths = {300, 220, 80, 220, 130, 60};

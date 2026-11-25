@@ -78,7 +78,7 @@ public final class ExportFlefTool implements ToolOperation{
 			target = new File(target.getParentFile(), target.getName() + ".flef");
 
 		if(target.exists()){
-			final int confirm = JOptionPane.showConfirmDialog(context.owner(),
+			final int confirm = MessageDialogs.confirm(context.owner(),
 				I18N.t("confirmation.overwrite.export.message"),
 				I18N.t("confirmation.overwrite.export.title"),
 				JOptionPane.YES_NO_OPTION,

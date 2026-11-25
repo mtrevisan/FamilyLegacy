@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -95,7 +95,7 @@ public final class BackupTool implements ToolOperation{
 			target = new File(target.getParentFile(), target.getName() + ".flef");
 
 		if(target.exists()){
-			final int choice = JOptionPane.showConfirmDialog(context.owner(),
+			final int choice = MessageDialogs.confirm(context.owner(),
 				I18N.t("confirmation.overwrite.backup.message"),
 				I18N.t("confirmation.overwrite.backup.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 			if(choice != JOptionPane.YES_OPTION)

@@ -33,11 +33,15 @@ import io.github.mtrevisan.familylegacy.research.OpenTasks;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.research.TaskBoard;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.CyclingRowSorter;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
@@ -126,16 +130,16 @@ public final class TasksPanel extends JPanel{
 	private Dock dock = Dock.BOTTOM;
 
 	private final TaskTableModel tableModel = new TaskTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JLabel summary = new JLabel();
 	private final JCheckBox onlySelection = new JCheckBox(I18N.t("panel.tasks.only_selection"));
 	private final JButton newTask = new JButton(I18N.t("panel.tasks.new"));
 	private final JButton dashboardButton = new JButton(I18N.t("panel.tasks.dashboard"));
-	private final JButton dockButton = new JButton("\u21f1");
+	private final JButton dockButton = new JButton(SymbolIcon.of(Symbol.DOCK));
 	private final JButton hideButton = new JButton("\u00d7");
 	private final JLabel title = new JLabel(I18N.t("panel.tasks.title"));
 	private final JPanel header = new JPanel();
-	private final TableRowSorter<TaskTableModel> sorter = new TableRowSorter<>(tableModel);
+	private final TableRowSorter<TaskTableModel> sorter = new CyclingRowSorter<>(tableModel);
 	/** Opens the editor of a new task, of the given question ({@code null}: of none); the tests replace it. */
 	private transient BiConsumer<FLEFModel, FLEFRecord> newTaskOpener = this::openNewTask;
 

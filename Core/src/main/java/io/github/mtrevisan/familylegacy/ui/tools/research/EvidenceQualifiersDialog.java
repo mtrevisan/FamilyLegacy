@@ -104,7 +104,6 @@ final class EvidenceQualifiersDialog extends JDialog{
 		final RowTableModel model = new RowTableModel(new String[]{I18N.t("column.measure"), I18N.t("column.count")}, rows);
 		models.add(model);
 		final JTable table = ToolDialogs.createTable(model, null);
-		table.setAutoCreateRowSorter(false);
 		table.getColumnModel().getColumn(0).setPreferredWidth(400);
 		table.getColumnModel().getColumn(1).setPreferredWidth(100);
 

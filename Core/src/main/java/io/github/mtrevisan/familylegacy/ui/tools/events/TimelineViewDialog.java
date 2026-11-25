@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
 import io.github.mtrevisan.familylegacy.ui.components.dates.DatePicker;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
@@ -87,10 +88,10 @@ public final class TimelineViewDialog extends JDialog{
 
 	private final ToolContext context;
 	private final TimelineTableModel tableModel = new TimelineTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JTextField fromField = dateField();
 	private final JTextField toField = dateField();
-	private final JComboBox<String> typeCombo = ComboBoxSearch.searchable(new JComboBox<>());
+	private final JComboBox<String> typeCombo = new JComboBox<>();
 	private final JTextField participantField = new JTextField(StringUtils.EMPTY, 22);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
@@ -195,7 +196,7 @@ public final class TimelineViewDialog extends JDialog{
 
 	private JPanel createFooter(){
 
-		return GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText));
+		return GUIHelper.createStatusFooter(statusLabel, ToolDialogs.createCopyButton(tableModel::toText, table));
 	}
 
 
@@ -235,6 +236,8 @@ public final class TimelineViewDialog extends JDialog{
 		typeCombo.addItem(I18N.t("search.combo.any"));
 		types.values()
 			.forEach(typeCombo::addItem);
+		//the items stay the codes, the labels are localized
+		ComboBoxSearch.localized(typeCombo, "enum.event.type");
 	}
 
 	private void reload(){

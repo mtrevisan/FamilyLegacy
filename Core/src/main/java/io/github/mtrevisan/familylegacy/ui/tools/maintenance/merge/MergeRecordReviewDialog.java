@@ -43,6 +43,8 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -84,6 +86,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -645,19 +648,19 @@ public final class MergeRecordReviewDialog extends JDialog{
 			initialLogical = logical(resultArea.getText());
 			initialShown = resultArea.getText();
 
-			final JButton useSource = createButton("→", I18N.t("tooltip.merge.use_source"));
+			final JButton useSource = createButton(Symbol.ARROW_RIGHT, I18N.t("tooltip.merge.use_source"));
 			useSource.setEnabled(source != null);
 			useSource.addActionListener(e -> take(sourceText));
-			final JButton both = createButton("⊕", I18N.t("tooltip.merge.use_both"));
+			final JButton both = createButton(Symbol.PLUS_CIRCLE, I18N.t("tooltip.merge.use_both"));
 			both.setEnabled(source != null && target != null && kind == DiffKind.CONFLICT);
 			both.addActionListener(e -> take(targetText + sourceText));
-			final JButton useTarget = createButton("←", I18N.t("tooltip.merge.use_target"));
+			final JButton useTarget = createButton(Symbol.ARROW_LEFT, I18N.t("tooltip.merge.use_target"));
 			useTarget.setEnabled(target != null);
 			useTarget.addActionListener(e -> take(targetText));
-			final JButton clear = createButton("✕", I18N.t("tooltip.merge.remove_row"));
+			final JButton clear = createButton(Symbol.CROSS, I18N.t("tooltip.merge.remove_row"));
 			clear.addActionListener(e -> take(StringUtils.EMPTY));
 
-			final JButton reset = createButton("↺", I18N.t("tooltip.merge.reset"));
+			final JButton reset = createButton(Symbol.RESET, I18N.t("tooltip.merge.reset"));
 			reset.addActionListener(e -> reset());
 
 			leftGutter = new Gutter(LEFT_GUTTER_COLUMNS, 3 * BUTTON_HEIGHT);
@@ -754,15 +757,15 @@ public final class MergeRecordReviewDialog extends JDialog{
 			final int height = Math.min(BUTTON_HEIGHT, lineHeight);
 			for(final int[] span : placed.spans()){
 				final int y = top + span[0] * lineHeight;
-				final JButton fromSource = createButton("→", I18N.t("tooltip.merge.block.use_source"));
+				final JButton fromSource = createButton(Symbol.ARROW_RIGHT, I18N.t("tooltip.merge.block.use_source"));
 				fromSource.setEnabled(hasLines(placed.source(), span));
 				fromSource.addActionListener(e -> takeBlock(span, 0));
 				leftGutter.place(fromSource, 1, y, height);
-				final JButton fromTarget = createButton("←", I18N.t("tooltip.merge.block.use_target"));
+				final JButton fromTarget = createButton(Symbol.ARROW_LEFT, I18N.t("tooltip.merge.block.use_target"));
 				fromTarget.setEnabled(hasLines(placed.target(), span));
 				fromTarget.addActionListener(e -> takeBlock(span, 1));
 				rightGutter.place(fromTarget, 1, y, height);
-				final JButton remove = createButton("✕", I18N.t("tooltip.merge.block.remove"));
+				final JButton remove = createButton(Symbol.CROSS, I18N.t("tooltip.merge.block.remove"));
 				remove.setEnabled(hasLines(placed.result(), span));
 				remove.addActionListener(e -> takeBlock(span, 2));
 				rightGutter.place(remove, 2, y, height);
@@ -921,10 +924,10 @@ public final class MergeRecordReviewDialog extends JDialog{
 	private final JPanel grid = new JPanel(new MigLayout("ins 6,fillx,wrap 5,hidemode 3", COLUMNS));
 	private final JCheckBox onlyDifferences = new JCheckBox(I18N.t("dialog.merge.review.only_differences"), true);
 	private final JLabel summary = new JLabel(StringUtils.SPACE);
-	private final JButton previousConflict = new JButton("▲ " + I18N.t("dialog.merge.review.nav.previous_conflict"));
-	private final JButton nextConflict = new JButton("▼ " + I18N.t("dialog.merge.review.nav.next_conflict"));
-	private final JButton previousDifference = new JButton("▲ " + I18N.t("dialog.merge.review.nav.previous_difference"));
-	private final JButton nextDifference = new JButton("▼ " + I18N.t("dialog.merge.review.nav.next_difference"));
+	private final JButton previousConflict = new JButton(I18N.t("dialog.merge.review.nav.previous_conflict"), SymbolIcon.of(Symbol.UP));
+	private final JButton nextConflict = new JButton(I18N.t("dialog.merge.review.nav.next_conflict"), SymbolIcon.of(Symbol.DOWN));
+	private final JButton previousDifference = new JButton(I18N.t("dialog.merge.review.nav.previous_difference"), SymbolIcon.of(Symbol.UP));
+	private final JButton nextDifference = new JButton(I18N.t("dialog.merge.review.nav.next_difference"), SymbolIcon.of(Symbol.DOWN));
 	private final Overview overview = new Overview();
 	private JScrollPane scroll;
 
@@ -934,6 +937,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 	private boolean opening = true;
 	/** Says, a moment after the last change, whether the result is valid: the same check that Merge makes, without waiting for it. */
 	private final JLabel validity = new JLabel(StringUtils.SPACE);
+	private Symbol validitySymbol;
 	private final Timer validityTimer = new Timer(VALIDITY_DELAY, e -> checkValidity());
 	private int validityGeneration;
 	/** The texts that were checked last: a check of the same texts says nothing new, and is not made. */
@@ -1014,7 +1018,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 			}
 
 			@Override
-			public void mouseWheelMoved(final java.awt.event.MouseWheelEvent e){
+			public void mouseWheelMoved(final MouseWheelEvent e){
 				opening = false;
 			}
 		};
@@ -1341,9 +1345,13 @@ public final class MergeRecordReviewDialog extends JDialog{
 	}
 
 	/** Says what the bar says, only if it is not already what it says: a text that is written again blinks. */
-	private void say(final String text, final Color color, final String tooltip){
+	private void say(final Symbol symbol, final String text, final Color color, final String tooltip){
 		if(!text.equals(validity.getText()))
 			validity.setText(text);
+		if(symbol != validitySymbol){
+			validitySymbol = symbol;
+			validity.setIcon(symbol != null? SymbolIcon.of(symbol): null);
+		}
 		if(!color.equals(validity.getForeground()))
 			validity.setForeground(color);
 		if(!Objects.equals(tooltip, validity.getToolTipText()))
@@ -1367,12 +1375,12 @@ public final class MergeRecordReviewDialog extends JDialog{
 		checkedTexts = texts;
 		final int generation = ++ validityGeneration;
 		if(texts.isEmpty()){
-			say(StringUtils.SPACE, COLOR_MUTED, null);
+			say(null, StringUtils.SPACE, COLOR_MUTED, null);
 			return;
 		}
 
 		if(validity.getText().isBlank())
-			say(I18N.t("dialog.merge.review.validity.checking"), COLOR_MUTED, null);
+			say(null, I18N.t("dialog.merge.review.validity.checking"), COLOR_MUTED, null);
 		new SwingWorker<List<String>, Void>(){
 			@Override
 			protected List<String> doInBackground(){
@@ -1388,16 +1396,16 @@ public final class MergeRecordReviewDialog extends JDialog{
 				try{
 					final List<String> problems = get();
 					if(problems.isEmpty())
-						say("✓ " + I18N.t("dialog.merge.review.validity.ok"), COLOR_VALID, null);
+						say(Symbol.CHECK, I18N.t("dialog.merge.review.validity.ok"), COLOR_VALID, null);
 					else
-						say("✗ " + I18N.tf("dialog.merge.review.validity.problems", problems.size()), COLOR_INVALID,
+						say(Symbol.CROSS, I18N.tf("dialog.merge.review.validity.problems", problems.size()), COLOR_INVALID,
 							"<html>" + problems.stream()
 								.limit(MAX_ERRORS_SHOWN)
 								.map(StringEscapeUtils::escapeHtml4)
 								.collect(Collectors.joining("<br>")) + "</html>");
 				}
 				catch(final Exception ignored){
-					say(StringUtils.SPACE, COLOR_MUTED, null);
+					say(null, StringUtils.SPACE, COLOR_MUTED, null);
 				}
 			}
 		}.execute();
@@ -1532,9 +1540,10 @@ public final class MergeRecordReviewDialog extends JDialog{
 		return scroll.getVerticalScrollBar().getValue();
 	}
 
-	/** What the bar of the validity says now: for the tests. */
+	/** What the bar of the validity says now (its symbol, an image, written as the character it stands for): for the tests. */
 	String validityText(){
-		return validity.getText();
+		final String symbol = (validitySymbol == Symbol.CHECK? "\u2713 ": (validitySymbol == Symbol.CROSS? "\u2717 ": ""));
+		return symbol + validity.getText();
 	}
 
 	/** Checks the result now, without waiting for the pause after the last change: for the tests. */
@@ -1806,10 +1815,9 @@ public final class MergeRecordReviewDialog extends JDialog{
 		return area;
 	}
 
-	private static JButton createButton(final String text, final String tooltip){
-		final JButton button = new JButton(text);
+	private static JButton createButton(final Symbol symbol, final String tooltip){
+		final JButton button = new JButton(SymbolIcon.of(symbol));
 		button.setToolTipText(tooltip);
-		button.setFont(MONO.deriveFont(Font.BOLD));
 		button.setMargin(new Insets(0, 2, 0, 2));
 		button.setFocusable(false);
 		button.setPreferredSize(new Dimension(BUTTON_COLUMN_WIDTH, 20));

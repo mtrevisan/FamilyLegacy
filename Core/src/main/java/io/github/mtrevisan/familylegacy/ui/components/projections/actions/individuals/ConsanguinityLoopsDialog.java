@@ -76,7 +76,8 @@ final class ConsanguinityLoopsDialog extends JDialog{
 			I18N.t("column.loops.contribution")}, rows);
 		//the double-click gives the row of the model, the button the one on the screen (the table can be sorted)
 		table = ToolDialogs.createTable(tableModel, this::openAncestorOfModelRow);
-		table.setAutoCreateRowSorter(false);
+		ToolDialogs.sortColumnAsNumber(table, 3);
+		ToolDialogs.sortColumnAsNumber(table, 4);
 		final int[] widths = {170, 300, 300, 90, 90};
 		for(int column = 0; column < widths.length; column ++)
 			table.getColumnModel().getColumn(column).setPreferredWidth(widths[column]);
@@ -92,7 +93,7 @@ final class ConsanguinityLoopsDialog extends JDialog{
 
 		setLayout(new BorderLayout(8, 8));
 		add(content, BorderLayout.CENTER);
-		add(ToolDialogs.createFooter(I18N.t("text.loops.note"), openAncestor, ToolDialogs.createCopyButton(tableModel::toText)), BorderLayout.SOUTH);
+		add(ToolDialogs.createFooter(I18N.t("text.loops.note"), openAncestor, ToolDialogs.createCopyButton(tableModel::toText, table)), BorderLayout.SOUTH);
 
 		pack();
 		setLocationRelativeTo(owner);

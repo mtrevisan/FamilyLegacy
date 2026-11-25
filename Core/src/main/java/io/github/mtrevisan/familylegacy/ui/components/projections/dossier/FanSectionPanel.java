@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.social.FanEntry;
 import io.github.mtrevisan.familylegacy.social.FanResult;
 import io.github.mtrevisan.familylegacy.social.FanSuggestion;
 import io.github.mtrevisan.familylegacy.social.FanText;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -158,7 +159,7 @@ final class FanSectionPanel extends JPanel{
 	private void buildContent(final Consumer<FLEFRecord> opener){
 		contentArea.setBackground(IndividualDossierPanel.SECTION_BACKGROUND);
 
-		final JTable table = new JTable(new FanTableModel()){
+		final JTable table = new SortableTable(new FanTableModel()){
 			@Override
 			public String getToolTipText(final MouseEvent event){
 				final int row = rowAtPoint(event.getPoint());

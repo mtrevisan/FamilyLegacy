@@ -31,6 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 
 
@@ -49,7 +50,7 @@ class GUIHelperFooterTest{
 		Assertions.assertEquals(BorderLayout.WEST, layout.getConstraints(status));
 		final JPanel buttons = (JPanel)layout.getLayoutComponent(BorderLayout.EAST);
 		Assertions.assertTrue(buttons.getLayout() instanceof FlowLayout && ((FlowLayout)buttons.getLayout()).getAlignment() == FlowLayout.RIGHT);
-		Assertions.assertArrayEquals(new java.awt.Component[]{first, second}, buttons.getComponents());
+		Assertions.assertArrayEquals(new Component[]{first, second}, buttons.getComponents());
 	}
 
 }

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.reports;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.reports.ReportPreferences;
 import io.github.mtrevisan.familylegacy.reports.ReportType;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -108,7 +109,7 @@ public final class ReportPresetsPanel extends JPanel{
 			return;
 		for(int i = 0; i < names.getSize(); i ++)
 			if(i > 0 && names.getElementAt(i).equalsIgnoreCase(name)
-					&& JOptionPane.showConfirmDialog(owner.get(), I18N.t("dialog.report.preset.overwrite.message"),
+					&& MessageDialogs.confirm(owner.get(), I18N.t("dialog.report.preset.overwrite.message"),
 					I18N.t("dialog.report.preset.save.title"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 				return;
 
@@ -121,7 +122,7 @@ public final class ReportPresetsPanel extends JPanel{
 			return;
 
 		final String name = (String)combo.getSelectedItem();
-		if(JOptionPane.showConfirmDialog(owner.get(), I18N.tf("dialog.report.preset.delete.message", name),
+		if(MessageDialogs.confirm(owner.get(), I18N.tf("dialog.report.preset.delete.message", name),
 				I18N.t("dialog.report.preset.delete.title"), JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
 			return;
 

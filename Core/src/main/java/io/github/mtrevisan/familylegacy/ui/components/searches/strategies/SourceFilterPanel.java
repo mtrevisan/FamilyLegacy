@@ -51,8 +51,8 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 	private final JTextField titleField = new JTextField(20);
 	private final JTextField authorField = new JTextField(20);
 	private final JTextField publisherField = new JTextField(20);
-	private final JComboBox<String> kindCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(SourceReader.KINDS, I18N.t("search.combo.any"))));
-	private final JComboBox<String> mediaTypeCombo = ComboBoxSearch.searchable(new JComboBox<>(GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, I18N.t("search.combo.any"))));
+	private final JComboBox<String> kindCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(SourceReader.KINDS, I18N.t("search.combo.any"))), "enum.source.kind");
+	private final JComboBox<String> mediaTypeCombo = ComboBoxSearch.localized(new JComboBox<>(GUIHelper.fillCombo(SourceReader.MEDIA_TYPES, I18N.t("search.combo.any"))), "enum.source.media_type");
 	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;

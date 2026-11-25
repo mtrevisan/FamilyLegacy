@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOp
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 
 import javax.swing.JOptionPane;
@@ -75,7 +76,7 @@ public final class DeleteGroupTool implements ToolOperation{
 		int relationshipCount = 0;
 		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : relationshipIds.entrySet())
 			relationshipCount += entry.getValue().size();
-		final int confirm = JOptionPane.showConfirmDialog(context.owner(),
+		final int confirm = MessageDialogs.confirm(context.owner(),
 			I18N.tf("dialog.remove.record.message", GroupHandler.getInstance().getLabel(), displayName, id, (relationshipCount == 1), relationshipCount),
 			I18N.t("dialog.remove.record.title"),
 			JOptionPane.YES_NO_OPTION,

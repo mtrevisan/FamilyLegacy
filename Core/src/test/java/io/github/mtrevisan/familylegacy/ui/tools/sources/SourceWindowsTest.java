@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.SourceWorkspaceDialog;
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceDialog;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryReader;
@@ -34,6 +32,8 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.SourceWorkspaceDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.junit.jupiter.api.Assertions;

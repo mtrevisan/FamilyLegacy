@@ -181,7 +181,7 @@ public final class BookmarkManagerDialog extends JDialog{
 		if(selected == null)
 			return;
 
-		final int confirm = JOptionPane.showConfirmDialog(this,
+		final int confirm = MessageDialogs.confirm(this,
 			I18N.tf("confirmation.delete.bookmark.message", selected.name()),
 			I18N.t("confirmation.delete.bookmark.title"),
 			JOptionPane.YES_NO_OPTION,

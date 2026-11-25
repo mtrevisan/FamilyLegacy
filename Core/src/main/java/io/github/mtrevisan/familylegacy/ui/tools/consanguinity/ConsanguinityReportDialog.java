@@ -47,6 +47,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -73,6 +74,7 @@ public class ConsanguinityReportDialog extends JDialog{
 	private final FLEFModel model;
 
 	private final JTextPane area = new JTextPane();
+	private final JScrollPane scroll = new JScrollPane(area);
 	/** Where the links are in the text: start, end (excluded) and identifier of the record. */
 	private final List<Link> links = new ArrayList<>();
 
@@ -159,7 +161,6 @@ public class ConsanguinityReportDialog extends JDialog{
 			}
 		});
 		area.setToolTipText(I18N.t("dialog.consanguinity_report.links.tooltip"));
-		final JScrollPane scroll = new JScrollPane(area);
 		//the text area asks for the height of the whole report: the dialog has a size of its own, and the report scrolls
 		scroll.setPreferredSize(new Dimension(PREFERRED_WIDTH, PREFERRED_TEXT_HEIGHT));
 		main.add(scroll, "grow,push,wrap");
@@ -204,9 +205,15 @@ public class ConsanguinityReportDialog extends JDialog{
 		if(recordId == null || model == null || !model.hasRecord(recordId))
 			return;
 
+		final Point position = scroll.getViewport().getViewPosition();
 		ToolDialogs.openRecordEditor(this, model, model.getRecordById(recordId));
 		//the editor may have changed a name or removed a record
 		fillText();
+		//rewriting the text moves the view to the top: put it back where it was, once the new text is laid out
+		SwingUtilities.invokeLater(() -> {
+			final int maxY = Math.max(0, area.getHeight() - scroll.getViewport().getHeight());
+			scroll.getViewport().setViewPosition(new Point(position.x, Math.min(position.y, maxY)));
+		});
 	}
 
 	private static Color linkColor(){

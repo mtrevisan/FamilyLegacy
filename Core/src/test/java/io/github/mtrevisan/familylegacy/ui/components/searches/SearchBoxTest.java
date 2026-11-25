@@ -26,8 +26,17 @@ package io.github.mtrevisan.familylegacy.ui.components.searches;
 
 import io.github.mtrevisan.familylegacy.search.SearchMode;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import javax.swing.JFrame;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -67,6 +76,51 @@ class SearchBoxTest{
 		box.setSelected(SearchMode.FUZZY, false);
 		Assertions.assertTrue(box.modes().isEmpty());
 		Assertions.assertEquals(2, calls[0]);
+	}
+
+	@Test
+	void clickingAnItemOfThePopupSwitchesTheOptionAndTellsTheListenersEachTime() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "needs a display");
+		final SearchBox box = new SearchBox(10, false);
+		final int[] calls = {0};
+		box.onChange(() -> calls[0] ++);
+		final JFrame frame = new JFrame();
+		try{
+			SwingUtilities.invokeAndWait(() -> {
+				frame.add(box);
+				frame.pack();
+				frame.setVisible(true);
+				final java.lang.reflect.Method show;
+				try{
+					show = SearchBox.class.getDeclaredMethod("showOptions");
+					show.setAccessible(true);
+					show.invoke(box);
+				}
+				catch(final Exception e){
+					throw new RuntimeException(e);
+				}
+			});
+			final java.lang.reflect.Field popupField = SearchBox.class.getDeclaredField("popup");
+			popupField.setAccessible(true);
+			final JPopupMenu popup = (JPopupMenu)popupField.get(box);
+			final JMenuItem fuzzy = (JMenuItem)popup.getComponent(1);
+
+			for(int i = 0; i < 3; i ++){
+				final boolean expected = (i % 2 == 0);
+				SwingUtilities.invokeAndWait(() -> {
+					final Point point = new Point(fuzzy.getWidth() / 2, fuzzy.getHeight() / 2);
+					fuzzy.dispatchEvent(new MouseEvent(fuzzy, MouseEvent.MOUSE_PRESSED, System.currentTimeMillis(), InputEvent.BUTTON1_DOWN_MASK,
+						point.x, point.y, 1, false, MouseEvent.BUTTON1));
+					fuzzy.dispatchEvent(new MouseEvent(fuzzy, MouseEvent.MOUSE_RELEASED, System.currentTimeMillis(), 0,
+						point.x, point.y, 1, false, MouseEvent.BUTTON1));
+				});
+				Assertions.assertEquals(expected, box.isSelected(SearchMode.FUZZY), "click " + i);
+				Assertions.assertEquals(i + 1, calls[0], "click " + i);
+			}
+		}
+		finally{
+			SwingUtilities.invokeAndWait(frame::dispose);
+		}
 	}
 
 	@Test

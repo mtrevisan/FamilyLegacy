@@ -388,7 +388,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 					return false;
 				}
 
-				if(JOptionPane.showConfirmDialog(this, I18N.tf("validation.sex_coparent_warning", coParent, sexLabel),
+				if(MessageDialogs.confirm(this, I18N.tf("validation.sex_coparent_warning", coParent, sexLabel),
 						I18N.t("validation.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION){
 					tabbedPane.setSelectedComponent(propertiesPanel);
 					sexValueCombo.requestFocusInWindow();

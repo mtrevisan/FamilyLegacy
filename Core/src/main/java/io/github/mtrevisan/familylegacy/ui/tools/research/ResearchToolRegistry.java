@@ -59,6 +59,7 @@ public final class ResearchToolRegistry{
 	/** Analysis tools. */
 	public static List<ToolOperation> analysisTools(){
 		return List.of(
+			new GpsWorkflowTool(),
 			new ManageConclusionsTool(),
 			new ManageIdentityHypothesesTool()
 		);

@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
+import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -41,6 +43,8 @@ import java.util.function.Consumer;
 public final class ToolBarBuilder{
 
 	private final JToolBar toolBar = new JToolBar(I18N.t("toolbar.title"));
+	private JButton btnBack;
+	private JButton btnForward;
 	private JToggleButton btnTreeLayout;
 	private JToggleButton btnGraphLayout;
 	private JToggleButton btnEgoLayout;
@@ -54,11 +58,11 @@ public final class ToolBarBuilder{
 		toolBar.setFloatable(false);
 
 		// Navigation
-		final JButton btnBack = new JButton("◄");
+		final JButton btnBack = new JButton(SymbolIcon.of(Symbol.PLAY_LEFT));
 		btnBack.setToolTipText(I18N.t("toolbar.navigate.back") + " (" + ShortcutRegistry.NAV_BACK.displayKeys() + ")");
 		btnBack.addActionListener(e -> onBack.run());
 
-		final JButton btnForward = new JButton("►");
+		final JButton btnForward = new JButton(SymbolIcon.of(Symbol.PLAY_RIGHT));
 		btnForward.setToolTipText(I18N.t("toolbar.navigate.forward") + " (" + ShortcutRegistry.NAV_FORWARD.displayKeys() + ")");
 		btnForward.addActionListener(e -> onForward.run());
 
@@ -70,6 +74,10 @@ public final class ToolBarBuilder{
 		btnEdit.setToolTipText(I18N.t("toolbar.edit.selection") + " (" + ShortcutRegistry.EDIT_SELECTION_INDIVIDUAL.displayKeys() + ")");
 		btnEdit.addActionListener(e -> onEdit.run());
 
+		this.btnBack = btnBack;
+		this.btnForward = btnForward;
+		btnBack.setEnabled(false);
+		btnForward.setEnabled(false);
 		toolBar.add(btnBack);
 		toolBar.add(btnForward);
 		toolBar.add(btnJump);
@@ -114,6 +122,14 @@ public final class ToolBarBuilder{
 		toolBar.add(btnToggleSidebar);
 
 		return toolBar;
+	}
+
+	/** Enables Back and Forward only when there is somewhere to go. */
+	public void updateNavigationState(final boolean canGoBack, final boolean canGoForward){
+		if(btnBack != null)
+			btnBack.setEnabled(canGoBack);
+		if(btnForward != null)
+			btnForward.setEnabled(canGoForward);
 	}
 
 	/** Shows the state of the sidebar when it is changed from elsewhere (the View menu). */

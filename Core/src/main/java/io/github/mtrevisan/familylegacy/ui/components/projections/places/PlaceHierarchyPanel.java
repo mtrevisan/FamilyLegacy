@@ -654,7 +654,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 			final String message = String.format(Locale.ROOT, I18N.t("dialog.merge.places.message"),
 				displayText(place), placeId, displayText(other), other.getId(), candidate.probability() * 100.,
 				candidate.rationale().replace("; ", StringUtils.LF));
-			final int choice = JOptionPane.showConfirmDialog(owner, message, I18N.t("dialog.merge.places.title"), JOptionPane.YES_NO_CANCEL_OPTION,
+			final int choice = MessageDialogs.confirm(owner, message, I18N.t("dialog.merge.places.title"), JOptionPane.YES_NO_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE);
 			if(choice == JOptionPane.CANCEL_OPTION || choice == JOptionPane.CLOSED_OPTION)
 				return StringUtils.EMPTY;

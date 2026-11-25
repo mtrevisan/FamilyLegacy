@@ -92,7 +92,7 @@ class AssistantIndicatorInFrameTest{
 
 	private static String read(final JButton button) throws InvocationTargetException, InterruptedException{
 		final String[] text = new String[1];
-		SwingUtilities.invokeAndWait(() -> text[0] = button.getText());
+		SwingUtilities.invokeAndWait(() -> text[0] = button.getAccessibleContext().getAccessibleName());
 		return text[0];
 	}
 

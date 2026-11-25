@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.ComboBoxSearch;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDiffDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -88,7 +89,7 @@ final class RecentChangesDialog extends JDialog{
 	private final Runnable afterRevert;
 
 	private final ChangesTableModel tableModel = new ChangesTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JLabel summary = new JLabel();
 	private final JComboBox<TypeItem> typeFilter = ComboBoxSearch.searchable(new JComboBox<>());
 	private final JButton showDiff = new JButton(I18N.t("recent_changes.show_diff"));
@@ -116,6 +117,7 @@ final class RecentChangesDialog extends JDialog{
 		this.afterRevert = afterRevert;
 
 		table.setRowHeight(22);
+		table.setAutoCreateRowSorter(true);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		final int[] widths = {80, 90, 160, 260, 90};
 		for(int i = 0; i < widths.length; i ++)
@@ -125,7 +127,7 @@ final class RecentChangesDialog extends JDialog{
 		table.setDefaultRenderer(Object.class, new ChangeRenderer());
 		table.getSelectionModel()
 			.addListSelectionListener(e -> {
-				final Row selected = tableModel.rowAt(table.getSelectedRow());
+				final Row selected = selectedRow();
 				showDiff.setEnabled(selected != null);
 				revert.setEnabled(selected != null && !selected.entry().undone());
 				onlyRecord.setEnabled(historyOfId != null || selected != null && selected.change().id() != null);
@@ -134,7 +136,7 @@ final class RecentChangesDialog extends JDialog{
 			@Override
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2 && table.getSelectedRow() >= 0)
-					openRecord(tableModel.rowAt(table.getSelectedRow()));
+					openRecord(selectedRow());
 			}
 		});
 
@@ -144,14 +146,14 @@ final class RecentChangesDialog extends JDialog{
 		});
 
 		showDiff.setEnabled(false);
-		showDiff.addActionListener(e -> showDiff(tableModel.rowAt(table.getSelectedRow())));
+		showDiff.addActionListener(e -> showDiff(selectedRow()));
 		revert.setEnabled(false);
 		revert.setToolTipText(I18N.t("recent_changes.revert.tooltip"));
-		revert.addActionListener(e -> revert(tableModel.rowAt(table.getSelectedRow())));
+		revert.addActionListener(e -> revert(selectedRow()));
 		onlyRecord.setEnabled(false);
 		onlyRecord.setToolTipText(I18N.t("recent_changes.only_record.tooltip"));
 		onlyRecord.addActionListener(e -> {
-			final Row selected = tableModel.rowAt(table.getSelectedRow());
+			final Row selected = selectedRow();
 			historyOfId = (onlyRecord.isSelected() && selected != null? selected.change().id(): null);
 			onlyRecord.setSelected(historyOfId != null);
 			applyFilter();
@@ -185,6 +187,12 @@ final class RecentChangesDialog extends JDialog{
 		refresh();
 	}
 
+
+	/** @return the selected change (the table may be sorted: the view row is converted), or {@code null} */
+	private Row selectedRow(){
+		final int viewRow = table.getSelectedRow();
+		return (viewRow >= 0? tableModel.rowAt(table.convertRowIndexToModel(viewRow)): null);
+	}
 
 	void refresh(){
 		final FLEFModel model = modelSupplier.get();
@@ -302,7 +310,7 @@ final class RecentChangesDialog extends JDialog{
 		else
 			message = I18N.plural("recent_changes.revert.clean.message", row.entry().changes().size());
 
-		if(JOptionPane.showConfirmDialog(this, message, I18N.t((force? "recent_changes.revert.conflict.title":
+		if(MessageDialogs.confirm(this, message, I18N.t((force? "recent_changes.revert.conflict.title":
 				"recent_changes.revert.title")), JOptionPane.YES_NO_OPTION,
 				(force? JOptionPane.WARNING_MESSAGE: JOptionPane.QUESTION_MESSAGE)) != JOptionPane.YES_OPTION)
 			return;
@@ -407,7 +415,7 @@ final class RecentChangesDialog extends JDialog{
 				final boolean hasFocus, final int row, final int column){
 			final Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-			final Row data = tableModel.rowAt(row);
+			final Row data = tableModel.rowAt(table.convertRowIndexToModel(row));
 			if(!isSelected)
 				component.setForeground(data != null && data.entry().undone()? COLOR_UNDONE: table.getForeground());
 			return component;

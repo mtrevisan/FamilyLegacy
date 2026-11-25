@@ -85,12 +85,10 @@ class CoParentSexTest{
 	}
 
 	@Test
-	void aPlainChildLinkIsOnlyAPossibleClash(){
+	void aPlainChildLinkSaysNothing(){
 		bothParents(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_CHILD);
 
-		final CoParentSex.Clash clash = CoParentSex.findClashingCoParent("I1", SexType.FEMALE, model);
-		Assertions.assertEquals("I2", clash.coParentId());
-		Assertions.assertFalse(clash.certain());
+		Assertions.assertNull(CoParentSex.findClashingCoParent("I1", SexType.FEMALE, model));
 	}
 
 	@Test
@@ -122,7 +120,7 @@ class CoParentSexTest{
 
 		Assertions.assertTrue(CoParentSex.findClashingParent("I3", "I1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, null, model)
 			.certain());
-		Assertions.assertFalse(CoParentSex.findClashingParent("I3", "I1", RelationshipReader.ENUM_TYPE_CHILD, null, model).certain());
+		Assertions.assertNull(CoParentSex.findClashingParent("I3", "I1", RelationshipReader.ENUM_TYPE_CHILD, null, model));
 		Assertions.assertNull(CoParentSex.findClashingParent("I3", "I1", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD, null, model));
 	}
 
@@ -141,8 +139,8 @@ class CoParentSexTest{
 		final CoParentSex.Clash certain = CoParentSex.findClashBetween("I3", "I1", RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, "I2",
 			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, model);
 		Assertions.assertTrue(certain.certain());
-		Assertions.assertFalse(CoParentSex.findClashBetween("I3", "I1", RelationshipReader.ENUM_TYPE_CHILD, "I2",
-			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, model).certain());
+		Assertions.assertNull(CoParentSex.findClashBetween("I3", "I1", RelationshipReader.ENUM_TYPE_CHILD, "I2",
+			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, model));
 		Assertions.assertNull(CoParentSex.findClashBetween("I3", "I1", RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD, "I2",
 			RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, model));
 	}
@@ -161,13 +159,13 @@ class CoParentSexTest{
 
 	@Test
 	void theImportReportsThem(){
-		bothParents(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_CHILD);
+		bothParents(RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD, RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD);
 		addSex("IA2", "I1", "female");
 
 		final ImportReport report = new ImportReport();
 		SameSexParentsCheck.report(model, report);
 
-		Assertions.assertEquals(Map.of(ImportReasons.SAME_SEX_POSSIBLE_PARENTS, 1), report.countsByReason());
+		Assertions.assertEquals(Map.of(ImportReasons.SAME_SEX_PARENTS, 1), report.countsByReason());
 	}
 
 }

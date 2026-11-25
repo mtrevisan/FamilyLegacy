@@ -42,6 +42,8 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.OpenTasks;
 import io.github.mtrevisan.familylegacy.research.ResearchHelper;
 import io.github.mtrevisan.familylegacy.research.TaskBoard;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.CyclingRowSorter;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.components.searches.SearchBox;
@@ -135,7 +137,7 @@ public final class TaskDashboardDialog extends JDialog{
 	private final JProgressBar completion = new JProgressBar(0, 100);
 	private final JLabel footer = new JLabel(StringUtils.SPACE);
 	private final TaskTableModel tableModel = new TaskTableModel();
-	private final JTable table = new JTable(tableModel);
+	private final JTable table = new SortableTable(tableModel);
 	private final JTextArea details = new JTextArea();
 	private final JButton acceptButton = new JButton(I18N.t("dialog.task_dashboard.accept"));
 	private final JButton dismissButton = new JButton(I18N.t("dialog.task_dashboard.dismiss"));
@@ -238,7 +240,7 @@ public final class TaskDashboardDialog extends JDialog{
 		table.setFillsViewportHeight(true);
 		table.getTableHeader().setReorderingAllowed(false);
 		//the order is the one of the list (not done first, by due date, then by priority) until a header is clicked
-		final TableRowSorter<TaskTableModel> sorter = new TableRowSorter<>(tableModel);
+		final TableRowSorter<TaskTableModel> sorter = new CyclingRowSorter<>(tableModel);
 		sorter.setComparator(COLUMN_DUE, TaskDashboardDialog::compareDue);
 		sorter.setComparator(COLUMN_PRIORITY, Comparator.comparingInt(value -> ((Ranked)value).rank()));
 		sorter.setSortsOnUpdates(false);

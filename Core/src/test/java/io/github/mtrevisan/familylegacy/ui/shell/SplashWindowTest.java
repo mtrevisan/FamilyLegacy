@@ -33,6 +33,8 @@ import javax.swing.SwingUtilities;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**
@@ -133,7 +135,7 @@ class SplashWindowTest{
 	}
 
 	private static int distinctColors(final BufferedImage image, final int x, final int y, final int width, final int height){
-		final java.util.Set<Integer> colors = new java.util.HashSet<>();
+		final Set<Integer> colors = new HashSet<>();
 		for(int j = y; j < y + height; j += 3)
 			for(int i = x; i < x + width; i += 3)
 				colors.add(image.getRGB(i, j));

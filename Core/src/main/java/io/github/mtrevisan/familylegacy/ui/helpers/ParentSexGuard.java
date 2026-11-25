@@ -65,7 +65,7 @@ public final class ParentSexGuard{
 			return false;
 		}
 
-		return (JOptionPane.showConfirmDialog(owner, I18N.tf("validation.parents_warning", coParent, child, parent),
+		return (MessageDialogs.confirm(owner, I18N.tf("validation.parents_warning", coParent, child, parent),
 			I18N.t("validation.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION);
 	}
 

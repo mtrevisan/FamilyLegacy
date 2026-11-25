@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
-import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceDialog;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordDisplay;
@@ -36,10 +35,12 @@ import io.github.mtrevisan.familylegacy.reports.ConflictFinder;
 import io.github.mtrevisan.familylegacy.reports.ConflictRecordType;
 import io.github.mtrevisan.familylegacy.reports.ReportConflict;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.RowTableModel;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.SortableTable;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
-import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.provenance.EvidenceTraceDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,14 +105,14 @@ public final class ConflictDashboardDialog extends JDialog{
 	private final JComboBox<ConflictConfidence> confidenceFilter = enumCombo(ConflictConfidence.values(), "enum.conflict_confidence.");
 	private final JComboBox<ConflictRecordType> typeFilter = enumCombo(ConflictRecordType.values(), "enum.conflict_record_type.");
 	private final JLabel verdict = new JLabel(StringUtils.SPACE);
-	private final JTable entryTable = new JTable();
-	private final JTable assertionTable = new JTable();
+	private final JTable entryTable = new SortableTable();
+	private final JTable assertionTable = new SortableTable();
 	private final JButton openRecord = new JButton(I18N.t("button.open_record"));
 	private final JButton explain = new JButton(I18N.t("button.explain"));
 	private final JButton resolve = new JButton(I18N.t("button.conflict.create_conclusion"));
 
 	private ConflictDashboard dashboard;
-	/** The entries of the rows of the table (the sorting is off: a row of the table is a row of the list). */
+	/** The entries of the rows of the model of the table (the table can be sorted: convert the row of the view to the one of the model). */
 	private List<ConflictDashboard.Entry> listed = List.of();
 
 
@@ -131,6 +132,7 @@ public final class ConflictDashboardDialog extends JDialog{
 		for(final JTable table : List.of(entryTable, assertionTable)){
 			table.setRowHeight(22);
 			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			table.setAutoCreateRowSorter(true);
 		}
 		entryTable.getSelectionModel()
 			.addListSelectionListener(e -> {
@@ -243,6 +245,8 @@ public final class ConflictDashboardDialog extends JDialog{
 		final ConflictDashboard.Entry selected = selectedEntry();
 		final String selectedConclusion = (selected != null? selected.conclusionId(): null);
 		final String selectedFirst = (selected != null && !selected.assertions().isEmpty()? selected.assertions().getFirst().recordId(): null);
+		final ReportConflict.Assertion selectedAssertion = selectedAssertion();
+		final String selectedAssertionId = (selectedAssertion != null? selectedAssertion.recordId(): null);
 
 		analyze(this, model, refreshed -> {
 			dashboard = refreshed;
@@ -252,10 +256,18 @@ public final class ConflictDashboardDialog extends JDialog{
 				if(selected != null && (selectedConclusion != null && selectedConclusion.equals(entry.conclusionId())
 						|| selectedFirst != null && !entry.assertions().isEmpty()
 						&& selectedFirst.equals(entry.assertions().getFirst().recordId()))){
-					entryTable.setRowSelectionInterval(row, row);
+					final int viewRow = entryTable.convertRowIndexToView(row);
+					entryTable.setRowSelectionInterval(viewRow, viewRow);
 					break;
 				}
 			}
+			//the assertion that was selected in the lower table is selected again
+			if(selectedAssertionId != null)
+				for(int row = 0; row < assertionTable.getRowCount(); row ++)
+					if(selectedAssertionId.equals(assertionTable.getValueAt(row, 0))){
+						assertionTable.setRowSelectionInterval(row, row);
+						break;
+					}
 		});
 	}
 
@@ -273,9 +285,6 @@ public final class ConflictDashboardDialog extends JDialog{
 			rows.add(new Object[]{I18N.t(entry.resolved()? "text.conflict_dashboard.status.settled": "text.conflict_dashboard.status.unresolved"),
 				I18N.t("text.conflict_dashboard.category." + entry.category().key()), subject(entry), problem(entry), entry.assertions().size()});
 		entryTable.setModel(new RowTableModel(entryColumns(), rows));
-		//the sorter of a table whose model is replaced would stay bound to the first one and show no row
-		entryTable.setAutoCreateRowSorter(false);
-		entryTable.setRowSorter(null);
 		entryTable.getColumnModel().getColumn(0).setPreferredWidth(90);
 		entryTable.getColumnModel().getColumn(1).setPreferredWidth(120);
 		entryTable.getColumnModel().getColumn(2).setPreferredWidth(260);
@@ -333,14 +342,16 @@ public final class ConflictDashboardDialog extends JDialog{
 	}
 
 	private ConflictDashboard.Entry selectedEntry(){
-		final int row = entryTable.getSelectedRow();
+		final int viewRow = entryTable.getSelectedRow();
+		final int row = (viewRow >= 0? entryTable.convertRowIndexToModel(viewRow): -1);
 		return (row >= 0 && row < listed.size()? listed.get(row): null);
 	}
 
 	/** @return	The assertion selected in the lower table, {@code null} if none. */
 	private ReportConflict.Assertion selectedAssertion(){
 		final ConflictDashboard.Entry entry = selectedEntry();
-		final int row = assertionTable.getSelectedRow();
+		final int viewRow = assertionTable.getSelectedRow();
+		final int row = (viewRow >= 0? assertionTable.convertRowIndexToModel(viewRow): -1);
 		return (entry != null && row >= 0 && row < entry.assertions().size()? entry.assertions().get(row): null);
 	}
 
@@ -367,8 +378,6 @@ public final class ConflictDashboardDialog extends JDialog{
 			}
 		}
 		assertionTable.setModel(new RowTableModel(assertionColumns(), rows));
-		assertionTable.setAutoCreateRowSorter(false);
-		assertionTable.setRowSorter(null);
 		assertionTable.getColumnModel().getColumn(1).setPreferredWidth(260);
 		updateButtons();
 	}

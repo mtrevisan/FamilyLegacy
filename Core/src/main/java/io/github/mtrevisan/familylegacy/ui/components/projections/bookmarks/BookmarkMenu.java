@@ -158,7 +158,7 @@ public final class BookmarkMenu extends JMenu{
 			.findFirst()
 			.orElse(null);
 		if(same != null){
-			final int replace = JOptionPane.showConfirmDialog(this, I18N.tf("dialog.bookmark.replace.message", same.name()),
+			final int replace = MessageDialogs.confirm(this, I18N.tf("dialog.bookmark.replace.message", same.name()),
 				I18N.t("dialog.bookmark.replace.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if(replace != JOptionPane.YES_OPTION)
 				return;
