@@ -401,7 +401,7 @@ public final class ResearchAssistantService{
 					result.addAll(kept);
 				else{
 					final List<Diagnostic> computed = registered.provider().diagnose(context,
-						fraction -> progress.accept((index + Math.max(0., Math.min(1., fraction))) / count));
+						fraction -> progress.accept((index + Math.clamp(fraction, 0., 1.)) / count));
 					result.addAll(computed);
 					keep(registered.provider(), context, computed);
 				}

@@ -71,7 +71,7 @@ final class EventsOfTypeDialog extends JDialog{
 					EventHelper.eventDescription(event)});
 		final RowTableModel tableModel = new RowTableModel(new String[]{I18N.t("column.event"), I18N.t("column.date"),
 			I18N.t("column.place"), I18N.t("column.description")}, rows);
-		table = ToolDialogs.createTable(tableModel, row -> openRow(row));
+		table = ToolDialogs.createTable(tableModel, this::openRow);
 		final TableColumnModel columns = table.getColumnModel();
 		columns.getColumn(0)
 			.setPreferredWidth(100);

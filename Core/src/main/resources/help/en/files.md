@@ -21,7 +21,7 @@ A file can be plain text or compressed (the application recognises it), and is a
 
 ## One folder for each project
 
-Keep each family tree in **a folder of its own**, for example `Rossi family/rossi.flef`. Next to the file the application keeps a folder named after it (`rossi.flef.meta`) with what belongs to that file but is not genealogy: the tags, the bookmarks and the findings you ignored in the Research Assistant. The backups and the images of the media fit in the same folder. Then **copying, archiving or sending the folder takes everything together**; a `.flef` file sent alone arrives without its tags, bookmarks and ignored findings.
+Keep each family tree in **a folder of its own**, for example `Rossi family/rossi.flef`. Next to the file the application keeps a folder named after it (`rossi.flef.meta`) with what belongs to that file but is not genealogy: the tags, the bookmarks and the findings you ignored in the Research Assistant. The images of the media fit in the same folder; the backups are better kept in another one (see [Backup and restore](files.md#backup-and-restore)). Then **copying, archiving or sending the folder takes everything together**; a `.flef` file sent alone arrives without its tags, bookmarks and ignored findings.
 
 The file chooser of *Save as...*, *New* and of the import has a box, **Create a folder for this project**: with it the file is saved as `name/name.flef` inside the folder you chose (the choice is remembered). If you do not use it and the folder already holds other `.flef` files, the application tells you once and offers to save the file in a new folder. Nothing obliges you to: files kept together in one folder work, each with its own `.meta` folder.
 
@@ -38,8 +38,14 @@ The import never merges into the open document. After the conversion you choose 
 
 ## Backup and restore
 
-- **Backup...** saves a copy of the document to a file you choose, with a progress window, as Save does. The name is pre-filled with the date and time, so successive backups do not overwrite each other. A backup does not change the open document, and it is written as it is, without validation: if the document has errors they are kept, which makes a backup useful to recover from a bad edit.
-- **Restore from Backup...** loads a FLEF file (plain or compressed, as with Open; a progress window is shown while it is read) and *replaces the open document with it*. You are asked to confirm, and the confirmation says that the content of **the file of the open document** is replaced too, because the restored data is saved like every change: make a backup of the current content first if you may need it. This cannot be undone, and the undo history is cleared. A document that has no file is asked where to be written.
+- **Backup...** saves a copy of the document, with a progress window, as Save does. The name is pre-filled with the file name and the date and time, so successive backups do not overwrite each other. A backup does not change the open document, and it is written as it is, without validation: if the document has errors they are kept, which makes a backup useful to recover from a bad edit. Two formats:
+  - **Project backup (`.zip`)**, the default: one file with the FLEF file and the `.meta` folder next to it (tags, bookmarks, ignored findings); nothing to forget when you copy or send it. The box **Include the media files** puts the **local** media files in the archive too (it can be large, so it is off by default and your choice is remembered); media whose file cannot be found and media that are remote addresses are not included, and the message at the end says how many.
+  - **FLEF file (`.flef`)**: only the file; the `.meta` data is written beside it.
+
+  The FLEF file is written from what is in memory, not copied from the disk, so it is complete even if an automatic save is pending. If you choose the folder of the project itself you are told that a copy next to the original does not protect you from the loss of the disk, and asked whether to choose another folder.
+- **Restore from Backup...** takes a `.zip` or a `.flef` file.
+  - A **`.zip`** is extracted into a **new folder** named after it, inside the folder you choose (it must not already hold anything), and opened: *your open document is not replaced*, so nothing is lost and nothing is overwritten. The tags, bookmarks and ignored findings come with it. If the archive has the media, they are extracted into the `media` folder of the new project and the media records are linked to them; without them the records keep their original location.
+  - A **`.flef`** file (plain or compressed, as with Open; a progress window is shown while it is read) *replaces the open document with it*. For this one, you are asked to confirm, and the confirmation says that the content of **the file of the open document** is replaced too, because the restored data is saved like every change: make a backup of the current content first if you may need it. This cannot be undone, and the undo history is cleared. A document that has no file is asked where to be written.
 
 ## Checking a file
 

@@ -263,7 +263,7 @@ public final class FileMenuController{
 			return true;
 
 		if(currentFile == null)
-			return history.isModified()? askWhatToDoWithTheDocument(): true;
+			return (!history.isModified() || askWhatToDoWithTheDocument());
 
 		//what is being written in the background first, then what is left
 		try{

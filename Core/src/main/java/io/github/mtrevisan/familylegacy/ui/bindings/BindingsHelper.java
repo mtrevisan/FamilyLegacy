@@ -95,15 +95,7 @@ public class BindingsHelper{
 
 	/**
 	 * Installs behavior with full control over the popup menu structure and custom selection supplier.
-	 *
-	 * @param component	The component to enhance.
-	 * @param hasSelection	A custom supplier for selection state.
-	 * @param doubleClickAction	Action invoked on double‑click (it may be {@code null}).
-	 * @param keyInsertAction	Action invoked by the INSERT key (it may be {@code null}).
-	 * @param keyDeleteAction	Action invoked by the DELETE key (it may be {@code null}).
-	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
-	@SuppressWarnings("unchecked")
 	private static <T> void move(final JList<T> list, final boolean up){
 		if(!(list.getModel() instanceof DefaultListModel<T> model))
 			return;

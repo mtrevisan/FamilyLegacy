@@ -98,8 +98,8 @@ public final class DialogPlacement{
 		final int height = Math.min(dialog.height, usable.height * MAX_HEIGHT_PERCENT / 100);
 		int x = reference.x + (reference.width - width) / 2;
 		int y = reference.y + (reference.height - height) / 2;
-		x = Math.max(usable.x, Math.min(x, usable.x + usable.width - width));
-		y = Math.max(usable.y, Math.min(y, usable.y + usable.height - height));
+		x = Math.clamp(x, usable.x, usable.x + usable.width - width);
+		y = Math.clamp(y, usable.y, usable.y + usable.height - height);
 		return new Rectangle(x, y, width, height);
 	}
 

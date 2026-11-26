@@ -107,7 +107,7 @@ public final class IndexSection implements SectionBuilder{
 			keys.put(individual, FamilyBookGenerator.sortName(individual, locale));
 		final Comparator<String> order = ReportCollation.of(locale);
 		individuals.sort(Comparator.comparing((final FLEFRecord individual) -> FamilyBookGenerator.NO_NAME.equals(keys.get(individual)))
-			.thenComparing(individual -> keys.get(individual), order)
+			.thenComparing(keys::get, order)
 			.thenComparing(FLEFRecord::getId));
 
 		final TreeText text = new TreeText(ctx);
@@ -211,7 +211,7 @@ public final class IndexSection implements SectionBuilder{
 			}
 
 		final List<FLEFRecord> out = new ArrayList<>(byId.values());
-		out.sort(Comparator.comparing((final FLEFRecord r) -> ctx.displayText(r), ReportCollation.of(ctx.labels.language().locale())));
+		out.sort(Comparator.comparing(ctx::displayText, ReportCollation.of(ctx.labels.language().locale())));
 		return out;
 	}
 
@@ -223,7 +223,7 @@ public final class IndexSection implements SectionBuilder{
 
 		for(final EventIndex.Participant participant : ctx.index.participantsOf(event)){
 			final FLEFRecord person = participant.record();
-			if(person != null && IndividualReader.isOfType(person) && ctx.isVisible(person))
+			if(IndividualReader.isOfType(person) && ctx.isVisible(person))
 				byId.putIfAbsent(person.getId(), person);
 		}
 	}

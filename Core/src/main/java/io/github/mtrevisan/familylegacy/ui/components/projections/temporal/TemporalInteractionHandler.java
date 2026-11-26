@@ -28,12 +28,14 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.NormalizedDate;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.TemporalSpan;
 import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
+import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntry;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionModel;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionRef;
 import io.github.mtrevisan.familylegacy.temporal.TemporalRow;
 import io.github.mtrevisan.familylegacy.temporal.TemporalTrackType;
+import io.github.mtrevisan.familylegacy.ui.components.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.TimeLabels;
 import org.apache.commons.lang3.StringUtils;
 
@@ -131,30 +133,34 @@ public final class TemporalInteractionHandler{
 			return null;
 
 		final StringBuilder sb = new StringBuilder("<html>");
-		if(ref instanceof TemporalProjectionRef.EntryRef entryRef){
-			final TemporalEntry entry = entryRef.entry();
-			sb.append("<b>").append(escape(entry.label())).append("</b>");
-			if(!entry.type().isEmpty())
-				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(entry.type()));
-			if(entry.hasRole())
-				sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(entry.role()));
-			sb.append("<br>").append(escape(describeSpan(entry.span())));
-			if(entry.hasNegativeEvidence())
-				sb.append("<br><i>").append(I18N.t("text.tip.negative_evidence")).append("</i>");
-			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
-			return sb.append("</html>").toString();
+		switch(ref){
+			case TemporalProjectionRef.EntryRef entryRef -> {
+				final TemporalEntry entry = entryRef.entry();
+				sb.append("<b>").append(escape(entry.label())).append("</b>");
+				if(!entry.type().isEmpty())
+					sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(entry.type()));
+				if(entry.hasRole())
+					sb.append("<br>").append(I18N.l("tooltip.field.role")).append(StringUtils.SPACE).append(escape(entry.role()));
+				sb.append("<br>").append(escape(describeSpan(entry.span())));
+				if(entry.hasNegativeEvidence())
+					sb.append("<br><i>").append(I18N.t("text.tip.negative_evidence")).append("</i>");
+				sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
+				return sb.append("</html>").toString();
+			}
+			case TemporalProjectionRef.BandRef(TemporalContextBand band) -> {
+				sb.append("<b>").append(escape(band.label().isEmpty() ? band.kind() : band.label())).append("</b>");
+				if(!band.kind().isEmpty() && !band.kind().equals(band.label()))
+					sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(band.kind()));
+				sb.append("<br>").append(escape(describeSpan(band.span())));
+				sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
+				return sb.append("</html>").toString();
+			}
+			case TemporalProjectionRef.RowRef(TemporalEntityRef entity) -> {
+				return "<html><b>" + escape(entity.displayLabel()) + "</b></html>";
+			}
+			default -> {
+			}
 		}
-		if(ref instanceof TemporalProjectionRef.BandRef bandRef){
-			final TemporalContextBand band = bandRef.band();
-			sb.append("<b>").append(escape(band.label().isEmpty()? band.kind(): band.label())).append("</b>");
-			if(!band.kind().isEmpty() && !band.kind().equals(band.label()))
-				sb.append("<br>").append(I18N.l("tooltip.field.type")).append(StringUtils.SPACE).append(escape(band.kind()));
-			sb.append("<br>").append(escape(describeSpan(band.span())));
-			sb.append("<br><i>").append(I18N.t("text.tip.edit_double")).append("</i>");
-			return sb.append("</html>").toString();
-		}
-		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
-			return "<html><b>" + escape(rowRef.entity().displayLabel()) + "</b></html>";
 
 		return null;
 	}
@@ -165,12 +171,7 @@ public final class TemporalInteractionHandler{
 	 * ====================================================================== */
 
 	private static String escape(final String text){
-		if(text == null)
-			return StringUtils.EMPTY;
-
-		return text.replace("&", "&amp;")
-			.replace("<", "&lt;")
-			.replace(">", "&gt;");
+		return ReportDialog.escape(text);
 	}
 
 	private static String describeSpan(final TemporalSpan span){

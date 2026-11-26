@@ -182,7 +182,7 @@ public final class PrivacyResolver{
 		if(!effective.isRestricted() || !PrivacyReader.ENUM_REASON_LIVING_PERSON.equals(effective.reason())
 				|| (effective.origin() != Origin.LIVING_PERSON && effective.origin() != Origin.INHERITED))
 			return false;
-		if(record == null || !EventReader.isOfType(record))
+		if(!EventReader.isOfType(record))
 			return true;
 
 		ensureIndexed();

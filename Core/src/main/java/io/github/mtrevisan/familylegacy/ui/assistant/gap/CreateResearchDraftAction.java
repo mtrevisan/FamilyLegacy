@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import java.awt.Window;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -84,7 +85,7 @@ public final class CreateResearchDraftAction implements DiagnosticAction{
 		//the records may have changed since the finding was computed: the ones that are gone are left out
 		final List<FLEFRecord> records = enriched.records().stream()
 			.map(model::getRecordById)
-			.filter(record -> record != null)
+			.filter(Objects::nonNull)
 			.toList();
 		final Window owner = SwingAssistantContext.owner(context);
 		if(enriched.kind() == GapDraft.Kind.QUESTION){

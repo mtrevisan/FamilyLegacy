@@ -282,7 +282,7 @@ public final class DuplicateFinderDialog extends JDialog{
 			if(candidate.score() >= options.threshold)
 				reaching ++;
 		return (computed.size() < computedWith.maxResults || reaching >= options.maxResults
-			|| (!computed.isEmpty() && computed.get(computed.size() - 1).score() < options.threshold));
+			|| (!computed.isEmpty() && computed.getLast().score() < options.threshold));
 	}
 
 	/** Shows, among the candidates found, the ones that reach the threshold, the best first, up to the most results. */

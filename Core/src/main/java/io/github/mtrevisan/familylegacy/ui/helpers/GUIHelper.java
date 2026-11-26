@@ -298,16 +298,6 @@ public final class GUIHelper{
 	}
 
 
-
-	/**
-	 * Creates a panel with a two‑column layout using MigLayout.
-	 * Each row consists of a label and a field.
-	 * The layout uses {@code wrap 1} to force each component onto its own row,
-	 * and {@code split 2} to place label and field on the same row.
-	 *
-	 * @param rowConstraints	The row constraints (e.g. "[]10[]")
-	 * @return	A new JPanel with the specified layout
-	 */
 	/** The space, in pixels, between the content of a dialog and its border: no content touches the edge of a dialog. */
 	public static final int DIALOG_MARGIN = 10;
 
@@ -814,7 +804,7 @@ public final class GUIHelper{
 		launch(createNewFn, model);
 	}
 
-	private static void validate(FLEFModel model) throws IOException{
+	private static void validate(FLEFModel model){
 		final FLEFGrammar grammar = MergeGrammar.instance();
 		for(final String warning : grammar.getParseWarnings())
 			System.err.println(warning);

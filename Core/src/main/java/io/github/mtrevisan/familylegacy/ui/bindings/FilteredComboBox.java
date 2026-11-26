@@ -133,13 +133,10 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 				this.filterCache.add(new FilterItem<>(item, display.toLowerCase()));
 			}
 
-		if(!filterCache.isEmpty()){
-			final FilterItem<E> longest = filterCache.stream()
+		if(!filterCache.isEmpty())
+			filterCache.stream()
 				.max(Comparator.comparingInt(e -> e.displayLower().length()))
-				.orElse(null);
-			if(longest != null)
-				setPrototypeDisplayValue(longest.item());
-		}
+				.ifPresent(longest -> setPrototypeDisplayValue(longest.item()));
 
 		refilter(getText());
 	}

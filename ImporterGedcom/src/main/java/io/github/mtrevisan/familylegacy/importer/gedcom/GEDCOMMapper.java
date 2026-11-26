@@ -176,7 +176,6 @@ public final class GEDCOMMapper{
 	public static final Set<String> EVENT_CONSUMED_TAGS = Set.of(TAG_TYPE, TAG_DATE, TAG_PLACE, TAG_ADDRESS, TAG_CAUSE, TAG_AGENCY,
 		TAG_RELIGION, TAG_TEMPLE, TAG_STATUS, TAG_FAMILY_CHILD, TAG_SOURCE, TAG_NOTE, TAG_MULTIMEDIA, TAG_RESTRICTION, TAG_AGE,
 		TAG_HUSBAND, TAG_WIFE, TAG_ASSOCIATION, TAG_POSTAL_CODE, TAG_PHONE, TAG_EMAIL, TAG_FAX, TAG_WEB, TAG_CUSTOM_EMAIL, TAG_CUSTOM_WEB);
-	/** The tags of a source read by the converter. */
 	/** The tag some programs use for the type of a source (census, church register...). */
 	public static final String TAG_SOURCE_TYPE = "_TYPE";
 	public static final Set<String> SOURCE_CONSUMED_TAGS = Set.of(TAG_TITLE, TAG_ABBREVIATION, TAG_AUTHOR, TAG_PUBLICATION, TAG_DATA,

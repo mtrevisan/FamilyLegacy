@@ -82,7 +82,7 @@ public final class FullBibliographyGenerator{
 		for(final FLEFRecord source : all)
 			if(first.isVisible(source))
 				sources.add(source);
-		final Comparator<FLEFRecord> byTitle = Comparator.comparing((final FLEFRecord source) -> SourceReader.displayText(source),
+		final Comparator<FLEFRecord> byTitle = Comparator.comparing(SourceReader::displayText,
 				ReportCollation.of(first.labels.language().locale()))
 			.thenComparing(FLEFRecord::getId);
 		final boolean byKind = config.groupSourcesByKind();

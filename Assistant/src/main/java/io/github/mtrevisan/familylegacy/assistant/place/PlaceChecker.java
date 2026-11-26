@@ -389,7 +389,7 @@ public final class PlaceChecker{
 				final Set<String> component = new TreeSet<>();
 				String member;
 				do{
-					member = stack.remove(stack.size() - 1);
+					member = stack.removeLast();
 					onStack.remove(member);
 					component.add(member);
 				}while(!member.equals(node));

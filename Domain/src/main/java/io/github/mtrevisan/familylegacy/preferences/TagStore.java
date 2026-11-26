@@ -25,15 +25,12 @@
 package io.github.mtrevisan.familylegacy.preferences;
 
 import io.github.mtrevisan.familylegacy.io.model.RecordTags;
-import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -69,7 +66,6 @@ public final class TagStore{
 	/** The suffix of the folder, next to the FLEF file, that keeps the application data of that file. */
 	public static final String META_SUFFIX = ".meta";
 	private static final String TAGS_FILE_NAME = "tags.properties";
-	private static final int FORMAT_VERSION = 1;
 
 
 	/** The store of the older versions, in the user folder: only read, to bring its tags next to the files. */
@@ -185,21 +181,27 @@ public final class TagStore{
 		return tags;
 	}
 
-	private static void write(final Path tagsFile, final Map<String, ? extends Collection<String>> tags){
+	private static Properties toProperties(final Map<String, ? extends Collection<String>> tags){
 		final Properties props = new Properties();
 		for(final Map.Entry<String, ? extends Collection<String>> entry : tags.entrySet())
 			props.setProperty(entry.getKey(), String.join(TAG_SEPARATOR, new ArrayList<>(entry.getValue())));
+		return props;
+	}
 
-		try{
-			Files.createDirectories(tagsFile.getParent());
-			//written through a temporary file, so that a crash does not leave half of the tags
-			final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			props.store(bytes, "FamilyLegacy tags, format " + FORMAT_VERSION);
-			AtomicFileWriter.write(tagsFile, bytes.toString(StandardCharsets.ISO_8859_1), StandardCharsets.ISO_8859_1);
-		}
-		catch(final IOException e){
-			LOGGER.warn("Could not save the tags to {}: {}", tagsFile, e.getMessage());
-		}
+	/** Written through a temporary file, so that a crash does not leave half of the tags. */
+	private static void write(final Path tagsFile, final Map<String, ? extends Collection<String>> tags){
+		ProjectMeta.write(tagsFile, toProperties(tags), "tags");
+	}
+
+	/** @return	The content of the tags file for these tags (for the archives), {@code null} if there are none. */
+	public static byte[] tagsContent(final RecordTags tags){
+		final Map<String, List<String>> snapshot = tags.snapshot();
+		return (snapshot.isEmpty()? null: ProjectMeta.toBytes(toProperties(snapshot), "tags"));
+	}
+
+	/** @return	The name of the tags file in the {@code .meta} folder. */
+	public static String tagsFileName(){
+		return TAGS_FILE_NAME;
 	}
 
 	private static Properties read(final Path file){

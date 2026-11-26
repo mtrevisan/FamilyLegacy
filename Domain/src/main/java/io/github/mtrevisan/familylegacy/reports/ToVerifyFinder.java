@@ -154,7 +154,7 @@ public final class ToVerifyFinder{
 		openTasks(model, visible, out);
 		progress.accept((assistance != null? 0.1: 1.));
 		if(assistance != null)
-			out.addAll(assistance.findings(model, visible, fraction -> progress.accept(0.1 + 0.9 * Math.max(0., Math.min(1., fraction)))));
+			out.addAll(assistance.findings(model, visible, fraction -> progress.accept(0.1 + 0.9 * Math.clamp(fraction, 0., 1.))));
 
 		//the kinds in their order, stable inside each
 		out.sort(Comparator.comparing(Finding::kind));

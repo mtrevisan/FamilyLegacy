@@ -863,7 +863,7 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 
 			// --- Parents Section ---
 			final List<PlaceHierarchyService.PlaceRelation> parents = hierarchy.parentsOf(place.id());
-			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.parents") + "</div>");
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>").append(I18N.t("text.place.parents")).append("</div>");
 			if(!parents.isEmpty()){
 				for(final PlaceHierarchyService.PlaceRelation rel : parents){
 					final PlaceHierarchyService.PlaceReference parent = hierarchy.places().get(rel.parentId());
@@ -871,11 +871,11 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 				}
 			}
 			else
-				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.no_parent") + "</div>");
+				sb.append("<div style='color: #999999; font-style: italic;'>").append(I18N.t("text.place.no_parent")).append("</div>");
 
 			// --- Children Section ---
 			final List<PlaceHierarchyService.PlaceRelation> children = hierarchy.childrenOf(place.id());
-			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.children") + "</div>");
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>").append(I18N.t("text.place.children")).append("</div>");
 			if(!children.isEmpty()){
 				for(final PlaceHierarchyService.PlaceRelation rel : children){
 					final PlaceHierarchyService.PlaceReference child = hierarchy.places().get(rel.childId());
@@ -883,19 +883,19 @@ public final class PlaceHierarchyPanel extends JPanel implements PlaceHierarchyV
 				}
 			}
 			else
-				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.no_child") + "</div>");
+				sb.append("<div style='color: #999999; font-style: italic;'>").append(I18N.t("text.place.no_child")).append("</div>");
 
 			// --- Usage Section: what the place is linked to ---
-			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.used_by") + "</div>");
+			sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>").append(I18N.t("text.place.used_by")).append("</div>");
 			if(usage.isEmpty())
-				sb.append("<div style='color: #999999; font-style: italic;'>" + I18N.t("text.place.not_used") + "</div>");
+				sb.append("<div style='color: #999999; font-style: italic;'>").append(I18N.t("text.place.not_used")).append("</div>");
 			else
 				for(final String line : usage)
 					sb.append("<div style='margin-bottom: 4px; line-height: 1.4;'>").append(escape(line)).append("</div>");
 
 			// --- Notes Section ---
 			if(!place.notes().isEmpty()){
-				sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>" + I18N.t("text.place.notes") + "</div>");
+				sb.append("<div style='font-size: 11px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 8px; border-bottom: 1px solid #eaeaea; padding-bottom: 4px;'>").append(I18N.t("text.place.notes")).append("</div>");
 				for(final String note : place.notes())
 					sb.append("<div style='margin-bottom: 6px; line-height: 1.4;'>").append(escape(note)).append("</div>");
 			}

@@ -95,7 +95,7 @@ import java.util.function.Consumer;
  * <p>
  * Displays a population census of all individuals alive on a specific
  * date. The life test is delegated to
- * {@link ChronomapIndex#isAliveAt(List, double)}, the same method used
+ * {@link ChronomapIndex#isAliveAt(String, double)}, the same method used
  * by the chronomap marker layer: the set of people listed here and the
  * set of people drawn on the map therefore always coincide.
  * <p>
@@ -289,12 +289,6 @@ public final class AgoraPanel extends JPanel{
 	}
 
 
-	/**
-	 * Selects the table row whose underlying identifier matches the
-	 * given id. Uses {@link JTable#convertRowIndexToView(int)} so that
-	 * the selection is applied to the correct visual row even when the
-	 * sorter has reordered the table.
-	 */
 	/**
 	 * Asks to show the given person as the first row of the list, as soon as they are among those alive (the list is rebuilt a
 	 * moment after the timeline moves). The row is also selected.

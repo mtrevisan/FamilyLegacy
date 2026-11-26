@@ -238,9 +238,8 @@ public final class BookBuilder{
 
 		Part part = Part.OTHER;
 		for(final ReportSection section : report.sections()){
-			if(section instanceof ReportSection.Heading heading){
-				if(heading.level() == 1){
-					final String text = heading.text();
+			if(section instanceof ReportSection.Heading(int level, String text)){
+				if(level == 1){
 					if(indexes.contains(BookIndex.INDIVIDUALS) && text.equals(individualsIndex)){
 						part = Part.INDIVIDUALS_INDEX;
 						continue;
@@ -251,12 +250,12 @@ public final class BookBuilder{
 					}
 					part = (text.equals(sources)? Part.SOURCES: (text.equals(repositories)? Part.REPOSITORIES: Part.OTHER));
 				}
-				else if(part == Part.SOURCES && heading.level() == sourceLevel)
-					harvest.sources.add(heading.text());
-				else if(part == Part.REPOSITORIES && heading.level() == 2)
-					harvest.repositories.add(heading.text());
+				else if(part == Part.SOURCES && level == sourceLevel)
+					harvest.sources.add(text);
+				else if(part == Part.REPOSITORIES && level == 2)
+					harvest.repositories.add(text);
 
-				sections.add(new ReportSection.Heading(Math.min(MAX_LEVEL, heading.level() + 1), heading.text()));
+				sections.add(new ReportSection.Heading(Math.min(MAX_LEVEL, level + 1), text));
 				continue;
 			}
 

@@ -39,6 +39,7 @@ import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -163,7 +164,7 @@ public final class RegionOverlay{
 	 */
 	public boolean hover(final List<Region> under){
 		final Region next = (under.isEmpty()? null: under.getFirst());
-		if(next == null? hovered == null: next.equals(hovered))
+		if(Objects.equals(next, hovered))
 			return false;
 
 		hovered = next;

@@ -151,7 +151,7 @@ final class EgoNetworkRenderer{
 			}
 			else{
 				//above or below: a vertical line from the edge of the ego to the edge of the card
-				final int targetX = Math.max(egoBounds.x, Math.min(egoBounds.x + egoBounds.width, r.x + r.width / 2));
+				final int targetX = Math.clamp(r.x + r.width / 2, egoBounds.x, egoBounds.x + egoBounds.width);
 				final boolean above = (r.y + r.height / 2 < egoCenterY);
 				final int fromY = (above? egoBounds.y: egoBounds.y + egoBounds.height);
 				final int toY = (above? r.y + r.height: r.y);

@@ -161,6 +161,11 @@ public record ToolContext(
 		return dispatcher.documentPath();
 	}
 
+	/** Opens a FLEF file as the document, as File &gt; Open does. */
+	public void openFile(final File file){
+		dispatcher.openFile(file);
+	}
+
 	public void performEdit(final String id){
 		dispatcher.editEntity(id);
 	}

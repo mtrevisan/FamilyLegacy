@@ -286,7 +286,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 	private static FLEFRecord parseBlock(final String recordTag, final List<String> block){
 		try{
 			final List<FLEFRecord> records = MergeFragments.parse(recordTag, String.join(StringUtils.LF, block));
-			return (records.size() == 1? records.get(0): null);
+			return (records.size() == 1? records.getFirst(): null);
 		}
 		catch(final IOException | RuntimeException ignored){
 			return null;
@@ -354,20 +354,20 @@ public final class MergeRecordReviewDialog extends JDialog{
 		boolean targetUsed = false;
 		int last = -1;
 		for(final List<String> block : blocksOf(resultLines)){
-			final boolean targetFree = (!targetUsed && !targetRows.isEmpty() && targetRows.get(0) > last);
-			final boolean sourceFree = (!sourceUsed && !sourceRows.isEmpty() && sourceRows.get(0) > last);
+			final boolean targetFree = (!targetUsed && !targetRows.isEmpty() && targetRows.getFirst() > last);
+			final boolean sourceFree = (!sourceUsed && !sourceRows.isEmpty() && sourceRows.getFirst() > last);
 			if(targetFree && block.equals(targetBlock)){
 				for(int k = 0; k < block.size(); k ++)
 					result.set(targetRows.get(k), block.get(k));
 				targetUsed = true;
-				last = targetRows.get(targetRows.size() - 1);
+				last = targetRows.getLast();
 				continue;
 			}
 			if(sourceFree && block.equals(sourceBlock)){
 				for(int k = 0; k < block.size(); k ++)
 					result.set(sourceRows.get(k), block.get(k));
 				sourceUsed = true;
-				last = sourceRows.get(sourceRows.size() - 1);
+				last = sourceRows.getLast();
 				continue;
 			}
 
@@ -385,7 +385,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 			final Rows aligned = new Rows();
 			alignBlocks(record, (useTarget? targetRecord: sourceRecord), 0, aligned, model);
 			int base = 0;
-			int anchor = baseRows.get(0) - 1;
+			int anchor = baseRows.getFirst() - 1;
 			for(int k = 0; k < aligned.size(); k ++){
 				final String resultLine = aligned.source.get(k);
 				if(aligned.target.get(k) != null){
@@ -400,7 +400,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 				targetUsed = true;
 			else
 				sourceUsed = true;
-			last = baseRows.get(baseRows.size() - 1);
+			last = baseRows.getLast();
 		}
 
 		final List<String> source = new ArrayList<>();
@@ -569,7 +569,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 		/** The three columns as they are shown now, to act on a block. */
 		private Placed placed;
 		/** The text of the result when the window opened, with the empty lines of the alignment: what the reset goes back to. */
-		private String initialShown;
+		private final String initialShown;
 		/** Whether the user decided it, taking a side or editing it: only the conflicts care. */
 		private boolean resolved;
 		/** The text of the lines of the two sides that are a conflict, and of the ones only one side has. */
@@ -929,7 +929,7 @@ public final class MergeRecordReviewDialog extends JDialog{
 	private final JButton previousDifference = new JButton(I18N.t("dialog.merge.review.nav.previous_difference"), SymbolIcon.of(Symbol.UP));
 	private final JButton nextDifference = new JButton(I18N.t("dialog.merge.review.nav.next_difference"), SymbolIcon.of(Symbol.DOWN));
 	private final Overview overview = new Overview();
-	private JScrollPane scroll;
+	private final JScrollPane scroll;
 
 	private Section current;
 	private boolean confirmed;

@@ -143,17 +143,12 @@ final class CountsIcon implements Icon{
 	}
 
 
-	private static final class Entry{
+	private record Entry(SymbolIcon symbol, String number){
 
-		private final SymbolIcon symbol;
-		private final String number;
+			private Entry(final Symbol symbol, final String number){
+				this(SymbolIcon.of(symbol), number);
+			}
 
-
-		private Entry(final Symbol symbol, final String number){
-			this.symbol = SymbolIcon.of(symbol);
-			this.number = number;
 		}
-
-	}
 
 }

@@ -252,7 +252,7 @@ public final class AssistantIndicator{
 		//the progress is handed to the event dispatch thread only when it moved by a step: a computation may tell it thousands of times
 		final AtomicInteger told = new AtomicInteger();
 		final DoubleConsumer progress = fraction -> {
-			final int steps = (int)Math.round(Math.max(0., Math.min(1., fraction)) * PROGRESS_STEPS);
+			final int steps = (int)Math.round(Math.clamp(fraction, 0., 1.) * PROGRESS_STEPS);
 			if(told.getAndSet(steps) != steps)
 				onEventThread.accept(() -> showProgress(steps));
 		};

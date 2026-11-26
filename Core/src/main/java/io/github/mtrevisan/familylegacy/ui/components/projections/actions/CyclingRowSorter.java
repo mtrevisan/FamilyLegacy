@@ -50,7 +50,7 @@ public class CyclingRowSorter<M extends TableModel> extends TableRowSorter<M>{
 	@Override
 	public void toggleSortOrder(final int column){
 		final List<? extends SortKey> keys = getSortKeys();
-		if(!keys.isEmpty() && keys.get(0).getColumn() == column && keys.get(0).getSortOrder() == SortOrder.DESCENDING)
+		if(!keys.isEmpty() && keys.getFirst().getColumn() == column && keys.getFirst().getSortOrder() == SortOrder.DESCENDING)
 			setSortKeys(null);
 		else
 			super.toggleSortOrder(column);

@@ -150,7 +150,7 @@ public final class SplashWindow extends JWindow{
 	}
 
 	private double target(){
-		return Math.min(1., Math.max(0., (double)value / maximum));
+		return Math.clamp((double)value / maximum, 0., 1.);
 	}
 
 	@Override

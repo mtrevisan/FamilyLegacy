@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -96,7 +97,7 @@ public final class InConstraint extends Constraint{
 	 */
 	private List<String> resolveContainerValues(final FLEFRecord record, final String path, final RecordLookup model){
 		final List<String> values = new ArrayList<>();
-		final String[] segments = (path == containerField? containerSegments: StringUtils.split(path, '.'));
+		final String[] segments = (Objects.equals(path, containerField)? containerSegments: StringUtils.split(path, '.'));
 
 		final List<FLEFRecord> currentNodes = new ArrayList<>();
 		currentNodes.add(record);

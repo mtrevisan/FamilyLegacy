@@ -152,7 +152,7 @@ public final class SunTool{
 			final ZonedDateTime sunset, final List<Message> steps, final List<Message> assumptions){
 		if(hourSystem == HourSystem.EQUAL){
 			assumptions.add(Message.of("date_assistant.assumption.equal_hours"));
-			return sunset.plus(Math.round(hoursFromSunset * SECONDS_PER_HOUR), ChronoUnit.SECONDS);
+			return sunset.plusSeconds(Math.round(hoursFromSunset * SECONDS_PER_HOUR));
 		}
 
 		//a temporal hour is a twelfth of the night (after the sunset) or of the day (before it)

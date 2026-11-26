@@ -129,7 +129,7 @@ public final class TaggedRecordsGenerator{
 	private static ReportSection table(final ReportContext ctx, final List<FLEFRecord> records){
 		final Locale locale = ctx.labels.language().locale();
 		final List<FLEFRecord> ordered = new ArrayList<>(records);
-		ordered.sort(Comparator.comparing((final FLEFRecord record) -> record.getTag())
+		ordered.sort(Comparator.comparing(FLEFRecord::getTag)
 			.thenComparing(ctx::displayText, ReportCollation.of(locale))
 			.thenComparing(FLEFRecord::getId));
 		final List<List<String>> rows = new ArrayList<>(ordered.size());

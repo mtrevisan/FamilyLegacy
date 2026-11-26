@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.preferences;
 
+import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +35,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
-
-import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 
 
 /**
@@ -66,6 +65,19 @@ public final class ProjectMeta{
 			.resolve(name);
 	}
 
+	/** @return	The content of a file as {@link #write(Path, Properties, String)} writes it (for the archives). */
+	public static byte[] toBytes(final Properties props, final String what){
+		final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+		try{
+			props.store(bytes, "FamilyLegacy " + what + ", format " + FORMAT_VERSION);
+		}
+		catch(final IOException e){
+			//writing to memory
+			throw new IllegalStateException(e);
+		}
+		return bytes.toByteArray();
+	}
+
 	/** @return	The content of the file, empty if it is missing or cannot be read. */
 	public static Properties read(final Path file){
 		final Properties props = new Properties();
@@ -89,9 +101,7 @@ public final class ProjectMeta{
 	public static boolean write(final Path file, final Properties props, final String what){
 		try{
 			Files.createDirectories(file.getParent());
-			final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-			props.store(bytes, "FamilyLegacy " + what + ", format " + FORMAT_VERSION);
-			AtomicFileWriter.write(file, bytes.toString(StandardCharsets.ISO_8859_1), StandardCharsets.ISO_8859_1);
+			AtomicFileWriter.write(file, new String(toBytes(props, what), StandardCharsets.ISO_8859_1), StandardCharsets.ISO_8859_1);
 			return true;
 		}
 		catch(final IOException e){

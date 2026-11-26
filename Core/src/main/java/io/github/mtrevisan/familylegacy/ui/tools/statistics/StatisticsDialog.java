@@ -368,12 +368,19 @@ public final class StatisticsDialog extends JDialog{
 	 * is still meaningful.
 	 */
 	private static long parseCount(final Object value){
-		if(value == null)
-			return 0;
-		if(value instanceof Number n)
-			return n.longValue();
-		if(value instanceof Figure figure)
-			return (long)figure.value();
+		switch(value){
+			case null -> {
+				return 0;
+			}
+			case Number n -> {
+				return n.longValue();
+			}
+			case Figure figure -> {
+				return (long)figure.value();
+			}
+			default -> {
+			}
+		}
 		final String s = value.toString()
 			.replace(",", StringUtils.EMPTY)
 			.replace('\u00A0', ' ')
@@ -433,11 +440,6 @@ public final class StatisticsDialog extends JDialog{
 				case 1 -> Figure.ofCount(cat.count());
 				default -> null;
 			};
-		}
-
-		@Override
-		public boolean isCellEditable(final int r, final int c){
-			return false;
 		}
 	}
 

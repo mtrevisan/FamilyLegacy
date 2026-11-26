@@ -188,7 +188,7 @@ public final class SurnameDistribution{
 			final Origin origin = originOf(person, index, visible);
 			final String placeId = groupOf(origin.placeId(), options.level(), places);
 			final String groupKey = (placeId != null? placeId: StringUtils.EMPTY);
-			final Integer century = (origin.year() != null && options.period() == SurnamePeriod.CENTURY? Integer.valueOf(centuryOf(origin.year())): null);
+			final Integer century = (origin.year() != null && options.period() == SurnamePeriod.CENTURY? centuryOf(origin.year()) : null);
 			peopleByPlace.computeIfAbsent(groupKey, k -> new HashSet<>())
 				.add(person.getId());
 			final Map<String, Tally> group = byPlace.computeIfAbsent(groupKey, k -> new LinkedHashMap<>());

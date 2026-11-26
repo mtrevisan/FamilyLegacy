@@ -291,7 +291,7 @@ public final class ConclusionChecker{
 		for(final List<ConclusionData.ParentLink> links : linksOfPair.values()){
 			final Set<String> types = new LinkedHashSet<>();
 			links.forEach(l -> types.add(l.type()));
-			if(types.size() < 2 || !types.stream().anyMatch(BIOLOGICAL_TYPES::contains))
+			if(types.size() < 2 || types.stream().noneMatch(BIOLOGICAL_TYPES::contains))
 				continue;
 
 			final Set<String> competing = new LinkedHashSet<>();

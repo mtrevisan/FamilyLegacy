@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.tree.EventIndex;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.components.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PrivacyBadge;
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalAxis;
 import io.github.mtrevisan.familylegacy.ui.handlers.EventHandler;
@@ -496,11 +497,6 @@ public class GlobalEventTimelinePanel extends JPanel{
 		canvas.repaint();
 	}
 
-	/**
-	 * Returns the event marker under the given point, or {@code null}.
-	 * Only events of the row that contains the point are considered, and
-	 * the point must be inside the content area (not in the header).
-	 */
 	/** Case-insensitive, null-safe row key of an event type. */
 	private static String typeKey(final String type){
 		return (type == null? "": type.toLowerCase(Locale.ROOT));
@@ -740,12 +736,7 @@ public class GlobalEventTimelinePanel extends JPanel{
 	}
 
 	private static String escape(final String s){
-		if(s == null)
-			return StringUtils.EMPTY;
-
-		return s.replace("&", "&amp;")
-			.replace("<", "&lt;")
-			.replace(">", "&gt;");
+		return ReportDialog.escape(s);
 	}
 
 

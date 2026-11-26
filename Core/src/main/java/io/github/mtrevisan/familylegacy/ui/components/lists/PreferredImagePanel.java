@@ -251,6 +251,7 @@ public class PreferredImagePanel extends JPanel{
 	 * Opens a selection dialog to pick or create a MediaRecord.
 	 */
 	private void setNewItem(){
+		@SuppressWarnings("unchecked")
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(
 			parent, model,
 			(record, handler) -> {

@@ -165,7 +165,7 @@ public final class PreferredSex{
 			return assertions;
 
 		//the index is built once for the model (and again after a change), not by scanning every attribute for each individual
-		final List<FLEFRecord> indexed = model.<Map<String, List<FLEFRecord>>>derived(SEX_INDEX_KEY, () -> indexByIndividual(model))
+		final List<FLEFRecord> indexed = model.derived(SEX_INDEX_KEY, () -> indexByIndividual(model))
 			.get(individualId);
 		if(indexed != null)
 			assertions.addAll(indexed);

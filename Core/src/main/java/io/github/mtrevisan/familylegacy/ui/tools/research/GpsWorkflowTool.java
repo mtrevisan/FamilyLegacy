@@ -53,7 +53,7 @@ public final class GpsWorkflowTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFRecord selected = (context.selectedEntityId() != null? context.model().getRecordById(context.selectedEntityId()): null);
-		final boolean usable = (selected != null && (ResearchQuestionReader.isOfType(selected) || ConclusionReader.isOfType(selected)));
+		final boolean usable = ((ResearchQuestionReader.isOfType(selected) || ConclusionReader.isOfType(selected)));
 		new GpsWorkflowDialog(context.owner(), context.model(), (usable? selected: null))
 			.setVisible(true);
 	}

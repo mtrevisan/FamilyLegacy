@@ -68,7 +68,7 @@ public final class FanChecker{
 			return List.of();
 
 		final FLEFRecord subject = model.getRecordById(individualId);
-		if(subject == null || !IndividualReader.isOfType(subject))
+		if(!IndividualReader.isOfType(subject))
 			return List.of();
 
 		final FanResult fan = new FanService(model).build(individualId);
@@ -88,7 +88,7 @@ public final class FanChecker{
 			findings.add(new Diagnostic(Diagnostic.Severity.INFORMATION, AssistantCategory.RESEARCH,
 				I18N.tf("fan.together.title", subjectName), I18N.tf("fan.together.explanation", subjectName, names),
 				recordIds, null, DiagnosticKeys.of("fan.together", recordIds, together.size()))
-				.withRank(together.get(0).score()));
+				.withRank(together.getFirst().score()));
 		}
 
 		for(final FanSuggestion suggestion : fan.suggestions()){

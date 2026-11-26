@@ -794,7 +794,6 @@ public final class ReportOptionsPanel extends JPanel{
 	}
 
 
-	/** Adds the check box unless the report does nothing with the option; one that the report always applies is on and disabled. */
 	/** @return the lowest interface level at which the option is offered (the research and the context contents of a report, the stories). */
 	static UxLevel minimumLevel(final ReportOption option){
 		return switch(option){

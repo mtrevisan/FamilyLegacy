@@ -270,7 +270,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, parentEntity.getPath(), model);
 
-			final boolean choice = (entities.isEmpty() || Objects.equals(entities.get(0).getId(), identity.getId()));
+			final boolean choice = (entities.isEmpty() || Objects.equals(entities.getFirst().getId(), identity.getId()));
 			final EntityField field = (choice? identity1Field: identity2Field);
 			final JLabel label = GUIHelper.getLabeledComponent(choice? identity2Field: identity1Field);
 

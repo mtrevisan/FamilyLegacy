@@ -192,11 +192,11 @@ public final class AutocompleteController{
 		}
 
 		final TagSuggester.Context context = suggester.resolveContext(fullText, caret);
-		if(context == null || context.suppressed() || context.prefix() == null || context.prefix().isEmpty())
+		if(context.suppressed() || context.prefix() == null || context.prefix().isEmpty())
 			return;
 
 		final List<Suggestion> suggestions = suggester.suggestionsFor(fullText, caret);
-		if(suggestions.isEmpty() || (suggestions.size() == 1 && suggestions.get(0).tag().equals(context.prefix())))
+		if(suggestions.isEmpty() || (suggestions.size() == 1 && suggestions.getFirst().tag().equals(context.prefix())))
 			return;
 
 		LOGGER.info("Autocomplete: auto-triggered {} tag suggestions", suggestions.size());
@@ -414,8 +414,8 @@ public final class AutocompleteController{
 		closePopup();
 		if(selected instanceof Suggestion s)
 			insertSuggestion(s);
-		else if(selected instanceof ValueItem v)
-			insertValue(v.value());
+		else if(selected instanceof ValueItem(String value))
+			insertValue(value);
 	}
 
 
@@ -751,8 +751,8 @@ public final class AutocompleteController{
 						+ suffix + "</font></html>");
 				setFont(list.getFont().deriveFont(s.block()? Font.BOLD: Font.PLAIN));
 			}
-			else if(value instanceof ValueItem v){
-				setText(v.value());
+			else if(value instanceof ValueItem(String value1)){
+				setText(value1);
 				setFont(list.getFont().deriveFont(Font.PLAIN));
 			}
 			return this;

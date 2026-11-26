@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.temporal;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.temporal.TemporalContextBand;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityRef;
 import io.github.mtrevisan.familylegacy.temporal.TemporalEntityType;
 import io.github.mtrevisan.familylegacy.temporal.TemporalProjectionLayout;
@@ -263,31 +264,36 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 					return;
 
 				final TemporalProjectionRef ref = hitTest(e);
-				if(ref == null){
-					if(selectedEntity != null){
+				switch(ref){
+					case null -> {
+						if(selectedEntity != null){
+							selectedEntity = null;
+
+							repaint();
+						}
+						return;
+					}
+
+
+					// Update selection based on the hit element.
+					case TemporalProjectionRef.EntryRef entryRef -> {
+						select(entryRef.rowEntity());
+
+						repaint();
+					}
+					case TemporalProjectionRef.RowRef(TemporalEntityRef entity) -> {
+						select(entity);
+
+						repaint();
+					}
+					case TemporalProjectionRef.BandRef bandRef when selectedEntity != null -> {
+						//the background is not a row
 						selectedEntity = null;
 
 						repaint();
 					}
-					return;
-				}
-
-				// Update selection based on the hit element.
-				if(ref instanceof TemporalProjectionRef.EntryRef entryRef){
-					select(entryRef.rowEntity());
-
-					repaint();
-				}
-				else if(ref instanceof TemporalProjectionRef.RowRef rowRef){
-					select(rowRef.entity());
-
-					repaint();
-				}
-				else if(ref instanceof TemporalProjectionRef.BandRef && selectedEntity != null){
-					//the background is not a row
-					selectedEntity = null;
-
-					repaint();
+					default -> {
+					}
 				}
 
 				// Double-click opens the edit dialog of the underlying record.
@@ -369,10 +375,10 @@ public final class TemporalProjectionPanel extends JPanel implements TreeChangeL
 	private static FLEFRecord sourceRecordOf(final TemporalProjectionRef ref){
 		if(ref instanceof TemporalProjectionRef.EntryRef entryRef)
 			return entryRef.entry().sourceRecord();
-		if(ref instanceof TemporalProjectionRef.RowRef rowRef)
-			return rowRef.entity().record();
-		if(ref instanceof TemporalProjectionRef.BandRef bandRef)
-			return bandRef.band().entity().record();
+		if(ref instanceof TemporalProjectionRef.RowRef(TemporalEntityRef entity))
+			return entity.record();
+		if(ref instanceof TemporalProjectionRef.BandRef(TemporalContextBand band))
+			return band.entity().record();
 		return null;
 	}
 

@@ -328,13 +328,6 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	/**
-	 * Pre-populates a filter parameter for the search criteria.
-	 *
-	 * @param key   the filter key (e.g., "sex")
-	 * @param value the filter value
-	 * @return this dialog instance
-	 */
-	/**
 	 * Restricts the search to the individuals of a sex, that the user cannot change.
 	 *
 	 * @param sex	the sex, as it is stored (for example {@code male}).

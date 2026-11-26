@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.UnionType;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -62,7 +63,7 @@ final class GrammarSupport{
 	private final Map<FieldDefinition, String> declaredNames = Collections.synchronizedMap(new IdentityHashMap<>());
 	private final Map<FieldDefinition, Boolean> evidenceFields = Collections.synchronizedMap(new IdentityHashMap<>());
 	/** Stands for the {@code null} name in {@link #declaredNames}. */
-	private static final String NO_NAME = new String("");
+	private static final String NO_NAME = StringUtils.EMPTY;
 
 
 	GrammarSupport(final FLEFGrammar grammar){
@@ -110,7 +111,7 @@ final class GrammarSupport{
 			final String declared = computeDeclaredTypeName(f);
 			return (declared != null? declared: NO_NAME);
 		});
-		return (name == NO_NAME? null: name);
+		return (name.equals(NO_NAME)? null: name);
 	}
 
 	private String computeDeclaredTypeName(final FieldDefinition field){

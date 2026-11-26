@@ -270,7 +270,7 @@ public final class TemporalSvgWriter{
 				return left + width;
 
 			final double ratio = (double)(jdn - start) / (double)(end - start);
-			return left + Math.max(0.0, Math.min(1.0, ratio)) * width;
+			return left + Math.clamp(ratio, 0., 1.) * width;
 		}
 
 	}

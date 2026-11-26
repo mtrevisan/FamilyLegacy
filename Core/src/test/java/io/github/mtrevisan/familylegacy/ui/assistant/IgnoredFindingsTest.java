@@ -35,9 +35,9 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import org.junit.jupiter.api.Assertions;
-import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

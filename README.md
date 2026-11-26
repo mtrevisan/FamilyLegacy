@@ -97,6 +97,85 @@ parents, a partner, a source and a note, and build a small tree. *Method and lim
 `BaseRecordDialog`) and the help pages; I did **not** drive the GUI, so the dialog counts come from the code and items marked *(verify)* are
 suspicions to confirm with a test or by hand. Ordered by how much they hurt a beginner.
 
+0. **Quick Entry Layer** (highest value).
+
+Provide a beginner-friendly data-entry layer above the full FLEF model.
+
+The purpose is not to simplify the model but to hide model complexity during common genealogy tasks.
+
+Individual quick entry should support:
+
+- full name;
+- sex;
+- birth date;
+- birth place;
+- death date;
+- death place.
+
+Family quick entry should support:
+
+- partner;
+- union date;
+- union place;
+- children.
+
+Source quick entry should support:
+
+- title;
+- locator;
+- repository (optional).
+
+Name Entry
+
+The quick-entry workflow should include a:
+
+    Full Name
+
+field.
+
+The entered text is used only to pre-populate a `PersonalNameStructure` and its parts. The user should immediately see the parsed result and be able to edit or correct it.
+
+Examples:
+
+    Giovanni Rossi
+
+may pre-populate:
+
+    given = Giovanni
+    family = Rossi
+
+but the parser is only a convenience mechanism, not an authoritative interpretation.
+
+The existing `PersonalNameStructure` editor remains the authoritative representation and must continue to support:
+
+- multiple surnames;
+- particles and prefixes;
+- patronymics;
+- aliases;
+- non-Western naming conventions;
+- complex historical names.
+
+The quick-entry field reduces the number of dialogs required for common names while preserving the full expressive power of the underlying model.
+
+The quick-entry layer should transparently create and maintain the underlying FLEF structures:
+
+- PersonalNameStructure
+- IndividualAttributeRecord
+- EventRecord
+- EventParticipationRecord
+- RelationshipRecord
+- SourceRecord
+- SourceCitation
+- ExtractRecord
+
+Advanced editors remain available and expose the complete model.
+
+Design principle:
+
+    Easy things should be easy.
+    Complex things should remain possible.
+
+A beginner should be able to enter a small family tree without understanding EventParticipationRecord, PersonalNameStructure parts, relationship records, or evidence qualifiers, while advanced users retain full control of the model.
 1. **Typing a name takes three nested dialogs.** *Add Individual* shows only a *Personal Names* list. Each name opens its own dialog, whose
    *Parts* list opens one more dialog per part (type + value). "Giovanni Rossi" = individual > name > part *given* > part *family*, with no
    field to type the full name. Proposal: a one-line "Full name" in the new-individual dialog that is split (last word = family, with the
@@ -110,10 +189,38 @@ suspicions to confirm with a test or by hand. Ordered by how much they hurt a be
    the help needs a section ("Changing a date of birth") to explain it. Proposal: "Birth" and "Death" rows (date, place) in the new-individual
    dialog and in the dossier, creating the event and the participation behind the scenes. *(verify)* what the views do with a participation
    whose role is empty: the role is optional, but the birth is read as the *principal* one.
-4. **A marriage is two records for one fact.** The relationship (*civil spouse*, with *Valid From*) and the marriage *event* (date, place,
-   witnesses) are separate; the Assistant reports an event with no relationship, and the relationship's *Valid From* repeats the date of the
-   event. The generic *spouse* and *child* types exist only because the importers have nothing better, and the editor still offers them.
-   Proposal: create the union from one dialog (type, date, place) that writes both records.
+4. **Union / Marriage quick entry** (high value).
+
+Keep the existing model:
+
+    RelationshipRecord
+    +
+    EventRecord
+
+A relationship and a marriage event are distinct concepts and should remain separate in FLEF.
+
+However, users should not need to create both records manually for common genealogy workflows.
+
+Provide a single:
+
+    Add Partner...
+    Create Union...
+
+workflow that asks for:
+
+- relationship type;
+- date;
+- place;
+
+and automatically creates and links the corresponding:
+
+- RelationshipRecord;
+- marriage/union EventRecord;
+- participant records.
+
+Advanced users must still be able to edit the underlying records independently.
+
+The objective is to simplify data entry without simplifying the data model.
 5. **Citing a source is a long road.** *Sources > Create New...* opens the source (its **title is a name structure**: another nested dialog
     just to type a title), then its repository (another name dialog), then the citation (source and *Stance* required; stance is almost
     always *supports*), the *evidence* qualifiers, the *extract*. Proposal: *Title* as a plain text box when there is one name, *Stance*

@@ -361,13 +361,16 @@ public final class ChineseCalendarParser{
 	}
 
 	private static int parseDay(final String dayToken){
-		if(dayToken.isEmpty())
-			throw new IllegalArgumentException("Missing required day string component.");
+		switch(dayToken){
+			case "" -> throw new IllegalArgumentException("Missing required day string component.");
+			case ERSHI -> {
+				return 20;
+			}
+			case SANSHI -> {
+				return 30;
+			}
+		}
 
-		if(dayToken.equals(ERSHI))
-			return 20;
-		if(dayToken.equals(SANSHI))
-			return 30;
 		if(dayToken.length() == 1)
 			// a single character: 十 (10), 廿 (20), 卅 (30), or a unit (1-9)
 			return switch(dayToken.charAt(0)){

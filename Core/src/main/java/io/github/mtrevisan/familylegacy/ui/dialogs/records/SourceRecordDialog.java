@@ -295,7 +295,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			.getModel();
 		for(int i = 0; i < citations.getSize(); i ++){
 			final String originalId = SourceHelper.extractReferencedId(citations.getElementAt(i));
-			if(originalId != null && SourceHelper.isOrDerivesFrom(model, originalId, record.getId())){
+			if(SourceHelper.isOrDerivesFrom(model, originalId, record.getId())){
 				GUIHelper.showValidationErrorAndFocus(this,
 					I18N.tf("validation.source_derivation_cycle", originalId),
 					tabbedPane, sourcesPanel, derivedFromPanel.getList());

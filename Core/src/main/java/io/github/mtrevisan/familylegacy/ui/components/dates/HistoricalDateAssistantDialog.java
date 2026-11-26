@@ -889,8 +889,7 @@ public class HistoricalDateAssistantDialog extends JDialog{
 		final PlaceNameResolver resolver = new PlaceNameResolver(model);
 		for(final FLEFRecord place : model.getRecordsByType(PlaceReader.TYPE)){
 			final Optional<CalendarReform> reform = resolver.calendarReform(place.getId());
-			if(reform.isPresent())
-				places.add(new PlaceChoice(resolver.fullName(place.getId()), reform.get()));
+			reform.ifPresent(calendarReform -> places.add(new PlaceChoice(resolver.fullName(place.getId()), calendarReform)));
 		}
 		places.sort(Comparator.comparing(PlaceChoice::label, String.CASE_INSENSITIVE_ORDER));
 		return places;

@@ -263,7 +263,7 @@ public final class ResearchTimelineDialog extends JDialog{
 			}
 
 		final List<Choice> choices = new ArrayList<>(byId.values());
-		choices.sort(Comparator.comparing((Choice choice) -> choice.label(), String.CASE_INSENSITIVE_ORDER)
+		choices.sort(Comparator.comparing(Choice::label, String.CASE_INSENSITIVE_ORDER)
 			.thenComparing(Choice::id));
 		return choices;
 	}

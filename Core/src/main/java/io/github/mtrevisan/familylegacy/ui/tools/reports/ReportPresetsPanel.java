@@ -139,7 +139,7 @@ public final class ReportPresetsPanel extends JPanel{
 			String chosen = null;
 			for(final String name : preferences.presetNames(type)){
 				names.addElement(name);
-				if(selected != null && name.equalsIgnoreCase(selected))
+				if(name.equalsIgnoreCase(selected))
 					chosen = name;
 			}
 			combo.setSelectedItem(chosen != null? chosen: names.getElementAt(0));

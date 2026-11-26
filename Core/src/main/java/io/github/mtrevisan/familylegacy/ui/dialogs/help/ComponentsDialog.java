@@ -109,7 +109,7 @@ public final class ComponentsDialog extends JDialog{
 		table.setAutoCreateRowSorter(true);
 		//the size is shown as text ("1.5 MB"): it is sorted as a number
 		((TableRowSorter<?>)table.getRowSorter()).setComparator(SIZE,
-			Comparator.<Object>comparingDouble(value -> NumberUtils.toDouble(StringUtils.substringBefore((String)value, " "), -1.)));
+			Comparator.comparingDouble(value -> NumberUtils.toDouble(StringUtils.substringBefore((String)value, " "), -1.)));
 		table.getTableHeader().setReorderingAllowed(false);
 		column(table, 0, 40);
 		column(table, NAME, 220);

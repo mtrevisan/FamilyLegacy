@@ -198,7 +198,7 @@ public final class InferenceInspection{
 		for(final FLEFRecord reference : FLEFRecordHelper.findChildren(conclusion, ConclusionReader.TAG_RESEARCH)){
 			final String id = referenceValue(reference);
 			final FLEFRecord question = (id != null? model.getRecordById(id): null);
-			if(question != null && ResearchQuestionReader.isOfType(question))
+			if(ResearchQuestionReader.isOfType(question))
 				questions.add(ResearchHelper.questionTitle(question));
 			else if(id != null)
 				questions.add(id);

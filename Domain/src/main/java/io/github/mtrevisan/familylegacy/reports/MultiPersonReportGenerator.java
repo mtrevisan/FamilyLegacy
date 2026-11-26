@@ -109,9 +109,8 @@ public final class MultiPersonReportGenerator{
 		final ReportContext first = ReportContext.build(model, (persons.isEmpty()? groups.getFirst(): persons.getFirst()), config);
 		first.useMarks(marks);
 		final RelationIndex sharedIndex = first.index;
-		final List<ReportSection> sections = new ArrayList<>();
 
-		sections.addAll(new HeaderSection(first).build());
+		final List<ReportSection> sections = new ArrayList<>(new HeaderSection(first).build());
 		sections.add(new ReportSection.Heading(1, first.labels.sections().overview()));
 		sections.add(new ReportSection.Paragraph(first.labels.sections().multiPersonCover(persons.size())));
 
@@ -220,8 +219,8 @@ public final class MultiPersonReportGenerator{
 	private static List<ReportSection> demoted(final List<ReportSection> sections){
 		final List<ReportSection> out = new ArrayList<>(sections.size());
 		for(final ReportSection section : sections)
-			out.add(section instanceof ReportSection.Heading heading
-				? new ReportSection.Heading(Math.min(6, heading.level() + 1), heading.text()): section);
+			out.add(section instanceof ReportSection.Heading(int level, String text)
+				? new ReportSection.Heading(Math.min(6, level + 1), text): section);
 		return out;
 	}
 

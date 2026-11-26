@@ -134,7 +134,7 @@ public final class SourcesSection implements SectionBuilder{
 	/** @return	The sources by title, in the order of the language (the same order of the list of citations), then by identifier. */
 	private List<String> alphabetical(final Set<String> ids){
 		final List<String> sorted = new ArrayList<>(ids);
-		sorted.sort(Comparator.comparing((final String id) -> ctx.sourceTitle(id), ReportCollation.of(ctx.labels.language().locale()))
+		sorted.sort(Comparator.comparing(ctx::sourceTitle, ReportCollation.of(ctx.labels.language().locale()))
 			.thenComparing(Comparator.naturalOrder()));
 		return sorted;
 	}

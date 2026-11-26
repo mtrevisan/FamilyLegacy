@@ -195,7 +195,7 @@ public final class ImportFileTool implements ToolOperation{
 			.filter(importer -> importer.accepts(file.toPath()))
 			.toList();
 		if(candidates.size() == 1)
-			return candidates.get(0);
+			return candidates.getFirst();
 
 		if(candidates.isEmpty()){
 			final String supported = importers.stream()

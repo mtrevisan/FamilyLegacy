@@ -70,7 +70,7 @@ public final class SourceKindChecker{
 			return List.of();
 
 		final FLEFRecord source = model.getRecordById(sourceId);
-		if(source == null || !SourceReader.isOfType(source))
+		if(!SourceReader.isOfType(source))
 			return List.of();
 
 		final String kind = StringUtils.trimToNull(SourceReader.extractKind(source));

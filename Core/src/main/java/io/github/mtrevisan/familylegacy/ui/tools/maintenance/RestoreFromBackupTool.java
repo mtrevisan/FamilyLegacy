@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 
+import io.github.mtrevisan.familylegacy.backup.ProjectArchive;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -31,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolCo
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFileChooser;
@@ -43,9 +45,9 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * Loads a FLEF file (typically a backup) and replaces the current model
- * with it. The change is immediate and irreversible: the tool asks for
- * confirmation before doing anything.
+ * Restores a backup. A ZIP backup (see {@link ProjectArchive}) is extracted into a new folder and opened, so the open document is left as
+ * it is. A single FLEF file (typically a backup) replaces the current model: the change is immediate and irreversible, and the tool
+ * asks for confirmation before doing anything.
  * <p>
  * The unsaved changes of the open document are offered for saving first. The file may be plain or compressed text, as with Open, and is
  * read in the background, with a progress dialog.
@@ -67,7 +69,8 @@ public final class RestoreFromBackupTool implements ToolOperation{
 
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setDialogTitle(I18N.t("dialog.restore.choose"));
-		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.flef"), "flef"));
+		chooser.setAcceptAllFileFilterUsed(false);
+		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.backup.any"), ProjectArchive.EXTENSION, "flef"));
 		if(chooser.showOpenDialog(context.owner()) != JFileChooser.APPROVE_OPTION)
 			return;
 
@@ -78,6 +81,10 @@ public final class RestoreFromBackupTool implements ToolOperation{
 			MessageDialogs.show(context.owner(), I18N.tf("error.file.not_found", file.getAbsolutePath()),
 				I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
 
+			return;
+		}
+		if(ProjectArchive.isArchive(file.toPath())){
+			restoreArchive(context, file);
 			return;
 		}
 
@@ -94,6 +101,73 @@ public final class RestoreFromBackupTool implements ToolOperation{
 			return;
 
 		read(context, file);
+	}
+
+	/**
+	 * A ZIP backup is extracted into a new folder, chosen by the user, and opened: the open document is not replaced, so nothing is lost
+	 * and nothing is overwritten.
+	 */
+	private static void restoreArchive(final ToolContext context, final File archive){
+		final JFileChooser chooser = new JFileChooser(archive.getAbsoluteFile().getParentFile());
+		chooser.setDialogTitle(I18N.t("dialog.restore.choose_folder"));
+		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		if(chooser.showOpenDialog(context.owner()) != JFileChooser.APPROVE_OPTION || chooser.getSelectedFile() == null)
+			return;
+
+		//the project goes in a folder named after the archive
+		final File folder = new File(chooser.getSelectedFile(), FilenameUtils.getBaseName(archive.getName()));
+		if(folder.exists() && (!folder.isDirectory() || listNames(folder).length > 0)){
+			MessageDialogs.show(context.owner(), I18N.tf("dialog.restore.folder_taken", folder.getAbsolutePath()),
+				I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
+
+		final int choice = MessageDialogs.confirm(context.owner(),
+			I18N.tf("confirmation.restore_archive.message", archive.getName(), folder.getAbsolutePath()),
+			I18N.t("confirmation.restore_archive.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		if(choice != JOptionPane.YES_OPTION)
+			return;
+
+		final ProgressDialog progress = new ProgressDialog(context.owner(), I18N.t("dialog.restore.title"),
+			I18N.tf("dialog.file.open.progress", archive.getName()));
+		final SwingWorker<ProjectArchive.Extracted, Void> worker = new SwingWorker<>(){
+			@Override
+			protected ProjectArchive.Extracted doInBackground() throws Exception{
+				//indeterminate: the size of the archive is not known in advance
+				progress.update(-1, I18N.t("progress.reading_file"));
+
+				return ProjectArchive.extract(archive.toPath(), folder.toPath());
+			}
+
+			@Override
+			protected void done(){
+				progress.close();
+
+				try{
+					final ProjectArchive.Extracted extracted = get();
+					//as File > Open does: what is pending in the open document is written first
+					context.openFile(extracted.flef().toFile());
+				}
+				catch(final InterruptedException ex){
+					Thread.currentThread().interrupt();
+				}
+				catch(final ExecutionException ex){
+					final Throwable cause = (ex.getCause() != null? ex.getCause(): ex);
+					MessageDialogs.show(context.owner(), I18N.l("dialog.restore.error.archive") + StringUtils.LF + cause.getMessage(),
+						I18N.t("dialog.restore.title"), JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		};
+
+		worker.execute();
+		//modal: blocks the caller until done() disposes the dialog
+		progress.setVisible(true);
+	}
+
+	private static String[] listNames(final File folder){
+		final String[] names = folder.list();
+		return (names != null? names: new String[0]);
 	}
 
 	private static void read(final ToolContext context, final File file){

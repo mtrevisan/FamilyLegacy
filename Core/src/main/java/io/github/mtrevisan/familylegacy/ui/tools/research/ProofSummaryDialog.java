@@ -96,7 +96,7 @@ final class ProofSummaryDialog extends JDialog{
 
 		distributionTable = ToolDialogs.createTable(new RowTableModel(new String[]{I18N.t("column.status"), I18N.t("column.conclusions")}, List.of()),
 			null);
-		conclusionsTable = ToolDialogs.createTable(new RowTableModel(columns(), List.of()), row -> openRow(row));
+		conclusionsTable = ToolDialogs.createTable(new RowTableModel(columns(), List.of()), this::openRow);
 		conclusionsTable.getSelectionModel()
 			.addListSelectionListener(e -> updateOpenButton());
 

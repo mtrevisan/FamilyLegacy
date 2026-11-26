@@ -69,7 +69,7 @@ public final class PlaceAncestors{
 			final Set<String> seen = new HashSet<>();
 			final List<String> queue = new ArrayList<>(parents.get(place));
 			while(!queue.isEmpty()){
-				final String next = queue.remove(queue.size() - 1);
+				final String next = queue.removeLast();
 				if(!next.equals(place) && seen.add(next))
 					queue.addAll(parents.getOrDefault(next, Set.of()));
 			}

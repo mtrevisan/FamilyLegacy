@@ -66,8 +66,7 @@ final class InsertionSet extends AbstractSet<String>{
 			index.add(element);
 		else if(size > INDEX_THRESHOLD){
 			index = new HashSet<>(size * 2);
-			for(int i = 0; i < size; i ++)
-				index.add(items[i]);
+			index.addAll(Arrays.asList(items).subList(0, size));
 		}
 		return true;
 	}

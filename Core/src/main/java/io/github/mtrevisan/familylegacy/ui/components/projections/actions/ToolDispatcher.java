@@ -49,6 +49,9 @@ public interface ToolDispatcher{
 		return null;
 	}
 
+	/** Opens a FLEF file as the document, as File &gt; Open does (the unsaved changes of the open one are written first). */
+	default void openFile(final File file){}
+
 	default void editEntity(final String id){}
 
 	default void paste(){}

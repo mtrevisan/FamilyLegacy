@@ -108,7 +108,7 @@ public final class ContextDataLoader{
 				continue;
 			final DateRange range = range(event, EventReader.TAG_DATE);
 			final String who = Sentences.list(entry.getValue().stream().map(names::get).toList());
-			final String what = I18N.t("enum.event.type." + type, String.valueOf(type));
+			final String what = I18N.t("enum.event.type." + type, type);
 			final boolean bounded = (range != null && range.min() != Long.MIN_VALUE && range.max() != Long.MAX_VALUE);
 			events.add(new ContextData.Event(entry.getKey(), type, range, FLEFRecordHelper.getChildValue(event, PLACE_OF),
 				I18N.tf("context.event.label", what, who)

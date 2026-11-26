@@ -196,7 +196,7 @@ public final class ViewportCentering{
 
 	/** @return	The position kept between 0 and the farthest the viewport can go ({@code max} may be negative: the content fits). */
 	private static int clamp(final int position, final int max){
-		return Math.max(0, Math.min(position, max));
+		return Math.clamp(position, 0, max);
 	}
 
 }

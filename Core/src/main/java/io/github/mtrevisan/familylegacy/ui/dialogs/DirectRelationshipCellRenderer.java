@@ -64,13 +64,12 @@ public class DirectRelationshipCellRenderer extends DefaultListCellRenderer{
 				default -> I18N.t("text.relationship.category.other");
 			};
 
-			final StringBuilder sb = new StringBuilder();
-			sb.append("<html><b>").append(categoryTag).append("</b> ")
-				.append(StringUtils.replaceEach(RelationshipHandler.getSentence(record, model),
-					new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"}))
-				.append("</html>");
+			final String sb = "<html><b>" + categoryTag + "</b> " +
+				StringUtils.replaceEach(RelationshipHandler.getSentence(record, model),
+					new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"}) +
+				"</html>";
 
-			label.setText(sb.toString());
+			label.setText(sb);
 		}
 
 		return label;

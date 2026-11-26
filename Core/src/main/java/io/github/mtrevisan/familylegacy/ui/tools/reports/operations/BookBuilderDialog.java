@@ -292,7 +292,6 @@ public final class BookBuilderDialog extends JDialog{
 	 * ====================================================================== */
 
 	/** @return	The kinds of record a report of the type can be about; empty for a report of the whole file. */
-	@SuppressWarnings("unchecked")
 	private static Class<? extends RecordTypeHandler<?>>[] subjectKinds(final ReportType type){
 		return switch(type){
 			case ANCESTOR, DESCENDANT, INDIVIDUAL, RELATIONSHIP, FAMILY_GROUP_SHEET, END_OF_LINE, PEDIGREE_COLLAPSE, KINSHIP ->

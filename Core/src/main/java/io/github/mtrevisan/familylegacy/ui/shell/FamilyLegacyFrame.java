@@ -326,12 +326,12 @@ public class FamilyLegacyFrame extends JFrame{
 							&& !isModalDialogShowing())
 						history.checkpoint(ModelHistory.Origin.DIALOG);
 				}
-				else if(isModalDialogShowing())
-					return;
-				else if(event instanceof ActionEvent
-						|| event instanceof MouseEvent mouseEvent && mouseEvent.getID() == MouseEvent.MOUSE_PRESSED
-						|| event instanceof KeyEvent keyEvent && keyEvent.getID() == KeyEvent.KEY_PRESSED)
-					history.checkpoint();
+				else if(!isModalDialogShowing()){
+					if(event instanceof ActionEvent
+							|| event instanceof MouseEvent mouseEvent && mouseEvent.getID() == MouseEvent.MOUSE_PRESSED
+							|| event instanceof KeyEvent keyEvent && keyEvent.getID() == KeyEvent.KEY_PRESSED)
+						history.checkpoint();
+				}
 			}, AWTEvent.ACTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK | AWTEvent.KEY_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
 	}
 
@@ -846,6 +846,11 @@ public class FamilyLegacyFrame extends JFrame{
 				@Override
 				public void replaceModel(final FLEFModel newModel){
 					FamilyLegacyFrame.this.replaceModel(newModel);
+				}
+
+				@Override
+				public void openFile(final File file){
+					FamilyLegacyFrame.this.openFile(file);
 				}
 
 				@Override

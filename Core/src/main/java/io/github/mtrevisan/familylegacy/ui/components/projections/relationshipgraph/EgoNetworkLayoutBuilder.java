@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.ego.EgoNode;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.ui.components.ReportDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupData;
 import io.github.mtrevisan.familylegacy.ui.components.projections.group.GroupListener;
@@ -40,7 +41,6 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetwo
 import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EgoNetworkIndividualPopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dimension;
@@ -214,12 +214,7 @@ class EgoNetworkLayoutBuilder{
 	}
 
 	private static String escapeHtml(final String text){
-		if(text == null)
-			return StringUtils.EMPTY;
-
-		return text.replace("&", "&amp;")
-			.replace("<", "&lt;")
-			.replace(">", "&gt;");
+		return ReportDialog.escape(text);
 	}
 
 }

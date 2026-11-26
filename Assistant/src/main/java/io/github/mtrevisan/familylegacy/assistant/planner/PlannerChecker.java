@@ -51,6 +51,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -242,7 +243,7 @@ public final class PlannerChecker{
 		}
 		return ids.stream()
 			.map(data.persons()::get)
-			.filter(person -> person != null)
+			.filter(Objects::nonNull)
 			.limit(MAX_PERSONS_PER_QUESTION)
 			.toList();
 	}

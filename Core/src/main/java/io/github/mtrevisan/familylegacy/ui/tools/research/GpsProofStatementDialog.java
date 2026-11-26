@@ -73,7 +73,7 @@ final class GpsProofStatementDialog extends JDialog{
 		text.setCaretPosition(0);
 
 		final JButton save = new JButton(I18N.t("button.gps.save_statement"));
-		save.setEnabled(question != null && ResearchQuestionReader.isOfType(question));
+		save.setEnabled(ResearchQuestionReader.isOfType(question));
 		save.addActionListener(e -> save());
 		final JButton close = new JButton(I18N.t("button.close"));
 		close.addActionListener(e -> dispose());

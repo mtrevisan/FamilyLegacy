@@ -164,19 +164,27 @@ public final class AssistantContextualSuggestions implements ContextualSuggestio
 		//sex are not a conflict
 		if(CONFLICTS.contains(kind))
 			return SuggestionKind.CONCLUSION;
-		if(kind.equals("conclusion.unresolved_identity"))
-			return SuggestionKind.OPEN_HYPOTHESIS;
-		//only the strong candidates (the weak ones are in the assistant, where they can be ignored)
-		if(kind.equals("identity.possible_duplicate"))
-			return (finding.severity() == Diagnostic.Severity.WARNING? SuggestionKind.IDENTITY_HYPOTHESIS: null);
-		if(kind.equals("context.norm_estimate"))
-			return SuggestionKind.CULTURAL_NORM;
-		if(kind.equals("context.candidate"))
-			return SuggestionKind.CONTEXT_IMPACT;
-		if(kind.equals("place.jurisdiction_changed"))
-			return SuggestionKind.JURISDICTION_CHANGE;
-		if(kind.equals("context.cluster"))
-			return SuggestionKind.HISTORIC_EVENT;
+		switch(kind){
+			case "conclusion.unresolved_identity" -> {
+				return SuggestionKind.OPEN_HYPOTHESIS;
+			}
+			//only the strong candidates (the weak ones are in the assistant, where they can be ignored)
+			case "identity.possible_duplicate" -> {
+				return (finding.severity() == Diagnostic.Severity.WARNING ? SuggestionKind.IDENTITY_HYPOTHESIS : null);
+			}
+			case "context.norm_estimate" -> {
+				return SuggestionKind.CULTURAL_NORM;
+			}
+			case "context.candidate" -> {
+				return SuggestionKind.CONTEXT_IMPACT;
+			}
+			case "place.jurisdiction_changed" -> {
+				return SuggestionKind.JURISDICTION_CHANGE;
+			}
+			case "context.cluster" -> {
+				return SuggestionKind.HISTORIC_EVENT;
+			}
+		}
 		if(kind.startsWith("gap.") && !COMMON_GAPS.contains(kind) && finding.action() instanceof CreateResearchDraftAction draft)
 			return (draft.draft().kind() == GapDraft.Kind.QUESTION? SuggestionKind.RESEARCH_GAP: SuggestionKind.RESEARCH_TASK);
 		return null;

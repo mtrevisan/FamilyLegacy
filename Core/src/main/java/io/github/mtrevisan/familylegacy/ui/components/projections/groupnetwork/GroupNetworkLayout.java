@@ -121,7 +121,7 @@ public final class GroupNetworkLayout{
 		for(final Map.Entry<Integer, List<String>> row : rows.entrySet()){
 			final List<String> ids = row.getValue();
 			ids.sort(Comparator.<String>comparingDouble(id -> meanParentPosition(id, parents, position))
-				.thenComparing(id -> labels.get(id), String.CASE_INSENSITIVE_ORDER)
+				.thenComparing(labels::get, String.CASE_INSENSITIVE_ORDER)
 				.thenComparing(Comparator.naturalOrder()));
 			for(int i = 0; i < ids.size(); i ++)
 				position.put(ids.get(i), (double)i);

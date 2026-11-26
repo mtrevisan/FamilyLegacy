@@ -141,7 +141,7 @@ public final class RecentFilesManager{
 		files.addFirst(entry);
 
 		while(files.size() > MAX_ENTRIES)
-			files.remove(files.size() - 1);
+			files.removeLast();
 
 		save();
 	}

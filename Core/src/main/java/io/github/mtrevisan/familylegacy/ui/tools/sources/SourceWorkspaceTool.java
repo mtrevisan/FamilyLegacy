@@ -54,7 +54,7 @@ public final class SourceWorkspaceTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFRecord selected = (context.hasSelectedEntity()? context.getSelectedEntity(): null);
-		final String sourceId = (selected != null && SourceHandler.isOfType(selected)? selected.getId(): null);
+		final String sourceId = (SourceHandler.isOfType(selected) ? selected.getId(): null);
 
 		new SourceWorkspaceDialog(context.owner(), context.model(), sourceId)
 			.setVisible(true);

@@ -722,7 +722,7 @@ final class ResearchAssistantPalette extends JDialog{
 
 	/** Shows how far the computation is (it is told from the thread that computes, so it hands over to the event dispatch thread). */
 	private void showProgress(final double fraction){
-		final int step = (int)Math.round(Math.max(0., Math.min(1., fraction)) * PROGRESS_STEPS);
+		final int step = (int)Math.round(Math.clamp(fraction, 0., 1.) * PROGRESS_STEPS);
 		SwingUtilities.invokeLater(() -> {
 			//the findings may have arrived while this was waiting
 			if(diagnostics != null)

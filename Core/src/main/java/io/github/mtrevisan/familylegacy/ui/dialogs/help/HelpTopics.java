@@ -74,8 +74,7 @@ public final class HelpTopics{
 				continue;
 
 			final Optional<String> markdown = markdown(file, locale);
-			if(markdown.isPresent())
-				topics.add(new Topic(file, StringUtils.defaultIfBlank(MarkdownToHtml.title(markdown.get()), file)));
+			markdown.ifPresent(s -> topics.add(new Topic(file, StringUtils.defaultIfBlank(MarkdownToHtml.title(s), file))));
 		}
 		return topics;
 	}

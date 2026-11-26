@@ -344,8 +344,8 @@ public final class ReportPreferences{
 			}
 		}
 		if(example instanceof Enum<?> constant)
-			for(final Object candidate : constant.getDeclaringClass().getEnumConstants())
-				if(((Enum<?>)candidate).name().equals(text))
+			for(final Enum<?> candidate : constant.getDeclaringClass().getEnumConstants())
+				if(candidate.name().equals(text))
 					return candidate;
 		return null;
 	}

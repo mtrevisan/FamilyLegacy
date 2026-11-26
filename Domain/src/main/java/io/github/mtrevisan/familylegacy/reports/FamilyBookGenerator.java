@@ -111,7 +111,7 @@ public final class FamilyBookGenerator{
 		//who has no name comes last; the others in the order of the language (accents near their letter)
 		final Comparator<String> order = ReportCollation.of(locale);
 		final Comparator<FLEFRecord> byName = Comparator.comparing((final FLEFRecord person) -> NO_NAME.equals(names.get(person)))
-			.thenComparing(person -> names.get(person), order)
+			.thenComparing(names::get, order)
 			.thenComparing(FLEFRecord::getId);
 		final List<FLEFRecord> out = new ArrayList<>(persons);
 		if(config.personOrder() == PersonOrder.BIRTH_DATE){

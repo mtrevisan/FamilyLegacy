@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -167,7 +168,7 @@ public final class GapAnalysis{
 		}
 		return ids.stream()
 			.map(data.persons()::get)
-			.filter(person -> person != null)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 

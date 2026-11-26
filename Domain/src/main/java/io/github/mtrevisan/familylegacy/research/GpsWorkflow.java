@@ -345,7 +345,7 @@ public final class GpsWorkflow{
 		if(conclusionSubject){
 			for(final FLEFRecord reference : FLEFRecordHelper.findChildren(subject, ConclusionReader.TAG_RESEARCH)){
 				final FLEFRecord question = record(model, idOf(reference));
-				if(question != null && ResearchQuestionReader.isOfType(question) && !questions.contains(question))
+				if(ResearchQuestionReader.isOfType(question) && !questions.contains(question))
 					questions.add(question);
 			}
 		}

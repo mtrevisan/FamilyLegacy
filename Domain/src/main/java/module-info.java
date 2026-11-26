@@ -33,6 +33,7 @@ open module io.github.mtrevisan.familylegacy.domain {
 	requires org.slf4j;
 	requires com.ibm.icu;
 
+	exports io.github.mtrevisan.familylegacy.backup;
 	exports io.github.mtrevisan.familylegacy.chronomap;
 	exports io.github.mtrevisan.familylegacy.comparison;
 	exports io.github.mtrevisan.familylegacy.consanguinity;

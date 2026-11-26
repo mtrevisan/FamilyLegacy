@@ -50,11 +50,9 @@ public final class UpdateChecker{
 
 		final ReleaseInfo release = latest.get();
 		final Optional<Version> current = Version.parse(currentVersion);
-		if(current.isEmpty())
-			return new UpdateCheck(UpdateCheck.Status.UNKNOWN_CURRENT_VERSION, release);
+		return current.map(version -> new UpdateCheck((release.version().compareTo(version) > 0 ? UpdateCheck.Status.UPDATE_AVAILABLE :
+			UpdateCheck.Status.UP_TO_DATE), release)).orElseGet(() -> new UpdateCheck(UpdateCheck.Status.UNKNOWN_CURRENT_VERSION, release));
 
-		return new UpdateCheck((release.version().compareTo(current.get()) > 0? UpdateCheck.Status.UPDATE_AVAILABLE:
-			UpdateCheck.Status.UP_TO_DATE), release);
 	}
 
 }

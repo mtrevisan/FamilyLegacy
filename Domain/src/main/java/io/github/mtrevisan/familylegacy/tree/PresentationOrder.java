@@ -133,7 +133,7 @@ public final class PresentationOrder{
 			final Function<? super T, NormalizedDate> dateOf){
 		return switch(order){
 			case CHRONOLOGICAL -> byDate(items, dateOf);
-			case REVERSE_CHRONOLOGICAL -> sortKeyed(items, dateOf, (a, b) -> b.compareTo(a));
+			case REVERSE_CHRONOLOGICAL -> sortKeyed(items, dateOf, Comparator.reverseOrder());
 			case EXISTING -> new ArrayList<>(items);
 		};
 	}

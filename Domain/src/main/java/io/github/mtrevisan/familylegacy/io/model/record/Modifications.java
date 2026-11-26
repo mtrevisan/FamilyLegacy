@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.io.model.record;
 
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -37,7 +38,7 @@ import java.util.List;
  */
 public final class Modifications{
 
-	private static volatile long count;
+	private static final AtomicLong count= new AtomicLong(0l);
 	private static volatile boolean shared;
 
 	/** How many of the records modified last are remembered (the ones modified before are forgotten, and it is known that they are). */
@@ -59,7 +60,7 @@ public final class Modifications{
 	 * @return	The new value of the counter.
 	 */
 	public static long touch(){
-		return ++ count;
+		return count.incrementAndGet();
 	}
 
 /** Tells that a top-level record (or something below it) was modified when the counter was at {@code stamp}. */
@@ -129,7 +130,7 @@ private static boolean containsIdentity(final List<FLEFRecord> records, final FL
 
 	/** @return	A value that is the same as the one given before if and only if nothing changed in between. */
 	public static long current(){
-		return count;
+		return count.get();
 	}
 
 }

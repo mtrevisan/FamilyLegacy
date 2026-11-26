@@ -231,7 +231,7 @@ public final class FanService{
 
 		final SexType first = sexOf(firstId);
 		final SexType second = sexOf(secondId);
-		return (first == SexType.UNKNOWN || second == SexType.UNKNOWN || first != second);
+		return (second == SexType.UNKNOWN || first != second);
 	}
 
 	private SexType sexOf(final String individualId){
@@ -242,7 +242,7 @@ public final class FanService{
 
 	private boolean isVisibleIndividual(final String id){
 		final FLEFRecord record = model.getRecordById(id);
-		return (record != null && IndividualReader.isOfType(record) && !PrivacyService.isHidden(model, record));
+		return (IndividualReader.isOfType(record) && !PrivacyService.isHidden(model, record));
 	}
 
 	private String nameOf(final String individualId){

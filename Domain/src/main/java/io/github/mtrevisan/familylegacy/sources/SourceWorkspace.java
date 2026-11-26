@@ -121,7 +121,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 	 */
 	public static SourceWorkspace of(final FLEFModel model, final String sourceId){
 		final FLEFRecord source = (sourceId != null? model.getRecordById(sourceId): null);
-		if(source == null || !SourceReader.isOfType(source) || PrivacyService.isHidden(model, source))
+		if(!SourceReader.isOfType(source) || PrivacyService.isHidden(model, source))
 			return null;
 
 		final Map<String, List<String>> participantsOfEvent = participantsOfEvents(model);
@@ -164,7 +164,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 		else if(EventParticipationReader.isOfType(owner)){
 			//a cited participation backs the event as well
 			final FLEFRecord event = model.getRecordById(FLEFRecordHelper.getChildValue(owner, EventParticipationReader.TAG_EVENT));
-			if(event != null && EventReader.isOfType(event) && PrivacyService.isVisible(model, event))
+			if(EventReader.isOfType(event) && PrivacyService.isVisible(model, event))
 				events.putIfAbsent(event.getId(), event);
 		}
 	}
@@ -202,7 +202,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 		final Map<String, FLEFRecord> people = new LinkedHashMap<>(ids.size());
 		for(final String id : ids){
 			final FLEFRecord record = (id != null? model.getRecordById(id): null);
-			if(record != null && IndividualReader.isOfType(record) && PrivacyService.isVisible(model, record))
+			if(IndividualReader.isOfType(record) && PrivacyService.isVisible(model, record))
 				people.putIfAbsent(id, record);
 		}
 		return List.copyOf(people.values());
@@ -234,7 +234,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 	 * @return	The groups, by key; every visible source is in at least one.
 	 */
 	public static List<SourceGroup> group(final FLEFModel model, final Grouping grouping){
-		final Map<String, List<FLEFRecord>> groups = new TreeMap<>(Comparator.<String, Boolean>comparing(String::isEmpty)
+		final Map<String, List<FLEFRecord>> groups = new TreeMap<>(Comparator.comparing(String::isEmpty)
 			.thenComparing(String.CASE_INSENSITIVE_ORDER)
 			.thenComparing(Comparator.naturalOrder()));
 		for(final FLEFRecord source : SourceHelper.listAllSources(model)){
@@ -246,7 +246,7 @@ public record SourceWorkspace(FLEFRecord source, List<Citation> citations, List<
 					.add(source);
 		}
 
-		final Comparator<FLEFRecord> byTitle = Comparator.comparing((FLEFRecord source) -> SourceHelper.sourceTitle(source),
+		final Comparator<FLEFRecord> byTitle = Comparator.comparing(SourceHelper::sourceTitle,
 				String.CASE_INSENSITIVE_ORDER)
 			.thenComparing(FLEFRecord::getId);
 		final List<SourceGroup> result = new ArrayList<>(groups.size());

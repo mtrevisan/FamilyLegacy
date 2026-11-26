@@ -270,9 +270,9 @@ public final class RelationshipChecker{
 
 			//an association with a role is not symmetric: the role is the one of the subject, so the same two written from both sides
 				//with different roles (e.g. "witness" and "newborn") are different relationships
-				final boolean hasRole = (ASSOCIATE.equals(relationship.type()) && relationship.role() != null
-					&& !relationship.role().isBlank());
-				final boolean symmetric = (SYMMETRIC_TYPES.contains(relationship.type()) && !hasRole);
+         final boolean hasRole = (ASSOCIATE.equals(relationship.type()) && relationship.role() != null
+            && !relationship.role().isBlank());
+         final boolean symmetric = (SYMMETRIC_TYPES.contains(relationship.type()) && !hasRole);
 			final String key = (symmetric
 				? pair(relationship.subjectId(), relationship.targetId())
 				: relationship.subjectId() + ">" + relationship.targetId()) + "|" + relationship.type()

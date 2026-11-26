@@ -182,7 +182,7 @@ public final class GuidedTourDialog extends JDialog{
 	}
 
 	private void show(final int step){
-		index = Math.max(0, Math.min(step, steps.size() - 1));
+		index = Math.clamp(step, 0, steps.size() - 1);
 		final Step shown = steps.get(index);
 		titleLabel.setText(shown.title());
 		textLabel.setText(shown.text());
@@ -218,8 +218,8 @@ public final class GuidedTourDialog extends JDialog{
 		else
 			location = new Point(frameBounds.x + (frameBounds.width - getWidth()) / 2, frameBounds.y + (frameBounds.height - getHeight()) / 2);
 		//kept inside the window of the application
-		location.x = Math.max(frameBounds.x + GAP, Math.min(location.x, frameBounds.x + frameBounds.width - getWidth() - GAP));
-		location.y = Math.max(frameBounds.y + GAP, Math.min(location.y, frameBounds.y + frameBounds.height - getHeight() - GAP));
+		location.x = Math.clamp(location.x, frameBounds.x + GAP, frameBounds.x + frameBounds.width - getWidth() - GAP);
+		location.y = Math.clamp(location.y, frameBounds.y + GAP, frameBounds.y + frameBounds.height - getHeight() - GAP);
 		setLocation(location);
 	}
 

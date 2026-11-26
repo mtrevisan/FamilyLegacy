@@ -181,7 +181,7 @@ abstract class AbstractRelativeTool implements ToolOperation{
 	private static RelationshipTypeSelectionDialog.Item pickOtherParent(final Window owner, final FLEFModel model, final String childId,
 			final String parentId, final SexType requiredSex){
 		final FLEFRecord picked = showSearchDialog(owner, model, requiredSex, childId);
-		if(picked == null || !IndividualHandler.isOfType(picked) || childId.equals(picked.getId()) || parentId.equals(picked.getId()))
+		if(!IndividualHandler.isOfType(picked) || childId.equals(picked.getId()) || parentId.equals(picked.getId()))
 			return null;
 
 		return new RelationshipTypeSelectionDialog.Item(picked.getId(), IndividualHandler.getInstance().getDisplayText(picked, model),

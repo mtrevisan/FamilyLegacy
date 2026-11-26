@@ -54,7 +54,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -217,7 +216,7 @@ public final class SearchBox extends JPanel{
 
 	/** @return	The registered options, in the order of the popup. */
 	public List<SearchOption> options(){
-		return Collections.unmodifiableList(new ArrayList<>(options.values()));
+		return List.copyOf(options.values());
 	}
 
 	/**

@@ -247,7 +247,7 @@ public record ConflictDashboard(List<Entry> entries){
 	private static boolean isVisible(final FLEFModel model, final ReportConflict conflict){
 		for(final String personId : conflict.personIds()){
 			final FLEFRecord person = model.getRecordById(personId);
-			if(person != null && PrivacyService.isHidden(model, person))
+			if(PrivacyService.isHidden(model, person))
 				return false;
 		}
 		return true;

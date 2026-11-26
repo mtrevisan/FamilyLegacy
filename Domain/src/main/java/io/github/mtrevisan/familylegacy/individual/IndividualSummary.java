@@ -137,7 +137,7 @@ public final class IndividualSummary{
 
 		// Check for parent relationships
 		//only the relationships of this individual (an index of the model, not a scan of all of them for each individual)
-		final List<FLEFRecord> relationships = model.<Map<String, List<FLEFRecord>>>derived(RELATIONSHIPS_KEY, () -> relationshipsByIndividual(model))
+		final List<FLEFRecord> relationships = model.derived(RELATIONSHIPS_KEY, () -> relationshipsByIndividual(model))
 			.getOrDefault(id, List.of());
 		for(final FLEFRecord relationship : relationships){
 			final String subjectId = relationship.extractReferencedId(RelationshipReader.TAG_SUBJECT, IndividualReader.TYPE);
@@ -441,7 +441,7 @@ public final class IndividualSummary{
 
 		// Evaluate ConclusionRecords for preferred assertion selection: only those about this kind of event that name a preferred one
 		//(an index of the model, in the order of the conclusions: the same one the scan of all of them would find)
-		final Map<String, List<ConclusionChoice>> choices = model.<Map<String, Map<String, List<ConclusionChoice>>>>derived(CONCLUSIONS_KEY,
+		final Map<String, List<ConclusionChoice>> choices = model.derived(CONCLUSIONS_KEY,
 			() -> conclusionChoices(model)).get(isBirth? EventReader.ENUM_TYPE_BIRTH: EventReader.ENUM_TYPE_DEATH);
 		EventInfo preferredEvent = null;
 		if(!choices.isEmpty()){
