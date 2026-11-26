@@ -12,7 +12,8 @@ Relationships and dates have their own pages: [Relationships](relationships.md) 
 ## The window
 
 - The title says *New* or *Edit* and the type of the record. **OK** is at the bottom and confirms the record; there is no Cancel button: `Esc` (or the close button of the window) closes the editor and discards the changes. Once confirmed, the change can be reverted with Undo (`Ctrl+Z`).
-- Every field label ends with a colon. A label with an **asterisk** (`Type*:`) marks a required field, and a list title with an asterisk (`Personal Names*`) marks a list that needs at least one entry.
+- **An editor opened from another editor** (a name inside a person, a source from a citation...) says, in grey beside **OK**, what happens to its change if you then close the editor that opened it with `Esc`: a record of the file (a source, a place, an event...) is **saved at once** and stays, and can be reverted with Undo; a part of the parent record (a name, an attribute, a note of the record...) is **kept only if you confirm the parent with OK**.
+- Every field label ends with a colon. A label with an **asterisk** (`Type*:`) marks a required field. A list title never has an asterisk: a list (for example the *Personal Names* of a person) may be empty.
 - On OK, the editor checks the fields that it really requires. If one is missing, a dialog titled **Validation Error** says which, and the focus goes to that field (on its tab). The checks are listed in the page of each editor. Some fields have an asterisk but are not checked on OK: the file may then contain a record without them, and [Tools > Validate File](tools.md#validate-file) may report it.
 - A combo box that is **editable** accepts a value of your own as well as the listed ones. A combo that is not editable accepts only the listed values. A combo with a blank first item allows "no value". A value without a translation is shown with a capital letter and spaces instead of underscores. When a combo has many values (more than twelve) you can **search** it: with the combo focused, just type, and only the values containing what you typed (word by word, ignoring case) are listed; Backspace removes the last letter, Enter picks the highlighted value, and Esc closes the list.
 - A combo box with many values (more than 12) is **searched while you type**: the list shows only the values that match what you typed (word by word, any case). In an editable combo the text stays as you typed it, and you can keep it if it is none of the listed values.
@@ -55,7 +56,7 @@ Many records have a **Confidence** combo: blank, **low**, **medium** or **high**
 
 ## Notes
 
-A **Notes** tab lists the notes of the record, each edited in its own dialog: see [the note editor](editors-sources.md#note). The editor of an individual, a group, an event, a place or a source has the notes of kind *story* in a **Stories** tab of their own, before the Notes tab, so that narrative prose is not mixed with the technical notes of the research (below the standard level the Notes tab lists all of them).
+A **Notes** tab lists the notes of the record, each edited in its own dialog: see [the note editor](editors-sources.md#note). The editor of an individual, a group, an event, a place or a source has the notes of kind *story* in a list of their own, above the other notes in the Notes tab, so that narrative prose is not mixed with the technical notes of the research (below the standard level the Notes tab has the one list of all of them).
 
 ## Tags
 

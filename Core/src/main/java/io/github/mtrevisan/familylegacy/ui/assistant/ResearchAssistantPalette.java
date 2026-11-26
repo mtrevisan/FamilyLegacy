@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
+import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -79,6 +80,7 @@ import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.DefaultEditorKit;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -172,6 +174,8 @@ final class ResearchAssistantPalette extends JDialog{
 	private static final int DETAIL_MARGIN = 34;
 	private static final String ACTION_PREVIOUS = "previous";
 	private static final String ACTION_NEXT = "next";
+	private static final String ACTION_COLLAPSE = "collapse";
+	private static final String ACTION_EXPAND = "expand";
 	private static final String ACTION_RUN = "run";
 	/** The steps of the bar of the progress: finer than a percent, so that a long provider is seen moving. */
 	private static final int PROGRESS_STEPS = 1_000;
@@ -244,7 +248,7 @@ final class ResearchAssistantPalette extends JDialog{
 	private volatile List<Diagnostic> diagnostics;
 	/** Whether the palette shows the findings the user ignored, instead of the ones to look at. */
 	private boolean showIgnored;
-	/** The headings that are not as they start: a severity starts open, a kind of finding starts collapsed. */
+	/** The headings the user opened: everything starts collapsed (the headings opened by the user). */
 	private final Set<String> toggled = new HashSet<>();
 	/** What happened to the findings since the user acted on one (kept until the palette is closed), or empty. */
 	private String notice = "";
@@ -289,8 +293,10 @@ final class ResearchAssistantPalette extends JDialog{
 			//what the user had opened stays so, and the group of the finding they acted on is open, to show it
 			toggled.addAll(state.toggled());
 			for(final Diagnostic d : diagnostics)
-				if(ResearchAssistantService.identity(d).equals(state.selectedIdentity()) && !isOpen(kindId(d)))
+				if(ResearchAssistantService.identity(d).equals(state.selectedIdentity())){
+					toggled.add(severityId(d.severity()));
 					toggled.add(kindId(d));
+				}
 			searchField.setText(state.query());
 			searchBox.setSelected(SearchMode.WHOLE_WORD, state.modes().contains(SearchMode.WHOLE_WORD));
 			searchBox.setSelected(SearchMode.FUZZY, state.modes().contains(SearchMode.FUZZY));
@@ -443,6 +449,9 @@ final class ResearchAssistantPalette extends JDialog{
 		loadingBar.setMaximum(PROGRESS_STEPS);
 		loadingBar.setIndeterminate(true);
 		content.add(loadingBar, "h 8!");
+		//the children would inherit the resize cursor left on the content panel when the mouse leaves its border for them
+		for(final Component child : content.getComponents())
+			child.setCursor(Cursor.getDefaultCursor());
 		setContentPane(content);
 		//the palette has no title bar: it is moved by dragging it from anywhere that is not the list or the search field
 		for(final JComponent draggable : List.of(content, modes, statusLabel, loadingBar))
@@ -567,6 +576,84 @@ final class ResearchAssistantPalette extends JDialog{
 		actionMap.put(ACTION_RUN_THIRD, new SimpleAction(() -> runSelected(2)));
 		actionMap.put(ACTION_RUN_FOURTH, new SimpleAction(() -> runSelected(3)));
 		actionMap.put(ACTION_CLOSE, new SimpleAction(this::dispose));
+
+		//as in a tree: Right opens a heading (or goes to its first child), Left closes it (or goes to its parent); while something is
+		//typed the arrows keep moving the caret (and everything is open anyway)
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_COLLAPSE);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_EXPAND);
+		actionMap.put(ACTION_COLLAPSE, new javax.swing.AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				if(!searchField.getText().isEmpty())
+					caretAction(DefaultEditorKit.backwardAction, e);
+				else
+					collapseSelected();
+			}
+		});
+		actionMap.put(ACTION_EXPAND, new javax.swing.AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				if(!searchField.getText().isEmpty())
+					caretAction(DefaultEditorKit.forwardAction, e);
+				else
+					expandSelected();
+			}
+		});
+	}
+
+	/** Runs the caret movement of the text field that the arrow replaced in the key map. */
+	private void caretAction(final String name, final ActionEvent e){
+		final Action action = searchField.getActionMap().get(name);
+		if(action != null)
+			action.actionPerformed(new ActionEvent(searchField, e.getID(), e.getActionCommand(), e.getWhen(), e.getModifiers()));
+	}
+
+	/** The level of a row in the list: a severity is at the top, a kind under it, a finding under a kind (or a severity). */
+	private static int level(final Row row){
+		return switch(row){
+			case Header h when h.isCollapsible() -> (h.id().startsWith("s:")? 0: 1);
+			case DiagnosticRow d -> (d.indented()? 2: 1);
+			default -> 0;
+		};
+	}
+
+	/** Left, as in a tree: closes an open heading, otherwise selects the parent. */
+	void collapseSelected(){
+		final int index = rowsList.getSelectedIndex();
+		if(index < 0)
+			return;
+
+		final Row row = rowsModel.get(index);
+		if(row instanceof Header header && header.isCollapsible() && header.open()){
+			toggleSelected();
+			return;
+		}
+		if(row instanceof Header header && !header.isCollapsible() || row instanceof ActionRow)
+			return;
+
+		final int level = level(row);
+		for(int i = index - 1; i >= 0; i --)
+			if(rowsModel.get(i) instanceof Header h && h.isCollapsible() && level(h) < level){
+				rowsList.setSelectedIndex(i);
+				rowsList.ensureIndexIsVisible(i);
+				return;
+			}
+	}
+
+	/** Right, as in a tree: opens a closed heading, otherwise selects its first child. */
+	void expandSelected(){
+		if(!(rowsList.getSelectedValue() instanceof Header header) || !header.isCollapsible())
+			return;
+
+		if(!header.open()){
+			toggleSelected();
+			return;
+		}
+		final int next = rowsList.getSelectedIndex() + 1;
+		if(next < rowsModel.size() && level(rowsModel.get(next)) > level(header)){
+			rowsList.setSelectedIndex(next);
+			rowsList.ensureIndexIsVisible(next);
+		}
 	}
 
 	private static final class SimpleAction extends javax.swing.AbstractAction{
@@ -1037,11 +1124,11 @@ final class ResearchAssistantPalette extends JDialog{
 	}
 
 	/**
-	 * Whether a heading shows what is under it: a severity starts open, a kind of finding starts collapsed, and the user can change
+	 * Whether a heading shows what is under it: everything starts collapsed, and the user can change
 	 * either. While something is searched everything is open, so that what matches is never hidden.
 	 */
 	private boolean isOpen(final String id){
-		return (!searchField.getText().isBlank() || id.startsWith("s:") != toggled.contains(id));
+		return (!searchField.getText().isBlank() || toggled.contains(id));
 	}
 
 	/** Opens or closes the selected heading (nothing happens during a search, when everything is open). */
@@ -1085,6 +1172,10 @@ final class ResearchAssistantPalette extends JDialog{
 	/** @return the text of the detail of the selected row (HTML), to look at what the palette says about it */
 	String detail(){
 		return detailBody;
+	}
+
+	int selectedIndex(){
+		return rowsList.getSelectedIndex();
 	}
 
 	void select(final int index){

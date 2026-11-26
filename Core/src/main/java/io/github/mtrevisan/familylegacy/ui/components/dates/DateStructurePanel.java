@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthand;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthandReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
@@ -39,6 +41,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -47,11 +50,16 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Window;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 
@@ -85,6 +93,9 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 	private final SingleDatePanel pointDateValuePanel;
 	private final BoundedDatePanel boundedDateValuePanel;
 	private final SpanningDatePanel spanningDateValuePanel;
+
+	private final JTextField quickEntryField = new JTextField();
+	private final JLabel quickEntryPreview = new JLabel(StringUtils.SPACE);
 
 	private final BoundTextField originalTextField;
 	private final EntityListPanel sourcePanel;
@@ -144,6 +155,32 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 				}
 			}
 		});
+		// quick entry: the date typed in the short notation fills the tabs
+		final JLabel quickEntryLabel = new JLabel(I18N.l("dialog.date.quick_entry"));
+		quickEntryLabel.setLabelFor(quickEntryField);
+		quickEntryField.setToolTipText(I18N.t("dialog.date.quick_entry.tooltip"));
+		quickEntryField.addActionListener(e -> applyQuickEntry());
+		quickEntryField.getDocument()
+			.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					updateQuickEntryPreview();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					updateQuickEntryPreview();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){
+					updateQuickEntryPreview();
+				}
+			});
+		add(quickEntryLabel, "align label");
+		add(quickEntryField, "growx");
+		add(quickEntryPreview, "skip 1,growx");
+
 		add(tabbedPane, "span 2,growx");
 
 		final JLabel originalTextLabel = new JLabel(I18N.l("dialog.date.original_text"));
@@ -234,8 +271,142 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		return (record.hasData()? record: null);
 	}
 
+	/**
+	 * Reads what is typed in the quick entry and, if it is understood, fills the tabs with it.
+	 * <p>
+	 * The expression is kept as the original text of the date, if there is none yet and the expression says more than a plain date.
+	 * </p>
+	 *
+	 * @return	Whether the quick entry is empty or has been applied (otherwise the user has been told what is wrong).
+	 */
+	boolean applyQuickEntry(){
+		final String text = quickEntryField.getText();
+		if(StringUtils.isBlank(text))
+			return true;
+
+		final DateShorthand shorthand;
+		try{
+			shorthand = DateShorthandReader.parse(text);
+		}
+		catch(final DateShorthandReader.SyntaxException se){
+			MessageDialogs.show(this, describeProblem(se), I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+			quickEntryField.requestFocusInWindow();
+
+			return false;
+		}
+
+		//the calendar of the date that is being edited is the one of the new date
+		final String calendar = currentCalendar();
+		switch(shorthand.kind()){
+			case POINT -> {
+				tabbedPane.setSelectedIndex(0);
+				pointDateValuePanel.setShorthand(shorthand.first(), calendar);
+			}
+			case BOUNDED -> {
+				tabbedPane.setSelectedIndex(1);
+				boundedDateValuePanel.setShorthand(shorthand.first(), shorthand.second(), calendar);
+			}
+			case SPANNING -> {
+				tabbedPane.setSelectedIndex(2);
+				spanningDateValuePanel.setShorthand(shorthand.first(), shorthand.second(), calendar);
+			}
+		}
+
+		final boolean plainDate = (shorthand.kind() == DateShorthand.Kind.POINT && shorthand.first().fullDate() != null
+			&& !shorthand.first().approximate());
+		if(!plainDate && originalTextField.isEmpty())
+			originalTextField.setText(text.strip());
+
+		quickEntryField.setText(StringUtils.EMPTY);
+		return true;
+	}
+
+	private String currentCalendar(){
+		final String calendar = switch(tabbedPane.getSelectedIndex()){
+			case 0 -> pointDateValuePanel.getCalendar();
+			case 1 -> boundedDateValuePanel.getCalendar();
+			case 2 -> spanningDateValuePanel.getCalendar();
+			default -> null;
+		};
+		return (StringUtils.isNotBlank(calendar)? calendar: null);
+	}
+
+	/** Tells what the quick entry understood, or what is wrong with it, under the field. */
+	private void updateQuickEntryPreview(){
+		final String text = quickEntryField.getText();
+		if(StringUtils.isBlank(text)){
+			quickEntryPreview.setText(StringUtils.SPACE);
+			quickEntryPreview.setForeground(UIManager.getColor("Label.foreground"));
+			return;
+		}
+
+		try{
+			quickEntryPreview.setText(describe(DateShorthandReader.parse(text)));
+			quickEntryPreview.setForeground(UIManager.getColor("Label.disabledForeground"));
+		}
+		catch(final DateShorthandReader.SyntaxException se){
+			quickEntryPreview.setText(describeProblem(se));
+			final Color error = UIManager.getColor("Component.error.focusedBorderColor");
+			quickEntryPreview.setForeground(error != null? error: Color.RED);
+		}
+	}
+
+	private static String describeProblem(final DateShorthandReader.SyntaxException exception){
+		return I18N.t("dialog.date.quick_entry.error." + exception.getReason().name().toLowerCase(Locale.ROOT));
+	}
+
+	/** @return	What the expression means, e.g. {@code Bounded: not before 1850 (approx., stated), not after 1860}. */
+	static String describe(final DateShorthand shorthand){
+		final String first = (shorthand.first() != null? describe(shorthand.first()): null);
+		final String second = (shorthand.second() != null? describe(shorthand.second()): null);
+		return switch(shorthand.kind()){
+			case POINT -> I18N.tf("dialog.date.quick_entry.preview.point", first);
+			case BOUNDED -> (first != null && second != null
+				? I18N.tf("dialog.date.quick_entry.preview.bounded.both", first, second)
+				: (first != null
+					? I18N.tf("dialog.date.quick_entry.preview.bounded.not_before", first)
+					: I18N.tf("dialog.date.quick_entry.preview.bounded.not_after", second)));
+			case SPANNING -> (first != null && second != null
+				? I18N.tf("dialog.date.quick_entry.preview.spanning.both", first, second)
+				: (first != null
+					? I18N.tf("dialog.date.quick_entry.preview.spanning.from", first)
+					: I18N.tf("dialog.date.quick_entry.preview.spanning.to", second)));
+		};
+	}
+
+	private static String describe(final DateShorthand.Single date){
+		final StringBuilder text = new StringBuilder();
+		if(date.decade() != null)
+			text.append(I18N.tf("dialog.date.description.decade", String.valueOf(date.decade())));
+		else if(date.century() != null){
+			//the numbers are given as text to avoid the grouping separator of the locale
+			if(date.centuryPart() != null)
+				text.append(I18N.tf("dialog.date.description.century.abbreviation_with_part",
+					I18N.t("enum.date.century_part." + date.centuryPart()), String.valueOf(date.century())));
+			else
+				text.append(I18N.tf("dialog.date.description.century.abbreviation", String.valueOf(date.century())));
+		}
+		else
+			text.append(date.fullDate());
+		if(date.approximate()){
+			text.append(" (")
+				.append(I18N.t("dialog.date.description.approximate.abbreviation"))
+				.append(", ")
+				.append(I18N.t("enum.date.basis." + date.basis()));
+			if(date.margin() != null)
+				text.append(", ")
+					.append(I18N.t("dialog.date.description.margin"))
+					.append(StringUtils.SPACE)
+					.append(date.margin());
+			text.append(')');
+		}
+		return text.toString();
+	}
+
 	public void clear(){
 		bindingManager.clear();
+		quickEntryField.setText(StringUtils.EMPTY);
 
 		pointDateValuePanel.clear();
 		boundedDateValuePanel.clear();
@@ -253,6 +424,10 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 	}
 
 	public boolean validateData(){
+		//what is typed in the quick entry and not yet applied is not lost
+		if(!applyQuickEntry())
+			return false;
+
 		return switch(tabbedPane.getSelectedIndex()){
 			case 0 -> pointDateValuePanel.validateData();
 			case 1 -> boundedDateValuePanel.validateData();

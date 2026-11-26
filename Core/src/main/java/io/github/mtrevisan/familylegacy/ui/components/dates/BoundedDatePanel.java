@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.dates;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthand;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
@@ -127,6 +128,23 @@ public class BoundedDatePanel extends JPanel{
 			notBeforePanel.setFullDate(calendarCode, notBefore);
 		if(notAfter != null)
 			notAfterPanel.setFullDate(calendarCode, notAfter);
+	}
+
+	/**
+	 * Replaces the content with dates typed in the short notation: used by the quick entry.
+	 *
+	 * @param notBefore	the earliest date, or {@code null}
+	 * @param notAfter	the latest date, or {@code null}
+	 * @param calendarCode	the code of the calendar of the dates, {@code null} for the default one
+	 */
+	public void setShorthand(final DateShorthand.Single notBefore, final DateShorthand.Single notAfter, final String calendarCode){
+		notBeforePanel.setShorthand(notBefore, calendarCode);
+		notAfterPanel.setShorthand(notAfter, calendarCode);
+	}
+
+	/** @return	The code of the calendar of the dates (the one of the bound that has a date, the earliest first). */
+	public String getCalendar(){
+		return (notBeforePanel.hasData() || !notAfterPanel.hasData()? notBeforePanel.getCalendar(): notAfterPanel.getCalendar());
 	}
 
 	public void clear(){

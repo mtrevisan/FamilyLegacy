@@ -141,6 +141,22 @@ public class ApproximatePanel extends JPanel{
 	}
 
 	/**
+	 * Marks the date as approximate, replacing what was there (a cultural norm is dropped).
+	 *
+	 * @param basis	the basis of the approximation (one of {@link DateReader#BASES})
+	 * @param margin	the margin, as an ISO 8601 duration, or {@code null}
+	 */
+	public void set(final String basis, final String margin){
+		clear();
+
+		approximateCheck.setSelected(true);
+		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
+		marginField.setText(StringUtils.defaultString(margin));
+
+		updateEnabled();
+	}
+
+	/**
 	 * Saves the approximate data into an APPROXIMATE child of the given parent record.
 	 * If the checkbox is not selected, it does nothing.
 	 *

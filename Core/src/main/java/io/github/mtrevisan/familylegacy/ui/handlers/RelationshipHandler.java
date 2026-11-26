@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
+import io.github.mtrevisan.familylegacy.ui.helpers.RelationshipSentence;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Window;
@@ -92,25 +93,35 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RecordDialog>
 		return false;
 	}
 
+	/**
+	 * Says the relationship as a sentence read in the natural direction ("Alice is the biological child of John").
+	 *
+	 * @param record	The relationship.
+	 * @param model	The model.
+	 * @return	The sentence, or an empty string if the relationship has no type.
+	 */
+	public static String getSentence(final FLEFRecord record, final FLEFModel model){
+		return RelationshipSentence.of(RelationshipReader.extractType(record), participantText(record, RelationshipReader.TAG_SUBJECT, model),
+			participantText(record, RelationshipReader.TAG_TARGET, model), RelationshipReader.extractRole(record));
+	}
+
+	private static String participantText(final FLEFRecord record, final String tag, final FLEFModel model){
+		final List<FLEFRecord> participants = FLEFRecordHelper.extractRecordsFromOneOfReference(record, tag, model);
+		if(participants.isEmpty())
+			return "--";
+
+		final FLEFRecord participant = participants.getFirst();
+		return HandlerRegistry.getHandler(participant.getTag())
+			.getDisplayText(participant, model);
+	}
+
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final List<FLEFRecord> subjects = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_SUBJECT, model);
-		final FLEFRecord subject = (subjects.isEmpty()? null: subjects.getFirst());
-		String subjectDisplayText = "--";
-		if(subject != null){
-			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
-			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
-		}
+		final String subjectDisplayText = participantText(record, RelationshipReader.TAG_SUBJECT, model);
+		final String objectDisplayText = participantText(record, RelationshipReader.TAG_TARGET, model);
 
-		final List<FLEFRecord> targets = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_TARGET, model);
-		final FLEFRecord target = (targets.isEmpty()? null: targets.getFirst());
-		String objectDisplayText = "--";
-		if(target != null){
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(target.getTag());
-			objectDisplayText = objectHandler.getDisplayText(target, model);
-		}
-
-		final String type = RelationshipReader.extractType(record);
+		final String rawType = RelationshipReader.extractType(record);
+		final String type = (rawType != null? I18N.t("enum.relationship.type." + rawType, rawType.replace('_', ' ')): StringUtils.EMPTY);
 		final String role = RelationshipReader.extractRole(record);
 		final String id = record.getId();
 

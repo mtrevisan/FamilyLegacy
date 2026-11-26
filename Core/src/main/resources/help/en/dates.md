@@ -25,11 +25,40 @@ Each date (the *Point* date, or each of *Not Before*, *Not After*, *From*, *To*)
 
 Below the tabs:
 
-- **Original Text** is a free field for the date as the source writes it. Nothing fills it in for you.
+- **Original Text** is a free field for the date as the source writes it. It is filled in for you only by the [quick entry](#quick-entry), when you type more than a plain date, and only if it is empty.
 - **Sources with Citations** lists the citations that support the date.
 - **Confidence** is the confidence you place in the date.
 
-Typing words such as *about*, *before* or *between* in the Full Date box does not work: those ideas are expressed with the tabs (*Bounded*, *Spanning*) and with **Approximate**.
+Typing words such as *about*, *before* or *between* in the Full Date box does not work: those ideas are expressed with the tabs (*Bounded*, *Spanning*) and with **Approximate**. You do not have to click through the tabs for them: type the date in short form in the **Quick Entry** box above the tabs, and the tabs are filled in for you.
+
+## Quick entry
+
+The **Quick Entry** box, at the top of the date editor, reads a date written the way genealogists write it, and sets the right tab, the dates, **Approximate**, **Basis** and **Margin** for you. Type the date and press **Enter**: what was understood is shown under the box while you type (for example *Bounded: not before 1850, not after 1860*), and the box is emptied once the tabs are filled in. If you click **OK** without pressing Enter, the box is applied first. The calendar stays the one of the date you were editing.
+
+| You type | You get |
+|---|---|
+| `1850`, `12 March 1850` | **Point**, a plain date. |
+| `abt 1850`, `about 1850`, `c. 1850`, `ca 1850`, `~1850` | **Point**, **Approximate** with basis *stated*. |
+| `calc 1850`, `cal 1850`, `calculated 1850` | **Point**, **Approximate** with basis *calculated*. |
+| `1850 ±2`, `1850 +/- 2`, `abt 1850 ±6m` | **Approximate** with a **Margin**: a number and an optional unit (`y` years, the default; `m` months; `w` weeks; `d` days), or an ISO 8601 duration (`±P1Y6M`). A margin alone makes the date approximate, basis *stated*. |
+| `1850s`, `1850's` | **Decade**: 1850. The year must be a multiple of ten. |
+| `19th century`, `19th c.`, `19c`, `XIX century`, `sec. XIX` | **Century**: 19. |
+| `early 19th century`, `mid XIX c.`, `late 19th c.`, `first half of the 19th century`, `2nd half 19th c.`, `third quarter 19th c.` | **Century** with its **Part**. |
+| `bef 1850`, `before 1850`, `<1850` | **Bounded**, **Not After** 1850. |
+| `aft 1850`, `after 1850`, `>1850` | **Bounded**, **Not Before** 1850. |
+| `bet 1850 and 1860`, `between 1850 and 1860` | **Bounded**, **Not Before** 1850 and **Not After** 1860. |
+| `from 1850 to 1860` | **Spanning**, **From** 1850 and **To** 1860. |
+| `from 1850`, `until 1860`, `to 1860` | **Spanning**, open on one side. |
+
+The words are written in any case, with or without the final dot, and are understood in English, Italian (`circa`, `prima del`, `dopo il`, `tra ... e ...`, `dal ... al ...`, `fino al`), French (`vers`, `avant`, `après`, `entre ... et ...`), German (`um`, `vor`, `nach`, `zwischen ... und ...`, `von ... bis ...`) and Spanish (`hacia`, `antes de`, `después de`, `entre ... y ...`, `de ... a ...`).
+
+Things worth knowing:
+
+- Every date of the expression can have its own qualifier, a decade or a century, and its own margin: `bet abt 1850 ±2 and 1860`, `bef calc 12 March 1850`, `bet 1850s and early 20th century`. This goes beyond what GEDCOM can say, where only the whole date is approximate.
+- *Basis* is *stated* (the source says "about") unless you write `calc`; change it in the tabs if it is another one. The basis *conventional* is not available here, because it needs a cultural norm: tick it in the tabs.
+- The full dates are not checked by the quick entry: the calendar does it when you click **OK**, with the usual messages. A `(language)` at the end of the expression (`bet 12 marzo 1850 and 1860 (it)`) is kept at the end of each full date.
+- When the text cannot be read, the message says why: a keyword without a date, `between` without `and`, a margin that is not a number with a unit, a decade that is not a multiple of ten, or words before the century that are not a part of it.
+- The **Original Text** box is filled with what you typed, unless it already has text or the expression is a plain date.
 
 ## What to type in the Full Date box
 

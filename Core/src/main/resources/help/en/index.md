@@ -47,6 +47,7 @@ Family Legacy is a genealogical data manager built on the **Family LEgacy Format
 ## Reference
 
 - [Preferences](preferences.md): language, font, and how the path of a media file is shown.
+- [Glossary](glossary.md): the words of the application (participation, conclusion, extract, citation...), one line each.
 - [Keyboard shortcuts](shortcuts.md) lists every shortcut.
 
 ## How the help works

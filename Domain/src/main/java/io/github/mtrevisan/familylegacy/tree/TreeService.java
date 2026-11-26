@@ -125,8 +125,9 @@ public class TreeService{
 				childrenData = first.getValue();
 			}
 
-			if(partnerData != null){
-				final FLEFRecord partner = partnerData.getIndividual();
+			//the children of a single parent (unknown other parent) sit under a null partner: they are shown all the same
+			if(partnerData != null || childrenData != null){
+				final FLEFRecord partner = (partnerData != null? partnerData.getIndividual(): null);
 				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 			}
 		}

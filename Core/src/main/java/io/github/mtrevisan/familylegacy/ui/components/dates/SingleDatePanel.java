@@ -29,6 +29,7 @@ import io.github.mtrevisan.calendars.spi.DateInterpretation;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthand;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
@@ -244,6 +245,42 @@ public class SingleDatePanel extends JPanel{
 		fullDateValueField.setText(date);
 		calendarCombo.setSelectedItem(calendarCode);
 		cardLayout.show(cardPanel, DateType.FULL_DATE.name());
+	}
+
+	/**
+	 * Replaces the content with a date typed in the short notation: used by the quick entry.
+	 *
+	 * @param date	the date, or {@code null} to clear the panel
+	 * @param calendarCode	the code of the calendar of the date, {@code null} (or empty) for the default one
+	 */
+	public void setShorthand(final DateShorthand.Single date, final String calendarCode){
+		clear();
+
+		if(date == null)
+			return;
+
+		final DateType type;
+		if(date.decade() != null){
+			type = DateType.DECADE;
+			decadeStartYearField.setText(String.valueOf(date.decade()));
+		}
+		else if(date.century() != null){
+			type = DateType.CENTURY;
+			centuryOrdinalField.setText(String.valueOf(date.century()));
+			if(date.centuryPart() != null)
+				centuryPartCombo.setSelectedItem(date.centuryPart());
+		}
+		else{
+			type = DateType.FULL_DATE;
+			fullDateValueField.setText(date.fullDate());
+		}
+		singleDateTypeCombo.setSelectedItem(type);
+		cardLayout.show(cardPanel, type.name());
+
+		if(StringUtils.isNotEmpty(calendarCode))
+			calendarCombo.setSelectedItem(calendarCode);
+		if(date.approximate())
+			approxPanel.set(date.basis(), date.margin());
 	}
 
 	/**

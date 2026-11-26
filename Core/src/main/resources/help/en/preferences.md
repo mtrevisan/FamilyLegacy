@@ -46,7 +46,7 @@ Details:
 
 The **Research** tab of the record editors (individual, group, event, place, source, media) is shown from the *Standard* level, and the **Context** tab from the *Advanced* level; the editors of the research and context records themselves always show all their tabs. Inside the Research tab each panel has its own level: research questions, activities, tasks and identity hypotheses are from *Standard*, **Conclusions** (and the conclusion badge in the lists of attributes, relationships and sources) and the **Evidence** qualifiers of a source citation only from *Advanced*.
 
-The **Stories** tab of the individual and group editors (the notes of kind *story*, apart from the other notes) is shown from the *Standard* level; below it the **Notes** tab lists all the notes, the stories too, each with its *Kind*.
+The **Notes** tab of the editors is always there; from the *Standard* level it has a **Stories** list (the notes of kind *story*) above the list of the other notes, below it the one list has all the notes, the stories too, each with its *Kind*.
 
 The dossier shows the proof-status dot of a conclusion and the evidence badge of a row only from the *Advanced* level.
 

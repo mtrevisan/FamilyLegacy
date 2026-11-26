@@ -89,10 +89,9 @@ import java.io.IOException;
  * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
  * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (identity = this individual), ResearchQuestionRecord (target[individual] = this individual)
  * Tab 7 (Sources): source
- * Tab 8 (Stories): note (kind story)
- * Tab 9 (Notes): note (the others)
- * Tab 10 (Privacy): privacy
- * Tab 11 (Audit): audit
+ * Tab 8 (Notes): note (the stories, from the standard level, in a list above the others)
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class IndividualRecordDialog extends BaseRecordDialog{
 
@@ -144,8 +143,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.RESEARCH_TASK_ON_RELATED, ResearchTaskHandler.TYPE, I18N.t("dialog.component.research.tasks"))
 			.withComponent(PanelKey.SOURCE, IndividualReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			//the stories of the individual are apart from its notes
-			.withComponent(PanelKey.storyPanel(storiesApart), IndividualReader.TAG_NOTE, null)
-			.withComponent(PanelKey.notePanel(storiesApart), IndividualReader.TAG_NOTE, null)
+			.withComponent(PanelKey.storyPanel(storiesApart), IndividualReader.TAG_NOTE, storiesApart? I18N.t("dialog.component.stories"): null)
+			.withComponent(PanelKey.notePanel(storiesApart), IndividualReader.TAG_NOTE, storiesApart? I18N.t("dialog.component.notes_except_stories"): null)
 			.withComponent(PanelKey.PRIVACY, IndividualReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, IndividualReader.TAG_AUDIT, null)
 			.build();
@@ -253,23 +252,13 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected JPanel createStoriesPanel(){
-		if(!storiesApart)
-			return null;
-
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
-
-		GUIHelper.addComponent(panel, components.getPanel(PanelKey.storyPanel(true)));
-
-		return panel;
-	}
-
-	@Override
 	protected JPanel createNotesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+		//the one tab of the notes: from the standard level it has the list of the stories above the one of the other notes
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, storiesApart? "[]15[]": "[]");
 
-		final JPanel notePanel = components.getPanel(PanelKey.notePanel(storiesApart));
-		GUIHelper.addComponent(panel, notePanel);
+		if(storiesApart)
+			GUIHelper.addComponent(panel, components.getPanel(PanelKey.storyPanel(true)));
+		GUIHelper.addComponent(panel, components.getPanel(PanelKey.notePanel(storiesApart)));
 
 		return panel;
 	}

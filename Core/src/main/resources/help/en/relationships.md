@@ -4,7 +4,7 @@ Family links are not stored inside the people. Each link is a **relationship rec
 
 ## Subject and target
 
-The subject is the entity whose role the type describes, and the target is the other one. For the parentage types, **the subject is the child and the target is the parent**: *biological child* with Alice as subject and John as target means that Alice is the biological child of John.
+The subject is the entity whose role the type describes, and the target is the other one. For the parentage types, **the subject is the child and the target is the parent**: *biological child* with Alice as subject and John as target means that Alice is the biological child of John. You do not have to remember this: the editor and the relationship lists say every relationship as a sentence in the natural direction (see below).
 
 ## The types of relationship
 
@@ -33,6 +33,7 @@ The editor opens when you add a relationship from a person or a group (see below
 
 - **Subject** (required) and **Target** (required): the two entities. The target can only be a group when the subject is a group.
 - **Subject Type** (required): the type. It is filled in only after the subject and the target are chosen, and it offers the types that fit that pair: for two individuals the child, spouse-like and associate types; for an individual and a group, *group member* and *associate*; for a group, *part of* and *associate*.
+- **The sentence**, under the target, says the relationship the way people say it and changes as you choose the entities, the type and the role: *Alice is the biological child of John*, *Alice and John are married (civil ceremony)*, *Alice is associated with John as godmother*. It is only a reading aid and is not saved. If it reads backwards, swap subject and target.
 - **Subject Role**: free text. It is normally needed only for *associate* and *group member*. Examples for a group member: member, president, secretary, treasurer, resident, head of household, elder, custodian.
 - **Valid From** and **Valid To** (the *Validity Range*): when the relationship held. For partners, the earliest *Valid From* is used to order the partners, see [Navigating the tree](navigating.md#order-of-children-partners-and-dossier).
 - **Confidence**: low, medium or high.

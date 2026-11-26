@@ -191,7 +191,9 @@ public class IndividualPanel extends JPanel{
 		final int reservedRight = imageWidth + badgeWidth + 5;
 		add(nameLabel, "cell 0 0,top,growx,width ::100%-" + reservedRight + ",hidemode 3");
 		add(imageLabel, (isPrimaryBox()? "cell 1 0 1 3,top": "cell 1 0,top"));
-		add(infoLabel, (isPrimaryBox()? "cell 0 2,growx": "cell 0 2 2 1,growx"));
+		//the preferred and minimum widths of the info text are zero: it fills the room left by the others and is truncated at the end,
+		//instead of pushing the image away
+		add(infoLabel, (isPrimaryBox()? "cell 0 2,growx,width 0:0:": "cell 0 2 2 1,growx,width 0:0:"));
 		add(collapseBadge, "pos 0 0 0 0");
 
 		// Force the badge to the top of the Z-order, so that it receives

@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DateField;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
@@ -51,10 +52,14 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
+import io.github.mtrevisan.familylegacy.ui.helpers.RelationshipSentence;
 
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.Window;
 import java.io.IOException;
 import java.util.List;
@@ -102,6 +107,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> subjectTypeCombo;
 	private final EntityField targetField;
 	private final BoundTextField subjectRoleField;
+	private final JLabel sentenceLabel = new JLabel();
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final BoundComboBox<String> confidenceCombo;
@@ -120,7 +126,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private RelationshipRecordDialog(final Window parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, RelationshipHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]5[]10[]10[]");
 
 		subjectField = EntityField.createForRecordFromOneofReference(RelationshipReader.TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
@@ -142,6 +148,24 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectTypeCombo = new BoundComboBox<>(RelationshipReader.TAG_TYPE, RelationshipReader.TYPES);
 		subjectTypeCombo.setI18NPrefix("enum.relationship.type");
 		subjectRoleField = new BoundTextField(RelationshipReader.TAG_ROLE);
+		//the relationship read in the natural direction, whatever the way it is stored
+		subjectTypeCombo.addActionListener(e -> updateSentence());
+		subjectRoleField.getDocument().addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent e){
+				updateSentence();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent e){
+				updateSentence();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent e){
+				updateSentence();
+			}
+		});
 		validFromField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_FROM, this, I18N.t("dialog.date.valid_from"), model);
 		validToField = DateField.createWithWrapperTag(RelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 		confidenceCombo = new BoundComboBox<>(RelationshipReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
@@ -240,6 +264,25 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final String[] validTypes = RelationshipReader.getValidTypes(subject, target);
 		subjectTypeCombo.updateItems(List.of(validTypes));
 		subjectTypeCombo.setEnabled(validTypes.length > 0);
+
+		updateSentence();
+	}
+
+	private void updateSentence(){
+		final FLEFRecord subject = subjectField.getEntity();
+		final FLEFRecord target = targetField.getEntity();
+		final String type = (subjectTypeCombo.isValued()? subjectTypeCombo.getText(): null);
+		if(type == null || subject == null || subject.isEmpty() || target == null || target.isEmpty()){
+			sentenceLabel.setText(null);
+			return;
+		}
+
+		sentenceLabel.setText(RelationshipSentence.of(type, displayText(subject), displayText(target), subjectRoleField.getText()));
+	}
+
+	private String displayText(final FLEFRecord entity){
+		return HandlerRegistry.getHandler(entity.getTag())
+			.getDisplayText(entity, model);
 	}
 
 
@@ -256,6 +299,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		// target
 		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.relationship.target"), targetField);
+
+		// the relationship as a sentence
+		GUIHelper.addComponent(propertiesPanel, sentenceLabel);
 
 		// validity range:
 		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
@@ -384,6 +430,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validToField.load(record);
 
 		updateSubjectTypeCombo();
+		updateSentence();
 
 
 		// Initially, update carousel based on the first selected source (if any)

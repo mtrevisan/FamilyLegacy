@@ -91,8 +91,48 @@ Every major feature should reinforce those capabilities.
 
 ### HIGH
 
-root 3689 non c'è la figlia, se root 3688 ricompare il padre 3689
-root 436, l'immagine di 1431 è tutta a destra, forse perché la label delle date di nascita e morte è troppo lunga ("1623-1630 - 1656 (~29 y/o)"), forse è il caso di scrivere "1623-30"?
+**Usability problems found by a from-scratch walkthrough (2026-11-26).** Scenario: new empty file, enter a person with name, sex, birth,
+parents, a partner, a source and a note, and build a small tree. *Method and limit:* I followed the real flow by reading the dialogs
+(`IndividualRecordDialog`, `PersonalNameStructureDialog`, `EventRecordDialog`, `EventParticipationRecordDialog`, `EntityListPanel`,
+`BaseRecordDialog`) and the help pages; I did **not** drive the GUI, so the dialog counts come from the code and items marked *(verify)* are
+suspicions to confirm with a test or by hand. Ordered by how much they hurt a beginner.
+
+1. **Typing a name takes three nested dialogs.** *Add Individual* shows only a *Personal Names* list. Each name opens its own dialog, whose
+   *Parts* list opens one more dialog per part (type + value). "Giovanni Rossi" = individual > name > part *given* > part *family*, with no
+   field to type the full name. Proposal: a one-line "Full name" in the new-individual dialog that is split (last word = family, with the
+   usual particles), creating the name and its parts, editable afterwards with the full dialogs.
+2. **The sex is hidden.** It is not in the new-individual dialog: it is an *attribute of type sex* in another tab (create, choose the type,
+   then the value). Only *Add Parent/Child/Partner* from the tree preselect it. But the views place father and mother by sex, so the first
+   person of a file, left with no sex, gives a silently wrong tree. Proposal: a *Sex* combo (male/female/unknown) in the Properties tab that
+   writes the attribute.
+3. **There is no birth date for a person.** It is an *event* plus a *participation*: *Event > New Event...* (type, date, place), then on the
+   person *Participations > Create New...* (event, role *principal*), then save both. At least four dialogs for the most common fact, and
+   the help needs a section ("Changing a date of birth") to explain it. Proposal: "Birth" and "Death" rows (date, place) in the new-individual
+   dialog and in the dossier, creating the event and the participation behind the scenes. *(verify)* what the views do with a participation
+   whose role is empty: the role is optional, but the birth is read as the *principal* one.
+4. **New unsaved record + nested dialogs *(verify)*.** The nested dialogs save into the model at once (`EntityListPanel.showCreateNewDialog`),
+   while `BaseRecordDialog.originalState` is `null` for a *new* record, so `Esc` on a new individual after adding an attribute, a
+   participation or a relationship in its tabs may leave those records in the file pointing to an individual that was never saved. Write a test
+   (new individual, add attribute, `Esc`, validate the file). If confirmed, either disable the sub-tabs until the first OK or roll the nested
+   records back on `Esc`.
+5. **A marriage is two records for one fact.** The relationship (*civil spouse*, with *Valid From*) and the marriage *event* (date, place,
+   witnesses) are separate; the Assistant reports an event with no relationship, and the relationship's *Valid From* repeats the date of the
+   event. The generic *spouse* and *child* types exist only because the importers have nothing better, and the editor still offers them.
+   Proposal: create the union from one dialog (type, date, place) that writes both records.
+6. **Citing a source is a long road.** *Sources > Create New...* opens the source (its **title is a name structure**: another nested dialog
+    just to type a title), then its repository (another name dialog), then the citation (source and *Stance* required; stance is almost
+    always *supports*), the *evidence* qualifiers, the *extract*. Proposal: *Title* as a plain text box when there is one name, *Stance*
+    defaulting to *supports*, and a "Cite a new source" shortcut that asks only for the title and the locator.
+7. **The empty start has no guidance in the application.** The help now has "How to start" and "Your first tree" in `getting-started.md`,
+    but the empty view itself still says nothing. Proposal: a **guided tour** (a few highlighted steps over the real window: new file,
+    *Add Individual...*, *Add Parent/Partner/Child...*, the sidebar, undo), offered the first time and from *Help*, plus an empty-state
+    hint in the view *(verify in the running app that there is none)*.
+8. **Tags are not in the file.** They are kept in `.familylegacy/tags.properties` in the user folder (said in `editors.md`), so a copy of
+    the file sent to somebody, or a renamed file, loses them, and Undo does not cover them. Easy to find out only after losing them.
+    Proposal: warn at *Backup...* and *Save as...*, or store them in the file. -- DISTRIBUTE A ZIP FILE? or same name but different extension?
+9. **Privacy surprises.** A dead person with no death event and a birth less than 110 years ago is treated as living and masked (see
+    `workflows.md` #6). Someone entering a great-uncle without a death event finds a hidden box. Proposal: a visible lock icon on the box and
+    the reason in the tooltip. -- HIDDEN BOX??
 
 ### MEDIUM
 

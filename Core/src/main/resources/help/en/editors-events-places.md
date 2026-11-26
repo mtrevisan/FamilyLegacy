@@ -4,7 +4,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 ## Event
 
-Open it with **Event > New Event...**, or from **Event > Manage Events...**, or from a participation. **Tabs:** Properties, Cause, Participations, Context, Research, Sources, Stories, Notes, Privacy, Audit (the Stories tab is from the standard level, as in the editor of an [individual](editors-people.md#individual)).
+Open it with **Event > New Event...**, or from **Event > Manage Events...**, or from a participation. **Tabs:** Properties, Cause, Participations, Context, Research, Sources, Notes, Privacy, Audit (from the standard level the Notes tab has a list of the stories above the other notes, as in the editor of an [individual](editors-people.md#individual)).
 
 **Properties**
 
@@ -47,7 +47,7 @@ On OK, the participant and the event are required.
 
 ## Place
 
-Open it with **Place > New Place...** or **Place > Manage Places...**. **Tabs:** Properties, Location, Relationships, Participations, Context, Research, Sources, Stories, Notes, Privacy, Audit (the Stories tab is from the standard level).
+Open it with **Place > New Place...** or **Place > Manage Places...**. **Tabs:** Properties, Location, Relationships, Participations, Context, Research, Sources, Notes, Privacy, Audit (from the standard level the Notes tab has a list of the stories above the other notes).
 
 **Properties**
 

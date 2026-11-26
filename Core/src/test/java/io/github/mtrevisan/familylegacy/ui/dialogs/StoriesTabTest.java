@@ -60,7 +60,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/** The editor of an individual has the stories in a tab of their own, apart from the notes, and saving one tab leaves the other one alone. */
+/** The editor of an individual has the stories in a list of their own, above the other notes in the tab of the notes, and saving one list leaves the other one alone. */
 class StoriesTabTest{
 
 	@BeforeAll
@@ -93,7 +93,7 @@ class StoriesTabTest{
 
 
 	@Test
-	void theStoriesAndTheNotesAreInTwoTabsAndSavingKeepsBoth() throws Exception{
+	void theStoriesAndTheNotesAreInTwoListsOfTheNotesTabAndSavingKeepsBoth() throws Exception{
 		check(IndividualReader.TYPE, IndividualHandler.getInstance());
 	}
 
@@ -229,10 +229,13 @@ class StoriesTabTest{
 					for(final EntityListPanel list : lists)
 						for(final FLEFRecord item : list.getItems()){
 							final String text = NoteReader.extractText(item);
-							if(EditorTab.STORIES.equals(name))
-								storyTexts.add(text);
-							else if(EditorTab.NOTES.equals(name))
-								noteTexts.add(text);
+							//(the one tab of the notes has the list of the stories above the one of the other notes)
+							if(EditorTab.NOTES.equals(name)){
+								if(NoteReader.isStory(item))
+									storyTexts.add(text);
+								else
+									noteTexts.add(text);
+							}
 						}
 				}
 
@@ -247,7 +250,7 @@ class StoriesTabTest{
 		});
 
 		Assertions.assertTrue(failures.isEmpty(), failures.toString());
-		Assertions.assertTrue(tabs.indexOf(EditorTab.STORIES) >= 0 && tabs.indexOf(EditorTab.STORIES) < tabs.indexOf(EditorTab.NOTES), tabs.toString());
+		Assertions.assertTrue(tabs.contains(EditorTab.NOTES) && !tabs.contains(EditorTab.STORIES), tabs.toString());
 		Assertions.assertEquals(List.of("A tale."), storyTexts);
 		Assertions.assertEquals(List.of("A remark.", "Another remark."), noteTexts);
 

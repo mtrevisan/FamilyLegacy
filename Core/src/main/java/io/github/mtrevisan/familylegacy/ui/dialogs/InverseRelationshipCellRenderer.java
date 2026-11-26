@@ -28,9 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
-import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListCellRenderer;
@@ -56,18 +54,6 @@ public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
 
 		if(value instanceof FLEFRecord record){
 			final String type = RelationshipReader.extractType(record);
-			final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, RelationshipReader.TAG_SUBJECT, model)
-				.stream()
-				.findFirst()
-				.orElse(null);
-			String subjectDisplayText = "--";
-			if(subject != null){
-				final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
-				if(subjectHandler != null)
-					subjectDisplayText = subjectHandler.getDisplayText(subject, model);
-			}
-			final String role = RelationshipReader.extractRole(record);
-
 			final String categoryTag = switch(StringUtils.defaultString(type)){
 				case RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD -> I18N.t("text.relationship.category.biological");
 				case RelationshipReader.ENUM_TYPE_ADOPTIVE_CHILD -> I18N.t("text.relationship.category.adoptive");
@@ -79,17 +65,10 @@ public class InverseRelationshipCellRenderer extends DefaultListCellRenderer{
 			};
 
 			final StringBuilder sb = new StringBuilder();
-			sb.append("<html><b>")
-				.append(categoryTag)
-				.append("</b> ");
-			sb.append(type)
-				.append(" &larr; ")
-				.append(subjectDisplayText);
-			if(StringUtils.isNotEmpty(role))
-				sb.append(" <i>(")
-					.append(role)
-					.append(")</i>");
-			sb.append("</html>");
+			sb.append("<html><b>").append(categoryTag).append("</b> ")
+				.append(StringUtils.replaceEach(RelationshipHandler.getSentence(record, model),
+					new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"}))
+				.append("</html>");
 
 			label.setText(sb.toString());
 		}

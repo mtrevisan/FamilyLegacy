@@ -29,6 +29,7 @@ import.md
 privacy.md
 undo.md
 workflows.md
+glossary.md
 troubleshooting.md
 preferences.md
 shortcuts.md

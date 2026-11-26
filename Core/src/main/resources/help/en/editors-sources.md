@@ -4,7 +4,7 @@ For what all the editors share (tabs, confidence, privacy, audit) see [The recor
 
 ## Source
 
-Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Stories, Notes, Privacy, Audit (the Stories tab is from the standard level). The only thing checked on OK is that no *Derived from* entry is this source or derives from it.
+Open it with **Source > New Source...** or **Source > Manage Sources...**, or from a *Sources* tab (*Create New...* or *Add Existing...*). **Tabs:** Properties, Research, Sources, Notes, Privacy, Audit (from the standard level the Notes tab has a list of the stories above the other notes). The only thing checked on OK is that no *Derived from* entry is this source or derives from it.
 
 | Field | Meaning |
 |---|---|

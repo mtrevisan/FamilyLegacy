@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.dates;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthand;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
@@ -111,6 +112,23 @@ public class SpanningDatePanel extends JPanel{
 		}
 
 		return (record.hasData()? record.setTag(DateReader.TAG_SPANNING): FLEFRecord.createEmpty());
+	}
+
+	/**
+	 * Replaces the content with dates typed in the short notation: used by the quick entry.
+	 *
+	 * @param from	the beginning, or {@code null}
+	 * @param to	the end, or {@code null}
+	 * @param calendarCode	the code of the calendar of the dates, {@code null} for the default one
+	 */
+	public void setShorthand(final DateShorthand.Single from, final DateShorthand.Single to, final String calendarCode){
+		fromPanel.setShorthand(from, calendarCode);
+		toPanel.setShorthand(to, calendarCode);
+	}
+
+	/** @return	The code of the calendar of the dates (the one of the end that has a date, the beginning first). */
+	public String getCalendar(){
+		return (fromPanel.hasData() || !toPanel.hasData()? fromPanel.getCalendar(): toPanel.getCalendar());
 	}
 
 	public void clear(){

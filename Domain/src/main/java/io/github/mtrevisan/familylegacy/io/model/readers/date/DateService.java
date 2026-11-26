@@ -281,14 +281,39 @@ public class DateService{
 		return StringUtils.EMPTY;
 	}
 
+	/** @return	The (proleptic Gregorian) year of a single date given as a full date, {@code null} if it is a decade, a century or missing. */
+	private static Integer getFullDateYear(final FLEFRecord singleDateRecord){
+		if(singleDateRecord == null)
+			return null;
+
+		final FLEFRecord valueContainer = FLEFRecordHelper.findChild(singleDateRecord, DateReader.TAG_VALUE);
+		final FLEFRecord fullDate = (valueContainer != null? FLEFRecordHelper.findChild(valueContainer, DateReader.TAG_FULL_DATE): null);
+		if(fullDate == null)
+			return null;
+
+		final String calendar = FLEFRecordHelper.getChildValue(singleDateRecord, DateReader.TAG_CALENDAR);
+		final CalendarType calendarType = (calendar != null? CalendarType.valueOf(calendar.toUpperCase(Locale.ROOT)): CalendarType.GREGORIAN);
+		return CalendarType.jdnToProlepticGregorianLocalDate(calendarType.parseToJdn(fullDate.getValue()))
+			.getYear();
+	}
+
 	private static String getBoundedYearDisplayText(final FLEFRecord boundedRecord){
 		final FLEFRecord notBeforeRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_BEFORE);
 		final FLEFRecord notAfterRecord = FLEFRecordHelper.findChild(boundedRecord, DateReader.TAG_NOT_AFTER);
 		final String notBefore = getSingleDateYearDisplayText(notBeforeRecord);
 		final String notAfter = getSingleDateYearDisplayText(notAfterRecord);
 
-		if(!notBefore.isEmpty() && !notAfter.isEmpty())
+		if(!notBefore.isEmpty() && !notAfter.isEmpty()){
+			//two limits that are plain years collapse into "middle±radius" (shorter), the radius covering the whole interval
+			final Integer from = getFullDateYear(notBeforeRecord);
+			final Integer to = getFullDateYear(notAfterRecord);
+			if(from != null && to != null && from <= to){
+				final int middle = (int)Math.round((from + to) / 2.);
+				final int radius = Math.max(middle - from, to - middle);
+				return (radius > 0? middle + "±" + radius: String.valueOf(middle));
+			}
 			return notBefore + "-" + notAfter;
+		}
 
 		if(!notBefore.isEmpty())
 			return ">" + notBefore;

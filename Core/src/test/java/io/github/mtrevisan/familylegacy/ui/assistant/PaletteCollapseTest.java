@@ -41,7 +41,7 @@ import java.util.Set;
 
 
 /**
- * The findings of the palette are in groups, by severity and by kind, that can be collapsed: the kinds start collapsed. The palette is
+ * The findings of the palette are in groups, by severity and by kind, that can be collapsed: everything starts collapsed. The palette is
  * made and used on the event dispatch thread, as in the application (its detail pane is laid out there).
  */
 class PaletteCollapseTest{
@@ -80,21 +80,18 @@ class PaletteCollapseTest{
 
 
 	@Test
-	void theSeveritiesStartOpenAndTheKindsStartCollapsed() throws Exception{
+	void everythingStartsCollapsed() throws Exception{
 		onEventDispatchThread(() -> {
 			final List<String> rows = palette(findings(), Set.of(), null).rows();
 
-			Assertions.assertEquals(List.of(
-				"[s:ERROR open Errors (1)]", "[k:ERROR:place.self_relation closed Places related to themselves (1)]",
-				"[s:WARNING open Warnings (3)]", "[k:WARNING:place.possible_duplicate closed Possible duplicate places (2)]",
-				"[k:WARNING:place.inverted_hierarchy closed Places that are part of a smaller place (1)]"), rows);
+			Assertions.assertEquals(List.of("[s:ERROR closed Errors (1)]", "[s:WARNING closed Warnings (3)]"), rows);
 		});
 	}
 
 	@Test
 	void aKindOpensWhenItIsToggledAndTheFindingOfTheSelectionIsShown() throws Exception{
 		onEventDispatchThread(() -> {
-			final List<String> opened = palette(findings(), Set.of("k:WARNING:place.possible_duplicate"), null).rows();
+			final List<String> opened = palette(findings(), Set.of("s:WARNING", "k:WARNING:place.possible_duplicate"), null).rows();
 			Assertions.assertTrue(opened.contains("Duplicate A") && opened.contains("Duplicate B"), opened.toString());
 			Assertions.assertFalse(opened.contains("Inverted A"), opened.toString());
 
@@ -109,7 +106,7 @@ class PaletteCollapseTest{
 	@Test
 	void aHeadingTogglesWhenItIsChosen() throws Exception{
 		onEventDispatchThread(() -> {
-			final ResearchAssistantPalette palette = palette(findings(), Set.of(), null);
+			final ResearchAssistantPalette palette = palette(findings(), Set.of("s:ERROR", "s:WARNING"), null);
 
 			//the heading of the kind of the duplicates is the fourth row
 			palette.select(3);
@@ -123,11 +120,38 @@ class PaletteCollapseTest{
 
 
 	@Test
+	void theArrowsWorkAsInATree() throws Exception{
+		onEventDispatchThread(() -> {
+			final ResearchAssistantPalette palette = palette(findings(), Set.of(), null);
+
+			//Right on a closed heading opens it, Right on an open one goes to its first child
+			palette.select(0);
+			palette.expandSelected();
+			palette.expandSelected();
+			palette.expandSelected();
+			Assertions.assertTrue(palette.rows().contains("Self A"), palette.rows().toString());
+			palette.expandSelected();
+			Assertions.assertEquals("Self A", palette.rows().get(palette.selectedIndex()));
+
+			//Left from a child goes to the parent, Left on an open heading closes it, Left on a closed one goes to its parent
+			palette.collapseSelected();
+			Assertions.assertEquals(1, palette.selectedIndex());
+			palette.collapseSelected();
+			Assertions.assertFalse(palette.rows().contains("Self A"), palette.rows().toString());
+			palette.collapseSelected();
+			Assertions.assertEquals(0, palette.selectedIndex());
+			palette.collapseSelected();
+			Assertions.assertFalse(palette.rows().stream().anyMatch(r -> r.startsWith("[k:ERROR")), palette.rows().toString());
+		});
+	}
+
+
+	@Test
 	void theDetailOfAFindingListsAllItsRecordsWithTheirIdentifiers() throws Exception{
 		onEventDispatchThread(() -> {
 			final Diagnostic finding = new Diagnostic(Diagnostic.Severity.WARNING, AssistantCategory.PLACES, "Title", "Explanation",
 				List.of("P1", "RL12"), null, "place.x|P1,RL12|");
-			final ResearchAssistantPalette palette = palette(List.of(finding), Set.of("k:WARNING:place.x"), null);
+			final ResearchAssistantPalette palette = palette(List.of(finding), Set.of("s:WARNING", "k:WARNING:place.x"), null);
 			final List<String> rows = palette.rows();
 
 			palette.select(rows.indexOf("Title"));
@@ -148,7 +172,7 @@ class PaletteCollapseTest{
 				List.of("I1", "X9"), null, "place.x|I1,X9|");
 			final ResearchAssistantPalette palette = new ResearchAssistantPalette(new ResearchAssistantService(),
 				new SwingAssistantContext(null, null, model), new ResearchAssistantService.Recalculation(List.of(finding), 0, 0),
-				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("k:WARNING:place.x"), false));
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("s:WARNING", "k:WARNING:place.x"), false));
 
 			palette.select(palette.rows().indexOf("Title"));
 			final String detail = palette.detail();
@@ -190,7 +214,7 @@ class PaletteCollapseTest{
 			final AssistantContext context = new SwingAssistantContext(null, null, new FLEFModel());
 
 			final List<String> active = new ResearchAssistantPalette(service, context, recalculation,
-				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("k:WARNING:place.possible_duplicate"), false)).rows();
+				new ResearchAssistantPalette.State("", Set.of(), false, null, 0, Set.of("s:WARNING", "k:WARNING:place.possible_duplicate"), false)).rows();
 			final List<String> ignored = new ResearchAssistantPalette(service, context, recalculation,
 				new ResearchAssistantPalette.State("", Set.of(), true, null, 0, Set.of(), false)).rows();
 

@@ -42,9 +42,11 @@ import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -53,6 +55,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SortOrder;
 import javax.swing.SwingWorker;
@@ -68,6 +71,8 @@ import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -196,6 +201,21 @@ public final class ValidationReportDialog extends JDialog{
 
 		table.setRowHeight(22);
 		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		//as in a tree: Left closes a group (or goes to it from a problem), Right opens it (or goes to its first problem)
+		table.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "collapseGroup");
+		table.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "expandGroup");
+		table.getActionMap().put("collapseGroup", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				collapseSelected();
+			}
+		});
+		table.getActionMap().put("expandGroup", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				expandSelected();
+			}
+		});
 		final TableColumnModel columnModel = table.getColumnModel();
 		columnModel.getColumn(0).setPreferredWidth(80);
 		columnModel.getColumn(1).setPreferredWidth(600);
@@ -358,6 +378,63 @@ public final class ValidationReportDialog extends JDialog{
 	private void toggleGroup(final int row){
 		tableModel.toggle(row);
 		detail.setText(StringUtils.EMPTY);
+	}
+
+	/** Left, as in a tree: closes the open group of the selected line, otherwise selects the group of the problem. */
+	void collapseSelected(){
+		final int viewRow = table.getSelectedRow();
+		if(viewRow < 0)
+			return;
+
+		final int row = table.convertRowIndexToModel(viewRow);
+		if(tableModel.isHeader(row)){
+			if(!tableModel.isCollapsed(row))
+				toggleGroupKeepingSelection(row);
+			return;
+		}
+
+		for(int i = viewRow - 1; i >= 0; i --)
+			if(tableModel.isHeader(table.convertRowIndexToModel(i))){
+				table.setRowSelectionInterval(i, i);
+				table.scrollRectToVisible(table.getCellRect(i, 0, true));
+				return;
+			}
+	}
+
+	/** Right, as in a tree: opens the closed group of the selected line, otherwise selects its first problem. */
+	void expandSelected(){
+		final int viewRow = table.getSelectedRow();
+		if(viewRow < 0)
+			return;
+
+		final int row = table.convertRowIndexToModel(viewRow);
+		if(!tableModel.isHeader(row))
+			return;
+
+		if(tableModel.isCollapsed(row)){
+			toggleGroupKeepingSelection(row);
+			return;
+		}
+
+		final int next = viewRow + 1;
+		if(next < table.getRowCount() && !tableModel.isHeader(table.convertRowIndexToModel(next))){
+			table.setRowSelectionInterval(next, next);
+			table.scrollRectToVisible(table.getCellRect(next, 0, true));
+		}
+	}
+
+	/** Opens or closes the group, and selects its line again (the table is rebuilt). */
+	private void toggleGroupKeepingSelection(final int row){
+		final String kind = tableModel.kindAt(row);
+		toggleGroup(row);
+		for(int i = 0; i < table.getRowCount(); i ++){
+			final int modelRow = table.convertRowIndexToModel(i);
+			if(tableModel.isHeader(modelRow) && kind.equals(tableModel.kindAt(modelRow))){
+				table.setRowSelectionInterval(i, i);
+				table.scrollRectToVisible(table.getCellRect(i, 0, true));
+				return;
+			}
+		}
 	}
 
 	private void onSelectionChanged(){
@@ -549,6 +626,11 @@ public final class ValidationReportDialog extends JDialog{
 		/** @return	The groups that are shown (with the filter applied), also the closed ones. */
 		List<Group> groups(){
 			return groups;
+		}
+
+		/** @return	The kind of the group of the line. */
+		String kindAt(final int row){
+			return rows.get(row).group().kind();
 		}
 
 		boolean isHeader(final int row){

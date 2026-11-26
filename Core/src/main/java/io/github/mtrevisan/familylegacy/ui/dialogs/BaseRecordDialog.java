@@ -71,6 +71,7 @@ import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -118,7 +119,6 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	public static final String TAB_NAME_FINDINGS = EditorTab.FINDINGS;
 	public static final String TAB_NAME_REFERENCES = EditorTab.REFERENCES;
 	public static final String TAB_NAME_SOURCES = EditorTab.SOURCES;
-	public static final String TAB_NAME_STORIES = EditorTab.STORIES;
 	public static final String TAB_NAME_NOTES = EditorTab.NOTES;
 	public static final String TAB_NAME_TAGS = EditorTab.TAGS;
 	public static final String TAB_NAME_PRIVACY = EditorTab.PRIVACY;
@@ -251,7 +251,6 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		final JPanel findingsPanel = createFindingsPanel();
 		final JPanel referencesPanel = createReferencesPanel();
 		final JPanel sourcesPanel = createSourcesPanel();
-		final JPanel storiesPanel = createStoriesPanel();
 		final JPanel notesPanel = createNotesPanel();
 		final JPanel tagsTab = createTagsPanel();
 		final JPanel privacyPanel = createPrivacyPanel();
@@ -259,7 +258,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 		if(attributesPanel == null && relationshipsPanel == null && participationsPanel == null && contextPanel == null
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
-				&& storiesPanel == null && notesPanel == null && tagsTab == null && privacyPanel == null && auditPanel == null){
+				&& notesPanel == null && tagsTab == null && privacyPanel == null && auditPanel == null){
 			// No optional panels, just show the properties panel (with the same margin the tabbed dialogs have: no content touches the edge)
 			setLayout(GUIHelper.createLabelFieldLayout(DIALOG_MARGIN, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
@@ -276,7 +275,6 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			addTabIfNotNull(tabbedPane, TAB_NAME_FINDINGS, findingsPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_REFERENCES, referencesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_SOURCES, sourcesPanel);
-			addTabIfNotNull(tabbedPane, TAB_NAME_STORIES, storiesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_NOTES, notesPanel);
 			addTabIfNotNull(tabbedPane, TAB_NAME_TAGS, tagsTab);
 			addTabIfNotNull(tabbedPane, TAB_NAME_PRIVACY, privacyPanel);
@@ -450,32 +448,25 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		}
 	}
 
-	private boolean hasTab(final String tabName){
-		for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
-			if(tabbedPane.getComponentAt(i) instanceof JPanel panel && tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME)))
-				return true;
-		return false;
-	}
-
 	/**
 	 * @param features	What tells the level of the user.
-	 * @return	Whether the stories of a record have a tab of their own, apart from the notes: from the standard level (below it the user
-	 * 	has the one list of the notes, with the kind of each one, and no tab more).
+	 * @return	Whether the stories of a record have a list of their own, apart from the other notes in the tab of the notes: from the
+	 * 	standard level (below it the user has the one list of the notes, with the kind of each one).
 	 */
 	protected static boolean storiesApart(final FeatureVisibilityService features){
 		return features.isVisible(UxLevel.STANDARD);
 	}
 
-	/** What tells the level for the tab of the stories: the one of the user, unless a test says another (the level is a preference of the user). */
+	/** What tells the level for the list of the stories: the one of the user, unless a test says another (the level is a preference of the user). */
 	private static volatile FeatureVisibilityService storiesFeatures;
 
-	/** @return	Whether the stories have a tab of their own at the level of the user. */
+	/** @return	Whether the stories have a list of their own at the level of the user. */
 	protected static boolean storiesApart(){
 		final FeatureVisibilityService features = storiesFeatures;
 		return storiesApart(features != null? features: FeatureVisibilityService.shared());
 	}
 
-	/** For the tests: the level that decides the tab of the stories, instead of the preference of the user ({@code null} to go back to it). */
+	/** For the tests: the level that decides the list of the stories, instead of the preference of the user ({@code null} to go back to it). */
 	static void useLevelForStories(final FeatureVisibilityService features){
 		storiesFeatures = features;
 	}
@@ -526,8 +517,8 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		if(tabName == null || tabbedPane == null)
 			return;
 
-		//where the stories are not apart (below the standard level) they are with the notes
-		if(EditorTab.STORIES.equals(tabName) && !hasTab(EditorTab.STORIES)){
+		//the stories are in the tab of the notes (in a list of their own from the standard level)
+		if(EditorTab.STORIES.equals(tabName)){
 			showEntry(EditorTab.NOTES, nested);
 
 			return;
@@ -624,11 +615,6 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	}
 
 	protected JPanel createNotesPanel(){
-		return null;
-	}
-
-	/** The stories of the record, in a tab before the one of the notes (only the editors that have the stories apart have it). */
-	protected JPanel createStoriesPanel(){
 		return null;
 	}
 
@@ -761,6 +747,7 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			this::dispose);
+		addNestedHint(buttonPanel);
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		//the reserved ID is released on any close without save (Cancel, ESC, window X, programmatic dispose), once
@@ -775,6 +762,36 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 				}
 			}
 		});
+	}
+
+
+	/**
+	 * @param openedFromRecordDialog	Whether the editor was opened from another record editor.
+	 * @param topLevel	Whether the record is a record of the file (and not a part of the record of the parent editor).
+	 * @return	The key of the text that tells what OK does when the editor is nested, {@code null} if the editor is not nested.
+	 */
+	static String nestedHintKey(final boolean openedFromRecordDialog, final boolean topLevel){
+		if(!openedFromRecordDialog)
+			return null;
+		return (topLevel? "dialog.nested.hint.saved": "dialog.nested.hint.pending");
+	}
+
+	/**
+	 * Tells, beside OK, what happens to the change if the parent editor is then closed with ESC: a record of the file is saved at once (and
+	 * can be undone), a part of the parent record is kept only if the parent editor is confirmed.
+	 */
+	private void addNestedHint(final JPanel buttonPanel){
+		final String key = nestedHintKey(getOwner() instanceof RecordDialog, handler.isTopLevelEntity());
+		if(key == null)
+			return;
+
+		final String text = I18N.t(key);
+		final JLabel hint = new JLabel(text);
+		hint.setEnabled(false);
+		//the OK button is the only component of the panel: the hint goes before it
+		final JComponent ok = (JComponent)buttonPanel.getComponent(0);
+		ok.setToolTipText(text);
+		buttonPanel.add(hint, 0);
 	}
 
 
