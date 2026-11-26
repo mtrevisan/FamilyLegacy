@@ -123,14 +123,10 @@ suspicions to confirm with a test or by hand. Ordered by how much they hurt a be
     just to type a title), then its repository (another name dialog), then the citation (source and *Stance* required; stance is almost
     always *supports*), the *evidence* qualifiers, the *extract*. Proposal: *Title* as a plain text box when there is one name, *Stance*
     defaulting to *supports*, and a "Cite a new source" shortcut that asks only for the title and the locator.
-7. **The empty start has no guidance in the application.** The help now has "How to start" and "Your first tree" in `getting-started.md`,
-    but the empty view itself still says nothing. Proposal: a **guided tour** (a few highlighted steps over the real window: new file,
-    *Add Individual...*, *Add Parent/Partner/Child...*, the sidebar, undo), offered the first time and from *Help*, plus an empty-state
-    hint in the view *(verify in the running app that there is none)*.
-8. **Tags are not in the file.** They are kept in `.familylegacy/tags.properties` in the user folder (said in `editors.md`), so a copy of
+7. **Tags are not in the file.** They are kept in `.familylegacy/tags.properties` in the user folder (said in `editors.md`), so a copy of
     the file sent to somebody, or a renamed file, loses them, and Undo does not cover them. Easy to find out only after losing them.
-    Proposal: warn at *Backup...* and *Save as...*, or store them in the file. -- DISTRIBUTE A ZIP FILE? or same name but different extension?
-9. **Privacy surprises.** A dead person with no death event and a birth less than 110 years ago is treated as living and masked (see
+    Proposal: warn at *Backup...* and *Save as...*, or store them in the file. -- DISTRIBUTE A ZIP FILE? or same name but different extension? qual è la best practice in questi casi?
+8. **Privacy surprises.** A dead person with no death event and a birth less than 110 years ago is treated as living and masked (see
     `workflows.md` #6). Someone entering a great-uncle without a death event finds a hidden box. Proposal: a visible lock icon on the box and
     the reason in the tooltip. -- HIDDEN BOX??
 

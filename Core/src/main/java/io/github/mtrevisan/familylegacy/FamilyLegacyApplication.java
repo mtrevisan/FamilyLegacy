@@ -114,6 +114,9 @@ public final class FamilyLegacyApplication{
 		//after the window is shown, so it does not interfere with the creation of the UI fonts
 		SwingUtilities.invokeLater(AppearanceManager::preloadFontFamilies);
 		//last: the window is complete (and the file, if any, is being opened) before a dialog can appear on it
+		//the tour is for who starts from nothing: not offered when a file is opened (it stays in the Help menu)
+		if(fileToOpen == null)
+			SwingUtilities.invokeLater(frame::startGuidedTourOnce);
 		SwingUtilities.invokeLater(frame::checkForUpdatesAtStartup);
 	}
 

@@ -87,7 +87,9 @@ class ToolDialogsEscapeTest{
 	private static final String HELPER = "installEscapeToClose(this)";
 
 	/** The dialogs whose constructors take something that is not worth building here: simple results, stores, services. */
-	private static final Set<String> NEEDS_SPECIAL_ARGUMENTS = Set.of();
+	private static final Set<String> NEEDS_SPECIAL_ARGUMENTS = Set.of(
+		//it outlines the parts of the main window: GuidedTourDialogTest does it with a real frame
+		"GuidedTourDialog");
 
 
 	private static List<Class<?>> discover() throws IOException, ClassNotFoundException{

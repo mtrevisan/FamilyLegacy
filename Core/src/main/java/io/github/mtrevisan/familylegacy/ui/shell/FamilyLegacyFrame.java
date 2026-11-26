@@ -677,6 +677,12 @@ public class FamilyLegacyFrame extends JFrame{
 		fileController.openFile(file);
 	}
 
+	/** Starts the guided tour of the first steps if it was never shown (it is offered once); call it on the event thread. */
+	public void startGuidedTourOnce(){
+		new GuidedTour(this)
+			.startOnce();
+	}
+
 	/** Looks for a newer release, if the user wants it and it is time (see {@link AutomaticUpdatePolicy}); call it on the event thread. */
 	public void checkForUpdatesAtStartup(){
 		new UpdateFlow(this).startAutomatic();

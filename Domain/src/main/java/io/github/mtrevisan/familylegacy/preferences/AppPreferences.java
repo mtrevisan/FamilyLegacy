@@ -102,6 +102,8 @@ public final class AppPreferences{
 	// whether the application looks for a newer release at startup, and when it last asked GitHub (epoch milliseconds)
 	public static final String KEY_UPDATE_CHECK = "update.check";
 	public static final String KEY_UPDATE_LAST = "update.last";
+	// whether the guided tour of the first steps was already offered to the user
+	public static final String KEY_TOUR_SHOWN = "help.tour_shown";
 	// the findings of the Research Assistant ignored by the user, for each file (a presentation choice, never genealogical data)
 	private static final String KEY_IGNORED_FINDINGS_PREFIX = "assistant.ignored.";
 
@@ -235,6 +237,16 @@ public final class AppPreferences{
 	/** Persists whether the application looks for a newer release at startup. */
 	public void setUpdateCheckEnabled(final boolean enabled){
 		put(KEY_UPDATE_CHECK, Boolean.toString(enabled));
+	}
+
+	/** Returns whether the guided tour of the first steps was already shown to the user (it starts by itself only once). */
+	public boolean tourShown(){
+		return "true".equals(properties.getProperty(KEY_TOUR_SHOWN));
+	}
+
+	/** Persists whether the guided tour of the first steps was already shown to the user. */
+	public void setTourShown(final boolean shown){
+		put(KEY_TOUR_SHOWN, Boolean.toString(shown));
 	}
 
 	/** Returns when GitHub was last asked for a newer release at startup (epoch milliseconds), 0 if never. */

@@ -76,7 +76,12 @@ final class HelpMenu{
 		helpContents.addActionListener(e -> HelpBrowserDialog.show(frame, HelpTopics.INDEX));
 		menu.add(helpContents);
 
-		final JMenuItem shortcuts = new JMenuItem(I18N.t("menu.help.keyboard.shortcuts"), KeyEvent.VK_K);
+		final JMenuItem guidedTour = new JMenuItem(I18N.t("menu.help.guided.tour"), KeyEvent.VK_G);
+		guidedTour.setToolTipText(I18N.t("menu.help.guided.tour.tooltip"));
+		guidedTour.addActionListener(e -> new GuidedTour(frame).start());
+		menu.add(guidedTour);
+
+		final JMenuItem shortcuts =new JMenuItem(I18N.t("menu.help.keyboard.shortcuts"), KeyEvent.VK_K);
 		shortcuts.addActionListener(e -> KeyboardShortcutsDialog.show(frame));
 		menu.add(shortcuts);
 

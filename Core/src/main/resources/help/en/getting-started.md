@@ -17,6 +17,10 @@ Menu entries that make no sense in the current situation are greyed out: for exa
 - **You already have a file** (a `.flef`, or data from another program): follow *Your first session* below.
 - **You start from nothing**: follow *Your first tree*, further down.
 
+## The guided tour
+
+The first time the application starts without a file to open, a small **Guided Tour** window walks you through the first steps: the file, the people, the events and dates, the participants, the repositories, sources and citations, the views and the sidebar, and undo. Each step outlines on the real window the menu it is about; **Next** and **Back** move between the steps, and `Esc` (or **Skip tour**) closes it. It starts by itself only once: to see it again, choose **Help > Guided Tour...**.
+
 ## Your first session
 
 1. Choose **File > Open file...** (`Ctrl+O`) and pick a `.flef` file. To start from data kept in another program, use **File > Import** instead (see [Files](files.md)).
