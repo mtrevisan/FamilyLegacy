@@ -165,7 +165,7 @@ public class FamilyLegacyFrame extends JFrame{
 		history.addChangeListener(fileController::documentChanged);
 		//the tags go with the file: they are written when they change, and follow the document when it is saved as another file
 		bindTags(model);
-		fileController.setSameDocumentFileListener(this::saveTags);
+		fileController.setSameDocumentFileListener(this::documentFileChanged);
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
 		split.setResizeWeight(1.);
@@ -643,12 +643,20 @@ public class FamilyLegacyFrame extends JFrame{
 	private void bindTags(final FLEFModel newModel){
 		final RecordTags tags = newModel.tags();
 		final String path = bookmarkFilePath();
+		//the bookmarks are kept next to the file too
+		bookmarkStore.bindDocument(path);
 		if(path != null){
 			tags.replaceAll(tagStore.load(path));
 			//the tags of a record that is not in the file any more (it was deleted by other means) are forgotten
 			tags.retainOnly(newModel::hasRecord);
 		}
 		tags.addChangeListener(this::saveTags);
+	}
+
+	/** The open document is now in another file (it was saved as): its tags are written next to it, and the bookmarks are the ones copied there. */
+	private void documentFileChanged(){
+		saveTags();
+		bookmarkStore.bindDocument(bookmarkFilePath());
 	}
 
 	/** Writes the tags of the open document under the path of its file (a document with no file has none yet: they are written when it has). */
@@ -838,6 +846,11 @@ public class FamilyLegacyFrame extends JFrame{
 				@Override
 				public void replaceModel(final FLEFModel newModel){
 					FamilyLegacyFrame.this.replaceModel(newModel);
+				}
+
+				@Override
+				public String documentPath(){
+					return bookmarkFilePath();
 				}
 
 				@Override

@@ -377,8 +377,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	public void link(final LinkRole role, final FLEFRecord record){
-		//the conclusion can resolve the record only once it is in the model
-		if(role == LinkRole.RESOLVED_TARGET && record.getId() != null && model.getRecordById(record.getId()) != null)
+		//the record may be a new one, that is not in the model yet
+		if(role == LinkRole.RESOLVED_TARGET && record.getId() != null)
 			withResolvedTarget(record, (Strings.CI.equals(record.getTag(), IdentityHypothesisReader.TYPE)? ISSUE_IDENTITY: null));
 	}
 

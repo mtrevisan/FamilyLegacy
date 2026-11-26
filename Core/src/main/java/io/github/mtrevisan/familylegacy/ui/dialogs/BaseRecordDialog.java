@@ -137,6 +137,12 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 	/** The record as it was when the dialog was opened (only for an existing record), to restore it if the dialog is not saved. */
 	private final FLEFRecord originalState;
 
+	/**
+	 * What to do to undo what the dialogs below this one saved into the model by themselves (a record created, or the previous
+	 * version of one edited): done if this dialog is not saved, passed to the dialog that opened this one if it is.
+	 */
+	private final List<Runnable> nestedUndo = new ArrayList<>();
+
 	private final UndoController undoController = new UndoController();
 
 	protected BoundTextField parentEntity;
@@ -766,22 +772,19 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 
 
 	/**
+	 * The text beside OK of a nested editor: whatever it saves (a part of the parent record, or a record of the file it creates or
+	 * edits) is kept only if the editor that opened it is confirmed.
+	 *
 	 * @param openedFromRecordDialog	Whether the editor was opened from another record editor.
-	 * @param topLevel	Whether the record is a record of the file (and not a part of the record of the parent editor).
 	 * @return	The key of the text that tells what OK does when the editor is nested, {@code null} if the editor is not nested.
 	 */
-	static String nestedHintKey(final boolean openedFromRecordDialog, final boolean topLevel){
-		if(!openedFromRecordDialog)
-			return null;
-		return (topLevel? "dialog.nested.hint.saved": "dialog.nested.hint.pending");
+	static String nestedHintKey(final boolean openedFromRecordDialog){
+		return (openedFromRecordDialog? "dialog.nested.hint.pending": null);
 	}
 
-	/**
-	 * Tells, beside OK, what happens to the change if the parent editor is then closed with ESC: a record of the file is saved at once (and
-	 * can be undone), a part of the parent record is kept only if the parent editor is confirmed.
-	 */
+	/** Tells, beside OK, that the change is kept only if the parent editor is confirmed (closing it with ESC discards everything). */
 	private void addNestedHint(final JPanel buttonPanel){
-		final String key = nestedHintKey(getOwner() instanceof RecordDialog, handler.isTopLevelEntity());
+		final String key = nestedHintKey(getOwner() instanceof BaseRecordDialog);
 		if(key == null)
 			return;
 
@@ -885,11 +888,25 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 					recordChanges(previous);
 			}
 
-			if(isNew && handler.isTopLevelEntity())
-				model.addRecord(record);
+			Runnable ownUndo = null;
+			if(handler.isTopLevelEntity()){
+				if(isNew){
+					model.addRecord(record);
+					final String id = record.getId();
+					ownUndo = () -> model.removeRecord(id);
+				}
+				else{
+					final FLEFRecord before = originalState;
+					ownUndo = () -> {
+						record.clear();
+						before.deepCopyTo(record);
+					};
+				}
+			}
 			if(tagsPanel != null)
 				tagsPanel.apply();
 			isSaved = true;
+			passUndoToOwner(ownUndo);
 			//an edit may change the privacy of the records
 			PrivacyService.invalidate();
 
@@ -897,7 +914,10 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 		}
 	}
 
-	/** Closes the dialog; if it was not saved, the changes that the nested dialogs (saved by themselves) made in place to the record are discarded. */
+	/**
+	 * Closes the dialog; if it was not saved, the changes that the nested dialogs (saved by themselves) made in place to the record, and
+	 * the records that they created or edited in the model, are discarded.
+	 */
 	@Override
 	public void dispose(){
 		if(!isSaved && originalState != null){
@@ -905,7 +925,31 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			originalState.deepCopyTo(record);
 		}
 
+		if(!isSaved)
+			undoNestedSaves();
+
 		super.dispose();
+	}
+
+	/** Undoes, last first, what the dialogs below this one saved straight into the model. */
+	private void undoNestedSaves(){
+		if(nestedUndo.isEmpty())
+			return;
+
+		for(int i = nestedUndo.size() - 1; i >= 0; i --)
+			nestedUndo.get(i).run();
+		nestedUndo.clear();
+		PrivacyService.invalidate();
+	}
+
+	/** Hands to the dialog that opened this one what to do to undo what this one, and the ones below it, saved. */
+	private void passUndoToOwner(final Runnable ownUndo){
+		if(getOwner() instanceof BaseRecordDialog owner){
+			owner.nestedUndo.addAll(nestedUndo);
+			if(ownUndo != null)
+				owner.nestedUndo.add(ownUndo);
+		}
+		nestedUndo.clear();
 	}
 
 	private static FLEFRecord copyOf(final FLEFRecord source){

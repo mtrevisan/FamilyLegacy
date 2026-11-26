@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.tools.maintenance;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
@@ -102,10 +103,10 @@ public final class BackupTool implements ToolOperation{
 				return;
 		}
 
-		write(context, model, target);
+		write(context, model, target, context.documentPath());
 	}
 
-	private static void write(final ToolContext context, final FLEFModel model, final File target){
+	private static void write(final ToolContext context, final FLEFModel model, final File target, final String documentPath){
 		final ProgressDialog progress = new ProgressDialog(context.owner(), I18N.t("dialog.backup.title"),
 			I18N.tf("dialog.file.save.progress", target.getName()));
 
@@ -115,6 +116,11 @@ public final class BackupTool implements ToolOperation{
 				progress.update(0, I18N.t("progress.serializing"));
 				AtomicFileWriter.write(target.toPath(), StandardCharsets.UTF_8,
 					writer -> FLEFWriter.createCompact().write(model, writer, progress::update));
+				//what the application keeps next to the file (bookmarks, ignored findings) travels with the backup...
+				if(documentPath != null)
+					TagStore.copyMetaDirectory(documentPath, target.getAbsolutePath());
+				//...and so do the tags: the model carries them
+				new TagStore().save(target.getAbsolutePath(), model.tags());
 				return null;
 			}
 

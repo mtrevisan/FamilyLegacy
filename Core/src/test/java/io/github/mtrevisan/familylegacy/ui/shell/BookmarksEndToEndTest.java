@@ -198,8 +198,11 @@ class BookmarksEndToEndTest{
 			SwingUtilities.invokeAndWait(item::doClick);
 			Assertions.assertEquals("I2", rootOf(frame));
 
-			//the bookmark survives the window: the store is read again from its file
-			Assertions.assertEquals(1, new BookmarkStore(Path.of(System.getProperty(BookmarkStore.FILE_PROPERTY_NAME))).all().size());
+			//the bookmark survives the window: it is kept next to the file, and the store reads it again from there
+			final BookmarkStore reread = new BookmarkStore(Path.of(System.getProperty(BookmarkStore.FILE_PROPERTY_NAME)));
+			reread.bindDocument(file.getAbsolutePath());
+			Assertions.assertEquals(1, reread.all().size());
+			Assertions.assertTrue(Files.isRegularFile(directory.resolve("tree.flef.meta").resolve("bookmarks.properties")));
 
 			//in another file I2 is another person: the bookmark is not there
 			SwingUtilities.invokeLater(() -> frame.fileController().openRecent(other));

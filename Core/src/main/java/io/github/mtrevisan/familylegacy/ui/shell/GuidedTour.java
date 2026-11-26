@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.ui.dialogs.help.GuidedTourDialog;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -109,7 +109,7 @@ final class GuidedTour{
 
 	/** The label of a menu item, as it is written in the menu, without the dots that say it opens a dialog. */
 	private static String item(final String key){
-		return StringUtils.removeEnd(I18N.t(key), ELLIPSIS);
+		return Strings.CS.removeEnd(I18N.t(key), ELLIPSIS);
 	}
 
 }

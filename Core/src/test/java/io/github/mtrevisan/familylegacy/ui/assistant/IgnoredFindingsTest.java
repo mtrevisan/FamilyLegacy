@@ -37,10 +37,14 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFC
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.assistant.conclusion.ConclusionAssistantContributor;
 import org.junit.jupiter.api.Assertions;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -224,6 +228,23 @@ class IgnoredFindingsTest{
 
 		Assertions.assertTrue(first.ignoredFindings().isIgnored(FILE, finding));
 		Assertions.assertFalse(second.ignoredFindings().isIgnored(FILE, finding));
+	}
+
+	@Test
+	void theIgnoredFindingsAreKeptNextToTheFileAndTravelWithIt(@TempDir final Path directory){
+		final String file = directory.resolve("rossi.flef").toString();
+		final Diagnostic finding = finding("Next to the file", "kind|I1|x");
+
+		IgnoredFindings.usingPreferences().ignore(file, finding);
+
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("rossi.flef.meta").resolve("ignored-findings.properties")));
+		//another run of the application, another folder holding a copy of the file with its .meta folder
+		TagStore.copyMetaDirectory(file, directory.resolve("copy.flef").toString());
+		Assertions.assertTrue(IgnoredFindings.usingPreferences().isIgnored(file, finding));
+		Assertions.assertTrue(IgnoredFindings.usingPreferences().isIgnored(directory.resolve("copy.flef").toString(), finding));
+
+		IgnoredFindings.usingPreferences().restore(file, finding);
+		Assertions.assertFalse(IgnoredFindings.usingPreferences().isIgnored(file, finding));
 	}
 
 	private static final String GEDCOM = """

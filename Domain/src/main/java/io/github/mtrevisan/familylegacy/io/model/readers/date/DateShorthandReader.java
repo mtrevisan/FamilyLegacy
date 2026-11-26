@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.io.model.readers.date;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -331,8 +332,8 @@ public final class DateShorthandReader{
 			body = StringUtils.strip(body.substring(0, languageStart));
 		}
 
-		body = StringUtils.replace(body, MARGIN_SYMBOL_SLASH, MARGIN_SYMBOL);
-		body = StringUtils.replace(body, MARGIN_SYMBOL_DASH, MARGIN_SYMBOL);
+		body = Strings.CS.replace(body, MARGIN_SYMBOL_SLASH, MARGIN_SYMBOL);
+		body = Strings.CS.replace(body, MARGIN_SYMBOL_DASH, MARGIN_SYMBOL);
 		final List<String> tokens = tokenize(body);
 		if(tokens.isEmpty())
 			throw new SyntaxException(Reason.EMPTY);
@@ -477,7 +478,7 @@ public final class DateShorthandReader{
 		if(!decade.endsWith("s"))
 			return null;
 
-		decade = StringUtils.removeEnd(StringUtils.removeEnd(decade, "s"), String.valueOf(APOSTROPHE));
+		decade = Strings.CS.removeEnd(Strings.CS.removeEnd(decade, "s"), String.valueOf(APOSTROPHE));
 		final int digits = leadingDigits(decade);
 		if(digits != decade.length() || digits < MIN_DECADE_DIGITS || digits > MAX_DECADE_DIGITS)
 			return null;

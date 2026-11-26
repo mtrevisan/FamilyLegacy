@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.tools.sources;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 
@@ -55,7 +56,7 @@ final class CsvFormat{
 	private static String quote(final String field){
 		final String value = StringUtils.defaultString(field);
 		return (StringUtils.containsAny(value, ',', '"', '\n', '\r')
-			? '"' + StringUtils.replace(value, "\"", "\"\"") + '"'
+			? '"' + Strings.CS.replace(value, "\"", "\"\"") + '"'
 			: value);
 	}
 

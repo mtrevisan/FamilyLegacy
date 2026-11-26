@@ -29,28 +29,22 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
-/** A nested editor says, beside OK, whether its change survives closing the parent editor with ESC. */
+/** A nested editor says, beside OK, that its change is kept only if the parent editor is confirmed. */
 class NestedHintTest{
 
 	@Test
 	void notNestedHasNoHint(){
-		Assertions.assertNull(BaseRecordDialog.nestedHintKey(false, true));
-		Assertions.assertNull(BaseRecordDialog.nestedHintKey(false, false));
+		Assertions.assertNull(BaseRecordDialog.nestedHintKey(false));
 	}
 
 	@Test
-	void nestedRecordOfTheFileIsSavedAtOnce(){
-		Assertions.assertEquals("dialog.nested.hint.saved", BaseRecordDialog.nestedHintKey(true, true));
-	}
-
-	@Test
-	void nestedPartOfTheParentIsKeptOnlyIfTheParentIsConfirmed(){
-		Assertions.assertEquals("dialog.nested.hint.pending", BaseRecordDialog.nestedHintKey(true, false));
+	void nestedEditorIsKeptOnlyIfTheParentIsConfirmed(){
+		Assertions.assertEquals("dialog.nested.hint.pending", BaseRecordDialog.nestedHintKey(true));
 	}
 
 	@Test
 	void textsAreTranslated(){
-		for(final String key : new String[]{"dialog.nested.hint.saved", "dialog.nested.hint.pending"})
+		for(final String key : new String[]{"dialog.nested.hint.pending"})
 			Assertions.assertNotEquals(key, I18N.t(key));
 	}
 

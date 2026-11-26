@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.Sortab
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDialogs;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.ConclusionRecordDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -212,7 +213,7 @@ public final class GpsWorkflowDialog extends JDialog{
 	/** The research questions, and the conclusion the dialog is opened from if it is not already one of them. */
 	private List<FLEFRecord> subjects(final FLEFRecord initial){
 		final List<FLEFRecord> subjects = new ArrayList<>();
-		if(initial != null && ConclusionReader.isOfType(initial) && !PrivacyService.isHidden(model, initial))
+		if(ConclusionReader.isOfType(initial) && !PrivacyService.isHidden(model, initial))
 			subjects.add(initial);
 		final List<FLEFRecord> questions = new ArrayList<>(PrivacyService.visible(model, ResearchHelper.listQuestions(model)));
 		questions.sort((a, b) -> ResearchHelper.questionTitle(a).compareToIgnoreCase(ResearchHelper.questionTitle(b)));
@@ -304,7 +305,7 @@ public final class GpsWorkflowDialog extends JDialog{
 		if(selected != null)
 			for(int row = 0; row < assessment.gaps().size(); row ++){
 				final Gap gap = assessment.gaps().get(row);
-				if(gap.kind() == selected.kind() && StringUtils.equals(gap.subjectId(), selected.subjectId())){
+				if(gap.kind() == selected.kind() && Strings.CS.equals(gap.subjectId(), selected.subjectId())){
 					final int viewRow = gapTable.convertRowIndexToView(row);
 					gapTable.setRowSelectionInterval(viewRow, viewRow);
 					break;

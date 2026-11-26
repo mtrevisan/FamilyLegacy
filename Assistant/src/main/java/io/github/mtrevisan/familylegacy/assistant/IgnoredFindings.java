@@ -25,9 +25,13 @@
 package io.github.mtrevisan.familylegacy.assistant;
 
 import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
+import io.github.mtrevisan.familylegacy.preferences.ProjectMeta;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
@@ -47,13 +51,14 @@ import java.util.function.Supplier;
  * The findings the user chose to ignore, because after examining them they decided there is nothing to do (e.g. a date that is
  * really inconsistent in the source).
  * <p>
- * Ignoring a finding is a presentation choice of the user, like the order of the children: it is kept in the user preferences, for
- * each file, and <em>never</em> in the genealogy records, so it creates, modifies or deletes no record and is not exported.
+ * Ignoring a finding is a presentation choice of the user, like the order of the children: it is kept next to each file (in its
+ * {@code .meta} folder, so that it travels with the file), and <em>never</em> in the genealogy records, so it creates, modifies or
+ * deletes no record and is not exported.
  * </p>
  * <p>
  * A finding is ignored through its {@link Diagnostic#key() key}, which changes when the data it reports changes: if the date is
  * corrected and the finding is still there, or a record is added to the conflict, it is a new finding and it comes back. The keys
- * are stored as a digest, not as text: the preferences do not keep names or dates of the people. A file that was never saved has no
+ * are stored as a digest, not as text: the folder does not keep names or dates of the people. A file that was never saved has no
  * identity, so its ignored findings are kept for the session only.
  * </p>
  * <p>
@@ -78,12 +83,32 @@ public final class IgnoredFindings{
 		 */
 		void save(String scope, Set<String> keys);
 
+		/**
+		 * @param file	the file the findings are about (its path)
+		 * @param scope	the digest of the file
+		 * @return the digests of the keys ignored for the file; by default, the ones kept by the digest of the file
+		 */
+		default Set<String> load(final String file, final String scope){
+			return load(scope);
+		}
+
+		/**
+		 * @param file	the file the findings are about (its path)
+		 * @param scope	the digest of the file
+		 * @param keys	the digests of the keys ignored for the file
+		 */
+		default void save(final String file, final String scope, final Set<String> keys){
+			save(scope, keys);
+		}
+
 	}
 
 	/** The findings split in the ones to show and the ones ignored. */
 	public record Split(List<Diagnostic> active, List<Diagnostic> ignored){}
 
 
+	private static final String IGNORED_FILE_NAME = "ignored-findings.properties";
+	private static final String IGNORED_KEY = "findings";
 	private static final int DIGEST_CHARS = 16;
 	/** Before the digest of a kind of finding: everything of that kind is ignored. */
 	private static final String KIND_PREFIX = "k:";
@@ -113,7 +138,10 @@ public final class IgnoredFindings{
 		this.today = today;
 	}
 
-	/** @return the ignored findings kept in the user preferences */
+	/**
+	 * @return the ignored findings kept next to each file ({@code <file>.meta/ignored-findings.properties}), so that they travel with it;
+	 * 	the ones that the older versions kept in the user preferences are taken from there the first time a file is opened
+	 */
 	public static IgnoredFindings usingPreferences(){
 		return new IgnoredFindings(new Storage(){
 			@Override
@@ -124,6 +152,41 @@ public final class IgnoredFindings{
 			@Override
 			public void save(final String scope, final Set<String> keys){
 				AppPreferences.getInstance().setIgnoredFindings(scope, keys);
+			}
+
+			@Override
+			public Set<String> load(final String file, final String scope){
+				final Path path = ProjectMeta.file(file, IGNORED_FILE_NAME);
+				if(Files.exists(path))
+					return decode(ProjectMeta.read(path));
+
+				final Set<String> legacy = load(scope);
+				if(!legacy.isEmpty())
+					write(path, legacy);
+				return legacy;
+			}
+
+			@Override
+			public void save(final String file, final String scope, final Set<String> keys){
+				final Path path = ProjectMeta.file(file, IGNORED_FILE_NAME);
+				//nothing to say and no folder: none is created; once the file exists it is kept (empty), so that the findings of the older
+				//versions are not read again
+				if(!keys.isEmpty() || Files.exists(path))
+					write(path, keys);
+			}
+
+			private static Set<String> decode(final Properties props){
+				final Set<String> keys = new TreeSet<>();
+				for(final String key : StringUtils.split(props.getProperty(IGNORED_KEY, StringUtils.EMPTY), '\n'))
+					if(!key.isBlank())
+						keys.add(key);
+				return keys;
+			}
+
+			private static void write(final Path path, final Set<String> keys){
+				final Properties props = new Properties();
+				props.setProperty(IGNORED_KEY, String.join("\n", new TreeSet<>(keys)));
+				ProjectMeta.write(path, props, "ignored findings");
 			}
 		});
 	}
@@ -330,7 +393,7 @@ public final class IgnoredFindings{
 		if(scope == null)
 			return session;
 
-		return cache.computeIfAbsent(digest(scope), storage::load);
+		return cache.computeIfAbsent(digest(scope), scopeDigest -> storage.load(scope, scopeDigest));
 	}
 
 	private void store(final String scope, final Set<String> keys){
@@ -341,7 +404,7 @@ public final class IgnoredFindings{
 		else{
 			final String scopeDigest = digest(scope);
 			cache.put(scopeDigest, keys);
-			storage.save(scopeDigest, keys);
+			storage.save(scope, scopeDigest, keys);
 		}
 		listeners.forEach(Runnable::run);
 	}

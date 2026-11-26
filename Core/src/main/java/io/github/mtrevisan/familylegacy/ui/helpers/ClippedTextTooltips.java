@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.helpers;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.AbstractButton;
 import javax.swing.JComboBox;
@@ -126,7 +127,7 @@ public final class ClippedTextTooltips{
 	private static Component rendered(final JList<?> list, final int index){
 		@SuppressWarnings("unchecked")
 		final javax.swing.ListCellRenderer<Object> renderer = (javax.swing.ListCellRenderer<Object>)list.getCellRenderer();
-		return (renderer != null? renderer.getListCellRendererComponent((JList<Object>)list, list.getModel().getElementAt(index), index, false, false): null);
+		return (renderer != null? renderer.getListCellRendererComponent(list, list.getModel().getElementAt(index), index, false, false): null);
 	}
 
 	/** @return	The text of a label, of a button or of the selected item of a combo box, {@code null} if it has none. */
@@ -172,20 +173,20 @@ public final class ClippedTextTooltips{
 
 	/** @return	The tooltip with the text on top, in bold, and the tooltip the component had under it. */
 	static String withText(final String text, final String original){
-		final String shown = (StringUtils.startsWithIgnoreCase(text, "<html>")? plain(text): StringUtils.replaceEach(text,
+		final String shown = (Strings.CI.startsWith(text, "<html>")? plain(text): StringUtils.replaceEach(text,
 			new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"}));
 		if(StringUtils.isBlank(original))
 			return "<html>" + shown + "</html>";
 
-		final String rest = (StringUtils.startsWithIgnoreCase(original, "<html>")
-			? StringUtils.removeEndIgnoreCase(original.substring("<html>".length()), "</html>")
+		final String rest = (Strings.CI.startsWith(original, "<html>")
+			? Strings.CI.removeEnd(original.substring("<html>".length()), "</html>")
 			: StringUtils.replaceEach(original, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"}));
 		return "<html><b>" + shown + "</b><br>" + rest + "</html>";
 	}
 
 	/** @return	The content of an HTML text, without the enclosing tags. */
 	private static String plain(final String html){
-		return StringUtils.removeEndIgnoreCase(html.substring("<html>".length()), "</html>");
+		return Strings.CI.removeEnd(html.substring("<html>".length()), "</html>");
 	}
 
 }

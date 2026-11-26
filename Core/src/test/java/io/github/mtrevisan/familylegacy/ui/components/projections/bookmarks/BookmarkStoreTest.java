@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -98,6 +99,36 @@ class BookmarkStoreTest{
 		Assertions.assertTrue(store.visible(model, null).isEmpty());
 		//it is not lost: it is still in the store
 		Assertions.assertEquals(1, store.all().size());
+	}
+
+	@Test
+	void theBookmarksOfAFileAreKeptNextToItAndTravelWithIt(@TempDir final Path directory) throws IOException{
+		final Path legacy = directory.resolve("user").resolve("bookmarks.properties");
+		final FLEFModel model = new FLEFParser().parse(FLEF);
+		final String file = directory.resolve("a.flef").toAbsolutePath().toString();
+		final String copy = directory.resolve("copy.flef").toAbsolutePath().toString();
+		//a bookmark that the older versions kept in the user folder, and one of another file
+		final BookmarkStore store = new BookmarkStore(legacy);
+		store.add(bookmark("old", "I1", file));
+		store.add(bookmark("other", "I1", directory.resolve("b.flef").toAbsolutePath().toString()));
+
+		store.bindDocument(file);
+
+		Assertions.assertEquals(List.of("old"), names(store.visible(model, file)));
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("a.flef.meta").resolve("bookmarks.properties")));
+
+		store.add(bookmark("new", "I1", file));
+		//a copy of the file with its folder has the bookmarks, whatever path they were made under
+		TagStore.copyMetaDirectory(file, copy);
+		store.bindDocument(copy);
+		Assertions.assertEquals(List.of("old", "new"), names(store.visible(model, copy)).stream().sorted(java.util.Comparator.reverseOrder()).toList());
+
+		//a file with no bookmarks gets no folder; a document with no file has none
+		store.bindDocument(directory.resolve("empty.flef").toString());
+		Assertions.assertTrue(store.all().isEmpty());
+		Assertions.assertFalse(Files.exists(directory.resolve("empty.flef.meta")));
+		store.bindDocument(null);
+		Assertions.assertTrue(store.visible(model, null).isEmpty());
 	}
 
 	@Test

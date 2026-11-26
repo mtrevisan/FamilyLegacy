@@ -416,7 +416,7 @@ public final class ReportFormatters{
 		if(iso == null || iso.isBlank())
 			return null;
 
-		final String text = StringUtils.removeEnd(iso.strip(), "/");
+		final String text = Strings.CS.removeEnd(iso.strip(), "/");
 		//the sign of the latitude, its digits, the sign of the longitude, its digits (an altitude may follow: it is not told)
 		final int second = Math.max(text.indexOf('+', 1), text.indexOf('-', 1));
 		if(text.isEmpty() || (text.charAt(0) != '+' && text.charAt(0) != '-') || second < 0)

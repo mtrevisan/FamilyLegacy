@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,7 @@ public final class SourceIdentifierChecker{
 			return List.of();
 
 		final FLEFRecord source = model.getRecordById(sourceId);
-		if(source == null || !SourceReader.isOfType(source))
+		if(!SourceReader.isOfType(source))
 			return List.of();
 
 		final String name = SourceReader.displayText(source);
@@ -214,7 +215,7 @@ public final class SourceIdentifierChecker{
 	/** @return the finding: its title and text are the messages {@code <kind>.title} and {@code <kind>.text} with the arguments */
 	private static Diagnostic finding(final Diagnostic.Severity severity, final String kind, final String sourceId,
 			final List<String> arguments, final Object... keyData){
-		final String messageKind = StringUtils.removeEnd(StringUtils.removeEnd(kind, ".repository"), ".website");
+		final String messageKind = Strings.CS.removeEnd(Strings.CS.removeEnd(kind, ".repository"), ".website");
 		final Object[] data = arguments.toArray();
 		return new Diagnostic(severity, AssistantCategory.SOURCES, I18N.tf(messageKind + ".title", data), I18N.tf(kind + ".text", data),
 			List.of(sourceId), null, DiagnosticKeys.of(messageKind, List.of(sourceId), keyData));

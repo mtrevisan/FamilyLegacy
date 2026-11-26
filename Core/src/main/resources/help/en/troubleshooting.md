@@ -119,10 +119,12 @@ In the folder `.familylegacy` of your home directory:
 
 | File | What it is for |
 |---|---|
-| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown, and the findings you ignored in the Research Assistant for each file. **Deleting it restores every default.** *Settings > Open preferences folder...* opens its folder (if the system cannot open it from here, a message gives its path). |
-| `bookmarks.properties` | The [bookmarks](searching.md#bookmarks); a text file you can edit by hand. |
+| `preferences.properties` | Language, font, privacy policy, order of children and partners, how media paths are shown. **Deleting it restores every default.** *Settings > Open preferences folder...* opens its folder (if the system cannot open it from here, a message gives its path). |
+| `bookmarks.properties` | Only the bookmarks of older versions, read once to bring them next to their file (see below). |
 | `geocoding.properties` | The coordinates already found for places, for the [Chronomap](chronomap.md). |
 | `historical-maps.properties` | The catalogue of historical maps found for each area, valid for 30 days. |
 | `tiles/` | The map tiles already downloaded, so that maps you have seen work without a connection. |
+
+Next to each `.flef` file, in a folder named after it (`family.flef.meta`), the application keeps what belongs to that file but is not genealogy: the [tags](editors.md#tags) (`tags.properties`), the [bookmarks](searching.md#bookmarks) (`bookmarks.properties`) and the findings you ignored in the [Research Assistant](assistant.md) (`ignored-findings.properties`). They are text files; each says its format version in its first line, and a missing or damaged one is read as empty. **Copy, move or archive the `.meta` folder together with the file**: the file alone has none of them. The simplest way is to keep each tree in a folder of its own (see [One folder for each project](files.md#one-folder-for-each-project)).
 
 The **list of recent files** is kept by the system (the registry on Windows), not in this folder. Your genealogical data lives only in the `.flef` files you save.

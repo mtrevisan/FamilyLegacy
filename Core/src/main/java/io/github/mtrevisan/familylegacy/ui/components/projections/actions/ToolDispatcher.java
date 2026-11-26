@@ -44,6 +44,11 @@ public interface ToolDispatcher{
 		return false;
 	}
 
+	/** @return	The path of the file of the open document, {@code null} if it has none (never saved). */
+	default String documentPath(){
+		return null;
+	}
+
 	default void editEntity(final String id){}
 
 	default void paste(){}

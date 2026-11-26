@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -195,7 +196,7 @@ public final class RelationshipDataLoader{
 			final String value = FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_VALUE);
 			if(personId != null && value != null && individualIds.contains(personId)
 					&& IndividualAttributeReader.ENUM_TYPE_OCCUPATION.equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE))
-					&& StringUtils.containsAnyIgnoreCase(value, IndividualAttributeReader.CLERGY_OCCUPATIONS))
+					&& Strings.CI.containsAny(value, IndividualAttributeReader.CLERGY_OCCUPATIONS))
 				clergy.add(personId);
 		}
 		return clergy;

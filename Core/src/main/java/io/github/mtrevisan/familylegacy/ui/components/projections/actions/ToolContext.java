@@ -156,6 +156,11 @@ public record ToolContext(
 		return dispatcher.openImported(importedModel, source);
 	}
 
+	/** @return	The path of the file of the open document, {@code null} if it has none. */
+	public String documentPath(){
+		return dispatcher.documentPath();
+	}
+
 	public void performEdit(final String id){
 		dispatcher.editEntity(id);
 	}

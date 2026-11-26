@@ -30,6 +30,7 @@ import io.github.mtrevisan.calendars.gregorian.Indiction;
 import io.github.mtrevisan.calendars.text.DateFormulas;
 import io.github.mtrevisan.calendars.text.Ordinals;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +48,8 @@ public final class VenetanCalendarParser{
 
 	private static final Pattern ARO_SUFFIX = Pattern.compile("aro?$");
 	private static final Map<String, Integer> MONTHS = new HashMap<>();
+	/** The seasons ({@link CalendarSeason} flags, negative), kept apart from the months. */
+	private static final Map<String, Integer> SEASONS = new HashMap<>();
 	static{
 		// Venetan Month Names (Year starting in March)
 		MONTHS.put("marŧo", 1);
@@ -98,7 +101,6 @@ public final class VenetanCalendarParser{
 		MONTHS.put("luj", 5);
 		MONTHS.put("lul", 5);
 		MONTHS.put("lug", 5);
-		MONTHS.put("lul", 5);
 		MONTHS.put("agosto", 6);
 		MONTHS.put("agusto", 6);
 		MONTHS.put("avosto", 6);
@@ -164,8 +166,6 @@ public final class VenetanCalendarParser{
 		MONTHS.put("xeñèr mv", 11);
 		MONTHS.put("jeñèr", 11);
 		MONTHS.put("jeñèr mv", 11);
-		MONTHS.put("gen", 11);
-		MONTHS.put("gen mv", 11);
 		MONTHS.put("zen", 11);
 		MONTHS.put("zen mv", 11);
 		MONTHS.put("gen", 11);
@@ -202,63 +202,62 @@ public final class VenetanCalendarParser{
 		MONTHS.put("fev mv", 12);
 		MONTHS.put("fre", 12);
 		MONTHS.put("fre mv", 12);
-		MONTHS.put("feb", 12);
-		MONTHS.put("feb mv", 12);
 
+		// the seasons are kept apart from the months, so that a word that is both is explicit (see lookup)
 		// Autun (Autumn) -> Maps to Autumnal Equinox flag
-		MONTHS.put("auton", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("autun", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("autuno", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("aut", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("otun", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("otuno", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("otu", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("utun", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("utuno", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("utu", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("ferdima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fer", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fardima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("farnima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("far", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fraima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fra", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("frima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fri", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fredima", CalendarSeason.SEASON_AUTUMN);
-		MONTHS.put("fre", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("auton", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("autun", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("autuno", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("aut", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("otun", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("otuno", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("otu", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("utun", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("utuno", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("utu", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("ferdima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fer", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fardima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("farnima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("far", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fraima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fra", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("frima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fri", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fredima", CalendarSeason.SEASON_AUTUMN);
+		SEASONS.put("fre", CalendarSeason.SEASON_AUTUMN);
 		// Invèrno (Winter) -> Maps to Hibernal Solstice flag
-		MONTHS.put("invèrno", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("invièrno", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("inv", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("inbèrno", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("inb", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("divèr", CalendarSeason.SEASON_WINTER);
-		MONTHS.put("div", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("invèrno", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("invièrno", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("inv", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("inbèrno", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("inb", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("divèr", CalendarSeason.SEASON_WINTER);
+		SEASONS.put("div", CalendarSeason.SEASON_WINTER);
 		// Vèrta (Spring) -> Maps to Vernal Equinox flag
-		MONTHS.put("primavera", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("primavèra", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("primavèrta", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("pri", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("vèrta", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("vèr", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("insuta", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("ins", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("ansuda", CalendarSeason.SEASON_SPRING);
-		MONTHS.put("ans", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("primavera", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("primavèra", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("primavèrta", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("pri", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("vèrta", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("vèr", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("insuta", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("ins", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("ansuda", CalendarSeason.SEASON_SPRING);
+		SEASONS.put("ans", CalendarSeason.SEASON_SPRING);
 		// Istà (Summer) -> Maps to Estival Solstice flag
-		MONTHS.put("istade", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("istae", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("istà", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("ist", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("instade", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("instae", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("instà", CalendarSeason.SEASON_SUMMER);
-//		MONTHS.put("ins", CalendarSeason.SEASON_SUMMER);		// `Instà` does not have an abbreviation
-		MONTHS.put("estade", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("estae", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("està", CalendarSeason.SEASON_SUMMER);
-		MONTHS.put("est", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("istade", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("istae", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("istà", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("ist", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("instade", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("instae", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("instà", CalendarSeason.SEASON_SUMMER);
+//		SEASONS.put("ins", CalendarSeason.SEASON_SUMMER);		// `Instà` does not have an abbreviation
+		SEASONS.put("estade", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("estae", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("està", CalendarSeason.SEASON_SUMMER);
+		SEASONS.put("est", CalendarSeason.SEASON_SUMMER);
 	}
 
 	/** Markers of the Venetan year (Mos Veneto) after the year, with no information (the months are already Venetan). */
@@ -357,18 +356,27 @@ public final class VenetanCalendarParser{
 		return month;
 	}
 
+	/**
+	 * Looks a name up in the seasons and in the months. The words that are both (the abbreviations {@code otu}, October or
+	 * autumn, and {@code fre}, February or autumn) are read as seasons, as the abbreviations of the seasons are the ones used.
+	 */
+	private static Integer lookup(final String name){
+		final Integer season = SEASONS.get(name);
+		return (season != null? season: MONTHS.get(name));
+	}
+
 	/** @return	The month (or the season) that a name says, {@code null} if it is not one (see {@link #resolveMonth(String)}). */
 	private static Integer findMonth(final String monthName){
-		Integer month = MONTHS.get(monthName);
+		Integer month = lookup(monthName);
 		if(month != null)
 			return month;
 
 		String standard = monthName;
 		for(final String[] variant : TYPOGRAPHIC_VARIANTS)
-			standard = StringUtils.replace(standard, variant[0], variant[1]);
-		month = MONTHS.get(standard);
+			standard = Strings.CS.replace(standard, variant[0], variant[1]);
+		month = lookup(standard);
 		if(month == null)
-			month = MONTHS.get(ARO_SUFFIX.matcher(standard)
+			month = lookup(ARO_SUFFIX.matcher(standard)
 				.replaceAll("èr"));
 		return month;
 	}

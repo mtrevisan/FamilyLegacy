@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks;
 
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.preferences.ProjectMeta;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.util.AtomicFileWriter;
 import org.apache.commons.lang3.StringUtils;
@@ -50,8 +51,9 @@ import java.util.UUID;
 /**
  * Persistent store of bookmarks.
  * <p>
- * Bookmarks are saved in a properties file under
- * {@code ~/.familylegacy/bookmarks.properties}. Each bookmark is stored
+ * The bookmarks of a file are saved next to it, in {@code <file>.flef.meta/bookmarks.properties} (see {@link #bindDocument(String)}), so
+ * that they travel with the file. The older versions kept the bookmarks of every file in
+ * {@code ~/.familylegacy/bookmarks.properties}: they are read from there the first time a file is opened. Each bookmark is stored
  * under a {@code bookmark.<uuid>.} prefix, with the name, type, root id
  * and creation timestamp as dedicated keys, and one
  * {@code bookmark.<uuid>.prop.<key>} entry per type-specific property.
@@ -73,8 +75,16 @@ public final class BookmarkStore{
 	public static final String FILE_PROPERTY_NAME = "familylegacy.bookmarks.file";
 
 
+	private static final String META_FILE_NAME = "bookmarks.properties";
+
+	/** The file of the older versions, in the user folder: it keeps the bookmarks of every file, and it is read to bring them next to their file. */
 	private final Path file;
+	/** The bookmarks of the user folder (the ones of every file), while no document is bound. */
+	private final Map<String, Bookmark> global = new LinkedHashMap<>();
+	/** The bookmarks of the bound document, kept next to it. */
 	private final Map<String, Bookmark> bookmarks = new LinkedHashMap<>();
+	/** The path of the FLEF file the bookmarks are of, {@code null} if none (a document never saved). */
+	private String document;
 
 
 	public BookmarkStore(){
@@ -100,9 +110,40 @@ public final class BookmarkStore{
 	 *                          Public API
 	 * ====================================================================== */
 
+	/**
+	 * Makes the bookmarks those of a file, which are kept next to it ({@code <file>.meta/bookmarks.properties}) so that they travel with
+	 * it. The first time, the ones that the older versions kept in the user folder for that file are taken from there.
+	 *
+	 * @param filePath	The path of the FLEF file, {@code null} for a document that has none (it has no bookmarks).
+	 */
+	public void bindDocument(final String filePath){
+		document = filePath;
+		bookmarks.clear();
+		if(filePath == null)
+			return;
+
+		final Path meta = ProjectMeta.file(filePath, META_FILE_NAME);
+		if(Files.exists(meta)){
+			bookmarks.putAll(parseAll(ProjectMeta.read(meta)));
+			return;
+		}
+
+		for(final Bookmark bookmark : global.values()){
+			final String owner = bookmark.property(FILE_PROPERTY);
+			if(owner != null && samePath(owner, filePath))
+				bookmarks.put(bookmark.id(), bookmark);
+		}
+		if(!bookmarks.isEmpty())
+			save();
+	}
+
+	private Map<String, Bookmark> active(){
+		return (document != null? bookmarks: global);
+	}
+
 	/** Returns every bookmark, ordered by creation time (oldest first). */
 	public List<Bookmark> all(){
-		final List<Bookmark> list = new ArrayList<>(bookmarks.values());
+		final List<Bookmark> list = new ArrayList<>(active().values());
 		list.sort(Comparator.comparingLong(Bookmark::createdAt));
 		return list;
 	}
@@ -125,7 +166,11 @@ public final class BookmarkStore{
 	 * A bookmark refers to the identifier of a record, and the same identifier is another record in another file: it belongs to the file
 	 * it was made in, and is shown only there. One that is tied to no file (made before they were) belongs to none, and is not shown.
 	 */
-	private static boolean belongsToDocument(final Bookmark bookmark, final String filePath){
+	private boolean belongsToDocument(final Bookmark bookmark, final String filePath){
+		//the bookmarks next to a file are all of that file, whatever path they were made under (the file may have been copied or moved)
+		if(document != null)
+			return true;
+
 		final String file = bookmark.property(FILE_PROPERTY);
 		return (file != null && filePath != null && samePath(file, filePath));
 	}
@@ -140,24 +185,24 @@ public final class BookmarkStore{
 	}
 
 	public boolean isEmpty(){
-		return bookmarks.isEmpty();
+		return active().isEmpty();
 	}
 
 	public Bookmark get(final String id){
-		return bookmarks.get(id);
+		return active().get(id);
 	}
 
 	/** Adds or replaces a bookmark and saves the store. */
 	public void add(final Bookmark bookmark){
 		if(bookmark == null)
 			return;
-		bookmarks.put(bookmark.id(), bookmark);
+		active().put(bookmark.id(), bookmark);
 		save();
 	}
 
 	/** Removes a bookmark by id and saves the store. */
 	public boolean remove(final String id){
-		if(id == null || bookmarks.remove(id) == null)
+		if(id == null || active().remove(id) == null)
 			return false;
 		save();
 		return true;
@@ -165,10 +210,10 @@ public final class BookmarkStore{
 
 	/** Renames a bookmark and saves the store. */
 	public void rename(final String id, final String newName){
-		final Bookmark b = bookmarks.get(id);
+		final Bookmark b = active().get(id);
 		if(b == null)
 			return;
-		bookmarks.put(id, b.withName(newName));
+		active().put(id, b.withName(newName));
 		save();
 	}
 
@@ -183,7 +228,7 @@ public final class BookmarkStore{
 	 * ====================================================================== */
 
 	private void load(){
-		bookmarks.clear();
+		global.clear();
 		if(!Files.exists(file))
 			return;
 
@@ -197,6 +242,11 @@ public final class BookmarkStore{
 			return;
 		}
 
+		global.putAll(parseAll(props));
+	}
+
+	private static Map<String, Bookmark> parseAll(final Properties props){
+		final Map<String, Bookmark> parsed = new LinkedHashMap<>();
 		// Group keys by uuid.
 		final Map<String, Map<String, String>> byId = new LinkedHashMap<>();
 		for(final String key : props.stringPropertyNames()){
@@ -214,8 +264,9 @@ public final class BookmarkStore{
 		for(final Map.Entry<String, Map<String, String>> e : byId.entrySet()){
 			final Bookmark b = parse(e.getKey(), e.getValue());
 			if(b != null)
-				bookmarks.put(b.id(), b);
+				parsed.put(b.id(), b);
 		}
+		return parsed;
 	}
 
 	private static Bookmark parse(final String uuid, final Map<String, String> fields){
@@ -241,7 +292,7 @@ public final class BookmarkStore{
 
 	private void save(){
 		final Properties props = new Properties();
-		for(final Bookmark b : bookmarks.values()){
+		for(final Bookmark b : active().values()){
 			final String p = PREFIX + b.id() + ".";
 			props.setProperty(p + "name", b.name());
 			props.setProperty(p + "type", b.type().name());
@@ -249,6 +300,15 @@ public final class BookmarkStore{
 			props.setProperty(p + "createdAt", Long.toString(b.createdAt()));
 			for(final Map.Entry<String, String> e : b.properties().entrySet())
 				props.setProperty(p + "prop." + e.getKey(), e.getValue());
+		}
+
+		if(document != null){
+			final Path meta = ProjectMeta.file(document, META_FILE_NAME);
+			//no bookmarks and no folder: none is created; once the file exists it is kept (empty), so that the bookmarks of the older
+			//versions are not read again
+			if(!props.isEmpty() || Files.exists(meta))
+				ProjectMeta.write(meta, props, "bookmarks");
+			return;
 		}
 
 		try{

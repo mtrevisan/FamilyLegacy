@@ -29,7 +29,9 @@ import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
+import io.github.mtrevisan.familylegacy.preferences.AppPreferences;
 import io.github.mtrevisan.familylegacy.preferences.MediaPathDisplay;
+import io.github.mtrevisan.familylegacy.preferences.TagStore;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
@@ -40,6 +42,7 @@ import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -85,6 +88,10 @@ public final class FileMenuController{
 
 
 	private static final String FLEF_EXTENSION = "flef";
+	/** The choice of the user about putting a new file in a folder of its own, kept between sessions. */
+	private static final String OWN_FOLDER_KEY = "file.own_folder";
+	/** Set once the user was told that the folder is shared with other trees (it is said once). */
+	private static final String OWN_FOLDER_ADVICE_KEY = "file.own_folder.advice_shown";
 	/** How long a change waits for others before it is written, so that a burst of edits makes a single write. */
 	private static final int AUTOSAVE_DELAY = 600;
 
@@ -460,6 +467,9 @@ public final class FileMenuController{
 			return false;
 
 		if(writeTo(target)){
+			//the application data of the file (the tags) go with the copy
+			if(currentFile != null)
+				TagStore.copyMetaDirectory(currentFile.getAbsolutePath(), target.getAbsolutePath());
 			setCurrentFile(target);
 			sameDocumentFileListener.run();
 			//where the file is, with the button to open its directory
@@ -514,6 +524,11 @@ public final class FileMenuController{
 		chooser.setFileFilter(new FileNameExtensionFilter(I18N.t("file.filter.flef"), FLEF_EXTENSION));
 		if(suggested != null)
 			chooser.setSelectedFile(suggested);
+		//a project is best kept in a folder of its own, so that the file and what goes with it travel together
+		final JCheckBox ownFolder = new JCheckBox(I18N.t("dialog.file.own_folder"),
+			Boolean.parseBoolean(AppPreferences.getInstance().stringValue(OWN_FOLDER_KEY, Boolean.FALSE.toString())));
+		ownFolder.setToolTipText(I18N.t("dialog.file.own_folder.tooltip"));
+		chooser.setAccessory(ownFolder);
 		if(chooser.showSaveDialog(owner) != JFileChooser.APPROVE_OPTION)
 			return null;
 
@@ -521,6 +536,21 @@ public final class FileMenuController{
 		// Append the FLEF extension when the user did not type one.
 		if(!Strings.CI.endsWith(target.getName(), "." + FLEF_EXTENSION))
 			target = new File(target.getParentFile(), target.getName() + "." + FLEF_EXTENSION);
+
+		AppPreferences.getInstance().setStringValue(OWN_FOLDER_KEY, Boolean.toString(ownFolder.isSelected()));
+		if(ownFolder.isSelected())
+			target = ProjectFolder.inOwnFolder(target);
+		else if(!Boolean.parseBoolean(AppPreferences.getInstance().stringValue(OWN_FOLDER_ADVICE_KEY, Boolean.FALSE.toString()))
+				&& ProjectFolder.sharesFolderWithOtherProjects(target)){
+			//said once: the folder already holds other family trees
+			AppPreferences.getInstance().setStringValue(OWN_FOLDER_ADVICE_KEY, Boolean.TRUE.toString());
+			final File inOwnFolder = ProjectFolder.inOwnFolder(target);
+			final int move = MessageDialogs.confirm(owner,
+				I18N.tf("confirmation.own_folder.message", inOwnFolder.getParent()),
+				I18N.t("confirmation.own_folder.title"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if(move == JOptionPane.YES_OPTION)
+				target = inOwnFolder;
+		}
 
 		if(target.exists()){
 			final int confirm = MessageDialogs.confirm(owner,
@@ -531,6 +561,9 @@ public final class FileMenuController{
 			if(confirm != JOptionPane.YES_OPTION)
 				return null;
 		}
+		//the folder of a project that goes in a folder of its own is made now
+		if(target.getParentFile() != null && !target.getParentFile().isDirectory() && !target.getParentFile().mkdirs())
+			LOGGER.warn("Could not create the folder {}", target.getParentFile());
 		return target;
 	}
 

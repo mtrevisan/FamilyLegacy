@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,7 +113,7 @@ public final class RecordAlignment{
 	public static String[] linesOf(final String text){
 		return (StringUtils.isEmpty(text)
 			? new String[0]
-			: StringUtils.splitPreserveAllTokens(StringUtils.removeEnd(text, StringUtils.LF), '\n'));
+			: StringUtils.splitPreserveAllTokens(Strings.CS.removeEnd(text, StringUtils.LF), '\n'));
 	}
 
 	/** The mark of a line: an empty line (a {@code null}) is a filler, the lines that only open or close a group are never marked. */
@@ -217,11 +218,11 @@ public final class RecordAlignment{
 		blockLines(target, depth, targetLines);
 
 		if(!source.hasChildren() && !target.hasChildren()){
-			final boolean same = sourceLines.get(0).equals(targetLines.get(0));
+			final boolean same = sourceLines.getFirst().equals(targetLines.getFirst());
 			//a reference to another record is a stronger difference than another text
 			final DiffKind kind = (isReference(source, model) && isReference(target, model)? DiffKind.REFERENCE: DiffKind.CONFLICT);
-			rows.add(sourceLines.get(0), (same? null: markOf(sourceLines.get(0), kind)), targetLines.get(0),
-				(same? null: markOf(targetLines.get(0), kind)));
+			rows.add(sourceLines.getFirst(), (same? null: markOf(sourceLines.getFirst(), kind)), targetLines.getFirst(),
+				(same? null: markOf(targetLines.getFirst(), kind)));
 			if(!same && depth > 0)
 				rows.spans.add(new int[]{start, start, depth});
 			return;
@@ -231,7 +232,7 @@ public final class RecordAlignment{
 			return;
 		}
 
-		rows.add(sourceLines.get(0), null, targetLines.get(0), null);
+		rows.add(sourceLines.getFirst(), null, targetLines.getFirst(), null);
 		alignChildren(source.getChildren(), target.getChildren(), depth + 1, rows, model, singular);
 		final String closing = "  ".repeat(depth) + "}";
 		rows.add(closing, null, closing, null);

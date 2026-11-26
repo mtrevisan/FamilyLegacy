@@ -56,6 +56,7 @@ This is why, to change a date of birth, you edit the birth *event* of the person
 ## Things that are good to know early
 
 - **Undo and Redo** (`Ctrl+Z`, `Ctrl+Y`) are in the **Edit** menu, together with **Recent Changes...**, which lists what changed.
+- **One folder for each family tree**: the file and the `.meta` folder next to it (tags, bookmarks, ignored findings) travel together. See [Files](files.md#one-folder-for-each-project).
 - Every dialog closes with `Esc`, and only the dialog that has the focus.
 - A word you do not know (participation, conclusion, extract...) is in the [glossary](glossary.md).
 - Your preferences (language, font, how media paths are shown) are in the **Settings > Appearance** menu. See [Preferences](preferences.md).

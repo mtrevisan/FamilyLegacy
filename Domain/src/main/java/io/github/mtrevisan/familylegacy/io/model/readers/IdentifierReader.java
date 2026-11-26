@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.io.model.readers;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -180,7 +181,7 @@ public final class IdentifierReader{
 		final List<String> values = new ArrayList<>(0);
 		for(final FLEFRecord identifier : extractIdentifiers(parent)){
 			final String value = StringUtils.trimToNull(extractValue(identifier));
-			if(value != null && StringUtils.equalsIgnoreCase(StringUtils.trim(extractScheme(identifier)), scheme))
+			if(value != null && Strings.CI.equals(StringUtils.trim(extractScheme(identifier)), scheme))
 				values.add(value);
 		}
 		return values;
@@ -374,7 +375,7 @@ public final class IdentifierReader{
 			case ENUM_SCHEME_ISBN -> isbnKey(text);
 			case ENUM_SCHEME_ISSN -> (NOT_COMPACTABLE.equals(compact(text))? text.toLowerCase(Locale.ROOT): compact(text));
 			case ENUM_SCHEME_DOI -> withoutDoiPrefix(text).toLowerCase(Locale.ROOT);
-			case ENUM_SCHEME_URL -> StringUtils.removeEnd(text.toLowerCase(Locale.ROOT), "/");
+			case ENUM_SCHEME_URL -> Strings.CS.removeEnd(text.toLowerCase(Locale.ROOT), "/");
 			default -> StringUtils.normalizeSpace(text).toLowerCase(Locale.ROOT);
 		};
 		return key + "|" + normalized;

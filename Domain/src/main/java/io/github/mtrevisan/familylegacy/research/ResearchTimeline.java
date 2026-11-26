@@ -44,6 +44,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -316,7 +317,7 @@ public final class ResearchTimeline{
 			for(final Update update : updates(conclusion)){
 				add(update.date(), Kind.CONCLUSION_UPDATED, conclusion.getId(), title, flat(update.comment()), involved, Set.of(), Set.of());
 				//the position that settles the conflict is taken by the last update that touches the preferred assertion or the status
-				if(update.date() != null && StringUtils.containsAny(update.comment(), ConclusionReader.TAG_PREFERRED,
+				if(update.date() != null && Strings.CS.containsAny(update.comment(), ConclusionReader.TAG_PREFERRED,
 						ConclusionReader.TAG_PROOF_STATUS))
 					settledOn = update.date();
 			}
@@ -349,7 +350,7 @@ public final class ResearchTimeline{
 
 						final String value = StringUtils.strip(StringUtils.substringAfter(line, ":"));
 						final FLEFRecord source = (!value.isEmpty()? model.getRecordById(value): null);
-						final boolean known = (source != null && SourceReader.isOfType(source));
+						final boolean known = SourceReader.isOfType(source);
 						add(update.date(), Kind.CITATION_ADDED, owner.getId(), (known? SourceHelper.sourceTitle(source): owner.getId()),
 							StringUtils.EMPTY, involved, (known? Set.of(value): Set.of()), (known? repositoriesOf(value): Set.of()));
 					}

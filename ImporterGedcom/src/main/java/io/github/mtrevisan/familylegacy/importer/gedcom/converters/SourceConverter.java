@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,15 +136,6 @@ public class SourceConverter {
 			source.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_PUBLISHER, text));
 	}
 
-	/**
-	 * Reads a publication as the catalogues write it: "date", "place : date" (or "date : place"), "place : publisher, date"; for
-	 * the field of the publication (PUBL) also "place : publisher" and "publisher, date". The date may be written as the catalogues
-	 * do (see {@link #publicationDate(String)}).
-	 *
-	 * @param text	The text.
-	 * @param publicationField	Whether the text is the field of the publication (and so its parts are publication facts).
-	 * @return	The publication, or {@code null} if the text is not written so.
-	 */
 	/**
 	 * Turns each REFN of the source (a user reference number, with a TYPE that says what it is) into an identifier of the source: the
 	 * scheme is the one of the vocabulary that the TYPE names (ISBN, ISSN, DOI, URL, FHL film, ...), or the one the value tells when there is
@@ -265,7 +257,7 @@ public class SourceConverter {
 	 * @return	The date, or {@code null} if the text is not a date.
 	 */
 	private static String publicationDate(final String text){
-		String date = StringUtils.trimToNull(StringUtils.removeEnd(StringUtils.trimToEmpty(text), "."));
+		String date = StringUtils.trimToNull(Strings.CS.removeEnd(StringUtils.trimToEmpty(text), "."));
 		if(date == null)
 			return null;
 

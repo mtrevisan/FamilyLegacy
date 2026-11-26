@@ -110,25 +110,14 @@ suspicions to confirm with a test or by hand. Ordered by how much they hurt a be
    the help needs a section ("Changing a date of birth") to explain it. Proposal: "Birth" and "Death" rows (date, place) in the new-individual
    dialog and in the dossier, creating the event and the participation behind the scenes. *(verify)* what the views do with a participation
    whose role is empty: the role is optional, but the birth is read as the *principal* one.
-4. **New unsaved record + nested dialogs *(verify)*.** The nested dialogs save into the model at once (`EntityListPanel.showCreateNewDialog`),
-   while `BaseRecordDialog.originalState` is `null` for a *new* record, so `Esc` on a new individual after adding an attribute, a
-   participation or a relationship in its tabs may leave those records in the file pointing to an individual that was never saved. Write a test
-   (new individual, add attribute, `Esc`, validate the file). If confirmed, either disable the sub-tabs until the first OK or roll the nested
-   records back on `Esc`.
-5. **A marriage is two records for one fact.** The relationship (*civil spouse*, with *Valid From*) and the marriage *event* (date, place,
+4. **A marriage is two records for one fact.** The relationship (*civil spouse*, with *Valid From*) and the marriage *event* (date, place,
    witnesses) are separate; the Assistant reports an event with no relationship, and the relationship's *Valid From* repeats the date of the
    event. The generic *spouse* and *child* types exist only because the importers have nothing better, and the editor still offers them.
    Proposal: create the union from one dialog (type, date, place) that writes both records.
-6. **Citing a source is a long road.** *Sources > Create New...* opens the source (its **title is a name structure**: another nested dialog
+5. **Citing a source is a long road.** *Sources > Create New...* opens the source (its **title is a name structure**: another nested dialog
     just to type a title), then its repository (another name dialog), then the citation (source and *Stance* required; stance is almost
     always *supports*), the *evidence* qualifiers, the *extract*. Proposal: *Title* as a plain text box when there is one name, *Stance*
     defaulting to *supports*, and a "Cite a new source" shortcut that asks only for the title and the locator.
-7. **Tags are not in the file.** They are kept in `.familylegacy/tags.properties` in the user folder (said in `editors.md`), so a copy of
-    the file sent to somebody, or a renamed file, loses them, and Undo does not cover them. Easy to find out only after losing them.
-    Proposal: warn at *Backup...* and *Save as...*, or store them in the file. -- DISTRIBUTE A ZIP FILE? or same name but different extension? qual è la best practice in questi casi?
-8. **Privacy surprises.** A dead person with no death event and a birth less than 110 years ago is treated as living and masked (see
-    `workflows.md` #6). Someone entering a great-uncle without a death event finds a hidden box. Proposal: a visible lock icon on the box and
-    the reason in the tooltip. -- HIDDEN BOX??
 
 ### MEDIUM
 

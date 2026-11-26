@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.privacy.PrivacyPolicy;
 import io.github.mtrevisan.familylegacy.reports.index.ReportFormatters;
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -368,7 +369,7 @@ public final class CitationRenderer{
 	/** @return	The paragraphs of a text (separated by blank lines), at least one (empty if the text is). */
 	private static List<String> paragraphsOf(final String text){
 		final List<String> paragraphs = new ArrayList<>(1);
-		for(final String paragraph : StringUtils.splitByWholeSeparator(StringUtils.replace(text, "\r\n", "\n"), "\n\n")){
+		for(final String paragraph : StringUtils.splitByWholeSeparator(Strings.CS.replace(text, "\r\n", "\n"), "\n\n")){
 			final String stripped = paragraph.strip();
 			if(!stripped.isEmpty())
 				paragraphs.add(stripped);

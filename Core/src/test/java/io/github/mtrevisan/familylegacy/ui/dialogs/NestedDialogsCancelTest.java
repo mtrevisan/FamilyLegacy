@@ -28,7 +28,16 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMParser;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualAttributeReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
+import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
+import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.EventParticipationRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.IndividualAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.io.model.readers.NameReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
@@ -127,6 +136,147 @@ class NestedDialogsCancelTest{
 
 		Assertions.assertTrue(dialog.isSaved());
 		Assertions.assertTrue(primaryName(individual).contains("Changed"), primaryName(individual));
+	}
+
+	@Test
+	void cancellingANewIndividualRemovesTheAttributesSavedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final int before = model.getRecordsByType(IndividualAttributeReader.TYPE).size();
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createNew(null, model);
+		final IndividualAttributeRecordDialog attributeDialog = IndividualAttributeRecordDialog.createNew(individualDialog, model);
+		attributeDialog.link(LinkRole.OWNER, individualDialog.getRecord());
+		final BoundComboBox<?> type = findComponent(attributeDialog.getContentPane(), BoundComboBox.class);
+		Assertions.assertNotNull(type);
+		type.setText("occupation");
+		attributeDialog.save();
+		Assertions.assertTrue(attributeDialog.isSaved());
+		Assertions.assertEquals(before + 1, model.getRecordsByType(IndividualAttributeReader.TYPE).size(),
+			"the nested dialog saves into the model at once");
+
+		individualDialog.dispose();
+
+		Assertions.assertEquals(before, model.getRecordsByType(IndividualAttributeReader.TYPE).size(),
+			"the attribute of an individual that was never saved must not stay in the file");
+	}
+
+	@Test
+	void cancellingANewIndividualRemovesTheRelationshipsSavedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final FLEFRecord anna = model.getRecordsByType(IndividualReader.TYPE).getFirst();
+		final int before = model.getRecordsByType(RelationshipReader.TYPE).size();
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createNew(null, model);
+		final RelationshipRecordDialog nested = RelationshipRecordDialog.createNew(individualDialog, model);
+		nested.link(LinkRole.SUBJECT, individualDialog.getRecord());
+		nested.link(LinkRole.TARGET, anna);
+		final BoundComboBox<?> type = findComponent(nested.getContentPane(), BoundComboBox.class);
+		Assertions.assertNotNull(type);
+		type.setText(RelationshipReader.ENUM_TYPE_CHILD);
+		nested.save();
+		Assertions.assertTrue(nested.isSaved());
+		Assertions.assertEquals(before + 1, model.getRecordsByType(RelationshipReader.TYPE).size());
+
+		individualDialog.dispose();
+
+		Assertions.assertEquals(before, model.getRecordsByType(RelationshipReader.TYPE).size());
+	}
+
+	@Test
+	void cancellingANewIndividualRemovesTheParticipationsSavedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final FLEFRecord event = FLEFRecord.createMainRecord(EventReader.TYPE, EventReader.ID_PREFIX, model)
+			.addChild(FLEFRecord.createChildWithTagAndValue(EventReader.TAG_TYPE, EventReader.ENUM_TYPE_BIRTH));
+		model.addRecord(event);
+		final int before = model.getRecordsByType(EventParticipationReader.TYPE).size();
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createNew(null, model);
+		final EventParticipationRecordDialog nested = EventParticipationRecordDialog.createNew(individualDialog, model);
+		nested.link(LinkRole.PARTICIPANT, individualDialog.getRecord());
+		nested.link(LinkRole.EVENT, event);
+		nested.save();
+		Assertions.assertTrue(nested.isSaved());
+		Assertions.assertEquals(before + 1, model.getRecordsByType(EventParticipationReader.TYPE).size());
+
+		individualDialog.dispose();
+
+		Assertions.assertEquals(before, model.getRecordsByType(EventParticipationReader.TYPE).size());
+	}
+
+	@Test
+	void savingANewIndividualKeepsTheAttributesSavedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final int before = model.getRecordsByType(IndividualAttributeReader.TYPE).size();
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createNew(null, model);
+		final IndividualAttributeRecordDialog nested = IndividualAttributeRecordDialog.createNew(individualDialog, model);
+		nested.link(LinkRole.OWNER, individualDialog.getRecord());
+		findComponent(nested.getContentPane(), BoundComboBox.class).setText("occupation");
+		nested.save();
+		individualDialog.save();
+
+		Assertions.assertTrue(individualDialog.isSaved());
+		Assertions.assertEquals(before + 1, model.getRecordsByType(IndividualAttributeReader.TYPE).size());
+	}
+
+	@Test
+	void cancellingAnExistingIndividualRemovesTheAttributesSavedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final FLEFRecord anna = model.getRecordsByType(IndividualReader.TYPE).getFirst();
+		final int before = model.getRecordsByType(IndividualAttributeReader.TYPE).size();
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createEdit(null, model, anna);
+		final IndividualAttributeRecordDialog nested = IndividualAttributeRecordDialog.createNew(individualDialog, model);
+		nested.link(LinkRole.OWNER, anna);
+		findComponent(nested.getContentPane(), BoundComboBox.class).setText("occupation");
+		nested.save();
+		Assertions.assertEquals(before + 1, model.getRecordsByType(IndividualAttributeReader.TYPE).size());
+
+		individualDialog.dispose();
+
+		Assertions.assertEquals(before, model.getRecordsByType(IndividualAttributeReader.TYPE).size());
+	}
+
+	@Test
+	void cancellingAnExistingIndividualRestoresTheAttributeEditedByTheNestedDialogs() throws IOException{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The dialogs need a display");
+		final FLEFModel model = convert();
+		final FLEFRecord anna = model.getRecordsByType(IndividualReader.TYPE).getFirst();
+		final FLEFRecord sex = firstAttribute(model, anna);
+		final String before = FLEFRecordHelper.getChildValue(sex, IndividualAttributeReader.TAG_VALUE);
+
+		final IndividualRecordDialog individualDialog = IndividualRecordDialog.createEdit(null, model, anna);
+		final IndividualAttributeRecordDialog nested = IndividualAttributeRecordDialog.createEdit(individualDialog, model, sex);
+		final String changed = (before.equals("male")? "female": "male");
+		FLEFRecordHelper.updateChildValue(sex, IndividualAttributeReader.TAG_VALUE, changed);
+		nested.save();
+		Assertions.assertTrue(nested.isSaved());
+
+		individualDialog.dispose();
+
+		Assertions.assertEquals(before, FLEFRecordHelper.getChildValue(sex, IndividualAttributeReader.TAG_VALUE));
+	}
+
+	private static FLEFRecord firstAttribute(final FLEFModel model, final FLEFRecord individual){
+		return model.getRecordsByType(IndividualAttributeReader.TYPE).getFirst();
+	}
+
+	private static <T extends Component> T findComponent(final Container container, final Class<T> type){
+		for(final Component component : container.getComponents()){
+			if(type.isInstance(component))
+				return type.cast(component);
+			if(component instanceof Container child){
+				final T found = findComponent(child, type);
+				if(found != null)
+					return found;
+			}
+		}
+		return null;
 	}
 
 }

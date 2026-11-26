@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 
 /**
@@ -132,7 +133,7 @@ public final class GpsProofStatement{
 			final String result = ResearchActivityReader.extractResult(activity);
 			final String action = ResearchActivityReader.extractAction(activity);
 			line(text, "- " + (type != null? I18N.t("enum.research_activity.type." + type.toLowerCase(Locale.ROOT), type) + ": ": StringUtils.EMPTY)
-				+ StringUtils.defaultString(action, activity.getId())
+				+ Objects.toString(action, activity.getId())
 				+ (result != null? " (" + I18N.t("enum.research_activity.result." + result.toLowerCase(Locale.ROOT), result) + ")": StringUtils.EMPTY));
 		}
 		final GpsWorkflow.EvidenceSummary evidence = assessment.evidence();
@@ -176,7 +177,7 @@ public final class GpsProofStatement{
 				continue;
 
 			any = true;
-			line(text, "- " + I18N.tf("text.gps.statement.conflict", StringUtils.defaultString(inspection.issue(), inspection.conclusionId()),
+			line(text, "- " + I18N.tf("text.gps.statement.conflict", Objects.toString(inspection.issue(), inspection.conclusionId()),
 				String.join("; ", inspection.assertions().stream()
 					.map(Assertion::label)
 					.toList())));
@@ -219,7 +220,7 @@ public final class GpsProofStatement{
 		for(final Inspection inspection : assessment.inspections()){
 			final Assertion preferred = inspection.preferred();
 			final String status = inspection.proofStatus();
-			line(text, "\n- " + I18N.tf("text.gps.statement.conclusion.item", StringUtils.defaultString(inspection.issue(), inspection.conclusionId()),
+			line(text, "\n- " + I18N.tf("text.gps.statement.conclusion.item", Objects.toString(inspection.issue(), inspection.conclusionId()),
 				(StringUtils.isBlank(status)
 					? I18N.t("text.proof_summary.not_set")
 					: I18N.t("enum.proof_status." + status.toLowerCase(Locale.ROOT), status)),

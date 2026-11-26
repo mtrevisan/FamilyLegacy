@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -243,7 +244,7 @@ public record EvidenceTrace(Assertion subject, List<Assertion> alternatives, Lis
 	public static List<EvidenceTrace> ofIndividual(final FLEFModel model, final String individualId){
 		final FLEFRecord individual = (individualId != null? model.getRecordById(individualId): null);
 		final List<EvidenceTrace> traces = new ArrayList<>();
-		if(individual == null || !IndividualReader.isOfType(individual) || PrivacyService.isHidden(model, individual))
+		if(!IndividualReader.isOfType(individual) || PrivacyService.isHidden(model, individual))
 			return traces;
 
 		final Index index = new Index(model);
@@ -381,7 +382,7 @@ public record EvidenceTrace(Assertion subject, List<Assertion> alternatives, Lis
 			if(subjectId != null && targetId != null)
 				for(final String otherId : index.relationshipsOfPair.getOrDefault(subjectId + "|" + targetId, List.of())){
 					final FLEFRecord other = model.getRecordById(otherId);
-					if(!otherId.equals(record.getId()) && !StringUtils.equals(type, RelationshipReader.extractType(other)))
+					if(!otherId.equals(record.getId()) && !Strings.CS.equals(type, RelationshipReader.extractType(other)))
 						competitors.putIfAbsent(otherId, other);
 				}
 		}

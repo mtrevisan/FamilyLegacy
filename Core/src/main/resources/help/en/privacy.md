@@ -43,7 +43,7 @@ Everyone else is **possibly living** and therefore restricted: a person with no 
 
 The policy applies to the tree and the other views, the sidebar, the searches and *Jump to*, the bookmarks, the statistics, the timelines, the chronomap, the kinship and consanguinity tools, the assistants, the boards and the lists of the management tools. It does **not** apply to the editors, which always show everything: to manage a hidden record, switch to *Show All*.
 
-A hidden individual is not removed from the picture: a box is shown, masked (the sex is unknown, the name is a question mark, there is no date and no image). Small padlocks mark the restricted (amber) and confidential (red) records, filled when the level was declared and empty when it was inherited or presumed.
+A hidden individual is not removed from the picture: a box is shown, masked (the sex is unknown, the name is a question mark, there is no date and no image). Small padlocks mark the restricted (amber) and confidential (red) records, filled when the level was declared and empty when it was inherited or presumed. The tooltip of the box gives the reason; for a possibly living person it also says how to open it (a death event, even with no date, or a *public* privacy block).
 
 **Relationships of hidden people.** A relationship with a hidden individual is ignored by the views. A hidden parent is not linked to the children, and the children stay visible if they are not hidden themselves, but they show no link to that parent. A hidden relative does not count when the application decides whether a person has parents, children or partners.
 

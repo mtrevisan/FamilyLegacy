@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.reports;
 
 import io.github.mtrevisan.reports.ReportSection;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,7 @@ final class StoryBlocks{
 		final List<String> items = new ArrayList<>();
 		final int headingBase = (titled? titleLevel: titleLevel - 1);
 
-		for(final String line : StringUtils.splitPreserveAllTokens(StringUtils.replace(StringUtils.defaultString(text), "\r\n", "\n"), '\n')){
+		for(final String line : StringUtils.splitPreserveAllTokens(Strings.CS.replace(StringUtils.defaultString(text), "\r\n", "\n"), '\n')){
 			final String stripped = line.strip();
 			if(stripped.isEmpty()){
 				flush(blocks, paragraph, items);

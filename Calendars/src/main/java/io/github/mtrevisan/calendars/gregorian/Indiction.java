@@ -28,6 +28,7 @@ import io.github.mtrevisan.calendars.text.DateFormulas;
 import io.github.mtrevisan.calendars.text.Ordinals;
 import io.github.mtrevisan.calendars.text.TextNormalizer;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -87,7 +88,7 @@ public final class Indiction{
 		if(rawDate == null)
 			return new Extraction(null, 0);
 		// every keyword contains "ind": without it the (costly) pattern cannot match
-		if(!StringUtils.containsIgnoreCase(rawDate, "ind"))
+		if(!Strings.CI.contains(rawDate, "ind"))
 			return new Extraction(rawDate, 0);
 
 		final Matcher matcher = INDICTION_PATTERN.matcher(rawDate);

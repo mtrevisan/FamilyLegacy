@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.assistant;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 import java.util.Locale;
@@ -52,7 +52,7 @@ public interface AssistantContributor{
 	 */
 	default String id(){
 		final String name = (getClass().getSimpleName().isEmpty()? getClass().getName(): getClass().getSimpleName());
-		final String stripped = StringUtils.removeEnd(StringUtils.removeEnd(name, "AssistantContributor"), "Contributor");
+		final String stripped = Strings.CS.removeEnd(Strings.CS.removeEnd(name, "AssistantContributor"), "Contributor");
 		return stripped.toLowerCase(Locale.ROOT);
 	}
 

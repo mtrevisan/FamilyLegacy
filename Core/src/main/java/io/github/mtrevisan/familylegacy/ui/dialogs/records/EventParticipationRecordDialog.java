@@ -235,10 +235,14 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 
 	public EventParticipationRecordDialog withEvent(final FLEFRecord event){
-		final String eventId = event.getId();
-		if(!confirmRecordExistsForType(eventId, EventHandler.getInstance().getLabel()))
+		if(!confirmRecordExistsForType(event.getId(), EventHandler.getInstance().getLabel()))
 			return this;
 
+		return applyEvent(event);
+	}
+
+	private EventParticipationRecordDialog applyEvent(final FLEFRecord event){
+		final String eventId = event.getId();
 		GUIHelper.setComponentEnabled(participantField, true);
 
 		eventField.setEntity(FLEFRecord.createMainRecord(eventId, HandlerRegistry.getHandlerType(EventHandler.class)));
@@ -248,11 +252,16 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 	public EventParticipationRecordDialog withParticipant(final FLEFRecord participant){
-		final String participantId = participant.getId();
 		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participant.getTag());
-		if(!confirmRecordExistsForType(participantId, participantHandler.getLabel()))
+		if(!confirmRecordExistsForType(participant.getId(), participantHandler.getLabel()))
 			return this;
 
+		return applyParticipant(participant);
+	}
+
+	private EventParticipationRecordDialog applyParticipant(final FLEFRecord participant){
+		final String participantId = participant.getId();
+		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participant.getTag());
 		GUIHelper.setComponentEnabled(eventField, true);
 
 		participantField.setEntity(FLEFRecord.createMainRecord(participantId, participantHandler.getType()));
@@ -313,10 +322,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	@Override
 	public void link(final LinkRole role, final FLEFRecord record){
+		//the participant (or the event) may be a new one, that is not in the model yet
 		if(role == LinkRole.PARTICIPANT)
-			withParticipant(record);
+			applyParticipant(record);
 		else if(role == LinkRole.EVENT)
-			withEvent(record);
+			applyEvent(record);
 	}
 
 }

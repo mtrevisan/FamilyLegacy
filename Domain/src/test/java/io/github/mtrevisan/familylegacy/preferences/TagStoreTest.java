@@ -29,12 +29,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 
-/** The tags are kept for each file apart, and a file does not touch the tags of another one. */
+/** The tags are kept next to each file, in its own folder, and travel with it. */
 class TagStoreTest{
 
 	@TempDir
@@ -47,53 +50,95 @@ class TagStoreTest{
 		return tags;
 	}
 
+	private TagStore store(){
+		return new TagStore(directory.resolve("legacy").resolve("tags.properties"));
+	}
+
+	private String document(final String name){
+		return directory.resolve(name).toString();
+	}
+
 
 	@Test
 	void theTagsOfAFileAreReadBackAsTheyWereSaved(){
-		final TagStore store = new TagStore(directory.resolve("sub").resolve("tags.properties"));
 		final RecordTags tags = tags("I1", "Brick Wall", "Needs Translation", "Città di confine");
 		tags.set("P7", List.of("Open Conflict"));
 
-		store.save("C:\research\family.flef", tags);
+		store().save(document("family.flef"), tags);
 
-		final Map<String, List<String>> loaded = new TagStore(directory.resolve("sub").resolve("tags.properties"))
-			.load("C:\research\family.flef");
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("family.flef.meta").resolve("tags.properties")));
 		Assertions.assertEquals(Map.of("I1", List.of("Brick Wall", "Città di confine", "Needs Translation"), "P7", List.of("Open Conflict")),
-			loaded);
+			store().load(document("family.flef")));
 	}
 
 	@Test
 	void theTagsOfAnotherFileAreLeftAlone(){
-		final TagStore store = new TagStore(directory.resolve("tags.properties"));
-		store.save("/a/one.flef", tags("I1", "Brick Wall"));
-		store.save("/a/two.flef", tags("I1", "Immigration"));
+		final TagStore store = store();
+		store.save(document("one.flef"), tags("I1", "Brick Wall"));
+		store.save(document("two.flef"), tags("I1", "Immigration"));
 
-		store.save("/a/one.flef", tags("I2", "To Verify"));
+		store.save(document("one.flef"), tags("I2", "To Verify"));
 
-		Assertions.assertEquals(Map.of("I2", List.of("To Verify")), store.load("/a/one.flef"));
-		Assertions.assertEquals(Map.of("I1", List.of("Immigration")), store.load("/a/two.flef"));
+		Assertions.assertEquals(Map.of("I2", List.of("To Verify")), store.load(document("one.flef")));
+		Assertions.assertEquals(Map.of("I1", List.of("Immigration")), store.load(document("two.flef")));
 	}
 
 	@Test
-	void aFileWithNoTagsOrNoPathHasNone(){
-		final TagStore store = new TagStore(directory.resolve("missing.properties"));
+	void aFileWithNoTagsOrNoPathHasNoneAndNothingIsCreated(){
+		final TagStore store = store();
 
-		Assertions.assertTrue(store.load("/a/one.flef").isEmpty());
+		Assertions.assertTrue(store.load(document("one.flef")).isEmpty());
 		Assertions.assertTrue(store.load(null).isEmpty());
 
 		store.save(null, tags("I1", "Brick Wall"));
+		store.save(document("one.flef"), new RecordTags());
 
-		Assertions.assertFalse(directory.resolve("missing.properties").toFile().exists());
+		Assertions.assertFalse(Files.exists(directory.resolve("one.flef.meta")));
 	}
 
 	@Test
 	void takingAwayEveryTagLeavesNothingForTheFile(){
-		final TagStore store = new TagStore(directory.resolve("tags.properties"));
-		store.save("/a/one.flef", tags("I1", "Brick Wall"));
+		final TagStore store = store();
+		store.save(document("one.flef"), tags("I1", "Brick Wall"));
 
-		store.save("/a/one.flef", new RecordTags());
+		store.save(document("one.flef"), new RecordTags());
 
-		Assertions.assertTrue(store.load("/a/one.flef").isEmpty());
+		Assertions.assertTrue(store.load(document("one.flef")).isEmpty());
+	}
+
+	@Test
+	void theTagsOfTheOlderVersionsAreBroughtNextToTheFileOnce() throws IOException{
+		final Path legacy = directory.resolve("legacy").resolve("tags.properties");
+		Files.createDirectories(legacy.getParent());
+		final Properties props = new Properties();
+		props.setProperty(document("one.flef") + "|I1", "Brick Wall\nTo Verify");
+		props.setProperty(document("two.flef") + "|I1", "Immigration");
+		try(final var out = Files.newOutputStream(legacy)){
+			props.store(out, null);
+		}
+		final TagStore store = new TagStore(legacy);
+
+		Assertions.assertEquals(Map.of("I1", List.of("Brick Wall", "To Verify")), store.load(document("one.flef")));
+		Assertions.assertTrue(Files.isRegularFile(directory.resolve("one.flef.meta").resolve("tags.properties")));
+
+		//once the tags are taken away they do not come back from the old store
+		store.save(document("one.flef"), new RecordTags());
+		Assertions.assertTrue(store.load(document("one.flef")).isEmpty());
+		//the other file is untouched
+		Assertions.assertFalse(Files.exists(directory.resolve("two.flef.meta")));
+	}
+
+	@Test
+	void theFolderOfAFileIsCopiedWithTheCopyOfTheFile(){
+		final TagStore store = store();
+		store.save(document("one.flef"), tags("I1", "Brick Wall"));
+
+		TagStore.copyMetaDirectory(document("one.flef"), document("copy.flef"));
+
+		Assertions.assertEquals(Map.of("I1", List.of("Brick Wall")), store.load(document("copy.flef")));
+		//a file with no folder copies nothing
+		TagStore.copyMetaDirectory(document("none.flef"), document("other.flef"));
+		Assertions.assertFalse(Files.exists(directory.resolve("other.flef.meta")));
 	}
 
 }

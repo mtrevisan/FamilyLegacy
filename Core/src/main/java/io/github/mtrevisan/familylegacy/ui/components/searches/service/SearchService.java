@@ -81,6 +81,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -350,7 +351,7 @@ public class SearchService{
 
 		final StringBuilder sb = new StringBuilder("<html>");
 		if(explanation != null)
-			sb.append(StringUtils.removeEnd(StringUtils.removeStart(explanation, "<html>"), "</html>"))
+			sb.append(Strings.CS.removeEnd(Strings.CS.removeStart(explanation, "<html>"), "</html>"))
 				.append("<br>");
 		sb.append(I18N.tf("search.tooltip.members", members.size()));
 		final int shown = Math.min(members.size(), MAX_TOOLTIP_MEMBERS);
