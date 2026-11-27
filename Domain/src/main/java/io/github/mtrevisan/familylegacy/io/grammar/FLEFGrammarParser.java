@@ -607,7 +607,7 @@ public final class FLEFGrammarParser{
 			if(fields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field in not_blank(...), found [" + StringUtils.join(fields, ", ") + "]",
+					"Expected one field in not_blank(…), found [" + StringUtils.join(fields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(TAG_CLOSE_PARENTHESIS);
@@ -623,7 +623,7 @@ public final class FLEFGrammarParser{
 			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field in count(...), found [" + StringUtils.join(firstFields, ", ") + "]",
+					"Expected one field in count(…), found [" + StringUtils.join(firstFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(TAG_CLOSE_PARENTHESIS);

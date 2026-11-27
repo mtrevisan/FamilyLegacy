@@ -6,7 +6,7 @@ The historical context is made of the **historic events** and the **cultural nor
 
 ## Life and history
 
-The first tab shows one individual (**Choose...** picks another one). The top part is a strip with the bar of their life, from the birth to the death, their events, and, behind it, the bands of the historic events and norms of the places where they lived. It zooms and moves like the other timelines (`Ctrl` + the wheel zooms at the cursor, a drag moves along the axis, a double-click opens the record).
+The first tab shows one individual (**right-click** the name and choose **Set...**, or double-click it, to pick another one). The top part is a strip with the bar of their life, from the birth to the death, their events, and, behind it, the bands of the historic events and norms of the places where they lived. It zooms and moves like the other timelines (`Ctrl` + the wheel zooms at the cursor, a drag moves along the axis, a double-click opens the record).
 
 Under the strip is **one list**, in chronological order, with the events and attributes of the person and the historic events and norms of their time. The columns are:
 

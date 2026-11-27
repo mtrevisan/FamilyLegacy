@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -49,6 +50,7 @@ import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -65,14 +67,23 @@ public final class ImportReportDialog extends JDialog{
 	private final ImportReport report;
 
 
-	private ImportReportDialog(final Window owner, final ImportReport report){
+	private ImportReportDialog(final Window owner, final ImportReport report, final File savedFile, final String source,
+			final String date, final Runnable detectDuplicates){
 		super(owner, I18N.t("dialog.import.report.title"), ModalityType.APPLICATION_MODAL);
 
 		GUIHelper.installEscapeToClose(this);
 
 		this.report = report;
 
-		final JLabel intro = new JLabel("<html><body style='width: 560px'>" + escapeHtml(I18N.t("dialog.import.report.intro"))
+		//where the new file is goes first: the import has no other notice
+		final String saved = (savedFile != null
+			? escapeHtml(I18N.tf("dialog.import.report.saved", savedFile.getAbsolutePath())) + "<br><br>"
+			: StringUtils.EMPTY)
+			+ (StringUtils.isNotBlank(source)
+			? escapeHtml(I18N.tf("dialog.import.report.from", source, Strings.CS.replace(StringUtils.defaultString(date), "T", StringUtils.SPACE)))
+				+ "<br><br>"
+			: StringUtils.EMPTY);
+		final JLabel intro = new JLabel("<html><body style='width: 560px'>" + saved + escapeHtml(I18N.t("dialog.import.report.intro"))
 			+ "</body></html>");
 		intro.setBorder(BorderFactory.createEmptyBorder(8, 8, 4, 8));
 
@@ -94,7 +105,20 @@ public final class ImportReportDialog extends JDialog{
 			I18N.t("dialog.import.report.column.where"));
 		for(final ImportIssue issue : report.issues())
 			detailModel.addRow(new Object[]{I18N.t(issue.reasonKey()), issue.item(), issue.where()});
-		final JTable details = new SortableTable(detailModel);
+		//a long item or place is cut by the column: the tooltip shows it whole
+		final JTable details = new SortableTable(detailModel){
+			@Override
+			public String getToolTipText(final MouseEvent event){
+				final int row = rowAtPoint(event.getPoint());
+				final int column = columnAtPoint(event.getPoint());
+				if(row < 0 || column < 0)
+					return null;
+
+				final Object value = getValueAt(row, column);
+				return (value != null && !value.toString().isEmpty()? "<html><body style='width: 400px'>" + escapeHtml(value.toString())
+					+ "</body></html>": null);
+			}
+		};
 		details.setAutoCreateRowSorter(true);
 		final JScrollPane detailScroll = new JScrollPane(details);
 		detailScroll.setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.import.report.details")));
@@ -120,6 +144,15 @@ public final class ImportReportDialog extends JDialog{
 		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttons.add(copy);
 		buttons.add(save);
+		//the natural next step of an import: the same people may have come from more than one place
+		if(detectDuplicates != null){
+			final JButton duplicates = new JButton(I18N.t("dialog.import.report.detect_duplicates"));
+			duplicates.addActionListener(e -> {
+				dispose();
+				detectDuplicates.run();
+			});
+			buttons.add(duplicates);
+		}
 
 		setLayout(new BorderLayout(4, 4));
 		add(intro, BorderLayout.NORTH);
@@ -131,17 +164,38 @@ public final class ImportReportDialog extends JDialog{
 	}
 
 
-	/** Shows the (modal) dialog; it does nothing if the report is empty. */
-	public static void show(final Window owner, final ImportReport report){
-		if(report.isEmpty())
-			return;
+	/**
+	 * Shows the (modal) dialog, that tells where the new file is. If the report is empty there is nothing to list, and only the place of
+	 * the file is told.
+	 *
+	 * @param savedFile	The FLEF file the import was written to.
+	 */
+	public static void show(final Window owner, final ImportReport report, final File savedFile, final Runnable detectDuplicates){
+		show(owner, report, savedFile, null, null, detectDuplicates);
+	}
 
-		new ImportReportDialog(owner, report).setVisible(true);
+	/**
+	 * The same, for a report that is read again: it also says what the import was and when.
+	 *
+	 * @param source	The name of the file that was imported (may be {@code null}).
+	 * @param date	When the import was made (may be {@code null}).
+	 * @param detectDuplicates	What the <em>Detect Duplicates...</em> button does (the button is not shown if it is {@code null}).
+	 */
+	public static void show(final Window owner, final ImportReport report, final File savedFile, final String source, final String date,
+			final Runnable detectDuplicates){
+		if(report.isEmpty()){
+			SavedFileNotice.show(owner, I18N.t("dialog.import.report.title"),
+				I18N.tf("dialog.file.saved", savedFile.getAbsolutePath()), savedFile);
+
+			return;
+		}
+
+		new ImportReportDialog(owner, report, savedFile, source, date, detectDuplicates).setVisible(true);
 	}
 
 	/** Builds the dialog without showing it (for tests). */
 	static ImportReportDialog create(final Window owner, final ImportReport report){
-		return new ImportReportDialog(owner, report);
+		return new ImportReportDialog(owner, report, null, null, null, null);
 	}
 
 

@@ -39,6 +39,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import java.awt.Desktop;
 import java.awt.Window;
+import java.awt.event.KeyEvent;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -69,6 +70,7 @@ public final class SettingsMenu{
 	 */
 	public static JMenu create(final Window owner, final Runnable researchAssistantSettings){
 		final JMenu menu = new JMenu(I18N.t("menu.settings"));
+		menu.setMnemonic(KeyEvent.VK_S);
 		menu.add(createLevelMenu());
 		menu.add(createSuggestionsItem());
 		menu.add(new JSeparator());

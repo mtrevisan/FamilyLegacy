@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -213,16 +212,9 @@ public class MediaViewerDialog extends JDialog{
 
 		add(imageHolder, "grow,push,wrap");
 
+		//no Close button: ESC closes the viewer
 		hint.setEnabled(false);
-		final JButton close = new JButton(I18N.t("button.close"));
-		close.addActionListener(e -> setVisible(false));
-		getRootPane().setDefaultButton(close);
-		final JPanel bottom = new JPanel(new MigLayout("ins 0", "[grow,fill][]", "[]"));
-		bottom.add(hint);
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-		buttons.add(close);
-		bottom.add(buttons);
-		add(bottom);
+		add(hint);
 	}
 
 
@@ -411,15 +403,19 @@ public class MediaViewerDialog extends JDialog{
 		pack();
 
 		final int extraWidth = getWidth() - imageHolder.getWidth();
+		final double scale = getScale(extraWidth);
+		imageHolder.setPreferredSize(new Dimension(Math.max(MIN_IMAGE_SIDE, (int)(image.getWidth() * scale)),
+			Math.max(MIN_IMAGE_SIDE, (int)(image.getHeight() * scale))));
+		pack();
+	}
+
+	private double getScale(final int extraWidth){
 		final int extraHeight = getHeight() - imageHolder.getHeight();
 		final Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		final int maxImageWidth = Math.max(MIN_IMAGE_SIDE, (int)(screen.width * MAX_SCREEN_FRACTION) - extraWidth);
 		final int maxImageHeight = Math.max(MIN_IMAGE_SIDE, (int)(screen.height * MAX_SCREEN_FRACTION) - extraHeight);
 
-		final double scale = Math.min(1., Math.min((double)maxImageWidth / image.getWidth(), (double)maxImageHeight / image.getHeight()));
-		imageHolder.setPreferredSize(new Dimension(Math.max(MIN_IMAGE_SIDE, (int)(image.getWidth() * scale)),
-			Math.max(MIN_IMAGE_SIDE, (int)(image.getHeight() * scale))));
-		pack();
+		return Math.min(1., Math.min((double)maxImageWidth / image.getWidth(), (double)maxImageHeight / image.getHeight()));
 	}
 
 

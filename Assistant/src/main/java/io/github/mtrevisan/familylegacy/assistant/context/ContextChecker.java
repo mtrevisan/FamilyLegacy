@@ -246,8 +246,8 @@ public final class ContextChecker{
 	}
 
 	private static String period(final DateRange range){
-		return (range.min() == Long.MIN_VALUE? "...": String.valueOf(year(range.min())))
-			+ "–" + (range.max() == Long.MAX_VALUE? "...": String.valueOf(year(range.max())));
+		return (range.min() == Long.MIN_VALUE? "…": String.valueOf(year(range.min())))
+			+ "–" + (range.max() == Long.MAX_VALUE? "…": String.valueOf(year(range.max())));
 	}
 
 	private static int year(final long jdn){

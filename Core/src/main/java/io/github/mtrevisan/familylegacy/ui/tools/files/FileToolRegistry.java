@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.importer.FileImporters;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.tools.files.exportation.ExportFlefTool;
 import io.github.mtrevisan.familylegacy.ui.tools.files.importation.ImportFileTool;
+import io.github.mtrevisan.familylegacy.ui.tools.files.importation.LastImportReportTool;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.BackupTool;
 import io.github.mtrevisan.familylegacy.ui.tools.maintenance.RestoreFromBackupTool;
 
@@ -55,6 +56,11 @@ public final class FileToolRegistry{
 	 */
 	public static ToolOperation importTool(){
 		return new ImportFileTool(FileImporters.available());
+	}
+
+	/** @return	The entry that shows again the report of the import that created the open file (enabled only if there is one). */
+	public static ToolOperation lastImportReportTool(){
+		return new LastImportReportTool();
 	}
 
 	public static List<ToolOperation> exportTools(){

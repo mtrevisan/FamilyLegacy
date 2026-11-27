@@ -176,6 +176,11 @@ final class HistoricalMapCatalog{
 		});
 	}
 
+	/** Politeness delay between two requests to the remote service (it is a rate limit, not a wait for a condition). */
+	private static void throttle() throws InterruptedException{
+		Thread.sleep(REQUEST_INTERVAL_MS);
+	}
+
 	private void search(final String cell, final int cellX, final int cellY, final Runnable onChange){
 		final double minLongitude = cellX * CELL_DEGREES - 180.;
 		final double minLatitude = cellY * CELL_DEGREES - 90.;
@@ -185,7 +190,7 @@ final class HistoricalMapCatalog{
 				int totalPages = 1;
 				for(int page = 1; page <= Math.min(totalPages, MAX_PAGES); page ++){
 					if(!first)
-						Thread.sleep(REQUEST_INTERVAL_MS);
+						throttle();
 					first = false;
 
 					final MapWarperSearch.Page result = MapWarperSearch.fetch(httpClient, minLongitude, minLatitude,

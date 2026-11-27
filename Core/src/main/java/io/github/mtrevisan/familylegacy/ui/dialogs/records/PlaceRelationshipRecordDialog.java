@@ -130,6 +130,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validToField = DateField.createWithWrapperTag(PlaceRelationshipReader.TAG_VALID_TO, this, I18N.t("dialog.date.valid_to"), model);
 		confidenceCombo = new BoundComboBox<>(PlaceRelationshipReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.place_relationship.confidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)

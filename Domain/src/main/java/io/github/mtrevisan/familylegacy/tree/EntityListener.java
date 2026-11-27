@@ -43,7 +43,7 @@ public interface EntityListener{
 	 * the model backing this view, or {@code null} when the listener does
 	 * not support mutations (e.g. a read-only placeholder).
 	 * <p>
-	 * The popup menu factory uses this to build a {@link io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext}
+	 * The popup menu factory uses this to build a {@code ToolContext}
 	 * whose dispatcher exposes the mutator to the tools that need it,
 	 * such as {@code UnlinkRelationshipsTool}. Without it, the tool falls
 	 * back to a direct model mutation and the shared caches are not

@@ -61,6 +61,23 @@ public final class HelpViewerDialog extends JDialog{
 
 		GUIHelper.installEscapeToClose(this);
 
+		final JEditorPane editor = createEditor(html);
+
+		final JScrollPane scroll = new JScrollPane(editor);
+		scroll.setPreferredSize(new Dimension(760, 560));
+
+
+		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+		setLayout(new BorderLayout(8, 8));
+		add(scroll, BorderLayout.CENTER);
+		add(buttons, BorderLayout.SOUTH);
+
+		pack();
+		setLocationRelativeTo(owner);
+	}
+
+	private JEditorPane createEditor(final String html){
 		final JEditorPane editor = new JEditorPane();
 		editor.setContentType("text/html");
 		editor.setEditable(false);
@@ -76,19 +93,7 @@ public final class HelpViewerDialog extends JDialog{
 			if(e.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
 				openExternal(e.getURL() != null? e.getURL().toString(): null);
 		});
-
-		final JScrollPane scroll = new JScrollPane(editor);
-		scroll.setPreferredSize(new Dimension(760, 560));
-
-
-		final JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-		setLayout(new BorderLayout(8, 8));
-		add(scroll, BorderLayout.CENTER);
-		add(buttons, BorderLayout.SOUTH);
-
-		pack();
-		setLocationRelativeTo(owner);
+		return editor;
 	}
 
 

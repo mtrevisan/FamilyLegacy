@@ -151,8 +151,18 @@ public record ToolContext(
 		return dispatcher.confirmDiscardChanges();
 	}
 
-	/** @return	{@code false} if the save of the imported model was cancelled or failed. */
-	public boolean openImported(final FLEFModel importedModel, final File source){
+	/** Runs a tool with a context built from the application as it is now. */
+	public void runTool(final ToolOperation tool){
+		dispatcher.runTool(tool);
+	}
+
+	/** Asks the user whom to show (the Jump dialog), over the model that is shown by then. */
+	public void jumpToIndividual(){
+		dispatcher.jumpToIndividual();
+	}
+
+	/** @return	The new FLEF file, {@code null} if the save of the imported model was cancelled or failed. */
+	public File openImported(final FLEFModel importedModel, final File source){
 		return dispatcher.openImported(importedModel, source);
 	}
 

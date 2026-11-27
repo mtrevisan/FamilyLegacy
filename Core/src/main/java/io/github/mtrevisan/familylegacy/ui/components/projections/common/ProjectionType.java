@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 
 
 /**
- * The projection views hosted by the {@link ProjectionSwitcherPanel}.
+ * The projection views hosted by the {@link io.github.mtrevisan.familylegacy.ui.shell.ProjectionSwitcherPanel}.
  * <p>
  * The order of the constants matches the order in which the user cycles
  * through the views with the switch shortcut. The enum is used by the

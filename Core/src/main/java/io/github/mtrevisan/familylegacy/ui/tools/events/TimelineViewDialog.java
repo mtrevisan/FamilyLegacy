@@ -38,6 +38,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.HintTextField;
+import io.github.mtrevisan.familylegacy.ui.helpers.PickMenu;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -92,7 +94,7 @@ public final class TimelineViewDialog extends JDialog{
 	private final JTextField fromField = dateField();
 	private final JTextField toField = dateField();
 	private final JComboBox<String> typeCombo = new JComboBox<>();
-	private final JTextField participantField = new JTextField(StringUtils.EMPTY, 22);
+	private final HintTextField participantField = new HintTextField(StringUtils.EMPTY, 22);
 	private final JLabel statusLabel = new JLabel(StringUtils.SPACE);
 
 	private String participantId;
@@ -149,11 +151,10 @@ public final class TimelineViewDialog extends JDialog{
 
 		toolbar.add(new JLabel(I18N.l("label.participant")));
 		participantField.setEditable(false);
+		participantField.setToolTipText(I18N.t("tooltip.pick.individual"));
+		//the participant is picked with the right button of the mouse (or a double-click), as every reference
+		PickMenu.install(participantField, this::chooseParticipant, null);
 		toolbar.add(participantField);
-
-		final JButton chooseParticipant = new JButton(I18N.t("button.choose"));
-		chooseParticipant.addActionListener(e -> chooseParticipant());
-		toolbar.add(chooseParticipant);
 
 		final JButton clearParticipant = new JButton(I18N.t("button.clear"));
 		clearParticipant.addActionListener(e -> {

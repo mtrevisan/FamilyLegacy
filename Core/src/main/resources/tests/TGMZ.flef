@@ -140215,13 +140215,14 @@ individual_attribute IA390 {
 	individual I142
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 30 JUL 1814
+	valid_from.value.bounded.not_after {
+		value.full_date 18 JAN 1807
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 30 JUL 1814
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (30 JUL 1814) is the one of the record, later than the death of the individual (before 18 JAN 1807): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S677
@@ -140367,13 +140368,14 @@ individual_attribute IA392 {
 	individual I143
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 30 JUL 1814
+	valid_from.value.bounded.not_after {
+		value.full_date 18 JAN 1807
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 30 JUL 1814
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (30 JUL 1814) is the one of the record, later than the death of the individual (before 18 JAN 1807): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S677
@@ -145743,13 +145745,14 @@ individual_attribute IA438 {
 	individual I163
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 13 DEC 1812
+	valid_from.value.bounded.not_after {
+		value.full_date 27 FEB 1770
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 13 DEC 1812
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (13 DEC 1812) is the one of the record, later than the death of the individual (27 FEB 1770): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S288
@@ -146856,13 +146859,14 @@ individual_attribute IA447 {
 	individual I167
 	type occupation
 	value mugnaio
-	valid_from.value.point {
-		value.full_date 13 DEC 1812
+	valid_from.value.bounded.not_after {
+		value.full_date 12 DEC 1812
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 13 DEC 1812
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (13 DEC 1812) is the one of the record, later than the death of the individual (12 DEC 1812): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S288
@@ -160044,13 +160048,14 @@ individual_attribute IA573 {
 	individual I219
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 18 NOV 1874
+	valid_from.value.bounded.not_after {
+		value.full_date 17 NOV 1874
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 18 NOV 1874
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (18 NOV 1874) is the one of the record, later than the death of the individual (17 NOV 1874): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S787
@@ -165161,13 +165166,14 @@ individual_attribute IA648 {
 	individual I251
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 23 JUN 1853
+	valid_from.value.bounded.not_after {
+		value.full_date 22 JUN 1853
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 23 JUN 1853
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (23 JUN 1853) is the one of the record, later than the death of the individual (22 JUN 1853): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S861
@@ -166692,13 +166698,14 @@ individual_attribute IA666 {
 	individual I258
 	type occupation
 	value carpenter
-	valid_from.value.point {
-		value.full_date 23 JAN 1932
+	valid_from.value.bounded.not_after {
+		value.full_date 22 JAN 1932
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 23 JAN 1932
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (23 JAN 1932) is the one of the record, later than the death of the individual (22 JAN 1932): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S922
@@ -171318,13 +171325,14 @@ individual_attribute IA716 {
 	individual I277
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 26 JUN 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 25 JUN 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 26 JUN 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (26 JUN 1809) is the one of the record, later than the death of the individual (25 JUN 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S476
@@ -171457,13 +171465,14 @@ individual_attribute IA718 {
 	individual I278
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 26 JUN 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 25 JUN 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 26 JUN 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (26 JUN 1809) is the one of the record, later than the death of the individual (before 25 JUN 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S476
@@ -174309,13 +174318,14 @@ individual_attribute IA761 {
 	individual I303
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 7 SEP 1813
+	valid_from.value.bounded.not_after {
+		value.full_date 6 SEP 1813
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 7 SEP 1813
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (7 SEP 1813) is the one of the record, later than the death of the individual (6 SEP 1813): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S462
@@ -182145,13 +182155,14 @@ individual_attribute IA850 {
 	individual I347
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 13 SEP 1898
+	valid_from.value.bounded.not_after {
+		value.full_date 12 SEP 1898
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 13 SEP 1898
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (13 SEP 1898) is the one of the record, later than the death of the individual (12 SEP 1898): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S329
@@ -195201,13 +195212,14 @@ individual_attribute IA1010 {
 	individual I414
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 1 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 20 APR 1792
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 1 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (1 MAY 1809) is the one of the record, later than the death of the individual (20 APR 1792): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S819
@@ -196247,13 +196259,14 @@ individual_attribute IA1019 {
 	individual I417
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 1 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 9 OCT 1795
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 1 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (1 MAY 1809) is the one of the record, later than the death of the individual (9 OCT 1795): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S819
@@ -198465,13 +198478,14 @@ individual_attribute IA1046 {
 	individual I429
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 17 JAN 1808
+	valid_from.value.bounded.not_after {
+		value.full_date 14 APR 1785
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 17 JAN 1808
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (17 JAN 1808) is the one of the record, later than the death of the individual (14 APR 1785): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S673
@@ -198622,13 +198636,14 @@ individual_attribute IA1048 {
 	individual I430
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 17 JAN 1808
+	valid_from.value.bounded.not_after {
+		value.full_date 15 MAY 1801
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 17 JAN 1808
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (17 JAN 1808) is the one of the record, later than the death of the individual (15 MAY 1801): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S673
@@ -205581,13 +205596,14 @@ individual_attribute IA1147 {
 	individual I479
 	type occupation
 	value questuante
-	valid_from.value.point {
-		value.full_date 24 JAN 1913
+	valid_from.value.bounded.not_after {
+		value.full_date 1 JAN 1913
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 24 JAN 1913
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (24 JAN 1913) is the one of the record, later than the death of the individual (1 JAN 1913): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	place.place P363
 	source {
@@ -212313,13 +212329,14 @@ individual_attribute IA1215 {
 	individual I514
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 15 NOV 1875
+	valid_from.value.bounded.not_after {
+		value.full_date 13 NOV 1875
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 15 NOV 1875
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (15 NOV 1875) is the one of the record, later than the death of the individual (13 NOV 1875): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S942
@@ -223268,13 +223285,14 @@ individual_attribute IA1335 {
 	individual I590
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 19 MAR 1812
+	valid_from.value.bounded.not_after {
+		value.full_date 18 MAR 1812
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 19 MAR 1812
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (19 MAR 1812) is the one of the record, later than the death of the individual (18 MAR 1812): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S768
@@ -238417,13 +238435,14 @@ individual_attribute IA1582 {
 	individual I728
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 12 JAN 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 4 MAY 1810
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 12 JAN 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (12 JAN 1811) is the one of the record, later than the death of the individual (4 MAY 1810): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S825
@@ -268004,13 +268023,14 @@ individual_attribute IA2026 {
 	individual I1028
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 26 SEP 1918
+	valid_from.value.bounded.not_after {
+		value.full_date 25 SEP 1918
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 26 SEP 1918
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (26 SEP 1918) is the one of the record, later than the death of the individual (25 SEP 1918): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S864
@@ -273412,13 +273432,14 @@ individual_attribute IA2080 {
 	individual I1055
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 22 OCT 1897
+	valid_from.value.bounded.not_after {
+		value.full_date 21 OCT 1897
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 22 OCT 1897
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (22 OCT 1897) is the one of the record, later than the death of the individual (21 OCT 1897): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S812
@@ -278846,13 +278867,14 @@ individual_attribute IA2160 {
 	individual I1092
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 19 FEB 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 30 SEP 1795
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 19 FEB 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (19 FEB 1811) is the one of the record, later than the death of the individual (30 SEP 1795): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S828
@@ -289616,13 +289638,14 @@ individual_attribute IA2317 {
 	individual I1175
 	type occupation
 	value bracciante
-	valid_from.value.point {
-		value.full_date 19 OCT 1928
+	valid_from.value.bounded.not_after {
+		value.full_date 18 OCT 1928
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 19 OCT 1928
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (19 OCT 1928) is the one of the record, later than the death of the individual (18 OCT 1928): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S937
@@ -294202,13 +294225,14 @@ individual_attribute IA2385 {
 	individual I1221
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 28 MAR 1936
+	valid_from.value.bounded.not_after {
+		value.full_date 26 MAR 1936
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 28 MAR 1936
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (28 MAR 1936) is the one of the record, later than the death of the individual (26 MAR 1936): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S930
@@ -298842,13 +298866,14 @@ individual_attribute IA2452 {
 	individual I1260
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 22 MAR 1913
+	valid_from.value.bounded.not_after {
+		value.full_date 21 MAR 1913
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 22 MAR 1913
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (22 MAR 1913) is the one of the record, later than the death of the individual (21 MAR 1913): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S336
@@ -313646,13 +313671,14 @@ individual_attribute IA2661 {
 	individual I1395
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 26 NOV 1862
+	valid_from.value.bounded.not_after {
+		value.full_date MAY 1854
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 26 NOV 1862
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (26 NOV 1862) is the one of the record, later than the death of the individual (MAY 1854): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1019
@@ -313783,13 +313809,14 @@ individual_attribute IA2663 {
 	individual I1396
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 26 NOV 1862
+	valid_from.value.bounded.not_after {
+		value.full_date 18 AUG 1861
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 26 NOV 1862
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (26 NOV 1862) is the one of the record, later than the death of the individual (18 AUG 1861): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1019
@@ -355814,13 +355841,14 @@ individual_attribute IA3055 {
 	individual I1599
 	type occupation
 	value office assistant in the administrative area
-	valid_from.value.point {
-		value.full_date 14 FEB 1960
+	valid_from.value.bounded.not_after {
+		value.full_date 13 FEB 1960
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 14 FEB 1960
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (14 FEB 1960) is the one of the record, later than the death of the individual (13 FEB 1960): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1640
@@ -357882,13 +357910,14 @@ individual_attribute IA3068 {
 	individual I1607
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 5 AUG 1922
+	valid_from.value.bounded.not_after {
+		value.full_date 31 JUL 1922
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 5 AUG 1922
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (5 AUG 1922) is the one of the record, later than the death of the individual (31 JUL 1922): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2748
@@ -361522,13 +361551,14 @@ individual_attribute IA3097 {
 	individual I1620
 	type occupation
 	value teacher
-	valid_from.value.point {
-		value.full_date 4 JAN 2005
+	valid_from.value.bounded.not_after {
+		value.full_date 23 DEC 2004
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 4 JAN 2005
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (4 JAN 2005) is the one of the record, later than the death of the individual (23 DEC 2004): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1658
@@ -365141,13 +365171,14 @@ individual_attribute IA3140 {
 	individual I1649
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 11 OCT 1906
+	valid_from.value.bounded.not_after {
+		value.full_date 30 JUN 1906
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 11 OCT 1906
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (11 OCT 1906) is the one of the record, later than the death of the individual (30 JUN 1906): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2780
@@ -374745,13 +374776,14 @@ individual_attribute IA3266 {
 	individual I1746
 	type occupation
 	value marangon
-	valid_from.value.point {
-		value.full_date 30 OCT 1943
+	valid_from.value.bounded.not_after {
+		value.full_date 29 OCT 1943
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 30 OCT 1943
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (30 OCT 1943) is the one of the record, later than the death of the individual (29 OCT 1943): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2753
@@ -378661,13 +378693,14 @@ individual_attribute IA3316 {
 	individual I1783
 	type occupation
 	value industrial
-	valid_from.value.point {
-		value.full_date 9 SEP 2002
+	valid_from.value.bounded.not_after {
+		value.full_date 2 SEP 2002
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 9 SEP 2002
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (9 SEP 2002) is the one of the record, later than the death of the individual (2 SEP 2002): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1773
@@ -380172,13 +380205,14 @@ individual_attribute IA3334 {
 	individual I1793
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 24 OCT 1989
+	valid_from.value.bounded.not_after {
+		value.full_date 22 OCT 1989
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 24 OCT 1989
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (24 OCT 1989) is the one of the record, later than the death of the individual (22 OCT 1989): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1523
@@ -388091,13 +388125,14 @@ individual_attribute IA3426 {
 	individual I1842
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 29 NOV 2004
+	valid_from.value.bounded.not_after {
+		value.full_date 26 NOV 2004
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 29 NOV 2004
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (29 NOV 2004) is the one of the record, later than the death of the individual (26 NOV 2004): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1611
@@ -392668,13 +392703,14 @@ individual_attribute IA3502 {
 	individual I1895
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 31 JUL 1943
+	valid_from.value.bounded.not_after {
+		value.full_date 1924
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 31 JUL 1943
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (31 JUL 1943) is the one of the record, later than the death of the individual (1924): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1878
@@ -393012,13 +393048,14 @@ individual_attribute IA3506 {
 	individual I1898
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 20 APR 1949
+	valid_from.value.bounded.not_after {
+		value.full_date 1932
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 20 APR 1949
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (20 APR 1949) is the one of the record, later than the death of the individual (1932): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1766
@@ -396458,13 +396495,14 @@ individual_attribute IA3565 {
 	individual I1943
 	type occupation
 	value carbonaio
-	valid_from.value.point {
-		value.full_date 21 MAR 1883
+	valid_from.value.bounded.not_after {
+		value.full_date 12 DEC 1848
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 MAR 1883
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 MAR 1883) is the one of the record, later than the death of the individual (12 DEC 1848): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2745
@@ -397031,13 +397069,14 @@ individual_attribute IA3569 {
 	individual I1945
 	type occupation
 	value villico
-	valid_from.value.point {
-		value.full_date 21 MAR 1883
+	valid_from.value.bounded.not_after {
+		value.full_date 19 NOV 1826
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 MAR 1883
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 MAR 1883) is the one of the record, later than the death of the individual (19 NOV 1826): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2745
@@ -398132,13 +398171,14 @@ individual_attribute IA3582 {
 	individual I1951
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 21 OCT 1806
+	valid_from.value.bounded.not_after {
+		value.full_date 20 OCT 1806
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 OCT 1806
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 OCT 1806) is the one of the record, later than the death of the individual (20 OCT 1806): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2589
@@ -398298,13 +398338,14 @@ individual_attribute IA3584 {
 	individual I1952
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 14 DEC 1812
+	valid_from.value.bounded.not_after {
+		value.full_date 20 APR 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 14 DEC 1812
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (14 DEC 1812) is the one of the record, later than the death of the individual (before 20 APR 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S634
@@ -398322,13 +398363,14 @@ individual_attribute IA3585 {
 	individual I1952
 	type literacy
 	value illiterate
-	valid_from.value.point {
-		value.full_date 20 JAN 1812
+	valid_from.value.bounded.not_after {
+		value.full_date 20 APR 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 20 JAN 1812
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (20 JAN 1812) is the one of the record, later than the death of the individual (before 20 APR 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	audit.creation.date 2021-05-30T15:35:54Z
 }
@@ -398987,13 +399029,14 @@ individual_attribute IA3593 {
 	individual I1956
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 11 SEP 1880
+	valid_from.value.bounded.not_after {
+		value.full_date 10 SEP 1880
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 11 SEP 1880
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (11 SEP 1880) is the one of the record, later than the death of the individual (10 SEP 1880): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S785
@@ -399751,13 +399794,14 @@ individual_attribute IA3606 {
 	individual I1963
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 30 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 29 MAY 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 30 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (30 MAY 1809) is the one of the record, later than the death of the individual (29 MAY 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S649
@@ -403432,13 +403476,14 @@ individual_attribute IA3669 {
 	individual I2003
 	type occupation
 	value ticket collector
-	valid_from.value.point {
-		value.full_date 19 MAY 1969
+	valid_from.value.bounded.not_after {
+		value.full_date 17 MAY 1969
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 19 MAY 1969
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (19 MAY 1969) is the one of the record, later than the death of the individual (17 MAY 1969): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1718
@@ -428638,13 +428683,14 @@ individual_attribute IA4081 {
 	individual I2281
 	type occupation
 	value kanpanèr
-	valid_from.value.point {
-		value.full_date 20 JAN 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 15 NOV 1804
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 20 JAN 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (20 JAN 1809) is the one of the record, later than the death of the individual (15 NOV 1804): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S436
@@ -428895,13 +428941,14 @@ individual_attribute IA4083 {
 	individual I2282
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 20 JAN 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 29 APR 1800
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 20 JAN 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (20 JAN 1809) is the one of the record, later than the death of the individual (29 APR 1800): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S436
@@ -435447,13 +435494,14 @@ individual_attribute IA4190 {
 	individual I2363
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 21 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 20 MAY 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 MAY 1809) is the one of the record, later than the death of the individual (20 MAY 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S625
@@ -436108,13 +436156,14 @@ individual_attribute IA4194 {
 	individual I2365
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 21 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 20 MAY 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 MAY 1809) is the one of the record, later than the death of the individual (before 20 MAY 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S625
@@ -436281,13 +436330,14 @@ individual_attribute IA4196 {
 	individual I2366
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 21 MAY 1809
+	valid_from.value.bounded.not_after {
+		value.full_date 20 MAY 1809
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 21 MAY 1809
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (21 MAY 1809) is the one of the record, later than the death of the individual (before 20 MAY 1809): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S625
@@ -444459,13 +444509,14 @@ individual_attribute IA4337 {
 	individual I2480
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 5 JUN 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 4 AUG 1810
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 5 JUN 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (5 JUN 1811) is the one of the record, later than the death of the individual (4 AUG 1810): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S826
@@ -444563,13 +444614,14 @@ individual_attribute IA4339 {
 	individual I2481
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 5 JUN 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 23 FEB 1791
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 5 JUN 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (5 JUN 1811) is the one of the record, later than the death of the individual (before 23 FEB 1791): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S826
@@ -444670,13 +444722,14 @@ individual_attribute IA4341 {
 	individual I2482
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 5 JUN 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 4 AUG 1810
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 5 JUN 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (5 JUN 1811) is the one of the record, later than the death of the individual (before 4 AUG 1810): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S826
@@ -459528,13 +459581,14 @@ individual_attribute IA4493 {
 	individual I2626
 	type occupation
 	value bekèr
-	valid_from.value.point {
-		value.full_date 27 APR 1656
+	valid_from.value.bounded.not_after {
+		value.full_date 26 APR 1656
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 27 APR 1656
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (27 APR 1656) is the one of the record, later than the death of the individual (26 APR 1656): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S571
@@ -466453,13 +466507,14 @@ individual_attribute IA4575 {
 	individual I2740
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 15 SEP 1817
+	valid_from.value.bounded.not_after {
+		value.full_date 3 JUL 1776
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 15 SEP 1817
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (15 SEP 1817) is the one of the record, later than the death of the individual (3 JUL 1776): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2121
@@ -493938,13 +493993,14 @@ individual_attribute IA4875 {
 	individual I2987
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 17 JAN 1815
+	valid_from.value.bounded.not_after {
+		value.full_date 13 JUL 1812
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 17 JAN 1815
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (17 JAN 1815) is the one of the record, later than the death of the individual (13 JUL 1812): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S838
@@ -511317,13 +511373,14 @@ individual_attribute IA5157 {
 	individual I3210
 	type occupation
 	value kanpanèr
-	valid_from.value.point {
-		value.full_date 16 FEB 1863
+	valid_from.value.bounded.not_after {
+		value.full_date 9 OCT 1850
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 16 FEB 1863
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (16 FEB 1863) is the one of the record, later than the death of the individual (9 OCT 1850): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S1022
@@ -511562,13 +511619,14 @@ individual_attribute IA5161 {
 	individual I3211
 	type occupation
 	value villico
-	valid_from.value.point {
-		value.full_date 12 FEB 1887
+	valid_from.value.bounded.not_after {
+		value.full_date 11 FEB 1887
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 12 FEB 1887
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (12 FEB 1887) is the one of the record, later than the death of the individual (11 FEB 1887): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2781
@@ -518236,13 +518294,14 @@ individual_attribute IA5230 {
 	individual I3277
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 6 NOV 1810
+	valid_from.value.bounded.not_after {
+		value.full_date 5 NOV 1810
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 6 NOV 1810
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (6 NOV 1810) is the one of the record, later than the death of the individual (5 NOV 1810): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2590
@@ -519517,13 +519576,14 @@ individual_attribute IA5240 {
 	individual I3286
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 22 AUG 1806
+	valid_from.value.bounded.not_after {
+		value.full_date 19 AUG 1806
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 22 AUG 1806
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (22 AUG 1806) is the one of the record, later than the death of the individual (19 AUG 1806): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2218
@@ -519721,13 +519781,14 @@ individual_attribute IA5242 {
 	individual I3287
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 22 AUG 1806
+	valid_from.value.bounded.not_after {
+		value.full_date 19 AUG 1806
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 22 AUG 1806
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (22 AUG 1806) is the one of the record, later than the death of the individual (before 19 AUG 1806): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2218
@@ -519754,13 +519815,14 @@ individual_attribute IA5243 {
 	individual I3287
 	type literacy
 	value illiterate
-	valid_from.value.point {
-		value.full_date 22 AUG 1806
+	valid_from.value.bounded.not_after {
+		value.full_date 19 AUG 1806
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 22 AUG 1806
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (22 AUG 1806) is the one of the record, later than the death of the individual (before 19 AUG 1806): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2166
@@ -549774,13 +549836,14 @@ individual_attribute IA5578 {
 	individual I3582
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 6 DEC 1892
+	valid_from.value.bounded.not_after {
+		value.full_date 5 DEC 1892
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 6 DEC 1892
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (6 DEC 1892) is the one of the record, later than the death of the individual (5 DEC 1892): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2317
@@ -562190,13 +562253,14 @@ individual_attribute IA5725 {
 	individual I3680
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 28 SEP 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 25 JAN 1776
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 28 SEP 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (28 SEP 1811) is the one of the record, later than the death of the individual (25 JAN 1776): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2435
@@ -562946,13 +563010,14 @@ individual_attribute IA5729 {
 	individual I3682
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 28 SEP 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 11 FEB 1747
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 28 SEP 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (28 SEP 1811) is the one of the record, later than the death of the individual (before 11 FEB 1747): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2435
@@ -570061,13 +570126,14 @@ individual_attribute IA5814 {
 	individual I3750
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 28 SEP 1811
+	valid_from.value.bounded.not_after {
+		value.full_date 27 SEP 1811
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 28 SEP 1811
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (28 SEP 1811) is the one of the record, later than the death of the individual (27 SEP 1811): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2435
@@ -572711,13 +572777,14 @@ individual_attribute IA5845 {
 	individual I3767
 	type occupation
 	value contadino
-	valid_from.value.point {
-		value.full_date 2 APR 1870
+	valid_from.value.bounded.not_after {
+		value.full_date 1 APR 1870
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 2 APR 1870
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (2 APR 1870) is the one of the record, later than the death of the individual (1 APR 1870): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2461
@@ -573071,13 +573138,14 @@ individual_attribute IA5850 {
 	individual I3769
 	type occupation
 	value artigiano
-	valid_from.value.point {
-		value.full_date 9 MAR 1871
+	valid_from.value.bounded.not_after {
+		value.full_date 8 MAR 1871
 		calendar gregorian
 	}
-	valid_to.value.point {
-		value.full_date 9 MAR 1871
-		calendar gregorian
+	note {
+		title Date (original)
+		text The date written in the file (9 MAR 1871) is the one of the record, later than the death of the individual (8 MAR 1871): the fact is dated before the death.
+		audit.creation.date 2025-12-06T14:17:32Z
 	}
 	source {
 		source S2463

@@ -40,6 +40,8 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDi
 import io.github.mtrevisan.familylegacy.ui.components.projections.temporal.TemporalProjectionPanel;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.HintTextField;
+import io.github.mtrevisan.familylegacy.ui.helpers.PickMenu;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
@@ -111,7 +113,7 @@ public final class HistoricalTimelineDialog extends JDialog{
 	private final FLEFModel model;
 
 	//the tab of one individual
-	private final JTextField personField = new JTextField(StringUtils.EMPTY, 28);
+	private final HintTextField personField = new HintTextField(StringUtils.EMPTY, 28);
 	private final Map<HistoricalScope, JCheckBox> scopeBoxes = new EnumMap<>(HistoricalScope.class);
 	private final JCheckBox normsBox = new JCheckBox(I18N.t("dialog.historical_timeline.cultural_norms"), true);
 	private final JCheckBox attributesBox = new JCheckBox(I18N.t("dialog.historical_timeline.attributes"), true);
@@ -187,17 +189,17 @@ public final class HistoricalTimelineDialog extends JDialog{
 		final JPanel who = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
 		who.add(new JLabel(I18N.l("dialog.historical_timeline.individual")));
 		personField.setEditable(false);
-		who.add(personField);
-		final JButton choose = new JButton(I18N.t("button.choose"));
-		choose.addActionListener(e -> {
+		personField.setToolTipText(I18N.t("tooltip.pick.individual"));
+		//the person is picked with the right button of the mouse (or a double-click), as every reference
+		PickMenu.install(personField, () -> {
 			final FLEFRecord chosen = chooseIndividual();
 			if(chosen != null){
 				selectPerson(chosen);
 
 				reloadPerson();
 			}
-		});
-		who.add(choose);
+		}, null);
+		who.add(personField);
 
 		final JPanel filters = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
 		final JLabel show = new JLabel(I18N.l("dialog.historical_timeline.scope"));

@@ -25,7 +25,8 @@ These commands are in the **Individual** and **Group** menus (and in the **Place
 | Shortcut | Command |
 |---|---|
 | `F2` | Edit the selected individual or group |
-| `Ctrl+X` | Relocate the selected individual or group |
+| `Ctrl+Shift+N` | Quick Entry of a family (a person, the partner, the union, the children) |
+| `Ctrl+Shift+M` | Relocate the selected individual or group |
 | `Del` | Delete the selected individual, group or place |
 
 ## View
@@ -46,15 +47,19 @@ These commands are in the **Individual** and **Group** menus (and in the **Place
 
 | Shortcut | Command |
 |---|---|
-| `Ctrl+Left` | Back |
-| `Ctrl+Right` | Forward |
+| `Ctrl+Left`, `Alt+Left` | Back |
+| `Ctrl+Right`, `Alt+Right` | Forward |
 | `Ctrl+J` | Jump to individual (or group) |
 | `Ctrl+F` | Find record |
 | `Ctrl+D` | Bookmark current view |
 | Arrow keys | Move the selection to the nearest box in that direction (when the focus is not in a text field) |
 | `Enter` | Make the selected box the new root |
 
-In the Chronomap the **Left** and **Right** keys move the timeline by a month, and with `Shift` by a year.
+In the Chronomap the **Left** and **Right** keys move the timeline by a month, and with `Shift` by a year; `Alt+2` shows the 2D map and `Alt+3` the 3D globe (a key has one meaning: `Ctrl+2` and `Ctrl+3` are the views, in every view).
+
+## The menus
+
+Hold `Alt` and press the underlined letter to open a menu: **F**ile, E**d**it, **V**iew, **N**avigate, **I**ndividual, **G**roup, **P**lace, So**u**rce, **E**vent, **R**esearch, Rep**o**rts, **T**ools, **S**ettings, **H**elp.
 
 ## Tools and help
 

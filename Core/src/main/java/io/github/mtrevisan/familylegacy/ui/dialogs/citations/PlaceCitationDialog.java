@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -60,14 +61,14 @@ import java.awt.Window;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): original text, confidence
+ * Tab 1 (Properties): place, original text, confidence
  * Tab 7 (Sources): source
  */
 public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField placeField;
+	private final EntityField placeField;
 	private final BoundTextField originalTextField;
 	private final BoundComboBox<String> confidenceCombo;
 
@@ -86,17 +87,19 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		placeField = new BoundTextField(PlaceHandler.TYPE);
+		//the place is chosen with the right button of the mouse, as every reference
+		placeField = EntityField.createForRecordFromReference(PlaceHandler.TYPE, this, model, PlaceHandler.class);
+		placeField.setToolTipText(I18N.t("dialog.place_citation.place.tooltip"));
 		originalTextField = new BoundTextField(PlaceCitationReader.TAG_ASSISTANT_FINDING_IDAL_TEXT);
 		confidenceCombo = new BoundComboBox<>(PlaceCitationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.place_citation.confidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)
 			.withComponent(PanelKey.SOURCE, PlaceCitationReader.TAG_SOURCE, I18N.t("dialog.component.sources_with_citations"))
 			.build();
 
-		components.bind(placeField);
 		components.bind(originalTextField);
 		components.bind(confidenceCombo);
 
@@ -110,6 +113,9 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
+		// place (name, with a button to pick another one)
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.place_citation.place"), placeField);
+
 		// original text
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.place_citation.original_text"), originalTextField);
 
@@ -139,7 +145,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(placeId, PlaceHandler.getInstance().getLabel()))
 				return;
 
-			placeField.setText(placeId);
+			placeField.setEntity(model.getRecordById(placeId));
 		}
 	}
 
@@ -148,6 +154,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 
+		placeField.load(record);
+
 
 		// Initially, update carousel based on the first selected source (if any)
 		updateCarouselFromSelectedSource();
@@ -155,7 +163,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(placeField.isEmpty()){
+		if(!placeField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", PlaceHandler.getInstance().getLabel()),
 				tabbedPane, propertiesPanel, placeField);
@@ -168,7 +176,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, PlaceHandler.TYPE, placeField.getText());
+		FLEFRecordHelper.removeChildren(record, PlaceHandler.TYPE);
+		placeField.saveReferences(record);
 
 		components.save(record);
 	}

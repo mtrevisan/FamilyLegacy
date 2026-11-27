@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.quickentry.QuickEntryService;
 import io.github.mtrevisan.familylegacy.search.strategies.IndividualSearchStrategy;
 import io.github.mtrevisan.familylegacy.tree.ProjectionMutator;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
@@ -45,7 +46,11 @@ import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import io.github.mtrevisan.familylegacy.ui.helpers.ParentSexGuard;
 
 import javax.swing.JOptionPane;
+import java.awt.AWTEvent;
+import java.awt.EventQueue;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -109,6 +114,8 @@ abstract class AbstractRelativeTool implements ToolOperation{
 		//for a new or an existing child of an individual with partners the same dialog also asks who the other parent is
 		final List<FLEFRecord> partners = (role == Role.CHILD && source != Source.CLIPBOARD? partnersOf(selectedId, other.getId(), model): List.of());
 		final String type;
+		//when and where the union began, for a partner
+		QuickEntryService.LifeFact union = QuickEntryService.LifeFact.NONE;
 		String otherParentId = null;
 		String otherParentType = null;
 		if(!partners.isEmpty()){
@@ -138,6 +145,23 @@ abstract class AbstractRelativeTool implements ToolOperation{
 				otherParentId = choice.otherParent().id();
 				otherParentType = choice.otherType();
 			}
+		}
+		else if(role == Role.PARTNER){
+			final RelationshipTypeSelectionDialog.UnionChoice choice = RelationshipTypeSelectionDialog.selectUnion(owner,
+				new RelationshipTypeSelectionDialog.Item(other.getId(), label, allowedTypes[0]), allowedTypes, model);
+			if(choice == null){
+				//a new individual stays in the file, even if it is not linked yet
+				mutator.invalidateAndNotifyTreeChanged(selectedId);
+
+				return;
+			}
+
+			type = choice.type();
+			union = choice.fact();
+		}
+		else if(role == Role.PARENT && source == Source.CREATE && !typeRequested()){
+			//almost every parent is a biological one: the type is asked only on request (Shift), and can be changed in the relationship
+			type = RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD;
 		}
 		else{
 			final List<RelationshipTypeSelectionDialog.Item> items = List.of(
@@ -171,10 +195,20 @@ abstract class AbstractRelativeTool implements ToolOperation{
 			return;
 
 		mutator.createRelationship(subjectId, targetId, type);
+		//the relationship and the event that began it are different records: the event is added to the relationship, not instead of it
+		if(role == Role.PARTNER)
+			QuickEntryService.addUnionEvent(model, selectedId, other.getId(), type, union);
 		if(otherParentId != null && ParentSexGuard.confirm(owner,
 				CoParentSex.findClashingParent(subjectId, otherParentId, otherParentType, null, model), otherParentId, model))
 			mutator.createRelationship(subjectId, otherParentId, otherParentType);
 		mutator.invalidateAndNotifyTreeChanged(selectedId);
+	}
+
+	/** @return	Whether the user asked to choose the type of the relationship: the item of the menu was chosen holding Shift. */
+	private static boolean typeRequested(){
+		final AWTEvent event = EventQueue.getCurrentEvent();
+		return (event instanceof ActionEvent actionEvent && (actionEvent.getModifiers() & ActionEvent.SHIFT_MASK) != 0
+			|| event instanceof InputEvent inputEvent && inputEvent.isShiftDown());
 	}
 
 	/** @return	The individual picked as the other parent of the child, as a row of the dialog ({@code null} if none or not valid). */

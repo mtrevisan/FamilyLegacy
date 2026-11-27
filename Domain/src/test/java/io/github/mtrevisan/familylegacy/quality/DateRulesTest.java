@@ -82,4 +82,15 @@ class DateRulesTest{
 		Assertions.assertTrue(DateRules.period(days(120, 120), days(500, 500), birth, death).isEmpty());
 	}
 
+	@Test
+	void aPeriodThatBeginsBeforeTheDeathIsNotAfterIt(){
+		final DateRange birth = days(100, 100);
+		final DateRange death = days(200, 200);
+
+		//"before the death" (an open beginning, up to the death): the fact was true at some time of the life
+		Assertions.assertTrue(DateRules.period(new DateRange(Long.MIN_VALUE, 200), null, birth, death).isEmpty());
+		//"before the date of a record" that is after the death says nothing against the life either
+		Assertions.assertTrue(DateRules.period(new DateRange(Long.MIN_VALUE, 500), null, birth, death).isEmpty());
+	}
+
 }

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.sources.SourceHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -47,11 +48,17 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.ListModel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
 
 
 /**
@@ -103,6 +110,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final EntityField placeField;
 	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mediaTypeCombo;
+	/**
+	 * The title as a plain text, for a source that has none or one plain title (the common case: one title, no type, no language, no
+	 * variants): the list of the titles, with a dialog for each, is for the others and a click away.
+	 */
+	private final JTextField titleField = new JTextField(40);
+	private final JButton severalTitlesButton = new JButton(I18N.t("dialog.source.title.several"));
+	private final JPanel titleRow = new JPanel(new MigLayout("ins 0,fillx", "[grow,fill]rel[]"));
+	private boolean plainTitle = true;
 	private JPanel propertiesPanel;
 	private JPanel sourcesPanel;
 	/** The tree of the derivations, shown only when there are enough related sources. */
@@ -125,6 +140,10 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 		titlePanel = EntityListPanel.createForStructure(SourceReader.TAG_TITLE, this, GUIHelper.requiredTitle("dialog.source.title"), model,
 			NameHandler.class);
+		severalTitlesButton.setToolTipText(I18N.t("dialog.source.title.several.tooltip"));
+		severalTitlesButton.addActionListener(e -> showTitleList());
+		titleRow.add(titleField, "growx");
+		titleRow.add(severalTitlesButton);
 		authorPanel = EntityListPanel.createForStructure(SourceReader.TAG_AUTHOR, this, I18N.t("dialog.source.author"), model,
 			AgentHandler.class);
 		identifierPanel = EntityListPanel.createForStructure(SourceReader.TAG_IDENTIFIER, this, I18N.t("dialog.source.identifiers"), model,
@@ -168,7 +187,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]5[]5[]5[]5[]5[]5[]5[]10[]");
 		propertiesPanel = panel;
 
-		// title
+		// title: a text, or the list of the titles
+		GUIHelper.addLabeledComponent(panel, GUIHelper.requiredLabel("dialog.source.title"), titleRow);
 		GUIHelper.addComponent(panel, titlePanel);
 
 		// author
@@ -267,9 +287,59 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 
+	/** @return	Whether the title is a plain one (nothing but its text): the ones that the text field can show. */
+	private static boolean isPlainTitle(final FLEFRecord title){
+		return (title.childCount() == 1 && Strings.CI.equals(SourceReader.TAG_TITLE_VALUE, title.childAt(0).getTag()));
+	}
+
+	/** Shows the text field or the list of the titles. */
+	private void applyTitleMode(){
+		titleRow.setVisible(plainTitle);
+		final javax.swing.JLabel label = GUIHelper.getLabeledComponent(titleRow);
+		if(label != null)
+			label.setVisible(plainTitle);
+		titlePanel.setVisible(!plainTitle);
+		if(propertiesPanel != null){
+			propertiesPanel.revalidate();
+			propertiesPanel.repaint();
+		}
+	}
+
+	/** Puts the text of the field in the title of the source (the only one: the field is shown only for a source that has at most one). */
+	private void syncTitle(){
+		final String text = StringUtils.normalizeSpace(titleField.getText());
+		if(text.isEmpty())
+			return;
+
+		final List<FLEFRecord> titles = titlePanel.getItems();
+		if(titles.isEmpty())
+			titlePanel.addItemDirectly(FLEFRecord.createChildWithTag(SourceReader.TAG_TITLE)
+				.addChild(FLEFRecord.createChildWithTagAndValue(SourceReader.TAG_TITLE_VALUE, text)));
+		else if(!text.equals(FLEFRecordHelper.getChildValue(titles.getFirst(), SourceReader.TAG_TITLE_VALUE))){
+			FLEFRecordHelper.updateChildValue(titles.getFirst(), SourceReader.TAG_TITLE_VALUE, text);
+			titlePanel.getList()
+				.repaint();
+		}
+	}
+
+	/** Goes from the text field to the list of the titles (the text typed is the first title), to add the others or to edit them one by one. */
+	private void showTitleList(){
+		syncTitle();
+
+		plainTitle = false;
+		applyTitleMode();
+	}
+
+
 	@Override
 	protected void loadData(){
 		titlePanel.load(record);
+		final List<FLEFRecord> titles = titlePanel.getItems();
+		plainTitle = (titles.isEmpty() || titles.size() == 1 && isPlainTitle(titles.getFirst()));
+		titleField.setText(titles.isEmpty()
+			? StringUtils.EMPTY
+			: StringUtils.defaultString(FLEFRecordHelper.getChildValue(titles.getFirst(), SourceReader.TAG_TITLE_VALUE)));
+		applyTitleMode();
 		authorPanel.load(record);
 		identifierPanel.load(record);
 		dateField.load(record);
@@ -282,10 +352,10 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	/** A source cannot be derived from itself, directly or through other sources (the derivations MUST be acyclic). */
 	@Override
 	protected boolean validData(){
-		if(!titlePanel.hasData()){
+		if(plainTitle? StringUtils.isBlank(titleField.getText()): !titlePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.source.title")),
-				tabbedPane, propertiesPanel, titlePanel.getList());
+				tabbedPane, propertiesPanel, (plainTitle? titleField: titlePanel.getList()));
 
 			return false;
 		}
@@ -309,6 +379,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		if(plainTitle)
+			syncTitle();
 		titlePanel.save(record);
 		authorPanel.save(record);
 		identifierPanel.save(record);

@@ -29,12 +29,11 @@ import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.grammar.typedefinitions.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.io.merger.RecordDeleter;
+import io.github.mtrevisan.familylegacy.quality.RecordReferences;
 import io.github.mtrevisan.familylegacy.io.merger.manual.MergeGrammar;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.RecordTags;
-import io.github.mtrevisan.familylegacy.io.model.readers.ExtractReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
-import io.github.mtrevisan.familylegacy.io.model.readers.SourceReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.research.ResearchSummary;
 import io.github.mtrevisan.familylegacy.search.SearchCriteria;
@@ -55,6 +54,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.MediaHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RepositoryHandler;
@@ -107,6 +107,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +150,8 @@ public class RecordSelectionDialog extends JDialog{
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordSelectionDialog.class);
 
 
+	/** The records that use the one to delete that are named in the question (the rest is counted). */
+	private static final int MAX_USES_LISTED = 8;
 	private static final String NO_MATCHING_RECORDS = I18N.t("search.no_matching_records");
 
 	private static final int DEBOUNCE_TIME = 400;
@@ -216,6 +219,7 @@ public class RecordSelectionDialog extends JDialog{
 	// The text and the search modifiers (whole word, fuzzy, notes and citations): independent options, either, both, or neither can be
 	// on. The text is debounced by the dialog itself, so the box is listened to through its document and its option changes.
 	private final SearchBox searchBox = new SearchBox(20, true);
+	private String fixedTitle;
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 	/** The free tags the records must have (only for the kinds of record that can be tagged), separated by commas. */
@@ -560,7 +564,21 @@ public class RecordSelectionDialog extends JDialog{
 		}
 	}
 
+	/** Gives the dialog the title of the action that opened it (it replaces the one of the selected type). */
+	public RecordSelectionDialog withTitle(final String title){
+		fixedTitle = title;
+		setTitle(title);
+
+		return this;
+	}
+
 	private void updateWindowTitle(){
+		if(fixedTitle != null){
+			setTitle(fixedTitle);
+
+			return;
+		}
+
 		final RecordTypeHandler<?> desc = getSelectedHandler();
 		final String title;
 		if(desc == anyHandler || desc instanceof IndividualHandler)
@@ -642,6 +660,16 @@ public class RecordSelectionDialog extends JDialog{
 	 */
 	private Set<SearchMode> currentMode(){
 		return searchBox.modes();
+	}
+
+	private Set<SearchMode> searchModes(final boolean fuzzyRetry){
+		if(!fuzzyRetry)
+			return currentMode();
+
+		final Set<SearchMode> modes = EnumSet.noneOf(SearchMode.class);
+		modes.addAll(currentMode());
+		modes.add(SearchMode.FUZZY);
+		return modes;
 	}
 
 	/**
@@ -741,6 +769,14 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void performSearch(){
+		search(false);
+	}
+
+	/**
+	 * @param fuzzyRetry	{@code true} if this is the second try of a search that found nothing: the typos are tolerated, whatever the
+	 * 	option says.
+	 */
+	private void search(final boolean fuzzyRetry){
 		// In place-relationship mode the search is routed to the
 		// hierarchy: the same text field and the same dynamic filter
 		// panel drive the tree. The flat-list search pipeline is not
@@ -775,7 +811,7 @@ public class RecordSelectionDialog extends JDialog{
 		final List<RecordTypeHandler<?>> searchedHandlers = (any? typeHandlers: List.of(handler));
 		final List<SearchCriteria> searchedCriteria = new ArrayList<>(searchedHandlers.size());
 		for(final RecordTypeHandler<?> searchedHandler : searchedHandlers){
-			final SearchCriteria searchCriteria = new SearchCriteria(searchedHandler.getType(), searchBox.query(), currentMode());
+			final SearchCriteria searchCriteria = new SearchCriteria(searchedHandler.getType(), searchBox.query(), searchModes(fuzzyRetry));
 
 			initialFilters.forEach(searchCriteria::withFilter);
 			if(tagsField.isVisible() && StringUtils.isNotBlank(tagsField.getText()))
@@ -862,10 +898,23 @@ public class RecordSelectionDialog extends JDialog{
 				if(isCancelled())
 					return;
 
+				boolean retrying = false;
 				try{
 					final List<DisplayItem> items = get();
-					if(items != null)
+					if(items != null){
+						//a typo is not a dead end: with nothing found and the Fuzzy option off, the search is repeated tolerating the typos
+						if(items.isEmpty() && !fuzzyRetry && StringUtils.isNotBlank(searchBox.query())
+								&& !currentMode().contains(SearchMode.FUZZY)){
+							retrying = true;
+							search(true);
+
+							return;
+						}
+
 						updateResults(items);
+						if(fuzzyRetry && !items.isEmpty())
+							statusLabel.setText(I18N.tf("search.fuzzy_fallback", items.size()));
+					}
 				}
 				catch(final Exception e){
 					statusLabel.setText(I18N.t("search.failed"));
@@ -876,7 +925,8 @@ public class RecordSelectionDialog extends JDialog{
 					resultList.setEnabled(false);
 				}
 				finally{
-					progressBar.setVisible(false);
+					if(!retrying)
+						progressBar.setVisible(false);
 				}
 			}
 		};
@@ -952,36 +1002,49 @@ public class RecordSelectionDialog extends JDialog{
 			return;
 
 		final RecordTypeHandler<?> handler = getSelectedHandler();
-		final RecordDialog dialog = handler.createNewDialog(this, model);
-		if(setupDialog != null)
-			setupDialog.accept(dialog);
-		dialog.setVisible(true);
+		final FLEFRecord created;
+		if(handler instanceof PlaceHandler){
+			//a place is typed as a line, with the places that contain it (the whole editor is behind More...)
+			final PlaceChainDialog.Result result = PlaceChainDialog.show(this, model, null);
+			if(result == null)
+				return;
 
-		if(dialog.isSaved()){
-			final FLEFRecord newRecord = dialog.getRecord();
-			if(newRecord != null){
-				if(manageMode){
-					//nothing to pick: the new record is in the list, the dialog stays open
-					if(isPlaceRelationshipHandler())
-						placeHierarchyPanel.reload();
-					else
-						performSearch();
-
-					return;
-				}
-
-				selectedType = handler.getType();
-				selectedRecord = newRecord;
-				confirmed = true;
-
-				if(onSelect != null)
-					onSelect.accept(newRecord, handler);
-
-				firePropertyChange(PROPERTY_TYPE_SELECTED, null, null);
-
-				dispose();
-			}
+			created = model.getRecordById(result.placeId());
+			if(created != null && result.openEditor())
+				handler.createEditDialog(this, model, created)
+					.setVisible(true);
 		}
+		else{
+			final RecordDialog dialog = handler.createNewDialog(this, model);
+			if(setupDialog != null)
+				setupDialog.accept(dialog);
+			dialog.setVisible(true);
+			created = (dialog.isSaved()? dialog.getRecord(): null);
+		}
+
+		if(created == null)
+			return;
+
+		if(manageMode){
+			//nothing to pick: the new record is in the list, the dialog stays open
+			if(isPlaceRelationshipHandler())
+				placeHierarchyPanel.reload();
+			else
+				performSearch();
+
+			return;
+		}
+
+		selectedType = handler.getType();
+		selectedRecord = created;
+		confirmed = true;
+
+		if(onSelect != null)
+			onSelect.accept(created, handler);
+
+		firePropertyChange(PROPERTY_TYPE_SELECTED, null, null);
+
+		dispose();
 	}
 
 	private void selectResult(){
@@ -1085,14 +1148,8 @@ public class RecordSelectionDialog extends JDialog{
 			displayText = selectedItem.displayText();
 		}
 
-		// 2. Ask for confirmation
-		final int confirm = MessageDialogs.confirm(this,
-			I18N.tf("confirmation.delete.record.message", false,
-				I18N.t("confirmation.exist_record." + record.getTag()), displayText),
-			I18N.t("confirmation.delete.record.title"),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-		if(confirm != JOptionPane.YES_OPTION)
+		// 2. Ask for confirmation, saying who uses the record when somebody does
+		if(!confirmDeletion(record, displayText))
 			return;
 
 		// 3. Remove the target record from the model (a source takes its extracts with it, and the references to them)
@@ -1107,13 +1164,50 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	/**
-	 * Removes a record from the model. A source or an extract is deleted following the deletion rule of the protocol: the extracts of
-	 * a source are deleted with it, and the references to the deleted records (the citations of the source, the extracts referenced
-	 * by the citations) are removed.
+	 * Asks whether to delete the record. A record that nobody uses is asked as a plain question; for one that is used, the question names
+	 * the records that point to it and says that the references go with it, and the user can open the list of where it is used first.
+	 *
+	 * @return	{@code true} if the record is to be deleted.
+	 */
+	private boolean confirmDeletion(final FLEFRecord record, final String displayText){
+		final String type = I18N.t("confirmation.exist_record." + record.getTag());
+		final RecordUsageViewer views = RecordUsageViewer.find();
+		while(true){
+			final List<RecordReferences.Reference> uses = RecordReferences.to(model, record.getId());
+			if(uses.isEmpty())
+				return MessageDialogs.confirm(this, I18N.tf("confirmation.delete.record.message", false, type, displayText),
+					I18N.t("confirmation.delete.record.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)
+					== JOptionPane.YES_OPTION;
+
+			final StringBuilder owners = new StringBuilder();
+			for(int i = 0; i < Math.min(uses.size(), MAX_USES_LISTED); i ++)
+				owners.append("- ").append(views.describe(model, uses.get(i).owner())).append(StringUtils.LF);
+			if(uses.size() > MAX_USES_LISTED)
+				owners.append(I18N.tf("confirmation.delete.record.used.more", uses.size() - MAX_USES_LISTED)).append(StringUtils.LF);
+			final String deleteAnyway = I18N.t("confirmation.delete.record.used.delete");
+			final String whereUsed = I18N.t("confirmation.delete.record.used.where");
+			final int choice = MessageDialogs.option(this,
+				I18N.tf("confirmation.delete.record.used.message", uses.size(), type, displayText, owners.toString()),
+				I18N.t("confirmation.delete.record.title"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+				new Object[]{deleteAnyway, whereUsed}, whereUsed);
+			if(choice == 0)
+				return true;
+			if(choice != 1)
+				return false;
+
+			//the list is shown, the records may be edited from it: the question is asked again with what is left
+			views.show(this, model, record);
+		}
+	}
+
+	/**
+	 * Removes a record from the model following the deletion rule of the protocol: the references to the deleted record are removed
+	 * (the entries of the lists, the optional fields), and the records that cannot exist without it are deleted with it (the extracts
+	 * of a source, with the references to them).
 	 */
 	private void deleteRecord(final FLEFRecord record){
 		final FLEFGrammar grammar = MergeGrammar.instance();
-		if(grammar != null && (SourceReader.isOfType(record) || ExtractReader.isOfType(record)))
+		if(grammar != null)
 			new RecordDeleter(grammar).delete(model, record.getId());
 		else
 			model.removeRecord(record.getId());

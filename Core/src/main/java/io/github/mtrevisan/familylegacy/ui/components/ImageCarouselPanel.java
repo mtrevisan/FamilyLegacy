@@ -83,6 +83,27 @@ public class ImageCarouselPanel extends JPanel{
 		setBorder(BorderFactory.createTitledBorder(I18N.t("dialog.media.images_carousel.title")));
 
 		// Scroll pane with the list
+		final JList<ThumbnailInfo> list = createList();
+
+		final JScrollPane scrollPane = new JScrollPane(list);
+		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+		// Empty state label
+		final JLabel emptyLabel = new JLabel(I18N.t("dialog.media.images_carousel.empty"), SwingConstants.CENTER);
+		emptyLabel.setFont(emptyLabel.getFont().deriveFont(Font.ITALIC));
+		emptyLabel.setForeground(Color.GRAY);
+		emptyLabel.setPreferredSize(new Dimension(0, 80));
+
+		add(scrollPane, CONSTRAINT_IMAGES);
+		add(emptyLabel, CONSTRAINT_EMPTY);
+
+		// Start with empty state
+		showEmpty(true);
+	}
+
+	private JList<ThumbnailInfo> createList(){
 		final JList<ThumbnailInfo> list = new JList<>(model);
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		list.setVisibleRowCount(1);
@@ -105,23 +126,7 @@ public class ImageCarouselPanel extends JPanel{
 					listener.accept(model.get(index).uri());
 			}
 		});
-
-		final JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-
-		// Empty state label
-		final JLabel emptyLabel = new JLabel(I18N.t("dialog.media.images_carousel.empty"), SwingConstants.CENTER);
-		emptyLabel.setFont(emptyLabel.getFont().deriveFont(Font.ITALIC));
-		emptyLabel.setForeground(Color.GRAY);
-		emptyLabel.setPreferredSize(new Dimension(0, 80));
-
-		add(scrollPane, CONSTRAINT_IMAGES);
-		add(emptyLabel, CONSTRAINT_EMPTY);
-
-		// Start with empty state
-		showEmpty(true);
+		return list;
 	}
 
 	/** @param listener	What to do with the URI of the image that was double clicked ({@code null} for nothing). */

@@ -26,12 +26,17 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.ui.components.projections.common.ProjectionType;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree.IndividualTreeGraphPanel;
 import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon;
 import io.github.mtrevisan.familylegacy.ui.helpers.SymbolIcon.Symbol;
 
 import javax.swing.ButtonGroup;
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import java.util.function.Consumer;
@@ -42,6 +47,10 @@ import java.util.function.Consumer;
  */
 public final class ToolBarBuilder{
 
+	private static final int DEFAULT_GENERATIONS = IndividualTreeGraphPanel.DEFAULT_MAX_ANCESTORS;
+	private static final int MIN_GENERATIONS = 1;
+	private static final int MAX_GENERATIONS = 12;
+
 	private final JToolBar toolBar = new JToolBar(I18N.t("toolbar.title"));
 	private JButton btnBack;
 	private JButton btnForward;
@@ -50,10 +59,12 @@ public final class ToolBarBuilder{
 	private JToggleButton btnEgoLayout;
 	private JToggleButton btnChronomap;
 	private JToggleButton btnToggleSidebar;
+	private JLabel generationsLabel;
+	private JSpinner generationsSpinner;
 
 
 	public JToolBar build(final Runnable onBack, final Runnable onForward, final Runnable onJump, final Runnable onEdit,
-			final Consumer<ProjectionType> onProjectionSelect, final Consumer<Boolean> onSidebarToggle,
+			final Consumer<ProjectionType> onProjectionSelect, final Consumer<Integer> onGenerations, final Consumer<Boolean> onSidebarToggle,
 			final boolean initialSidebarVisible){
 		toolBar.setFloatable(false);
 
@@ -114,6 +125,18 @@ public final class ToolBarBuilder{
 		toolBar.add(btnChronomap);
 		toolBar.addSeparator();
 
+		// Generations of ancestors shown by the tree and the graph
+		generationsLabel = new JLabel(I18N.l("toolbar.generations"));
+		generationsSpinner = new JSpinner(new SpinnerNumberModel(DEFAULT_GENERATIONS, MIN_GENERATIONS, MAX_GENERATIONS, 1));
+		generationsSpinner.setToolTipText(I18N.t("toolbar.generations.tooltip"));
+		generationsLabel.setLabelFor(generationsSpinner);
+		generationsSpinner.addChangeListener(e -> onGenerations.accept(generations()));
+		generationsSpinner.setMaximumSize(generationsSpinner.getPreferredSize());
+		toolBar.add(generationsLabel);
+		toolBar.add(Box.createHorizontalStrut(6));
+		toolBar.add(generationsSpinner);
+		toolBar.addSeparator();
+
 		// Sidebar Toggle
 		btnToggleSidebar = new JToggleButton(I18N.t("toolbar.sidebar"), initialSidebarVisible);
 		btnToggleSidebar.setToolTipText(I18N.t("toolbar.sidebar.tooltip"));
@@ -122,6 +145,11 @@ public final class ToolBarBuilder{
 		toolBar.add(btnToggleSidebar);
 
 		return toolBar;
+	}
+
+	/** @return	The generations of ancestors chosen in the toolbar. */
+	public int generations(){
+		return (generationsSpinner != null? (Integer)generationsSpinner.getValue(): DEFAULT_GENERATIONS);
 	}
 
 	/** Enables Back and Forward only when there is somewhere to go. */
@@ -139,6 +167,12 @@ public final class ToolBarBuilder{
 	}
 
 	public void updateProjectionState(final ProjectionType type){
+		//only the tree and the graph have generations
+		final boolean withGenerations = (type == ProjectionType.BIOLOGICAL_TREE || type == ProjectionType.SUGIYAMA_GRAPH);
+		if(generationsSpinner != null){
+			generationsSpinner.setEnabled(withGenerations);
+			generationsLabel.setEnabled(withGenerations);
+		}
 		switch(type){
 			case BIOLOGICAL_TREE -> btnTreeLayout.setSelected(true);
 			case SUGIYAMA_GRAPH -> btnGraphLayout.setSelected(true);

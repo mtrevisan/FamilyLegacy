@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.individualtre
 import io.github.mtrevisan.familylegacy.individual.IndividualSummary;
 import io.github.mtrevisan.familylegacy.tree.Side;
 import io.github.mtrevisan.familylegacy.tree.TreeNode;
+import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualPanel;
 
 
 /**
@@ -34,7 +35,7 @@ import io.github.mtrevisan.familylegacy.tree.TreeNode;
  * <p>
  * {@code anchorNode} is the individual whose partner changed (the one
  * that stays fixed); {@code side} is the side of the couple the user
- * clicked, matching {@link PartnersPanel#getSideOf}.
+ * clicked, matching {@link io.github.mtrevisan.familylegacy.ui.components.projections.individual.PartnersPanel#getSideOf(IndividualPanel)}.
  */
 @FunctionalInterface
 public interface PartnerCycleHandler{

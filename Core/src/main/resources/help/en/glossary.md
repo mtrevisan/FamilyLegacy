@@ -38,7 +38,7 @@ The words of Family Legacy that are not everyday language, in alphabetical order
 
 **Locator.** The part of a citation that says where to look inside the source: volume, page, entry. The [Source Citation Assistant](citation-assistant.md) can build it.
 
-**Participation.** The link between an individual (or group, or place) and an event, with a **role** (*principal*, *witness*, *officiant*, *informant*...). To say that Giovanni was born in an event, he takes part in it as *principal*. See [Event participation](editors-events-places.md#event-participation).
+**Participation.** The link between an individual (or group, or place) and an event, with a **role** (*principal*, *witness*, *officiant*, *informant*...). To say that Giovanni was born in an event, he takes part in it as *principal*: the person the event is about (the one baptized, buried, married). A *sponsor* is the godparent of a baptism or confirmation. See [Event participation](editors-events-places.md#event-participation).
 
 **Privacy level.** *public*, *restricted* or *confidential*, set on a record and applied by the views, the reports and the exports according to the policy chosen. See [Privacy](privacy.md).
 

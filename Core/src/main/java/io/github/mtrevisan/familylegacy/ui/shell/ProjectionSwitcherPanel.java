@@ -95,9 +95,6 @@ import java.util.function.Consumer;
  */
 public final class ProjectionSwitcherPanel extends JPanel{
 
-	/** Default generation depth used when loading the tree or the graph. */
-	private static final int DEFAULT_MAX_ANCESTORS = 2;
-
 	/** Background color of the container. Matches the Sugiyama canvas. */
 	private static final Color BACKGROUND = new Color(250, 249, 245);
 
@@ -198,11 +195,21 @@ public final class ProjectionSwitcherPanel extends JPanel{
 				.select(individualId);
 		}
 		else if(currentPanel == treeGraphPanel)
-			treeGraphPanel.load(individualId, DEFAULT_MAX_ANCESTORS);
+			treeGraphPanel.load(individualId, treeGraphPanel.getMaxAncestors());
 		else
 			egoPanel.load(individualId);
 
 		notifyNavigation(individualId);
+	}
+
+	/** Sets how many generations of ancestors the tree and the graph show (for every person from now on). */
+	public void setGenerations(final int generations){
+		treeGraphPanel.setMaxAncestors(generations);
+	}
+
+	/** @return how many generations of ancestors the tree and the graph show */
+	public int getGenerations(){
+		return treeGraphPanel.getMaxAncestors();
 	}
 
 	/**
@@ -286,7 +293,7 @@ public final class ProjectionSwitcherPanel extends JPanel{
 			refreshChronomap();
 		if(currentRootId != null){
 			if(target == treeGraphPanel)
-				treeGraphPanel.load(currentRootId, DEFAULT_MAX_ANCESTORS);
+				treeGraphPanel.load(currentRootId, treeGraphPanel.getMaxAncestors());
 			else if(target == egoPanel)
 				egoPanel.load(currentRootId);
 			else if(target == chronomapPanel)

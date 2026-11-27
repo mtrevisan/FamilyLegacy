@@ -40,6 +40,7 @@ import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
@@ -66,6 +67,8 @@ public final class GlobalKeyboardController{
 
 		// Navigation Back / Forward
 		inputMap.put(ShortcutRegistry.NAV_BACK.keyStroke(), ACTION_NAVIGATE_BACK);
+		//the keys of the browsers too, whatever the shortcut is
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.ALT_DOWN_MASK), ACTION_NAVIGATE_BACK);
 		actionMap.put(ACTION_NAVIGATE_BACK, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
@@ -75,6 +78,7 @@ public final class GlobalKeyboardController{
 		});
 
 		inputMap.put(ShortcutRegistry.NAV_FORWARD.keyStroke(), ACTION_NAVIGATE_FORWARD);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, InputEvent.ALT_DOWN_MASK), ACTION_NAVIGATE_FORWARD);
 		actionMap.put(ACTION_NAVIGATE_FORWARD, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){

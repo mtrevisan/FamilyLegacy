@@ -51,7 +51,7 @@ import java.util.function.Predicate;
 
 
 /**
- * Builds the {@code context -> impact} tree shown by {@link io.github.mtrevisan.familylegacy.ui.tools.context.ContextBoardDialog}.
+ * Builds the {@code context -> impact} tree shown by {@code ContextBoardDialog}.
  * <p>
  * There are two sections, <em>Historic events</em> (in chronological order, those with no date last) and <em>Cultural norms</em>
  * (sorted by title); under each context are the

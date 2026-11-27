@@ -36,7 +36,7 @@ import javax.swing.KeyStroke;
  * Implementations are stateless and self-contained: they receive a
  * {@link ToolContext} with the model and the owning frame, perform
  * their work, and show any UI they need (typically a
- * {@link ReportDialog}). Keeping each tool behind this interface lets
+ * {@link io.github.mtrevisan.familylegacy.ui.components.ReportDialog}). Keeping each tool behind this interface lets
  * the menu bar enumerate them without knowing their internals, which is
  * what prevents the menu code from growing into a god class.
  */

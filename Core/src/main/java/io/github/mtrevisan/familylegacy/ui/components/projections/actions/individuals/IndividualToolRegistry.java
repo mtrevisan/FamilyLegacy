@@ -40,7 +40,8 @@ public final class IndividualToolRegistry{
 	public static List<ToolOperation> primaryTools(){
 		return List.of(
 			new EditIndividualTool(),
-			new AddIndividualTool()
+			new AddIndividualTool(),
+			new QuickEntryTool()
 		);
 	}
 

@@ -34,9 +34,12 @@ import io.github.mtrevisan.familylegacy.io.model.readers.PreferredSex;
 import io.github.mtrevisan.familylegacy.io.model.readers.SexType;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.quickentry.LifeFactUpdater;
+import io.github.mtrevisan.familylegacy.quickentry.QuickEntryService;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.ui.components.quickentry.IndividualQuickPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -57,6 +60,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Window;
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -99,6 +104,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final boolean storiesApart;
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel personalNamePanel;
+	/** The quick entry of the sex, the birth and the death (and, for a new individual, of the name). */
+	private final IndividualQuickPanel quickPanel;
 	/** The sex given by whoever creates the individual (the tree: the father is male): saved as a sex attribute. */
 	private SexType presetSex;
 	/** The only sex the individual may have (the one opposite to the other parent), with the message shown when another is entered. */
@@ -126,6 +133,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		preferredImagePanel = new PreferredImagePanel(IndividualReader.TAG_PREFERRED_IMAGE, this, model);
 		personalNamePanel = EntityListPanel.createForStructure(IndividualReader.TAG_NAME, this, I18N.t("dialog.individual.personal_name"), model, PersonalNameHandler.class);
+
+		quickPanel = new IndividualQuickPanel(this, model, (isNew? personalNamePanel::addItemDirectly: null));
+		//the notes that say "see the Participations tab" lead there
+		quickPanel.setNavigator(this::goToEntry);
 
 		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
 		//the crop of an image of the individual tags it in the image (a region, see the image viewer): the crop dialogs say it
@@ -160,6 +171,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]20[]10[]");
+
+		// the most common facts of the individual, in one place
+		GUIHelper.addComponent(panel, quickPanel);
 
 		// preferred image
 		panel.add(preferredImagePanel, "span 2,growx,align center");
@@ -277,11 +291,13 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	@Override
 	public void presetSex(final SexType sex){
 		witSex(sex);
+		quickPanel.setSex(sex, false);
 	}
 
 	@Override
 	public void requireSex(final SexType sex, final String reason){
 		witSex(sex);
+		quickPanel.setSex(sex, sex != null && sex != SexType.UNKNOWN);
 		requiredSex = sex;
 		requiredSexReason = reason;
 	}
@@ -309,6 +325,36 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
+		//the dates are read and the places decided now, so that the user can still go back to the editor
+		if(!quickPanel.prepare())
+			return false;
+
+		final SexType chosen = quickPanel.sex();
+		if(isNew){
+			if(chosen != SexType.UNKNOWN)
+				for(final FLEFRecord assertion : PreferredSex.assertions(record.getId(), model)){
+					final SexType attribute = SexType.fromRaw(FLEFRecordHelper.getChildValue(assertion, IndividualAttributeReader.TAG_VALUE));
+					if(attribute != chosen){
+						MessageDialogs.show(this, I18N.tf("dialog.quick_entry.sex.conflict", sexLabel(chosen), sexLabel(attribute)),
+							I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+						return false;
+					}
+				}
+		}
+		else if(quickPanel.occupationChanged() && LifeFactUpdater.occupations(model, record.getId()).size() > 1){
+			//the Attributes tab was used meanwhile: which occupation the new text is for is not known
+			MessageDialogs.show(this, I18N.t("dialog.quick_entry.occupation.several"), I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+			return false;
+		}
+		else if(quickPanel.sexChanged() && PreferredSex.assertions(record.getId(), model).size() > 1){
+			//the Attributes tab was used meanwhile: which attribute the new sex is for is not known
+			MessageDialogs.show(this, I18N.t("dialog.quick_entry.sex.several"), I18N.t("validation.title"), JOptionPane.ERROR_MESSAGE);
+
+			return false;
+		}
+
 		if(requiredSex == null || requiredSex == SexType.UNKNOWN)
 			return true;
 
@@ -323,8 +369,15 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 
+	private static String sexLabel(final SexType sex){
+		return I18N.t("enum.individual.sex." + sex.name().toLowerCase(Locale.ROOT));
+	}
+
+
 	@Override
 	protected void loadData(){
+		if(!isNew)
+			quickPanel.load(model, record);
 		preferredImagePanel.load(record);
 		personalNamePanel.load(record);
 
@@ -336,13 +389,69 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		updateCarouselFromSelectedSource();
 	}
 
+	/**
+	 * Writes the sex, the birth and the death of the quick entry: a new individual gets the events that were typed, an existing one has
+	 * what the user changed changed in place. Whatever is written goes away (or is put back) if the editor that opened this one is not saved.
+	 */
+	private void saveFacts(){
+		if(isNew){
+			addEvents(quickPanel.birth(), quickPanel.death(), quickPanel.burial());
+			addNestedRecords(QuickEntryService.addOccupation(model, record.getId(), quickPanel.occupation()));
+
+			return;
+		}
+
+		if(quickPanel.sexChanged())
+			keep(LifeFactUpdater.setSex(model, record.getId(), quickPanel.sex()));
+		QuickEntryService.LifeFact birth = null;
+		QuickEntryService.LifeFact death = null;
+		QuickEntryService.LifeFact burial = null;
+		if(quickPanel.birthPanel().event() != null)
+			keep(LifeFactUpdater.update(model, quickPanel.birthPanel().event(), quickPanel.birthPanel().edit()));
+		else
+			birth = quickPanel.birth();
+		if(quickPanel.deathPanel().event() != null)
+			keep(LifeFactUpdater.update(model, quickPanel.deathPanel().event(), quickPanel.deathPanel().edit()));
+		else
+			death = quickPanel.death();
+		if(quickPanel.burialPanel().event() != null)
+			keep(LifeFactUpdater.update(model, quickPanel.burialPanel().event(), quickPanel.burialPanel().edit()));
+		else
+			burial = quickPanel.burial();
+		//a birth, a death or a burial that the individual did not have is a new event
+		addEvents(birth, death, burial);
+		if(quickPanel.occupationChanged())
+			keep(LifeFactUpdater.setOccupation(model, record.getId(), quickPanel.occupation()));
+	}
+
+	private void addEvents(final QuickEntryService.LifeFact birth, final QuickEntryService.LifeFact death, final QuickEntryService.LifeFact burial){
+		addNestedRecords(QuickEntryService.addLifeEvents(model, record.getId(), birth, death, burial));
+	}
+
+	/** Registers the records that were added so that they go away if the editor that opened this one is not saved. */
+	private void addNestedRecords(final List<String> ids){
+		if(!ids.isEmpty())
+			addNestedUndo(() -> ids.forEach(model::removeRecord));
+	}
+
+	private void keep(final LifeFactUpdater.Applied applied){
+		if(applied != LifeFactUpdater.Applied.NOTHING)
+			addNestedUndo(applied.undo());
+	}
+
 	@Override
 	protected void saveData(){
 		preferredImagePanel.save(record);
+		if(isNew){
+			//what is still typed as the full name is a name, the sex chosen is the one to save
+			quickPanel.flushName();
+			presetSex = quickPanel.sex();
+		}
 		personalNamePanel.save(record);
 		savePresetSex();
 
 		components.save(record);
+		saveFacts();
 		FLEFRecordHelper.removeChildren(record, MediaCitationReader.TAG);
 		mediaCitationPanel.saveReferences(record);
 	}

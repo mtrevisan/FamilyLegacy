@@ -8,7 +8,7 @@ Open it with **Source > New Source...** or **Source > Manage Sources...**, or fr
 
 | Field | Meaning |
 |---|---|
-| **Title** | Required: the title, in one or more [names](editors-people.md#name). |
+| **Title** | Required. A text box when the source has one plain title (the usual case: no type, no language, no variants); the **Several titles...** button next to it shows the list of the titles, each one a [name](editors-people.md#name), for a source with more than one title or a title with a type, a language or variants (a source that has them is opened with the list). |
 | **Author** | The person, agency or entity that created the record (author, compiler, transcriber, abstractor, editor, or a church, an agency, a private organization). Each entry is an [agent](#agent). |
 | **Publisher** | Text. |
 | **Date** | A [date field](dates.md). |
@@ -53,7 +53,7 @@ Every entry of the *Repositories with Citations* list of a source says where the
 
 | Field | Meaning |
 |---|---|
-| **Repository** | The repository that holds the source (required). |
+| **Repository** | The repository that holds the source (required). The field shows its name; **right-click** it and choose **Set...** to pick another one (or to create it), **Edit...** to open it, **Clear** to empty it. |
 | **Identifiers** | Where the source is found **in this repository**: a shelf mark, a call number, a Dewey or Library of Congress number. See [Identifier](#identifier). |
 | **Locator** | The position **inside the source**: the page, the entry, the folio, the frame (*Page: 27*, *Entry: 45*, *Folio: 8r*, *Frame: 213*). It is not an identifier. |
 | **Remarks** | Short free-text remarks. |
@@ -97,7 +97,7 @@ A record that points to a file. Open it with **Source > Manage Media...** (*New.
 |---|---|
 | **URI** | The location of the file: right-click offers *Set* (to choose a file) and *Clear*. |
 | **Kind** | image, document, audio or video. |
-| **Mapping** | Editable. planar, spherical-equirectangular, spherical-UV, cubemap, cylindrical-equirectangular horizontal, cylindrical-equirectangular vertical. |
+| **Mapping** | Editable. planar, spherical-equirectangular, spherical-UV, cubemap, cylindrical-equirectangular horizontal, cylindrical-equirectangular vertical. Only the images of 360 degrees need it, so the row is behind **More...** (it is shown at once for a media that already has a mapping other than planar). |
 | **Description** | Free text. |
 
 **Where Used...** lists every record that uses the media (as a media of a source, in a media part of an extract, as a preferred image or in the *Media* list of an individual, group, place, event or repository, and so on); double-click a line to open that record's editor. It is disabled while the media is new. **View in Folder** opens the folder that holds the file, with the file selected. Deleting a media removes it from all those places, and merging two media makes them all point to the one that is kept.
@@ -125,7 +125,18 @@ To go from a person to its images, and the other way round:
 - In the *Media* list of an individual (on the *Sources* tab), right-click an item and choose **View...** to open its image at full size. The same item is in the *Media Parts* list of an extract.
 - In **Source > Manage Media...** **Media of...** shows only the media of one individual or group (the ones it cites and its preferred image; it works together with the search field, and **Show all media** goes back to the whole list). The column **People tagged** counts the individuals tagged in each media, and **View...** opens the selected one. The count is how many people have a crop on the media, whoever else cites it.
 
+## Cite a new source
+
+The short way, from the menu (right-click) of the **Sources** list of any record: **Cite a New Source...** asks only for
+
+- the **Title*** of the source;
+- the **Locator**, where in it (*Page: 143, Entry: 17*); it may be left empty;
+- the **Repository**, where it is kept (optional): a name, or **Choose** one of the file. If the file already has repositories with that name you are asked which one to use, or whether to create a new one; a name is never matched silently.
+
+On **OK** the source is created (with its title, and the repository if it is new) and cited by the record, with the stance *supports*. Nothing is written if you cancel, and if the editor of the record is cancelled afterwards the new source and repository go away with it. The source is an ordinary one: open it later (**Edit Record...**) to add the author, the date, the kind, the media, other titles. Use **Create New...** instead when you need those at once, or the *evidence*, the *extracts* or another stance.
+
 ## Source citation
+
 
 Every entry of a *Sources with Citations* list is a citation: it ties an assertion to a source. **Tabs:** Properties, Privacy.
 
@@ -134,10 +145,10 @@ Every entry of a *Sources with Citations* list is a citation: it ties an asserti
 | **Source** | The source cited. |
 | **Locator** | Where in the source: volume, page, entry. The [Source Citation Assistant](assistant.md#the-source-citation-assistant) can build it. |
 | **Extracts** | The parts of the source that you quote or point to: see [Extract](#extract). |
-| **Stance** | *supports* or *contradicts*: how the citation relates to the assertion. |
+| **Stance** | *supports* or *contradicts*: how the citation relates to the assertion. A citation that has none starts as *supports*, which is almost always the case. |
 | **Evidence** | The [evidence qualifiers](#evidence-qualifiers). |
 
-The source and the stance are required. Every extract in the list must belong to the source cited: if you change the source, the editor refuses OK until you remove the extracts of the other source.
+The source and the stance are required. To cite a source that is not in the file yet, in one step, use **Cite a New Source...** in the menu of a *Sources* tab: see [the quick citation](#cite-a-new-source). Every extract in the list must belong to the source cited: if you change the source, the editor refuses OK until you remove the extracts of the other source.
 
 The **Extracts** list (right-click, or `Ins` and `Del`):
 
@@ -179,7 +190,7 @@ A citation (and a cultural norm) can say how good the evidence is, with three op
 
 ## Place citation
 
-The **Place** field of many records is a place citation: an **Original Text** (the place as the source writes it) and a **Confidence**, plus a **Sources** tab. The place itself is chosen from the field.
+The **Place** field of many records is a place citation: the **Place** itself (required), an **Original Text** (the place as the source writes it) and a **Confidence**, plus a **Sources** tab. The place is shown by its name in the Properties tab; **right-click** the field and choose **Set...** to pick another place (or to create one), **Edit...** to open it.
 
 ## Note
 

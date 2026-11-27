@@ -250,6 +250,7 @@ public class GEDCOMToFLEFConverter {
 		familyConverter.deriveStepRelationships();
 		familyConverter.reportChildLinksWithoutChild();
 		ageBirthConverter.convert();
+		PosthumousAttributeDates.convert(model);
 		multimediaConverter.linkSources();
 		//the places with the same name and coordinates are the same place, whatever their jurisdictions
 		PlaceMerger.merge(model);

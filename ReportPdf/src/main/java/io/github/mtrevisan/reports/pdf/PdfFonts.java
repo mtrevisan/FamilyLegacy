@@ -409,7 +409,7 @@ final class PdfFonts{
 		if(width(text, size, false) <= maxWidth)
 			return text;
 
-		final String ellipsis = "...";
+		final String ellipsis = "…";
 		int end = text.length();
 		while(end > 0 && width(text.substring(0, end) + ellipsis, size, false) > maxWidth)
 			end = text.offsetByCodePoints(end, -1);

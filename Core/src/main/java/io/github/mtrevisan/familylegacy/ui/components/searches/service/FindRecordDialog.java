@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
@@ -70,7 +71,8 @@ public final class FindRecordDialog{
 					result[0] = new Found(record, handler);
 			},
 			handlers)
-			.withAnyTypeSelected();
+			.withAnyTypeSelected()
+			.withTitle(I18N.t("search.title.find_record"));
 		dialog.setVisible(true);
 
 		return result[0];

@@ -46,6 +46,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.SavedFileNotice;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.FlowLayout;
 import java.awt.Window;
@@ -84,6 +85,7 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	private final MediaUriField uriField;
 	private final BoundComboBox<String> kindCombo;
 	private final BoundComboBox<String> mappingCombo;
+	private final JButton moreButton = new JButton(I18N.t("dialog.media.more"));
 	private final DateField dateField;
 	private final BoundTextArea descriptionArea;
 
@@ -169,14 +171,26 @@ public class MediaRecordDialog extends BaseRecordDialog{
 		// description
 		GUIHelper.addLabeledComponent(propertiesPanel, I18N.l("dialog.media.description"), descriptionArea);
 
+		//the mapping of the image (spherical, cubemap...) is behind More...: a photograph does not need it
+		moreButton.setToolTipText(I18N.t("dialog.media.more.tooltip"));
+		moreButton.addActionListener(e -> {
+			showMapping(true);
+			mappingCombo.requestFocusInWindow();
+		});
+		propertiesPanel.add(moreButton, "skip 1,align left");
+
 		//every record that uses the media (as a source media, as the media of an extract, as the preferred image or in a media citation)
 		final JButton whereUsedButton = new JButton(I18N.t("dialog.media.where_used"));
 		whereUsedButton.setEnabled(!isNew);
+		if(isNew)
+			whereUsedButton.setToolTipText(I18N.t("dialog.media.save_first"));
 		whereUsedButton.addActionListener(e -> RecordUsageDialog.show(this, model, record));
 
 		//the image at full size, with the regions that tell who is in it (only for the media that is saved: the viewer reads the record)
 		final JButton viewButton = new JButton(I18N.t("dialog.media.view"));
 		viewButton.setEnabled(!isNew);
+		if(isNew)
+			viewButton.setToolTipText(I18N.t("dialog.media.save_first"));
 		viewButton.addActionListener(e -> MediaViewerDialog.open(this, model, record));
 
 		//the folder that holds the file, with the file selected
@@ -193,6 +207,9 @@ public class MediaRecordDialog extends BaseRecordDialog{
 		buttonsPanel.add(viewButton);
 		buttonsPanel.add(viewInFolderButton);
 		GUIHelper.addComponent(propertiesPanel, buttonsPanel);
+
+		//until the record is loaded the mapping is not in sight (loadData shows it for a record that has one)
+		showMapping(false);
 
 		return propertiesPanel;
 	}
@@ -246,6 +263,21 @@ public class MediaRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 		dateField.load(record);
+
+		//the mapping is for the images of 360 degrees: it is in sight only for a record that has one that is not the ordinary one
+		showMapping(mappingCombo.isValued() && !MediaReader.ENUM_MAPPING_PLANAR.equalsIgnoreCase(mappingCombo.getText()));
+	}
+
+	/** Shows the row of the mapping (and takes away the button that shows it), or hides it. */
+	private void showMapping(final boolean visible){
+		final JLabel label = GUIHelper.getLabeledComponent(mappingCombo);
+		if(label != null)
+			label.setVisible(visible);
+		mappingCombo.setVisible(visible);
+		moreButton.setVisible(!visible);
+
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 	}
 
 	@Override

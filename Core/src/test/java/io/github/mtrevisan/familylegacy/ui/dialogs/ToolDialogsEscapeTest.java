@@ -52,6 +52,7 @@ import org.jxmapviewer.viewer.GeoPosition;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import java.awt.Dialog;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
@@ -254,14 +255,24 @@ class ToolDialogsEscapeTest{
 					continue;
 
 				final String name = type.getSimpleName();
-				final JDialog dialog;
+				final JDialog[] built = {null};
 				try{
-					dialog = build(type, owner, inOwner, model);
+					//a dialog is built on the event dispatch thread, as the application does: built on this thread, while the event thread
+					//lays out the owner, it may deadlock on the lock of the component tree and the one of a document
+					SwingUtilities.invokeAndWait(() -> {
+						try{
+							built[0] = build(type, owner, inOwner, model);
+						}
+						catch(final Exception e){
+							throw new IllegalStateException(e);
+						}
+					});
 				}
 				catch(final Exception | AssertionError e){
 					notBuilt.put(name, String.valueOf(e));
 					continue;
 				}
+				final JDialog dialog = built[0];
 				if(dialog == null){
 					notBuilt.put(name, "no constructor that the test can feed");
 					continue;

@@ -134,6 +134,15 @@ final class EvidenceQualifiersDialog extends JDialog{
 		table.getColumnModel().getColumn(0).setPreferredWidth(160);
 		table.getColumnModel().getColumn(1).setPreferredWidth(460);
 
+		final SearchBox searchBox = createSearchBox(table);
+
+		final JPanel panel = new JPanel(new BorderLayout(0, 4));
+		panel.add(searchBox, BorderLayout.NORTH);
+		panel.add(new JScrollPane(table), BorderLayout.CENTER);
+		return panel;
+	}
+
+	private SearchBox createSearchBox(final JTable table){
 		final SearchBox searchBox = new SearchBox(24, false);
 		searchBox.onChange(() -> {
 			final String query = searchBox.query();
@@ -147,11 +156,7 @@ final class EvidenceQualifiersDialog extends JDialog{
 				}
 			});
 		});
-
-		final JPanel panel = new JPanel(new BorderLayout(0, 4));
-		panel.add(searchBox, BorderLayout.NORTH);
-		panel.add(new JScrollPane(table), BorderLayout.CENTER);
-		return panel;
+		return searchBox;
 	}
 
 	private JPanel createDimensionTab(final Map<String, Integer> counts){

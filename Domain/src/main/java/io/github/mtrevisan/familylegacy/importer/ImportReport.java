@@ -33,13 +33,11 @@ import java.util.Map;
 /**
  * The important information that an import discarded (real losses only), collected while the file is read.
  * <p>
- * Thread-safe: the importer fills it away from the event dispatch thread, the dialog reads it afterwards. At most {@link #MAX_ISSUES}
- * issues are kept in detail; the others are only counted (see {@link #overflow()}).
+ * Thread-safe: the importer fills it away from the event dispatch thread, the dialog reads it afterwards. Every issue is kept in
+ * detail: the list is what the user reads and saves, so it is never cut. {@link #overflow()} is only for a report kept by an older
+ * version, that cut it.
  */
 public final class ImportReport{
-
-	/** The maximum number of issues kept in detail. */
-	public static final int MAX_ISSUES = 5000;
 
 
 	private final List<ImportIssue> issues = new ArrayList<>();
@@ -57,10 +55,7 @@ public final class ImportReport{
 	 */
 	public synchronized void discard(final String reasonKey, final String item, final String where){
 		counts.merge(reasonKey, 1, Integer::sum);
-		if(issues.size() < MAX_ISSUES)
-			issues.add(new ImportIssue(reasonKey, (item != null? item: ""), (where != null? where: "")));
-		else
-			overflow ++;
+		issues.add(new ImportIssue(reasonKey, (item != null? item: ""), (where != null? where: "")));
 	}
 
 	/**
@@ -81,6 +76,21 @@ public final class ImportReport{
 	/** Forgets the pending files (once written, or declined). */
 	public synchronized void clearPendingFiles(){
 		pendingFiles.clear();
+	}
+
+	/**
+	 * Rebuilds a report that was kept (see its issues and counts as they were).
+	 *
+	 * @param issues	The issues kept in detail.
+	 * @param counts	How many issues there are for each reason.
+	 * @param overflow	How many issues were counted but not kept in detail.
+	 */
+	public static ImportReport restored(final List<ImportIssue> issues, final Map<String, Integer> counts, final int overflow){
+		final ImportReport report = new ImportReport();
+		report.issues.addAll(issues);
+		report.counts.putAll(counts);
+		report.overflow = overflow;
+		return report;
 	}
 
 	public synchronized boolean isEmpty(){

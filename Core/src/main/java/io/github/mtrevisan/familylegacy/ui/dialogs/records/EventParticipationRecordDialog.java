@@ -123,6 +123,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		roleCombo.setEditable(true);
 		confidenceCombo = new BoundComboBox<>(EventParticipationReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.event_participation.confidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)

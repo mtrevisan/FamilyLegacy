@@ -57,6 +57,7 @@ import io.github.mtrevisan.familylegacy.ui.components.projections.individualtree
 import io.github.mtrevisan.familylegacy.ui.components.projections.menus.EntityTreePopupMenuFactory;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.JumpToIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.StatusMessages;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportCentering;
 import io.github.mtrevisan.familylegacy.ui.helpers.ViewportPanSupport;
 
@@ -80,6 +81,11 @@ import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.IdentityHashMap;
+import java.util.Deque;
+import java.util.Collections;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -112,6 +118,11 @@ import java.util.function.Consumer;
 public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListener{
 
 	private static final Color BACKGROUND_COLOR = new Color(242, 238, 228);
+	/** How many generations of ancestors the tree shows when it is opened. */
+	public static final int DEFAULT_MAX_ANCESTORS = 2;
+	/** The fewest and the most generations of ancestors the buttons of the tree go to. */
+	private static final int MIN_ANCESTORS = 1;
+	private static final int MAX_ANCESTORS = 12;
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
 
@@ -138,7 +149,7 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 	private boolean showPartner;
 
 	private String currentRootIndividualId;
-	private int currentMaxAncestors;
+	private int currentMaxAncestors = DEFAULT_MAX_ANCESTORS;
 	private TreeNode rootNode;
 
 	private final Map<TreeNode, PartnersPanel> nodeToPanelMap = new LinkedHashMap<>();
@@ -265,6 +276,63 @@ public class IndividualTreeGraphPanel extends JPanel implements TreeChangeListen
 		finally{
 			suppressNavigationNotification = false;
 		}
+	}
+
+	/** @return how many generations of ancestors the tree shows */
+	public int getMaxAncestors(){
+		return currentMaxAncestors;
+	}
+
+	/**
+	 * Shows that many generations of ancestors (from now on, for every person), and brings the oldest row into view: the new row is at
+	 * the top, and otherwise the change would seem to do nothing.
+	 *
+	 * @param generations	How many generations of ancestors (kept between {@value #MIN_ANCESTORS} and {@value #MAX_ANCESTORS}).
+	 */
+	public void setMaxAncestors(final int generations){
+		final int bounded = Math.max(MIN_ANCESTORS, Math.min(MAX_ANCESTORS, generations));
+		if(bounded == currentMaxAncestors)
+			return;
+
+		currentMaxAncestors = bounded;
+		if(currentRootIndividualId == null)
+			return;
+
+		refreshTree();
+		SwingUtilities.invokeLater(() -> SwingUtilities.invokeLater(() -> treeScroll.getVerticalScrollBar()
+			.setValue(0)));
+		//a number that adds nothing is told, so that the change does not seem to do nothing
+		if(!hasMoreAncestors())
+			StatusMessages.shared()
+				.show(I18N.t("view.generations.none"));
+	}
+
+	/** @return whether a person of the tree has parents that the tree does not show (the generation limit cut them) */
+	public boolean hasMoreAncestors(){
+		if(rootNode == null)
+			return false;
+
+		final Set<TreeNode> visited = Collections.newSetFromMap(new IdentityHashMap<>());
+		final Deque<TreeNode> pending = new ArrayDeque<>();
+		pending.push(rootNode);
+		while(!pending.isEmpty()){
+			final TreeNode node = pending.pop();
+			if(!visited.add(node))
+				continue;
+
+			if(node.getFather() == null && node.getMother() == null){
+				final String id = node.getIndividualId();
+				if(id != null && !genealogyRepository.getParents(id).isEmpty())
+					return true;
+
+				continue;
+			}
+			if(node.getFather() != null)
+				pending.push(node.getFather());
+			if(node.getMother() != null)
+				pending.push(node.getMother());
+		}
+		return false;
 	}
 
 	public void load(final String rootIndividualId, final int maxAncestors){

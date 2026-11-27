@@ -43,7 +43,7 @@ import java.awt.datatransfer.StringSelection;
 
 
 /**
- * Modal dialog that displays the output of a {@link ToolOperation}.
+ * Modal dialog that displays the output of a {@link io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation}.
  * <p>
  * Two content modes are supported:
  * <ul>

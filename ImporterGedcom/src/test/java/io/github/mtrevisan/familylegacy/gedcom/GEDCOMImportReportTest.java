@@ -565,10 +565,11 @@ class GEDCOMImportReportTest{
 		//a role that does not agree with it is an error of the file, and each one is reported
 		assertReported(result.report(), ImportReasons.INCONSISTENT_ROLE, "ROLE WITN", "I1 BIRT.SOUR.EVEN.ROLE");
 		assertReported(result.report(), ImportReasons.INCONSISTENT_ROLE, "ROLE WITN", "I1 BAPM.SOUR.EVEN.ROLE");
-		//a kinship, and the roles after the first one, are reported as before
-		assertReported(result.report(), ImportReasons.SOURCE_DETAIL, "ROLE SPOUSE", "I1 DEAT.SOUR.EVEN.ROLE");
+		//the roles after the first one are reported as before; a kinship is not: the relationship of the person says it
 		assertReported(result.report(), ImportReasons.SOURCE_DETAIL, "ROLE CLERGY", "I1 BAPM.SOUR.EVEN.ROLE");
-		Assertions.assertEquals(5, result.report().issues().size(), result.report().issues().toString());
+		Assertions.assertTrue(issues(result.report(), ImportReasons.SOURCE_DETAIL).stream()
+			.noneMatch(issue -> issue.item().contains("SPOUSE")), result.report().issues().toString());
+		Assertions.assertEquals(4, result.report().issues().size(), result.report().issues().toString());
 	}
 
 	@Test

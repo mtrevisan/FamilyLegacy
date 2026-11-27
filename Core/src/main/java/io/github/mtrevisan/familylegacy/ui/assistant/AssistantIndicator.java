@@ -67,7 +67,7 @@ import java.util.function.Supplier;
  *   <li>a computation that took long is not repeated at once: the wait before the next one is a multiple of how long it took (at
  *   least {@link #MIN_INTERVAL_MILLIS}), so on a big file the assistant does not keep the processor busy;</li>
  *   <li>ignoring a finding, or showing it again, only recounts the findings already computed;</li>
- *   <li>the user can hide it (then it computes nothing) and limit it to some assistants (see {@link AssistantSettings}); its text is
+ *   <li>the user can hide it (then it computes nothing) and limit it to some assistants (see {@link io.github.mtrevisan.familylegacy.assistant.AssistantSettings}); its text is
  *   coloured by the most serious finding, and it blinks for a few seconds when a new error appears.</li>
  * </ul>
  */

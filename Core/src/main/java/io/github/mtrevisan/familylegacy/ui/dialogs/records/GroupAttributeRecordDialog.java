@@ -132,6 +132,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		placeField = EntityField.createForStructureWithReference(GroupAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		confidenceCombo = new BoundComboBox<>(GroupAttributeReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.group_attribute.confidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)

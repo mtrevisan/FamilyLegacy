@@ -113,7 +113,12 @@ public final class CollapsibleBar extends JPanel{
 
 		addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent e){
+			public void mouseReleased(final MouseEvent e){
+					//mouseClicked is not fired if the pointer moves even one pixel between press and release (the cause of the
+					//occasional "needs two clicks"): react to the release when it happens inside the bar
+					if(e.getButton() != MouseEvent.BUTTON1 || !contains(e.getPoint()))
+						return;
+
 				if(listener != null)
 					listener.onToggleRequested();
 			}

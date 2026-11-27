@@ -256,18 +256,7 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		boolean anyRendered = false;
 
 		// Sort entries: RelationshipHandler always first, then alphabetically by tab label
-		final List<Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>>> sortedEntries =
-			new ArrayList<>(allRelatedIds.entrySet());
-		sortedEntries.sort((e1, e2) -> {
-			if(e1.getKey().equals(RelationshipHandler.class))
-				return -1;
-			if(e2.getKey().equals(RelationshipHandler.class))
-				return 1;
-
-			final RecordTypeHandler<?> h1 = HandlerRegistry.getHandler(e1.getKey());
-			final RecordTypeHandler<?> h2 = HandlerRegistry.getHandler(e2.getKey());
-			return h1.getType().compareToIgnoreCase(h2.getType());
-		});
+		final List<Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>>> sortedEntries = createSortedEntries(allRelatedIds);
 
 		for(final Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> entry : sortedEntries){
 			final Class<? extends RecordTypeHandler<?>> handlerClass = entry.getKey();
@@ -323,6 +312,23 @@ public class UnlinkDialog extends JDialog implements UnlinkPrompt{
 		buttonPanel.add(confirmCancelPanel, "alignx right");
 
 		add(buttonPanel, BorderLayout.SOUTH);
+	}
+
+	private List<Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>>> createSortedEntries(
+		   final Map<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>> allRelatedIds){
+		final List<Map.Entry<Class<? extends RecordTypeHandler<?>>, Set<FLEFRecord>>> sortedEntries =
+			new ArrayList<>(allRelatedIds.entrySet());
+		sortedEntries.sort((e1, e2) -> {
+			if(e1.getKey().equals(RelationshipHandler.class))
+				return -1;
+			if(e2.getKey().equals(RelationshipHandler.class))
+				return 1;
+
+			final RecordTypeHandler<?> h1 = HandlerRegistry.getHandler(e1.getKey());
+			final RecordTypeHandler<?> h2 = HandlerRegistry.getHandler(e2.getKey());
+			return h1.getType().compareToIgnoreCase(h2.getType());
+		});
+		return sortedEntries;
 	}
 
 	/**

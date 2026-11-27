@@ -72,6 +72,14 @@ public interface RecordDialog{
 	 */
 	default void addNestedEdit(final FLEFRecord target, final FLEFRecord before, final FLEFRecord after, final Runnable refresh){}
 
+	/**
+	 * Registers what to do to undo records that were added to the model on behalf of this editor (for instance the source that a list of
+	 * its citations created): it is done if the editor is not saved.
+	 *
+	 * @param undo	what to do.
+	 */
+	default void addNestedUndo(final Runnable undo){}
+
 	/** Presets the sex of a new individual, and keeps it (the editors of the other records ignore it). */
 	default void presetSex(final SexType sex){}
 

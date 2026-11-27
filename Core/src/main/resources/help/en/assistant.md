@@ -66,7 +66,7 @@ Select a gap to read, in the box below the list, **why** it is a gap, the **task
 
 Double-click a gap (or press **Open the Records…**) to open the records it is about; a progress bar shows while the gaps are being looked for.
 
-Nothing is ticked at first. Select a gap and press **Create Task** to create its task (the next gap is selected, so you can go on one by one), or tick several and press **Create Ticked**. The dialog stays open; a gap that became a task shows its identifier (*Created [T..]*, double-click opens the task), **Open Inbox...** shows it in the task dashboard, and it is not proposed again. The new tasks go to the inbox of the task dashboard, like the ones of *Generate Research Tasks from Findings*; closing the dialog does not open it by itself. If the document has no file yet, you are asked where to write it when the dialog closes.
+Nothing is ticked at first. Select a gap and press **Create Task** to create its task (the next gap is selected, so you can go on one by one), or tick several and press **Create Ticked**. The dialog stays open; a gap that became a task shows its identifier (*Created \[T..\]*, double-click opens the task), **Open Inbox...** shows it in the task dashboard, and it is not proposed again. The new tasks go to the inbox of the task dashboard, like the ones of *Generate Research Tasks from Findings*; closing the dialog does not open it by itself. If the document has no file yet, you are asked where to write it when the dialog closes.
 
 
 ## The Historical Date Assistant

@@ -474,7 +474,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		//two biological parents of the same child must be of different sexes (subject = child, target = parent)
 		final FLEFRecord child = subjectField.getEntity();
 		final FLEFRecord parent = targetField.getEntity();
-		if(parent != null && IndividualHandler.isOfType(child)
+		if(IndividualHandler.isOfType(child)
 			&& IndividualHandler.isOfType(parent)){
 			final CoParentSex.Clash clash = CoParentSex.findClashingParent(child.getId(), parent.getId(), subjectTypeCombo.getText(),
 				record.getId(), model);

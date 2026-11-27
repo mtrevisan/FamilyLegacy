@@ -4,7 +4,7 @@ Two entries for the same person are common, especially after an [import](import.
 
 ## Detect Duplicates
 
-**Tools > Detect Duplicates...** looks for individuals that may be the same person. It needs at least two individuals, and it starts searching as soon as it opens (the search runs in the background; a progress bar in the footer, with its percentage, shows how far it is, so that you know when the candidates will appear). Only individuals are examined, and the ones hidden by the current [privacy](privacy.md) policy are left out.
+**Tools > Detect Duplicates...** (also in the **Individual** menu, with **Merge Individuals...**, as they are about individuals) looks for individuals that may be the same person. It needs at least two individuals, and it starts searching as soon as it opens (the search runs in the background; a progress bar in the footer, with its percentage, shows how far it is, so that you know when the candidates will appear). Only individuals are examined, and the ones hidden by the current [privacy](privacy.md) policy are left out.
 
 **The controls**
 
@@ -110,7 +110,7 @@ You can also edit the text freely. Taking a side, or editing, decides a conflict
 
 ### What the merge does
 
-After you confirm (*Merge [source] individual into [target] individual? The source record will be deleted. All references to it will be re-pointed to the target.*):
+After you confirm (*Merge \[source\] individual into \[target\] individual? The source record will be deleted. All references to it will be re-pointed to the target.*):
 
 1. The fields you changed in the review are applied as they are in the middle column. A field that can have only one value cannot be left with two.
 2. Every **other** field is merged by the automatic rules: repeated fields are joined (a statement that the target already makes is not repeated; its citations and notes are added to it), a single-valued field keeps the target's value or takes the source's if the target has none, the **privacy keeps the most restrictive level**, and the audit stays the target's.

@@ -74,14 +74,14 @@ class ImportReportTest{
 	}
 
 	@Test
-	void beyondTheCapOnlyTheCountsGrow(){
+	void everyIssueIsKept(){
 		final ImportReport report = new ImportReport();
-		for(int i = 0; i < ImportReport.MAX_ISSUES + 7; i ++)
+		for(int i = 0; i < 12_007; i ++)
 			report.discard("import.discard.other", "x" + i, "");
 
-		Assertions.assertEquals(ImportReport.MAX_ISSUES, report.issues().size());
-		Assertions.assertEquals(7, report.overflow());
-		Assertions.assertEquals(ImportReport.MAX_ISSUES + 7, report.countsByReason().get("import.discard.other"));
+		Assertions.assertEquals(12_007, report.issues().size());
+		Assertions.assertEquals(0, report.overflow());
+		Assertions.assertEquals(12_007, report.countsByReason().get("import.discard.other"));
 	}
 
 	@Test

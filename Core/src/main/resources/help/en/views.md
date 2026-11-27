@@ -2,6 +2,12 @@
 
 These are the three views of the family around the selected person. Switch between them with the toolbar buttons (**Family Tree**, **Sugiyama Graph**, **Ego Net**), the **View > Projection** menu, or `Ctrl+1`, `Ctrl+2`, `Ctrl+3`. The fourth view is the [Chronomap](chronomap.md). The shortcuts and the moves common to the views are in [Navigating the tree](navigating.md).
 
+## How many generations of ancestors
+
+The **Generations** spinner of the toolbar sets how many generations of ancestors the **Family Tree** and the **Sugiyama Graph** show (from 1 to 12; the tree opens with 2, and the number is kept when another person is shown or another file is opened). The view goes back to the top, where the new row is. It is disabled in the other views. If every ancestor in the file is already on the screen, a message in the toolbar says *No more ancestors are recorded*.
+
+The tree takes only the room its ancestors need: a couple takes as many columns as the couples above it, so a branch that stops early leaves no hole, and a family with few recorded ancestors stays close together. The Sugiyama Graph puts each generation in one row.
+
 ## What the boxes do
 
 The same mouse actions work in the three views:

@@ -143,6 +143,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		placeField = EntityField.createForStructureWithReference(IndividualAttributeReader.TAG_PLACE, this, model, PlaceCitationHandler.class);
 		confidenceCombo = new BoundComboBox<>(IndividualAttributeReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.individual_attribute.confidence"));
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, this.record)

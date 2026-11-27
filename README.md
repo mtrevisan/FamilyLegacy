@@ -91,140 +91,17 @@ Every major feature should reinforce those capabilities.
 
 ### HIGH
 
-**Usability problems found by a from-scratch walkthrough (2026-11-26).** Scenario: new empty file, enter a person with name, sex, birth,
-parents, a partner, a source and a note, and build a small tree. *Method and limit:* I followed the real flow by reading the dialogs
-(`IndividualRecordDialog`, `PersonalNameStructureDialog`, `EventRecordDialog`, `EventParticipationRecordDialog`, `EntityListPanel`,
-`BaseRecordDialog`) and the help pages; I did **not** drive the GUI, so the dialog counts come from the code and items marked *(verify)* are
-suspicions to confirm with a test or by hand. Ordered by how much they hurt a beginner.
+Usability problems found by a second from-scratch walkthrough (2026-11-27, after the quick entry layer). Scenario: new empty file, enter a person with name, sex, birth, parents, a partner, a source and a note, and build a small tree. Method and limit: I read the code of the dialogs, the tools and the help pages, rendered the new windows to images, and probed the date reader with a test; I did not drive the GUI by hand, so items marked (verify) are suspicions to confirm. Ordered by how much they hurt a beginner.
 
-0. **Quick Entry Layer** (highest value).
+1. Every list (names, attributes, sources, notes...) shows (no items) and no button: the way to add is a right-click menu or the Insert key, hinted only by a tooltip on hover. The short way to cite a source is in the menu, while Insert opens the long way (source editor, then citation editor). A beginner may not find any of it (verify with someone who has not seen the program). Proposal: a visible Add... row under every list (and Cite a new source... beside it for the sources), and Insert taking the short way for sources.
+2. A note is a heavy dialog. Title, kind, text, MIME type, locale, a list of translations, and the tabs Sources, Privacy and Audit, to write a paragraph. Proposal: the text alone, with the rest behind a More... like the title of a source.
+3. The name parser is explained only by a tooltip. Rossi Giovanni (family name first, usual in registers and lists) is read as given Rossi, family Giovanni; the preview shows it, but the way to fix it (/Rossi/ Giovanni, or the comma) is in the tooltip. Proposal: next to the preview, a swap link (family first) and the slashes written for the user.
 
-Provide a beginner-friendly data-entry layer above the full FLEF model.
+Third walkthrough (2026-11-27), again by reading the code (two scenarios: media, places, events and citations; opening, finding and importing a big tree). Items marked (verify) are suspicions to confirm in the GUI.
 
-The purpose is not to simplify the model but to hide model complexity during common genealogy tasks.
+18. Media paths are stored absolute (`MediaRecordDialog.setNewItem`), so the link breaks when the file or the folder moves. Proposal: a path relative to the FLEF file (the base is the folder of the file) and a "Copy into the project folder" box in the file chooser, one `MediaFiles.resolve` for every consumer of the uri (viewer, carousel, reports, site, backup), a "Make media paths relative" command for the paths already saved. (Done: the Mapping is behind a More... button, and the Confidence menus have tooltips.)
 
-Individual quick entry should support:
-
-- full name;
-- sex;
-- birth date;
-- birth place;
-- death date;
-- death place.
-
-Family quick entry should support:
-
-- partner;
-- union date;
-- union place;
-- children.
-
-Source quick entry should support:
-
-- title;
-- locator;
-- repository (optional).
-
-Name Entry
-
-The quick-entry workflow should include a:
-
-    Full Name
-
-field.
-
-The entered text is used only to pre-populate a `PersonalNameStructure` and its parts. The user should immediately see the parsed result and be able to edit or correct it.
-
-Examples:
-
-    Giovanni Rossi
-
-may pre-populate:
-
-    given = Giovanni
-    family = Rossi
-
-but the parser is only a convenience mechanism, not an authoritative interpretation.
-
-The existing `PersonalNameStructure` editor remains the authoritative representation and must continue to support:
-
-- multiple surnames;
-- particles and prefixes;
-- patronymics;
-- aliases;
-- non-Western naming conventions;
-- complex historical names.
-
-The quick-entry field reduces the number of dialogs required for common names while preserving the full expressive power of the underlying model.
-
-The quick-entry layer should transparently create and maintain the underlying FLEF structures:
-
-- PersonalNameStructure
-- IndividualAttributeRecord
-- EventRecord
-- EventParticipationRecord
-- RelationshipRecord
-- SourceRecord
-- SourceCitation
-- ExtractRecord
-
-Advanced editors remain available and expose the complete model.
-
-Design principle:
-
-    Easy things should be easy.
-    Complex things should remain possible.
-
-A beginner should be able to enter a small family tree without understanding EventParticipationRecord, PersonalNameStructure parts, relationship records, or evidence qualifiers, while advanced users retain full control of the model.
-1. **Typing a name takes three nested dialogs.** *Add Individual* shows only a *Personal Names* list. Each name opens its own dialog, whose
-   *Parts* list opens one more dialog per part (type + value). "Giovanni Rossi" = individual > name > part *given* > part *family*, with no
-   field to type the full name. Proposal: a one-line "Full name" in the new-individual dialog that is split (last word = family, with the
-   usual particles), creating the name and its parts, editable afterwards with the full dialogs.
-2. **The sex is hidden.** It is not in the new-individual dialog: it is an *attribute of type sex* in another tab (create, choose the type,
-   then the value). Only *Add Parent/Child/Partner* from the tree preselect it. But the views place father and mother by sex, so the first
-   person of a file, left with no sex, gives a silently wrong tree. Proposal: a *Sex* combo (male/female/unknown) in the Properties tab that
-   writes the attribute.
-3. **There is no birth date for a person.** It is an *event* plus a *participation*: *Event > New Event...* (type, date, place), then on the
-   person *Participations > Create New...* (event, role *principal*), then save both. At least four dialogs for the most common fact, and
-   the help needs a section ("Changing a date of birth") to explain it. Proposal: "Birth" and "Death" rows (date, place) in the new-individual
-   dialog and in the dossier, creating the event and the participation behind the scenes. *(verify)* what the views do with a participation
-   whose role is empty: the role is optional, but the birth is read as the *principal* one.
-4. **Union / Marriage quick entry** (high value).
-
-Keep the existing model:
-
-    RelationshipRecord
-    +
-    EventRecord
-
-A relationship and a marriage event are distinct concepts and should remain separate in FLEF.
-
-However, users should not need to create both records manually for common genealogy workflows.
-
-Provide a single:
-
-    Add Partner...
-    Create Union...
-
-workflow that asks for:
-
-- relationship type;
-- date;
-- place;
-
-and automatically creates and links the corresponding:
-
-- RelationshipRecord;
-- marriage/union EventRecord;
-- participant records.
-
-Advanced users must still be able to edit the underlying records independently.
-
-The objective is to simplify data entry without simplifying the data model.
-5. **Citing a source is a long road.** *Sources > Create New...* opens the source (its **title is a name structure**: another nested dialog
-    just to type a title), then its repository (another name dialog), then the citation (source and *Stance* required; stance is almost
-    always *supports*), the *evidence* qualifiers, the *extract*. Proposal: *Title* as a plain text box when there is one name, *Stance*
-    defaulting to *supports*, and a "Cite a new source" shortcut that asks only for the title and the locator.
+Resolved since the previous walkthrough (2026-11-26): typing a name takes three dialogs (now one line and a preview), the hidden sex (now a combo, locked when the link imposes it), the birth as event plus participation (now date and place rows, also on an existing person), the union as relationship plus event (one window, with date and place), and the long road to cite a source (plain title, supports by default, Cite a New Source...). Resolved since the second walkthrough: the dates of the quick entry are checked with their calendar (and the calendar can be chosen), the places can be typed as a chain (`Padova, Veneto, Italy`, each one a place of its own, part of the next), and the death is in the family window, and a quick entry says what it created (a line in the tool bar); it is one step of the history, taken back by Undo in one go (it was already so: the history records every action, the walkthrough had not checked), and the burial and the occupation are in the individual box. Resolved since: the parents have a part in the quick entry (father, mother, one type, biological by default) and Add Parent no longer asks the type (Shift asks it).
 
 ### MEDIUM
 

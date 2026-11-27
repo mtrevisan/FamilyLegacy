@@ -45,7 +45,7 @@ class MarkdownToHtmlTest{
 	void slugKeepsLettersAndDigitsAndTurnsSpacesIntoHyphens(){
 		Assertions.assertEquals("backup-and-restore", MarkdownToHtml.slug("Backup and restore"));
 		Assertions.assertEquals("order-of-children-and-partners", MarkdownToHtml.slug("Order of children and partners"));
-		Assertions.assertEquals("file-properties", MarkdownToHtml.slug("`File` *Properties*..."));
+		Assertions.assertEquals("file-properties", MarkdownToHtml.slug("`File` *Properties*…"));
 	}
 
 	@Test

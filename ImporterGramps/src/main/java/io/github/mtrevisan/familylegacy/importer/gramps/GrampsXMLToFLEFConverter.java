@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.importer.gedcom.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.importer.gedcom.IDGenerator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.Deduplicator;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.GEDCOMToFLEFConverter;
+import io.github.mtrevisan.familylegacy.importer.gedcom.converters.PosthumousAttributeDates;
 import io.github.mtrevisan.familylegacy.importer.gedcom.converters.PlaceCache;
 import io.github.mtrevisan.familylegacy.io.ExtractMigration;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
@@ -370,6 +371,8 @@ public final class GrampsXMLToFLEFConverter{
 		for(final Element source : items("sources", GRAMPS_SOURCE))
 			source(source);
 		orphanNotes();
+		//an attribute dated after the death of the individual (a statement in the record of a relative) is dated before the death
+		PosthumousAttributeDates.convert(model);
 		//each extract becomes a record of the source cited
 		ExtractMigration.migrate(model);
 		listener.onProgress(100, t("progress.done"));

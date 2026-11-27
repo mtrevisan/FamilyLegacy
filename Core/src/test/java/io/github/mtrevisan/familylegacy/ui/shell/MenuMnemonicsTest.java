@@ -76,6 +76,23 @@ class MenuMnemonicsTest{
 	}
 
 	@Test
+	void everyMenuOfTheBarHasAMnemonic() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The window needs a display");
+
+		final List<String> without = new ArrayList<>();
+		SwingUtilities.invokeAndWait(() -> {
+			final FamilyLegacyFrame frame = new FamilyLegacyFrame(TreeType.FAMILY, new FLEFModel());
+			frame.setTerminator(() -> {});
+			final JMenuBar bar = frame.getJMenuBar();
+			for(int i = 0; i < bar.getMenuCount(); i ++)
+				if(bar.getMenu(i).getMnemonic() == 0)
+					without.add(bar.getMenu(i).getText());
+		});
+
+		Assertions.assertTrue(without.isEmpty(), "menus without a mnemonic: " + without);
+	}
+
+	@Test
 	void noTwoEntriesOfAnIndividualPopupShareTheMnemonic() throws Exception{
 		final FLEFModel model = new FLEFModel();
 		final IndividualPanel panel = IndividualPanel.createEmpty(BoxPanelType.PRIMARY);

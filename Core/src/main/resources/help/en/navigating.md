@@ -18,9 +18,10 @@ In the tree, `Ctrl+L` toggles the layout between vertical and horizontal, and `C
 ## Moving around
 
 - **Click the name** of a person in a box to make that person the new root of the view. The arrow keys move the selection and `Enter` re-roots on the selected box.
+- A file opens on the person and the view you left it on (kept next to the file, see [One folder for each project](files.md#one-folder-for-each-project)); a file opened for the first time shows its first person.
 - **Navigate > Jump to individual...** (`Ctrl+J`) searches people by name; in views that also show groups it reads *Jump to individual/Group...*.
 - **Navigate > Find record...** (`Ctrl+F`) finds any record, not only people. Both are explained in [Jump to, Find record and bookmarks](searching.md).
-- **Back** and **Forward** (`Ctrl+Left`, `Ctrl+Right`) walk through the roots you have visited. **Clear History** forgets them.
+- **Back** and **Forward** (`Ctrl+Left`, `Ctrl+Right`; `Alt+Left` and `Alt+Right` too, as in a browser) walk through the roots you have visited. **Clear History** forgets them.
 - **Right-click** a box to open a context menu with the commands that apply to it.
 
 ## The sidebar

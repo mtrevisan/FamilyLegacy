@@ -77,8 +77,8 @@ public final class MergePlan{
 
 	/**
 	 * Every field of the two records that can be decided (the audit and the privacy are not), in the order they appear: the
-	 * collisions and also, for a plan made by {@link RecordMerger#planAllFields}, the fields that only one record has and the ones
-	 * that are the same. For a plan made by {@link RecordMerger#plan} they are the collisions.
+	 * collisions and also, for a plan made by {@link RecordMerger#planAllFields(String, String)}, the fields that only one record has and the ones
+	 * that are the same. For a plan made by {@link RecordMerger#plan(String, String)} they are the collisions.
 	 * <p>
 	 * A field that is not a collision is merged by the automatic rules, unless the user decided it.
 	 */

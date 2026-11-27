@@ -54,7 +54,13 @@ import java.awt.Cursor;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,8 +81,9 @@ import java.util.function.Supplier;
  * command asks whether to save. What replaces the document or ends the application (New, Open, Exit, Import, Restore) first
  * writes what is still pending ({@link #confirmDiscardChanges()}).
  * <p>
- * The only document that has no file is the empty one the application starts with. At the first change the user is asked where to
- * write it, and from then on it is saved as the others. If the user declines, the document stays in memory, and the changes are lost
+ * The only document that has no file is the empty one the application starts with. The user is asked where to write it when the
+ * application has started ({@link #offerFileAtStartup()}) or, if that was cancelled, at the first change, and from then on it is
+ * saved as the others. If the user declines, the document stays in memory, and the changes are lost
  * unless the user chooses a file when closing or replacing it (the question is asked then).
  * <p>
  * The controller delegates all the model-specific work to the enclosing
@@ -110,6 +117,22 @@ public final class FileMenuController{
 		thread.setDaemon(true);
 		return thread;
 	});
+
+	/** Whether what is in memory is on the file (see {@link #setSaveStateListener(Consumer)}). */
+	public enum SaveState{
+		/** There is nothing to tell: the document has no file and no changes. */
+		NONE,
+		SAVED,
+		SAVING,
+		/** The changes are only in memory: the write failed, or the user did not choose a file. */
+		NOT_SAVED
+	}
+
+
+	/** The files already written in this session, whose previous version is kept (or was not worth keeping) as the name plus .bak. */
+	private final Set<Path> backedUp = ConcurrentHashMap.newKeySet();
+	private Consumer<File> fileListener = file -> {};
+	private Consumer<SaveState> saveStateListener = state -> {};
 
 	private File currentFile;
 	/** Told when the document, still the same, is given another file (saved as, or the file chosen for a document that had none). */
@@ -161,8 +184,27 @@ public final class FileMenuController{
 		return recentFiles;
 	}
 
+	/** Tells {@code listener} the file of the open document every time it changes ({@code null} if it has none). */
+	public void setCurrentFileListener(final Consumer<File> listener){
+		fileListener = (listener != null? listener: file -> {});
+		fileListener.accept(currentFile);
+	}
+
+	/** Tells {@code listener} whether what is in memory is on the file, every time it changes (on the event dispatch thread). */
+	public void setSaveStateListener(final Consumer<SaveState> listener){
+		saveStateListener = (listener != null? listener: state -> {});
+		saveStateListener.accept(saveState());
+	}
+
+	private SaveState saveState(){
+		if(currentFile == null)
+			return (saveDeclined && history.isModified()? SaveState.NOT_SAVED: SaveState.NONE);
+		return (history.isModified()? SaveState.SAVING: SaveState.SAVED);
+	}
+
 	private void setCurrentFile(final File file){
 		currentFile = file;
+		fileListener.accept(file);
 		saveDeclined = false;
 		failureReported = false;
 		MediaPathDisplay.setDocumentFile(file);
@@ -170,6 +212,7 @@ public final class FileMenuController{
 			lastDirectory = file.getParentFile();
 			recentFiles.add(file);
 		}
+		saveStateListener.accept(saveState());
 	}
 
 
@@ -193,6 +236,7 @@ public final class FileMenuController{
 			return;
 		}
 
+		saveStateListener.accept(SaveState.SAVING);
 		autosaveTimer.restart();
 	}
 
@@ -210,8 +254,11 @@ public final class FileMenuController{
 				SwingUtilities.invokeLater(() -> {
 					failureReported = false;
 					//a file the document has left in the meantime (Save as) is not the one that is up to date
-					if(target.equals(currentFile))
+					if(target.equals(currentFile)){
 						history.markSaved(ticket);
+						//more changes may have come while it was written: they are written next
+						saveStateListener.accept(saveState());
+					}
 				});
 			}
 			catch(final IOException | RuntimeException e){
@@ -222,6 +269,7 @@ public final class FileMenuController{
 
 	private void reportAutosaveFailure(final Exception e){
 		LOGGER.warn("Automatic save of {} failed", currentFile, e);
+		saveStateListener.accept(SaveState.NOT_SAVED);
 
 		//it is tried again at the next change; the user is told once
 		if(failureReported)
@@ -229,6 +277,21 @@ public final class FileMenuController{
 
 		failureReported = true;
 		showError(I18N.t("error.file.autosave"), e);
+	}
+
+	/**
+	 * Asks the file of the empty document the application starts with, before the user begins, so that the autosave does not interrupt
+	 * the first change. Cancelling is not a refusal: the question is asked again at the first change, as before.
+	 */
+	public void offerFileAtStartup(){
+		if(currentFile != null || saveDeclined || currentModel.get() == null || history.isModified())
+			return;
+
+		final File target = chooseSaveTarget(I18N.t("dialog.file.startup.title"), lastDirectory, null);
+		if(target != null && writeTo(target)){
+			setCurrentFile(target);
+			sameDocumentFileListener.run();
+		}
 	}
 
 	/** Asks where to write a document that has no file, once it has something to write. */
@@ -239,6 +302,7 @@ public final class FileMenuController{
 		final File target = chooseSaveTarget(I18N.t("dialog.file.autosave.title"), lastDirectory, null);
 		if(target == null){
 			saveDeclined = true;
+			saveStateListener.accept(SaveState.NOT_SAVED);
 			//said once: from now on the changes are only in memory, and the user is asked again when leaving the document
 			MessageDialogs.show(owner, I18N.t("warning.file.autosave_declined"), I18N.t("warning.file.autosave_declined.title"),
 				JOptionPane.WARNING_MESSAGE);
@@ -288,9 +352,11 @@ public final class FileMenuController{
 			final ModelHistory.SaveTicket ticket = history.prepareSave();
 			write(currentFile, ticket.view());
 			history.markSaved(ticket);
+			saveStateListener.accept(saveState());
 			return true;
 		}
 		catch(final IOException | RuntimeException e){
+			saveStateListener.accept(SaveState.NOT_SAVED);
 			return MessageDialogs.confirm(owner,
 				I18N.tf("confirmation.autosave_failed.message", e.getMessage()), I18N.t("confirmation.autosave_failed.title"),
 				JOptionPane.YES_NO_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION;
@@ -492,21 +558,22 @@ public final class FileMenuController{
 	 * import is discarded and the current document is left as it is.
 	 *
 	 * @param source	The file the model was imported from.
-	 * @return	{@code false} if the save was cancelled or failed (the import is discarded).
+	 * @return	The new file, {@code null} if the save was cancelled or failed (the import is discarded).
 	 */
-	public boolean openImported(final FLEFModel importedModel, final File source){
+	public File openImported(final FLEFModel importedModel, final File source){
 		final File suggested = new File(source.getParentFile(),
 			FilenameUtils.getBaseName(source.getName()) + "." + FLEF_EXTENSION);
 		final File target = chooseSaveTarget(I18N.t("dialog.file.save_imported.title"), source.getParentFile(), suggested);
 		if(target == null)
-			return false;
+			return null;
 
-		// the document is the saved file, read back as any other file
 		if(!writeTo(target, importedModel))
-			return false;
-		SavedFileNotice.show(owner, I18N.t("dialog.file.save_imported.title"), I18N.tf("dialog.file.saved", target.getAbsolutePath()), target);
-		openFile(target);
-		return true;
+			return null;
+
+		//the imported model is the document as it is: the file just written is not read again (the caller tells where the file is)
+		modelReplacer.accept(importedModel);
+		setCurrentFile(target);
+		return target;
 	}
 
 
@@ -620,6 +687,8 @@ public final class FileMenuController{
 			protected Void doInBackground() throws Exception{
 				progress.update(0, I18N.t("progress.serializing"));
 				//the text goes to the file as it is made: the file is not held in memory a second time as a string
+				//a file that is explicitly written (new, save as, import) is not backed up: the user chose it
+				backedUp.add(file.toPath().toAbsolutePath().normalize());
 				AtomicFileWriter.write(file.toPath(), StandardCharsets.UTF_8,
 					writer -> FLEFWriter.createCompact().write(model, writer, progress::update));
 				return null;
@@ -631,8 +700,10 @@ public final class FileMenuController{
 				try{
 					get();
 					//only the open document is saved by this: an imported model, written to its new file, is not the open one
-					if(model == currentModel.get())
+					if(model == currentModel.get()){
 						history.markSaved();
+						saveStateListener.accept(saveState());
+					}
 					success[0] = true;
 				}
 				catch(final InterruptedException ex){
@@ -656,8 +727,29 @@ public final class FileMenuController{
 		return success[0];
 	}
 
+	/**
+	 * Keeps the previous version of a file, once for each session: the first time the application overwrites a file it did not write
+	 * itself in this session, the file is copied to the same name plus .bak (the copy of an older session is replaced), so that opening
+	 * a file and editing it does not lose what was there.
+	 */
+	private void backupOnce(final File file){
+		final Path path = file.toPath().toAbsolutePath().normalize();
+		if(!backedUp.add(path))
+			return;
+
+		try{
+			if(Files.isRegularFile(path) && Files.size(path) > 0)
+				Files.copy(path, path.resolveSibling(file.getName() + ".bak"), StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch(final IOException e){
+			//the write is not stopped by a copy that cannot be made
+			LOGGER.warn("Could not keep the previous version of {}: {}", file, e.getMessage());
+		}
+	}
+
 	/** Writes the model, on the calling thread. */
-	private static void write(final File file, final FLEFModel model) throws IOException{
+	private void write(final File file, final FLEFModel model) throws IOException{
+		backupOnce(file);
 		AtomicFileWriter.write(file.toPath(), StandardCharsets.UTF_8, writer -> FLEFWriter.createCompact().write(model, writer));
 	}
 

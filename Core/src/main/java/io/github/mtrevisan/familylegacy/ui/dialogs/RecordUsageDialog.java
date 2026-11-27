@@ -126,6 +126,11 @@ public final class RecordUsageDialog extends JDialog{
 
 	/** @return the name of a record in a list: its type, what it is about, and its identifier */
 	private String describe(final FLEFRecord record){
+		return describe(model, record);
+	}
+
+	/** @return the name of a record in a list: its type, what it is about, and its identifier */
+	public static String describe(final FLEFModel model, final FLEFRecord record){
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 		String text = null;
 		try{

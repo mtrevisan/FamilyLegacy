@@ -139,7 +139,6 @@ public final class AgoraPanel extends JPanel{
 	private final ChronomapIndex index;
 	private final ChronomapTimeline timeline;
 	private final WorkspaceSelection selection;
-	private final boolean ownsTimeline;
 
 	private final JLabel dateLabel = new JLabel();
 	private final JLabel countLabel = new JLabel();
@@ -191,7 +190,6 @@ public final class AgoraPanel extends JPanel{
 
 		this.model = model;
 		this.index = index;
-		this.ownsTimeline = (timeline == null);
 		this.timeline = (timeline != null? timeline: new ChronomapTimeline());
 		this.selection = selection;
 
@@ -382,29 +380,7 @@ public final class AgoraPanel extends JPanel{
 		table.setGridColor(new Color(230, 226, 218));
 		table.setIntercellSpacing(new Dimension(0, 0));
 		table.setRowHeight(22);
-		final var columnModel = table.getColumnModel();
-		for(int i = 0; i < columnModel.getColumnCount(); i ++){
-			final var col = columnModel.getColumn(i);
-			final var renderer = new BorderedCellRenderer();
-			if(i == 3)
-				renderer.setHorizontalAlignment(SwingConstants.RIGHT);
-			col.setCellRenderer(renderer);
-		}
-
-		// Name
-		final TableColumn columnName = columnModel.getColumn(0);
-		columnName.setPreferredWidth(200);
-		columnName.setMinWidth(120);
-		// Place
-		final TableColumn columnPlace = columnModel.getColumn(1);
-		columnPlace.setPreferredWidth(320);
-		columnPlace.setMinWidth(180);
-		// Reason
-		final TableColumn columnReason = columnModel.getColumn(2);
-		columnReason.setPreferredWidth(140);
-		columnReason.setMinWidth(100);
-		// Age: keep it narrow even when the table is resized.
-		final TableColumn columnAge = columnModel.getColumn(3);
+		final TableColumn columnAge = getColumnAge();
 		columnAge.setPreferredWidth(60);
 		columnAge.setMinWidth(50);
 		columnAge.setMaxWidth(90);
@@ -514,6 +490,32 @@ public final class AgoraPanel extends JPanel{
 		 * ================================================================== */
 
 		searchBox.onChange(this::applyFilter);
+	}
+
+	private TableColumn getColumnAge(){
+		final var columnModel = table.getColumnModel();
+		for(int i = 0; i < columnModel.getColumnCount(); i ++){
+			final var col = columnModel.getColumn(i);
+			final var renderer = new BorderedCellRenderer();
+			if(i == 3)
+				renderer.setHorizontalAlignment(SwingConstants.RIGHT);
+			col.setCellRenderer(renderer);
+		}
+
+		// Name
+		final TableColumn columnName = columnModel.getColumn(0);
+		columnName.setPreferredWidth(200);
+		columnName.setMinWidth(120);
+		// Place
+		final TableColumn columnPlace = columnModel.getColumn(1);
+		columnPlace.setPreferredWidth(320);
+		columnPlace.setMinWidth(180);
+		// Reason
+		final TableColumn columnReason = columnModel.getColumn(2);
+		columnReason.setPreferredWidth(140);
+		columnReason.setMinWidth(100);
+		// Age: keep it narrow even when the table is resized.
+		return columnModel.getColumn(3);
 	}
 
 	private void configureTimeline(){

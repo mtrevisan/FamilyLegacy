@@ -268,7 +268,7 @@ final class FanSectionPanel extends JPanel{
 			text.append("<br>&nbsp;&nbsp;").append(escape(event != null? RecordDisplay.describe(event, model): eventIds.get(i)));
 		}
 		if(eventIds.size() > MAX_TOOLTIP_EVENTS)
-			text.append("<br>&nbsp;&nbsp;...");
+			text.append("<br>&nbsp;&nbsp;…");
 		text.append("<br><i>").append(escape(I18N.t("text.fan.tooltip.open"))).append("</i></html>");
 		return text.toString();
 	}

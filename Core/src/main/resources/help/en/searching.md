@@ -44,6 +44,7 @@ The search starts by itself about 0.4 seconds after you stop typing or change a 
 - **Whole word**: a word must match a complete word.
 - **Fuzzy**: a part of a word, or a small spelling difference (up to one letter for every three letters of the word).
 - Both together: a fuzzy match, on whole words only.
+- **Nothing found with Fuzzy off**: the search is repeated by itself with the spelling differences tolerated, and the status line says that the results are similar, not exact (*No exact match: showing N similar records*). The **Fuzzy** option is not changed. The dialogs are titled after the command that opened them (*Jump to Individual*, *Find Record*).
 - An empty text lists everything that passes the filters.
 - **Exact phrase**: text between double quotes, such as `"Bortolo Gallinaro"`, must be found exactly as written (ignoring capitals), spaces and punctuation included; it is not fuzzy, and with *Whole word* it must start and end on a word boundary.
 - **Wildcards**: `*` stands for any run of letters (even none) and `?` for exactly one, and the pattern must match a whole word: `gall*` finds Gallinaro, `b?rtolo` finds Bortolo.
@@ -60,7 +61,7 @@ The result list shows, for individuals, the sex (`[M]`, `[F]`, `[U]`), the name,
 - there is no **Select** button and no **Cancel** one (`Esc` closes the dialog, or stops a search in progress);
 - a double-click on a record **edits** it;
 - **New...** creates a record, and the dialog stays open with the new record in the list;
-- **Edit...**, **Unlink** and **Delete** work on the selected record. **Unlink** lists the records that refer to it and removes the ones you choose.
+- **Edit...**, **Unlink** and **Delete** work on the selected record. **Unlink** lists the records that refer to it and removes the ones you choose. **Delete** deletes the record itself: if other records use it, the question names them (up to eight, the rest is counted) and says that the references go with it, and the records that cannot exist without it (the extracts of a source, for example) are deleted too; **Where Used...** opens the list of the records that use it, to look at them or edit them first, and the question is asked again with what is left; **Delete anyway** goes on. A record nobody uses is asked as a plain question. In the lists of an editor, removing an item only removes it from the list: if it is a record of the file, it stays in the file.
 - in **Manage Places...** the details of the selected place (on the right of the hierarchy) end with **Linked to**: the events, attributes, repositories... that use the place, so you can see what depends on it before you unlink or delete it.
 
 ### Search fields in the lists and boards

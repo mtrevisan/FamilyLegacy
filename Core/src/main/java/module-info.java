@@ -25,7 +25,6 @@
 
 
 module io.github.mtrevisan.familylegacy.core {
-	requires java.base;
 	requires io.github.mtrevisan.familylegacy.domain;
 	requires io.github.mtrevisan.familylegacy.assistant;
 	requires io.github.mtrevisan.calendars;
@@ -36,7 +35,6 @@ module io.github.mtrevisan.familylegacy.core {
 	requires com.miglayout.swing;
 	requires org.slf4j;
 	requires org.apache.commons.text;
-	requires com.ibm.icu;
 	requires org.apache.commons.io;
 	requires java.net.http;
 	requires java.prefs;
@@ -71,4 +69,7 @@ module io.github.mtrevisan.familylegacy.core {
 	uses io.github.mtrevisan.familylegacy.ui.components.searches.service.SelectionViewProvider;
 	provides io.github.mtrevisan.familylegacy.ui.components.searches.service.SelectionViewProvider
 		with io.github.mtrevisan.familylegacy.ui.components.projections.selection.ProjectionSelectionViews;
+	uses io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordUsageViewer;
+	provides io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordUsageViewer
+		with io.github.mtrevisan.familylegacy.ui.dialogs.RecordUsageViewerImpl;
 }

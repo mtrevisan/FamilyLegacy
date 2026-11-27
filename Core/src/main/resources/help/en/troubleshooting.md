@@ -3,7 +3,7 @@
 ## Before anything else
 
 - **Keep copies.** Every change is written to the file by itself, through a temporary file that replaces the real one only when it is complete, so an interrupted write (a full disk, a crash, a locked file) leaves the previous version of the file as it was. Even so, each write replaces the old version for good, so **there is no way back to the file as it was yesterday** except a copy: make a copy with **File > Backup...** before a long session of editing, and before an import, a restore or a merge. Name them with the date: the suggested name already has it.
-- **There are no unsaved changes**, so the application never asks whether to save. The only question of this kind is for the document that has **no file yet** (the empty one the application starts with, if you cancelled the choice of its file): *Save* lets you choose a file, *Discard* throws the changes away, closing the question with `Esc` stops what you were doing.
+- **There are no unsaved changes**, so the application never asks whether to save. The only question of this kind is for the document that has **no file yet** (the empty one the application starts with, if you cancelled the choice of its file, at startup and at the first change): *Save* lets you choose a file, *Discard* throws the changes away, closing the question with `Esc` stops what you were doing.
 - **"Unable to save the changes automatically"** is shown once when a write fails; the application tries again at the next change. Fix the cause (free some space, close the program that locks the file) and make any change, or use **Save as...** to another place.
 
 ## Opening and saving
@@ -42,7 +42,7 @@ The check is **staged**: first the structure, and only if that is clean the refe
 | Message | What it means |
 |---|---|
 | *Missing required child 'X' under ...* | A required field is absent from a record. Open the record and fill it. |
-| *Invalid enum value 'V' at ... Allowed: [...]* | The value is not one of the allowed ones. |
+| *Invalid enum value 'V' at ... Allowed: \[...\]* | The value is not one of the allowed ones. |
 | *Expected cross-reference at ...* | A field must point to another record (an `@ID@`) and holds something else. |
 | *Invalid union choice* / *does not match any allowed alternation type* | A field has a form that is not allowed there. |
 | *Constraint violation at ...: ...* | A rule between fields is broken: for example *field 'F' is required because 'C' is 'V'*, *expected exactly one of ...*, or a value that must be among those of another field. |
@@ -125,6 +125,6 @@ In the folder `.familylegacy` of your home directory:
 | `historical-maps.properties` | The catalogue of historical maps found for each area, valid for 30 days. |
 | `tiles/` | The map tiles already downloaded, so that maps you have seen work without a connection. |
 
-Next to each `.flef` file, in a folder named after it (`family.flef.meta`), the application keeps what belongs to that file but is not genealogy: the [tags](editors.md#tags) (`tags.properties`), the [bookmarks](searching.md#bookmarks) (`bookmarks.properties`) and the findings you ignored in the [Research Assistant](assistant.md) (`ignored-findings.properties`). They are text files; each says its format version in its first line, and a missing or damaged one is read as empty. **Copy, move or archive the `.meta` folder together with the file**: the file alone has none of them. The simplest way is to keep each tree in a folder of its own (see [One folder for each project](files.md#one-folder-for-each-project)).
+Next to each `.flef` file, in a folder named after it (`family.flef.meta`), the application keeps what belongs to that file but is not genealogy: the [tags](editors.md#tags) (`tags.properties`), the [bookmarks](searching.md#bookmarks) (`bookmarks.properties`) the findings you ignored in the [Research Assistant](assistant.md) (`ignored-findings.properties`), and the person and the view shown when you last used the file (`view.properties`: the file opens there; the chronomap is never opened by itself, and a person that was deleted is forgotten). They are text files; each says its format version in its first line, and a missing or damaged one is read as empty. **Copy, move or archive the `.meta` folder together with the file**: the file alone has none of them. The simplest way is to keep each tree in a folder of its own (see [One folder for each project](files.md#one-folder-for-each-project)).
 
 The **list of recent files** is kept by the system (the registry on Windows), not in this folder. Your genealogical data lives only in the `.flef` files you save.

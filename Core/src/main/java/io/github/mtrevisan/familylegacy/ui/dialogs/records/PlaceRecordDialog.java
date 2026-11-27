@@ -27,14 +27,18 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.PlaceRelationshipReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.PlaceChainDialog;
+import io.github.mtrevisan.familylegacy.ui.components.projections.chronomap.PlaceMapPickerDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
 import io.github.mtrevisan.familylegacy.ui.dialogs.RecordDialogBuilder;
@@ -48,8 +52,20 @@ import io.github.mtrevisan.familylegacy.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import org.apache.commons.lang3.StringUtils;
+import org.jxmapviewer.viewer.GeoPosition;
 
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Window;
 import java.io.IOException;
 
@@ -121,6 +137,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final EntityListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField locationCoordinatesField;
+	private final JLabel locationCoordinatesHint = new JLabel(StringUtils.SPACE);
+	private final JPanel locationCoordinatesRow = new JPanel(new BorderLayout(5, 0));
 	private final BoundComboBox<String> locationConfidenceCombo;
 	private final BoundComboBox<String> confidenceCombo;
 
@@ -149,10 +167,36 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		typeCombo.setI18NPrefix("enum.place.type");
 		typeCombo.setEditable(true);
 		locationCoordinatesField = new BoundTextField(PlaceReader.TAG_LOCATION_COORDINATES);
+		locationCoordinatesField.setToolTipText(I18N.t("dialog.place.location.coordinates.tooltip"));
+		final JButton pickOnMap = new JButton(I18N.t("dialog.place.location.pick_on_map"));
+		pickOnMap.addActionListener(e -> pickCoordinatesOnMap());
+		locationCoordinatesRow.setToolTipText(locationCoordinatesField.getToolTipText());
+		locationCoordinatesRow.add(locationCoordinatesField, BorderLayout.CENTER);
+		locationCoordinatesRow.add(pickOnMap, BorderLayout.EAST);
+		locationCoordinatesField.getDocument()
+			.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					updateCoordinatesHint();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					updateCoordinatesHint();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){
+					updateCoordinatesHint();
+				}
+			});
+		updateCoordinatesHint();
 		locationConfidenceCombo = new BoundComboBox<>(PlaceReader.TAG_LOCATION_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		locationConfidenceCombo.setI18NPrefix("enum.confidence");
+		locationConfidenceCombo.setToolTipText(I18N.t("tooltip.place.location.confidence"));
 		confidenceCombo = new BoundComboBox<>(PlaceReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.place.confidence"));
 
 		// Build common panels using the builder
 		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
@@ -200,9 +244,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createLocationPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]5[]5[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(5, "[]2[]5[]5[]");
 
-		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place.location.coordinates"), locationCoordinatesField);
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.place.location.coordinates"), locationCoordinatesRow);
+		panel.add(locationCoordinatesHint, "skip 1");
 
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_FOR_LOCATION);
 		GUIHelper.addComponent(panel, sourcePanel);
@@ -222,7 +267,33 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsObjectPanel);
 
+		//a place inside this one is typed as a line, with the places that contain it if they are new
+		final JButton addInside = new JButton(I18N.t("dialog.place.add_inside"));
+		addInside.addActionListener(e -> addPlaceInside());
+		//the places inside are linked to this one: it has to be in the file
+		final boolean saved = (model.getRecordById(record.getId()) != null);
+		addInside.setEnabled(saved);
+		addInside.setToolTipText(I18N.t(saved? "dialog.place.add_inside.tooltip": "dialog.place.add_inside.save_first"));
+		GUIHelper.addComponent(panel, addInside);
+
 		return panel;
+	}
+
+	/** Creates places inside this one, with one line (see {@link PlaceChainDialog}), and shows them in the list. */
+	private void addPlaceInside(){
+		final PlaceChainDialog.Result result = PlaceChainDialog.show(this, model, record);
+		if(result == null)
+			return;
+
+		if(components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT) instanceof EntityListPanel list)
+			list.loadReferenceWithType(record.getId(), PlaceRelationshipReader.TAG_TARGET);
+		if(result.openEditor()){
+			final FLEFRecord created = model.getRecordById(result.placeId());
+			if(created != null)
+				PlaceHandler.getInstance()
+					.createEditDialog(this, model, created)
+					.setVisible(true);
+		}
 	}
 
 	@Override
@@ -319,8 +390,60 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		updateCarouselFromSelectedSource();
 	}
 
+	/** Tells under the field how the coordinates are read, or that they are not understood (the format, when it is empty). */
+	private void updateCoordinatesHint(){
+		final String text = locationCoordinatesField.getText();
+		final Color muted = UIManager.getColor("Label.disabledForeground");
+		if(StringUtils.isBlank(text)){
+			locationCoordinatesHint.setForeground(muted);
+			locationCoordinatesHint.setText(I18N.t("dialog.place.location.coordinates.hint"));
+
+			return;
+		}
+
+		final GeoCoordinate coordinate = GeoCoordinate.parse(text);
+		if(coordinate == null){
+			locationCoordinatesHint.setForeground(new Color(0xB00020));
+			locationCoordinatesHint.setText(I18N.t("dialog.place.location.coordinates.invalid"));
+
+			return;
+		}
+
+		locationCoordinatesHint.setForeground(muted);
+		locationCoordinatesHint.setText(I18N.tf("dialog.place.location.coordinates.read",
+			PlaceMapPickerDialog.format(coordinate.latitude()), PlaceMapPickerDialog.format(coordinate.longitude())));
+	}
+
+	/** Lets the user choose the place on the map and writes its coordinates in the field. */
+	private void pickCoordinatesOnMap(){
+		final GeoCoordinate current = GeoCoordinate.parse(locationCoordinatesField.getText());
+		final GeoPosition initial = (current != null? new GeoPosition(current.latitude(), current.longitude()): null);
+
+		final PlaceMapPickerDialog picker = new PlaceMapPickerDialog(this, Double.NaN, initial);
+		picker.setVisible(true);
+
+		final GeoPosition position = picker.selectedPosition();
+		if(position != null)
+			locationCoordinatesField.setText(PlaceMapPickerDialog.format(position.getLatitude()) + ", "
+				+ PlaceMapPickerDialog.format(position.getLongitude()));
+	}
+
 	@Override
 	protected boolean validData(){
+		final String coordinates = locationCoordinatesField.getText();
+		if(StringUtils.isNotBlank(coordinates) && GeoCoordinate.parse(coordinates) == null){
+			final int save = MessageDialogs.confirm(this, I18N.tf("confirmation.place.coordinates.message", coordinates),
+				I18N.t("confirmation.place.coordinates.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if(save != JOptionPane.YES_OPTION){
+				//the user has just been asked: the field is shown to be corrected
+				if(locationCoordinatesRow.getParent() != null)
+					tabbedPane.setSelectedComponent(locationCoordinatesRow.getParent());
+				SwingUtilities.invokeLater(locationCoordinatesField::requestFocusInWindow);
+
+				return false;
+			}
+		}
+
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", I18N.t("dialog.place.names")),

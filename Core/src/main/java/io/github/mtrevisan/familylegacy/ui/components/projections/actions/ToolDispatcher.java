@@ -79,14 +79,20 @@ public interface ToolDispatcher{
 		return true;
 	}
 
+	/** Runs a tool with a context built from the application as it is now (the model of an import is not the one of an older context). */
+	default void runTool(final ToolOperation tool){}
+
+	/** Asks the user whom to show (the Jump dialog). */
+	default void jumpToIndividual(){}
+
 	/**
 	 * Saves a model imported from another format as a new FLEF file, chosen by the user, and opens it.
 	 *
 	 * @param source	The file the model was imported from.
-	 * @return	{@code false} if the save was cancelled or failed.
+	 * @return	The new file, {@code null} if the save was cancelled or failed.
 	 */
-	default boolean openImported(final FLEFModel importedModel, final File source){
-		return false;
+	default File openImported(final FLEFModel importedModel, final File source){
+		return null;
 	}
 
 	/**

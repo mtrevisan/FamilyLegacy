@@ -183,7 +183,7 @@ final class MonthInterpretations{
 
 	/**
 	 * Collects the meanings (months from 1 to 12, or seasons as negative numbers) of a month word, the one chosen by
-	 * {@link #parse(String)} first.
+	 * {@link GregorianCalendarParser#parse(String)} first.
 	 *
 	 * @param word      the (lowercase) month word
 	 * @param day       the day of the date, or {@code 0} if missing (a season has no days, and a month has a maximum day)
@@ -387,7 +387,7 @@ final class MonthInterpretations{
 
 	/**
 	 * Builds the pattern of a (possibly multi-word) month word as written in a date, whose words can be separated by
-	 * spaces or by the delimiters that {@link #normalize(String)} turns into spaces.
+	 * spaces or by the delimiters that {@link DateTextCleaner#normalize(String)} turns into spaces.
 	 */
 	static Pattern wordPattern(final String word){
 		final StringJoiner joiner = new StringJoiner("[\\s./-]+");

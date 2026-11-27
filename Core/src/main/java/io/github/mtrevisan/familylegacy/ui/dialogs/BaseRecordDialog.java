@@ -548,6 +548,27 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			}
 	}
 
+	/**
+	 * Goes to a tab of the editor that is already shown, and selects an entry of its lists (what {@link #showEntry} does for an editor that
+	 * is about to open).
+	 *
+	 * @param tabName	The tab.
+	 * @param nested	The entry to select ({@code null}: only the tab).
+	 */
+	public void goToEntry(final String tabName, final FLEFRecord nested){
+		if(tabName == null || tabbedPane == null)
+			return;
+
+		for(int i = 0, count = tabbedPane.getTabCount(); i < count; i ++)
+			if(tabbedPane.getComponentAt(i) instanceof JPanel panel
+					&& tabName.equals(panel.getClientProperty(PANEL_PROPERTY_NAME))){
+				tabbedPane.setSelectedIndex(i);
+				EventQueue.invokeLater(() -> focusEntry(panel, nested));
+
+				return;
+			}
+	}
+
 	private void focusEntry(final JPanel panel, final FLEFRecord nested){
 		if(nested != null && selectInLists(panel, nested))
 			return;
@@ -940,6 +961,17 @@ public abstract class BaseRecordDialog extends JDialog implements RecordDialog{
 			nestedUndo.get(i).run();
 		nestedUndo.clear();
 		PrivacyService.invalidate();
+	}
+
+	/**
+	 * Registers what to do to undo records that this dialog added to the model by itself when it was saved (not through a nested
+	 * dialog): it is done if the dialog that opened this one is not saved, as for the records of the nested dialogs.
+	 *
+	 * @param undo	What to do.
+	 */
+	@Override
+	public final void addNestedUndo(final Runnable undo){
+		nestedUndo.add(undo);
 	}
 
 	/** Hands to the dialog that opened this one what to do to undo what this one, and the ones below it, saved. */

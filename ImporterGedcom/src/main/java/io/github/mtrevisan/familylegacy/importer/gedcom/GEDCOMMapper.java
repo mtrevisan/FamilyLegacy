@@ -321,6 +321,13 @@ public final class GEDCOMMapper{
 	private static final Map<String, String> MEDIA_TYPE_MAP = new HashMap<>();
 	// ---- Genere documentale (SourceRecord.kind) ----
 	private static final Map<String, String> SOURCE_KIND_MAP = new HashMap<>();
+	/** The roles that are a kinship (the GEDCOM 7 ones, and the words that say the same). */
+	private static final Set<String> KINSHIP_ROLES = Set.of("CHIL", "CHILD", "SON", "DAUGHTER", "FATH", "FATHER", "MOTH", "MOTHER", "PARENT",
+		"HUSB", "HUSBAND", "WIFE", "SPOU", "SPOUSE", "PARTNER", "SIBLING", "BROTHER", "SISTER", "GRANDFATHER", "GRANDMOTHER", "GRANDPARENT",
+		"GRANDCHILD", "GRANDSON", "GRANDDAUGHTER", "UNCLE", "AUNT", "NEPHEW", "NIECE", "COUSIN", "FATHER_IN_LAW", "MOTHER_IN_LAW",
+		"SON_IN_LAW", "DAUGHTER_IN_LAW", "BROTHER_IN_LAW", "SISTER_IN_LAW", "STEPFATHER", "STEPMOTHER", "STEPSON", "STEPDAUGHTER",
+		"FIGLIO", "FIGLIA", "PADRE", "MADRE", "MARITO", "MOGLIE", "CONIUGE", "FRATELLO", "SORELLA", "NONNO", "NONNA", "ZIO", "ZIA", "CUGINO",
+		"CUGINA", "NIPOTE", "SUOCERO", "SUOCERA", "GENERO", "NUORA", "COGNATO", "COGNATA");
 	// ---- Ruolo in event_participation ----
 	public static final Map<String, String> ROLE_MAP;
 	// ---- Livello privacy ----
@@ -607,6 +614,48 @@ public final class GEDCOMMapper{
 		roleMap.put("ACCUSED", EventParticipationReader.ENUM_ROLE_ACCUSED);
 		roleMap.put("JUDGE", EventParticipationReader.ENUM_ROLE_JUDGE);
 		roleMap.put("PROPERTY", EventParticipationReader.ENUM_ROLE_PROPERTY);
+		// the obvious synonyms (English and Italian)
+		roleMap.put("MIDWIFE", EventParticipationReader.ENUM_ROLE_MIDWIFE);
+		roleMap.put("LEVATRICE", EventParticipationReader.ENUM_ROLE_MIDWIFE);
+		roleMap.put("OSTETRICA", EventParticipationReader.ENUM_ROLE_MIDWIFE);
+		roleMap.put("SELLER", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("VENDOR", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("DONOR", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("VENDITORE", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("DONANTE", EventParticipationReader.ENUM_ROLE_GRANTOR);
+		roleMap.put("BUYER", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("PURCHASER", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("DONEE", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("ACQUIRENTE", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("COMPRATORE", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("DONATARIO", EventParticipationReader.ENUM_ROLE_GRANTEE);
+		roleMap.put("LESSOR", EventParticipationReader.ENUM_ROLE_LANDLORD);
+		roleMap.put("LOCATORE", EventParticipationReader.ENUM_ROLE_LANDLORD);
+		roleMap.put("LESSEE", EventParticipationReader.ENUM_ROLE_TENANT);
+		roleMap.put("RENTER", EventParticipationReader.ENUM_ROLE_TENANT);
+		roleMap.put("CONDUTTORE", EventParticipationReader.ENUM_ROLE_TENANT);
+		roleMap.put("AFFITTUARIO", EventParticipationReader.ENUM_ROLE_TENANT);
+		roleMap.put("TESTIMONE", EventParticipationReader.ENUM_ROLE_WITNESS);
+		roleMap.put("GODPARENT", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("GODFATHER", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("GODMOTHER", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("PADRINO", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("MADRINA", EventParticipationReader.ENUM_ROLE_SPONSOR);
+		roleMap.put("PRIEST", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("MINISTER", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("CELEBRANT", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("OFFICIANTE", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("CELEBRANTE", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("SACERDOTE", EventParticipationReader.ENUM_ROLE_OFFICIANT);
+		roleMap.put("DICHIARANTE", EventParticipationReader.ENUM_ROLE_INFORMANT);
+		roleMap.put("ATTORNEY", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
+		roleMap.put("PROXY", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
+		roleMap.put("PROCURATORE", EventParticipationReader.ENUM_ROLE_POWER_OF_ATTORNEY);
+		roleMap.put("DEFENDANT", EventParticipationReader.ENUM_ROLE_ACCUSED);
+		roleMap.put("IMPUTATO", EventParticipationReader.ENUM_ROLE_ACCUSED);
+		roleMap.put("GIUDICE", EventParticipationReader.ENUM_ROLE_JUDGE);
+		roleMap.put("SOLDATO", EventParticipationReader.ENUM_ROLE_SOLDIER);
+		roleMap.put("ESECUTORE", EventParticipationReader.ENUM_ROLE_EXECUTOR);
 
 		// ------------------------------
 		// Privacy level
@@ -745,8 +794,8 @@ public final class GEDCOMMapper{
 		if(StringUtils.isBlank(gedcomRole))
 			return null;
 
-		final String role = gedcomRole.trim()
-			.toUpperCase(Locale.ROOT);
+		//"power of attorney" and "power-of-attorney" are the same role
+		final String role = Strings.CS.replace(Strings.CS.replace(gedcomRole.trim().toUpperCase(Locale.ROOT), " ", "_"), "-", "_");
 		return switch(role){
 			case "WITN" -> EventParticipationReader.ENUM_ROLE_WITNESS;
 			case "OFFICIATOR", "CLERGY" -> EventParticipationReader.ENUM_ROLE_OFFICIANT;
@@ -755,6 +804,18 @@ public final class GEDCOMMapper{
 			case "CHILD", "PARENT", "SPOUSE" -> null;
 			default -> ROLE_MAP.get(role);
 		};
+	}
+
+	/**
+	 * Tells whether the ROLE of a citation or of an association is a kinship (a father, a spouse...): it says how a person is related to
+	 * another, which is recorded by their relationship, and the protocol never uses a participation role for it. Nothing is lost when
+	 * it is not carried over.
+	 *
+	 * @param gedcomRole	The role, may be {@code null}.
+	 */
+	public static boolean isKinshipRole(final String gedcomRole){
+		return (StringUtils.isNotBlank(gedcomRole)
+			&& KINSHIP_ROLES.contains(Strings.CS.replace(Strings.CS.replace(gedcomRole.trim().toUpperCase(Locale.ROOT), " ", "_"), "-", "_")));
 	}
 
 	/**

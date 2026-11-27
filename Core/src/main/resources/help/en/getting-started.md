@@ -30,12 +30,12 @@ The first time the application starts without a file to open, a small **Guided T
 
 ## Your first tree
 
-For when you have no file yet and want to begin with yourself and your family.
+For when you have no file yet and want to begin with yourself and your family. A longer, step-by-step version is [Building a tree: a walkthrough](first-tree.md).
 
 1. **File > New file...** (`Ctrl+N`) asks where to create the file and opens it empty. The view is empty: nobody exists yet.
-2. **Individual > Add Individual...** creates the first person. A name is a record with *parts*: add a name, and in it one part of type *given* (*Giovanni*) and one of type *family* (*Rossi*). Then set the sex (an attribute of type *sex*) and press **OK**. The views place father and mother by sex, so do not skip it. The new person appears in the tree as the root.
-3. **Add the family around that person.** Select the person (a click on the box) and use **Individual > Add Parent...**, **Add Partner...** or **Add Child...** (also in the right-click menu of the box). Each creates a new individual already linked to the selected one and asks the type of the relationship (for example *biological child* for a parent). Click the new person to move on to them, and repeat.
-4. **Add the dates.** A date of birth is not a field of the person but an event: see [Changing a date of birth](editing.md#changing-a-date-of-birth), or follow example 2 of the [worked examples](workflows.md).
+2. **Individual > Add Individual...** creates the first person. In the **Quick entry** at the top, type the **Full name** (*Giovanni Rossi*) and press `Enter`: it is split into the given name and the family name and listed under *Personal Names* (open it there to correct it). Choose the **Sex** and, if you know them, the **Birth** and the **Death** (a date and a place), then press **OK**. The views place father and mother by sex, so do not skip the sex. The new person appears in the tree as the root.
+3. **Add the family around that person.** To enter a person, the partner, the union and the children in one go, use **Individual > Quick Entry...** (`Ctrl+Shift+N`); or select the person (a click on the box) and use **Individual > Add Parent...**, **Add Partner...** or **Add Child...** (also in the right-click menu of the box). Each creates a new individual already linked to the selected one; **Add Partner...** and **Add Child...** ask the type of the relationship, while **Add Parent...** makes a *biological* parent (hold `Shift` to choose another type). In **Quick Entry...** the parents of the person are a part of the window too. Click the new person to move on to them, and repeat.
+4. **Add the dates.** For a new person the birth and the death are in the Quick entry. For a person that exists, a date of birth is not a field of the person but an event: see [Changing a date of birth](editing.md#changing-a-date-of-birth), or follow example 2 of the [worked examples](workflows.md).
 5. **Say where you read it.** When you start to have documents, record them with **Source > New Source...** and cite them: see [Sources and media](editors-sources.md).
 6. Nothing to save: every change is already in the file. If you make a mistake, `Ctrl+Z` undoes it.
 
@@ -51,7 +51,7 @@ FLEF does not store a birth date *inside* a person. It stores records, and links
 - a **source** says where a fact was read, and a **citation** says exactly where in the source;
 - a **conclusion** is what the researcher decides after weighing the evidence.
 
-This is why, to change a date of birth, you edit the birth *event* of the person. [Editing people, groups and places](editing.md#changing-a-date-of-birth) shows how.
+This is why, to change a date of birth, you edit the birth *event* of the person. The **Quick entry** at the top of the person's editor does it for you in the common cases; [Editing people, groups and places](editing.md#changing-a-date-of-birth) shows the whole way.
 
 ## Things that are good to know early
 

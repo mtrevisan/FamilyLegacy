@@ -47,16 +47,17 @@ import javax.swing.JPanel;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 
 /**
  * Utility class responsible for building the genealogical tree layout.
  * <p>
- * The layout reserves one cell per ancestor slot, from the root down to
- * the configured maximum number of generations. Every cell is filled with
- * a {@link PartnersPanel}: a real one when a {@link TreeNode} exists, or a
- * placeholder one when it does not.
+ * The layout reserves the columns that the ancestors need, from the root down to the configured maximum number of generations: a couple
+ * takes as many columns as the couples above it (one if there is none), so that a branch that stops early leaves no hole, and a
+ * family with few ancestors stays close together. Every cell is filled with a {@link PartnersPanel}: a real one when a
+ * {@link TreeNode} exists, or a placeholder one when it does not.
  * <p>
  * The placeholder panels exist to guarantee that every generation row has
  * at least one panel of the same size as the real panels. Without them, a
@@ -114,8 +115,9 @@ public final class TreeLayoutBuilder{
 			final EntityPopupMenuFactory<IndividualPanel, IndividualListener> popupFactory, final TreeLayout treeLayout,
 			final PartnerCycleHandler partnerCycleHandler){
 		final int maxDepth = (rootNode != null? calculateSubtreeMaxDepth(rootNode, maxAncestors): 0);
-		// Total leaf units for a binary pedigree tree of depth maxDepth is strictly 2^maxDepth
-		final int maxLeafUnits = (rootNode != null? (1 << maxDepth): 1);
+		//the columns that the ancestors need: not the 2^maxDepth of a complete pedigree, that leaves a hole for each missing ancestor
+		final Map<TreeNode, Integer> widths = new IdentityHashMap<>();
+		final int maxLeafUnits = (rootNode != null? width(rootNode, 0, maxDepth, widths): 1);
 
 		final boolean isVertical = (treeLayout == TreeLayout.VERTICAL);
 		final String mainPanelConstraints = (isVertical? "ins " + VERTICAL_INSETS: "ins " + HORIZONTAL_INSETS);
@@ -166,14 +168,14 @@ public final class TreeLayoutBuilder{
 				final int nextDepth = depth + 1;
 				final TreeNode motherNode = node.getMother();
 				final TreeNode fatherNode = node.getFather();
-				//a root without a partner is shown alone, centered on the whole width: the parents row has to be centered too, not
-				//pushed in one half
-				final boolean loneRoot = (depth == 0 && (fatherNode == null ^ motherNode == null));
-				final int halfSpan = (loneRoot? span: span >> 1);
+				//each parent takes the columns its own ancestors need, the father on the left of the mother: a node that has only one
+				//parent (a root without a partner) is centered on that parent
+				final int fatherSpan = width(fatherNode, nextDepth, maxDepth, widths);
+				final int motherSpan = width(motherNode, nextDepth, maxDepth, widths);
 
 				// Push MOTHER first, then FATHER, so that FATHER is processed first (LIFO order)
-				stack.push(new LayoutNodeItem(motherNode, nextDepth, (loneRoot? dimension: dimension + halfSpan), halfSpan));
-				stack.push(new LayoutNodeItem(fatherNode, nextDepth, dimension, halfSpan));
+				stack.push(new LayoutNodeItem(motherNode, nextDepth, dimension + fatherSpan, motherSpan));
+				stack.push(new LayoutNodeItem(fatherNode, nextDepth, dimension, fatherSpan));
 			}
 		}
 
@@ -199,6 +201,28 @@ public final class TreeLayoutBuilder{
 		mainPanel.add(childrenPanel, childrenCellConstraints);
 
 		return childrenPanel;
+	}
+
+	/**
+	 * @param node	A node of the tree ({@code null} takes no room).
+	 * @param depth	The generation of the node (the root is 0).
+	 * @param maxDepth	The last generation that is drawn.
+	 * @param widths	What was already computed (filled by this call).
+	 * @return	The columns the node takes: those of its two parents together, one if it has none or is the last generation.
+	 */
+	static int width(final TreeNode node, final int depth, final int maxDepth, final Map<TreeNode, Integer> widths){
+		if(node == null)
+			return 0;
+
+		final Integer known = widths.get(node);
+		if(known != null)
+			return known;
+
+		int width = 1;
+		if(depth < maxDepth)
+			width = Math.max(1, width(node.getFather(), depth + 1, maxDepth, widths) + width(node.getMother(), depth + 1, maxDepth, widths));
+		widths.put(node, width);
+		return width;
 	}
 
 	/**

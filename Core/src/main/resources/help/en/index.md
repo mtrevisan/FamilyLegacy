@@ -5,6 +5,7 @@ Family Legacy is a genealogical data manager built on the **Family LEgacy Format
 ## Where to start
 
 - [Getting started](getting-started.md) is a first walk through the window, to read once.
+- [Building a tree: a walkthrough](first-tree.md) follows a new file from the first person to the grandparents, the partners and the children.
 - [Worked examples](workflows.md) put the commands together: importing a file, recording a person from a source, two sources that disagree, duplicates, sharing.
 - [Files](files.md) explains how to open, save, import, back up and validate a file.
 - [Navigating the tree](navigating.md) covers the views, the sidebar, the history and the bookmarks.

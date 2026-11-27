@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.tools.maintenance.DetectDuplicatesTool;
 import io.github.mtrevisan.familylegacy.ui.helpers.ProgressDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -116,13 +117,17 @@ public final class ImportFileTool implements ToolOperation{
 		if(importer == null)
 			return;
 
-		final int confirm = MessageDialogs.confirm(context.owner(),
-			I18N.tf("confirmation.overwrite.import.message", file.getName()),
-			I18N.t("confirmation.overwrite.import.title"),
-			JOptionPane.YES_NO_OPTION,
-			JOptionPane.WARNING_MESSAGE);
-		if(confirm != JOptionPane.YES_OPTION)
-			return;
+		//nothing is lost by importing over an empty document, and the open file is never touched: ask only if there is something open
+		final FLEFModel open = context.model();
+		if(open != null && !open.isEmpty()){
+			final int confirm = MessageDialogs.confirm(context.owner(),
+				I18N.tf("confirmation.overwrite.import.message", file.getName()),
+				I18N.t("confirmation.overwrite.import.title"),
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+			if(confirm != JOptionPane.YES_OPTION)
+				return;
+		}
 
 		//the import replaces the open document: offer to save its changes first
 		if(!context.confirmDiscardChanges())
@@ -154,9 +159,14 @@ public final class ImportFileTool implements ToolOperation{
 					//the embedded files (BLOB) are written before the model is saved: its media are linked to them while it is not open yet
 					resolveEmbeddedFiles(owner, imported, report, file.getParentFile());
 					//cancelling the save discards the import: no report
-					if(context.openImported(imported, file))
-						//after the file is opened, tell what could not be kept
-						ImportReportDialog.show(owner, report);
+					final File created = context.openImported(imported, file);
+					//after the file is opened, tell where it is and what could not be kept
+					if(created != null){
+						ImportReportStore.save(created.getAbsolutePath(), report, file.getName());
+						ImportReportDialog.show(owner, report, created, () -> context.runTool(new DetectDuplicatesTool()));
+						//a new file has no person to start from: the user is asked, as the next thing to do
+						context.jumpToIndividual();
+					}
 				}
 				catch(final InterruptedException ie){
 					Thread.currentThread()

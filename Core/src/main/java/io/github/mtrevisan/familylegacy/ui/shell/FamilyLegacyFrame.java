@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.shell;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.readers.IndividualReader;
 import io.github.mtrevisan.familylegacy.io.model.ModelHistory;
 import io.github.mtrevisan.familylegacy.io.model.RecordTags;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
@@ -41,6 +42,7 @@ import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContexts;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolDispatcher;
+import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.Bookmark;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkStore;
 import io.github.mtrevisan.familylegacy.ui.components.projections.bookmarks.BookmarkType;
@@ -57,6 +59,7 @@ import io.github.mtrevisan.familylegacy.ui.helpers.ClippedTextTooltips;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogEscapeSupport;
 import io.github.mtrevisan.familylegacy.ui.helpers.DialogPlacement;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
+import io.github.mtrevisan.familylegacy.ui.helpers.StatusMessages;
 import io.github.mtrevisan.familylegacy.ui.preferences.AppearanceManager;
 import io.github.mtrevisan.familylegacy.ui.tools.files.FileMenuController;
 import io.github.mtrevisan.familylegacy.ui.tools.files.RecentFilesManager;
@@ -139,12 +142,14 @@ public class FamilyLegacyFrame extends JFrame{
 	/** Whether the window was maximized before going in full screen. */
 	private int windowedState = NORMAL;
 
+	private static final String APP_TITLE = "Family Legacy";
+
 	private final ToolBarBuilder toolBarBuilder = new ToolBarBuilder();
 	private final DossierManager dossierManager;
 
 
 	public FamilyLegacyFrame(final TreeType treeType, final FLEFModel model){
-		super("Family Legacy");
+		super(APP_TITLE);
 		setIconImages(AppIcon.windowImages());
 
 		this.treeType = treeType;
@@ -166,6 +171,8 @@ public class FamilyLegacyFrame extends JFrame{
 		//the tags go with the file: they are written when they change, and follow the document when it is saved as another file
 		bindTags(model);
 		fileController.setSameDocumentFileListener(this::documentFileChanged);
+		//the title says which file is open
+		fileController.setCurrentFileListener(file -> setTitle(file != null? file.getName() + " - " + APP_TITLE: APP_TITLE));
 
 		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, switcher, null);
 		split.setResizeWeight(1.);
@@ -203,6 +210,7 @@ public class FamilyLegacyFrame extends JFrame{
 			this::openJumpToDialog,
 			() -> editEntity(currentSelectionId()),
 			switcher::setProjection,
+			generations -> switcher.setGenerations(generations),
 			dossierManager::setSidebarVisible,
 			dossierManager.isSidebarVisible()
 		);
@@ -210,11 +218,25 @@ public class FamilyLegacyFrame extends JFrame{
 		switcher.setProjectionChangeListener(toolBarBuilder::updateProjectionState);
 		toolBarBuilder.updateProjectionState(switcher.getCurrentProjectionType());
 
+		//what a tool did (a quick entry: what it created), at the right end of the toolbar, for a few seconds
+		final StatusMessageView statusMessage = new StatusMessageView();
+		StatusMessages.shared()
+			.setListener(statusMessage::show);
+		//whether what is in memory is on the file
+		final SaveStateView saveState = new SaveStateView();
+		fileController.setSaveStateListener(saveState::show);
+		if(assistant == null){
+			toolBar.add(Box.createHorizontalGlue());
+			toolBar.add(statusMessage);
+			toolBar.add(saveState);
+		}
 		if(assistant != null){
 			//how many findings the Research Assistant has, at the right end of the toolbar; a click opens it
 			final ResearchAssistantPort.Indicator indicator = assistant.createIndicator(this, this::model, this::readOnlyModel,
 				this::currentFilePath, FamilyLegacyFrame::isModalDialogShowing);
 			toolBar.add(Box.createHorizontalGlue());
+			toolBar.add(statusMessage);
+			toolBar.add(saveState);
 			toolBar.add(indicator.component());
 			//the findings are computed again when the model changes (a step of the history, an undo, a redo, another file)
 			history.addChangeListener(indicator::refreshSoon);
@@ -276,6 +298,7 @@ public class FamilyLegacyFrame extends JFrame{
 		switcher.withNavigationListener(id -> {
 			dossierManager.syncDossier(id, model);
 			tasksPanel.selectionChanged();
+			rememberView(id);
 		});
 		switcher.setHistoryListener(() -> toolBarBuilder.updateNavigationState(switcher.canGoBack(), switcher.canGoForward()));
 		toolBarBuilder.updateNavigationState(switcher.canGoBack(), switcher.canGoForward());
@@ -659,6 +682,12 @@ public class FamilyLegacyFrame extends JFrame{
 		bookmarkStore.bindDocument(bookmarkFilePath());
 	}
 
+	/** Remembers the person and the view next to the file, so that it opens there the next time. */
+	private void rememberView(final String rootId){
+		if(model != null && switcher != null)
+			ViewMemory.save(bookmarkFilePath(), rootId, switcher.getCurrentProjectionType(), model);
+	}
+
 	/** Writes the tags of the open document under the path of its file (a document with no file has none yet: they are written when it has). */
 	private void saveTags(){
 		final String path = bookmarkFilePath();
@@ -689,6 +718,11 @@ public class FamilyLegacyFrame extends JFrame{
 	public void startGuidedTourOnce(){
 		new GuidedTour(this)
 			.startOnce();
+	}
+
+	/** Asks the file of the empty document the application starts with (see {@link FileMenuController#offerFileAtStartup()}); call it on the event thread. */
+	public void offerFileAtStartup(){
+		fileController.offerFileAtStartup();
 	}
 
 	/** Looks for a newer release, if the user wants it and it is time (see {@link AutomaticUpdatePolicy}); call it on the event thread. */
@@ -725,9 +759,17 @@ public class FamilyLegacyFrame extends JFrame{
 				fileController.documentChanged();
 			}
 
+			//what was shown the last time the file was used is read before the switcher starts to write what is shown now
+			final ViewMemory.Start start = ViewMemory.read(bookmarkFilePath(), newModel);
+
 			switcher = new ProjectionSwitcherPanel(treeType, newModel);
 			bindSwitcher(switcher, newModel);
-			switcher.setProjectionChangeListener(toolBarBuilder::updateProjectionState);
+			switcher.setProjectionChangeListener(type -> {
+				toolBarBuilder.updateProjectionState(type);
+				rememberView(switcher.getCurrentRootId());
+			});
+			//the generations chosen in the toolbar are the ones of the new file too
+			switcher.setGenerations(toolBarBuilder.generations());
 
 			dossierManager.rebuild(newModel);
 
@@ -737,7 +779,9 @@ public class FamilyLegacyFrame extends JFrame{
 			split.revalidate();
 			split.repaint();
 
-			loadRoot(ModelUtils.findLowestIndividualId(newModel));
+			if(start != null && start.projection() != null && start.projection() != switcher.getCurrentProjectionType())
+				switcher.setProjection(start.projection());
+			loadRoot(start != null? start.rootId(): ModelUtils.findLowestIndividualId(newModel));
 		});
 	}
 
@@ -869,7 +913,22 @@ public class FamilyLegacyFrame extends JFrame{
 				}
 
 				@Override
-				public boolean openImported(final FLEFModel importedModel, final File source){
+				public void runTool(final ToolOperation tool){
+					if(tool.isEnabled(createToolContext()))
+						tool.run(createToolContext());
+				}
+
+				@Override
+				public void jumpToIndividual(){
+					//after the model of the import is shown: it is queued behind its replacement
+					SwingUtilities.invokeLater(() -> {
+						if(model != null && model.hasRecordsByType(IndividualReader.TYPE))
+							openJumpToDialog();
+					});
+				}
+
+				@Override
+				public File openImported(final FLEFModel importedModel, final File source){
 					return fileController.openImported(importedModel, source);
 				}
 

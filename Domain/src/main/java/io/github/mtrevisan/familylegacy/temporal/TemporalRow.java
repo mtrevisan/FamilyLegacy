@@ -32,8 +32,8 @@ import java.util.List;
  * <p>
  * A row is anchored to a row entity (individual, group or place) and
  * carries all the temporal tracks built for that entity. The row does not
- * contain relationship arcs; those are represented separately as
- * {@link TemporalConnection} instances and rendered between rows.
+ * contain relationship arcs; those are not part of the row and are
+ * rendered between rows.
  * <p>
  * The record is immutable. {@code tracks} is copied on construction; passing
  * {@code null} yields an empty list. {@code sortOrder} is a hint used by the

@@ -34,6 +34,10 @@ import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.geom.Path2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -43,6 +47,13 @@ public final class LayoutRenderer{
 	private static final double DASH_LENGTH = 2.;
 	/** The distance of each of two side by side connections from the common axis (pixels). */
 	private static final int PARALLEL_OFFSET = 2;
+
+	/** The distance between two tracks of overlapping runs (pixels). */
+	private static final int TRACK_SPACING = 8;
+	/** Runs closer than this (pixels) are considered overlapping. */
+	private static final int TRACK_MARGIN = 3;
+	/** The free space kept between the outermost track and the boxes (pixels). */
+	private static final int TRACK_EDGE_MARGIN = 3;
 
 	private LayoutRenderer(){}
 
@@ -56,7 +67,11 @@ public final class LayoutRenderer{
 		if(rootNode == null || nodeToPanelMap.isEmpty())
 			return path;
 
-		buildTreeConnections(path, treeLayout, rootNode, nodeToPanelMap, canvas);
+		final List<Connection> connections = new ArrayList<>();
+		buildTreeConnections(connections, treeLayout, rootNode, nodeToPanelMap, canvas);
+		assignTracks(connections, treeLayout);
+		for(final Connection connection : connections)
+			connectToParents(path, treeLayout, connection.individual, connection.exit, connection.enter, connection.shift);
 		if(childrenPanel != null && !childrenPanel.getSiblingBoxes().isEmpty()){
 			final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
 			if(homePanel != null)
@@ -66,7 +81,7 @@ public final class LayoutRenderer{
 		return path;
 	}
 
-	private static void buildTreeConnections(final Path2D path, final TreeLayout treeLayout, final TreeNode node,
+	private static void buildTreeConnections(final List<Connection> connections, final TreeLayout treeLayout, final TreeNode node,
 			final Map<TreeNode, PartnersPanel> nodeToPanelMap, final Component container){
 		if(node == null)
 			return;
@@ -82,19 +97,98 @@ public final class LayoutRenderer{
 		//parent to ITS OWN parents, so the kind of the line (biological or not) is the one of the links of the parent, not of the node
 		if(father != null){
 			if(isDrawn(fatherPanel) && isDrawn(nodePanel) && nodePanel.getFatherPanel().isVisible())
-				connectToParents(path, treeLayout, father,
+				connections.add(new Connection(father,
 					SwingUtilities.convertPoint(fatherPanel, fatherPanel.getPaintingExitPoint(), container),
-					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container));
-			buildTreeConnections(path, treeLayout, father, nodeToPanelMap, container);
+					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingFatherEnterPoint(), container)));
+			buildTreeConnections(connections, treeLayout, father, nodeToPanelMap, container);
 		}
 
 		if(mother != null){
 			if(isDrawn(motherPanel) && isDrawn(nodePanel) && nodePanel.getMotherPanel().isVisible())
-				connectToParents(path, treeLayout, mother,
+				connections.add(new Connection(mother,
 					SwingUtilities.convertPoint(motherPanel, motherPanel.getPaintingExitPoint(), container),
-					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container));
-			buildTreeConnections(path, treeLayout, mother, nodeToPanelMap, container);
+					SwingUtilities.convertPoint(nodePanel, nodePanel.getPaintingMotherEnterPoint(), container)));
+			buildTreeConnections(connections, treeLayout, mother, nodeToPanelMap, container);
 		}
+	}
+
+	/** A line from the panel of a parent to the panel of the child; {@code shift} moves its middle run away from the default. */
+	private static final class Connection{
+		private final TreeNode individual;
+		private final Point exit;
+		private final Point enter;
+		private int shift;
+
+		private Connection(final TreeNode individual, final Point exit, final Point enter){
+			this.individual = individual;
+			this.exit = exit;
+			this.enter = enter;
+		}
+	}
+
+	/**
+	 * Gives each group of lines leaving the same box a track of its own, so that the runs of two different groups never lie on
+	 * the same line: otherwise it is impossible to tell whose child is who (typical with an ancestor couple seen twice).
+	 * <p>
+	 * The lines are grouped by the layers they join and by the exit point (all the lines of a couple are one bus and share a
+	 * track); two buses whose extents overlap get different tracks (interval coloring), placed around the default position.
+	 */
+	private static void assignTracks(final List<Connection> connections, final TreeLayout treeLayout){
+		final boolean vertical = (treeLayout == TreeLayout.VERTICAL);
+		final Map<String, Map<String, List<Connection>>> byGap = new LinkedHashMap<>();
+		for(final Connection connection : connections){
+			final String gapKey = (vertical? connection.exit.y + "/" + connection.enter.y: connection.exit.x + "/" + connection.enter.x);
+			final String busKey = connection.exit.x + "/" + connection.exit.y;
+			byGap.computeIfAbsent(gapKey, k -> new LinkedHashMap<>())
+				.computeIfAbsent(busKey, k -> new ArrayList<>())
+				.add(connection);
+		}
+
+		for(final Map<String, List<Connection>> buses : byGap.values()){
+			if(buses.size() < 2)
+				continue;
+
+			final List<List<Connection>> busList = new ArrayList<>(buses.values());
+			busList.sort(Comparator.comparingInt(bus -> extent(bus, vertical)[0]));
+
+			final List<Integer> trackEnds = new ArrayList<>();
+			final int[] busTrack = new int[busList.size()];
+			for(int b = 0; b < busList.size(); b ++){
+				final int[] extent = extent(busList.get(b), vertical);
+				int track = 0;
+				while(track < trackEnds.size() && trackEnds.get(track) + TRACK_MARGIN >= extent[0])
+					track ++;
+				if(track == trackEnds.size())
+					trackEnds.add(extent[1]);
+				else
+					trackEnds.set(track, extent[1]);
+				busTrack[b] = track;
+			}
+
+			final Connection sample = busList.get(0).get(0);
+			final int room = Math.abs(vertical? sample.enter.y - sample.exit.y: sample.enter.x - sample.exit.x);
+			final int half = Math.max(0, (room - PartnersPanel.GROUP_EXITING_HEIGHT) / 2 - TRACK_EDGE_MARGIN);
+			final int spacing = (trackEnds.size() > 1? Math.max(1, Math.min(TRACK_SPACING, half * 2 / (trackEnds.size() - 1))): 0);
+			for(int b = 0; b < busList.size(); b ++){
+				//track 0 in the middle, then alternating below and above: 0, +1, -1, +2, -2...
+				final int slot = ((busTrack[b] & 1) == 1? (busTrack[b] + 1) / 2: -busTrack[b] / 2);
+				for(final Connection connection : busList.get(b))
+					connection.shift = slot * spacing;
+			}
+		}
+	}
+
+	/** Returns {min, max} of the coordinate along which the run of the bus extends. */
+	private static int[] extent(final List<Connection> bus, final boolean vertical){
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		for(final Connection connection : bus){
+			final int a = (vertical? connection.exit.x: connection.exit.y);
+			final int b = (vertical? connection.enter.x: connection.enter.y);
+			min = Math.min(min, Math.min(a, b));
+			max = Math.max(max, Math.max(a, b));
+		}
+		return new int[]{min, max};
 	}
 
 	/** A line goes only to boxes that are on the screen: no box (an ancestor that is not shown, a partner that is not there), no segment. */
@@ -110,35 +204,35 @@ public final class LayoutRenderer{
 	 * mother on the right; when they are of the same kind there is only one line.
 	 */
 	private static void connectToParents(final Path2D path, final TreeLayout treeLayout, final TreeNode individual,
-			final Point exit, final Point enter){
+			final Point exit, final Point enter, final int shift){
 		final boolean hasFather = (individual.getFather() != null);
 		final boolean hasMother = (individual.getMother() != null);
 		final boolean fatherNonBiological = (hasFather && individual.isFatherNonBiological());
 		final boolean motherNonBiological = (hasMother && individual.isMotherNonBiological());
 		if(!hasFather || !hasMother || fatherNonBiological == motherNonBiological){
-			connectParentToChild(path, treeLayout, exit, enter, fatherNonBiological || motherNonBiological);
+			connectParentToChild(path, treeLayout, exit, enter, fatherNonBiological || motherNonBiological, shift);
 			return;
 		}
 
 		final int dx = (treeLayout == TreeLayout.VERTICAL? PARALLEL_OFFSET: 0);
 		final int dy = (treeLayout == TreeLayout.VERTICAL? 0: PARALLEL_OFFSET);
 		connectParentToChild(path, treeLayout, new Point(exit.x - dx, exit.y - dy), new Point(enter.x - dx, enter.y - dy),
-			fatherNonBiological);
+			fatherNonBiological, shift);
 		connectParentToChild(path, treeLayout, new Point(exit.x + dx, exit.y + dy), new Point(enter.x + dx, enter.y + dy),
-			motherNonBiological);
+			motherNonBiological, shift);
 	}
 
 	private static void connectParentToChild(final Path2D path, final TreeLayout treeLayout,
-			final Point parentExitPoint, final Point childEnterPoint, final boolean dashed){
+			final Point parentExitPoint, final Point childEnterPoint, final boolean dashed, final int shift){
 		final Point[] points;
 		if(treeLayout == TreeLayout.VERTICAL){
-			final int midY = (childEnterPoint.y + parentExitPoint.y + PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
+			final int midY = (childEnterPoint.y + parentExitPoint.y + PartnersPanel.GROUP_EXITING_HEIGHT) / 2 + shift;
 
 			points = new Point[]{parentExitPoint, new Point(parentExitPoint.x, midY), new Point(childEnterPoint.x, midY),
 				childEnterPoint};
 		}
 		else{
-			final int midX = (childEnterPoint.x + parentExitPoint.x - PartnersPanel.GROUP_EXITING_HEIGHT) >> 1;
+			final int midX = (childEnterPoint.x + parentExitPoint.x - PartnersPanel.GROUP_EXITING_HEIGHT) / 2 + shift;
 
 			points = new Point[]{parentExitPoint, new Point(midX, parentExitPoint.y), new Point(midX, childEnterPoint.y),
 				childEnterPoint};

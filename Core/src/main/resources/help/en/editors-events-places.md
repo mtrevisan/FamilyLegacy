@@ -16,7 +16,7 @@ Open it with **Event > New Event...**, or from **Event > Manage Events...**, or 
 | **Place** | Where it happened (a place with its citations). |
 | **Confidence** | See [The record editors](editors.md#confidence). |
 
-**Cause** (for an event that has one, such as a death): **Reason** (text; required as soon as sources or an evidence rating are given for the cause), the **Sources with Citations** that support the cause, and **Evidence**, a rating of low, medium or high for the cause. **Participations** lists the *Event Participations*; **Research** lists the conclusions and questions.
+**Cause** (for an event that has one, such as a death): **Reason** (text; required as soon as sources or an evidence rating are given for the cause), the **Sources with Citations** that support the cause, and **Evidence**, a rating of low, medium or high for the cause. **Participations** has, above the list of the *Event Participations*, the row **Add person**: a person (**right-click** the field and choose **Set...**: pick one of the file, or create a new one from the list), the role in plain words (*witness*, *godparent*, *officiant*, *informant*, *midwife*, *principal*, then the other roles) and press **Add**. The participation is made at once, without opening the participation editor, and the role stays for the next person, so the witnesses of a baptism are added one after the other. The same person with the same role is not added twice. If the event is cancelled, what was added goes with it. *Godparent* is the role *sponsor* of the file, and *principal* is the person the event is about. **Research** lists the conclusions and questions.
 
 On OK, the type and the description are required.
 
@@ -47,7 +47,7 @@ On OK, the participant and the event are required.
 
 ## Place
 
-Open it with **Place > New Place...** or **Place > Manage Places...**. **Tabs:** Properties, Location, Relationships, Participations, Context, Research, Sources, Notes, Privacy, Audit (from the standard level the Notes tab has a list of the stories above the other notes).
+Open it with **Manage Places...** (a new place is made with [**Place > New Place...**](#new-place-one-line-with-the-places-that-contain-it), which asks for one line first). **Tabs:** Properties, Location, Relationships, Participations, Context, Research, Sources, Notes, Privacy, Audit (from the standard level the Notes tab has a list of the stories above the other notes).
 
 **Properties**
 
@@ -55,9 +55,15 @@ Open it with **Place > New Place...** or **Place > Manage Places...**. **Tabs:**
 - **Type**: editable. One of: address, building, street, hamlet, village, town, municipality, city, metropolitan area, county, province, department, district, region, macro region, country, empire, parish, diocese, archdiocese, cemetery, island, archipelago, continent, state, parcel.
 - **Confidence**.
 
-**Location**: the **Coordinates** (free text), the **Sources with Citations** that support the location, and a **Confidence** for the location.
+**Location**: the **Coordinates**, the **Sources with Citations** that support the location, and a **Confidence** for the location.
 
-**Relationships** lists the place relationships where this place is the subject and the ones where it is the container (*Members*). See [Relationships between places](relationships.md#relationships-between-places).
+The coordinates are latitude and longitude in decimal degrees, north and east positive (`45.4408, 12.3155`; `N45.4408 E12.3155` also works). A line under the field says the format when it is empty, how the text is read when it is understood, and a warning in red when it is not; saving text that is not understood asks first, because no map, report or search can use it. **Pick on map...** opens the map (the same of the Historical Date Assistant), starting on the coordinates already written, and writes the point you click.
+
+**Relationships** has two lists, written as sentences and not as subject and target: **Part of** (*administrative part of Veneto, 1866 - 1946*: what this place is part of, with the dates when the relationship held) and **Contains** (*Borgo: administrative part of this place*: the places that are part of this one, or that have a link of another kind with it, as *successor of*). Below them, **Add place inside...** creates places inside this one with a line, such as `Borgo, Frazione` (it is disabled for a place that is not saved yet, because the places inside are linked to it). See [Relationships between places](relationships.md#relationships-between-places).
+
+### New Place: one line with the places that contain it
+
+**Place > New Place...** (and **New...** of every window that picks a place) does not open the editor first: it asks for **one line**, the place and then the places that contain it, from the nearest to the largest, separated by commas: `San Martino, Treviso, Veneto`. Under the line, a preview reads it from the largest name: each one is either a place of the file (a list offers the choice when several have the name, and *Create a new place* to ignore them) or **new place**; once a name is new, the ones below it are new too. The summary says what will be created (*2 new places will be created, down to San Martino*) or that the place is already in the file. **OK** creates the new places, each administrative part of the next one, and nothing is written before it. **More...** creates them and opens the full editor on the place. A line with a place already there makes nothing and chooses that place.
 
 ### Place relationship
 
@@ -65,12 +71,12 @@ Open it from the **Relationships** tab of a place. **Tabs:** Properties, Context
 
 | Field | Meaning |
 |---|---|
-| **Subject** | The place being described. |
-| **Target** | The place that contains it, or the earlier one. |
+| **Place** | The place being described (the *subject* of the relationship). |
+| **Related place** | The place that contains it, or the earlier one (the *target* of the relationship). |
 | **Part Type** | Editable. *Administrative part of*, *geographic part of*, *ecclesiastical part of* (a parish, a diocese, an archdiocese), *judicial part of*, *cadastral part of*; or the succession types *successor of* (it replaced the target other than by merger or division), *merged from* (it was created by merging the target; one record for each merged place), *split from* (it was created by dividing the target), *received territory from* (it received part or all of the territory of the target, which continued to exist). |
 | **Validity Range**, **Confidence** | When it held, and how sure you are. |
 
-All three of subject, target and type are required.
+The place, the related place and the type are required.
 
 ## Historic event
 

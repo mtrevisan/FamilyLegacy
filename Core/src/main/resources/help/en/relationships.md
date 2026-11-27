@@ -61,7 +61,7 @@ On OK the editor refuses a relationship with no subject, no target or no type, a
 
 In the tree and in the graph, right-click the child and choose **Add > Parent...** (a new person) or **Connect > Parent...** (an existing one): you confirm the type of the relationship (*biological child* is the default). Both are offered only while the child has fewer than two parents.
 
-The same menu has **Add > Partner...** and **Connect > Partner...** for a partner. The views do not draw empty boxes for missing people.
+The same menu has **Add > Partner...** and **Connect > Partner...** for a partner: besides the type, the window asks **when and where the union began**. The types that began with an event get it at once: a *marriage* event for the kinds of spouse, an *engagement* event for the *engaged partner* (the *cohabiting partner* has none, so nothing is asked), with both people as its *principal* participants. The relationship and the event are two records, and both are made; leave the date and the place empty to make only the relationship. The views do not draw empty boxes for missing people.
 
 ### A marriage or a partnership
 
@@ -69,7 +69,7 @@ The same menu has **Add > Partner...** and **Connect > Partner...** for a partne
 2. Choose the other person as **Target**, and *civil spouse*, *religious spouse*, *customary spouse*, *cohabiting partner* or *engaged partner* as **Subject Type**.
 3. Optionally set **Valid From** and **Valid To**, the confidence, sources and notes.
 
-For partners the order of subject and target does not matter: the tree reads both directions. The marriage as an *event* (with its date and place) is a separate record, see [Events and dates](events-and-dates.md); the Research Assistant reports a marriage event that has no matching relationship.
+For partners the order of subject and target does not matter: the tree reads both directions. The marriage as an *event* (with its date and place) is a separate record (**Add Partner** and **Connect Partner** make it for you), see [Events and dates](events-and-dates.md); the Research Assistant reports a marriage event that has no matching relationship.
 
 ### An adoption, a foster care or a guardianship
 
@@ -97,7 +97,7 @@ The same can be done from the editor of the individual: the subject is already t
 
 ## Moving and removing links
 
-- **Relocate** (`Ctrl+X`) only copies the selected individual or group to a clipboard. It changes nothing by itself.
+- **Relocate** (`Ctrl+Shift+M`) only copies the selected individual or group to a clipboard. It changes nothing by itself.
 - **Paste as > Partner**, **Paste as > Parent** and **Paste as > Child** are in the context menu of a person of the tree, of the graph and of the ego network (and **Paste** on an empty box where there is one). It **removes every link between the pasted person and other individuals** (parents, children, partners, associates; links to groups are not touched), without asking, and then creates the new links, asking for the type as **Connect > Parent...** does. Moving a person is therefore: *detach from everyone, then reattach in the new place*. In the ego network, paste replaces all the relationships between the ego and the pasted record.
 - **Unlink Relationships...** opens a dialog that lists what is linked to the selected individual, grouped as *Parents*, *Partners*, *Groups*, *Associates* and *Children* (for a group: *Members*, *Subgroups*, *Supergroups*), each marked as *Direct*, *Inverse* or *Bidirectional*. Tick what you want to remove and confirm: the relationship records are deleted, the people stay. The dialog may list other records that refer to the entity, with their own tabs; read them before confirming.
 - **Delete** removes an individual together with every relationship that involves it, its event participations and its attributes.
@@ -106,11 +106,11 @@ Undo (`Ctrl+Z`) reverts these changes.
 
 ## Relationships between places
 
-Places have their own relationships, edited the same way (subject, target, type, validity range, confidence). The subject is the place whose role is described, and the target is the place that contains it, or the earlier one.
+Places have their own relationships, edited the same way (place, related place, type, validity range, confidence). The place is the one whose role is described, and the related place is the one that contains it, or the earlier one. In the editor of a place they are read as sentences, in the lists **Part of** and **Contains**; the quickest way to make places inside others is [New Place](editors-events-places.md#new-place-one-line-with-the-places-that-contain-it), with one line.
 
 | Kind | Types |
 |---|---|
 | **Part of** | administrative, geographic, ecclesiastical, judicial, cadastral |
 | **Succession** | successor of, merged from, split from, received territory from |
 
-For example, *administrative part of* with Treviso as subject and Veneto as target. For the succession types the subject is always the later place. The type is an editable list, so a type of your own can be typed. Subject, target and type are required, and both places must be places. A place cannot be related to itself: the editor refuses it.
+For example, *administrative part of* with Treviso as the place and Veneto as the related place. For the succession types the subject is always the later place. The type is an editable list, so a type of your own can be typed. The place, the related place and the type are required, and both must be places. A place cannot be related to itself: the editor refuses it.

@@ -41,6 +41,8 @@ import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.HintTextField;
+import io.github.mtrevisan.familylegacy.ui.helpers.PickMenu;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,8 +85,8 @@ public final class AddCitationDialog extends JDialog{
 
 	private final ToolContext context;
 
-	private final JTextField targetField = new JTextField(28);
-	private final JTextField sourceField = new JTextField(28);
+	private final HintTextField targetField = new HintTextField(28);
+	private final HintTextField sourceField = new HintTextField(28);
 	private final JTextField locatorField = new JTextField(28);
 
 	private final JComboBox<String> stanceCombo = ComboBoxSearch.searchable(new JComboBox<>(SourceCitationReader.STANCES));
@@ -124,22 +126,23 @@ public final class AddCitationDialog extends JDialog{
 		form.add(new JLabel(I18N.l("label.target_record")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		targetField.setEditable(false);
+		targetField.setToolTipText(I18N.t("tooltip.pick.record"));
+		//the record is picked with the right button of the mouse (or a double-click), as every reference
+		PickMenu.install(targetField, this::chooseTarget, null);
+		gbc.gridwidth = 2;
 		form.add(targetField, gbc);
-		gbc.gridx = 2; gbc.weightx = 0;
-		final JButton pickTarget = new JButton(I18N.t("button.choose"));
-		pickTarget.addActionListener(e -> chooseTarget());
-		form.add(pickTarget, gbc);
+		gbc.gridwidth = 1;
 
 		// Source row.
 		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
 		form.add(new JLabel(I18N.l("label.source")), gbc);
 		gbc.gridx = 1; gbc.weightx = 1;
 		sourceField.setEditable(false);
+		sourceField.setToolTipText(I18N.t("tooltip.pick.source"));
+		PickMenu.install(sourceField, this::chooseSource, null);
+		gbc.gridwidth = 2;
 		form.add(sourceField, gbc);
-		gbc.gridx = 2; gbc.weightx = 0;
-		final JButton pickSource = new JButton(I18N.t("button.choose"));
-		pickSource.addActionListener(e -> chooseSource());
-		form.add(pickSource, gbc);
+		gbc.gridwidth = 1;
 
 		// Locator row.
 		gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0;

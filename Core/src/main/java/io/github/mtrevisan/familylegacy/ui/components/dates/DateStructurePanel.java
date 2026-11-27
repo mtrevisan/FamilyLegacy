@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthand;
 import io.github.mtrevisan.familylegacy.io.model.readers.date.DateShorthandReader;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.quickentry.DateShorthandDescriber;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
@@ -59,7 +60,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Window;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Supplier;
 
 
@@ -352,56 +352,14 @@ public class DateStructurePanel extends JPanel implements HistoricalDateAssistan
 		}
 	}
 
-	private static String describeProblem(final DateShorthandReader.SyntaxException exception){
-		return I18N.t("dialog.date.quick_entry.error." + exception.getReason().name().toLowerCase(Locale.ROOT));
+	/** @return	What is wrong with the expression, in words (see {@link DateShorthandDescriber}). */
+	public static String describeProblem(final DateShorthandReader.SyntaxException exception){
+		return DateShorthandDescriber.describeProblem(exception);
 	}
 
 	/** @return	What the expression means, e.g. {@code Bounded: not before 1850 (approx., stated), not after 1860}. */
-	static String describe(final DateShorthand shorthand){
-		final String first = (shorthand.first() != null? describe(shorthand.first()): null);
-		final String second = (shorthand.second() != null? describe(shorthand.second()): null);
-		return switch(shorthand.kind()){
-			case POINT -> I18N.tf("dialog.date.quick_entry.preview.point", first);
-			case BOUNDED -> (first != null && second != null
-				? I18N.tf("dialog.date.quick_entry.preview.bounded.both", first, second)
-				: (first != null
-					? I18N.tf("dialog.date.quick_entry.preview.bounded.not_before", first)
-					: I18N.tf("dialog.date.quick_entry.preview.bounded.not_after", second)));
-			case SPANNING -> (first != null && second != null
-				? I18N.tf("dialog.date.quick_entry.preview.spanning.both", first, second)
-				: (first != null
-					? I18N.tf("dialog.date.quick_entry.preview.spanning.from", first)
-					: I18N.tf("dialog.date.quick_entry.preview.spanning.to", second)));
-		};
-	}
-
-	private static String describe(final DateShorthand.Single date){
-		final StringBuilder text = new StringBuilder();
-		if(date.decade() != null)
-			text.append(I18N.tf("dialog.date.description.decade", String.valueOf(date.decade())));
-		else if(date.century() != null){
-			//the numbers are given as text to avoid the grouping separator of the locale
-			if(date.centuryPart() != null)
-				text.append(I18N.tf("dialog.date.description.century.abbreviation_with_part",
-					I18N.t("enum.date.century_part." + date.centuryPart()), String.valueOf(date.century())));
-			else
-				text.append(I18N.tf("dialog.date.description.century.abbreviation", String.valueOf(date.century())));
-		}
-		else
-			text.append(date.fullDate());
-		if(date.approximate()){
-			text.append(" (")
-				.append(I18N.t("dialog.date.description.approximate.abbreviation"))
-				.append(", ")
-				.append(I18N.t("enum.date.basis." + date.basis()));
-			if(date.margin() != null)
-				text.append(", ")
-					.append(I18N.t("dialog.date.description.margin"))
-					.append(StringUtils.SPACE)
-					.append(date.margin());
-			text.append(')');
-		}
-		return text.toString();
+	public static String describe(final DateShorthand shorthand){
+		return DateShorthandDescriber.describe(shorthand);
 	}
 
 	public void clear(){

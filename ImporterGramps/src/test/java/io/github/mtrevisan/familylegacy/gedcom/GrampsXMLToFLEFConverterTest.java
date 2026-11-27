@@ -253,6 +253,31 @@ class GrampsXMLToFLEFConverterTest{
 	}
 
 	@Test
+	void anOccupationDatedAfterTheDeathIsDatedBeforeTheDeath() throws IOException{
+		final FLEFModel model = convertXml("<events>"
+			+ "<event handle=\"_d\" id=\"E1\" change=\"1\"><type>Death</type><dateval val=\"1850-03-03\"/></event>"
+			+ "<event handle=\"_o\" id=\"E2\" change=\"1\"><type>Occupation</type><description>Farmer</description>"
+			+ "<dateval val=\"1860-06-10\"/></event></events>"
+			+ "<people><person handle=\"_i\" id=\"I1\" change=\"1\"><eventref hlink=\"_d\" role=\"Primary\"/>"
+			+ "<eventref hlink=\"_o\" role=\"Primary\"/></person></people>");
+
+		final FLEFRecord occupation = model.getRecordsByType(IndividualAttributeReader.TYPE).stream()
+			.filter(attribute -> "occupation".equals(FLEFRecordHelper.getChildValue(attribute, IndividualAttributeReader.TAG_TYPE)))
+			.findFirst()
+			.orElseThrow();
+
+		//the validity is "not after the death": the date of the file (the one of the record) is not the beginning of the fact
+		Assertions.assertEquals("3 MAR 1850",
+			FLEFRecordHelper.getChildValue(occupation, "valid_from.value.bounded.not_after.value.full_date"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(occupation, "valid_from.value.bounded.not_before"));
+		Assertions.assertNull(FLEFRecordHelper.findChild(occupation, IndividualAttributeReader.TAG_VALID_TO));
+		//and it is kept in a note
+		final String note = FLEFRecordHelper.getChildValue(occupation, FLEFRecordHelper.composePath(NoteReader.TAG_NOTE, NoteReader.TAG_TEXT));
+		Assertions.assertNotNull(note);
+		Assertions.assertTrue(note.contains("1860"));
+	}
+
+	@Test
 	void thePlacesAreLinkedToThePlacesThatContainThem() throws IOException{
 		final FLEFModel model = convert();
 

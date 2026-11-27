@@ -1,6 +1,7 @@
 # The pages of the help, in the order they are shown (one file name per line).
 index.md
 getting-started.md
+first-tree.md
 files.md
 navigating.md
 views.md

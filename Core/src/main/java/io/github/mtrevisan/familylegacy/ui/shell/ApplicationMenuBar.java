@@ -227,6 +227,12 @@ final class ApplicationMenuBar{
 
 		//one entry for all the formats: the file chooser lists them and the importer is found from the file
 		menu.add(toolItem(FileToolRegistry.importTool(), KeyEvent.VK_I));
+		//the report of the import that created the open file: enabled when the file has one, each time the menu is opened
+		final List<ToolItemBinding> reportBindings = new ArrayList<>();
+		final JMenuItem lastReport = toolItem(FileToolRegistry.lastImportReportTool(), 0);
+		menu.add(lastReport);
+		reportBindings.add(new ToolItemBinding(lastReport, FileToolRegistry.lastImportReportTool()));
+		bindDynamicEnablement(menu, reportBindings);
 
 		final JMenu exportMenu = new JMenu(I18N.t("menu.file.export"));
 		exportMenu.setMnemonic(KeyEvent.VK_E);
@@ -302,7 +308,8 @@ final class ApplicationMenuBar{
 
 	private JMenu createEditMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.edit"));
-		menu.setMnemonic(KeyEvent.VK_E);
+		//the E of Edit is the one of Event: an underlined D of "Edit" is the second best
+		menu.setMnemonic(KeyEvent.VK_D);
 
 		final JMenuItem undo = historyItem(ShortcutRegistry.EDIT_UNDO, frame::undo);
 		final JMenuItem redo = historyItem(ShortcutRegistry.EDIT_REDO, frame::redo);
@@ -544,6 +551,9 @@ final class ApplicationMenuBar{
 		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.navigationTools(repository), bindings);
 		menu.add(new JSeparator());
+		//the duplicates are the ones of the individuals: the tools are here too, not only in Tools
+		addToolsToMenu(menu, MaintenanceToolRegistry.primaryTools(), bindings);
+		menu.add(new JSeparator());
 		addToolsToMenu(menu, IndividualToolRegistry.deleteTools(), bindings);
 
 		bindDynamicEnablement(menu, bindings);
@@ -604,7 +614,8 @@ final class ApplicationMenuBar{
 
 	private JMenu createSourceMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.source"));
-		menu.setMnemonic(KeyEvent.VK_S);
+		//the S is the one of Settings, that has no other letter free
+		menu.setMnemonic(KeyEvent.VK_U);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
@@ -630,7 +641,7 @@ final class ApplicationMenuBar{
 
 	private JMenu createEventMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.event"));
-		menu.setMnemonic(KeyEvent.VK_T);
+		menu.setMnemonic(KeyEvent.VK_E);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 
@@ -713,7 +724,7 @@ final class ApplicationMenuBar{
 
 	private JMenu createToolsMenu(){
 		final JMenu menu = new JMenu(I18N.t("menu.tools"));
-		menu.setMnemonic(KeyEvent.VK_L);
+		menu.setMnemonic(KeyEvent.VK_T);
 
 		final List<ToolItemBinding> bindings = new ArrayList<>();
 

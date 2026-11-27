@@ -45,7 +45,7 @@ import java.util.function.Predicate;
 
 
 /**
- * Builds the {@code question -> activity -> task -> conclusion} tree shown by {@link io.github.mtrevisan.familylegacy.ui.tools.research.ResearchBoardDialog}.
+ * Builds the {@code question -> activity -> task -> conclusion} tree shown by {@code ResearchBoardDialog}.
  * <p>
  * Each research question is a root. Under it are:
  * <ul>

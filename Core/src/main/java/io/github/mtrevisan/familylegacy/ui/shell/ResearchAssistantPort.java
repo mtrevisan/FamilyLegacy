@@ -83,7 +83,7 @@ public interface ResearchAssistantPort{
 	 * @param window             the window the indicator is in
 	 * @param modelSupplier      gives the model being edited
 	 * @param snapshotSupplier   gives a copy of the model as it is now that nobody changes (see
-	 *                           {@link #install(Supplier, Supplier, Supplier)})
+	 *                           {@link #install(Supplier, Supplier, Supplier, Supplier)})
 	 * @param scopeSupplier      gives what identifies the file being edited, or {@code null} if it was never saved
 	 * @param modalDialogShowing whether the user is busy in a modal dialog, so that the findings are not computed now
 	 * @return the indicator of the findings

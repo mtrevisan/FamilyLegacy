@@ -191,21 +191,7 @@ public class RecordDiffDialog extends JDialog{
 		keepAtTopWhileOpening();
 
 		// Header labels showing record info.
-		final String leftLabel = (before != null
-			? before.getTag() + StringUtils.SPACE + OPEN_PARENTHESIS + before.getId() + CLOSE_PARENTHESIS
-			: PLACEHOLDER_NULL);
-		final String rightLabel = (after != null
-			? after.getTag() + StringUtils.SPACE + OPEN_PARENTHESIS + after.getId() + CLOSE_PARENTHESIS
-			: PLACEHOLDER_NULL);
-
-		final JLabel leftHeader = new JLabel(leftLabel, SwingConstants.CENTER);
-		final JLabel rightHeader = new JLabel(rightLabel, SwingConstants.CENTER);
-		leftHeader.setFont(leftHeader.getFont().deriveFont(Font.BOLD));
-		rightHeader.setFont(rightHeader.getFont().deriveFont(Font.BOLD));
-
-		final JPanel headerPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-		headerPanel.add(leftHeader);
-		headerPanel.add(rightHeader);
+		final JPanel headerPanel = getHeaderPanel(before, after);
 
 		final JPanel top = new JPanel(new BorderLayout(0, 4));
 		top.setBorder(BorderFactory.createEmptyBorder(6, 6, 0, 6));
@@ -255,6 +241,25 @@ public class RecordDiffDialog extends JDialog{
 				SwingUtilities.invokeLater(() -> showTop());
 			}
 		});
+	}
+
+	private JPanel getHeaderPanel(final FLEFRecord before, final FLEFRecord after){
+		final String leftLabel = (before != null
+			? before.getTag() + StringUtils.SPACE + OPEN_PARENTHESIS + before.getId() + CLOSE_PARENTHESIS
+			: PLACEHOLDER_NULL);
+		final String rightLabel = (after != null
+			? after.getTag() + StringUtils.SPACE + OPEN_PARENTHESIS + after.getId() + CLOSE_PARENTHESIS
+			: PLACEHOLDER_NULL);
+
+		final JLabel leftHeader = new JLabel(leftLabel, SwingConstants.CENTER);
+		final JLabel rightHeader = new JLabel(rightLabel, SwingConstants.CENTER);
+		leftHeader.setFont(leftHeader.getFont().deriveFont(Font.BOLD));
+		rightHeader.setFont(rightHeader.getFont().deriveFont(Font.BOLD));
+
+		final JPanel headerPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+		headerPanel.add(leftHeader);
+		headerPanel.add(rightHeader);
+		return headerPanel;
 	}
 
 

@@ -272,6 +272,43 @@ class DocumentSavingTest{
 	}
 
 	@Test
+	void theTitleNamesTheFileThatIsOpen(@TempDir final Path directory) throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The window needs a display");
+		final File file = write(directory.resolve("tree.flef"));
+		final FamilyLegacyFrame frame = frame(new AtomicInteger(), file);
+		try{
+			Assertions.assertEquals("tree.flef - Family Legacy", frame.getTitle());
+		}
+		finally{
+			close(frame);
+		}
+	}
+
+	@Test
+	void thePreviousVersionIsKeptAtTheFirstWriteOfTheSession(@TempDir final Path directory) throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The window needs a display");
+		final File file = write(directory.resolve("tree.flef"));
+		final String original = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+		final File backup = directory.resolve("tree.flef.bak").toFile();
+		final FamilyLegacyFrame frame = frame(new AtomicInteger(), file);
+		try{
+			Assertions.assertFalse(backup.exists(), "nothing is written until something changes");
+
+			edit(frame, "P9");
+			waitFor(() -> contains(file, "P9"));
+			edit(frame, "P10");
+			waitFor(() -> contains(file, "P10"));
+
+			//the copy is the file as it was opened, not the one of the second write
+			Assertions.assertTrue(backup.exists());
+			Assertions.assertEquals(original, Files.readString(backup.toPath(), StandardCharsets.UTF_8));
+		}
+		finally{
+			close(frame);
+		}
+	}
+
+	@Test
 	void theCloseButtonWritesWhatIsPendingAndClosesWithoutAskingAnything(@TempDir final Path directory) throws Exception{
 		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The window needs a display");
 		final File file = write(directory.resolve("tree.flef"));
@@ -368,6 +405,24 @@ class DocumentSavingTest{
 		}
 	}
 
+
+	@Test
+	void theFileIsAskedAtStartupAndCancellingLeavesTheDocumentWithoutAFileAndWithoutWarnings() throws Exception{
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(), "The window needs a display");
+		final FamilyLegacyFrame frame = frame(new AtomicInteger(), null);
+		try{
+			final Thread chooser = pressOneOf(UIManager.getString("FileChooser.cancelButtonText"));
+			SwingUtilities.invokeAndWait(frame::offerFileAtStartup);
+			chooser.join(20_000);
+			flushEventQueue();
+			Assertions.assertNull(frame.fileController().currentFile());
+			//not a refusal: the first change asks again
+			Assertions.assertFalse(history(frame).isModified());
+		}
+		finally{
+			close(frame);
+		}
+	}
 
 	@Test
 	void aBookmarkOfARecordThatIsNotInTheFileIsNotApplied() throws Exception{

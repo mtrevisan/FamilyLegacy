@@ -26,9 +26,11 @@ package io.github.mtrevisan.familylegacy.ui.tools.places;
 
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolContext;
 import io.github.mtrevisan.familylegacy.ui.components.projections.actions.ToolOperation;
+import io.github.mtrevisan.familylegacy.ui.components.searches.service.PlaceChainDialog;
 import io.github.mtrevisan.familylegacy.ui.handlers.PlaceHandler;
 
 
@@ -43,9 +45,17 @@ public final class NewPlaceTool implements ToolOperation{
 	@Override
 	public void run(final ToolContext context){
 		final FLEFModel model = context.model();
-		final RecordDialog dialog = PlaceHandler.getInstance()
-			.createNewDialog(context.owner(), model);
-		dialog.setVisible(true);
+		//one line, with the places that contain it: the whole editor is for the user who asks for it (More...)
+		final PlaceChainDialog.Result result = PlaceChainDialog.show(context.owner(), model, null);
+		if(result == null || !result.openEditor())
+			return;
+
+		final FLEFRecord created = model.getRecordById(result.placeId());
+		if(created != null){
+			final RecordDialog dialog = PlaceHandler.getInstance()
+				.createEditDialog(context.owner(), model, created);
+			dialog.setVisible(true);
+		}
 	}
 
 }

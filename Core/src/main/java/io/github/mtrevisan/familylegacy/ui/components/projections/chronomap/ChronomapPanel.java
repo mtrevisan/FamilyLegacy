@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.GeoCoordinate;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.ui.helpers.ShortcutRegistry;
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.OSMTileFactoryInfo;
 import org.jxmapviewer.input.PanMouseInputListener;
@@ -121,9 +122,9 @@ public class ChronomapPanel extends JPanel{
 	/** Minimum globe radius, as a fraction of the smaller side of the viewport, used to center on an individual. */
 	private static final double FOCUS_GLOBE_RADIUS_FACTOR = 1.5;
 
-	/** Action key for the {@code Ctrl+2} shortcut (show the 2D map). */
+	/** Action key for the {@code Alt+2} shortcut (show the 2D map). */
 	private static final String ACTION_SHOW_2D = "show2D";
-	/** Action key for the {@code Ctrl+3} shortcut (show the 3D globe). */
+	/** Action key for the {@code Alt+3} shortcut (show the 3D globe). */
 	private static final String ACTION_SHOW_3D = "show3D";
 
 
@@ -554,8 +555,8 @@ public class ChronomapPanel extends JPanel{
 	/**
 	 * Installs the two view-switch shortcuts:
 	 * <ul>
-	 *   <li>{@code Ctrl+2}: forces the 2D map view;</li>
-	 *   <li>{@code Ctrl+3}: forces the pseudo-3D globe view.</li>
+	 *   <li>{@code Alt+2}: forces the 2D map view;</li>
+	 *   <li>{@code Alt+3}: forces the pseudo-3D globe view.</li>
 	 * </ul>
 	 * The two bindings are explicit, not a single toggle. The bindings
 	 * are registered on the panel's
@@ -566,8 +567,7 @@ public class ChronomapPanel extends JPanel{
 		final InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = getActionMap();
 
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK),
-			ACTION_SHOW_2D);
+		inputMap.put(ShortcutRegistry.CHRONOMAP_TOGGLE_2D.keyStroke(), ACTION_SHOW_2D);
 		actionMap.put(ACTION_SHOW_2D, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
@@ -575,8 +575,7 @@ public class ChronomapPanel extends JPanel{
 			}
 		});
 
-		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK),
-			ACTION_SHOW_3D);
+		inputMap.put(ShortcutRegistry.CHRONOMAP_TOGGLE_3D.keyStroke(), ACTION_SHOW_3D);
 		actionMap.put(ACTION_SHOW_3D, new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent e){
@@ -592,7 +591,7 @@ public class ChronomapPanel extends JPanel{
 	 * Before switching, the 2D map is re-centered on the current globe
 	 * center, so the geographic coordinate at the center of the panel is
 	 * preserved across the transition. Without this, rotating the globe
-	 * and then pressing {@code Ctrl+2} would show the map centered on
+	 * and then pressing {@code Alt+2} would show the map centered on
 	 * the last 2D position, which could be on the other side of the
 	 * world.
 	 */

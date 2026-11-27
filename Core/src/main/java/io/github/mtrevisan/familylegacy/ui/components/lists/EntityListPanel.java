@@ -31,10 +31,12 @@ import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.preferences.UxLevel;
 import io.github.mtrevisan.familylegacy.privacy.PrivacyService;
+import io.github.mtrevisan.familylegacy.quickentry.SourceQuickEntry;
 import io.github.mtrevisan.familylegacy.ui.api.LinkRole;
 import io.github.mtrevisan.familylegacy.ui.api.RecordDialog;
 import io.github.mtrevisan.familylegacy.ui.bindings.BindingsHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.MenuBuilder;
+import io.github.mtrevisan.familylegacy.ui.components.quickentry.QuickCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.components.searches.service.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.ui.features.FeatureVisibilityService;
 import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionHandler;
@@ -42,6 +44,7 @@ import io.github.mtrevisan.familylegacy.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
@@ -345,6 +348,11 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
+			//the short way to cite a source that is not in the file yet: only its title and where in it
+			if(isSourceCitationList()){
+				builder.item(I18N.t("popupmenu.cite_new_source"), this::citeNewSource);
+				builder.separator();
+			}
 			builder.item(I18N.t("popupmenu.create_new"), this::createNewItem);
 			builder.item(I18N.t("popupmenu.add_existing"), this::addItem);
 			builder.separator();
@@ -484,6 +492,27 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				return result[0];
 			}
 		}
+	}
+
+	/** @return	Whether the items are citations of sources. */
+	private boolean isSourceCitationList(){
+		return (type == ListType.CITATION_WRAPPER && handlerTypes.size() == 1 && SourceCitationHandler.class.equals(handlerTypes.getFirst()));
+	}
+
+	/**
+	 * Cites a source that is not in the file: asks only for its title, where in it and (optionally) where it is kept, creates the source
+	 * (and the repository, if it is new) and the citation, that supports what it is cited for. The records created go away with the editor
+	 * that holds the list if that is not saved.
+	 */
+	private void citeNewSource(){
+		final QuickCitationDialog.Result result = QuickCitationDialog.show(parent, model);
+		if(result == null)
+			return;
+
+		final SourceQuickEntry.Created created = SourceQuickEntry.createSource(model, result.title(), result.repository());
+		if(parent instanceof RecordDialog parentDialog)
+			parentDialog.addNestedUndo(() -> created.recordIds().forEach(model::removeRecord));
+		addItemDirectly(SourceQuickEntry.citationOf(created.sourceId(), result.locator()));
 	}
 
 	/**

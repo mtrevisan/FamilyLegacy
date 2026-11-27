@@ -18,8 +18,8 @@ Each example puts together commands that are explained one by one in the other p
 
 You found the baptism of Giovanni Rossi in a parish register, on a scanned page.
 
-1. **Source > New Source...**: give it a title (*Parish of San Martino, baptisms 1840-1860*), and, in *Repositories with Citations*, the archive that keeps it (create it with **Source > New Repository...** if needed). In its *Media* list add the scan. See [Sources and media](editors-sources.md).
-2. **Individual > Add Individual...**: add a name with its parts (given: *Giovanni*, family: *Rossi*), the sex, and save. Use the type of name *birth* if it matters.
+1. **Source > New Source...**: give it a title (*Parish of San Martino, baptisms 1840-1860*, a plain text box), and, in *Repositories with Citations*, the archive that keeps it (create it with **Source > New Repository...** if needed). In its *Media* list add the scan. See [Sources and media](editors-sources.md).
+2. **Individual > Add Individual...**: in the Quick entry type the name (*Giovanni Rossi*, then `Enter`), choose the sex, and save. Open the name in the *Personal Names* list if you want to set its type (*birth*) or correct its parts.
 3. **Event > New Event...**: type *birth* (or *adoption*, *burial*...), the description, the **date** as the register writes it (see [Entering dates](dates.md); put the register's wording in *Original Text*), the place, and in the *Sources* tab the citation of the register.
 4. **Link the person to the event.** Open the person (`F2`), tab **Participations**, *Create New...*: the participant is already the person, choose the event, and the role *principal*. See [Events, places and context](editors-events-places.md).
 5. In the citation, write the **locator**. Instead of typing it, put the cursor in the citation editor, press `Ctrl+Shift+A` and choose the [Source Citation Assistant](citation-assistant.md): type `libro 2, pag. 143, atto 17`, check the result (`Volume: 2, Page: 143, Entry: 17`), press **Apply to Citation**, and save the citation. Set the **Stance** to *supports*, and, if you can tell, the evidence: *original*, *primary*, *direct*.

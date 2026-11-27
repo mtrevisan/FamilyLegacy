@@ -496,7 +496,9 @@ public final class GEDCOMRecordBuilder{
 		final GEDCOMNode evenNode = GEDCOMHelper.findFirstChild(node, GEDCOMMapper.TAG_GENERIC_EVENT);
 		final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(evenNode, GEDCOMMapper.TAG_ROLE);
 		//the role of the cited individual in the cited event has no place in a citation (for an event, it is handled with its participations)
-		if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()) && !EventReader.isOfType(parent))
+		//a kinship is not reported: it says how the person is related to another, which their relationship already records
+		if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()) && !EventReader.isOfType(parent)
+				&& !GEDCOMMapper.isKinshipRole(roleNode.getValue()))
 			discardCitedRole(roleNode, StringUtils.EMPTY);
 		final GEDCOMNode dataNode = GEDCOMHelper.findFirstChild(node, "DATA");
 		//the date the entry was recorded in the source is the date this source was created
@@ -582,7 +584,8 @@ public final class GEDCOMRecordBuilder{
 		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_SOURCE)){
 			final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_GENERIC_EVENT),
 				GEDCOMMapper.TAG_ROLE);
-			if(roleNode == null || StringUtils.isBlank(roleNode.getValue()))
+			//a kinship (as the role of a person in the source of the other spouse) is not reported: their relationship says it
+			if(roleNode == null || StringUtils.isBlank(roleNode.getValue()) || GEDCOMMapper.isKinshipRole(roleNode.getValue()))
 				continue;
 
 			final String mapped = GEDCOMMapper.mapEventRole(roleNode.getValue());
@@ -618,7 +621,7 @@ public final class GEDCOMRecordBuilder{
 		for(final GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, GEDCOMMapper.TAG_SOURCE)){
 			final GEDCOMNode roleNode = GEDCOMHelper.findFirstChild(GEDCOMHelper.findFirstChild(sourNode, GEDCOMMapper.TAG_GENERIC_EVENT),
 				GEDCOMMapper.TAG_ROLE);
-			if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()))
+			if(roleNode != null && StringUtils.isNotBlank(roleNode.getValue()) && !GEDCOMMapper.isKinshipRole(roleNode.getValue()))
 				discardCitedRole(roleNode, eventNode.getTag());
 		}
 	}

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.io.model.readers.RepositoryCitationReade
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecord;
 import io.github.mtrevisan.familylegacy.io.model.record.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.PanelKey;
@@ -60,14 +61,14 @@ import java.awt.Window;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): identifier, locator
+ * Tab 1 (Properties): repository, identifier, locator
  * Tab 8 (Notes): note
  */
 public class RepositoryCitationDialog extends BaseRecordDialog implements CitationHost{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField repositoryField;
+	private final EntityField repositoryField;
 	private final EntityListPanel identifierPanel;
 	private final BoundTextField locatorField;
 
@@ -87,7 +88,10 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
-		repositoryField = new BoundTextField(RepositoryCitationReader.TAG_REPOSITORY);
+		//the repository is chosen with the right button of the mouse, as every reference
+		repositoryField = EntityField.createForRecordFromReference(RepositoryCitationReader.TAG_REPOSITORY, this, model,
+			RepositoryHandler.class);
+		repositoryField.setToolTipText(I18N.t("dialog.repository_citation.repository.tooltip"));
 		identifierPanel = EntityListPanel.createForStructure(RepositoryCitationReader.TAG_IDENTIFIER, this,
 			I18N.t("dialog.repository_citation.identifiers"), model, IdentifierHandler.class);
 		locatorField = new BoundTextField(RepositoryCitationReader.TAG_LOCATOR);
@@ -101,7 +105,6 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 			.withComponent(PanelKey.NOTE, RepositoryCitationReader.TAG_REMARK, null)
 			.build();
 
-		components.bind(repositoryField);
 		components.bind(locatorField);
 
 
@@ -111,6 +114,9 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 
 	@Override
 	protected JPanel createPropertiesPanel(){
+		// repository (name, with a button to pick another one)
+		GUIHelper.addLabeledComponent(propertiesPanel, GUIHelper.requiredLabel("dialog.repository_citation.repository"), repositoryField);
+
 		// identifiers (where the source is found in this repository)
 		GUIHelper.addComponent(propertiesPanel, identifierPanel);
 
@@ -162,7 +168,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.getInstance().getLabel()))
 				return;
 
-			repositoryField.setText(repositoryId);
+			repositoryField.setEntity(model.getRecordById(repositoryId));
 
 			refreshLayout();
 		}
@@ -180,12 +186,14 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 	protected void loadData(){
 		components.load(record);
 
+		repositoryField.load(record);
+
 		identifierPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(repositoryField.isEmpty()){
+		if(!repositoryField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				I18N.tf("validation.required", RepositoryHandler.getInstance().getLabel()),
 				tabbedPane, propertiesPanel, repositoryField);
@@ -198,7 +206,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog implements Citati
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, RepositoryCitationReader.TAG_REPOSITORY, repositoryField.getText());
+		FLEFRecordHelper.removeChildren(record, RepositoryCitationReader.TAG_REPOSITORY);
+		repositoryField.saveReferences(record);
 
 		components.save(record);
 

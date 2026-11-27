@@ -78,12 +78,13 @@ public final class ShortcutRegistry{
 	public static final ShortcutDefinition EDIT_UNDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.undo"), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK), (IS_MAC? "⌘Z": "Ctrl+Z"));
 	public static final ShortcutDefinition EDIT_REDO = register(I18N.t("menu.edit"), I18N.t("menu.edit.redo"), KeyStroke.getKeyStroke(KeyEvent.VK_Y, MENU_MASK), KeyStroke.getKeyStroke(KeyEvent.VK_Z, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), (IS_MAC? "⌘⇧Z": "Ctrl+Y"));
 
-	public static final ShortcutDefinition EDIT_RELOCATE_INDIVIDUAL = register(I18N.t("menu.individual"), I18N.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
+	public static final ShortcutDefinition EDIT_RELOCATE_INDIVIDUAL = register(I18N.t("menu.individual"), I18N.t("menu.individual.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_M, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+M");
 	public static final ShortcutDefinition TOOLS_RESEARCH_ASSISTANT = register(I18N.t("menu.tools"), I18N.t("menu.tools.research_assistant"), KeyStroke.getKeyStroke(KeyEvent.VK_A, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+A");
 	public static final ShortcutDefinition EDIT_DELETE_INDIVIDUAL = register(I18N.t("menu.individual"), I18N.t("menu.individual.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
 	public static final ShortcutDefinition EDIT_SELECTION_INDIVIDUAL = register(I18N.t("menu.individual"), I18N.t("menu.individual.edit.individual"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
+	public static final ShortcutDefinition INDIVIDUAL_QUICK_ENTRY = register(I18N.t("menu.individual"), I18N.t("menu.individual.quick_entry"), KeyStroke.getKeyStroke(KeyEvent.VK_N, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+N");
 
-	public static final ShortcutDefinition EDIT_RELOCATE_GROUP = register(I18N.t("menu.group"), I18N.t("menu.group.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_X, MENU_MASK), "Ctrl+X");
+	public static final ShortcutDefinition EDIT_RELOCATE_GROUP = register(I18N.t("menu.group"), I18N.t("menu.group.relocate"), KeyStroke.getKeyStroke(KeyEvent.VK_M, MENU_MASK | InputEvent.SHIFT_DOWN_MASK), "Ctrl+Shift+M");
 	public static final ShortcutDefinition EDIT_DELETE_GROUP = register(I18N.t("menu.group"), I18N.t("menu.group.delete"), KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "Del");
 	public static final ShortcutDefinition EDIT_SELECTION_GROUP = register(I18N.t("menu.group"), I18N.t("menu.group.edit.group"), KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "F2");
 
@@ -116,8 +117,8 @@ public final class ShortcutRegistry{
 	public static final String CTX_LIST = I18N.t("shortcut.context.list");
 	public static final String CTX_DIALOG = I18N.t("shortcut.context.dialog");
 
-	public static final ShortcutDefinition CHRONOMAP_TOGGLE_3D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.3d"), KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK), "Ctrl+2", CTX_CHRONOMAP);
-	public static final ShortcutDefinition CHRONOMAP_TOGGLE_2D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.2d"), KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK), "Ctrl+3", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TOGGLE_3D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.3d"), KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.ALT_DOWN_MASK), "Alt+3", CTX_CHRONOMAP);
+	public static final ShortcutDefinition CHRONOMAP_TOGGLE_2D = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.toggle.2d"), KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.ALT_DOWN_MASK), "Alt+2", CTX_CHRONOMAP);
 	public static final ShortcutDefinition CHRONOMAP_TIMELINE_PREV_MONTH = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.prev.month"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "Left", CTX_CHRONOMAP);
 	public static final ShortcutDefinition CHRONOMAP_TIMELINE_NEXT_MONTH = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.next.month"), KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "Right", CTX_CHRONOMAP);
 	public static final ShortcutDefinition CHRONOMAP_TIMELINE_PREV_YEAR = register(I18N.t("shortcut.category.chronomap"), I18N.t("shortcut.chronomap.timeline.prev.year"), KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, InputEvent.SHIFT_DOWN_MASK), "Shift+Left", CTX_CHRONOMAP);

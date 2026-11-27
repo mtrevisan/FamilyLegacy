@@ -59,6 +59,7 @@ open module io.github.mtrevisan.familylegacy.domain {
 	exports io.github.mtrevisan.familylegacy.preferences;
 	exports io.github.mtrevisan.familylegacy.privacy;
 	exports io.github.mtrevisan.familylegacy.quality;
+	exports io.github.mtrevisan.familylegacy.quickentry;
 	exports io.github.mtrevisan.familylegacy.reports;
 	exports io.github.mtrevisan.familylegacy.reports.i18n;
 	exports io.github.mtrevisan.familylegacy.reports.index;

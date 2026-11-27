@@ -201,6 +201,12 @@ public final class LunisolarAstronomicalEngine{
 
 		//the leap month of the following cycle can be the 11th or the 12th month of this lunar year
 		final LunarYear following = cycles.get(lunarYear + 1, year -> computeCycle(engine, year));
+		int followingLeapOffset = getFollowingLeapOffset(following, cycle, lunarYear);
+		return new LunarYear(cycle.newMoonsLocalMidnight(), cycle.month11Index(), cycle.nextMonth11Index(),
+			cycle.leapMonthIndex(), followingLeapOffset);
+	}
+
+	private int getFollowingLeapOffset(final LunarYear following, final LunarYear cycle, final int lunarYear){
 		int followingLeapOffset = 0;
 		if(following.leapMonthIndex() >= 0){
 			final int offset = following.leapMonthIndex() - following.month11Index();
@@ -213,8 +219,7 @@ public final class LunisolarAstronomicalEngine{
 				followingLeapOffset = offset;
 			}
 		}
-		return new LunarYear(cycle.newMoonsLocalMidnight(), cycle.month11Index(), cycle.nextMonth11Index(),
-			cycle.leapMonthIndex(), followingLeapOffset);
+		return followingLeapOffset;
 	}
 
 	/**

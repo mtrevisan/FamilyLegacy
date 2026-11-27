@@ -225,6 +225,12 @@ public final class ParsiCalendarParser{
 			throw new IllegalArgumentException("Unknown Parsi reckoning: " + match.suffix());
 
 		// A missing day (month and year only, or a seasonal record) is kept as 0
+		final int day = getDay(match, month, variant);
+
+		return new ParsiDateInput(match.year(), month, day, variant);
+	}
+
+	private static int getDay(final ScriptText.Parsed match, final int month, final ParsiVariant variant){
 		final int day = match.dayOrZero();
 
 		// Validation boundaries
@@ -234,8 +240,7 @@ public final class ParsiCalendarParser{
 		final int gathaDays = (variant == ParsiVariant.FASLI? 6: 5);
 		if(match.day() != null && month == 13 && (day < 1 || day > gathaDays))
 			throw new IllegalArgumentException("Gatha intercalary period must be between 1 and " + gathaDays + " days.");
-
-		return new ParsiDateInput(match.year(), month, day, variant);
+		return day;
 	}
 
 }

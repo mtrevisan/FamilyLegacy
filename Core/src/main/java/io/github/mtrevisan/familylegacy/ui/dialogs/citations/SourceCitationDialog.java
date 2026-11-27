@@ -182,6 +182,9 @@ public class SourceCitationDialog extends BaseRecordDialog implements CitationHo
 		sourceField.load(record);
 
 		components.load(record);
+		//a citation with no stance supports what it is cited for (almost always the case)
+		if(!stanceCombo.isValued())
+			stanceCombo.setSelectedItem(SourceCitationReader.STANCE_SUPPORTS);
 
 		extractPanel.load(record);
 	}

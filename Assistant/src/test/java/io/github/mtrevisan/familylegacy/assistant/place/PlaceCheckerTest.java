@@ -75,7 +75,7 @@ public class PlaceCheckerTest{
 	void namesAreComparedWithoutCaseAccentsAndPunctuation(){
 		Assertions.assertEquals("san pietro di feletto", PlaceChecker.normalize("Sán  PIETRO, di Feletto!".replace("Sán", "San")));
 		Assertions.assertEquals(PlaceChecker.normalize("Verona"), PlaceChecker.normalize("Vérona"));
-		Assertions.assertEquals("", PlaceChecker.normalize("..."));
+		Assertions.assertEquals("", PlaceChecker.normalize("…"));
 	}
 
 	@Test

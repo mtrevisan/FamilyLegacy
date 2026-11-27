@@ -81,11 +81,13 @@ public enum PanelKey{
 
 	// PlaceRelationshipRecord (subject = this place)
 	PLACE_RELATIONSHIP_ON_SUBJECT((owner, cfg, model, record) ->
-		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.SUBJECT, record, PlaceRelationshipHandler.class)),
+		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.SUBJECT, record, PlaceRelationshipHandler.class)
+			.withCellRenderer(new PlaceRelationshipCellRenderer(model, true))),
 
 	// PlaceRelationshipRecord (target = this place)
 	PLACE_RELATIONSHIP_ON_OBJECT((owner, cfg, model, record) ->
-		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.OBJECT, record, PlaceRelationshipHandler.class)),
+		createOneOfReferencePanel(owner, cfg, model, EntityListPanel.ActorType.OBJECT, record, PlaceRelationshipHandler.class)
+			.withCellRenderer(new PlaceRelationshipCellRenderer(model, false))),
 
 	// EventParticipationRecord (participant[individual] = this individual)
 	// EventParticipationRecord (participant[group] = this group)

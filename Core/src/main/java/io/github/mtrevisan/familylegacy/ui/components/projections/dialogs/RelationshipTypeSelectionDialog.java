@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.ui.components.projections.dialogs;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.RelationshipReader;
+import io.github.mtrevisan.familylegacy.quickentry.QuickEntryService;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.components.projections.individual.IndividualListener;
+import io.github.mtrevisan.familylegacy.ui.components.quickentry.LifeFactRow;
 import io.github.mtrevisan.familylegacy.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.helpers.MessageDialogs;
 import net.miginfocom.swing.MigLayout;
@@ -42,6 +44,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -99,6 +102,14 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 */
 	public record ParentsChoice(String parentType, Item otherParent, String otherType){}
 
+	/**
+	 * The outcome of {@link #selectUnion}.
+	 *
+	 * @param type	the type of the relationship chosen.
+	 * @param fact	when and where the union began (nothing if the type has no event to tell it, or nothing was typed).
+	 */
+	public record UnionChoice(String type, QuickEntryService.LifeFact fact){}
+
 	/** An entry of the "other parent" combo: an individual, or one of the two commands. */
 	private record Choice(Item item, String text){
 
@@ -115,6 +126,11 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	private final String[] allowedTypes;
 	private final IndividualListener listener;
 	private final OtherParentRow otherParentRow;
+	/** Whether the dialog also asks when and where the union began (for the partners). */
+	private final boolean withUnion;
+	private LifeFactRow unionRow;
+	private boolean unionApplies;
+	private QuickEntryService.LifeFact selectedUnion = QuickEntryService.LifeFact.NONE;
 
 	private final List<JComboBox<String>> comboBoxes = new ArrayList<>();
 	private JComboBox<Choice> otherParentCombo;
@@ -141,11 +157,12 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	 */
 	public RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
 			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model){
-		this(owner, items, allowedTypes, listener, model, null);
+		this(owner, items, allowedTypes, listener, model, null, false);
 	}
 
 	private RelationshipTypeSelectionDialog(final Window owner, final List<Item> items,
-			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model, final OtherParentRow otherParentRow){
+			final String[] allowedTypes, final IndividualListener listener, final FLEFModel model, final OtherParentRow otherParentRow,
+			final boolean withUnion){
 		super(owner, I18N.t("dialog.relationship_types.title"), ModalityType.APPLICATION_MODAL);
 
 		if(items == null || items.isEmpty())
@@ -158,6 +175,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		this.allowedTypes = allowedTypes;
 		this.listener = listener;
 		this.otherParentRow = otherParentRow;
+		this.withUnion = withUnion;
 
 		initComponents();
 
@@ -207,7 +225,7 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 	public static ParentsChoice selectParents(final Window owner, final Item parent, final OtherParentRow otherParent,
 			final String[] allowedTypes, final FLEFModel model){
 		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, List.of(parent), allowedTypes, null, model,
-			otherParent);
+			otherParent, false);
 		dialog.setVisible(true);
 
 		final List<String> types = dialog.getSelectedTypes();
@@ -215,6 +233,26 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 			return null;
 
 		return new ParentsChoice(types.getFirst(), dialog.selectedOther, dialog.selectedOtherType);
+	}
+
+
+	/**
+	 * Shows the dialog for a new union: the type of the relationship (the kinds of spouse, the engaged or cohabiting partner) and, for the
+	 * types that begin with an event (a marriage, an engagement), when and where it happened.
+	 *
+	 * @param owner	parent window; may be {@code null}.
+	 * @param partner	the individual that is being linked.
+	 * @param allowedTypes	the allowed relationship types.
+	 * @param model	the FLEF model.
+	 * @return	The choice, or {@code null} if cancelled.
+	 */
+	public static UnionChoice selectUnion(final Window owner, final Item partner, final String[] allowedTypes, final FLEFModel model){
+		final RelationshipTypeSelectionDialog dialog = new RelationshipTypeSelectionDialog(owner, List.of(partner), allowedTypes, null, model,
+			null, true);
+		dialog.setVisible(true);
+
+		final List<String> types = dialog.getSelectedTypes();
+		return (types != null? new UnionChoice(types.getFirst(), dialog.selectedUnion): null);
 	}
 
 
@@ -267,6 +305,9 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		scrollPane.setPreferredSize(new Dimension(450, preferredHeight));
 
 		add(scrollPane, "grow,wrap,gapbottom 10");
+
+		if(withUnion)
+			add(createUnionPanel(), "growx,wrap,gapbottom 10");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			I18N.t("button.ok"), this::onOk,
@@ -335,6 +376,25 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 		tablePanel.add(otherTypeCombo, "wrap");
 	}
 
+	/** The panel where the user says when and where the union began: it applies only to the types that have an event to tell it. */
+	private JPanel createUnionPanel(){
+		unionRow = new LifeFactRow(this, model, "dialog.quick_entry.union_date");
+
+		final JPanel panel = new JPanel(new MigLayout("ins 5,hidemode 3,fillx,gapy 5", "[right]rel[]rel[right]rel[grow,fill]rel[]"));
+		panel.setBorder(new TitledBorder(I18N.t("dialog.quick_entry.union")));
+		unionRow.addTo(panel);
+
+		comboBoxes.getFirst().addActionListener(e -> updateUnionApplies());
+		updateUnionApplies();
+		return panel;
+	}
+
+	/** A type that has no event to tell when it began (the cohabiting partners) has no date and no place to ask. */
+	private void updateUnionApplies(){
+		unionApplies = (QuickEntryService.unionEventType((String)comboBoxes.getFirst().getSelectedItem()) != null);
+		unionRow.setActive(unionApplies);
+	}
+
 	/** @return	Whether both parents are biological, that is the biological parents of the child must be of different sexes. */
 	private boolean areBothParentsBiological(){
 		return (RelationshipReader.ENUM_TYPE_BIOLOGICAL_CHILD.equals(comboBoxes.getFirst().getSelectedItem())
@@ -377,6 +437,10 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 
 
 	private void onOk(){
+		//the date is read and the place decided before anything else, so that the user can still correct them
+		if(withUnion && unionApplies && !unionRow.prepare())
+			return;
+
 		selectedTypes = new ArrayList<>();
 		for(final JComboBox<String> combo : comboBoxes){
 			final String selected = (String)combo.getSelectedItem();
@@ -390,6 +454,8 @@ public class RelationshipTypeSelectionDialog extends JDialog{
 				selectedOtherType = (type != null? type: allowedTypes[0]);
 			}
 		}
+		if(withUnion && unionApplies)
+			selectedUnion = unionRow.fact();
 		canceled = false;
 
 		dispose();

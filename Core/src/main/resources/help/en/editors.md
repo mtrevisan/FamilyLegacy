@@ -26,7 +26,7 @@ Which tabs an editor has depends on the record; their order is always the same:
 1. **Properties**: the fields of the record itself.
 2. **Cause** and **Location**: only for events and places.
 3. **Attributes**: the attributes of an individual or a group.
-4. **Relationships**: the relationships where the record is the subject (*Relationships*) and where it is the target (*Inverse Relationships*; for a group *Group Memberships*, for a place *Members*).
+4. **Relationships**: the relationships where the record is the subject (*Relationships*) and where it is the target (*Inverse Relationships*; for a group *Group Memberships*, for a place *Part of* and *Contains*).
 5. **Participations**: the event participations of the record.
 6. **Context**: the context impacts that concern the record.
 7. **Research**: conclusions, identity hypotheses and research questions about the record.
@@ -40,7 +40,7 @@ If an editor has only the Properties tab, no tab bar is shown.
 
 ## Sources with Citations
 
-The **Sources** tab lists the citations that support the record. The menu offers **Create New...**, **Add Existing...**, **Edit Record...**, **Edit Citation...** and **Remove**. Under the list, an image carousel shows the images of the selected source, if it has any. See [Sources and media](sources-and-media.md) and [the citation editor](editors-sources.md#source-citation).
+The **Sources** tab lists the citations that support the record. The menu offers **Cite a New Source...** (the short way to cite a source that is not in the file yet: see [the quick citation](editors-sources.md#cite-a-new-source)), **Create New...**, **Add Existing...**, **Edit Record...**, **Edit Citation...** and **Remove**. Under the list, an image carousel shows the images of the selected source, if it has any. See [Sources and media](sources-and-media.md) and [the citation editor](editors-sources.md#source-citation).
 
 ## Media of a record
 

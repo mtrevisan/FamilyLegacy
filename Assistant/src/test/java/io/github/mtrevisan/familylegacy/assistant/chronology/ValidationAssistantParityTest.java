@@ -139,7 +139,7 @@ public class ValidationAssistantParityTest{
 		VALIDATION.put("invalid_identifier", same("source_identifier.invalid"));
 		VALIDATION.put("invalid_repository_identifier", same("source_identifier.invalid"));
 		VALIDATION.put("no_name", only("an individual without a name"));
-		VALIDATION.put("event_few_principals", missing("a marriage with one principal, a birth with two...: advisory, from the catalog of the event types; the assistant should suggest the missing one"));
+		VALIDATION.put("event_few_principals", missing("a marriage with one principal, a birth with two…: advisory, from the catalog of the event types; the assistant should suggest the missing one"));
 		VALIDATION.put("event_many_principals", missing("more principals than the catalog of the event types expects: advisory"));
 		VALIDATION.put("event_no_participants", only("an event nobody took part in"));
 		VALIDATION.put("event_no_principal", only("an event without a principal participant"));

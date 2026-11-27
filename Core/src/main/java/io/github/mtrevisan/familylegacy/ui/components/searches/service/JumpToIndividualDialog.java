@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.components.searches.service;
 
+import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.ui.handlers.IndividualHandler;
@@ -66,7 +67,8 @@ public final class JumpToIndividualDialog{
 				if(record != null && record.getId() != null)
 					result[0] = record.getId();
 			},
-			handlers);
+			handlers)
+			.withTitle(I18N.t(withGroups? "search.title.jump.individual_or_group": "search.title.jump.individual"));
 		dialog.setVisible(true);
 
 		return result[0];

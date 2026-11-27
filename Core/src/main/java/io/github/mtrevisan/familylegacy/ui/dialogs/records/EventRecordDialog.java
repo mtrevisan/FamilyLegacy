@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 import io.github.mtrevisan.familylegacy.i18n.I18N;
 import io.github.mtrevisan.familylegacy.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.io.model.readers.ConfidenceReader;
+import io.github.mtrevisan.familylegacy.io.model.readers.EventParticipationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.EventReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.MediaCitationReader;
 import io.github.mtrevisan.familylegacy.io.model.readers.PlaceCitationReader;
@@ -36,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.ui.components.fields.EntityField;
+import io.github.mtrevisan.familylegacy.ui.components.fields.EventParticipantRow;
 import io.github.mtrevisan.familylegacy.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.ui.components.lists.MediaPartListPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.BaseRecordDialog;
@@ -112,6 +114,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea descriptionArea;
 	private final DateField dateField;
 	private final EntityField placeField;
+	private final EventParticipantRow participantRow;
 	private final BoundTextField causeReasonField;
 	private final BoundComboBox<String> causeConfidenceCombo;
 	private final BoundComboBox<String> confidenceCombo;
@@ -148,8 +151,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 		causeReasonField = new BoundTextField(EventReader.TAG_CAUSE_REASON);
 		causeConfidenceCombo = new BoundComboBox<>(EventReader.TAG_CAUSE_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		causeConfidenceCombo.setI18NPrefix("enum.confidence");
+		causeConfidenceCombo.setToolTipText(I18N.t("tooltip.event.cause.evidence"));
 		confidenceCombo = new BoundComboBox<>(EventReader.TAG_CONFIDENCE, GUIHelper.fillCombo(ConfidenceReader.CONFIDENCES, null));
 		confidenceCombo.setI18NPrefix("enum.confidence");
+		confidenceCombo.setToolTipText(I18N.t("tooltip.event.confidence"));
 
 		// Build common panels using the builder
 		mediaCitationPanel = new MediaPartListPanel(MediaCitationReader.TAG, this, I18N.t("dialog.media_citation.panel"), model);
@@ -167,6 +172,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.PRIVACY, EventReader.TAG_PRIVACY, null)
 			.withComponent(PanelKey.AUDIT, EventReader.TAG_AUDIT, null)
 			.build();
+
+		//who took part, in one row: a person, the role in plain words, Add (the participations are undone if the dialog is cancelled)
+		participantRow = new EventParticipantRow(this, model, this.record::getId, this::addNestedUndo, this::reloadParticipations);
 
 		components.bind(typeCombo);
 		components.bind(descriptionArea);
@@ -219,12 +227,22 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createParticipationsPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		GUIHelper.addLabeledComponent(panel, I18N.l("dialog.event.add_person"), participantRow);
 
 		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT);
 		GUIHelper.addComponent(panel, eventParticipationPanel);
 
 		return panel;
+	}
+
+	/** Reads the list of the participations again, after a person was added with the row. */
+	private void reloadParticipations(){
+		if(components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT) instanceof EntityListPanel list)
+			list.withConclusions()
+				.withParentEntity(record)
+				.loadCitationsWithType(record.getId(), EventParticipationReader.TAG_EVENT);
 	}
 
 	@Override
